@@ -9,7 +9,6 @@ import {
   Flame, ChevronRight, Clock, Users, Sparkles, TrendingUp, TrendingDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useCurriculumLessons } from '@/hooks/useCurriculumLessons';
 import { DailyStreakCard } from '../academy/DailyStreakCard';
@@ -28,10 +27,6 @@ import { BookMyClassModal } from '../BookMyClassModal';
 import { JoinLessonHero } from '../JoinLessonHero';
 import { HubLogo } from '../HubLogo';
 import { cn } from '@/lib/utils';
-
-// Academy Hub Colors
-const ACADEMY_PRIMARY = '#1A237E';
-const ACADEMY_ACCENT = '#4A148C';
 
 interface AcademyDashboardProps {
   studentName?: string;
@@ -60,14 +55,6 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
 
-  const tabs: { id: TabId; icon: React.ReactNode; label: string }[] = [
-    { id: 'home', icon: <Home className="w-5 h-5" />, label: 'Home' },
-    { id: 'learn', icon: <BookOpen className="w-5 h-5" />, label: 'Learn' },
-    { id: 'schedule', icon: <Calendar className="w-5 h-5" />, label: 'Schedule' },
-    { id: 'rank', icon: <Trophy className="w-5 h-5" />, label: 'Rank' },
-    { id: 'profile', icon: <User className="w-5 h-5" />, label: 'Profile' },
-  ];
-
   const schedule = [
     { day: 'Mon', time: '3:00 PM', subject: 'Grammar', color: isDark ? 'bg-indigo-900/50 text-indigo-300' : 'bg-indigo-50 text-indigo-700' },
     { day: 'Wed', time: '4:30 PM', subject: 'Speaking', color: isDark ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-50 text-purple-700' },
@@ -86,25 +73,16 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
 
   if (isLoading) return <AcademySkeleton />;
 
-  // Dynamic classes based on theme
-  const bgClass = isDark ? 'bg-[#0A0A1E]' : 'bg-[#FAFBFC]';
-  const sidebarBg = isDark ? 'bg-[#0D0D2A] border-indigo-900/50' : 'bg-white border-slate-200';
-  const textPrimary = isDark ? 'text-indigo-100' : 'text-[#1A237E]';
+  const textPrimary = isDark ? 'text-indigo-100' : 'text-[#174EA6]';
   const textSecondary = isDark ? 'text-indigo-300' : 'text-slate-500';
-  const cardBg = isDark ? 'bg-indigo-950/50 border-indigo-800/30' : 'border-slate-200 shadow-sm bg-white';
 
   return (
     <div className="relative space-y-6">
-      {/* Academy branded header bar */}
+      {/* ═══════════ HEADER BAR — GLASSMORPHIC ═══════════ */}
       <motion.div
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className={cn(
-          'flex items-center justify-between px-5 py-3 rounded-xl border',
-          isDark
-            ? 'bg-indigo-950/60 backdrop-blur-xl border-indigo-700/30'
-            : 'bg-white/80 backdrop-blur-xl border-indigo-200/50 shadow-sm'
-        )}
+        className="glass-card-hub glass-academy flex items-center justify-between px-5 py-3 backdrop-blur-xl"
       >
         <HubLogo hubId="academy" size="md" />
         <div className="flex items-center gap-3">
@@ -118,9 +96,36 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
         </div>
       </motion.div>
 
+      {/* ═══════════ HERO WELCOME — GLASSMORPHIC ═══════════ */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05 }}
+        className="glass-card-hub glass-academy p-6 backdrop-blur-md relative overflow-hidden"
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-[#174EA6]/10 via-[#B75EED]/10 to-transparent pointer-events-none" />
+        <div className="relative flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#174EA6] to-[#B75EED] bg-clip-text text-transparent">
+              Welcome back, {studentName} 📚
+            </h1>
+            <p className={cn('text-sm mt-1', textSecondary)}>
+              Level {level} · {totalXp.toLocaleString()} XP — Keep pushing forward!
+            </p>
+          </div>
+          <motion.div
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 3, repeat: Infinity }}
+            className="text-4xl hidden md:block"
+          >
+            🎓
+          </motion.div>
+        </div>
+      </motion.div>
+
       {/* Main Content */}
       <div>
-        {/* JOIN LESSON HERO — primary CTA */}
+        {/* JOIN LESSON HERO */}
         <div className="mb-6">
           <JoinLessonHero hubId="academy" isDark={isDark} />
         </div>
@@ -132,33 +137,8 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
           </div>
         )}
 
-        {/* Header */}
-        <motion.div
-          initial={{ y: -10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="flex justify-between items-center mb-6"
-        >
-          <div>
-            <h1 className={cn('text-2xl font-semibold', textPrimary)}>
-              Welcome back, {studentName}
-            </h1>
-            <p className={cn('text-sm mt-0.5', textSecondary)}>
-              Level {level} · {totalXp.toLocaleString()} XP
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className={cn(
-              'flex items-center gap-1.5 px-3 py-1.5 rounded-full',
-              isDark ? 'bg-orange-900/30 border border-orange-500/30' : 'bg-orange-50 border border-orange-200'
-            )}>
-              <Flame className="w-4 h-4 text-orange-500" fill="currentColor" />
-              <span className={cn('font-semibold text-sm', isDark ? 'text-orange-300' : 'text-orange-600')}>{currentStreak}</span>
-            </div>
-          </div>
-        </motion.div>
-
         {/* Streak Card */}
-        <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.05 }} className="mb-6">
+        <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="mb-6">
           <DailyStreakCard
             currentStreak={currentStreak}
             longestStreak={14}
@@ -170,94 +150,88 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-5">
-            {/* Schedule */}
-            <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}>
-              <Card className={cn('rounded-lg', cardBg)}>
-                <CardHeader className="pb-3">
-                  <CardTitle className={cn('flex items-center gap-2 text-base font-semibold', textPrimary)}>
-                    <Calendar className="w-4 h-4" />
-                    My Schedule
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {schedule.map((item, index) => (
-                      <div key={index} className={cn(
-                        'flex items-center justify-between p-3 rounded-lg transition-colors',
-                        isDark ? 'bg-indigo-950/30 hover:bg-indigo-950/50' : 'bg-slate-50 hover:bg-slate-100'
-                      )}>
-                        <div className="flex items-center gap-3">
-                          <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold', item.color)}>
-                            {item.day}
-                          </div>
-                          <div>
-                            <p className={cn('font-medium text-sm', isDark ? 'text-indigo-100' : 'text-slate-800')}>{item.subject}</p>
-                            <p className={cn('text-xs flex items-center gap-1', textSecondary)}>
-                              <Clock className="w-3 h-3" />{item.time}
-                            </p>
-                          </div>
+            {/* Schedule — GLASS */}
+            <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.15 }}>
+              <div className="glass-card-hub glass-academy p-5 backdrop-blur-md">
+                <h3 className={cn('flex items-center gap-2 text-base font-semibold mb-4', textPrimary)}>
+                  <Calendar className="w-4 h-4" />
+                  My Schedule
+                </h3>
+                <div className="space-y-2">
+                  {schedule.map((item, index) => (
+                    <div key={index} className={cn(
+                      'flex items-center justify-between p-3 rounded-lg transition-colors',
+                      isDark ? 'bg-indigo-950/30 hover:bg-indigo-950/50' : 'bg-white/50 hover:bg-white/80'
+                    )}>
+                      <div className="flex items-center gap-3">
+                        <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold', item.color)}>
+                          {item.day}
                         </div>
-                        <ChevronRight className={cn('w-4 h-4', isDark ? 'text-indigo-600' : 'text-slate-300')} />
+                        <div>
+                          <p className={cn('font-medium text-sm', isDark ? 'text-indigo-100' : 'text-slate-800')}>{item.subject}</p>
+                          <p className={cn('text-xs flex items-center gap-1', textSecondary)}>
+                            <Clock className="w-3 h-3" />{item.time}
+                          </p>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                      <ChevronRight className={cn('w-4 h-4', isDark ? 'text-indigo-600' : 'text-slate-300')} />
+                    </div>
+                  ))}
+                </div>
+              </div>
             </motion.div>
 
-            {/* Continue Learning */}
-            <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.15 }}>
-              <Card className={cn('rounded-lg overflow-hidden border-l-4 border-l-indigo-600', isDark ? 'bg-indigo-950/50 border-indigo-800/30' : 'border-[#1A237E]/10 shadow-sm bg-white')}>
-                <CardContent className="p-5">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1.5">
-                      <p className={cn('text-xs font-medium uppercase tracking-wider', textSecondary)}>Continue where you left off</p>
-                      {currentLesson && (
-                        <>
-                          <div className={cn('flex items-center gap-2 text-xs', textSecondary)}>
-                            {(currentLesson as any).unit && (
-                              <span>Unit {(currentLesson as any).unit.unit_number}: {(currentLesson as any).unit.title}</span>
-                            )}
-                            {currentLesson.sequence_order && (
-                              <span>· Lesson {currentLesson.sequence_order}</span>
-                            )}
-                          </div>
-                          <h3 className={cn('text-lg font-semibold', isDark ? 'text-white' : 'text-slate-800')}>
-                            {currentLesson.title || 'Writing Workshop'}
-                          </h3>
-                        </>
-                      )}
-                      {!currentLesson && <h3 className={cn('text-lg font-semibold', isDark ? 'text-white' : 'text-slate-800')}>No lessons available</h3>}
-                      <p className={cn('text-sm', textSecondary)}>{currentLesson?.duration_minutes || 35} min</p>
-                      <div className={cn('mt-2 h-1.5 w-48 rounded-full overflow-hidden', isDark ? 'bg-indigo-900/50' : 'bg-slate-100')}>
-                        <div className="h-full w-3/5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" />
-                      </div>
+            {/* Continue Learning — GLASS */}
+            <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
+              <div className="glass-card-hub glass-academy p-5 backdrop-blur-md border-l-4 border-l-[#174EA6]">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1.5">
+                    <p className={cn('text-xs font-medium uppercase tracking-wider', textSecondary)}>Continue where you left off</p>
+                    {currentLesson && (
+                      <>
+                        <div className={cn('flex items-center gap-2 text-xs', textSecondary)}>
+                          {(currentLesson as any).unit && (
+                            <span>Unit {(currentLesson as any).unit.unit_number}: {(currentLesson as any).unit.title}</span>
+                          )}
+                          {currentLesson.sequence_order && (
+                            <span>· Lesson {currentLesson.sequence_order}</span>
+                          )}
+                        </div>
+                        <h3 className={cn('text-lg font-semibold', isDark ? 'text-white' : 'text-slate-800')}>
+                          {currentLesson.title || 'Writing Workshop'}
+                        </h3>
+                      </>
+                    )}
+                    {!currentLesson && <h3 className={cn('text-lg font-semibold', isDark ? 'text-white' : 'text-slate-800')}>No lessons available</h3>}
+                    <p className={cn('text-sm', textSecondary)}>{currentLesson?.duration_minutes || 35} min</p>
+                    <div className={cn('mt-2 h-1.5 w-48 rounded-full overflow-hidden', isDark ? 'bg-indigo-900/50' : 'bg-slate-100')}>
+                      <div className="h-full w-3/5 bg-gradient-to-r from-[#174EA6] to-[#B75EED] rounded-full" />
                     </div>
-                    <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-5 rounded-lg text-sm font-medium">
-                      Continue <ChevronRight className="w-4 h-4 ml-1" />
-                    </Button>
                   </div>
-                </CardContent>
-              </Card>
+                  <Button className="bg-gradient-to-r from-[#174EA6] to-[#B75EED] hover:from-indigo-700 hover:to-purple-700 text-white px-5 rounded-lg text-sm font-medium glow-pulse-academy">
+                    Continue <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </div>
+              </div>
             </motion.div>
 
             {/* AI Lesson Card */}
-            <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
+            <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.25 }}>
               <AIPersonalizedLessonCard />
             </motion.div>
 
             {/* Record Clip */}
-            <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.22 }}>
+            <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.28 }}>
               <RecordClipWidget />
             </motion.div>
           </div>
 
           {/* Right Column */}
-          <motion.div initial={{ x: 10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.25 }} className="space-y-5">
-            {/* Book a Slot */}
+          <motion.div initial={{ x: 10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.3 }} className="space-y-5">
+            {/* Book a Slot — GLOWING */}
             <Button
               onClick={() => setBookingOpen(true)}
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-medium py-2.5 text-sm"
+              className="w-full bg-gradient-to-r from-[#174EA6] to-[#B75EED] hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-medium py-2.5 text-sm glow-pulse-academy"
             >
               Book a Slot with a Teacher
             </Button>
@@ -265,68 +239,64 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
             {/* Skill XP */}
             <SkillXPBars />
 
-            {/* Leaderboard */}
-            <Card className={cn('rounded-lg', cardBg)}>
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className={cn('flex items-center gap-2 text-base font-semibold', textPrimary)}>
-                    <Trophy className="w-4 h-4 text-amber-500" />
-                    Leaderboard
-                  </CardTitle>
-                </div>
-                <Tabs value={leaderboardPeriod} onValueChange={(v) => setLeaderboardPeriod(v as any)} className="mt-2">
-                  <TabsList className={cn('grid grid-cols-3', isDark ? 'bg-indigo-950/50' : 'bg-slate-100')}>
-                    <TabsTrigger value="weekly" className="text-xs">Weekly</TabsTrigger>
-                    <TabsTrigger value="monthly" className="text-xs">Monthly</TabsTrigger>
-                    <TabsTrigger value="all" className="text-xs">All Time</TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {leaderboard.map((user) => (
-                    <div
-                      key={user.rank}
-                      className={cn(
-                        'flex items-center gap-3 p-2.5 rounded-lg transition-all text-sm',
-                        user.isYou
-                          ? isDark ? 'bg-indigo-800/30 border border-indigo-600/30' : 'bg-[#1A237E]/5 border border-[#1A237E]/15'
-                          : isDark ? 'bg-indigo-950/30' : 'bg-slate-50'
-                      )}
-                    >
-                      <span className={cn('w-6 text-center font-bold text-xs',
-                        user.rank === 1 ? 'text-amber-500' :
-                        user.rank === 2 ? 'text-slate-400' :
-                        user.rank === 3 ? 'text-amber-700' : 'text-slate-400'
-                      )}>
-                        #{user.rank}
-                      </span>
-                      <Avatar className="w-7 h-7">
-                        <AvatarFallback className={cn('text-xs font-medium', isDark ? 'bg-indigo-900 text-indigo-300' : 'bg-slate-100 text-slate-600')}>
-                          {user.avatar}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <p className={cn('font-medium', isDark ? 'text-indigo-200' : 'text-slate-700')}>
-                          {user.name} {user.isYou && <span className={cn('text-xs', textPrimary)}>(You)</span>}
-                        </p>
-                      </div>
-                      {user.change !== 0 && (
-                        <div className={cn('flex items-center gap-0.5 text-xs', user.change > 0 ? 'text-emerald-400' : 'text-red-400')}>
-                          {user.change > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                          {Math.abs(user.change)}
-                        </div>
-                      )}
-                      <span className={cn('font-semibold text-xs', textPrimary)}>{user.xp.toLocaleString()}</span>
+            {/* Leaderboard — GLASS */}
+            <div className="glass-card-hub glass-academy p-5 backdrop-blur-md">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className={cn('flex items-center gap-2 text-base font-semibold', textPrimary)}>
+                  <Trophy className="w-4 h-4 text-amber-500" />
+                  Leaderboard
+                </h3>
+              </div>
+              <Tabs value={leaderboardPeriod} onValueChange={(v) => setLeaderboardPeriod(v as any)} className="mb-3">
+                <TabsList className={cn('grid grid-cols-3', isDark ? 'bg-indigo-950/50' : 'bg-slate-100')}>
+                  <TabsTrigger value="weekly" className="text-xs">Weekly</TabsTrigger>
+                  <TabsTrigger value="monthly" className="text-xs">Monthly</TabsTrigger>
+                  <TabsTrigger value="all" className="text-xs">All Time</TabsTrigger>
+                </TabsList>
+              </Tabs>
+              <div className="space-y-2">
+                {leaderboard.map((user) => (
+                  <div
+                    key={user.rank}
+                    className={cn(
+                      'flex items-center gap-3 p-2.5 rounded-lg transition-all text-sm',
+                      user.isYou
+                        ? isDark ? 'bg-indigo-800/30 border border-indigo-600/30' : 'bg-[#174EA6]/5 border border-[#174EA6]/15'
+                        : isDark ? 'bg-indigo-950/30' : 'bg-white/50'
+                    )}
+                  >
+                    <span className={cn('w-6 text-center font-bold text-xs',
+                      user.rank === 1 ? 'text-amber-500' :
+                      user.rank === 2 ? 'text-slate-400' :
+                      user.rank === 3 ? 'text-amber-700' : 'text-slate-400'
+                    )}>
+                      #{user.rank}
+                    </span>
+                    <Avatar className="w-7 h-7">
+                      <AvatarFallback className={cn('text-xs font-medium', isDark ? 'bg-indigo-900 text-indigo-300' : 'bg-slate-100 text-slate-600')}>
+                        {user.avatar}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <p className={cn('font-medium', isDark ? 'text-indigo-200' : 'text-slate-700')}>
+                        {user.name} {user.isYou && <span className={cn('text-xs', textPrimary)}>(You)</span>}
+                      </p>
                     </div>
-                  ))}
-                </div>
-                <Button variant="outline" className={cn('w-full mt-3 text-xs', isDark ? 'border-indigo-800 text-indigo-300 hover:bg-indigo-900/30' : 'border-slate-200 text-slate-500 hover:text-[#1A237E]')}>
-                  <Users className="w-3.5 h-3.5 mr-1.5" />
-                  Challenge a Friend
-                </Button>
-              </CardContent>
-            </Card>
+                    {user.change !== 0 && (
+                      <div className={cn('flex items-center gap-0.5 text-xs', user.change > 0 ? 'text-emerald-400' : 'text-red-400')}>
+                        {user.change > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                        {Math.abs(user.change)}
+                      </div>
+                    )}
+                    <span className={cn('font-semibold text-xs', textPrimary)}>{user.xp.toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+              <Button variant="outline" className={cn('w-full mt-3 text-xs', isDark ? 'border-indigo-800 text-indigo-300 hover:bg-indigo-900/30' : 'border-slate-200 text-slate-500 hover:text-[#174EA6]')}>
+                <Users className="w-3.5 h-3.5 mr-1.5" />
+                Challenge a Friend
+              </Button>
+            </div>
 
             {/* Social Lounge */}
             <SocialLounge />
@@ -341,7 +311,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
             <RecommendedTeachers hubLevel="academy" />
 
             {onLevelUp && (
-              <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.35 }}>
+              <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}>
                 <Button
                   onClick={onLevelUp}
                   className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-medium py-2.5 rounded-lg text-sm"

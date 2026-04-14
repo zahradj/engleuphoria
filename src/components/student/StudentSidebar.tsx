@@ -31,6 +31,26 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { ThemeModeToggle } from '@/components/ui/ThemeModeToggle';
+import { useStudentLevel } from '@/hooks/useStudentLevel';
+
+// Hub-specific color maps
+const HUB_ICON_COLORS: Record<string, { active: string; activeBg: string; iconDefault: string }> = {
+  playground: {
+    active: 'text-orange-600 dark:text-orange-400',
+    activeBg: 'bg-orange-50 dark:bg-orange-950/40 border-orange-300 dark:border-orange-600/30',
+    iconDefault: 'text-orange-400 dark:text-orange-500/60',
+  },
+  academy: {
+    active: 'text-indigo-600 dark:text-indigo-400',
+    activeBg: 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-300 dark:border-indigo-600/30',
+    iconDefault: 'text-indigo-400 dark:text-indigo-500/60',
+  },
+  professional: {
+    active: 'text-emerald-600 dark:text-emerald-400',
+    activeBg: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-600/30',
+    iconDefault: 'text-emerald-400 dark:text-emerald-500/60',
+  },
+};
 
 interface StudentSidebarProps {
   activeTab: string;
@@ -46,12 +66,20 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
   onLogout 
 }) => {
   const navigate = useNavigate();
+  const { studentLevel } = useStudentLevel();
   
+  // Determine hub key for coloring
+  const hubKey = studentLevel === 'kids' ? 'playground' 
+    : studentLevel === 'teens' ? 'academy' 
+    : 'professional';
+  const hubColors = HUB_ICON_COLORS[hubKey];
+
   const handleEnterClassroom = () => {
     const studentId = `student-${Date.now()}`;
     const studentName = localStorage.getItem('studentName') || 'Student';
     navigate(`/classroom?role=student&name=${encodeURIComponent(studentName)}&userId=${studentId}&roomId=unified-classroom-1`);
   };
+
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'learning-path', label: 'My Learning Path', icon: Map, badge: 'New' },
@@ -74,7 +102,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
   const isCollapsed = state === "collapsed";
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border bg-white">
+    <Sidebar collapsible="icon" className="border-r border-border bg-white dark:bg-gray-950">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-sm font-medium text-text-muted px-4 py-4 bg-surface-soft mx-2 mt-2 rounded-lg">
@@ -94,15 +122,15 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
                       className={`
                         relative px-4 py-3 mx-2 my-1 rounded-lg transition-all duration-200 font-medium
                         ${isActive 
-                          ? 'bg-lavender text-lavender-dark border border-lavender-dark' 
+                          ? hubColors.activeBg
                           : 'text-text-muted hover:bg-surface-soft hover:text-text'
                         }
                       `}
                     >
-                      <Icon className={`h-5 w-5 ${isActive ? 'text-lavender-dark' : 'text-text-subtle'}`} />
+                      <Icon className={`h-5 w-5 ${isActive ? hubColors.active : hubColors.iconDefault}`} />
                       {!isCollapsed && (
                         <>
-                          <span className="flex-1 font-medium">{item.label}</span>
+                          <span className={`flex-1 font-medium ${isActive ? hubColors.active : ''}`}>{item.label}</span>
                           {item.badge && (
                             <Badge 
                               variant={item.id === 'classroom' ? 'default' : 'secondary'} 

@@ -22,6 +22,18 @@ interface UpcomingLesson {
   teacher_name?: string;
 }
 
+const GLOW_CLASS_MAP: Record<HubId, string> = {
+  playground: 'glow-pulse-playground',
+  academy: 'glow-pulse-academy',
+  professional: 'glow-pulse-professional',
+};
+
+const GLASS_CLASS_MAP: Record<HubId, string> = {
+  playground: 'glass-playground',
+  academy: 'glass-academy',
+  professional: 'glass-professional',
+};
+
 export const JoinLessonHero: React.FC<JoinLessonHeroProps> = ({ hubId, isDark = false }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -34,7 +46,7 @@ export const JoinLessonHero: React.FC<JoinLessonHeroProps> = ({ hubId, isDark = 
 
     const fetchNext = async () => {
       const now = new Date();
-      const windowEnd = new Date(now.getTime() + 60 * 60 * 1000); // next hour
+      const windowEnd = new Date(now.getTime() + 60 * 60 * 1000);
 
       const { data } = await supabase
         .from('lessons')
@@ -60,7 +72,6 @@ export const JoinLessonHero: React.FC<JoinLessonHeroProps> = ({ hubId, isDark = 
     return () => clearInterval(interval);
   }, [user?.id]);
 
-  // Update countdown
   useEffect(() => {
     if (!lesson) return;
     const timer = setInterval(() => {
@@ -84,18 +95,16 @@ export const JoinLessonHero: React.FC<JoinLessonHeroProps> = ({ hubId, isDark = 
   const showHero = lesson && minutesUntil <= 15;
 
   if (!showHero) {
-    // Empty state — encourage booking
+    // Empty state — glass card with glowing CTA
     return (
       <div className={cn(
-        'rounded-2xl p-6 border-2 border-dashed transition-colors',
-        isDark
-          ? 'border-white/10 bg-white/5'
-          : 'border-gray-200 bg-gray-50/50'
+        'glass-card-hub backdrop-blur-md p-6',
+        GLASS_CLASS_MAP[hubId],
       )}>
         <div className="flex items-center gap-4">
           <div className={cn(
-            'w-14 h-14 rounded-2xl flex items-center justify-center text-2xl',
-            isDark ? theme.darkCardBg : theme.activeBg
+            'w-14 h-14 rounded-2xl flex items-center justify-center',
+            isDark ? 'bg-white/10' : 'bg-white/60'
           )}>
             <Rocket className="w-7 h-7" style={{ color: isDark ? theme.darkPrimary : theme.primary }} />
           </div>
@@ -107,6 +116,16 @@ export const JoinLessonHero: React.FC<JoinLessonHeroProps> = ({ hubId, isDark = 
               Book your next {theme.label} session to start learning!
             </p>
           </div>
+          <Button
+            size="lg"
+            className={cn(
+              'text-white font-bold px-6 rounded-xl',
+              GLOW_CLASS_MAP[hubId],
+              `bg-gradient-to-r ${isDark ? theme.darkButtonGradient : theme.buttonGradient}`
+            )}
+          >
+            Book a Lesson
+          </Button>
         </div>
       </div>
     );
@@ -117,7 +136,7 @@ export const JoinLessonHero: React.FC<JoinLessonHeroProps> = ({ hubId, isDark = 
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
-        'relative rounded-2xl overflow-hidden',
+        'relative rounded-[1.25rem] overflow-hidden',
         isStartingSoon && 'ring-2 ring-offset-2',
       )}
       style={{
@@ -165,8 +184,9 @@ export const JoinLessonHero: React.FC<JoinLessonHeroProps> = ({ hubId, isDark = 
             onClick={handleJoin}
             size="lg"
             className={cn(
-              'text-white font-bold px-6 shadow-lg',
+              'text-white font-bold px-6 shadow-lg rounded-xl',
               isStartingSoon && 'animate-pulse',
+              GLOW_CLASS_MAP[hubId],
               `bg-gradient-to-r ${isDark ? theme.darkButtonGradient : theme.buttonGradient}`
             )}
           >
@@ -179,7 +199,7 @@ export const JoinLessonHero: React.FC<JoinLessonHeroProps> = ({ hubId, isDark = 
       {/* Glow effect when starting soon */}
       {isStartingSoon && (
         <motion.div
-          className="absolute inset-0 pointer-events-none rounded-2xl"
+          className="absolute inset-0 pointer-events-none rounded-[1.25rem]"
           animate={{
             boxShadow: [
               `0 0 0 0 ${isDark ? theme.darkPrimary : theme.primary}66`,
