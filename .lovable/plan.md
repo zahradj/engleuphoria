@@ -1,101 +1,48 @@
 
 
-# Cancellation/Rescheduling Policy + Full Brand Unification
+# Teacher Dashboard: Deep Diagnosis & Fix
 
-## Part 1: Cancellation & Rescheduling Policy (5-Day Rule)
+## Root Causes Found
 
-### Current State
-The codebase already has `useCancelReschedule.ts` and `LessonManagementModal.tsx` but they use **wrong thresholds**: cancel = 6 hours, reschedule = 4 hours. The Reschedule button in `UpcomingClassesTab.tsx` is not wired to anything. Trial lessons have no exemption.
+### Problem 1: Teacher Schedule Shows Nothing (Critical)
+The `ProfessionalHub` schedule tab renders `ClassScheduler`, which uses `useAvailabilityManager` — a **local-state-only** hook. It never fetches existing slots from Supabase. So all saved availability and booked lessons are invisible.
 
-### Changes
+Meanwhile, `EnhancedCalendarTab` (which correctly fetches from DB via `useTeacherAvailability`) exists but is **not used** in the teacher dashboard.
 
-**1. Update `src/hooks/useCancelReschedule.ts`**
-- Change `CANCEL_POLICY_HOURS` from 6 to 120 (5 days)
-- Change `RESCHEDULE_POLICY_HOURS` from 4 to 120 (5 days)
-- Add `isTrialLesson(lessonId)` check — if trial (price = 0), always allow cancel/reschedule
-- Update `getRefundInfo`: > 5 days = full refund, < 5 days = no refund (full charge)
-- After cancel/reschedule, re-open the teacher's availability slot (`teacher_availability.is_booked = false`)
+### Problem 2: Booked Trial Lesson Not Visible to Teacher
+The booked slot at `2026-04-15 13:00` has `is_booked=true` and `student_id` set, but `lesson_id` is NULL. The booking flow didn't link the lesson record (`73faad7d`) to the availability slot. This means even with the correct calendar, the lesson details won't display fully.
 
-**2. Update `src/components/student/LessonManagementModal.tsx`**
-- Update policy text from "6 hours" / "4 hours" to "5 days"
-- Add trial lesson bypass messaging: "Trial lessons can be freely cancelled or rescheduled"
-- Hub-color code the modal header (orange/blue/green based on lesson type)
+### Problem 3: Orphaned Data
+There's a stale `is_booked=true` slot at `2026-04-14 17:30` with no student — needs cleanup.
 
-**3. Wire up `src/components/student/UpcomingClassesTab.tsx`**
-- Connect the existing "Reschedule" button to open `LessonManagementModal` in reschedule mode
-- Add a "Cancel" button next to it
-- Both open the modal with the correct mode
-
-**4. Add "Manage Lesson" menu to `src/components/classroom/ClassroomConnection.tsx`**
-- Add a dropdown with "Reschedule" and "Cancel" options
-- Color-coded by hub (detect from lesson metadata or price)
-- Opens `LessonManagementModal`
+### Problem 4: CommandCenter Has No Upcoming Lessons
+The Command Center shows metrics and alerts but has **no "Upcoming Lessons" widget** — the teacher can't see what's coming up today/this week.
 
 ---
 
-## Part 2: Full Brand Unification Across All Pages
+## Plan
 
-### Problem
-The homepage and student dashboards have the new premium glassmorphic aesthetic, but the teacher dashboard, admin dashboard, content creator dashboard, profile pages, auth pages, and schedule pages still use plain unstyled defaults.
+### Step 1: Replace ClassScheduler with EnhancedCalendarTab
+In `ProfessionalHub.tsx`, swap the schedule tab from `ClassScheduler` to `EnhancedCalendarTab`. This immediately makes all DB-stored availability and booked slots visible with the modern glassmorphic UI.
 
-### Changes (applying consistent brand identity everywhere)
+### Step 2: Add Upcoming Lessons Widget to CommandCenter
+Add a new card to `CommandCenter.tsx` that queries `lessons` + `class_bookings` for the teacher's upcoming scheduled/confirmed lessons. Show student name, time, hub color, and lesson type (trial badge).
 
-**5. Teacher Dashboard — `ProfessionalNav.tsx` + `ProfessionalHub.tsx`**
-- Replace hardcoded `bg-white` / `#1A237E` with CSS variables and brand gradients
-- Add Logo component visibility in nav
-- Apply glassmorphic card styling to Command Center cards
-- Dark mode support (currently hardcoded to light)
+### Step 3: Fix lesson_id Linking in Availability
+Update the booking flow in `useTeacherMatchmaker.ts` to also update `teacher_availability.lesson_id` when a lesson is created, so the calendar can display full lesson details.
 
-**6. Admin Dashboard — `AdminSidebar.tsx` + `AdminDashboard.tsx`**
-- Add branded gradient header in sidebar
-- Active tab: brand-blue glow effect instead of plain `variant="default"`
-- Logo already present — ensure it's visible and styled consistently
+### Step 4: Database Data Fix
+- Link the existing lesson (`73faad7d`) to the availability slot (`60881059`) by setting `lesson_id`
+- Clean up the orphaned booked slot at `2026-04-14 17:30`
 
-**7. Content Creator Dashboard — `ContentCreatorDashboard.tsx`**
-- Add Logo to the header bar
-- Apply branded gradient to the stepper header
-- Glassmorphic card styling for step content areas
+### Step 5: Teacher Dashboard Visual Enhancement
+- Apply brand gradients to `CommandCenter` status cards (replace hardcoded `#1A237E`)
+- Add glassmorphic card styling consistent with student dashboards
+- Add a "Today's Schedule" quick-glance strip at the top of Command Center
 
-**8. Auth Pages — `Login.tsx`, `SignUp.tsx`, `StudentSignUp.tsx`, `TeacherSignUp.tsx`**
-- Ensure all use `AuthPageLayout` with brand gradient backgrounds
-- Logo visible on all auth pages
-
-**9. Profile Page — `ProfilePage.tsx`**
-- Add brand header with Logo
-- Glassmorphic card styling
-- Hub-appropriate color accents
-
-**10. Schedule Pages — `StudentSchedule.tsx`, `TeacherSchedule.tsx`**
-- Brand header with Logo
-- Hub-colored lesson cards
-- Glassmorphic card treatment
-
-**11. Other Pages — `TeachWithUsPage.tsx`, `AboutPage.tsx`, `ForTeachersPage.tsx`**
-- Verify Logo is visible (TeachWithUs already uses logo images)
-- Consistent nav styling
-
-**12. Global CSS — `src/index.css`**
-- Add shared utility classes: `.brand-card` (glassmorphic), `.brand-header` (gradient), `.brand-sidebar-item` (active glow)
-- Ensure dark mode variants for all new classes
-
-### Technical Details
-
-**Files to modify (Part 1 — Policy):**
-- `src/hooks/useCancelReschedule.ts`
-- `src/components/student/LessonManagementModal.tsx`
-- `src/components/student/UpcomingClassesTab.tsx`
-- `src/components/classroom/ClassroomConnection.tsx`
-
-**Files to modify (Part 2 — Branding):**
-- `src/components/teacher/professional/ProfessionalNav.tsx`
-- `src/components/teacher/professional/ProfessionalHub.tsx`
-- `src/components/admin/AdminSidebar.tsx`
-- `src/pages/AdminDashboard.tsx`
-- `src/pages/ContentCreatorDashboard.tsx`
-- `src/pages/ProfilePage.tsx`
-- `src/pages/student/StudentSchedule.tsx`
-- `src/pages/teacher/TeacherSchedule.tsx`
-- `src/index.css`
-
-**No database changes needed.** The lessons table already has `status`, `cancellation_reason`, `reschedule_count`, and `reschedule_history` columns.
+## Files to Modify
+- `src/components/teacher/professional/ProfessionalHub.tsx` — swap ClassScheduler → EnhancedCalendarTab
+- `src/components/teacher/professional/CommandCenter.tsx` — add Upcoming Lessons widget, enhance visuals
+- `src/hooks/useTeacherMatchmaker.ts` — add `lesson_id` update to `teacher_availability` after booking
+- Database: data fix migration for linking lesson + cleanup orphan
 
