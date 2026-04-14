@@ -37,9 +37,9 @@ interface HubDashboardProps {
 
 type NavItem = 'dashboard' | 'courses' | 'certificates' | 'settings';
 
-// Executive color constants
-const NAVY = '#1A2B3C';
-const GOLD = '#C9A96E';
+// Success Hub color constants — Green & Teal
+const PRIMARY = '#1B5E20';
+const ACCENT = '#009688';
 
 export const HubDashboard: React.FC<HubDashboardProps> = ({
   studentName = 'Sarah',
