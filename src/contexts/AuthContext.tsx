@@ -382,19 +382,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           // Don't fail signup if notification fails
         }
       }
-            body: {
-              name: userNameForNotify,
-              email: sanitizedEmail,
-              role: sanitizedUserData.role || 'student',
-              registeredAt: new Date().toISOString()
-            }
-          });
-          console.log('Admin notification sent successfully');
-        } catch (notifyError) {
-          console.warn('Failed to notify admins:', notifyError);
-          // Don't fail signup if notification fails
-        }
-      }
 
       return { data, error };
     } catch (error: any) {
