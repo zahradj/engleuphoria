@@ -63,7 +63,7 @@ export const SignupEmail = ({
             <Text style={cardTitle}>🚀 What&apos;s next?</Text>
             <Text style={cardText}>• Complete your learning profile</Text>
             <Text style={cardText}>• Take a placement test to find your level</Text>
-            <Text style={cardText}>• Start your first interactive lesson</Text>
+            <Text style={cardText}>• Book your FREE trial lesson</Text>
             <Text style={cardText}>• Connect with amazing teachers</Text>
           </Section>
 
