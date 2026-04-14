@@ -9,10 +9,10 @@ interface HubLogoProps {
   className?: string;
 }
 
-const HUB_COLORS: Record<string, { light: string; dark: string }> = {
-  playground: { light: 'bg-orange-400', dark: 'bg-amber-700' },
-  academy: { light: 'bg-indigo-600', dark: 'bg-indigo-800' },
-  professional: { light: 'bg-emerald-600', dark: 'bg-emerald-800' },
+const HUB_GRADIENTS: Record<string, { from: string; to: string }> = {
+  playground: { from: '#FF9800', to: '#FFC107' },
+  academy: { from: '#3F51B5', to: '#7C4DFF' },
+  professional: { from: '#1B5E20', to: '#009688' },
 };
 
 const HUB_LABELS: Record<string, string> = {
@@ -22,28 +22,54 @@ const HUB_LABELS: Record<string, string> = {
 };
 
 const SIZE_MAP = {
-  sm: { circle: 'w-9 h-9', img: 'w-5 h-5', text: 'text-lg' },
-  md: { circle: 'w-11 h-11', img: 'w-6 h-6', text: 'text-xl' },
-  lg: { circle: 'w-14 h-14', img: 'w-8 h-8', text: 'text-2xl' },
+  sm: { box: 'w-8 h-8', img: 'w-8 h-8 p-0.5', text: 'text-lg', badge: 'text-[10px] px-1.5 py-0.5' },
+  md: { box: 'w-9 h-9', img: 'w-9 h-9 p-0.5', text: 'text-xl', badge: 'text-[10px] px-2 py-0.5' },
+  lg: { box: 'w-11 h-11', img: 'w-11 h-11 p-1', text: 'text-2xl', badge: 'text-xs px-2 py-0.5' },
 };
 
 export const HubLogo: React.FC<HubLogoProps> = ({ hubId, size = 'md', className = '' }) => {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
-  const colors = HUB_COLORS[hubId];
+  const gradient = HUB_GRADIENTS[hubId];
   const s = SIZE_MAP[size];
 
-  // Light mode → white logo (on colored bg). Dark mode → black logo (on colored bg).
+  // Light mode → white logo (visible on colored gradient). Dark mode → black logo.
   const logoSrc = isDark ? logoBlack : logoWhite;
+  const gradientCss = `linear-gradient(135deg, ${gradient.from}, ${gradient.to})`;
 
   return (
     <div className={`flex items-center gap-2.5 ${className}`}>
-      <div className={`${s.circle} rounded-xl ${isDark ? colors.dark : colors.light} flex items-center justify-center shadow-md`}>
-        <img src={logoSrc} alt="EnglEuphoria" className={`${s.img} object-contain`} />
+      {/* Logo icon with hub gradient background — matches homepage NavHeader pattern */}
+      <div className={`relative ${s.box}`}>
+        <div
+          className="absolute inset-0 rounded-xl opacity-90 blur-[1px]"
+          style={{ background: gradientCss }}
+        />
+        <img
+          src={logoSrc}
+          alt="EnglEuphoria"
+          className={`relative ${s.img} object-contain rounded-xl`}
+        />
       </div>
-      <span className={`${s.text} font-bold tracking-tight ${isDark ? 'text-white' : 'text-foreground'}`}>
-        {HUB_LABELS[hubId]}
-      </span>
+
+      {/* Brand text + hub badge */}
+      <div className="flex flex-col">
+        <span
+          className={`${s.text} font-bold bg-clip-text text-transparent leading-tight`}
+          style={{ backgroundImage: `linear-gradient(to right, ${gradient.from}, ${gradient.to})` }}
+        >
+          EnglEuphoria
+        </span>
+        <span
+          className={`${s.badge} rounded-full font-semibold leading-none w-fit`}
+          style={{
+            background: isDark ? `${gradient.from}22` : `${gradient.from}18`,
+            color: isDark ? gradient.to : gradient.from,
+          }}
+        >
+          {HUB_LABELS[hubId]}
+        </span>
+      </div>
     </div>
   );
 };

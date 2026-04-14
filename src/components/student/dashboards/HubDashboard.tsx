@@ -85,64 +85,56 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
   if (isLoading) return <HubSkeleton />;
 
   return (
-    <div className={`min-h-screen transition-colors ${bgClass}`}>
-      {/* Top Navigation */}
-      <header className={`border-b sticky top-0 z-50 ${borderClass} ${bgClass}`}>
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <HubLogo hubId="professional" size="sm" />
+    <div className="relative space-y-6">
+      {/* Top Navigation Bar */}
+      <header className={cn(
+        'flex items-center justify-between px-5 py-3 rounded-xl border',
+        isDarkMode
+          ? 'bg-emerald-950/60 backdrop-blur-xl border-emerald-700/30'
+          : 'bg-white/80 backdrop-blur-xl border-emerald-200/50 shadow-sm'
+      )}>
+        {/* Logo */}
+        <HubLogo hubId="professional" size="md" />
 
-            {/* Navigation */}
-            <nav className="hidden md:flex items-center gap-1">
-              {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveNav(item.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-sm uppercase tracking-wide ${
-                    activeNav === item.id
-                      ? isDarkMode
-                        ? 'text-white'
-                        : 'text-[#1A2B3C]'
-                      : isDarkMode
-                        ? 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'
-                        : 'text-gray-500 hover:bg-gray-50 hover:text-[#1A2B3C]'
-                  }`}
-                  style={activeNav === item.id ? { borderBottom: `2px solid ${ACCENT}` } : undefined}
-                >
-                  {item.icon}
-                  <span className="font-medium">{item.label}</span>
-                </button>
-              ))}
-            </nav>
+        {/* Navigation */}
+        <nav className="hidden md:flex items-center gap-1">
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveNav(item.id)}
+              className={cn(
+                'flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-sm',
+                activeNav === item.id
+                  ? isDarkMode ? 'text-white border-b-2 border-teal-400' : 'text-emerald-800 border-b-2 border-emerald-600'
+                  : isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-800'
+              )}
+            >
+              {item.icon}
+              <span className="font-medium">{item.label}</span>
+            </button>
+          ))}
+        </nav>
 
-            {/* User + Dark Mode */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setIsDarkMode(!isDarkMode)}
-                className={`p-2 rounded-lg transition-all ${
-                  isDarkMode ? 'bg-gray-800 text-yellow-400' : 'bg-gray-100 text-gray-600'
-                }`}
-              >
-                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </button>
-              <div className="text-right hidden sm:block">
-                <p className={`font-medium ${textClass}`}>{studentName}</p>
-                <p className={`text-sm ${mutedClass}`}>{totalXp.toLocaleString()} XP</p>
-              </div>
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center text-lg"
-                style={{ backgroundColor: isDarkMode ? '#2A3D50' : '#EDE9E0' }}
-              >
-                👩‍💼
-              </div>
-            </div>
+        {/* User + Dark Mode */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className={cn(
+              'p-2 rounded-lg transition-all',
+              isDarkMode ? 'bg-gray-800 text-yellow-400' : 'bg-gray-100 text-gray-600'
+            )}
+          >
+            {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
+          <div className="text-right hidden sm:block">
+            <p className={cn('font-medium', textClass)}>{studentName}</p>
+            <p className={cn('text-sm', mutedClass)}>{totalXp.toLocaleString()} XP</p>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 md:px-8 py-8">
+      <div>
         {/* JOIN LESSON HERO — primary CTA */}
         <div className="mb-6">
           <JoinLessonHero hubId="professional" isDark={isDarkMode} />
@@ -352,7 +344,7 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
             </Card>
           </motion.div>
         </div>
-      </main>
+      </div>
 
       <BookMyClassModal
         isOpen={bookingOpen}

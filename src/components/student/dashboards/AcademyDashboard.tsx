@@ -94,42 +94,32 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
   const cardBg = isDark ? 'bg-indigo-950/50 border-indigo-800/30' : 'border-slate-200 shadow-sm bg-white';
 
   return (
-    <div className={cn('min-h-screen flex transition-colors', bgClass)} style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
-      {/* Sidebar — Academy branded */}
-      <motion.aside
-        initial={{ x: -20, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        className={cn('w-20 md:w-60 border-r flex flex-col', sidebarBg)}
+    <div className="relative space-y-6">
+      {/* Academy branded header bar */}
+      <motion.div
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className={cn(
+          'flex items-center justify-between px-5 py-3 rounded-xl border',
+          isDark
+            ? 'bg-indigo-950/60 backdrop-blur-xl border-indigo-700/30'
+            : 'bg-white/80 backdrop-blur-xl border-indigo-200/50 shadow-sm'
+        )}
       >
-        <div className="p-4">
-          <HubLogo hubId="academy" size="sm" />
+        <HubLogo hubId="academy" size="md" />
+        <div className="flex items-center gap-3">
+          <div className={cn(
+            'flex items-center gap-1.5 px-3 py-1.5 rounded-full',
+            isDark ? 'bg-orange-900/30 border border-orange-500/30' : 'bg-orange-50 border border-orange-200'
+          )}>
+            <Flame className="w-4 h-4 text-orange-500" fill="currentColor" />
+            <span className={cn('font-semibold text-sm', isDark ? 'text-orange-300' : 'text-orange-600')}>{currentStreak}</span>
+          </div>
         </div>
-
-        <nav className="flex-1 py-4">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                'w-full flex items-center gap-3 px-4 py-3 text-sm transition-all',
-                activeTab === tab.id
-                  ? isDark
-                    ? 'bg-indigo-800/30 text-indigo-200 border-r-2 border-indigo-400 font-medium'
-                    : 'bg-[#1A237E]/5 text-[#1A237E] border-r-2 border-[#1A237E] font-medium'
-                  : isDark
-                    ? 'text-indigo-400 hover:text-indigo-200 hover:bg-indigo-900/30'
-                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-              )}
-            >
-              {tab.icon}
-              <span className="hidden md:block">{tab.label}</span>
-            </button>
-          ))}
-        </nav>
-      </motion.aside>
+      </motion.div>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 overflow-y-auto">
+      <div>
         {/* JOIN LESSON HERO — primary CTA */}
         <div className="mb-6">
           <JoinLessonHero hubId="academy" isDark={isDark} />
@@ -363,7 +353,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
             )}
           </motion.div>
         </div>
-      </main>
+      </div>
 
       <BookMyClassModal isOpen={bookingOpen} onClose={() => setBookingOpen(false)} studentLevel="academy" />
     </div>
