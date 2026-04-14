@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Flame, Snowflake } from 'lucide-react';
+import { useThemeMode } from '@/hooks/useThemeMode';
 
 interface DailyStreakCardProps {
   currentStreak?: number;
@@ -17,24 +18,25 @@ export const DailyStreakCard: React.FC<DailyStreakCardProps> = ({
   longestStreak = 14,
   weeklyActivity = [true, true, true, true, true, false, true],
   hasStreakFreeze = false,
-  isDarkMode = true,
+  isDarkMode: isDarkModeProp,
 }) => {
+  const { resolvedTheme } = useThemeMode();
+  const isDarkMode = isDarkModeProp ?? (resolvedTheme === 'dark');
   const isMilestone = currentStreak === 7 || currentStreak === 30 || currentStreak === 100;
   
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`rounded-2xl p-4 ${
+      className={`glass-card-hub glass-academy p-4 backdrop-blur-md ${
         isDarkMode 
-          ? 'bg-gradient-to-br from-orange-900/40 to-red-900/40 border border-orange-500/30' 
-          : 'bg-gradient-to-br from-orange-50 to-red-50 border border-orange-200'
+          ? 'bg-gradient-to-br from-orange-900/20 to-red-900/20' 
+          : ''
       }`}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          {/* Animated Flame */}
           <motion.div
             animate={isMilestone ? { 
               scale: [1, 1.2, 1],
@@ -77,7 +79,6 @@ export const DailyStreakCard: React.FC<DailyStreakCardProps> = ({
           </div>
         </div>
         
-        {/* Streak Freeze */}
         {hasStreakFreeze && (
           <div className={`flex items-center gap-1 px-2 py-1 rounded-lg ${
             isDarkMode ? 'bg-cyan-500/20' : 'bg-cyan-100'
@@ -100,11 +101,9 @@ export const DailyStreakCard: React.FC<DailyStreakCardProps> = ({
               transition={{ delay: index * 0.05 }}
               className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
                 isActive
-                  ? isDarkMode
-                    ? 'bg-gradient-to-br from-orange-400 to-red-500 shadow-lg shadow-orange-500/30'
-                    : 'bg-gradient-to-br from-orange-400 to-red-500 shadow-md'
+                  ? 'bg-gradient-to-br from-orange-400 to-red-500 shadow-md'
                   : isDarkMode
-                    ? 'bg-gray-800/50 border border-gray-700'
+                    ? 'bg-white/5 border border-white/10'
                     : 'bg-gray-100 border border-gray-200'
               }`}
             >
@@ -119,7 +118,6 @@ export const DailyStreakCard: React.FC<DailyStreakCardProps> = ({
         ))}
       </div>
       
-      {/* Motivational Message */}
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
