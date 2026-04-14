@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Zap } from 'lucide-react';
+import { useThemeMode } from '@/hooks/useThemeMode';
 
 interface Skill {
   name: string;
@@ -57,7 +58,6 @@ const XPBar: React.FC<{ skill: Skill; delay: number; isDarkMode: boolean }> = ({
         </span>
       </div>
 
-      {/* Track */}
       <div className={`h-2 rounded-full overflow-hidden ${isDarkMode ? 'bg-white/10' : 'bg-gray-200'}`}>
         <motion.div
           initial={{ width: 0 }}
@@ -71,7 +71,6 @@ const XPBar: React.FC<{ skill: Skill; delay: number; isDarkMode: boolean }> = ({
         />
       </div>
 
-      {/* Level progress text */}
       <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
         {pct}% to next level · {skill.max - skill.current} XP remaining
       </p>
@@ -79,13 +78,12 @@ const XPBar: React.FC<{ skill: Skill; delay: number; isDarkMode: boolean }> = ({
   );
 };
 
-export const SkillXPBars: React.FC<SkillXPBarsProps> = ({ isDarkMode = true }) => {
+export const SkillXPBars: React.FC<SkillXPBarsProps> = ({ isDarkMode: isDarkModeProp }) => {
+  const { resolvedTheme } = useThemeMode();
+  const isDarkMode = isDarkModeProp ?? (resolvedTheme === 'dark');
+  
   return (
-    <div className={`rounded-2xl border p-5 ${
-      isDarkMode
-        ? 'bg-[#1a1a2e] border-purple-900/30'
-        : 'bg-white border-gray-200 shadow-sm'
-    }`}>
+    <div className="glass-card-hub glass-academy p-5 backdrop-blur-md">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-bold text-base flex items-center gap-2">
@@ -108,7 +106,7 @@ export const SkillXPBars: React.FC<SkillXPBarsProps> = ({ isDarkMode = true }) =
 
       {/* Total XP pill */}
       <div className={`mt-5 flex items-center justify-center gap-1.5 py-2 rounded-xl ${
-        isDarkMode ? 'bg-gradient-to-r from-purple-900/40 to-cyan-900/40' : 'bg-gray-50'
+        isDarkMode ? 'bg-gradient-to-r from-purple-900/40 to-cyan-900/40' : 'bg-white/50'
       }`}>
         <Zap className="w-3.5 h-3.5 text-yellow-400" fill="currentColor" />
         <span className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>

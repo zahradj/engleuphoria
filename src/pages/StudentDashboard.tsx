@@ -9,8 +9,8 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { SystemId } from "@/types/multiTenant";
 import { DashboardRouter } from "@/components/student/dashboards/DashboardRouter";
-import { ScrollHeader } from "@/components/navigation/ScrollHeader";
 import { useStudentLevel, StudentLevel } from "@/hooks/useStudentLevel";
+import { useThemeMode } from "@/hooks/useThemeMode";
 
 // Lazy load components to improve initial load time
 import { MinimalStudentHeader } from "@/components/student/MinimalStudentHeader";
@@ -27,6 +27,45 @@ import { AssessmentsTab } from "@/components/student/tabs/AssessmentsTab";
 import { CertificatesTab } from "@/components/student/tabs/CertificatesTab";
 import { ReferralTab } from "@/components/student/tabs/ReferralTab";
 
+// Hub-specific mesh gradient blob configs
+const HUB_MESH_COLORS: Record<string, { blobs: string[]; darkBlobs: string[] }> = {
+  playground: {
+    blobs: [
+      'rgba(254,106,47,0.15)',
+      'rgba(254,175,21,0.12)',
+      'rgba(255,200,100,0.10)',
+    ],
+    darkBlobs: [
+      'rgba(254,106,47,0.08)',
+      'rgba(254,175,21,0.06)',
+      'rgba(180,100,20,0.05)',
+    ],
+  },
+  academy: {
+    blobs: [
+      'rgba(23,78,166,0.12)',
+      'rgba(183,94,237,0.10)',
+      'rgba(100,120,220,0.08)',
+    ],
+    darkBlobs: [
+      'rgba(23,78,166,0.08)',
+      'rgba(183,94,237,0.06)',
+      'rgba(60,60,140,0.05)',
+    ],
+  },
+  professional: {
+    blobs: [
+      'rgba(13,101,45,0.12)',
+      'rgba(61,211,155,0.10)',
+      'rgba(80,180,120,0.08)',
+    ],
+    darkBlobs: [
+      'rgba(13,101,45,0.08)',
+      'rgba(61,211,155,0.06)',
+      'rgba(40,100,60,0.05)',
+    ],
+  },
+};
 
 const StudentDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -35,11 +74,12 @@ const StudentDashboard = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [systemId, setSystemId] = useState<SystemId>('kids');
   const { studentLevel } = useStudentLevel();
+  const { resolvedTheme } = useThemeMode();
+  const isDark = resolvedTheme === 'dark';
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, loading: authLoading, signOut } = useAuth();
   
-  // Generate or get student ID and name
   const generateStudentId = () => {
     const existingId = localStorage.getItem('studentId');
     if (existingId) return existingId;
@@ -51,12 +91,16 @@ const StudentDashboard = () => {
   const studentName = user?.user_metadata?.full_name || localStorage.getItem('studentName') || user?.email?.split('@')[0] || 'Student';
   const studentId = generateStudentId();
 
+  // Determine hub key
+  const hubKey = studentLevel || 'playground';
+  const meshColors = HUB_MESH_COLORS[hubKey] || HUB_MESH_COLORS.playground;
+  const blobs = isDark ? meshColors.darkBlobs : meshColors.blobs;
+
   useEffect(() => {
     const initializeDashboard = async () => {
       try {
         console.log('📊 Initializing student dashboard...');
         
-        // Check if student has completed their profile
         const profile = localStorage.getItem('studentProfile');
         if (profile) {
           setStudentProfile(JSON.parse(profile));
@@ -65,7 +109,6 @@ const StudentDashboard = () => {
           setHasProfile(false);
         }
         
-        // Determine systemId: prefer student_level from student_profiles, fall back to users.current_system
         if (user?.id) {
           const studentLevelToSystem: Record<StudentLevel, SystemId> = {
             'playground': 'kids',
@@ -76,7 +119,6 @@ const StudentDashboard = () => {
           if (studentLevel) {
             setSystemId(studentLevelToSystem[studentLevel] || 'kids');
           } else {
-            // Fallback: fetch from users.current_system
             const { data: userData, error } = await supabase
               .from('users')
               .select('current_system')
@@ -109,7 +151,6 @@ const StudentDashboard = () => {
       }
     };
 
-    // Only initialize after auth is ready
     if (!authLoading) {
       initializeDashboard();
     }
@@ -117,13 +158,11 @@ const StudentDashboard = () => {
 
   const handleLogout = async () => {
     try {
-      // Clear local storage first
       localStorage.removeItem('studentName');
       localStorage.removeItem('userType');
       localStorage.removeItem('studentProfile');
       localStorage.removeItem('studentId');
       
-      // Call the proper signOut function from AuthContext
       await signOut();
       
       toast({
@@ -138,27 +177,6 @@ const StudentDashboard = () => {
         description: "There was an issue logging out. Please try again.",
         variant: "destructive",
       });
-    }
-  };
-
-  // Hub-aware background gradient
-  const getHubBackground = () => {
-    const levelToHub: Record<string, string> = {
-      playground: 'playground',
-      academy: 'academy',
-      professional: 'professional',
-    };
-    const hub = studentLevel ? levelToHub[studentLevel] : null;
-    
-    switch (hub) {
-      case 'playground':
-        return 'from-orange-50 via-amber-50/80 to-yellow-100/60 dark:from-[#1A1000] dark:via-[#1C0E02] dark:to-[#14100A]';
-      case 'academy':
-        return 'from-blue-50/80 via-indigo-50/60 to-purple-50/50 dark:from-[#080818] dark:via-[#0C0C24] dark:to-[#100A1E]';
-      case 'professional':
-        return 'from-emerald-50/70 via-green-50/50 to-teal-50/60 dark:from-[#081208] dark:via-[#0A140C] dark:to-[#081410]';
-      default:
-        return 'from-pink-50 via-purple-50 to-blue-50 dark:from-background dark:via-background dark:to-background';
     }
   };
 
@@ -197,7 +215,6 @@ const StudentDashboard = () => {
     );
   };
 
-  // Show loading state
   if (authLoading || !isInitialized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -209,8 +226,35 @@ const StudentDashboard = () => {
   return (
     <ErrorBoundary>
       <SidebarProvider defaultOpen={true}>
-        <ScrollHeader />
-        <div className={`flex min-h-screen w-full bg-gradient-to-br ${getHubBackground()} transition-colors duration-500`}>
+        <div className="flex min-h-screen w-full relative overflow-hidden">
+          {/* ═══ ANIMATED MESH GRADIENT BACKGROUND ═══ */}
+          <div className="fixed inset-0 -z-10 transition-colors duration-700">
+            {/* Base background */}
+            <div className={`absolute inset-0 ${isDark ? 'bg-[#0a0a12]' : 'bg-[#f8f9fc]'}`} />
+            
+            {/* Animated mesh blobs */}
+            <div
+              className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full animate-gradient-mesh opacity-80"
+              style={{ background: `radial-gradient(circle, ${blobs[0]}, transparent 70%)` }}
+            />
+            <div
+              className="absolute bottom-[-15%] right-[-10%] w-[55%] h-[55%] rounded-full animate-gradient-mesh opacity-70"
+              style={{
+                background: `radial-gradient(circle, ${blobs[1]}, transparent 70%)`,
+                animationDelay: '-4s',
+                animationDuration: '15s',
+              }}
+            />
+            <div
+              className="absolute top-[30%] right-[20%] w-[40%] h-[40%] rounded-full animate-gradient-mesh opacity-60"
+              style={{
+                background: `radial-gradient(circle, ${blobs[2]}, transparent 70%)`,
+                animationDelay: '-8s',
+                animationDuration: '18s',
+              }}
+            />
+          </div>
+
           <StudentSidebar
             activeTab={activeTab} 
             setActiveTab={setActiveTab}
@@ -228,7 +272,13 @@ const StudentDashboard = () => {
             <main className="flex-1 overflow-y-auto p-4 md:p-6">
               <div className="max-w-7xl mx-auto">
                 <div className="mb-4 flex items-center justify-between">
-                  <SidebarTrigger className="lg:hidden bg-white/90 backdrop-blur-sm hover:bg-white shadow-md rounded-xl p-3 border-2 border-purple-200" />
+                  <SidebarTrigger className={`lg:hidden backdrop-blur-xl rounded-xl p-3 border shadow-md transition-colors ${
+                    hubKey === 'playground'
+                      ? 'bg-orange-500/10 border-orange-300/40 text-orange-600 dark:text-orange-400 dark:border-orange-500/30 dark:bg-orange-500/10'
+                      : hubKey === 'academy'
+                        ? 'bg-indigo-500/10 border-indigo-300/40 text-indigo-600 dark:text-indigo-400 dark:border-indigo-500/30 dark:bg-indigo-500/10'
+                        : 'bg-emerald-500/10 border-emerald-300/40 text-emerald-600 dark:text-emerald-400 dark:border-emerald-500/30 dark:bg-emerald-500/10'
+                  }`} />
                 </div>
                 <QuickActions />
                 {renderActiveTab()}

@@ -3,13 +3,13 @@ import { motion } from 'framer-motion';
 import { HubSkeleton } from '@/components/shared/DashboardSkeleton';
 import { useLiveClassroomStatus } from '@/hooks/useLiveClassroomStatus';
 import { LiveSessionBadge } from '@/components/shared/LiveSessionBadge';
+import { useThemeMode } from '@/hooks/useThemeMode';
 import { 
   LayoutDashboard, BookOpen, Award, Settings, 
   Download, FileText, TrendingUp, Clock, CheckCircle, 
-  ChevronRight, Calendar, Moon, Sun, ExternalLink
+  ChevronRight, Calendar, ExternalLink
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useCurriculumLessons } from '@/hooks/useCurriculumLessons';
 import { SkillsRadarChart } from '../hub/SkillsRadarChart';
 import { MaterialsGallery } from '../MaterialsGallery';
@@ -41,12 +41,13 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
   totalXp = 5680,
 }) => {
   const [activeNav, setActiveNav] = useState<NavItem>('dashboard');
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [bookingOpen, setBookingOpen] = useState(false);
   const { data: lessons = [], isLoading } = useCurriculumLessons('adult');
   const liveStatus = useLiveClassroomStatus('student');
   const { user } = useAuth();
   const { totalCredits, loading: creditsLoading } = usePackageValidation(user?.id || null);
+  const { resolvedTheme } = useThemeMode();
+  const isDarkMode = resolvedTheme === 'dark';
 
   const navItems: { id: NavItem; label: string; icon: React.ReactNode }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -97,15 +98,6 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
           ))}
         </nav>
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className={cn(
-              'p-2 rounded-lg transition-all',
-              isDarkMode ? 'bg-gray-800 text-yellow-400' : 'bg-gray-100 text-gray-600'
-            )}
-          >
-            {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </button>
           <div className="text-right hidden sm:block">
             <p className={cn('font-medium', textClass)}>{studentName}</p>
             <p className={cn('text-sm', mutedClass)}>{totalXp.toLocaleString()} XP</p>
