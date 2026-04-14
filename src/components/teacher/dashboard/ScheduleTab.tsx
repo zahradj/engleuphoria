@@ -16,7 +16,7 @@ interface BookedLesson {
   id: string;
   start_time: string;
   duration: number;
-  student_name: string;
+  lesson_title: string | null;
 }
 
 interface WeekStats {
