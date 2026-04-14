@@ -142,7 +142,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
       // Atomic update: mark slot as booked only if still available
       const { data: updated, error: updateError } = await supabase
         .from('teacher_availability')
-        .update({ is_booked: true })
+        .update({ is_booked: true, student_id: user.id })
         .eq('id', slot.id)
         .eq('is_booked', false)
         .eq('is_available', true)
@@ -168,6 +168,37 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
         const { data: creditOk } = await supabase.rpc('consume_credit', { p_student_id: user.id });
       }
 
+      // Create a lesson record so it appears in upcoming classes for both teacher & student
+      const lessonTitle = isTrial
+        ? `Trial Lesson with ${slot.teacherName}`
+        : `Lesson with ${slot.teacherName}`;
+
+      const { data: lessonRecord, error: lessonError } = await supabase
+        .from('lessons')
+        .insert({
+          title: lessonTitle,
+          teacher_id: slot.teacherId,
+          student_id: user.id,
+          scheduled_at: slot.startTime.toISOString(),
+          duration: slot.duration,
+          status: 'scheduled',
+          cost: 0,
+        })
+        .select('id, room_id, room_link')
+        .single();
+
+      if (lessonError) {
+        console.error('Lesson creation failed:', lessonError);
+      }
+
+      // Update the availability slot with lesson reference
+      if (lessonRecord) {
+        await supabase
+          .from('teacher_availability')
+          .update({ lesson_id: lessonRecord.id, lesson_title: lessonTitle })
+          .eq('id', slot.id);
+      }
+
       // Insert booking record
       const { data: bookingData, error: bookingError } = await supabase
         .from('class_bookings')
@@ -179,6 +210,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
           booking_type: isTrial ? 'trial' : 'standard',
           price_paid: 0,
           status: 'confirmed',
+          lesson_id: lessonRecord?.id || null,
         })
         .select('session_id, meeting_link')
         .single();
@@ -193,6 +225,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
         scheduled_at: slot.startTime.toISOString(),
         duration: slot.duration,
         meeting_link: bookingData?.meeting_link || null,
+        lesson_id: lessonRecord?.id || null,
       });
 
       if (bookingError) {
