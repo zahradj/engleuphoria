@@ -1,33 +1,42 @@
 
 
-## Fix: Interview Link Missing in Emails
+# Fix Playground Dashboard Visibility and Logo Integration
 
-### Root Cause
+## Problem Analysis
 
-The `send-interview-invite` Edge Function has a broken auth verification — it calls `callerClient.auth.getClaims()` which is not a standard Supabase JS v2 method. This likely causes silent failures. Additionally, the `meetingLink` templateData prop is explicitly set to `undefined` when no external link exists (line 121: `meetingLink: interview.zoom_link || interview.meeting_link || undefined`), which overrides the fallback logic inside the template.
+The Playground Dashboard changes are not visible because of a **layout nesting conflict**: `PlaygroundDashboard` renders its own full-page layout (with `min-h-screen`, its own sidebar, floating decorations, and gradient backgrounds), but it is embedded inside `StudentDashboard.tsx` which wraps it in another layout with its own sidebar (`StudentSidebar`), header (`MinimalStudentHeader`), padding, and a pink/purple gradient background. The parent layout's background and padding override the Playground's visual identity.
 
-The client-side code (line 201) correctly saves `zoom_link` as the internal room URL, but the Edge Function's auth check may fail before it ever reaches the email-sending logic — or the interview record may not be found due to timing/query issues.
+Additionally, the `HubLogo` component currently shows hub labels like "Playground" / "Academy" / "Success Hub" — not the actual "EnglEuphoria" brand logo style from the homepage.
 
-### The Fix (3 changes)
+## Plan
 
-**1. Fix auth verification in `send-interview-invite/index.ts`**
-Replace the broken `getClaims()` call with standard `supabase.auth.getUser()` to verify the caller's identity.
+### 1. Redesign HubLogo to Match Homepage Style
+Update `src/components/student/HubLogo.tsx` to replicate the homepage NavHeader logo pattern:
+- Logo icon with a gradient background (hub-specific colors instead of the homepage carousel)
+- Gradient text reading "EnglEuphoria" (not "Playground"/"Academy"/"Success Hub")
+- Hub sub-label displayed as a small badge or subtitle below
+- White logo on light mode, black logo on dark mode (matching current logic)
+- Hub-specific gradient pairs: Playground = orange-to-yellow, Academy = indigo-to-purple, Professional = emerald-to-teal
 
-**2. Always pass the interview link explicitly — never `undefined`**
-Change the templateData to always include a concrete `meetingLink` value (falling back to the internal room URL), rather than passing `undefined` and relying on the template to reconstruct it:
-```
-meetingLink: interview.zoom_link || interview.meeting_link || `${SITE_URL}/interview-room/${interview.application_id || interview.id}`
-```
+### 2. Fix PlaygroundDashboard Layout Integration
+Update `PlaygroundDashboard.tsx` to work correctly within the parent `StudentDashboard` shell:
+- Remove `min-h-screen` (parent already handles full height)
+- Remove the conflicting `PlaygroundSidebar` (parent `StudentSidebar` already handles navigation)
+- Keep the hub-specific gradient backgrounds, floating decorations, and all content widgets
+- Use `min-h-full` or let it flow naturally within the parent container
 
-**3. Add validation — abort if link is empty**
-Before calling `send-transactional-email`, verify the link is a valid URL. If not, return an error instead of sending a blank email.
+### 3. Update StudentDashboard Shell for Hub Theming
+Update `StudentDashboard.tsx` so the outer wrapper adapts its background to the active hub:
+- Playground: warm amber/orange gradient
+- Academy: cool blue/purple gradient (existing)
+- Professional: green/teal gradient
+- Replace the hardcoded `from-pink-50 via-purple-50 to-blue-50` with hub-aware backgrounds
 
-### Files Changed
-- `supabase/functions/send-interview-invite/index.ts` — fix auth, fix link logic, add validation
-- Redeploy `send-interview-invite` Edge Function
+### 4. Apply Same Fixes to Academy and Hub Dashboards
+Ensure `AcademyDashboard.tsx` and `HubDashboard.tsx` also use the updated `HubLogo` component consistently and don't conflict with the parent shell layout.
 
-### What This Does NOT Change
-- The template file (`interview-invitation-branded.tsx`) stays the same — it already handles the `meetingLink` prop correctly
-- The client-side scheduling code stays the same — it already saves the `zoom_link` correctly
-- No database changes needed
+### Technical Details
+- **Files to modify**: `HubLogo.tsx`, `PlaygroundDashboard.tsx`, `AcademyDashboard.tsx`, `HubDashboard.tsx`, `StudentDashboard.tsx`
+- **No new dependencies** — uses existing `framer-motion`, `useThemeMode`, and logo assets
+- **No database changes**
 
