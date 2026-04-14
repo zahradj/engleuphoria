@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { lessonService } from '@/services/lessonService';
 import type { TeacherProfile } from '@/types/teacher-discovery';
 
 interface MatchedTeacher extends TeacherProfile {
@@ -105,20 +106,15 @@ export function useTeacherMatchmaker() {
   const bookTrialLesson = async (teacherId: string) => {
     if (!user?.id) return;
 
-    const { error } = await supabase
-      .from('class_bookings')
-      .insert({
-        student_id: user.id,
-        teacher_id: teacherId,
-        status: 'pending',
-        booking_type: 'trial',
-        scheduled_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        duration: 30,
-        price_paid: 0,
-        currency: 'DZD',
-      });
+    await lessonService.createTrialLesson({
+      title: 'Trial Lesson',
+      teacher_id: teacherId,
+      student_id: user.id,
+      scheduled_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      duration: 30,
+      cost: 0,
+    });
 
-    if (error) throw error;
     setHasBookings(true);
   };
 

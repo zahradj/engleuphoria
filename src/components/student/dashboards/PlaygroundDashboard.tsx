@@ -56,6 +56,7 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
   useEffect(() => {
     if (!user?.id) return;
     const fetchUpcoming = async () => {
+      // Primary: RPC for lessons table
       const { data, error } = await supabase.rpc('get_student_upcoming_lessons', {
         student_uuid: user.id,
       });
@@ -63,6 +64,34 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
         const next = data[0];
         setNextLessonRoomLink(next.room_link || (next.room_id ? `/classroom/${next.room_id}` : null));
         setNextLessonTitle(next.title || undefined);
+        return;
+      }
+
+      // Fallback: check class_bookings directly for confirmed trials
+      const { data: bookings } = await supabase
+        .from('class_bookings')
+        .select('id, scheduled_at, booking_type, lesson_id, status')
+        .eq('student_id', user.id)
+        .in('status', ['confirmed', 'scheduled'])
+        .gte('scheduled_at', new Date().toISOString())
+        .order('scheduled_at', { ascending: true })
+        .limit(1);
+
+      if (bookings && bookings.length > 0) {
+        const b = bookings[0];
+        if (b.lesson_id) {
+          const { data: lesson } = await supabase
+            .from('lessons')
+            .select('room_id, room_link, title')
+            .eq('id', b.lesson_id)
+            .maybeSingle();
+          if (lesson) {
+            setNextLessonRoomLink(lesson.room_link || (lesson.room_id ? `/classroom/${lesson.room_id}` : null));
+            setNextLessonTitle(lesson.title || 'Trial Lesson');
+            return;
+          }
+        }
+        setNextLessonTitle('Upcoming Lesson');
       }
     };
     fetchUpcoming();
