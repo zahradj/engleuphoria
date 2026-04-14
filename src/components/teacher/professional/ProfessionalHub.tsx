@@ -11,7 +11,7 @@ import { PendingReviewBanner } from '../dashboard/PendingReviewBanner';
 import { ProfileSetupTab } from '../ProfileSetupTab';
 import { StudentLearningAnalytics } from '../analytics/StudentLearningAnalytics';
 import { TeacherEarnings } from '../TeacherEarnings';
-import { ClassScheduler } from '../scheduler';
+import { EnhancedCalendarTab } from '../EnhancedCalendarTab';
 import { UnitMasteryReport } from '../dashboard/UnitMasteryReport';
 import { MasteryOverview } from '../dashboard/MasteryOverview';
 import { WelcomeSuccessModal } from '../dashboard/WelcomeSuccessModal';
@@ -78,7 +78,7 @@ export const ProfessionalHub: React.FC<ProfessionalHubProps> = ({
             </div>
           );
         case 'schedule':
-          return <ClassScheduler teacherName={teacherName} teacherId={teacherId} />;
+          return <EnhancedCalendarTab teacherId={teacherId} />;
         case 'analytics':
           return <StudentLearningAnalytics teacherId={teacherId} />;
         case 'earnings':
