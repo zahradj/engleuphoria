@@ -152,6 +152,11 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 md:px-8 py-8">
+        {/* JOIN LESSON HERO — primary CTA */}
+        <div className="mb-6">
+          <JoinLessonHero hubId="professional" isDark={isDarkMode} />
+        </div>
+
         {/* LIVE Session Banner */}
         {liveStatus.isLive && liveStatus.classroomUrl && (
           <div className="mb-6">
