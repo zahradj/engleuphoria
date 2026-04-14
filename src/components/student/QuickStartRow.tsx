@@ -29,8 +29,7 @@ export const QuickStartRow: React.FC<QuickStartRowProps> = ({ studentName }) => 
       icon: Video,
       variant: 'default' as const,
       action: () => {
-        const roomId = `class-${Date.now()}`;
-        navigate(`/classroom-prejoin?roomId=${roomId}&role=student&name=${encodeURIComponent(studentName)}`);
+        navigate('/discover-teachers');
       },
       badge: { text: 'Live', color: 'bg-red-500' },
       time: '2:30 PM Today'

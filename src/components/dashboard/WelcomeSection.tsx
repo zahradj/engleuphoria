@@ -31,7 +31,7 @@ export function WelcomeSection({ studentName }: WelcomeSectionProps) {
             </p>
           </div>
           
-          <Button className="gap-2" onClick={() => navigate(`/classroom?roomId=unified-classroom-1&role=student&name=${encodeURIComponent(name)}&userId=${userId}`)}>
+          <Button className="gap-2" onClick={() => navigate('/discover-teachers')}>
             {languageText.joinNextClass} <ArrowRight className="h-4 w-4" />
           </Button>
         </div>

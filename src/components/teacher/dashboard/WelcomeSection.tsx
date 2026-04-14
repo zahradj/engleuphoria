@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Users, Star, ArrowRight, Video } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 interface WelcomeSectionProps {
   teacherName: string;
   onJoinClassroom: () => void;
@@ -22,9 +23,24 @@ export const WelcomeSection = ({
   onStartClass
 }: WelcomeSectionProps) => {
   const navigate = useNavigate();
-  const handleEnterClassroom = () => {
-    const teacherId = `teacher-${Date.now()}`;
-    navigate(`/classroom?role=teacher&name=${encodeURIComponent(teacherName)}&userId=${teacherId}&roomId=unified-classroom-1`);
+  const handleEnterClassroom = async () => {
+    try {
+      const { data: nextBooking } = await supabase
+        .from('class_bookings')
+        .select('session_id')
+        .eq('teacher_id', teacherName) // fallback — real teacher_id needed
+        .in('status', ['scheduled', 'confirmed'])
+        .gte('scheduled_at', new Date().toISOString())
+        .order('scheduled_at', { ascending: true })
+        .limit(1)
+        .single();
+
+      if (nextBooking?.session_id) {
+        navigate(`/classroom/${nextBooking.session_id}`);
+      }
+    } catch {
+      // No upcoming booking
+    }
   };
   const getGreeting = () => {
     const hour = new Date().getHours();
