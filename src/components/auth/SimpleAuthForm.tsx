@@ -175,7 +175,11 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
       if (mode === 'login') {
         const { data, error } = await signIn(formData.email, formData.password);
         if (error) {
-          toast({ title: "Login Failed", description: error.message || "Invalid email or password.", variant: "destructive" });
+          const isInvalidCreds = error.message?.toLowerCase().includes('invalid login credentials');
+          const description = isInvalidCreds
+            ? "Invalid email or password. If you just signed up, please check your inbox for a confirmation email and click the link before logging in."
+            : (error.message || "Invalid email or password.");
+          toast({ title: "Login Failed", description, variant: "destructive" });
         } else {
           toast({ title: "Welcome back!", description: "Successfully signed in." });
         }
