@@ -76,13 +76,10 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className={cn(
-            'text-center p-10 rounded-[2rem] shadow-2xl',
-            isDark ? 'bg-amber-950/60 text-amber-100' : 'bg-white/90 text-slate-800'
-          )}
+          className="glass-card-hub glass-playground text-center p-10 backdrop-blur-md"
         >
           <p className="text-6xl mb-4">😢</p>
-          <p className="text-xl font-bold mb-2">Oops! Something went wrong</p>
+          <p className={cn('text-xl font-bold mb-2', isDark ? 'text-amber-100' : 'text-slate-800')}>Oops! Something went wrong</p>
           <p className={isDark ? 'text-amber-300' : 'text-slate-500'}>Please try refreshing the page</p>
         </motion.div>
       </div>
@@ -95,10 +92,7 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className={cn(
-            'text-center p-10 rounded-[2rem] shadow-2xl',
-            isDark ? 'bg-amber-950/60 text-amber-100' : 'bg-white/90 text-slate-800'
-          )}
+          className="glass-card-hub glass-playground text-center p-10 backdrop-blur-md"
         >
           <motion.p
             className="text-7xl mb-4"
@@ -107,7 +101,7 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
           >
             🚀
           </motion.p>
-          <p className="text-xl font-bold mb-2">No lessons yet!</p>
+          <p className={cn('text-xl font-bold mb-2', isDark ? 'text-amber-100' : 'text-slate-800')}>No lessons yet!</p>
           <p className={isDark ? 'text-amber-300' : 'text-slate-500'}>Your adventure will start soon...</p>
         </motion.div>
       </div>
@@ -116,7 +110,7 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
 
   return (
     <div className="relative">
-      {/* Fun decorative floating shapes — light mode only */}
+      {/* Floating decorative shapes */}
       {!isDark && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div
@@ -137,7 +131,6 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
         </div>
       )}
 
-      {/* Dark mode floating embers */}
       {isDark && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div
@@ -154,21 +147,13 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
       )}
 
       <div className="relative z-10 space-y-4">
-        {/* ═══════════ TOP BAR ═══════════ */}
+        {/* ═══════════ TOP BAR — GLASSMORPHIC ═══════════ */}
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className={cn(
-            'flex items-center justify-between px-5 py-3 rounded-[1.5rem] shadow-lg border transition-colors duration-500',
-            isDark
-              ? 'bg-gradient-to-r from-amber-950/80 to-orange-950/80 backdrop-blur-xl border-amber-600/20'
-              : 'bg-white/80 backdrop-blur-xl border-orange-200/60 shadow-orange-100/50'
-          )}
+          className="glass-card-hub glass-playground flex items-center justify-between px-5 py-3 backdrop-blur-xl"
         >
-          {/* Logo + Hub Name — homepage style */}
           <HubLogo hubId="playground" size="md" />
-
-          {/* Greeting */}
           <div className="hidden md:flex items-center gap-2">
             <motion.span
               className="text-2xl"
@@ -181,8 +166,6 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
               Hi, {studentName}!
             </p>
           </div>
-
-          {/* Stats Badges */}
           <div className="flex items-center gap-2.5">
             <motion.div
               className={cn(
@@ -209,15 +192,42 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
           </div>
         </motion.div>
 
+        {/* ═══════════ HERO WELCOME SECTION ═══════════ */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className={cn(
+            'glass-card-hub glass-playground p-6 backdrop-blur-md relative overflow-hidden',
+          )}
+        >
+          {/* Gradient glow behind */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#FE6A2F]/10 via-[#FEAF15]/10 to-transparent pointer-events-none" />
+          <div className="relative flex items-center justify-between">
+            <div>
+              <h1 className={cn(
+                'text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#FE6A2F] to-[#FEAF15] bg-clip-text text-transparent'
+              )}>
+                Welcome to the Playground! 🎪
+              </h1>
+              <p className={cn('text-sm mt-1', isDark ? 'text-amber-300/80' : 'text-orange-600/80')}>
+                Ready for today's English adventure, {studentName}?
+              </p>
+            </div>
+            <motion.div
+              animate={{ rotate: [0, 5, -5, 0] }}
+              transition={{ duration: 4, repeat: Infinity }}
+              className="text-5xl hidden md:block"
+            >
+              🎉
+            </motion.div>
+          </div>
+        </motion.div>
+
         {/* ═══════════ MAIN CONTENT ═══════════ */}
         <div className="flex flex-col lg:flex-row gap-4">
-          {/* ═══ MAP AREA ═══ */}
-          <div className={cn(
-            'flex-1 rounded-[1.5rem] shadow-xl overflow-hidden transition-colors duration-500 border',
-            isDark
-              ? 'bg-amber-950/20 border-amber-800/20'
-              : 'bg-white/60 backdrop-blur border-orange-200/40 shadow-orange-100/30'
-          )}>
+          {/* ═══ MAP AREA — GLASS ═══ */}
+          <div className="glass-card-hub glass-playground flex-1 overflow-hidden backdrop-blur-md">
             <KidsWorldMap
               studentName={studentName}
               totalStars={totalStars}
@@ -239,16 +249,14 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
               <EnterClassroomCTA nextLessonRoomLink={nextLessonRoomLink} nextLessonTitle={nextLessonTitle} />
             )}
 
-            {/* Quick Action Cards */}
+            {/* Quick Action Cards — GLASS */}
             <div className="grid grid-cols-2 gap-2.5">
               <motion.button
                 whileHover={{ scale: 1.03, y: -2 }}
                 whileTap={{ scale: 0.95 }}
                 className={cn(
-                  'flex flex-col items-center gap-2 p-4 rounded-2xl font-semibold text-xs shadow-md transition-colors duration-500 border',
-                  isDark
-                    ? 'bg-gradient-to-br from-purple-900/60 to-indigo-900/60 text-purple-200 border-purple-700/30'
-                    : 'bg-gradient-to-br from-purple-50 to-indigo-50 text-purple-700 border-purple-200/60'
+                  'glass-card-hub glass-playground flex flex-col items-center gap-2 p-4 font-semibold text-xs backdrop-blur-md',
+                  isDark ? 'text-purple-200' : 'text-purple-700'
                 )}
               >
                 <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', isDark ? 'bg-purple-800/60' : 'bg-purple-100')}>
@@ -262,10 +270,8 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setBookingOpen(true)}
                 className={cn(
-                  'flex flex-col items-center gap-2 p-4 rounded-2xl font-semibold text-xs shadow-md transition-colors duration-500 border',
-                  isDark
-                    ? 'bg-gradient-to-br from-amber-900/60 to-orange-900/60 text-amber-200 border-amber-700/30'
-                    : 'bg-gradient-to-br from-orange-50 to-amber-50 text-orange-700 border-orange-200/60'
+                  'glass-card-hub glass-playground flex flex-col items-center gap-2 p-4 font-semibold text-xs backdrop-blur-md',
+                  isDark ? 'text-amber-200' : 'text-orange-700'
                 )}
               >
                 <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', isDark ? 'bg-amber-800/60' : 'bg-orange-100')}>
@@ -275,17 +281,12 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
               </motion.button>
             </div>
 
-            {/* Fun Progress Card */}
+            {/* Progress Card — GLASS */}
             <motion.div
               initial={{ x: 20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className={cn(
-                'p-4 rounded-2xl border shadow-md',
-                isDark
-                  ? 'bg-gradient-to-br from-amber-950/60 to-orange-950/60 border-amber-700/20'
-                  : 'bg-gradient-to-br from-orange-50/80 to-yellow-50/80 border-orange-200/50'
-              )}
+              className="glass-card-hub glass-playground p-4 backdrop-blur-md"
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
@@ -300,12 +301,7 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
               </div>
               <div className={cn('h-3 rounded-full overflow-hidden', isDark ? 'bg-amber-900/50' : 'bg-orange-100')}>
                 <motion.div
-                  className={cn(
-                    'h-full rounded-full',
-                    isDark
-                      ? 'bg-gradient-to-r from-amber-500 to-orange-500'
-                      : 'bg-gradient-to-r from-orange-400 to-amber-400'
-                  )}
+                  className="h-full rounded-full bg-gradient-to-r from-[#FE6A2F] to-[#FEAF15]"
                   initial={{ width: 0 }}
                   animate={{ width: `${starPercent}%` }}
                   transition={{ duration: 1, ease: 'easeOut', delay: 0.3 }}
