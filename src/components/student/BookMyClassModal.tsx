@@ -160,8 +160,13 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
         return;
       }
 
-      // Consume a credit
-      const { data: creditOk } = await supabase.rpc('consume_credit', { p_student_id: user.id });
+      // Consume a credit (skip for trial bookings)
+      let isTrial = false;
+      if (trialAvailable) {
+        isTrial = true;
+      } else {
+        const { data: creditOk } = await supabase.rpc('consume_credit', { p_student_id: user.id });
+      }
 
       // Insert booking record
       const { data: bookingData, error: bookingError } = await supabase
@@ -171,8 +176,8 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
           teacher_id: slot.teacherId,
           scheduled_at: slot.startTime.toISOString(),
           duration: slot.duration,
-          booking_type: 'standard',
-          price_paid: creditOk ? 0 : 0,
+          booking_type: isTrial ? 'trial' : 'standard',
+          price_paid: 0,
           status: 'confirmed',
         })
         .select('session_id, meeting_link')
