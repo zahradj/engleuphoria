@@ -19,7 +19,9 @@ import {
   Filter,
   CalendarDays,
   Video,
+  LogIn,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface CommandCenterProps {
   teacherId: string;
@@ -33,6 +35,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
   onViewStudent,
 }) => {
   const [logFilter, setLogFilter] = useState<'all' | 'sent' | 'failed'>('all');
+  const navigate = useNavigate();
 
   // Fetch live metrics
   const { data: metrics } = useQuery({
@@ -110,7 +113,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
       const now = new Date().toISOString();
       const { data: bookings } = await supabase
         .from('class_bookings')
-        .select('id, student_id, scheduled_at, status, duration, booking_type, price_paid')
+        .select('id, student_id, scheduled_at, status, duration, booking_type, price_paid, session_id, meeting_link')
         .eq('teacher_id', teacherId)
         .in('status', ['scheduled', 'confirmed'])
         .gte('scheduled_at', now)
@@ -134,6 +137,8 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
         studentName: profileMap[b.student_id]?.name || 'Student',
         studentLevel: profileMap[b.student_id]?.level || 'academy',
         isTrial: b.price_paid === 0 || b.booking_type === 'trial',
+        sessionId: b.session_id,
+        meetingLink: b.meeting_link,
       }));
     },
     staleTime: 30_000,
@@ -233,6 +238,16 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
               {upcomingLessons.map((lesson: any) => {
                 const hub = getHubColor(lesson.studentLevel);
                 const dt = new Date(lesson.scheduled_at);
+                const now = new Date();
+                const minutesUntil = (dt.getTime() - now.getTime()) / 60000;
+                const canJoin = minutesUntil <= 15 && minutesUntil > -lesson.duration;
+                const hubButtonStyles: Record<string, string> = {
+                  playground: 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600',
+                  professional: 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600',
+                  academy: 'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600',
+                };
+                const btnStyle = hubButtonStyles[lesson.studentLevel] || hubButtonStyles.academy;
+                
                 return (
                   <div
                     key={lesson.id}
@@ -256,13 +271,26 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className={`text-sm font-semibold ${hub.text}`}>
-                        {dt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                      </p>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <p className={`text-sm font-semibold ${hub.text}`}>
+                          {dt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                        </p>
+                      </div>
+                      {lesson.sessionId && (
+                        <Button
+                          size="sm"
+                          disabled={!canJoin}
+                          className={`text-white text-xs px-3 ${canJoin ? btnStyle : 'bg-muted text-muted-foreground'}`}
+                          onClick={() => navigate(`/classroom/${lesson.sessionId}`)}
+                        >
+                          <LogIn className="h-3.5 w-3.5 mr-1" />
+                          {canJoin ? 'Join' : `${Math.ceil(minutesUntil)}m`}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 );

@@ -32,7 +32,7 @@ const StudentClassroomPage: React.FC = () => {
   }
 
   if (!preFlightPassed) {
-    return <PreFlightCheck onComplete={() => setPreFlightPassed(true)} />;
+    return <PreFlightCheck onComplete={() => setPreFlightPassed(true)} hubType="academy" role="student" />;
   }
 
   const studentName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Student';

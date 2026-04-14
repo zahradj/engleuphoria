@@ -13,6 +13,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useStudentHandlers } from "@/hooks/useStudentHandlers";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { HomeworkSubmissionModal } from "./HomeworkSubmissionModal";
 import { TeacherMessageModal } from "./TeacherMessageModal";
 import { StudentLessonTracker } from "@/components/dashboard/student/StudentLessonTracker";
@@ -51,8 +52,27 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState<string | null>(null);
 
-  const handleJoinClassroom = () => {
-    navigate("/classroom?roomId=unified-classroom-1&role=student&name=" + encodeURIComponent(studentName) + "&userId=" + studentId);
+  const handleJoinClassroom = async () => {
+    try {
+      const now = new Date().toISOString();
+      const { data: nextBooking } = await supabase
+        .from('class_bookings')
+        .select('session_id, meeting_link')
+        .eq('student_id', studentId)
+        .in('status', ['scheduled', 'confirmed'])
+        .gte('scheduled_at', now)
+        .order('scheduled_at', { ascending: true })
+        .limit(1)
+        .single();
+
+      if (nextBooking?.meeting_link) {
+        navigate(nextBooking.meeting_link);
+      } else {
+        navigate('/discover-teachers');
+      }
+    } catch {
+      navigate('/discover-teachers');
+    }
   };
 
   const handleHomeworkSubmit = (submission: { text: string; files: File[] }) => {
@@ -187,9 +207,10 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
                           size="sm" 
                           className="bg-gradient-to-r from-primary to-accent text-white hover:opacity-90"
                           onClick={() => {
-                            if (lesson.room_id) {
-                              // Navigate to the unified classroom with proper parameters
-                              navigate(`/classroom?roomId=${lesson.room_id}&role=student&name=${encodeURIComponent(studentName)}&userId=${user?.id || ''}`);
+                          if (lesson.session_id) {
+                              navigate(`/student-classroom/${lesson.session_id}`);
+                            } else if (lesson.meeting_link) {
+                              navigate(lesson.meeting_link);
                             } else {
                               handleJoinClassroom();
                             }
