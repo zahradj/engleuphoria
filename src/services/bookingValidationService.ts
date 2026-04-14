@@ -5,9 +5,25 @@ export interface ValidationResult {
   isValid: boolean;
   error?: string;
   warning?: string;
+  isTrial?: boolean;
 }
 
 export const bookingValidationService = {
+  /**
+   * Check if a student is eligible for a free trial lesson
+   * (has never completed or booked any lesson before)
+   */
+  async isEligibleForTrial(studentId: string): Promise<boolean> {
+    const { count, error } = await supabase
+      .from('class_bookings')
+      .select('id', { count: 'exact', head: true })
+      .eq('student_id', studentId)
+      .neq('status', 'cancelled');
+
+    if (error) return false;
+    return (count ?? 0) === 0;
+  },
+
   /**
    * Comprehensive validation before booking a lesson
    */
@@ -67,8 +83,8 @@ export const bookingValidationService = {
       .from('lessons')
       .select('id, title, scheduled_at')
       .eq('student_id', studentId)
-      .gte('scheduled_at', new Date(slotTime.getTime() - 90 * 60 * 1000).toISOString()) // 90 min before
-      .lte('scheduled_at', new Date(slotTime.getTime() + 90 * 60 * 1000).toISOString()) // 90 min after
+      .gte('scheduled_at', new Date(slotTime.getTime() - 90 * 60 * 1000).toISOString())
+      .lte('scheduled_at', new Date(slotTime.getTime() + 90 * 60 * 1000).toISOString())
       .neq('status', 'cancelled');
       
     if (!conflictError && conflicts && conflicts.length > 0) {
@@ -78,7 +94,29 @@ export const bookingValidationService = {
       };
     }
 
-    // 6. Check if student has valid package or payment method
+    // 6. Check if student is eligible for a free trial lesson
+    const isTrialEligible = await this.isEligibleForTrial(studentId);
+    
+    if (isTrialEligible) {
+      // First lesson is free — skip package validation
+      // 7. Verify teacher is still active and approved
+      const { data: teacher } = await supabase
+        .from('teacher_profiles')
+        .select('approval_status')
+        .eq('user_id', teacherId)
+        .single();
+
+      if (!teacher || teacher.approval_status !== 'approved') {
+        return {
+          isValid: false,
+          error: 'This teacher is currently unavailable for booking.'
+        };
+      }
+
+      return { isValid: true, isTrial: true };
+    }
+
+    // 6b. Check if student has valid package or payment method
     const packages = await lessonPricingService.getStudentPackages(studentId);
     const validPackage = packages.find(
       pkg => pkg.package?.duration_minutes === duration && pkg.lessons_remaining > 0
@@ -128,6 +166,7 @@ export const bookingValidationService = {
   async getStudentCredits(studentId: string): Promise<{
     credits30: number;
     credits60: number;
+    trialAvailable: boolean;
   }> {
     const packages = await lessonPricingService.getStudentPackages(studentId);
     
@@ -139,6 +178,31 @@ export const bookingValidationService = {
       .filter(pkg => pkg.package?.duration_minutes === 60)
       .reduce((sum, pkg) => sum + pkg.lessons_remaining, 0);
 
-    return { credits30, credits60 };
+    const trialAvailable = await this.isEligibleForTrial('');
+
+    return { credits30, credits60, trialAvailable };
+  },
+
+  /**
+   * Get student credits with trial check using actual student ID
+   */
+  async getStudentCreditsWithTrial(studentId: string): Promise<{
+    credits30: number;
+    credits60: number;
+    trialAvailable: boolean;
+  }> {
+    const packages = await lessonPricingService.getStudentPackages(studentId);
+    
+    const credits30 = packages
+      .filter(pkg => pkg.package?.duration_minutes === 30)
+      .reduce((sum, pkg) => sum + pkg.lessons_remaining, 0);
+      
+    const credits60 = packages
+      .filter(pkg => pkg.package?.duration_minutes === 60)
+      .reduce((sum, pkg) => sum + pkg.lessons_remaining, 0);
+
+    const trialAvailable = await this.isEligibleForTrial(studentId);
+
+    return { credits30, credits60, trialAvailable };
   }
 };
