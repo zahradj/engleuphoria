@@ -1,48 +1,81 @@
 
 
-# Teacher Dashboard: Deep Diagnosis & Fix
+# Teacher-Student Classroom Sync + One-Click Entry + Green Room Enhancement
 
-## Root Causes Found
+## Current State
 
-### Problem 1: Teacher Schedule Shows Nothing (Critical)
-The `ProfessionalHub` schedule tab renders `ClassScheduler`, which uses `useAvailabilityManager` — a **local-state-only** hook. It never fetches existing slots from Supabase. So all saved availability and booked lessons are invisible.
+The system **already has** the right infrastructure:
+- `class_bookings` auto-generates `session_id` (12-char) and `meeting_link` (`/student-classroom/{session_id}`) via the `generate_booking_session()` trigger
+- `SessionPrivacyGuard` validates access via `can_access_booking_session()` RPC
+- `PreFlightCheck` component exists with camera + mic checks
+- Routes: `/classroom/:id` (teacher), `/student-classroom/:id` (student)
 
-Meanwhile, `EnhancedCalendarTab` (which correctly fetches from DB via `useTeacherAvailability`) exists but is **not used** in the teacher dashboard.
-
-### Problem 2: Booked Trial Lesson Not Visible to Teacher
-The booked slot at `2026-04-15 13:00` has `is_booked=true` and `student_id` set, but `lesson_id` is NULL. The booking flow didn't link the lesson record (`73faad7d`) to the availability slot. This means even with the correct calendar, the lesson details won't display fully.
-
-### Problem 3: Orphaned Data
-There's a stale `is_booked=true` slot at `2026-04-14 17:30` with no student — needs cleanup.
-
-### Problem 4: CommandCenter Has No Upcoming Lessons
-The Command Center shows metrics and alerts but has **no "Upcoming Lessons" widget** — the teacher can't see what's coming up today/this week.
-
----
+The **problems** are all wiring issues — the dashboard components don't use the real booking data.
 
 ## Plan
 
-### Step 1: Replace ClassScheduler with EnhancedCalendarTab
-In `ProfessionalHub.tsx`, swap the schedule tab from `ClassScheduler` to `EnhancedCalendarTab`. This immediately makes all DB-stored availability and booked slots visible with the modern glassmorphic UI.
+### Step 1: Add "Join Classroom" Button to Teacher Command Center
 
-### Step 2: Add Upcoming Lessons Widget to CommandCenter
-Add a new card to `CommandCenter.tsx` that queries `lessons` + `class_bookings` for the teacher's upcoming scheduled/confirmed lessons. Show student name, time, hub color, and lesson type (trial badge).
+**File:** `src/components/teacher/professional/CommandCenter.tsx`
 
-### Step 3: Fix lesson_id Linking in Availability
-Update the booking flow in `useTeacherMatchmaker.ts` to also update `teacher_availability.lesson_id` when a lesson is created, so the calendar can display full lesson details.
+The upcoming lessons query already fetches from `class_bookings` but doesn't select `session_id` or `meeting_link`. Fix:
+- Add `session_id, meeting_link` to the query select
+- Add a "Join" button on each upcoming lesson card that navigates to `/classroom/{session_id}`
+- Button becomes active 15 minutes before lesson start (matching the student's 10-min window with extra teacher buffer)
+- Hub-color the button: Orange (playground), Blue (academy), Green (professional/success)
 
-### Step 4: Database Data Fix
-- Link the existing lesson (`73faad7d`) to the availability slot (`60881059`) by setting `lesson_id`
-- Clean up the orphaned booked slot at `2026-04-14 17:30`
+### Step 2: Fix Student One-Click Entry
 
-### Step 5: Teacher Dashboard Visual Enhancement
-- Apply brand gradients to `CommandCenter` status cards (replace hardcoded `#1A237E`)
-- Add glassmorphic card styling consistent with student dashboards
-- Add a "Today's Schedule" quick-glance strip at the top of Command Center
+**Files:** `src/components/student/DashboardTab.tsx`, `src/components/student/dashboard/StudentWelcomeSection.tsx`
+
+Currently `handleJoinClassroom` navigates to a hardcoded `unified-classroom-1`. Fix:
+- Query `class_bookings` for the student's next confirmed booking with `session_id`
+- Navigate directly to the `meeting_link` (e.g., `/student-classroom/5003c94ff953`)
+- Remove the intermediate "Enter Room ID" step for students with active bookings
+
+### Step 3: Enhance PreFlightCheck as Hub-Branded Green Room
+
+**Files:** `src/components/classroom/PreFlightCheck.tsx`, `src/hooks/usePreFlightCheck.ts`
+
+Current PreFlightCheck is functional but plain. Enhance:
+- Accept `hubType` prop to apply hub-specific gradients and glassmorphism
+- Add **Speaker Test**: Play a chime sound, ask "Did you hear the sound?" (Yes/No)
+- Add **Connection Check**: Simple `navigator.connection` API or ping-based indicator (Good/Fair/Poor)
+- Add **Device Selection** dropdowns for camera/mic using `navigator.mediaDevices.enumerateDevices()`
+- Show participant status: "Your teacher is waiting" or "Your student hasn't joined yet" (via Supabase Realtime presence on the session channel)
+- "Enter Classroom" button stays disabled until camera + mic confirmed
+- Add "Skip check" link for returning users
+- Success Hub: Add "Set your intention" text input
+- Slow connection message: "Your connection is a bit sleepy today. Moving closer to the router might wake it up!"
+
+### Step 4: Auto-Authentication in Classroom
+
+**Files:** `src/pages/StudentClassroomPage.tsx`, `src/pages/TeacherClassroomPage.tsx`
+
+Both pages already pull `user` from `useAuth()` and pass `studentName`/`teacherName`. Ensure:
+- Name and role are auto-populated from auth context (no manual entry)
+- Pass `hubType` to PreFlightCheck based on booking metadata
+
+### Step 5: Fix Legacy Navigation References
+
+**Files:** Multiple dashboard components
+
+Replace all hardcoded classroom URLs:
+- `src/components/dashboard/WelcomeSection.tsx` — remove `unified-classroom-1` reference
+- `src/components/teacher/dashboard/WelcomeSection.tsx` — use real session_id
+- `src/components/student/QuickStartRow.tsx` — use real booking data
 
 ## Files to Modify
-- `src/components/teacher/professional/ProfessionalHub.tsx` — swap ClassScheduler → EnhancedCalendarTab
-- `src/components/teacher/professional/CommandCenter.tsx` — add Upcoming Lessons widget, enhance visuals
-- `src/hooks/useTeacherMatchmaker.ts` — add `lesson_id` update to `teacher_availability` after booking
-- Database: data fix migration for linking lesson + cleanup orphan
+- `src/components/teacher/professional/CommandCenter.tsx` — Add Join button with session_id
+- `src/components/student/DashboardTab.tsx` — One-click entry using real booking
+- `src/components/student/dashboard/StudentWelcomeSection.tsx` — Pass real meeting link
+- `src/components/classroom/PreFlightCheck.tsx` — Full Green Room with hub branding, speaker test, connectivity
+- `src/hooks/usePreFlightCheck.ts` — Add speaker test audio, device enumeration, connection check
+- `src/pages/StudentClassroomPage.tsx` — Pass hubType to PreFlightCheck
+- `src/pages/TeacherClassroomPage.tsx` — Pass hubType to PreFlightCheck
+- `src/components/dashboard/WelcomeSection.tsx` — Fix hardcoded URL
+- `src/components/teacher/dashboard/WelcomeSection.tsx` — Fix hardcoded URL
+
+## No Database Changes Needed
+The `class_bookings` table already has `session_id` and `meeting_link` auto-generated. The `can_access_booking_session()` function validates both teacher and student access.
 
