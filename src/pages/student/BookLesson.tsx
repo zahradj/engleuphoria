@@ -180,7 +180,7 @@ const BookLesson = () => {
     );
   }
 
-  if (!hasActivePackages) {
+  if (!hasActivePackages && !trialAvailable) {
     return (
       <div className="min-h-screen bg-background p-6">
         <div className="max-w-4xl mx-auto space-y-6">

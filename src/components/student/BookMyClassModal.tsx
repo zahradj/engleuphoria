@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, X, Loader2, CheckCircle, Sparkles, Link2, AlertTriangle, CreditCard } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { cn } from '@/lib/utils';
 import confetti from 'canvas-confetti';
+import { mergeAdjacentSlots, MergedSlot } from '@/utils/slotMerger';
 
 interface TimeSlot {
   id: string;
@@ -24,12 +25,41 @@ interface TimeSlot {
   isAvailable: boolean;
 }
 
+type HubType = 'playground' | 'academy' | 'professional';
+
 interface BookMyClassModalProps {
   isOpen: boolean;
   onClose: () => void;
   accentClass?: string;
-  studentLevel?: 'playground' | 'academy' | 'professional';
+  studentLevel?: HubType;
 }
+
+const HUB_CONFIG = {
+  playground: {
+    label: 'Playground',
+    duration: 30,
+    icon: '🌈',
+    headerBg: 'from-pink-500 to-purple-500',
+    description: 'Quick 30-minute fun sessions',
+    bookLabel: 'Book a Class',
+  },
+  academy: {
+    label: 'Academy Hub',
+    duration: 60,
+    icon: '⚡',
+    headerBg: 'from-purple-600 to-cyan-500',
+    description: 'Deep 60-minute learning sessions',
+    bookLabel: 'Book a Slot',
+  },
+  professional: {
+    label: 'Success Hub',
+    duration: 60,
+    icon: '📅',
+    headerBg: 'from-emerald-500 to-teal-500',
+    description: 'Professional 60-minute coaching',
+    bookLabel: 'Schedule a Session',
+  },
+};
 
 export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
   isOpen,
@@ -44,89 +74,78 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
 
-  const [slots, setSlots] = useState<TimeSlot[]>([]);
+  const [selectedHub, setSelectedHub] = useState<HubType>(studentLevel);
+  const [rawSlots, setRawSlots] = useState<TimeSlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [booking, setBooking] = useState(false);
   const [booked, setBooked] = useState(false);
   const [meetingLink, setMeetingLink] = useState<string | null>(null);
 
   const hasCredits = totalCredits > 0 || trialAvailable;
+  const config = HUB_CONFIG[selectedHub];
+  const slotDuration = config.duration;
 
-  // Fetch available slots
+  // Compute display slots based on hub selection
+  const displaySlots: (TimeSlot & { sourceSlotIds?: string[] })[] = useMemo(() => {
+    if (slotDuration === 30) {
+      return rawSlots.map(s => ({ ...s, sourceSlotIds: [s.id] }));
+    }
+    // 60-min: merge adjacent 30-min slots
+    return mergeAdjacentSlots(rawSlots);
+  }, [rawSlots, slotDuration]);
+
+  // Fetch available slots (always fetch raw 30-min slots)
   const fetchSlots = useCallback(async () => {
     setLoadingSlots(true);
     try {
-      let query = supabase
+      const { data, error } = await supabase
         .from('teacher_availability')
-        .select(`
-          id,
-          teacher_id,
-          start_time,
-          end_time,
-          duration,
-          is_available,
-          is_booked,
-          hub_specialty
-        `)
+        .select('id, teacher_id, start_time, end_time, duration, is_available, is_booked, hub_specialty')
         .eq('is_available', true)
         .eq('is_booked', false)
         .gt('start_time', new Date().toISOString())
         .order('start_time', { ascending: true })
-        .limit(60);
-
-      // Filter by hub if student has a level
-      if (studentLevel) {
-        const hubMap: Record<string, string> = {
-          playground: 'Playground',
-          academy: 'Academy',
-          professional: 'Professional',
-        };
-        const hubValue = hubMap[studentLevel];
-        if (hubValue) {
-          query = query.or(`hub_specialty.eq.${hubValue},hub_specialty.is.null`);
-        }
-      }
-
-      const { data, error } = await query;
+        .limit(120);
 
       if (error) throw error;
 
       if (data) {
-        const teacherIds = [...new Set(data.map((s) => s.teacher_id))];
+        const teacherIds = [...new Set(data.map(s => s.teacher_id))];
         const { data: teachers } = await supabase
           .from('users')
           .select('id, full_name')
           .in('id', teacherIds);
 
         const teacherMap: Record<string, string> = {};
-        teachers?.forEach((t) => { teacherMap[t.id] = t.full_name || 'Teacher'; });
+        teachers?.forEach(t => { teacherMap[t.id] = t.full_name || 'Teacher'; });
 
-        const mapped: TimeSlot[] = data.map((s) => ({
+        const mapped: TimeSlot[] = data.map(s => ({
           id: s.id,
           teacherId: s.teacher_id,
           teacherName: teacherMap[s.teacher_id] || 'Teacher',
           startTime: new Date(s.start_time),
           endTime: new Date(s.end_time),
-          duration: s.duration || 25,
+          duration: s.duration || 30,
           isAvailable: s.is_available && !s.is_booked,
         }));
 
-        setSlots(mapped);
+        setRawSlots(mapped);
       }
     } catch (err) {
       console.error('Failed to fetch availability slots:', err);
     } finally {
       setLoadingSlots(false);
     }
-  }, [studentLevel]);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
       setBooked(false);
       setMeetingLink(null);
+      setSelectedHub(studentLevel);
       fetchSlots();
     }
-  }, [isOpen, fetchSlots]);
+  }, [isOpen, fetchSlots, studentLevel]);
 
   useEffect(() => {
     const handleChange = () => fetchSlots();
@@ -134,30 +153,43 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
     return () => window.removeEventListener('availability-changed', handleChange);
   }, [fetchSlots]);
 
-  const handleBookSlot = async (slot: TimeSlot) => {
+  const handleBookSlot = async (slot: TimeSlot & { sourceSlotIds?: string[] }) => {
     if (!user?.id || booking || !hasCredits) return;
     setBooking(true);
 
-    try {
-      // Atomic update: mark slot as booked only if still available
-      const { data: updated, error: updateError } = await supabase
-        .from('teacher_availability')
-        .update({ is_booked: true, student_id: user.id })
-        .eq('id', slot.id)
-        .eq('is_booked', false)
-        .eq('is_available', true)
-        .select('id')
-        .single();
+    const slotIds = slot.sourceSlotIds || [slot.id];
 
-      if (updateError || !updated) {
-        toast({
-          title: 'Slot no longer available',
-          description: "Oops! This slot was just taken. Please try another time.",
-          variant: 'destructive',
-        });
-        await fetchSlots();
-        setBooking(false);
-        return;
+    try {
+      // Atomic update: mark all source slots as booked
+      for (const slotId of slotIds) {
+        const { data: updated, error: updateError } = await supabase
+          .from('teacher_availability')
+          .update({ is_booked: true, student_id: user.id })
+          .eq('id', slotId)
+          .eq('is_booked', false)
+          .eq('is_available', true)
+          .select('id')
+          .single();
+
+        if (updateError || !updated) {
+          // Rollback any previously marked slots
+          for (const prevId of slotIds) {
+            await supabase
+              .from('teacher_availability')
+              .update({ is_booked: false, student_id: null })
+              .eq('id', prevId)
+              .eq('student_id', user.id);
+          }
+
+          toast({
+            title: 'Slot no longer available',
+            description: "Oops! This slot was just taken. Please try another time.",
+            variant: 'destructive',
+          });
+          await fetchSlots();
+          setBooking(false);
+          return;
+        }
       }
 
       // Consume a credit (skip for trial bookings)
@@ -165,13 +197,13 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
       if (trialAvailable) {
         isTrial = true;
       } else {
-        const { data: creditOk } = await supabase.rpc('consume_credit', { p_student_id: user.id });
+        await supabase.rpc('consume_credit', { p_student_id: user.id });
       }
 
-      // Create a lesson record so it appears in upcoming classes for both teacher & student
+      // Create a lesson record
       const lessonTitle = isTrial
         ? `Trial Lesson with ${slot.teacherName}`
-        : `Lesson with ${slot.teacherName}`;
+        : `${config.label} Lesson with ${slot.teacherName}`;
 
       const { data: lessonRecord, error: lessonError } = await supabase
         .from('lessons')
@@ -180,7 +212,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
           teacher_id: slot.teacherId,
           student_id: user.id,
           scheduled_at: slot.startTime.toISOString(),
-          duration: slot.duration,
+          duration: slotDuration,
           status: 'scheduled',
           cost: 0,
         })
@@ -191,12 +223,14 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
         console.error('Lesson creation failed:', lessonError);
       }
 
-      // Update the availability slot with lesson reference
+      // Update all availability slots with lesson reference
       if (lessonRecord) {
-        await supabase
-          .from('teacher_availability')
-          .update({ lesson_id: lessonRecord.id, lesson_title: lessonTitle })
-          .eq('id', slot.id);
+        for (const slotId of slotIds) {
+          await supabase
+            .from('teacher_availability')
+            .update({ lesson_id: lessonRecord.id, lesson_title: lessonTitle })
+            .eq('id', slotId);
+        }
       }
 
       // Insert booking record
@@ -206,7 +240,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
           student_id: user.id,
           teacher_id: slot.teacherId,
           scheduled_at: slot.startTime.toISOString(),
-          duration: slot.duration,
+          duration: slotDuration,
           booking_type: isTrial ? 'trial' : 'standard',
           price_paid: 0,
           status: 'confirmed',
@@ -215,26 +249,27 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
         .select('session_id, meeting_link')
         .single();
 
-      // Also insert into appointments table (the handshake record)
+      // Also insert into appointments table
       await supabase.from('appointments').insert({
         student_id: user.id,
         teacher_id: slot.teacherId,
-        availability_id: slot.id,
+        availability_id: slotIds[0],
         status: 'confirmed',
-        hub_type: studentLevel ? studentLevel.charAt(0).toUpperCase() + studentLevel.slice(1) : null,
+        hub_type: config.label,
         scheduled_at: slot.startTime.toISOString(),
-        duration: slot.duration,
+        duration: slotDuration,
         meeting_link: bookingData?.meeting_link || null,
         lesson_id: lessonRecord?.id || null,
       });
 
       if (bookingError) {
         console.error('Booking insert failed:', bookingError);
-        await supabase
-          .from('teacher_availability')
-          .update({ is_booked: false })
-          .eq('id', slot.id);
-
+        for (const slotId of slotIds) {
+          await supabase
+            .from('teacher_availability')
+            .update({ is_booked: false, student_id: null })
+            .eq('id', slotId);
+        }
         toast({
           title: 'Booking failed',
           description: 'Could not complete booking. Please try again.',
@@ -251,7 +286,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
 
       toast({
         title: '🎉 Class booked!',
-        description: 'Success! Your coach has been notified. Check your email for a reminder 1 hour before the session.',
+        description: `Success! Your ${slotDuration}-minute ${config.label} session has been booked.`,
       });
 
       setTimeout(() => {
@@ -273,36 +308,13 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
   const fireConfetti = () => {
     const duration = 2000;
     const end = Date.now() + duration;
-
     const frame = () => {
-      confetti({
-        particleCount: 5,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0 },
-        colors: ['#7c3aed', '#8b5cf6', '#a78bfa', '#06b6d4', '#ec4899'],
-      });
-      confetti({
-        particleCount: 5,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1 },
-        colors: ['#7c3aed', '#8b5cf6', '#a78bfa', '#06b6d4', '#ec4899'],
-      });
-
+      confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#7c3aed', '#8b5cf6', '#a78bfa', '#06b6d4', '#ec4899'] });
+      confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#7c3aed', '#8b5cf6', '#a78bfa', '#06b6d4', '#ec4899'] });
       if (Date.now() < end) requestAnimationFrame(frame);
     };
-
     frame();
   };
-
-  const levelConfig = {
-    playground: { label: 'Book a Class', icon: '🌈', headerBg: 'from-pink-500 to-purple-500' },
-    academy: { label: 'Book a Slot', icon: '⚡', headerBg: 'from-purple-600 to-cyan-500' },
-    professional: { label: 'Schedule a Session', icon: '📅', headerBg: 'from-emerald-500 to-teal-500' },
-  };
-
-  const config = levelConfig[studentLevel];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -331,8 +343,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
             <DialogHeader>
               <DialogTitle className="flex items-center gap-3 text-white text-xl font-bold">
                 <span className="text-2xl">{config.icon}</span>
-                {config.label}
-                {/* Credits badge */}
+                {config.bookLabel}
                 {!creditsLoading && (
                   <Badge className={cn(
                     "ml-2 text-xs font-medium",
@@ -353,13 +364,45 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
                 </button>
               </DialogTitle>
               <p className="text-white/80 text-sm mt-1">
-                Choose a date and time that works best for you
+                {config.description} • {slotDuration} minutes per session
               </p>
             </DialogHeader>
           </div>
 
           <div className="p-6">
-            {/* No credits warning — glass styled */}
+            {/* Hub Selector */}
+            <div className="mb-5">
+              <p className={cn("text-sm font-medium mb-2", isDark ? "text-white/70" : "text-gray-600")}>
+                Select your session type:
+              </p>
+              <div className="flex gap-2 flex-wrap">
+                {(Object.entries(HUB_CONFIG) as [HubType, typeof HUB_CONFIG['playground']][]).map(([key, hub]) => (
+                  <button
+                    key={key}
+                    onClick={() => setSelectedHub(key)}
+                    className={cn(
+                      "px-4 py-2.5 rounded-xl text-sm font-medium border transition-all duration-200",
+                      selectedHub === key
+                        ? "bg-primary text-primary-foreground border-primary shadow-md"
+                        : isDark
+                          ? "bg-white/5 text-white/70 border-white/10 hover:bg-white/10"
+                          : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
+                    )}
+                  >
+                    <span className="mr-1.5">{hub.icon}</span>
+                    {hub.label}
+                    <span className={cn(
+                      "ml-2 text-xs",
+                      selectedHub === key ? "text-primary-foreground/70" : "text-muted-foreground"
+                    )}>
+                      {hub.duration}min
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* No credits warning */}
             {!creditsLoading && !hasCredits && !booked && (
               <div className={cn(
                 "mb-4 p-4 rounded-xl border flex items-start gap-3",
@@ -378,10 +421,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
                   size="sm"
                   variant="outline"
                   className="shrink-0 border-destructive/30 text-destructive hover:bg-destructive/10"
-                  onClick={() => {
-                    onClose();
-                    navigate('/student?tab=packages');
-                  }}
+                  onClick={() => { onClose(); navigate('/student?tab=packages'); }}
                 >
                   Get Credits
                 </Button>
@@ -400,7 +440,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
                 <div className="flex-1">
                   <p className="font-semibold text-emerald-700">🎁 Your First Lesson is Free!</p>
                   <p className="text-sm text-emerald-600/80 mt-1">
-                    Book your 30-minute trial lesson at no cost. Pick a time and start learning!
+                    Book your free trial lesson at no cost. Pick a time and start learning!
                   </p>
                 </div>
               </div>
@@ -408,7 +448,6 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
 
             <AnimatePresence mode="wait">
               {booked ? (
-                /* ✅ Success state with Euphoria Ring glow */
                 <motion.div
                   key="success"
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -422,13 +461,12 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
                     transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                     className="relative"
                   >
-                    {/* Euphoria Ring glow */}
                     <div className="absolute inset-0 -m-4 rounded-full bg-gradient-to-r from-emerald-400/30 to-cyan-400/30 blur-xl" />
                     <CheckCircle className="relative w-20 h-20 text-emerald-500" />
                   </motion.div>
                   <h3 className="text-2xl font-bold text-foreground">Booking Confirmed! 🎉</h3>
                   <p className="text-muted-foreground max-w-sm">
-                    Your class is booked. You'll receive an email reminder 1 hour before the session.
+                    Your {slotDuration}-minute {config.label} session is booked.
                   </p>
                   {meetingLink && (
                     <div className={cn(
@@ -466,7 +504,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
                   exit={{ opacity: 0 }}
                 >
                   <StudentBookingCalendar
-                    availableSlots={slots}
+                    availableSlots={displaySlots}
                     onBookLesson={handleBookSlot}
                     isLoading={booking}
                   />
@@ -479,7 +517,6 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
                       disabled={loadingSlots}
                       className="text-muted-foreground text-xs"
                     >
-                      <Calendar className="w-3 h-3 mr-1" />
                       Refresh availability
                     </Button>
                   </div>
