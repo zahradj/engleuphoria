@@ -308,7 +308,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
                       : "bg-red-500/30 text-white border-red-400/30"
                   )}>
                     <CreditCard className="w-3 h-3 mr-1" />
-                    {totalCredits} credit{totalCredits !== 1 ? 's' : ''} remaining
+                    {trialAvailable ? '🎁 Free Trial Available' : `${totalCredits} credit${totalCredits !== 1 ? 's' : ''} remaining`}
                   </Badge>
                 )}
                 <button

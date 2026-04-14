@@ -17,7 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 const BookLesson = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { hasActivePackages, totalCredits, loading } = usePackageValidation(user?.id || null);
+  const { hasActivePackages, totalCredits, trialAvailable, loading } = usePackageValidation(user?.id || null);
   const [showModal, setShowModal] = useState(false);
   const [availableSlots, setAvailableSlots] = useState<AvailableTimeSlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
@@ -31,12 +31,12 @@ const BookLesson = () => {
 
   // Load available slots when user has packages
   useEffect(() => {
-    if (!loading && hasActivePackages) {
+    if (!loading && (hasActivePackages || trialAvailable)) {
       loadAvailableSlots();
-    } else if (!loading && !hasActivePackages) {
+    } else if (!loading && !hasActivePackages && !trialAvailable) {
       setShowModal(true);
     }
-  }, [loading, hasActivePackages]);
+  }, [loading, hasActivePackages, trialAvailable]);
 
   const loadAvailableSlots = async () => {
     try {
