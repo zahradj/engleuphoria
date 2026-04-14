@@ -24,8 +24,10 @@ import { WeeklyGoalWidget } from '../WeeklyGoalWidget';
 import { RecommendedTeachers } from '../RecommendedTeachers';
 import { BookMyClassModal } from '../BookMyClassModal';
 import { CreditDisplay } from '../CreditDisplay';
+import { JoinLessonHero } from '../JoinLessonHero';
 import { usePackageValidation } from '@/hooks/usePackageValidation';
 import { useAuth } from '@/contexts/AuthContext';
+import { cn } from '@/lib/utils';
 
 interface HubDashboardProps {
   studentName?: string;
