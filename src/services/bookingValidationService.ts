@@ -116,17 +116,30 @@ export const bookingValidationService = {
       return { isValid: true, isTrial: true };
     }
 
-    // 6b. Check if student has valid package or payment method
-    const packages = await lessonPricingService.getStudentPackages(studentId);
-    const validPackage = packages.find(
-      pkg => pkg.package?.duration_minutes === duration && pkg.lessons_remaining > 0
-    );
-    
-    if (!validPackage) {
-      return { 
-        isValid: false, 
-        error: `You need a ${duration}-minute lesson package to book this slot. Please purchase a package first.` 
-      };
+    // 6b. Check if student has credits (from student_credits table) or valid package
+    const { data: creditRow } = await supabase
+      .from('student_credits')
+      .select('total_credits, used_credits, expired_credits')
+      .eq('student_id', studentId)
+      .maybeSingle();
+
+    const realBalance = creditRow
+      ? Math.max(0, (creditRow.total_credits ?? 0) - (creditRow.used_credits ?? 0) - (creditRow.expired_credits ?? 0))
+      : 0;
+
+    if (realBalance <= 0) {
+      // Fallback: check package-based credits
+      const packages = await lessonPricingService.getStudentPackages(studentId);
+      const validPackage = packages.find(
+        pkg => pkg.package?.duration_minutes === duration && pkg.lessons_remaining > 0
+      );
+
+      if (!validPackage) {
+        return { 
+          isValid: false, 
+          error: `You need credits or a ${duration}-minute lesson package to book this slot. Please purchase credits first.` 
+        };
+      }
     }
 
     // 7. Verify teacher is still active and approved
