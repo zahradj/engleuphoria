@@ -25,6 +25,8 @@ import { useIdleOpacity } from "@/hooks/useIdleOpacity";
 import { useClassroomTimer } from "@/hooks/classroom/useClassroomTimer";
 import { useSmartTimer } from "@/hooks/classroom/useSmartTimer";
 
+type HubType = 'playground' | 'academy' | 'professional';
+
 interface TeacherClassroomProps {
   classId?: string;
   studentName?: string;
@@ -32,6 +34,7 @@ interface TeacherClassroomProps {
   lessonTitle?: string;
   lessonId?: string;
   teacherName?: string;
+  hubType?: HubType;
 }
 
 export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
