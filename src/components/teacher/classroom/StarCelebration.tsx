@@ -25,7 +25,7 @@ export const StarCelebration: React.FC<StarCelebrationProps> = ({
       setShowContent(true);
       
       // Fire confetti
-      const duration = isMilestone ? 6000 : 3000;
+      const duration = isMilestone ? 2000 : 1200;
       const end = Date.now() + duration;
 
       const colors = isMilestone 
@@ -33,34 +33,16 @@ export const StarCelebration: React.FC<StarCelebrationProps> = ({
         : ['#ffd700', '#ffed4a', '#ffc107', '#fff176'];
 
       if (isMilestone) {
-        // BIG CARNIVAL celebration for milestone (5 stars)
-        const interval = setInterval(() => {
-          if (Date.now() > end) {
-            clearInterval(interval);
-            return;
-          }
-
-          // Multiple confetti bursts from all directions
-          confetti({
-            particleCount: 150,
-            spread: 180,
-            origin: { x: Math.random(), y: Math.random() * 0.5 },
-            colors,
-            startVelocity: 60,
-            gravity: 0.6,
-            scalar: 1.5
-          });
-
-          // Star shapes bursting
-          confetti({
-            particleCount: 30,
-            spread: 100,
-            origin: { x: 0.5, y: 0.5 },
-            colors: ['#ffd700', '#ffed4a'],
-            shapes: ['star'],
-            scalar: 2.5
-          });
-        }, 150);
+        // Quick milestone burst
+        confetti({
+          particleCount: 120,
+          spread: 160,
+          origin: { x: 0.5, y: 0.5 },
+          colors,
+          startVelocity: 55,
+          gravity: 0.8,
+          scalar: 1.3
+        });
 
         // Massive initial fireworks
         setTimeout(() => {
@@ -132,8 +114,8 @@ export const StarCelebration: React.FC<StarCelebrationProps> = ({
       // Auto-hide after animation
       const timer = setTimeout(() => {
         setShowContent(false);
-        setTimeout(onComplete, 300);
-      }, isMilestone ? 6500 : 3500);
+        setTimeout(onComplete, 200);
+      }, isMilestone ? 2000 : 1500);
 
       return () => clearTimeout(timer);
     }
