@@ -280,12 +280,12 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
                           {dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                         </p>
                       </div>
-                      {lesson.sessionId && (
+                      {lesson.id && (
                         <Button
                           size="sm"
                           disabled={!canJoin}
                           className={`text-white text-xs px-3 ${canJoin ? btnStyle : 'bg-muted text-muted-foreground'}`}
-                          onClick={() => navigate(`/classroom/${lesson.sessionId}`)}
+                          onClick={() => navigate(`/classroom/${lesson.id}`)}
                         >
                           <LogIn className="h-3.5 w-3.5 mr-1" />
                           {canJoin ? 'Join' : `${Math.ceil(minutesUntil)}m`}

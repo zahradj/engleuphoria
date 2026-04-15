@@ -60,8 +60,8 @@ export const NextLessonCard: React.FC<NextLessonCardProps> = ({ disabled = false
       return;
     }
     if (!buttonEnabled || !nextLesson) return;
-    const roomId = nextLesson.room_id || nextLesson.id;
-    navigate(`/classroom/${roomId}`);
+    // Always use the booking's primary key (id) as the universal room key
+    navigate(`/classroom/${nextLesson.id}`);
   };
 
   const getBadgeContent = () => {

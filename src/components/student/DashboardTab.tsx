@@ -57,7 +57,7 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
       const fiveMinAgo = new Date(Date.now() - 5 * 60000).toISOString();
       const { data: nextBooking } = await supabase
         .from('class_bookings')
-        .select('session_id, meeting_link')
+        .select('id')
         .eq('student_id', studentId)
         .in('status', ['scheduled', 'confirmed'])
         .gte('scheduled_at', fiveMinAgo)
@@ -65,21 +65,8 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
         .limit(1)
         .maybeSingle();
 
-      if (nextBooking?.session_id) {
-        navigate(`/student-classroom/${nextBooking.session_id}`);
-      } else if (nextBooking?.meeting_link) {
-        // Handle absolute URLs gracefully
-        const link = nextBooking.meeting_link;
-        if (link.startsWith('/')) {
-          navigate(link);
-        } else {
-          try {
-            const url = new URL(link);
-            navigate(url.pathname + url.search);
-          } catch {
-            navigate(link);
-          }
-        }
+      if (nextBooking?.id) {
+        navigate(`/student-classroom/${nextBooking.id}`);
       } else {
         navigate('/discover-teachers');
       }
@@ -220,13 +207,8 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
                           size="sm" 
                           className="bg-gradient-to-r from-primary to-accent text-white hover:opacity-90"
                           onClick={() => {
-                          if (lesson.session_id) {
-                              navigate(`/student-classroom/${lesson.session_id}`);
-                            } else if (lesson.meeting_link) {
-                              navigate(lesson.meeting_link);
-                            } else {
-                              handleJoinClassroom();
-                            }
+                            // Always use booking id as universal room key
+                            navigate(`/student-classroom/${lesson.id}`);
                           }}
                         >
                           <Play className="h-4 w-4 mr-1" />
