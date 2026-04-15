@@ -133,7 +133,7 @@ const App = () => {
                       } />
                       
                       {/* Teacher Dashboard - Protected */}
-                      <Route path="/admin/*" element={
+                      <Route path="/teacher/*" element={
                         <ImprovedProtectedRoute requiredRole="teacher">
                           <Suspense fallback={<LoadingFallback />}><TeacherDashboard /></Suspense>
                         </ImprovedProtectedRoute>
@@ -246,7 +246,7 @@ const App = () => {
 
                       {/* Legacy routes - redirect to new paths */}
                       <Route path="/student/*" element={<Navigate to="/playground" replace />} />
-                      <Route path="/teacher" element={<Navigate to="/admin" replace />} />
+                      <Route path="/admin/*" element={<Navigate to="/teacher" replace />} />
                       <Route path="/admin-dashboard" element={<Navigate to="/super-admin" replace />} />
 
                       {/* 404 - Redirect to Login */}

@@ -38,7 +38,7 @@ const Dashboard: React.FC = () => {
     console.log('📍 Dashboard redirecting user with role:', userRole);
 
     if (userRole === 'admin') { setRedirectPath('/super-admin'); return; }
-    if (userRole === 'teacher') { setRedirectPath('/admin'); return; }
+    if (userRole === 'teacher') { setRedirectPath('/teacher'); return; }
     if (userRole === 'content_creator') { setRedirectPath('/content-creator'); return; }
     if (userRole === 'parent') { setRedirectPath('/parent'); return; }
 

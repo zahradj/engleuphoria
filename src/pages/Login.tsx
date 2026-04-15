@@ -32,7 +32,7 @@ const Login = () => {
       redirectedRef.current = true;
       if (role === 'admin') navigate('/super-admin', { replace: true });
       else if (role === 'content_creator') navigate('/content-creator', { replace: true });
-      else if (role === 'teacher') navigate('/admin', { replace: true });
+      else if (role === 'teacher') navigate('/teacher', { replace: true });
       else if (role === 'parent') navigate('/parent', { replace: true });
       else navigate('/dashboard', { replace: true });
     }

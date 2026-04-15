@@ -11,7 +11,7 @@ const TeacherClassroomPage: React.FC = () => {
   const [preFlightPassed, setPreFlightPassed] = useState(false);
 
   if (!id) {
-    return <Navigate to="/admin" replace />;
+    return <Navigate to="/teacher" replace />;
   }
 
   if (!user) {
