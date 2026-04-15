@@ -428,23 +428,23 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
       {/* Timer Dialog */}
       <Dialog open={timerDialogOpen} onOpenChange={setTimerDialogOpen}>
-        <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-xs">
+        <DialogContent className="bg-white border-gray-200 text-gray-900 max-w-xs">
           <DialogHeader>
             <DialogTitle className="text-center">Activity Timer</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col items-center py-4 gap-4">
-            <div className="text-6xl font-mono font-bold text-blue-400">
+            <div className="text-6xl font-mono font-bold text-blue-600">
               {Math.floor(timerValue / 60).toString().padStart(2, '0')}:
               {(timerValue % 60).toString().padStart(2, '0')}
             </div>
             {!timerRunning && (
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-400">Set time (seconds):</span>
+                <span className="text-sm text-gray-500">Set time (seconds):</span>
                 <Input
                   type="number"
                   value={timerSeconds}
                   onChange={(e) => setTimerSeconds(Math.max(1, parseInt(e.target.value) || 60))}
-                  className="w-20 bg-gray-800 border-gray-700 text-center"
+                  className="w-20 bg-gray-50 border-gray-200 text-center"
                   min={1}
                 />
               </div>
@@ -454,7 +454,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
                 <Button onClick={startTimer} className="bg-blue-600 hover:bg-blue-700">Start Timer</Button>
               ) : (
                 <>
-                  <Button onClick={() => setTimerRunning(false)} variant="outline" className="border-gray-700">Pause</Button>
+                  <Button onClick={() => setTimerRunning(false)} variant="outline" className="border-gray-200">Pause</Button>
                   <Button onClick={resetTimer} variant="destructive">Reset</Button>
                 </>
               )}

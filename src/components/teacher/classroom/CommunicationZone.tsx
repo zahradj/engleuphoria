@@ -49,14 +49,12 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
   const screenShareVideoRef = useRef<HTMLVideoElement>(null);
   const teacherVideoRef = useRef<HTMLVideoElement>(null);
 
-  // Attach screen share stream to video element
   useEffect(() => {
     if (screenShareVideoRef.current && screenShareStream) {
       screenShareVideoRef.current.srcObject = screenShareStream;
     }
   }, [screenShareStream]);
 
-  // Attach local media stream to teacher video element
   useEffect(() => {
     if (teacherVideoRef.current && localStream) {
       teacherVideoRef.current.srcObject = localStream;
@@ -71,12 +69,12 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
   };
 
   return (
-    <div className="w-80 glass-panel border-r border-white/5 flex flex-col shrink-0">
+    <div className="w-80 glass-panel border-r border-gray-200/50 flex flex-col shrink-0">
       {/* Video Containers */}
       <div className="p-3 space-y-3">
         {/* Screen Share Preview (if active) */}
         {isScreenSharing && screenShareStream && (
-          <div className="relative aspect-video bg-gray-800 rounded-lg overflow-hidden border-2 border-indigo-500/50">
+          <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden border-2 border-indigo-400/50">
             <video
               ref={screenShareVideoRef}
               autoPlay
@@ -91,20 +89,20 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
         )}
 
         {/* Student Video Container */}
-        <div className="relative aspect-[4/3] bg-gray-800 rounded-lg overflow-hidden border-2 border-primary/30">
+        <div className="relative aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden border-2 border-primary/30">
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-20 h-20 rounded-full bg-gray-700 flex items-center justify-center">
-              <User className="w-10 h-10 text-gray-500" />
+            <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center">
+              <User className="w-10 h-10 text-gray-400" />
             </div>
           </div>
-          <div className="absolute bottom-2 left-2 bg-black/60 px-2 py-1 rounded text-xs text-white">
+          <div className="absolute bottom-2 left-2 bg-white/80 px-2 py-1 rounded text-xs text-gray-700 shadow-sm">
             {studentName}
           </div>
           <div className="absolute top-2 right-2 h-2 w-2 rounded-full bg-emerald-500" />
         </div>
 
         {/* Teacher Video Container (smaller) */}
-        <div className="relative aspect-[4/3] bg-gray-800 rounded-lg overflow-hidden border border-gray-700 w-2/3">
+        <div className="relative aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden border border-gray-200 w-2/3">
           {isVideoConnected && localStream && !isLocalCameraOff ? (
             <video
               ref={teacherVideoRef}
@@ -116,12 +114,12 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center">
-                <User className="w-6 h-6 text-gray-500" />
+              <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                <User className="w-6 h-6 text-gray-400" />
               </div>
             </div>
           )}
-          <div className="absolute bottom-1 left-1 bg-black/60 px-1.5 py-0.5 rounded text-[10px] text-white">
+          <div className="absolute bottom-1 left-1 bg-white/80 px-1.5 py-0.5 rounded text-[10px] text-gray-700 shadow-sm">
             You
           </div>
         </div>
@@ -144,9 +142,9 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
       </div>
 
       {/* Mini Chat Box */}
-      <div className="flex-1 flex flex-col border-t border-gray-800 mt-2">
-        <div className="px-3 py-2 border-b border-gray-800">
-          <span className="text-xs font-medium text-gray-400 uppercase">Chat</span>
+      <div className="flex-1 flex flex-col border-t border-gray-200 mt-2">
+        <div className="px-3 py-2 border-b border-gray-200">
+          <span className="text-xs font-medium text-gray-500 uppercase">Chat</span>
         </div>
         <ScrollArea className="flex-1 px-3 py-2">
           <div className="space-y-2">
@@ -155,10 +153,10 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
                 key={idx}
                 className={`text-xs rounded px-2 py-1 ${
                   msg.sender === 'teacher' 
-                    ? 'bg-primary/20 text-primary-foreground ml-4' 
+                    ? 'bg-primary/10 text-gray-800 ml-4' 
                     : msg.sender === 'system'
-                    ? 'bg-gray-800 text-gray-500 text-center italic'
-                    : 'bg-gray-800 text-gray-300 mr-4'
+                    ? 'bg-gray-100 text-gray-500 text-center italic'
+                    : 'bg-gray-100 text-gray-700 mr-4'
                 }`}
               >
                 {msg.sender !== 'system' && (
@@ -171,13 +169,13 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
             ))}
           </div>
         </ScrollArea>
-        <div className="p-2 border-t border-gray-800">
+        <div className="p-2 border-t border-gray-200">
           <div className="flex gap-2">
             <Input
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Type a message..."
-              className="text-xs bg-gray-800 border-gray-700 h-8"
+              className="text-xs bg-gray-50 border-gray-200 h-8"
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
             />
             <Button size="icon" className="h-8 w-8 shrink-0" onClick={handleSendMessage}>

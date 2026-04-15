@@ -97,7 +97,7 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
   // Show screen share if teacher is sharing
   if (isScreenSharing) {
     return (
-      <div className="flex-1 flex flex-col bg-gray-950 relative overflow-hidden">
+      <div className="flex-1 flex flex-col bg-white/40 relative overflow-hidden">
         <div className="absolute top-4 left-4 z-20">
           <Badge className="bg-indigo-600/90 text-white flex items-center gap-1">
             <Monitor className="h-3 w-3" />
@@ -105,16 +105,16 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
           </Badge>
         </div>
         <div className="flex-1 flex items-center justify-center p-6">
-          <div className="relative w-full max-w-5xl aspect-[16/9] bg-gray-900 rounded-xl shadow-2xl overflow-hidden border-2 border-indigo-500/30 flex items-center justify-center">
+          <div className="relative w-full max-w-5xl aspect-[16/9] bg-gray-50 rounded-xl shadow-2xl overflow-hidden border-2 border-indigo-300/50 flex items-center justify-center">
             <div className="text-center">
               <Monitor className="w-16 h-16 text-indigo-400 mx-auto mb-4" />
-              <p className="text-gray-400 text-lg">Screen share in progress</p>
-              <p className="text-gray-500 text-sm mt-2">View the teacher's shared screen</p>
+              <p className="text-gray-500 text-lg">Screen share in progress</p>
+              <p className="text-gray-400 text-sm mt-2">View the teacher's shared screen</p>
             </div>
           </div>
         </div>
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
-          <div className="bg-gray-800/90 backdrop-blur-sm rounded-full px-4 py-2 text-sm text-gray-400 flex items-center gap-2">
+          <div className="bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 text-sm text-gray-600 flex items-center gap-2 shadow-sm border border-gray-200">
             <span className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
             Teacher is sharing their screen
           </div>
@@ -160,7 +160,7 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-gray-950 relative overflow-hidden">
+    <div className="flex-1 flex flex-col bg-white/40 relative overflow-hidden">
       {/* Tabs (read-only for student, shows teacher's active tab) */}
       <div className="flex items-center gap-1 px-4 pt-2 shrink-0">
         {CANVAS_TABS.map(tab => (
@@ -168,8 +168,8 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
             key={tab.id}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-t-lg text-xs font-medium ${
               activeCanvasTab === tab.id
-                ? 'bg-gray-800 text-white border-b-2 border-purple-500'
-                : 'text-gray-500'
+                ? 'bg-white text-gray-900 border-b-2 border-purple-500 shadow-sm'
+                : 'text-gray-400'
             }`}
           >
             <tab.icon className="h-3.5 w-3.5" />
@@ -188,7 +188,7 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
       <div className="absolute top-12 left-4 z-20">
         <Badge
           variant="secondary"
-          className={`flex items-center gap-1 ${studentCanDraw ? 'bg-green-600/90 text-white' : 'bg-gray-700/90 text-gray-300'}`}
+          className={`flex items-center gap-1 ${studentCanDraw ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-gray-100 text-gray-600 border border-gray-200'}`}
         >
           {studentCanDraw ? <><PenLine className="h-3 w-3" /> Draw Mode</> : <><Eye className="h-3 w-3" /> View Only</>}
         </Badge>
@@ -255,7 +255,7 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
 
       {/* Teacher Control Indicator */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
-        <div className="bg-gray-800/90 backdrop-blur-sm rounded-full px-4 py-2 text-sm text-gray-400 flex items-center gap-2">
+        <div className="bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 text-sm text-gray-600 flex items-center gap-2 shadow-sm border border-gray-200">
           <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
           Teacher is controlling slides
         </div>
