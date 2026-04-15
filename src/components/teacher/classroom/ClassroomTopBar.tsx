@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { useSmartTimer, type TimerPhase } from '@/hooks/classroom/useSmartTimer';
 
+type HubType = 'playground' | 'academy' | 'professional';
+
 interface ClassroomTopBarProps {
   lessonTitle: string;
   roomName: string;
@@ -34,6 +36,7 @@ interface ClassroomTopBarProps {
   shouldPulseWrapUp?: boolean;
   elapsedSeconds?: number;
   sessionDuration?: 25 | 55;
+  hubType?: HubType;
 }
 
 export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
@@ -52,7 +55,8 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
   onToggleZenMode,
   shouldPulseWrapUp = false,
   elapsedSeconds = 0,
-  sessionDuration = 25
+  sessionDuration = 25,
+  hubType = 'academy'
 }) => {
   const smartTimer = useSmartTimer(elapsedSeconds, sessionDuration);
 
@@ -97,24 +101,46 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
     }
   })();
 
+  const hubGradient = hubType === 'playground'
+    ? 'linear-gradient(135deg, #FF9F1C, #F59E0B)'
+    : hubType === 'professional'
+    ? 'linear-gradient(135deg, #059669, #10B981)'
+    : 'linear-gradient(135deg, #1A237E, #3F51B5)';
+
+  const hubBorderColor = hubType === 'playground'
+    ? 'border-amber-200'
+    : hubType === 'professional'
+    ? 'border-emerald-200'
+    : 'border-indigo-200';
+
   return (
-    <div className="h-14 glass-panel border-b border-white/5 flex items-center justify-between px-4 shrink-0">
+    <div className={`h-14 bg-white/80 backdrop-blur-md border-b ${hubBorderColor} flex items-center justify-between px-4 shrink-0 shadow-sm`}>
       <div className="flex items-center gap-4">
+        {/* Hub-Branded Logo */}
+        <div className="flex items-center gap-2">
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center shadow-md"
+            style={{ background: hubGradient }}
+          >
+            <img src="/logo-white.png" alt="EnglEuphoria" className="w-5 h-5 object-contain" />
+          </div>
+          <span className="text-sm font-bold bg-clip-text text-transparent" style={{ backgroundImage: hubGradient }}>
+            EnglEuphoria
+          </span>
+        </div>
+        <div className="h-6 w-px bg-gray-200" />
         {/* Live Indicator */}
         <div className="flex items-center gap-2">
           <div className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" />
-          <span className="text-sm font-medium text-red-400">LIVE</span>
+          <span className="text-sm font-medium text-red-500">LIVE</span>
         </div>
-        <div className="h-6 w-px bg-gray-700" />
+        <div className="h-6 w-px bg-gray-200" />
         <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-gray-400" />
-          <span className="text-sm text-gray-300">{participantCount} in room</span>
+          <Users className="h-4 w-4 text-gray-500" />
+          <span className="text-sm text-gray-600">{participantCount} in room</span>
         </div>
-        <Badge variant="secondary" className="bg-gray-800 text-gray-300">
+        <Badge variant="secondary" className="bg-gray-100 text-gray-700 border border-gray-200">
           {lessonTitle}
-        </Badge>
-        <Badge variant="outline" className="border-emerald-500 text-emerald-400 text-xs">
-          Room: {roomName}
         </Badge>
       </div>
 
@@ -156,7 +182,7 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
         <Button
           variant="ghost"
           size="icon"
-          className={`rounded-full ${isMuted ? 'bg-red-500/20 text-red-400' : 'bg-gray-800 text-gray-300'}`}
+          className={`rounded-full ${isMuted ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-700'}`}
           onClick={onToggleMute}
         >
           {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
@@ -164,17 +190,16 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
         <Button
           variant="ghost"
           size="icon"
-          className={`rounded-full ${isCameraOff ? 'bg-red-500/20 text-red-400' : 'bg-gray-800 text-gray-300'}`}
+          className={`rounded-full ${isCameraOff ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-700'}`}
           onClick={onToggleCamera}
         >
           {isCameraOff ? <CameraOff className="h-5 w-5" /> : <Camera className="h-5 w-5" />}
         </Button>
-        {/* Zen Mode Toggle */}
         {onToggleZenMode && (
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-full bg-gray-800 text-gray-300"
+            className="rounded-full bg-gray-100 text-gray-700"
             onClick={onToggleZenMode}
             title="Zen Mode (F11)"
           >
@@ -184,12 +209,11 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
         <Button
           variant="ghost"
           size="icon"
-          className="rounded-full bg-gray-800 text-gray-300"
+          className="rounded-full bg-gray-100 text-gray-700"
           onClick={onOpenSettings}
         >
           <Settings className="h-5 w-5" />
         </Button>
-        {/* Wrap-Up / Session Report Button */}
         {onOpenWrapUp && (
           <Button
             variant="ghost"
@@ -197,15 +221,15 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
             onClick={onOpenWrapUp}
             className={`${
               shouldPulseWrapUp
-                ? 'bg-red-600/30 text-red-300 hover:bg-red-600/40 animate-pulse ring-2 ring-red-500/50'
-                : 'bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30'
+                ? 'bg-red-100 text-red-600 hover:bg-red-200 animate-pulse ring-2 ring-red-300'
+                : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
             }`}
           >
             <ClipboardCheck className="h-4 w-4 mr-1" />
             {shouldPulseWrapUp ? 'Session Report' : 'Wrap-Up'}
           </Button>
         )}
-        <div className="h-6 w-px bg-gray-700 mx-2" />
+        <div className="h-6 w-px bg-gray-200 mx-2" />
         <Button
           variant="destructive"
           size="sm"

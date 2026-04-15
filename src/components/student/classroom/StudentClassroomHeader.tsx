@@ -5,6 +5,8 @@ import { Mic, MicOff, Video, VideoOff, LogOut, Signal, SignalMedium, SignalLow, 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useConnectionHealth } from '@/hooks/useConnectionHealth';
 
+type HubType = 'playground' | 'academy' | 'professional';
+
 interface StudentClassroomHeaderProps {
   lessonTitle: string;
   isConnected: boolean;
@@ -15,6 +17,7 @@ interface StudentClassroomHeaderProps {
   onLeaveClass: () => void;
   isZenMode?: boolean;
   onToggleZenMode?: () => void;
+  hubType?: HubType;
 }
 
 export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
@@ -26,7 +29,8 @@ export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
   onToggleCamera,
   onLeaveClass,
   isZenMode = false,
-  onToggleZenMode
+  onToggleZenMode,
+  hubType = 'academy'
 }) => {
   const { quality, latencyMs, suggestion } = useConnectionHealth();
 
@@ -34,18 +38,43 @@ export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
   const signalColor = quality === 'good' ? 'bg-green-600' : quality === 'fair' ? 'bg-yellow-600' : 'bg-red-600';
   const signalLabel = quality === 'good' ? 'Strong' : quality === 'fair' ? 'Unstable' : 'Weak';
 
+  const hubGradient = hubType === 'playground'
+    ? 'linear-gradient(135deg, #FF9F1C, #F59E0B)'
+    : hubType === 'professional'
+    ? 'linear-gradient(135deg, #059669, #10B981)'
+    : 'linear-gradient(135deg, #1A237E, #3F51B5)';
+
+  const hubBorderColor = hubType === 'playground'
+    ? 'border-amber-200'
+    : hubType === 'professional'
+    ? 'border-emerald-200'
+    : 'border-indigo-200';
+
   return (
     <div className="relative">
-      <div className="h-14 glass-panel border-b border-white/5 px-4 flex items-center justify-between">
-        {/* Left: Live Indicator + Lesson Title */}
+      <div className={`h-14 bg-white/80 backdrop-blur-md border-b ${hubBorderColor} px-4 flex items-center justify-between shadow-sm`}>
+        {/* Left: Logo + Live Indicator + Lesson Title */}
         <div className="flex items-center gap-3">
+          {/* Hub-Branded Logo */}
+          <div className="flex items-center gap-2">
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center shadow-md"
+              style={{ background: hubGradient }}
+            >
+              <img src="/logo-white.png" alt="EnglEuphoria" className="w-5 h-5 object-contain" />
+            </div>
+            <span className="text-sm font-bold bg-clip-text text-transparent" style={{ backgroundImage: hubGradient }}>
+              EnglEuphoria
+            </span>
+          </div>
+          <div className="h-6 w-px bg-gray-200" />
           {isConnected && (
             <div className="flex items-center gap-1.5">
               <div className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-xs font-medium text-red-400">LIVE</span>
+              <span className="text-xs font-medium text-red-500">LIVE</span>
             </div>
           )}
-          <h1 className="text-lg font-semibold text-white">{lessonTitle}</h1>
+          <h1 className="text-lg font-semibold text-gray-900">{lessonTitle}</h1>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -71,7 +100,7 @@ export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
           variant="ghost"
           size="icon"
           onClick={onToggleMute}
-          className={`h-9 w-9 rounded-full ${isMuted ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-700 hover:bg-gray-600'}`}
+          className={`h-9 w-9 rounded-full ${isMuted ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
         >
           {isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
         </Button>
@@ -79,7 +108,7 @@ export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
           variant="ghost"
           size="icon"
           onClick={onToggleCamera}
-          className={`h-9 w-9 rounded-full ${isCameraOff ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-700 hover:bg-gray-600'}`}
+          className={`h-9 w-9 rounded-full ${isCameraOff ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
         >
           {isCameraOff ? <VideoOff className="h-4 w-4" /> : <Video className="h-4 w-4" />}
         </Button>
@@ -88,13 +117,13 @@ export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
             variant="ghost"
             size="icon"
             onClick={onToggleZenMode}
-            className="h-9 w-9 rounded-full bg-gray-700 hover:bg-gray-600"
+            className="h-9 w-9 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200"
             title="Zen Mode (F11)"
           >
             {isZenMode ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </Button>
         )}
-        <div className="h-6 w-px bg-gray-700 mx-2" />
+        <div className="h-6 w-px bg-gray-200 mx-2" />
         <Button
           variant="destructive"
           size="sm"

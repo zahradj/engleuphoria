@@ -25,6 +25,8 @@ import { useIdleOpacity } from "@/hooks/useIdleOpacity";
 import { useClassroomTimer } from "@/hooks/classroom/useClassroomTimer";
 import { useSmartTimer } from "@/hooks/classroom/useSmartTimer";
 
+type HubType = 'playground' | 'academy' | 'professional';
+
 interface TeacherClassroomProps {
   classId?: string;
   studentName?: string;
@@ -32,6 +34,7 @@ interface TeacherClassroomProps {
   lessonTitle?: string;
   lessonId?: string;
   teacherName?: string;
+  hubType?: HubType;
 }
 
 export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
@@ -40,7 +43,8 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   studentId,
   lessonTitle = "Magic Forest: Lesson 1",
   lessonId,
-  teacherName = "Teacher"
+  teacherName = "Teacher",
+  hubType = "academy"
 }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -265,8 +269,14 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   const startTimer = () => { setTimerValue(timerSeconds); setTimerRunning(true); };
   const resetTimer = () => { setTimerRunning(false); setTimerValue(timerSeconds); };
 
+  const hubBg = hubType === 'playground'
+    ? 'bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50'
+    : hubType === 'professional'
+    ? 'bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50'
+    : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50';
+
   return (
-    <div className="h-screen w-full bg-gray-950 text-gray-100 flex flex-col overflow-hidden">
+    <div className={`h-screen w-full ${hubBg} text-gray-900 flex flex-col overflow-hidden`}>
       {/* Star Celebration Overlay */}
       <StarCelebration
         isVisible={showStarCelebration}
@@ -315,6 +325,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             shouldPulseWrapUp={smartTimer.shouldPulseWrapUp}
             elapsedSeconds={classTime}
             sessionDuration={sessionDuration}
+            hubType={hubType}
           />
         </div>
       )}
