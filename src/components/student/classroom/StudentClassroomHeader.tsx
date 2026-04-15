@@ -100,7 +100,7 @@ export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
           variant="ghost"
           size="icon"
           onClick={onToggleMute}
-          className={`h-9 w-9 rounded-full ${isMuted ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-700 hover:bg-gray-600'}`}
+          className={`h-9 w-9 rounded-full ${isMuted ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
         >
           {isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
         </Button>
@@ -108,7 +108,7 @@ export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
           variant="ghost"
           size="icon"
           onClick={onToggleCamera}
-          className={`h-9 w-9 rounded-full ${isCameraOff ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-700 hover:bg-gray-600'}`}
+          className={`h-9 w-9 rounded-full ${isCameraOff ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
         >
           {isCameraOff ? <VideoOff className="h-4 w-4" /> : <Video className="h-4 w-4" />}
         </Button>
@@ -117,13 +117,13 @@ export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
             variant="ghost"
             size="icon"
             onClick={onToggleZenMode}
-            className="h-9 w-9 rounded-full bg-gray-700 hover:bg-gray-600"
+            className="h-9 w-9 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200"
             title="Zen Mode (F11)"
           >
             {isZenMode ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </Button>
         )}
-        <div className="h-6 w-px bg-gray-700 mx-2" />
+        <div className="h-6 w-px bg-gray-200 mx-2" />
         <Button
           variant="destructive"
           size="sm"
