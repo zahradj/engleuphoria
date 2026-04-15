@@ -34,7 +34,7 @@ const UnifiedClassroomPage: React.FC = () => {
       if (!bookingId || !user?.id) return null;
       const { data, error } = await supabase
         .from('class_bookings')
-        .select('id, teacher_id, student_id, scheduled_at, duration, status')
+        .select('id, teacher_id, student_id, scheduled_at, duration, status, hub_type')
         .eq('id', bookingId)
         .maybeSingle();
       if (error) throw error;
