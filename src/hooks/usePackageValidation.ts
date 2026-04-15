@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { StudentPackagePurchase } from '@/types/pricing';
 import { lessonPricingService } from '@/services/lessonPricingService';
 import { bookingValidationService } from '@/services/bookingValidationService';
+import { useStudentCredits } from './useStudentCredits';
 
 interface PackageValidationResult {
   hasActivePackages: boolean;
@@ -15,16 +16,19 @@ interface PackageValidationResult {
 export const usePackageValidation = (studentId: string | null): PackageValidationResult => {
   const [packages, setPackages] = useState<StudentPackagePurchase[]>([]);
   const [trialAvailable, setTrialAvailable] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [packageLoading, setPackageLoading] = useState(true);
+
+  // Use the real student_credits table as the source of truth
+  const { availableCredits, loading: creditsLoading, refresh: refreshCredits } = useStudentCredits(studentId);
 
   const loadPackages = async () => {
     if (!studentId) {
-      setLoading(false);
+      setPackageLoading(false);
       return;
     }
 
     try {
-      setLoading(true);
+      setPackageLoading(true);
       const [data, isTrialEligible] = await Promise.all([
         lessonPricingService.getStudentPackages(studentId),
         bookingValidationService.isEligibleForTrial(studentId),
@@ -36,7 +40,7 @@ export const usePackageValidation = (studentId: string | null): PackageValidatio
       setPackages([]);
       setTrialAvailable(false);
     } finally {
-      setLoading(false);
+      setPackageLoading(false);
     }
   };
 
@@ -44,15 +48,21 @@ export const usePackageValidation = (studentId: string | null): PackageValidatio
     loadPackages();
   }, [studentId]);
 
-  const hasActivePackages = packages.some(pkg => pkg.lessons_remaining > 0);
-  const totalCredits = packages.reduce((sum, pkg) => sum + pkg.lessons_remaining, 0);
+  // Combine: student has credits if real balance > 0 OR has package-based credits
+  const packageCredits = packages.reduce((sum, pkg) => sum + pkg.lessons_remaining, 0);
+  const totalCredits = availableCredits + packageCredits;
+  const hasActivePackages = totalCredits > 0;
+
+  const refresh = async () => {
+    await Promise.all([loadPackages(), refreshCredits()]);
+  };
 
   return {
     hasActivePackages,
     packages,
     totalCredits,
     trialAvailable,
-    loading,
-    refresh: loadPackages
+    loading: packageLoading || creditsLoading,
+    refresh,
   };
 };
