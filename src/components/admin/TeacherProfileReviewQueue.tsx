@@ -28,12 +28,20 @@ interface PendingTeacher {
   profile_complete: boolean | null;
   profile_approved_by_admin: boolean | null;
   can_teach: boolean | null;
+  hub_role: string | null;
   created_at: string;
   updated_at: string;
   // joined from users table
   full_name: string;
   email: string;
 }
+
+const hubRoleLabels: Record<string, { label: string; color: string }> = {
+  'playground_specialist': { label: '🎮 Playground', color: 'bg-orange-100 text-orange-800 border-orange-200' },
+  'academy_mentor': { label: '🎓 Academy', color: 'bg-blue-100 text-blue-800 border-blue-200' },
+  'success_mentor': { label: '💼 Success', color: 'bg-green-100 text-green-800 border-green-200' },
+  'academy_success_mentor': { label: '🎓💼 Academy + Success', color: 'bg-purple-100 text-purple-800 border-purple-200' },
+};
 
 export const TeacherProfileReviewQueue = () => {
   const [pending, setPending] = useState<PendingTeacher[]>([]);
@@ -175,6 +183,11 @@ export const TeacherProfileReviewQueue = () => {
                     <Clock className="h-3 w-3 mr-1" />
                     Pending Review
                   </Badge>
+                  {teacher.hub_role && hubRoleLabels[teacher.hub_role] && (
+                    <Badge variant="outline" className={hubRoleLabels[teacher.hub_role].color}>
+                      {hubRoleLabels[teacher.hub_role].label}
+                    </Badge>
+                  )}
                   {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </div>
               </div>
