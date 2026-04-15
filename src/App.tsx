@@ -35,6 +35,7 @@ const CommunityPage = lazy(() => import("./pages/CommunityPage"));
 const TeacherClassroomPage = lazy(() => import("./pages/TeacherClassroomPage"));
 const AIPlacementTest = lazy(() => import("./components/placement/AIPlacementTest"));
 const StudentClassroomPage = lazy(() => import("./pages/StudentClassroomPage"));
+const UnifiedClassroomPage = lazy(() => import("./pages/UnifiedClassroomPage"));
 const AssessmentTaker = lazy(() => import("./components/assessment/AssessmentTaker"));
 const AssessmentResults = lazy(() => import("./components/assessment/AssessmentResults"));
 const ContentCreatorDashboard = lazy(() => import("./pages/ContentCreatorDashboard"));
@@ -139,20 +140,20 @@ const App = () => {
                         </ImprovedProtectedRoute>
                       } />
                       
-                      {/* Teacher Live Classroom - Protected */}
+                      {/* Unified Live Classroom - Any authenticated user, access validated inside */}
                       <Route path="/classroom/:id" element={
-                        <ImprovedProtectedRoute requiredRole="teacher">
+                        <ImprovedProtectedRoute>
                           <Suspense fallback={<LoadingFallback />}>
-                            <TeacherClassroomPage />
+                            <UnifiedClassroomPage />
                           </Suspense>
                         </ImprovedProtectedRoute>
                       } />
 
-                      {/* Student Live Classroom - Protected */}
+                      {/* Legacy student-classroom route redirects to unified */}
                       <Route path="/student-classroom/:id" element={
-                        <ImprovedProtectedRoute requiredRole="student">
+                        <ImprovedProtectedRoute>
                           <Suspense fallback={<LoadingFallback />}>
-                            <StudentClassroomPage />
+                            <UnifiedClassroomPage />
                           </Suspense>
                         </ImprovedProtectedRoute>
                       } />

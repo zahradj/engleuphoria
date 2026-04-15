@@ -63,16 +63,8 @@ export function ClassroomQuickJoin({ upcomingLessons }: ClassroomQuickJoinProps)
   const handleJoinClass = () => {
     if (!nextLesson) return;
 
-    // Use room_link if it's a student-classroom URL, otherwise build the student route
-    if (nextLesson.room_link && nextLesson.room_link.startsWith('/student-classroom/')) {
-      navigate(nextLesson.room_link);
-    } else if (nextLesson.room_link) {
-      // Legacy: room_link exists but points elsewhere — still use it
-      navigate(nextLesson.room_link);
-    } else {
-      // Fallback: route student to student-classroom using lesson id
-      navigate(`/student-classroom/${nextLesson.id}`);
-    }
+    // Always use unified classroom route with booking id
+    navigate(`/classroom/${nextLesson.id}`);
   };
 
   const handleDismiss = () => {

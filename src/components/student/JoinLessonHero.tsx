@@ -132,7 +132,7 @@ export const JoinLessonHero: React.FC<JoinLessonHeroProps> = ({ hubId, isDark = 
   const handleJoin = () => {
     if (!lesson) return;
     // Always use the booking's primary key (id) as the universal room key
-    navigate(`/student-classroom/${lesson.id}`);
+    navigate(`/classroom/${lesson.id}`);
   };
 
   const isStartingSoon = minutesUntil <= 5 && minutesUntil >= -5;

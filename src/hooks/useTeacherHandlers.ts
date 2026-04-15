@@ -23,7 +23,7 @@ export const useTeacherHandlers = () => {
   };
 
   const handleStartClass = () => {
-    navigate("/classroom?roomId=unified-classroom-1&role=teacher&name=Teacher&userId=teacher-1");
+    navigate("/teacher");
   };
 
   const handleScheduleClass = () => {
@@ -82,8 +82,7 @@ export const useTeacherHandlers = () => {
       title: "Starting Class",
       description: `Starting ${className}...`,
     });
-    // Navigate to classroom with teacher role
-    navigate("/classroom?roomId=unified-classroom-1&role=teacher&name=Teacher&userId=teacher-1");
+    navigate("/teacher");
   };
 
   const handleViewClassDetails = (className: string) => {
@@ -94,7 +93,7 @@ export const useTeacherHandlers = () => {
   };
 
   const handleJoinClass = () => {
-    navigate("/classroom?roomId=unified-classroom-1&role=teacher&name=Teacher&userId=teacher-1");
+    navigate("/teacher");
   };
 
   const handleCreateAssignment = () => {

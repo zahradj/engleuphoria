@@ -66,7 +66,7 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
         .maybeSingle();
 
       if (nextBooking?.id) {
-        navigate(`/student-classroom/${nextBooking.id}`);
+        navigate(`/classroom/${nextBooking.id}`);
       } else {
         navigate('/discover-teachers');
       }
@@ -208,7 +208,7 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
                           className="bg-gradient-to-r from-primary to-accent text-white hover:opacity-90"
                           onClick={() => {
                             // Always use booking id as universal room key
-                            navigate(`/student-classroom/${lesson.id}`);
+                            navigate(`/classroom/${lesson.id}`);
                           }}
                         >
                           <Play className="h-4 w-4 mr-1" />

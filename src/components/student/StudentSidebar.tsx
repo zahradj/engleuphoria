@@ -83,9 +83,8 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
   const hubId = hubKey as 'playground' | 'academy' | 'professional';
 
   const handleEnterClassroom = () => {
-    const studentId = `student-${Date.now()}`;
-    const studentName = localStorage.getItem('studentName') || 'Student';
-    navigate(`/classroom?role=student&name=${encodeURIComponent(studentName)}&userId=${studentId}&roomId=unified-classroom-1`);
+    // Navigate to dashboard to find and join a booked classroom
+    navigate('/playground');
   };
 
   const menuItems = [
