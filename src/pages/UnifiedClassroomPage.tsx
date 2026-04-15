@@ -3,7 +3,7 @@ import { useParams, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { TeacherClassroom } from '@/components/teacher/classroom';
 import { StudentClassroom } from '@/components/student/classroom';
-import { SessionPrivacyGuard } from '@/components/classroom/SessionPrivacyGuard';
+
 import { PreFlightCheck } from '@/components/classroom/PreFlightCheck';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
