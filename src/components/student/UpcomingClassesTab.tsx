@@ -74,7 +74,6 @@ export const UpcomingClassesTab = () => {
       setUpcomingLessons(formattedLessons.filter(l =>
         ['scheduled', 'confirmed', 'pending'].includes(l.status) && new Date(l.scheduled_at) > now
       ));
-      ));
       setCompletedLessons(formattedLessons.filter(l => l.status === 'completed'));
     } catch (error) {
       console.error('Error fetching lessons:', error);
