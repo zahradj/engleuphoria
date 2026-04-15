@@ -62,7 +62,7 @@ export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
               className="w-8 h-8 rounded-full flex items-center justify-center shadow-md"
               style={{ background: hubGradient }}
             >
-              <img src="/logo-white.png" alt="EnglEuphoria" className="w-5 h-5 object-contain" />
+              <img src={englePhoriaLogo} alt="EnglEuphoria" className="w-5 h-5 object-contain" />
             </div>
             <span className="text-sm font-bold bg-clip-text text-transparent" style={{ backgroundImage: hubGradient }}>
               EnglEuphoria
