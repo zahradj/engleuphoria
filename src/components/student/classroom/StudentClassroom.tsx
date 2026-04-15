@@ -148,8 +148,16 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     ? 'bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50'
     : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50';
 
+  const showDebug = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug');
+
   return (
-    <div className={`h-screen w-full ${hubBg} text-gray-900 flex flex-col overflow-hidden`}>
+    <div className={`h-screen w-full ${hubBg} text-gray-900 flex flex-col overflow-hidden relative`}>
+      {/* Debug Room ID Label */}
+      {showDebug && (
+        <div className="fixed bottom-2 left-2 z-[100] bg-black/50 text-white text-[10px] font-mono px-2 py-1 rounded backdrop-blur-sm">
+          Room: {roomId} | WebRTC: {webrtcRoom}
+        </div>
+      )}
       {/* Star Celebration Overlay */}
       <StarCelebration
         isVisible={showStarCelebration}

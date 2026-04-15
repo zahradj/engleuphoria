@@ -4,11 +4,30 @@ import { useAuth } from '@/contexts/AuthContext';
 import { TeacherClassroom } from '@/components/teacher/classroom';
 import { SessionPrivacyGuard } from '@/components/classroom/SessionPrivacyGuard';
 import { PreFlightCheck } from '@/components/classroom/PreFlightCheck';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const TeacherClassroomPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const [preFlightPassed, setPreFlightPassed] = useState(false);
+
+  // Validate that the booking exists and belongs to this teacher
+  const { data: booking, isLoading: bookingLoading, error: bookingError } = useQuery({
+    queryKey: ['booking-access', id, user?.id],
+    queryFn: async () => {
+      if (!id || !user?.id) return null;
+      const { data, error } = await supabase
+        .from('class_bookings')
+        .select('id, teacher_id, student_id, scheduled_at, duration, status')
+        .eq('id', id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id && !!user?.id,
+  });
 
   if (!id) {
     return <Navigate to="/teacher" replace />;
@@ -16,6 +35,22 @@ const TeacherClassroomPage: React.FC = () => {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (bookingLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Skeleton className="h-12 w-48 mx-auto" />
+          <Skeleton className="h-4 w-64 mx-auto" />
+        </div>
+      </div>
+    );
+  }
+
+  // If booking not found or user is not the teacher, redirect
+  if (!booking || booking.teacher_id !== user.id) {
+    return <Navigate to="/teacher" replace />;
   }
 
   if (!preFlightPassed) {
