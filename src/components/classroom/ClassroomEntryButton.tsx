@@ -42,8 +42,7 @@ export const ClassroomEntryButton: React.FC<ClassroomEntryButtonProps> = ({
 
   const handleEnter = () => {
     setEntering(true);
-    const path = role === 'teacher' ? `/classroom/${roomId}` : `/student-classroom/${roomId}`;
-    navigate(path);
+    navigate(`/classroom/${roomId}`);
   };
 
   return (
