@@ -220,6 +220,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
               isCameraOff={isCameraOff}
               onToggleMute={() => setIsMuted(!isMuted)}
               onToggleCamera={() => setIsCameraOff(!isCameraOff)}
+              roomId={roomId}
             />
           </div>
         )}

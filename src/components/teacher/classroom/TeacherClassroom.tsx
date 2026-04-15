@@ -85,7 +85,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   // Context Handshake
   const { context: studentContext } = useStudentContext(studentId);
 
-  const roomName = `MySchool_Class_${classId}`;
+  const roomName = `engleuphoria_class_${classId}`;
 
   const slides = [
     { id: '1', title: 'Welcome to the Lesson' },
@@ -352,6 +352,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
               localStream={media.stream}
               isVideoConnected={media.isConnected}
               isLocalCameraOff={media.isCameraOff}
+              roomId={classId}
             />
           </div>
         )}
