@@ -74,7 +74,8 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
 
-  const [selectedHub, setSelectedHub] = useState<HubType>(studentLevel);
+  // Lock hub to the student's level — no switching allowed
+  const selectedHub: HubType = studentLevel;
   const [rawSlots, setRawSlots] = useState<TimeSlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [booking, setBooking] = useState(false);
@@ -142,10 +143,9 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
     if (isOpen) {
       setBooked(false);
       setMeetingLink(null);
-      setSelectedHub(studentLevel);
       fetchSlots();
     }
-  }, [isOpen, fetchSlots, studentLevel]);
+  }, [isOpen, fetchSlots]);
 
   useEffect(() => {
     const handleChange = () => fetchSlots();
@@ -393,35 +393,14 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
           </div>
 
           <div className="p-6">
-            {/* Hub Selector */}
+            {/* Hub info (locked to student level) */}
             <div className="mb-5">
-              <p className={cn("text-sm font-medium mb-2", isDark ? "text-white/70" : "text-gray-600")}>
-                Select your session type:
-              </p>
-              <div className="flex gap-2 flex-wrap">
-                {(Object.entries(HUB_CONFIG) as [HubType, typeof HUB_CONFIG['playground']][]).map(([key, hub]) => (
-                  <button
-                    key={key}
-                    onClick={() => setSelectedHub(key)}
-                    className={cn(
-                      "px-4 py-2.5 rounded-xl text-sm font-medium border transition-all duration-200",
-                      selectedHub === key
-                        ? "bg-primary text-primary-foreground border-primary shadow-md"
-                        : isDark
-                          ? "bg-white/5 text-white/70 border-white/10 hover:bg-white/10"
-                          : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
-                    )}
-                  >
-                    <span className="mr-1.5">{hub.icon}</span>
-                    {hub.label}
-                    <span className={cn(
-                      "ml-2 text-xs",
-                      selectedHub === key ? "text-primary-foreground/70" : "text-muted-foreground"
-                    )}>
-                      {hub.duration}min
-                    </span>
-                  </button>
-                ))}
+              <div className={cn(
+                "px-4 py-2.5 rounded-xl text-sm font-medium border inline-flex items-center gap-2",
+                "bg-primary/10 text-primary border-primary/20"
+              )}>
+                <span>{config.icon}</span>
+                {config.label} • {slotDuration} min sessions
               </div>
             </div>
 
