@@ -352,6 +352,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
               localStream={media.stream}
               isVideoConnected={media.isConnected}
               isLocalCameraOff={media.isCameraOff}
+              roomId={classId}
             />
           </div>
         )}
