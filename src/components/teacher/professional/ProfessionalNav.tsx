@@ -12,7 +12,9 @@ import {
   LayoutDashboard, Users, FileText, Calendar, BarChart3, Sparkles,
   LogOut, ChevronDown, User, Settings, HeartPulse, DollarSign,
 } from 'lucide-react';
-import { Logo } from '@/components/Logo';
+import logoWhite from '@/assets/logo-white.png';
+import { useThemeMode } from '@/hooks/useThemeMode';
+import logoBlack from '@/assets/logo-black.png';
 
 export type ProfessionalTab =
   | 'command-center'
@@ -51,6 +53,8 @@ export const ProfessionalNav: React.FC<ProfessionalNavProps> = ({
   profileImageUrl,
   onLogout,
 }) => {
+  const { resolvedTheme } = useThemeMode();
+  const isDark = resolvedTheme === 'dark';
   const getInitials = (name: string) =>
     name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
@@ -58,7 +62,25 @@ export const ProfessionalNav: React.FC<ProfessionalNavProps> = ({
     <nav className="sticky top-0 z-50 bg-card/80 backdrop-blur-xl border-b border-border/50 shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-14">
-          <Logo size="small" />
+          <div className="flex items-center gap-2">
+            <div className="relative w-8 h-8">
+              <div
+                className="absolute inset-0 rounded-full opacity-90 blur-[1px]"
+                style={{ background: 'linear-gradient(135deg, #7C3AED, #9333EA)' }}
+              />
+              <img
+                src={isDark ? logoBlack : logoWhite}
+                alt="EnglEuphoria"
+                className="relative w-8 h-8 object-contain rounded-full p-0.5"
+              />
+            </div>
+            <span
+              className="hidden lg:inline text-lg font-bold bg-clip-text text-transparent leading-tight"
+              style={{ backgroundImage: 'linear-gradient(to right, #7C3AED, #9333EA)' }}
+            >
+              EnglEuphoria
+            </span>
+          </div>
 
           <div className="hidden md:flex items-center gap-0.5">
             {navItems.map(item => {

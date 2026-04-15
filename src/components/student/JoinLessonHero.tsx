@@ -92,7 +92,7 @@ export const JoinLessonHero: React.FC<JoinLessonHeroProps> = ({ hubId, isDark = 
 
   const isStartingSoon = minutesUntil <= 5 && minutesUntil >= -5;
   const isLive = minutesUntil < 0;
-  const showHero = lesson && minutesUntil <= 15;
+  const showHero = !!lesson;
 
   if (!showHero) {
     // Empty state — glass card with glowing CTA

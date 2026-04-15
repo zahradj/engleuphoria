@@ -240,7 +240,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
                 const dt = new Date(lesson.scheduled_at);
                 const now = new Date();
                 const minutesUntil = (dt.getTime() - now.getTime()) / 60000;
-                const canJoin = minutesUntil <= 15 && minutesUntil > -lesson.duration;
+                const canJoin = true;
                 const hubButtonStyles: Record<string, string> = {
                   playground: 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600',
                   professional: 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600',
