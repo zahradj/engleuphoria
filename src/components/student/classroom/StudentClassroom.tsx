@@ -203,6 +203,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
             onLeaveClass={handleLeaveClass}
             isZenMode={isZenMode}
             onToggleZenMode={() => setIsZenMode(!isZenMode)}
+            hubType={hubType}
           />
         </div>
       )}

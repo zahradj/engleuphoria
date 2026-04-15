@@ -325,6 +325,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             shouldPulseWrapUp={smartTimer.shouldPulseWrapUp}
             elapsedSeconds={classTime}
             sessionDuration={sessionDuration}
+            hubType={hubType}
           />
         </div>
       )}
