@@ -247,7 +247,12 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
         }
       }
 
-      // Insert booking record
+      // Insert booking record with hub_type
+      const hubTypeMap: Record<string, string> = {
+        playground: 'playground',
+        academy: 'academy',
+        professional: 'professional',
+      };
       const { data: bookingData, error: bookingError } = await supabase
         .from('class_bookings')
         .insert({
@@ -259,8 +264,9 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
           price_paid: 0,
           status: 'confirmed',
           lesson_id: lessonRecord?.id || null,
-        })
-        .select('session_id, meeting_link')
+          hub_type: hubTypeMap[selectedHub] || 'academy',
+        } as any)
+        .select('session_id, meeting_link, classroom_id')
         .single();
 
       // Also insert into appointments table
@@ -293,8 +299,11 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
         return;
       }
 
-      // 🎉 Success
-      setMeetingLink(bookingData?.meeting_link ?? null);
+      // 🎉 Success — use classroom_id-based link
+      const classroomLink = (bookingData as any)?.classroom_id 
+        ? `/classroom/${(bookingData as any).classroom_id}` 
+        : bookingData?.meeting_link ?? null;
+      setMeetingLink(classroomLink);
       setBooked(true);
       fireConfetti();
 

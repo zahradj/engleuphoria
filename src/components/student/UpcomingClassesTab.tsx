@@ -90,12 +90,9 @@ export const UpcomingClassesTab = () => {
     new Date(dateString).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
 
   const handleJoinClass = (lesson: Lesson) => {
+    // Use the meeting_link (now set to /classroom/{classroom_id} by trigger)
     if (lesson.room_link) {
-      const url = new URL(lesson.room_link);
-      url.searchParams.set('role', 'student');
-      url.searchParams.set('name', 'Student');
-      url.searchParams.set('userId', user?.id || '');
-      window.open(url.toString(), '_blank');
+      window.location.href = lesson.room_link;
     } else {
       toast({ title: "Room Link Not Available", description: "The classroom link is not available yet.", variant: "destructive" });
     }

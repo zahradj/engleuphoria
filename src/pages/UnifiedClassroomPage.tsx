@@ -27,16 +27,30 @@ const UnifiedClassroomPage: React.FC = () => {
   const userRole = (user as any)?.role;
   const isAdmin = userRole === 'admin';
 
-  // Fetch booking to determine participant role
+  // Fetch booking to determine participant role — support both booking ID and classroom_id
   const { data: booking, isLoading: bookingLoading, error: bookingError } = useQuery({
     queryKey: ['classroom-booking', bookingId, user?.id],
     queryFn: async () => {
       if (!bookingId || !user?.id) return null;
-      const { data, error } = await supabase
+      
+      // Try by primary key first, then by classroom_id
+      let { data, error } = await supabase
         .from('class_bookings')
-        .select('id, teacher_id, student_id, scheduled_at, duration, status, hub_type')
+        .select('id, teacher_id, student_id, scheduled_at, duration, status, hub_type, classroom_id')
         .eq('id', bookingId)
         .maybeSingle();
+      
+      if (!data && !error) {
+        // Fallback: look up by classroom_id
+        const result = await supabase
+          .from('class_bookings')
+          .select('id, teacher_id, student_id, scheduled_at, duration, status, hub_type, classroom_id')
+          .eq('classroom_id', bookingId)
+          .maybeSingle();
+        data = result.data;
+        error = result.error;
+      }
+      
       if (error) throw error;
       return data;
     },

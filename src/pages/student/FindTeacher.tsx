@@ -108,21 +108,26 @@ const FindTeacher: React.FC = () => {
       const teacherList = (data as any[]) || [];
       if (teacherList.length > 0) {
         const teacherIds = teacherList.map(t => t.user_id);
-        const { data: hubData } = await supabase
-          .from('teacher_availability')
-          .select('teacher_id, hub_specialty')
-          .in('teacher_id', teacherIds)
-          .not('hub_specialty', 'is', null)
-          .limit(500);
+        
+        // Fetch hub_role from teacher_profiles for hub filtering
+        const { data: profileData } = await supabase
+          .from('teacher_profiles')
+          .select('user_id, hub_role')
+          .in('user_id', teacherIds);
 
-        if (hubData) {
-          const hubMap: Record<string, Set<string>> = {};
-          hubData.forEach(h => {
-            if (!hubMap[h.teacher_id]) hubMap[h.teacher_id] = new Set();
-            if (h.hub_specialty) hubMap[h.teacher_id].add(h.hub_specialty);
+        if (profileData) {
+          const hubRoleMap: Record<string, string> = {};
+          profileData.forEach(p => {
+            hubRoleMap[p.user_id] = (p as any).hub_role || 'academy_success_mentor';
           });
           teacherList.forEach(t => {
-            (t as any)._hubs = hubMap[t.user_id] ? Array.from(hubMap[t.user_id]) : [];
+            const role = hubRoleMap[t.user_id] || 'academy_success_mentor';
+            if (role === 'playground_specialist') {
+              (t as any)._hubs = ['Playground'];
+            } else {
+              // Academy/Success mentors appear in both Academy and Professional
+              (t as any)._hubs = ['Academy', 'Professional'];
+            }
           });
         }
       }

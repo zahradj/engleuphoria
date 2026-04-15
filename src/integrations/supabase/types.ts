@@ -1342,9 +1342,11 @@ export type Database = {
           booking_type: string
           cancellation_reason: string | null
           cancelled_at: string | null
+          classroom_id: string
           created_at: string
           currency: string
           duration: number
+          hub_type: string | null
           id: string
           lesson_id: string | null
           meeting_link: string | null
@@ -1362,9 +1364,11 @@ export type Database = {
           booking_type?: string
           cancellation_reason?: string | null
           cancelled_at?: string | null
+          classroom_id?: string
           created_at?: string
           currency?: string
           duration?: number
+          hub_type?: string | null
           id?: string
           lesson_id?: string | null
           meeting_link?: string | null
@@ -1382,9 +1386,11 @@ export type Database = {
           booking_type?: string
           cancellation_reason?: string | null
           cancelled_at?: string | null
+          classroom_id?: string
           created_at?: string
           currency?: string
           duration?: number
+          hub_type?: string | null
           id?: string
           lesson_id?: string | null
           meeting_link?: string | null
@@ -8702,6 +8708,7 @@ export type Database = {
           created_at: string
           hourly_rate_dzd: number | null
           hourly_rate_eur: number | null
+          hub_role: string
           id: string
           intro_video_url: string | null
           is_available: boolean | null
@@ -8731,6 +8738,7 @@ export type Database = {
           created_at?: string
           hourly_rate_dzd?: number | null
           hourly_rate_eur?: number | null
+          hub_role?: string
           id?: string
           intro_video_url?: string | null
           is_available?: boolean | null
@@ -8760,6 +8768,7 @@ export type Database = {
           created_at?: string
           hourly_rate_dzd?: number | null
           hourly_rate_eur?: number | null
+          hub_role?: string
           id?: string
           intro_video_url?: string | null
           is_available?: boolean | null
