@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PostClassFeedbackModal } from './PostClassFeedbackModal';
 import { useToast } from '@/hooks/use-toast';
 import { useClassroomSync } from '@/hooks/useClassroomSync';
+import { useLocalMedia } from '@/hooks/useLocalMedia';
+import { useWebRTCConnection } from '@/hooks/useWebRTCConnection';
 import { StudentClassroomHeader } from './StudentClassroomHeader';
 import { StudentCommunicationSidebar } from './StudentCommunicationSidebar';
 import { StudentMainStage } from './StudentMainStage';
@@ -32,8 +34,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
 }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isMuted, setIsMuted] = useState(true);
-  const [isCameraOff, setIsCameraOff] = useState(false);
+  const media = useLocalMedia();
   const [activeColor, setActiveColor] = useState('#FF6B6B');
   const [isZenMode, setIsZenMode] = useState(false);
   const [zenElapsed, setZenElapsed] = useState(0);
@@ -75,6 +76,28 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     role: 'student'
   });
 
+  // Auto-join local media after mount (post-PreFlightCheck)
+  useEffect(() => { media.join(); return () => { media.leave(); }; }, []);
+
+  // WebRTC peer connection
+  const { participants, isConnected: rtcConnected, connect: rtcConnect, disconnect: rtcDisconnect } = useWebRTCConnection({
+    roomId,
+    userId: studentId,
+    localStream: media.stream,
+    enabled: media.isConnected
+  });
+
+  // Notify when teacher joins
+  const prevParticipantCount = useRef(0);
+  useEffect(() => {
+    if (participants.length > prevParticipantCount.current && prevParticipantCount.current >= 0) {
+      if (prevParticipantCount.current > 0) {
+        toast({ title: "👋 Teacher Joined", description: "Your teacher has joined the classroom", className: "bg-green-900 border-green-700" });
+      }
+    }
+    prevParticipantCount.current = participants.length;
+  }, [participants.length]);
+
   // Zen mode keyboard shortcut
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -105,6 +128,12 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
       description: 'You have left the classroom session.'
     });
     navigate('/playground');
+  };
+
+  const handleReconnect = async () => {
+    await rtcDisconnect();
+    await rtcConnect();
+    toast({ title: "🔄 Reconnecting...", description: "Attempting to reconnect video" });
   };
 
   const slides = lessonSlides.length > 0
@@ -176,19 +205,36 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
           <>
             <ZenModeOverlay
               elapsed={zenElapsed}
-              isMuted={isMuted}
-              isCameraOff={isCameraOff}
-              onToggleMute={() => setIsMuted(!isMuted)}
-              onToggleCamera={() => setIsCameraOff(!isCameraOff)}
+              isMuted={media.isMuted}
+              isCameraOff={media.isCameraOff}
+              onToggleMute={() => media.toggleMicrophone()}
+              onToggleCamera={() => media.toggleCamera()}
               onExitZen={() => setIsZenMode(false)}
             />
             <PictureInPicture
               name="Teacher"
-              isConnected={isConnected}
+              isConnected={rtcConnected}
+              stream={participants[0]?.stream || null}
             />
           </>
         )}
       </AnimatePresence>
+
+      {/* Media Permission Error Overlay */}
+      {media.error && (
+        <div className="fixed inset-0 z-[60] bg-black/70 flex items-center justify-center">
+          <div className="bg-white rounded-2xl p-8 max-w-md text-center space-y-4">
+            <h2 className="text-xl font-bold text-gray-900">Camera & Microphone Required</h2>
+            <p className="text-gray-600">{media.error}</p>
+            <button
+              onClick={() => media.join()}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Header (hidden in Zen) */}
       {!isZenMode && (
@@ -196,14 +242,16 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
           <StudentClassroomHeader
             lessonTitle={lessonTitle}
             isConnected={isConnected}
-            isMuted={isMuted}
-            isCameraOff={isCameraOff}
-            onToggleMute={() => setIsMuted(!isMuted)}
-            onToggleCamera={() => setIsCameraOff(!isCameraOff)}
+            isMuted={media.isMuted}
+            isCameraOff={media.isCameraOff}
+            onToggleMute={() => media.toggleMicrophone()}
+            onToggleCamera={() => media.toggleCamera()}
             onLeaveClass={handleLeaveClass}
             isZenMode={isZenMode}
             onToggleZenMode={() => setIsZenMode(!isZenMode)}
             hubType={hubType}
+            rtcConnected={rtcConnected}
+            onReconnect={handleReconnect}
           />
         </div>
       )}
@@ -216,10 +264,10 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
             <StudentCommunicationSidebar
               studentName={studentName}
               teacherName="Teacher"
-              isMuted={isMuted}
-              isCameraOff={isCameraOff}
-              onToggleMute={() => setIsMuted(!isMuted)}
-              onToggleCamera={() => setIsCameraOff(!isCameraOff)}
+              isMuted={media.isMuted}
+              isCameraOff={media.isCameraOff}
+              onToggleMute={() => media.toggleMicrophone()}
+              onToggleCamera={() => media.toggleCamera()}
             />
           </div>
         )}

@@ -13,7 +13,8 @@ import {
   Star,
   ClipboardCheck,
   Maximize2,
-  Minimize2
+  Minimize2,
+  RefreshCw
 } from 'lucide-react';
 import { useSmartTimer, type TimerPhase } from '@/hooks/classroom/useSmartTimer';
 
@@ -37,6 +38,8 @@ interface ClassroomTopBarProps {
   elapsedSeconds?: number;
   sessionDuration?: 25 | 55;
   hubType?: HubType;
+  rtcConnected?: boolean;
+  onReconnect?: () => void;
 }
 
 export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
@@ -56,7 +59,9 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
   shouldPulseWrapUp = false,
   elapsedSeconds = 0,
   sessionDuration = 25,
-  hubType = 'academy'
+  hubType = 'academy',
+  rtcConnected = false,
+  onReconnect
 }) => {
   const smartTimer = useSmartTimer(elapsedSeconds, sessionDuration);
 
@@ -227,6 +232,18 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
           >
             <ClipboardCheck className="h-4 w-4 mr-1" />
             {shouldPulseWrapUp ? 'Session Report' : 'Wrap-Up'}
+          </Button>
+        )}
+        {/* Reconnect button */}
+        {onReconnect && !rtcConnected && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onReconnect}
+            className="rounded-full bg-amber-100 text-amber-700 hover:bg-amber-200 flex items-center gap-1"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Reconnect
           </Button>
         )}
         <div className="h-6 w-px bg-gray-200 mx-2" />

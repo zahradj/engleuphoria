@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useScreenShare } from "@/hooks/useScreenShare";
 import { useLocalMedia } from "@/hooks/useLocalMedia";
 import { useStudentContext } from "@/hooks/useStudentContext";
+import { useWebRTCConnection } from "@/hooks/useWebRTCConnection";
 import { ClassroomTopBar } from "./ClassroomTopBar";
 import { CommunicationZone } from "./CommunicationZone";
 import { CenterStage } from "./CenterStage";
@@ -85,7 +86,8 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   // Context Handshake
   const { context: studentContext } = useStudentContext(studentId);
 
-  const roomName = `MySchool_Class_${classId}`;
+  // Use classId directly as roomName so both teacher and student join the same room
+  const roomName = classId;
 
   const slides = [
     { id: '1', title: 'Welcome to the Lesson' },
@@ -190,6 +192,25 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   }, [navigate, toast, endSession]);
 
   useEffect(() => { media.join(); return () => { media.leave(); }; }, []);
+
+  // WebRTC peer connection
+  const { participants, isConnected: rtcConnected, connect: rtcConnect, disconnect: rtcDisconnect } = useWebRTCConnection({
+    roomId: roomName,
+    userId: user?.id || sessionStorage.getItem('demo-teacher-id') || '',
+    localStream: media.stream,
+    enabled: media.isConnected
+  });
+
+  // Notify when student joins
+  const prevParticipantCount = React.useRef(0);
+  useEffect(() => {
+    if (participants.length > prevParticipantCount.current && prevParticipantCount.current >= 0) {
+      if (prevParticipantCount.current > 0) {
+        toast({ title: "👋 Student Joined", description: "A student has joined the classroom", className: "bg-green-900 border-green-700" });
+      }
+    }
+    prevParticipantCount.current = participants.length;
+  }, [participants.length]);
 
   const toggleMute = useCallback(() => { media.toggleMicrophone(); }, [media]);
   const toggleCamera = useCallback(() => { media.toggleCamera(); }, [media]);
@@ -300,7 +321,8 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             />
             <PictureInPicture
               name={studentName || 'Student'}
-              isConnected={isConnected}
+              isConnected={rtcConnected}
+              stream={participants[0]?.stream || null}
             />
           </>
         )}
