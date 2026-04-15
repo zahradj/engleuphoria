@@ -75,7 +75,7 @@ export function useLiveClassroomStatus(role: 'teacher' | 'student'): LiveClassro
         setStatus({
           isLive: true,
           roomId: sessions.room_id,
-          classroomUrl: `/student-classroom/${sessions.room_id}`,
+          classroomUrl: `/classroom/${sessions.room_id}`,
         });
       } else {
         setStatus({ isLive: false, roomId: null, classroomUrl: null });
