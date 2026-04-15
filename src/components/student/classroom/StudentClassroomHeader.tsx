@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import englePhoriaLogo from '@/assets/englephoria-logo.png';
 import { Badge } from '@/components/ui/badge';
 import { Mic, MicOff, Video, VideoOff, LogOut, Signal, SignalMedium, SignalLow, WifiOff, Maximize2, Minimize2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
