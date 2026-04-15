@@ -15,16 +15,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Timer, Dice6 } from 'lucide-react';
 import { useIdleOpacity } from '@/hooks/useIdleOpacity';
 
+type HubType = 'playground' | 'academy' | 'professional';
+
 interface StudentClassroomProps {
   roomId: string;
   studentId: string;
   studentName: string;
+  hubType?: HubType;
 }
 
 export const StudentClassroom: React.FC<StudentClassroomProps> = ({
   roomId,
   studentId,
-  studentName
+  studentName,
+  hubType = "academy"
 }) => {
   const navigate = useNavigate();
   const { toast } = useToast();

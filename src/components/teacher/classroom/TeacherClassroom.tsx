@@ -43,7 +43,8 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   studentId,
   lessonTitle = "Magic Forest: Lesson 1",
   lessonId,
-  teacherName = "Teacher"
+  teacherName = "Teacher",
+  hubType = "academy"
 }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
