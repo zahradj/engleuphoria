@@ -44,49 +44,25 @@ export const StarCelebration: React.FC<StarCelebrationProps> = ({
           scalar: 1.3
         });
 
-        // Massive initial fireworks
-        setTimeout(() => {
-          confetti({
-            particleCount: 300,
-            spread: 360,
-            origin: { y: 0.5, x: 0.5 },
-            colors,
-            startVelocity: 70,
-            scalar: 2
-          });
-        }, 100);
-
         // Side cannons
         setTimeout(() => {
           confetti({
-            particleCount: 100,
+            particleCount: 60,
             angle: 60,
             spread: 55,
             origin: { x: 0, y: 0.7 },
             colors,
-            startVelocity: 50
+            startVelocity: 45
           });
           confetti({
-            particleCount: 100,
+            particleCount: 60,
             angle: 120,
             spread: 55,
             origin: { x: 1, y: 0.7 },
             colors,
-            startVelocity: 50
+            startVelocity: 45
           });
-        }, 500);
-
-        // Second wave
-        setTimeout(() => {
-          confetti({
-            particleCount: 200,
-            spread: 180,
-            origin: { y: 0.6 },
-            colors,
-            startVelocity: 80,
-            scalar: 1.8
-          });
-        }, 1500);
+        }, 200);
 
       } else {
         // Regular star celebration - still impressive
