@@ -88,6 +88,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   // Use classId directly as roomName so both teacher and student join the same room
   const roomName = classId;
+  const webrtcRoom = `engleuphoria-${classId}`;
 
   const slides = [
     { id: '1', title: 'Welcome to the Lesson' },
@@ -195,7 +196,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   // WebRTC peer connection
   const { participants, isConnected: rtcConnected, connect: rtcConnect, disconnect: rtcDisconnect } = useWebRTCConnection({
-    roomId: roomName,
+    roomId: webrtcRoom,
     userId: user?.id || sessionStorage.getItem('demo-teacher-id') || '',
     localStream: media.stream,
     enabled: media.isConnected

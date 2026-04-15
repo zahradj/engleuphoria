@@ -69,6 +69,8 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     sessionContext,
     activeCanvasTab,
     updateSharedNotes
+  const webrtcRoom = `engleuphoria-${roomId}`;
+
   } = useClassroomSync({
     roomId,
     userId: studentId,
@@ -81,7 +83,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
 
   // WebRTC peer connection
   const { participants, isConnected: rtcConnected, connect: rtcConnect, disconnect: rtcDisconnect } = useWebRTCConnection({
-    roomId,
+    roomId: webrtcRoom,
     userId: studentId,
     localStream: media.stream,
     enabled: media.isConnected
