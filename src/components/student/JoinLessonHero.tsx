@@ -17,8 +17,8 @@ interface UpcomingLesson {
   id: string;
   title: string;
   scheduled_at: string;
-  room_link?: string;
-  room_id?: string;
+  meeting_link?: string;
+  session_id?: string;
   teacher_name?: string;
 }
 
@@ -34,6 +34,24 @@ const GLASS_CLASS_MAP: Record<HubId, string> = {
   professional: 'glass-professional',
 };
 
+/**
+ * Safely extract a relative path from a URL that may be absolute or relative.
+ * Handles cases where room_link is stored as a full URL like
+ * "https://engleuphoria.lovable.app/oneonone-classroom-new?roomId=..."
+ */
+function toRelativePath(link: string): string {
+  if (!link) return '';
+  // Already relative
+  if (link.startsWith('/')) return link;
+  // Absolute URL — extract pathname + search
+  try {
+    const url = new URL(link);
+    return url.pathname + url.search;
+  } catch {
+    return '/' + link;
+  }
+}
+
 export const JoinLessonHero: React.FC<JoinLessonHeroProps> = ({ hubId, isDark = false }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -46,21 +64,51 @@ export const JoinLessonHero: React.FC<JoinLessonHeroProps> = ({ hubId, isDark = 
 
     const fetchNext = async () => {
       const now = new Date();
-      const windowEnd = new Date(now.getTime() + 60 * 60 * 1000);
+      const fiveMinAgo = new Date(now.getTime() - 5 * 60000).toISOString();
 
+      // Primary: check class_bookings (has correct session_id & meeting_link)
+      const { data: booking } = await supabase
+        .from('class_bookings')
+        .select('id, session_id, meeting_link, scheduled_at')
+        .eq('student_id', user.id)
+        .in('status', ['scheduled', 'confirmed'])
+        .gte('scheduled_at', fiveMinAgo)
+        .order('scheduled_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (booking) {
+        setLesson({
+          id: booking.id,
+          title: 'Upcoming Lesson',
+          scheduled_at: booking.scheduled_at,
+          meeting_link: booking.meeting_link,
+          session_id: booking.session_id,
+        });
+        const diff = Math.ceil((new Date(booking.scheduled_at).getTime() - now.getTime()) / 60000);
+        setMinutesUntil(diff);
+        return;
+      }
+
+      // Fallback: check lessons table
       const { data } = await supabase
         .from('lessons')
         .select('id, title, scheduled_at, room_link, room_id')
         .eq('student_id', user.id)
         .eq('status', 'scheduled')
-        .gte('scheduled_at', new Date(now.getTime() - 5 * 60000).toISOString())
-        .lte('scheduled_at', windowEnd.toISOString())
+        .gte('scheduled_at', fiveMinAgo)
         .order('scheduled_at', { ascending: true })
         .limit(1);
 
       if (data && data.length > 0) {
-        setLesson(data[0]);
-        const diff = Math.ceil((new Date(data[0].scheduled_at).getTime() - now.getTime()) / 60000);
+        const l = data[0];
+        setLesson({
+          id: l.id,
+          title: l.title,
+          scheduled_at: l.scheduled_at,
+          meeting_link: l.room_link ?? undefined,
+        });
+        const diff = Math.ceil((new Date(l.scheduled_at).getTime() - now.getTime()) / 60000);
         setMinutesUntil(diff);
       } else {
         setLesson(null);
@@ -83,8 +131,11 @@ export const JoinLessonHero: React.FC<JoinLessonHeroProps> = ({ hubId, isDark = 
 
   const handleJoin = () => {
     if (!lesson) return;
-    if (lesson.room_link) {
-      navigate(lesson.room_link);
+    // Prefer session_id-based route
+    if (lesson.session_id) {
+      navigate(`/student-classroom/${lesson.session_id}`);
+    } else if (lesson.meeting_link) {
+      navigate(toRelativePath(lesson.meeting_link));
     } else {
       navigate(`/student-classroom/${lesson.id}`);
     }
@@ -95,7 +146,6 @@ export const JoinLessonHero: React.FC<JoinLessonHeroProps> = ({ hubId, isDark = 
   const showHero = !!lesson;
 
   if (!showHero) {
-    // Empty state — glass card with glowing CTA
     return (
       <div className={cn(
         'glass-card-hub backdrop-blur-md p-6',
@@ -196,7 +246,6 @@ export const JoinLessonHero: React.FC<JoinLessonHeroProps> = ({ hubId, isDark = 
         </div>
       </div>
 
-      {/* Glow effect when starting soon */}
       {isStartingSoon && (
         <motion.div
           className="absolute inset-0 pointer-events-none rounded-[1.25rem]"
