@@ -4,11 +4,15 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Filter, MoreHorizontal, Star, DollarSign, Users, Clock, TrendingUp, Globe } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Search, Filter, MoreHorizontal, Star, DollarSign, Users, Clock, TrendingUp, Globe, Settings2, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface Teacher {
   id: string;
+  user_id: string;
   name: string;
   email: string;
   avatar: string;
@@ -24,74 +28,129 @@ interface Teacher {
   completionRate: number;
   studentSatisfaction: number;
   languages: string[];
+  hubRole: string | null;
 }
+
+const hubRoleOptions = [
+  { value: 'playground_specialist', label: '🎮 Playground Specialist', color: 'bg-orange-100 text-orange-800 border-orange-200' },
+  { value: 'academy_mentor', label: '🎓 Academy Mentor', color: 'bg-blue-100 text-blue-800 border-blue-200' },
+  { value: 'success_mentor', label: '💼 Success Coach', color: 'bg-green-100 text-green-800 border-green-200' },
+  { value: 'academy_success_mentor', label: '🎓💼 Academy + Success', color: 'bg-purple-100 text-purple-800 border-purple-200' },
+];
+
+const getHubRoleBadge = (role: string | null) => {
+  const option = hubRoleOptions.find(o => o.value === role);
+  if (!option) return <Badge variant="outline" className="text-xs">Unassigned</Badge>;
+  return <Badge variant="outline" className={`text-xs ${option.color}`}>{option.label}</Badge>;
+};
 
 export const TeacherManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedSpecialization, setSelectedSpecialization] = useState<string>('all');
+  const [hubFilter, setHubFilter] = useState<string>('all');
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
+  const [newHubRole, setNewHubRole] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  // Total stats (computed from teachers data)
   const totalTeachers = teachers.length;
   const activeTeachers = teachers.filter(t => t.status === 'active').length;
   const totalEarnings = teachers.reduce((sum, t) => sum + t.monthlyEarnings, 0);
   const avgRating = teachers.length > 0 ? teachers.reduce((sum, t) => sum + t.rating, 0) / teachers.length : 0;
 
-  // Fetch real data from Supabase
-  useEffect(() => {
-    const fetchTeachers = async () => {
-      try {
-        // Get approved teachers from the database
-        const { data: teachersData, error } = await supabase.rpc('get_approved_teachers');
-        
-        if (error) {
-          console.error('Error fetching teachers:', error);
-          setTeachers([]);
-          return;
-        }
+  const fetchTeachers = async () => {
+    try {
+      const { data: profiles, error } = await supabase
+        .from('teacher_profiles')
+        .select('id, user_id, profile_image_url, rating, total_reviews, specializations, languages_spoken, can_teach, hub_role, created_at')
+        .eq('profile_complete', true);
 
-        // Transform the data to match our interface
-        const transformedTeachers: Teacher[] = (teachersData || []).map((teacher: any) => ({
-          id: teacher.id,
-          name: teacher.full_name,
-          email: teacher.user_id, // This would need to be fetched from users table
-          avatar: teacher.profile_image_url || '/api/placeholder/40/40',
-          rating: teacher.rating || 0,
-          totalReviews: teacher.total_reviews || 0,
-          lessonsCompleted: 0, // This would need to be calculated
-          monthlyEarnings: 0, // This would need to be calculated
-          status: teacher.can_teach ? 'active' : 'inactive',
-          specializations: teacher.specializations || [],
-          joinDate: new Date().toISOString().split('T')[0],
-          lastActive: 'N/A', // This would need to be tracked
-          responseTime: 'N/A', // This would need to be calculated
-          completionRate: 0, // This would need to be calculated
-          studentSatisfaction: teacher.rating ? teacher.rating * 20 : 0,
-          languages: teacher.languages_spoken || []
-        }));
+      if (error) throw error;
 
-        setTeachers(transformedTeachers);
-      } catch (error) {
-        console.error('Error fetching teachers:', error);
+      if (!profiles || profiles.length === 0) {
         setTeachers([]);
-      } finally {
-        setLoading(false);
+        return;
       }
-    };
 
+      const userIds = profiles.map(p => p.user_id);
+      const { data: users } = await supabase
+        .from('users')
+        .select('id, email, full_name')
+        .in('id', userIds);
+
+      const userMap = new Map((users || []).map(u => [u.id, u]));
+
+      const transformed: Teacher[] = profiles.map((tp: any) => {
+        const user = userMap.get(tp.user_id);
+        return {
+          id: tp.id,
+          user_id: tp.user_id,
+          name: user?.full_name || 'Unknown',
+          email: user?.email || '',
+          avatar: tp.profile_image_url || '',
+          rating: tp.rating || 0,
+          totalReviews: tp.total_reviews || 0,
+          lessonsCompleted: 0,
+          monthlyEarnings: 0,
+          status: tp.can_teach ? 'active' as const : 'inactive' as const,
+          specializations: tp.specializations || [],
+          joinDate: tp.created_at?.split('T')[0] || '',
+          lastActive: 'N/A',
+          responseTime: 'N/A',
+          completionRate: 0,
+          studentSatisfaction: tp.rating ? tp.rating * 20 : 0,
+          languages: tp.languages_spoken || [],
+          hubRole: tp.hub_role,
+        };
+      });
+
+      setTeachers(transformed);
+    } catch (error) {
+      console.error('Error fetching teachers:', error);
+      setTeachers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchTeachers();
   }, []);
 
-  // Filter teachers based on search and filters
+  const handleSaveHubRole = async () => {
+    if (!editingTeacher || !newHubRole) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('teacher_profiles')
+        .update({ hub_role: newHubRole })
+        .eq('id', editingTeacher.id);
+
+      if (error) throw error;
+
+      toast.success('Hub role updated', {
+        description: `${editingTeacher.name} is now assigned as ${hubRoleOptions.find(o => o.value === newHubRole)?.label}`,
+      });
+      setEditingTeacher(null);
+      fetchTeachers();
+    } catch (error) {
+      console.error('Error updating hub role:', error);
+      toast.error('Failed to update hub role');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const filteredTeachers = teachers.filter(teacher => {
     const matchesSearch = teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          teacher.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = selectedStatus === 'all' || teacher.status === selectedStatus;
     const matchesSpecialization = selectedSpecialization === 'all' || 
                                   teacher.specializations.includes(selectedSpecialization);
-    return matchesSearch && matchesStatus && matchesSpecialization;
+    const matchesHub = hubFilter === 'all' || teacher.hubRole === hubFilter;
+    return matchesSearch && matchesStatus && matchesSpecialization && matchesHub;
   });
 
   const getStatusColor = (status: string) => {
@@ -103,14 +162,13 @@ export const TeacherManagement = () => {
     }
   };
 
-  // Get unique specializations for filter
   const allSpecializations = Array.from(new Set(teachers.flatMap(t => t.specializations)));
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
           <p>Loading teachers...</p>
         </div>
       </div>
@@ -119,10 +177,8 @@ export const TeacherManagement = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Teacher Management</h1>
-        <Button>Add Teacher</Button>
       </div>
 
       {/* Stats Cards */}
@@ -138,7 +194,6 @@ export const TeacherManagement = () => {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -150,7 +205,6 @@ export const TeacherManagement = () => {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -162,7 +216,6 @@ export const TeacherManagement = () => {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -179,9 +232,9 @@ export const TeacherManagement = () => {
       {/* Teachers Table */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <CardTitle>All Teachers</CardTitle>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -199,7 +252,17 @@ export const TeacherManagement = () => {
                 <option value="all">All Status</option>
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
-                <option value="pending">Pending</option>
+              </select>
+              <select
+                value={hubFilter}
+                onChange={(e) => setHubFilter(e.target.value)}
+                className="px-3 py-2 border rounded-md text-sm"
+              >
+                <option value="all">All Hubs</option>
+                {hubRoleOptions.map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+                <option value="unassigned">Unassigned</option>
               </select>
               <select
                 value={selectedSpecialization}
@@ -211,10 +274,6 @@ export const TeacherManagement = () => {
                   <option key={spec} value={spec}>{spec}</option>
                 ))}
               </select>
-              <Button variant="outline" size="sm">
-                <Filter className="w-4 h-4 mr-2" />
-                Filter
-              </Button>
             </div>
           </div>
         </CardHeader>
@@ -234,6 +293,7 @@ export const TeacherManagement = () => {
                       <Badge className={getStatusColor(teacher.status)}>
                         {teacher.status}
                       </Badge>
+                      {getHubRoleBadge(teacher.hubRole)}
                       <div className="flex items-center gap-1">
                         <Star className="w-3 h-3 text-yellow-500 fill-current" />
                         <span className="text-xs">{teacher.rating}</span>
@@ -243,20 +303,24 @@ export const TeacherManagement = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-6">
-                  <div className="text-right">
+                  <div className="text-right hidden md:block">
                     <p className="text-sm font-medium">€{teacher.monthlyEarnings}</p>
                     <p className="text-xs text-muted-foreground">Monthly</p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right hidden md:block">
                     <p className="text-sm font-medium">{teacher.lessonsCompleted}</p>
                     <p className="text-xs text-muted-foreground">Lessons</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">{teacher.studentSatisfaction}%</p>
-                    <p className="text-xs text-muted-foreground">Satisfaction</p>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    <MoreHorizontal className="w-4 h-4" />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setEditingTeacher(teacher);
+                      setNewHubRole(teacher.hubRole || '');
+                    }}
+                  >
+                    <Settings2 className="w-4 h-4 mr-1" />
+                    Assign Hub
                   </Button>
                 </div>
               </div>
@@ -270,6 +334,64 @@ export const TeacherManagement = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Hub Role Assignment Dialog */}
+      <Dialog open={!!editingTeacher} onOpenChange={() => setEditingTeacher(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings2 className="h-5 w-5 text-primary" />
+              Assign Hub Role
+            </DialogTitle>
+            <DialogDescription>
+              Change {editingTeacher?.name}'s hub assignment. This determines which students can see and book this teacher.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+              <Avatar>
+                <AvatarImage src={editingTeacher?.avatar} />
+                <AvatarFallback>{editingTeacher?.name?.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-medium">{editingTeacher?.name}</p>
+                <p className="text-sm text-muted-foreground">{editingTeacher?.email}</p>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">Hub Role</label>
+              <Select value={newHubRole} onValueChange={setNewHubRole}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select hub role..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {hubRoleOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-2">
+                • <strong>Playground Specialist</strong> — Kids 4-11, 30-min sessions<br/>
+                • <strong>Academy Mentor</strong> — Teens 12-17, 60-min sessions<br/>
+                • <strong>Success Coach</strong> — Adults 18+, 60-min sessions<br/>
+                • <strong>Academy + Success</strong> — Visible in both Academy and Success hubs
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingTeacher(null)}>Cancel</Button>
+            <Button onClick={handleSaveHubRole} disabled={saving || !newHubRole}>
+              {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Save Hub Role
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
