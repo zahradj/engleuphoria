@@ -13,11 +13,8 @@ interface SessionPrivacyGuardProps {
 type AccessState = 'loading' | 'granted' | 'denied';
 
 /**
- * Verifies that the current user is the booked student or teacher
+ * Verifies that the current user is the booked student, teacher, or an admin
  * for the given session before rendering the classroom.
- *
- * - Teachers: validated against `lessons.room_id` OR `class_bookings.session_id`
- * - Students: validated against `class_bookings.session_id`
  */
 export const SessionPrivacyGuard: React.FC<SessionPrivacyGuardProps> = ({
   sessionId,
@@ -27,14 +24,24 @@ export const SessionPrivacyGuard: React.FC<SessionPrivacyGuardProps> = ({
   const navigate = useNavigate();
   const [access, setAccess] = useState<AccessState>('loading');
 
+  const userRole = (user as any)?.role;
+  const isAdmin = userRole === 'admin';
+
   useEffect(() => {
     if (!user?.id || !sessionId) {
       setAccess('denied');
       return;
     }
 
+    // Admin "God Mode" — instant access
+    if (isAdmin) {
+      console.log('[SessionPrivacyGuard] Admin God Mode — access granted');
+      setAccess('granted');
+      return;
+    }
+
     const verify = async () => {
-      // Use the server-side security definer function — cannot be bypassed client-side
+      // Use the server-side security definer function
       const { data, error } = await supabase.rpc('can_access_booking_session', {
         p_session_id: sessionId,
         p_user_id: user.id,
@@ -42,7 +49,7 @@ export const SessionPrivacyGuard: React.FC<SessionPrivacyGuardProps> = ({
 
       if (error) {
         console.error('[SessionPrivacyGuard] RPC error:', error);
-        // Also try the can_access_lesson function for teacher rooms keyed by room_id
+        // Fallback: try can_access_lesson for teacher rooms keyed by room_id
         const { data: lessonAccess } = await supabase.rpc('can_access_lesson', {
           room_uuid: sessionId,
           user_uuid: user.id,
@@ -55,7 +62,7 @@ export const SessionPrivacyGuard: React.FC<SessionPrivacyGuardProps> = ({
     };
 
     verify();
-  }, [user?.id, sessionId]);
+  }, [user?.id, sessionId, isAdmin]);
 
   if (access === 'loading') {
     return (
