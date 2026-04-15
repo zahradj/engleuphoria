@@ -138,6 +138,10 @@ const AdminDashboard = () => {
         <AdminHeader />
         
         <main className="p-6">
+          {/* Admin Quick Actions */}
+          <div className="mb-4 flex items-center gap-3">
+            <TestCreditButton />
+          </div>
           {renderActiveTab()}
         </main>
       </div>
