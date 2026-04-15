@@ -18,6 +18,7 @@ import { SystemEmailLog } from '@/components/admin/SystemEmailLog';
 import { HiringKanbanBoard } from '@/components/admin/HiringKanbanBoard';
 import { StaffOperations } from '@/components/admin/StaffOperations';
 import { TeacherProfileReviewQueue } from '@/components/admin/TeacherProfileReviewQueue';
+import { TestCreditButton } from '@/components/admin/TestCreditButton';
 import { ScrollHeader } from '@/components/navigation/ScrollHeader';
 import { Loader2, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';

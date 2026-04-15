@@ -154,7 +154,21 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
   }, [fetchSlots]);
 
   const handleBookSlot = async (slot: TimeSlot & { sourceSlotIds?: string[] }) => {
-    if (!user?.id || booking || !hasCredits) return;
+    if (!user?.id || booking) return;
+
+    // Credit check at confirm time — show prompt instead of silently blocking
+    if (!hasCredits) {
+      toast({
+        title: 'Credits required',
+        description: 'You need credits to book this session. Redirecting to purchase...',
+        variant: 'destructive',
+      });
+      setTimeout(() => {
+        onClose();
+        navigate('/student?tab=packages');
+      }, 1500);
+      return;
+    }
     setBooking(true);
 
     const slotIds = slot.sourceSlotIds || [slot.id];
