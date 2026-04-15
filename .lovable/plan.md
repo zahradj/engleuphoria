@@ -1,98 +1,100 @@
 
-# Fix Student Credits Not Showing + Enforce System Integrity
 
-## What the audit found
-The 100 credits were added to `public.student_credits`, but the student dashboard and booking flow do not read from that table.
+# Live Video/Audio Connection & Room Synchronization Fix
 
-Right now, the student UI still uses `usePackageValidation`, which only loads `student_package_purchases` through `lessonPricingService.getStudentPackages()`. So:
+## The Problem (Three Broken Links)
 
-- DB credit balance exists in `student_credits`
-- Dashboard credit widgets still show `0`
-- Booking logic still blocks the student because it checks package-based credits only
+### 1. Room ID Mismatch — "The Two-Room Problem"
+- **Teacher** classroom uses `roomId = "MySchool_Class_${classId}"` for `useClassroomSync`
+- **Student** classroom uses the raw URL param (the booking's `session_id`) as `roomId`
+- Result: They join different Supabase Realtime channels and different WebRTC signaling rooms — they can never see each other
 
-This is why the credit addition appears “not implemented” from the student side.
+### 2. Video/Audio Never Connected
+- `useLocalMedia` captures the camera/mic stream in the teacher classroom, but it's **never passed** to `PictureInPicture` or to any WebRTC hook
+- The `PictureInPicture` component renders a static avatar icon — no actual video
+- Student classroom doesn't even call `useLocalMedia` — no stream is captured at all
 
-## Implementation plan
+### 3. WebRTC Hook Exists But Is Not Used
+- `useWebRTCConnection` and the `webrtc-signaling` edge function are fully built and functional
+- Neither classroom component imports or calls them
+- The signaling server is deployed but receives zero connections
 
-### 1. Unify student credit source
-Create a single student credit hook/service that reads real usable balance from `student_credits`:
+---
 
-- available credits = `total_credits - used_credits - expired_credits`
-- use this as the source of truth for dashboard credit displays and booking eligibility
-- keep package data separate if package history is still needed for purchases/history UI
+## Implementation Plan
 
-### 2. Replace package-only gating in student flows
-Update these student-facing areas to use the real credit balance:
+### Step 1: Unify the Room ID
+Both classrooms must derive `roomId` from the same source: the booking's `session_id`, which is already in the URL param.
 
-- `src/hooks/usePackageValidation.ts`
-- `src/components/student/CreditDisplay.tsx`
-- `src/components/student/DashboardTab.tsx`
-- `src/components/student/dashboards/HubDashboard.tsx`
-- `src/pages/student/BookLesson.tsx`
-- `src/components/student/BookMyClassModal.tsx`
-- `src/components/student/dashboard/StudentPackagesSection.tsx`
+- **TeacherClassroom**: Change `roomName` from `"MySchool_Class_${classId}"` to just `classId` (which is already the session_id from the URL)
+- **StudentClassroom**: Already uses `roomId` directly — no change needed
+- This ensures both sides join the same Supabase Realtime channel AND the same WebRTC signaling room
 
-Planned behavior:
-- dashboard shows actual available credits from `student_credits`
-- booking page shows the real balance
-- booking is allowed when real available credits > 0, or when a trial is available
-- if no credits, calendar can still remain visible where intended, but confirm-step blocking must use the real balance
+### Step 2: Wire Up Local Media in Both Classrooms
+- **StudentClassroom**: Add `useLocalMedia()` hook (already used in TeacherClassroom)
+- Call `media.join()` automatically after component mounts (post-PreFlightCheck, so permissions are already granted)
+- Pass `media.stream` to `PictureInPicture` for local video preview
 
-### 3. Add refresh/realtime so newly granted credits appear immediately
-The current credit UI has no subscription to `student_credits`.
+### Step 3: Connect WebRTC for Peer-to-Peer Video
+Add `useWebRTCConnection` to both classrooms:
 
-Add either:
-- Supabase realtime subscription on `student_credits` for the current student, or
-- React Query invalidation after booking/admin credit actions
-
-Best approach here: use realtime + query invalidation fallback so manual admin credit grants appear in the student dashboard without needing a full refresh.
-
-### 4. Keep package support without confusing the balance
-Do not remove package purchase records if they are still needed for package products/history.
-
-Instead:
-- separate “credit balance” from “package list”
-- if package cards are shown, make sure they represent package inventory/history only
-- the main “Available Credits” display must use `student_credits`, not package rows
-
-### 5. Harden booking deduction path
-The booking modal currently calls `consume_credit`, but the pre-check is still tied to package logic.
-
-Update the booking flow so:
-- pre-check uses real balance from `student_credits`
-- `consume_credit` result is checked explicitly
-- if `consume_credit` returns `false`, booking aborts cleanly with a purchase message
-- avoid showing success if credit consumption failed
-
-### 6. Preserve system integrity requirements from your prompt
-During the implementation, keep these intact and verify against the existing code:
-
-- Hub glassmorphism, mesh gradients, and hub color coding stay preserved
-- 5-day cancel/reschedule policy remains active (`useCancelReschedule.ts` already contains the 120-hour rule)
-- Green Room / `PreFlightCheck` remains the classroom gate for both teacher and student
-- teacher route remains `/teacher` and not `/admin` (`src/App.tsx` already reflects this)
-- hub teacher cards/badges in `FindTeacher.tsx` remain intact
-
-## Expected outcome after implementation
-After this fix:
-
-- Zahra’s student account will show the credited balance in the dashboard
-- booking checks will recognize those credits
-- the student will be able to book lessons using the credited amount
-- future admin/test credit grants will appear in the UI reliably
-- previous branding/routing fixes will remain preserved, not overwritten
-
-## Technical notes
-Root cause is architectural mismatch:
-```text
-Admin/test grants -> public.student_credits
-Student dashboard/booking UI -> student_package_purchases only
+```
+const { participants, isConnected: rtcConnected } = useWebRTCConnection({
+  roomId: sessionId,
+  userId: user.id,
+  localStream: media.stream,
+  enabled: media.isConnected
+});
 ```
 
-Needed correction:
-```text
-Available balance + booking eligibility -> public.student_credits
-Package catalog/history -> student_package_purchases
-```
+- Teacher sees student's remote stream in the PiP window
+- Student sees teacher's remote stream in the PiP window
+- Both auto-connect after PreFlightCheck grants media permissions
 
-No schema change is necessarily required for the core fix. This is primarily a frontend data-flow correction, plus realtime/query refresh wiring.
+### Step 4: Pass Remote Streams to PictureInPicture
+Update both classrooms:
+- **Teacher PiP** → shows the student's remote stream (from `participants[0]?.stream`)
+- **Student PiP** → shows the teacher's remote stream (from `participants[0]?.stream`)
+- The existing `PictureInPicture` component already accepts a `stream` prop and renders `<video>` when provided
+
+### Step 5: Add "User Joined" Notification
+When `participants` array length changes, show a toast:
+- "Student joined the classroom" (teacher side)
+- "Teacher joined the classroom" (student side)
+
+### Step 6: Add Reconnect Button
+Add a reconnect button to `ClassroomTopBar` and `StudentClassroomHeader`:
+- Calls `disconnect()` then `connect()` from the WebRTC hook
+- Shows when `rtcConnected` is false after initial connection
+
+### Step 7: Media Permission Overlay
+If `media.error` is set (permission denied), show a full-screen overlay with:
+- "Camera & Microphone access required"
+- A "Retry" button that calls `media.join()` again
+- This replaces the current silent failure
+
+---
+
+## Files to Modify
+
+| File | Change |
+|------|--------|
+| `src/components/teacher/classroom/TeacherClassroom.tsx` | Fix roomId, add `useWebRTCConnection`, pass streams to PiP |
+| `src/components/student/classroom/StudentClassroom.tsx` | Add `useLocalMedia`, add `useWebRTCConnection`, pass streams to PiP |
+| `src/components/classroom/PictureInPicture.tsx` | Add connection status indicator styling |
+| `src/components/teacher/classroom/ClassroomTopBar.tsx` | Add reconnect button |
+| `src/components/student/classroom/StudentClassroomHeader.tsx` | Add reconnect button |
+
+No database changes needed. No new edge functions. The `webrtc-signaling` edge function is already deployed and functional.
+
+---
+
+## Expected Result After Implementation
+
+1. Teacher and student land in the **same room** (same session_id)
+2. After PreFlightCheck, camera/mic auto-activate
+3. WebRTC connects via the existing signaling server
+4. Teacher sees student video in PiP, student sees teacher video in PiP
+5. "User Joined" toast appears when the other participant connects
+6. Reconnect button available if connection drops
+
