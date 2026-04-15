@@ -142,31 +142,44 @@ export const CalendarCore: React.FC<CalendarCoreProps> = ({
     }
 
     if (slot?.isAvailable) {
+      // Hub-color by duration: 30m = Orange (Playground), 60m = Blue (Academy), default green
+      const duration = slot.duration || 30;
+      const isPlayground = duration === 30;
+      const isAcademy = duration === 60;
+
+      const borderColor = isPlayground
+        ? 'border-orange-400/30 hover:border-orange-500'
+        : isAcademy
+          ? 'border-blue-400/30 hover:border-blue-500'
+          : 'border-success/30 hover:border-success';
+      const gradientBg = isPlayground
+        ? 'from-orange-500/10 to-amber-500/10'
+        : isAcademy
+          ? 'from-blue-500/10 to-indigo-500/10'
+          : 'from-emerald-500/10 to-teal-500/10';
+      const textColor = isPlayground ? 'text-orange-500' : isAcademy ? 'text-blue-500' : 'text-success';
+      const badgeBg = isPlayground ? 'bg-orange-500/20' : isAcademy ? 'bg-blue-500/20' : 'bg-success/20';
+      const hubLabel = isPlayground ? '🎪' : isAcademy ? '📘' : '🏆';
+
       return (
         <button
           onClick={() => onSlotClick(date, time)}
           className={cn(
             'h-20 rounded-xl transition-all duration-500 cal-glass-card relative group overflow-hidden',
-            'border-2 border-success/30 hover:border-success hover:scale-[1.02]',
+            `border-2 ${borderColor} hover:scale-[1.02]`,
             'cal-pulse-glow'
           )}
         >
-          {/* Gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 
-                          opacity-50 group-hover:opacity-100 transition-opacity" />
-          
-          {/* Content */}
+          <div className={`absolute inset-0 bg-gradient-to-br ${gradientBg} opacity-50 group-hover:opacity-100 transition-opacity`} />
           <div className="relative flex flex-col items-center justify-center h-full">
             <div className="flex items-center gap-1">
-              <Check className="w-5 h-5 text-success" />
-              <span className="text-sm font-bold text-success">OPEN</span>
+              <Check className={`w-5 h-5 ${textColor}`} />
+              <span className={`text-sm font-bold ${textColor}`}>OPEN</span>
             </div>
-            <span className="absolute top-1.5 right-1.5 bg-success/20 text-success text-xs px-1.5 py-0.5 rounded-full font-semibold">
-              {slot.duration}m
+            <span className={`absolute top-1.5 right-1.5 ${badgeBg} ${textColor} text-xs px-1.5 py-0.5 rounded-full font-semibold`}>
+              {hubLabel} {slot.duration}m
             </span>
           </div>
-          
-          {/* Shimmer effect on hover */}
           <div className="absolute inset-0 cal-shimmer opacity-0 group-hover:opacity-100 transition-opacity" />
         </button>
       );
