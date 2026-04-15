@@ -182,7 +182,7 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
         <Button
           variant="ghost"
           size="icon"
-          className={`rounded-full ${isMuted ? 'bg-red-500/20 text-red-400' : 'bg-gray-800 text-gray-300'}`}
+          className={`rounded-full ${isMuted ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-700'}`}
           onClick={onToggleMute}
         >
           {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
@@ -190,17 +190,16 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
         <Button
           variant="ghost"
           size="icon"
-          className={`rounded-full ${isCameraOff ? 'bg-red-500/20 text-red-400' : 'bg-gray-800 text-gray-300'}`}
+          className={`rounded-full ${isCameraOff ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-700'}`}
           onClick={onToggleCamera}
         >
           {isCameraOff ? <CameraOff className="h-5 w-5" /> : <Camera className="h-5 w-5" />}
         </Button>
-        {/* Zen Mode Toggle */}
         {onToggleZenMode && (
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-full bg-gray-800 text-gray-300"
+            className="rounded-full bg-gray-100 text-gray-700"
             onClick={onToggleZenMode}
             title="Zen Mode (F11)"
           >
@@ -210,12 +209,11 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
         <Button
           variant="ghost"
           size="icon"
-          className="rounded-full bg-gray-800 text-gray-300"
+          className="rounded-full bg-gray-100 text-gray-700"
           onClick={onOpenSettings}
         >
           <Settings className="h-5 w-5" />
         </Button>
-        {/* Wrap-Up / Session Report Button */}
         {onOpenWrapUp && (
           <Button
             variant="ghost"
@@ -223,15 +221,15 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
             onClick={onOpenWrapUp}
             className={`${
               shouldPulseWrapUp
-                ? 'bg-red-600/30 text-red-300 hover:bg-red-600/40 animate-pulse ring-2 ring-red-500/50'
-                : 'bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30'
+                ? 'bg-red-100 text-red-600 hover:bg-red-200 animate-pulse ring-2 ring-red-300'
+                : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
             }`}
           >
             <ClipboardCheck className="h-4 w-4 mr-1" />
             {shouldPulseWrapUp ? 'Session Report' : 'Wrap-Up'}
           </Button>
         )}
-        <div className="h-6 w-px bg-gray-700 mx-2" />
+        <div className="h-6 w-px bg-gray-200 mx-2" />
         <Button
           variant="destructive"
           size="sm"
