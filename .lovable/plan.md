@@ -1,85 +1,98 @@
 
+# Fix Student Credits Not Showing + Enforce System Integrity
 
-# Enhanced Green Room + Calendar Visibility Fix + Test Credit Bypass
+## What the audit found
+The 100 credits were added to `public.student_credits`, but the student dashboard and booking flow do not read from that table.
 
-## What's Changing
+Right now, the student UI still uses `usePackageValidation`, which only loads `student_package_purchases` through `lessonPricingService.getStudentPackages()`. So:
 
-### 1. Enhanced Green Room (PreFlightCheck)
-The current Green Room is functional but basic. Enhancements:
-- **Auto-start checks**: Camera and mic tests begin automatically on mount instead of requiring manual clicks
-- **Animated progress ring**: Visual progress indicator showing 0/3 → 3/3 checks completed
-- **Hub-branded video frame**: Ring around camera preview matches hub color
-- **Participant waiting status**: Show "Your teacher/student is connecting..." text based on role
-- **Success Hub intention input**: For `professional` hub, show a "Set your intention for today" text input
-- **Smoother transitions**: Animate check items as they pass with subtle scale/fade effects
-- **Better layout**: Larger video preview, cleaner grouping of device selectors
+- DB credit balance exists in `student_credits`
+- Dashboard credit widgets still show `0`
+- Booking logic still blocks the student because it checks package-based credits only
 
-### 2. Calendar Slot Visibility Fix (Student Side)
-**Problem**: The `BookMyClassModal` gates booking behind `hasCredits` check at line 84 (`totalCredits > 0 || trialAvailable`). When a student has 0 credits, `handleBookSlot` returns early at line 157.
+This is why the credit addition appears “not implemented” from the student side.
 
-**Fix**: 
-- **Show all available slots regardless of credit balance** — students should always *see* the calendar
-- Move the credit check from the fetch/display phase to the **confirm booking** step only
-- When a student with 0 credits clicks "Book", show a prompt: "You need credits to book. Purchase now?" with a link to `/pricing`
-- Trial lessons remain always bookable (already handled)
+## Implementation plan
 
-### 3. Hub-Colored Open Slots on Teacher Calendar
-**Current**: All open slots show green (`text-success`, `border-success`).
-**Fix**: Color open slots by hub type:
-- Orange for Playground (30-min slots)
-- Blue for Academy (60-min slots or default)  
-- Green for Success Hub
-- Since teacher_availability doesn't store hub type, use **duration as proxy**: 30m → Orange (Playground), 60m → Blue (Academy default)
-- Add a small hub badge on each open slot showing the duration context
+### 1. Unify student credit source
+Create a single student credit hook/service that reads real usable balance from `student_credits`:
 
-### 4. Admin "Add Test Credits" Button
-Add a quick action in the admin dashboard to grant test credits to any user:
-- New component in `src/components/admin/TestCreditButton.tsx`
-- Simple button that inserts/updates `student_credits` for the current admin user (or a specified test email)
-- Grants 100 test credits per click
-- Only visible to admin role users
+- available credits = `total_credits - used_credits - expired_credits`
+- use this as the source of truth for dashboard credit displays and booking eligibility
+- keep package data separate if package history is still needed for purchases/history UI
 
-### 5. Real-Time Booking Sync (Already Implemented)
-The `useTeacherAvailability` hook already has Supabase Realtime subscription on `teacher_availability` (lines 122-143). When a booking occurs, the slot update triggers a refetch. This is already working — no changes needed.
+### 2. Replace package-only gating in student flows
+Update these student-facing areas to use the real credit balance:
 
----
+- `src/hooks/usePackageValidation.ts`
+- `src/components/student/CreditDisplay.tsx`
+- `src/components/student/DashboardTab.tsx`
+- `src/components/student/dashboards/HubDashboard.tsx`
+- `src/pages/student/BookLesson.tsx`
+- `src/components/student/BookMyClassModal.tsx`
+- `src/components/student/dashboard/StudentPackagesSection.tsx`
 
-## Technical Details
+Planned behavior:
+- dashboard shows actual available credits from `student_credits`
+- booking page shows the real balance
+- booking is allowed when real available credits > 0, or when a trial is available
+- if no credits, calendar can still remain visible where intended, but confirm-step blocking must use the real balance
 
-### Files to Modify
+### 3. Add refresh/realtime so newly granted credits appear immediately
+The current credit UI has no subscription to `student_credits`.
 
-**`src/components/classroom/PreFlightCheck.tsx`**
-- Auto-trigger `runCameraCheck()` and `runMicCheck()` on mount via `useEffect`
-- Add animated progress ring (3 checks: camera, mic, speaker)
-- Add hub-colored ring around video preview
-- Add role-based waiting message
-- Add intention input for Success Hub (`professional` type)
-- Improve spacing and visual hierarchy
+Add either:
+- Supabase realtime subscription on `student_credits` for the current student, or
+- React Query invalidation after booking/admin credit actions
 
-**`src/hooks/usePreFlightCheck.ts`**
-- Add `autoStart` flag that triggers camera + mic checks automatically
-- No major logic changes needed
+Best approach here: use realtime + query invalidation fallback so manual admin credit grants appear in the student dashboard without needing a full refresh.
 
-**`src/components/student/BookMyClassModal.tsx`**
-- Remove `hasCredits` guard from `handleBookSlot` early return (line 157)
-- Instead, when `!hasCredits`, show a credit purchase prompt dialog before proceeding
-- Keep slot display independent of credit balance
-- Trial bookings bypass credit check (already works)
+### 4. Keep package support without confusing the balance
+Do not remove package purchase records if they are still needed for package products/history.
 
-**`src/components/teacher/calendar/modern/CalendarCore.tsx`**
-- Color open slots by duration: 30m → orange gradient, 60m → blue gradient (instead of all-green)
-- Add small duration/hub badge on open slot cards
+Instead:
+- separate “credit balance” from “package list”
+- if package cards are shown, make sure they represent package inventory/history only
+- the main “Available Credits” display must use `student_credits`, not package rows
 
-**`src/components/admin/TestCreditButton.tsx`** (new file)
-- Button component: "Add 100 Test Credits"
-- Calls `supabase.from('student_credits').upsert(...)` for the admin's own user ID
-- Shows toast on success
+### 5. Harden booking deduction path
+The booking modal currently calls `consume_credit`, but the pre-check is still tied to package logic.
 
-**`src/pages/AdminDashboard.tsx`** (or equivalent admin layout)
-- Import and render `TestCreditButton` in the admin tools section
+Update the booking flow so:
+- pre-check uses real balance from `student_credits`
+- `consume_credit` result is checked explicitly
+- if `consume_credit` returns `false`, booking aborts cleanly with a purchase message
+- avoid showing success if credit consumption failed
 
-### No Database Changes Needed
-- `student_credits` table already exists with `total_credits` column
-- The `consume_credit` RPC already handles balance checks
-- Real-time subscriptions are already active
+### 6. Preserve system integrity requirements from your prompt
+During the implementation, keep these intact and verify against the existing code:
 
+- Hub glassmorphism, mesh gradients, and hub color coding stay preserved
+- 5-day cancel/reschedule policy remains active (`useCancelReschedule.ts` already contains the 120-hour rule)
+- Green Room / `PreFlightCheck` remains the classroom gate for both teacher and student
+- teacher route remains `/teacher` and not `/admin` (`src/App.tsx` already reflects this)
+- hub teacher cards/badges in `FindTeacher.tsx` remain intact
+
+## Expected outcome after implementation
+After this fix:
+
+- Zahra’s student account will show the credited balance in the dashboard
+- booking checks will recognize those credits
+- the student will be able to book lessons using the credited amount
+- future admin/test credit grants will appear in the UI reliably
+- previous branding/routing fixes will remain preserved, not overwritten
+
+## Technical notes
+Root cause is architectural mismatch:
+```text
+Admin/test grants -> public.student_credits
+Student dashboard/booking UI -> student_package_purchases only
+```
+
+Needed correction:
+```text
+Available balance + booking eligibility -> public.student_credits
+Package catalog/history -> student_package_purchases
+```
+
+No schema change is necessarily required for the core fix. This is primarily a frontend data-flow correction, plus realtime/query refresh wiring.
