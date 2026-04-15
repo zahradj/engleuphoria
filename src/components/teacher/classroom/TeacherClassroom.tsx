@@ -348,6 +348,12 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             elapsedSeconds={classTime}
             sessionDuration={sessionDuration}
             hubType={hubType}
+            rtcConnected={rtcConnected}
+            onReconnect={async () => {
+              await rtcDisconnect();
+              await rtcConnect();
+              toast({ title: "🔄 Reconnecting...", description: "Attempting to reconnect video" });
+            }}
           />
         </div>
       )}
