@@ -1,62 +1,49 @@
 
 
-# Fix WebRTC Signaling: Replace Stateless Edge Function with Supabase Realtime Broadcast
+# Hub-Specific Teacher Roles & Student Booking Lock
 
-## Root Cause (Confirmed by Logs)
-
-The `webrtc-signaling` edge function uses an in-memory `Map` to track room participants:
-```
-const rooms = new Map<string, Map<string, WebSocket>>();
-```
-
-Supabase Edge Functions are **stateless** — each HTTP/WebSocket connection can land on a different isolate. The logs prove this:
-- Teacher joins room `engleuphoria-9c5fb88c...` → "Total participants: 1"
-- Student joins the **same room** → "Total participants: 1" (different isolate, fresh Map)
-
-They never see each other's signaling messages (offers/answers/ICE candidates), so WebRTC never connects.
+## Problem
+1. **Teacher application** has no hub preference — teachers can't specify which hub(s) they want to teach in
+2. **Booking modal** lets students switch between all 3 hubs freely — a Playground student shouldn't see 60-min Academy options
+3. **FindTeacher** page doesn't properly filter teachers by the student's hub — Playground students see Academy teachers and vice versa
+4. **Hub role** is limited to 2 values (`playground_specialist`, `academy_success_mentor`) — need finer granularity
 
 ## Solution
 
-Replace the WebSocket edge function signaling with **Supabase Realtime Broadcast** channels. Both users subscribe to the same Supabase Realtime channel (which is managed by Supabase infrastructure, not ephemeral isolates) and exchange WebRTC signaling messages through broadcast events.
+### Database Migration
+- Add `hub_preference` column to `teacher_applications` (text, nullable) — stores the teacher's hub choice during application
+- Expand `teacher_profiles.hub_role` CHECK constraint to support 4 values: `playground_specialist`, `academy_mentor`, `success_mentor`, `academy_success_mentor`
 
-The old `webRTCService.ts` already had this pattern using Supabase broadcast — we just need to apply it to the full peer connection flow.
+### Teacher Application Form (Step 5)
+Replace the current "Preferred Age Group" radio group with a new **Hub Teaching Preference** selector:
+- **Playground Specialist** (Kids 4-11, 30-min sessions)
+- **Academy Mentor** (Teens 12-17, 60-min sessions)
+- **Success Coach** (Adults 18+, 60-min sessions)
+- **Academy + Success Mentor** (Teens & Adults, 60-min sessions)
 
-## Implementation
+Save choice to `teacher_applications.hub_preference`. Keep age group field as secondary info.
 
-### Step 1: Rewrite `webrtcVideoService.ts` — Replace WebSocket with Supabase Realtime
+### BookMyClassModal — Lock to Student's Hub
+- Remove the hub selector buttons entirely — the student's `studentLevel` prop determines the hub
+- Playground students always see 30-min slots, Academy/Success always see 60-min slots
+- No ability to switch hubs from the booking modal
 
-Replace the `connectToSignalingServer()` WebSocket logic with:
-- `supabase.channel(\`webrtc-\${roomId}\`)` 
-- Broadcast events: `offer`, `answer`, `ice-candidate`, `join`, `leave`
-- Each message includes `fromUserId` and `targetUserId`
-- On receiving `join` from another user, the existing user initiates the WebRTC offer
-- No edge function needed at all
-
-### Step 2: Update `useWebRTCConnection.ts` — Singleton Fix
-
-The hook currently uses a **singleton** `realTimeVideoService`. Both teacher and student import the same instance. This is fine for a single browser tab, but the `onParticipantsChange` callback gets overwritten on re-renders. Add proper cleanup.
-
-### Step 3: Remove WebSocket Edge Function Dependency
-
-The `webrtc-signaling` edge function can remain deployed (demo use) but will no longer be called by live classrooms.
-
-### Step 4: Hub Type Pass-Through
-
-The `UnifiedClassroomPage` currently hardcodes `hubType="academy"`. Fix it to query the booking's hub type and pass it through, so Playground bookings render with orange branding.
+### FindTeacher — Hub-Based Filtering
+- Map `hub_role` to visible hubs:
+  - `playground_specialist` → visible only in Playground
+  - `academy_mentor` → visible only in Academy
+  - `success_mentor` → visible only in Success/Professional
+  - `academy_success_mentor` → visible in both Academy AND Success (profile appears in both)
+- When a student's hub filter is set (from URL param or dashboard context), only matching teachers appear
+- The "All" tab still shows everyone for browsing
 
 ## Files to Modify
 
 | File | Change |
 |------|--------|
-| `src/services/video/webrtcVideoService.ts` | Replace WebSocket signaling with Supabase Realtime Broadcast |
-| `src/hooks/useWebRTCConnection.ts` | Minor cleanup for callback lifecycle |
-| `src/pages/UnifiedClassroomPage.tsx` | Query hub type from booking and pass to classroom components |
-
-## Expected Result
-
-1. Both users subscribe to the same Supabase Realtime channel
-2. When the second user joins, broadcast triggers WebRTC offer/answer exchange
-3. ICE candidates flow through the same channel
-4. Peer-to-peer video/audio connects successfully
-5. Hub branding matches the booked hub (Playground = orange)
+| **Migration SQL** | Add `hub_preference` to `teacher_applications`, expand `hub_role` CHECK |
+| `EnhancedTeacherApplicationForm.tsx` | Add hub preference selector in Step 5, save to `hub_preference` |
+| `BookMyClassModal.tsx` | Remove hub selector, lock to `studentLevel` prop |
+| `FindTeacher.tsx` | Update `_hubs` mapping for 4 hub_role values |
+| `mem://features/booking/hub-specific-roles-and-classroom-id` | Update memory |
 
