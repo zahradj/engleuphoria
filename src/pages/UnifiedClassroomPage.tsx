@@ -34,7 +34,7 @@ const UnifiedClassroomPage: React.FC = () => {
       if (!bookingId || !user?.id) return null;
       const { data, error } = await supabase
         .from('class_bookings')
-        .select('id, teacher_id, student_id, scheduled_at, duration, status')
+        .select('id, teacher_id, student_id, scheduled_at, duration, status, hub_type')
         .eq('id', bookingId)
         .maybeSingle();
       if (error) throw error;
@@ -143,12 +143,13 @@ const UnifiedClassroomPage: React.FC = () => {
 
   // Admin "God Mode" — admin enters as teacher view by default
   const classroomRole: 'teacher' | 'student' = isTeacher || (isAdmin && !isStudent) ? 'teacher' : 'student';
+  const hubType = (booking as any)?.hub_type || 'academy';
 
   if (!preFlightPassed) {
     return (
       <PreFlightCheck
         onComplete={() => setPreFlightPassed(true)}
-        hubType="academy"
+        hubType={hubType}
         role={classroomRole}
       />
     );

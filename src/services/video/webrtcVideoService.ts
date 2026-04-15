@@ -1,23 +1,24 @@
 import { PeerConnectionManager } from './peerConnectionManager';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
 
-interface SignalingMessage {
-  type: 'offer' | 'answer' | 'ice-candidate' | 'join' | 'leave' | 'joined' | 'user-joined' | 'user-left' | 'existing-participants';
-  roomId?: string;
-  userId?: string;
-  fromUserId?: string;
-  targetUserId?: string;
-  data?: any;
-  participants?: string[];
-  participantCount?: number;
-}
-
+/**
+ * WebRTC Video Service using Supabase Realtime Broadcast for signaling.
+ * 
+ * Replaces the old WebSocket-based edge function signaling which failed
+ * because Supabase Edge Functions are stateless (each connection hits a
+ * different isolate, so in-memory Maps are never shared).
+ * 
+ * Supabase Realtime channels are managed by persistent infrastructure,
+ * so both participants reliably receive each other's messages.
+ */
 export class WebRTCVideoService {
-  private ws: WebSocket | null = null;
+  private channel: ReturnType<typeof supabase.channel> | null = null;
   private peerManager: PeerConnectionManager;
   private roomId: string | null = null;
   private userId: string | null = null;
   private onParticipantsUpdate: ((participants: Map<string, MediaStream>) => void) | null = null;
+  private isJoined = false;
 
   constructor() {
     this.peerManager = new PeerConnectionManager();
@@ -30,149 +31,120 @@ export class WebRTCVideoService {
   async joinRoom(roomId: string, userId: string, localStream: MediaStream): Promise<void> {
     this.roomId = roomId;
     this.userId = userId;
-    
+
     this.peerManager.setLocalStream(localStream);
-    
+
     // Set up remote stream handler
-    this.peerManager.setOnRemoteStream((userId, stream) => {
-      console.log(`🎥 Remote stream received from ${userId}`);
+    this.peerManager.setOnRemoteStream((peerId, stream) => {
+      console.log(`🎥 Remote stream received from ${peerId}`);
       this.notifyParticipantsUpdate();
     });
 
     // Set up connection state handler
-    this.peerManager.setOnConnectionStateChange((userId, state) => {
-      console.log(`🔌 Connection state changed for ${userId}:`, state);
+    this.peerManager.setOnConnectionStateChange((peerId, state) => {
+      console.log(`🔌 Connection state changed for ${peerId}: ${state}`);
       if (state === 'failed' || state === 'disconnected') {
         this.notifyParticipantsUpdate();
       }
     });
 
-    // Connect to signaling server
-    await this.connectToSignalingServer(roomId, userId);
+    // Connect via Supabase Realtime Broadcast
+    await this.connectViaRealtimeBroadcast(roomId, userId);
   }
 
-  private async connectToSignalingServer(roomId: string, userId: string): Promise<void> {
+  private async connectViaRealtimeBroadcast(roomId: string, userId: string): Promise<void> {
+    const channelName = `webrtc-${roomId}`;
+    console.log(`🔗 Subscribing to Supabase Realtime channel: ${channelName}`);
+
+    this.channel = supabase.channel(channelName, {
+      config: { broadcast: { self: false } }
+    });
+
+    // Listen for signaling events
+    this.channel
+      .on('broadcast', { event: 'join' }, (payload) => {
+        this.handleRemoteJoin(payload.payload);
+      })
+      .on('broadcast', { event: 'offer' }, (payload) => {
+        this.handleOffer(payload.payload.fromUserId, payload.payload.data);
+      })
+      .on('broadcast', { event: 'answer' }, (payload) => {
+        this.handleAnswer(payload.payload.fromUserId, payload.payload.data);
+      })
+      .on('broadcast', { event: 'ice-candidate' }, (payload) => {
+        this.handleIceCandidate(payload.payload.fromUserId, payload.payload.data);
+      })
+      .on('broadcast', { event: 'leave' }, (payload) => {
+        this.handleUserLeft(payload.payload.userId);
+      });
+
+    // Subscribe and then announce join
     return new Promise((resolve, reject) => {
-      // Use the full WebSocket URL for the edge function
-      const wsUrl = `wss://dcoxpyzoqjvmuuygvlme.supabase.co/functions/v1/webrtc-signaling`;
-      
-      console.log(`🔗 Connecting to signaling server: ${wsUrl}`);
-      this.ws = new WebSocket(wsUrl);
+      this.channel!.subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log(`✅ Subscribed to Realtime channel: ${channelName}`);
+          this.isJoined = true;
 
-      this.ws.onopen = () => {
-        console.log(`✅ Connected to signaling server`);
-        
-        // Send join message
-        this.sendSignalingMessage({
-          type: 'join',
-          roomId,
-          userId
-        });
-        
-        resolve();
-      };
+          // Announce our presence — other participants will initiate offers
+          this.channel!.send({
+            type: 'broadcast',
+            event: 'join',
+            payload: { userId, roomId }
+          });
 
-      this.ws.onmessage = async (event) => {
-        try {
-          const message: SignalingMessage = JSON.parse(event.data);
-          await this.handleSignalingMessage(message);
-        } catch (error) {
-          console.error('Error handling signaling message:', error);
+          toast.success("Joined video room");
+          resolve();
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Realtime channel error');
+          toast.error("Connection error");
+          reject(new Error('Channel subscription failed'));
         }
-      };
-
-      this.ws.onerror = (error) => {
-        console.error('❌ WebSocket error:', error);
-        toast.error("Connection error");
-        reject(error);
-      };
-
-      this.ws.onclose = () => {
-        console.log('🔌 WebSocket connection closed');
-      };
+      });
     });
   }
 
-  private async handleSignalingMessage(message: SignalingMessage) {
-    console.log('📨 Received signaling message:', message.type);
+  /**
+   * When another user joins, the existing user initiates the WebRTC offer.
+   * This avoids both sides trying to offer simultaneously.
+   */
+  private async handleRemoteJoin(payload: { userId: string; roomId: string }) {
+    const remoteUserId = payload.userId;
+    if (remoteUserId === this.userId) return;
 
-    switch (message.type) {
-      case 'joined':
-        console.log(`✅ Successfully joined room ${message.roomId}`);
-        toast.success("Joined video room");
-        break;
-
-      case 'existing-participants':
-        // Create peer connections for existing participants
-        if (message.participants) {
-          for (const participantId of message.participants) {
-            await this.initiateConnectionToUser(participantId);
-          }
-        }
-        break;
-
-      case 'user-joined':
-        // New user joined, we should wait for their offer
-        console.log(`👤 User ${message.userId} joined the room`);
-        break;
-
-      case 'offer':
-        await this.handleOffer(message.fromUserId!, message.data);
-        break;
-
-      case 'answer':
-        await this.handleAnswer(message.fromUserId!, message.data);
-        break;
-
-      case 'ice-candidate':
-        await this.handleIceCandidate(message.fromUserId!, message.data);
-        break;
-
-      case 'user-left':
-        this.handleUserLeft(message.userId!);
-        break;
-
-      default:
-        console.warn('Unknown message type:', message.type);
-    }
+    console.log(`👤 User ${remoteUserId} joined — initiating offer`);
+    await this.initiateConnectionToUser(remoteUserId);
   }
 
-  private async initiateConnectionToUser(userId: string) {
-    console.log(`🤝 Initiating connection to user ${userId}`);
+  private async initiateConnectionToUser(targetUserId: string) {
+    console.log(`🤝 Initiating connection to user ${targetUserId}`);
 
-    // Create peer connection
-    const pc = await this.peerManager.createPeerConnection(userId, (candidate) => {
-      this.sendSignalingMessage({
-        type: 'ice-candidate',
-        roomId: this.roomId!,
-        userId: this.userId!,
-        targetUserId: userId,
+    // Create peer connection with ICE candidate relay
+    await this.peerManager.createPeerConnection(targetUserId, (candidate) => {
+      this.sendBroadcast('ice-candidate', {
+        fromUserId: this.userId!,
+        targetUserId,
         data: candidate.toJSON()
       });
     });
 
     // Create and send offer
-    const offer = await this.peerManager.createOffer(userId);
-    
-    this.sendSignalingMessage({
-      type: 'offer',
-      roomId: this.roomId!,
-      userId: this.userId!,
-      targetUserId: userId,
+    const offer = await this.peerManager.createOffer(targetUserId);
+    this.sendBroadcast('offer', {
+      fromUserId: this.userId!,
+      targetUserId,
       data: offer
     });
   }
 
   private async handleOffer(fromUserId: string, offer: RTCSessionDescriptionInit) {
+    if (fromUserId === this.userId) return;
     console.log(`📥 Handling offer from ${fromUserId}`);
 
     // Create peer connection if it doesn't exist
     if (!this.peerManager.getConnectionState(fromUserId)) {
       await this.peerManager.createPeerConnection(fromUserId, (candidate) => {
-        this.sendSignalingMessage({
-          type: 'ice-candidate',
-          roomId: this.roomId!,
-          userId: this.userId!,
+        this.sendBroadcast('ice-candidate', {
+          fromUserId: this.userId!,
           targetUserId: fromUserId,
           data: candidate.toJSON()
         });
@@ -181,39 +153,43 @@ export class WebRTCVideoService {
 
     // Handle offer and create answer
     const answer = await this.peerManager.handleOffer(fromUserId, offer);
-    
-    this.sendSignalingMessage({
-      type: 'answer',
-      roomId: this.roomId!,
-      userId: this.userId!,
+    this.sendBroadcast('answer', {
+      fromUserId: this.userId!,
       targetUserId: fromUserId,
       data: answer
     });
   }
 
   private async handleAnswer(fromUserId: string, answer: RTCSessionDescriptionInit) {
+    if (fromUserId === this.userId) return;
     console.log(`📥 Handling answer from ${fromUserId}`);
     await this.peerManager.handleAnswer(fromUserId, answer);
   }
 
   private async handleIceCandidate(fromUserId: string, candidate: RTCIceCandidateInit) {
+    if (fromUserId === this.userId) return;
     console.log(`🧊 Handling ICE candidate from ${fromUserId}`);
     await this.peerManager.handleIceCandidate(fromUserId, candidate);
   }
 
   private handleUserLeft(userId: string) {
+    if (userId === this.userId) return;
     console.log(`👋 User ${userId} left`);
     this.peerManager.closePeerConnection(userId);
     this.notifyParticipantsUpdate();
     toast.info("Participant left");
   }
 
-  private sendSignalingMessage(message: SignalingMessage) {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify(message));
-    } else {
-      console.error('WebSocket not connected');
+  private sendBroadcast(event: string, payload: Record<string, any>) {
+    if (!this.channel || !this.isJoined) {
+      console.error('Realtime channel not connected');
+      return;
     }
+    this.channel.send({
+      type: 'broadcast',
+      event,
+      payload
+    });
   }
 
   private notifyParticipantsUpdate() {
@@ -224,23 +200,20 @@ export class WebRTCVideoService {
   }
 
   leaveRoom() {
-    if (this.ws && this.roomId && this.userId) {
-      this.sendSignalingMessage({
-        type: 'leave',
-        roomId: this.roomId,
-        userId: this.userId
-      });
+    if (this.channel && this.roomId && this.userId) {
+      this.sendBroadcast('leave', { userId: this.userId, roomId: this.roomId });
     }
 
     this.peerManager.closeAllConnections();
-    
-    if (this.ws) {
-      this.ws.close();
-      this.ws = null;
+
+    if (this.channel) {
+      supabase.removeChannel(this.channel);
+      this.channel = null;
     }
 
     this.roomId = null;
     this.userId = null;
+    this.isJoined = false;
   }
 
   getRemoteStreams(): Map<string, MediaStream> {
