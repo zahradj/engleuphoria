@@ -88,6 +88,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   // Use classId directly as roomName so both teacher and student join the same room
   const roomName = classId;
+  const webrtcRoom = `engleuphoria-${classId}`;
 
   const slides = [
     { id: '1', title: 'Welcome to the Lesson' },
@@ -195,7 +196,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   // WebRTC peer connection
   const { participants, isConnected: rtcConnected, connect: rtcConnect, disconnect: rtcDisconnect } = useWebRTCConnection({
-    roomId: roomName,
+    roomId: webrtcRoom,
     userId: user?.id || sessionStorage.getItem('demo-teacher-id') || '',
     localStream: media.stream,
     enabled: media.isConnected
@@ -296,8 +297,16 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     ? 'bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50'
     : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50';
 
+  const showDebug = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug');
+
   return (
-    <div className={`h-screen w-full ${hubBg} text-gray-900 flex flex-col overflow-hidden`}>
+    <div className={`h-screen w-full ${hubBg} text-gray-900 flex flex-col overflow-hidden relative`}>
+      {/* Debug Room ID Label */}
+      {showDebug && (
+        <div className="fixed bottom-2 left-2 z-[100] bg-black/50 text-white text-[10px] font-mono px-2 py-1 rounded backdrop-blur-sm">
+          Room: {roomName} | WebRTC: {webrtcRoom}
+        </div>
+      )}
       {/* Star Celebration Overlay */}
       <StarCelebration
         isVisible={showStarCelebration}

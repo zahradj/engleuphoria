@@ -131,14 +131,8 @@ export const JoinLessonHero: React.FC<JoinLessonHeroProps> = ({ hubId, isDark = 
 
   const handleJoin = () => {
     if (!lesson) return;
-    // Prefer session_id-based route
-    if (lesson.session_id) {
-      navigate(`/student-classroom/${lesson.session_id}`);
-    } else if (lesson.meeting_link) {
-      navigate(toRelativePath(lesson.meeting_link));
-    } else {
-      navigate(`/student-classroom/${lesson.id}`);
-    }
+    // Always use the booking's primary key (id) as the universal room key
+    navigate(`/student-classroom/${lesson.id}`);
   };
 
   const isStartingSoon = minutesUntil <= 5 && minutesUntil >= -5;

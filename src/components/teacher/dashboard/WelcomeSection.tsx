@@ -27,7 +27,7 @@ export const WelcomeSection = ({
     try {
       const { data: nextBooking } = await supabase
         .from('class_bookings')
-        .select('session_id')
+        .select('id')
         .eq('teacher_id', teacherName) // fallback — real teacher_id needed
         .in('status', ['scheduled', 'confirmed'])
         .gte('scheduled_at', new Date().toISOString())
@@ -35,8 +35,8 @@ export const WelcomeSection = ({
         .limit(1)
         .single();
 
-      if (nextBooking?.session_id) {
-        navigate(`/classroom/${nextBooking.session_id}`);
+      if (nextBooking?.id) {
+        navigate(`/classroom/${nextBooking.id}`);
       }
     } catch {
       // No upcoming booking
