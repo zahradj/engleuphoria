@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Star, Globe, Clock, Play, Zap, Filter, Video, ChevronRight, Sparkles } from 'lucide-react';
+import { Search, Star, Globe, Clock, Play, Zap, Filter, Video, ChevronRight, Sparkles, GraduationCap, Rocket, Sun } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -30,17 +30,69 @@ interface TeacherProfile {
   hourly_rate_eur: number | null;
   timezone: string | null;
   is_available: boolean;
+  _hubs?: string[];
 }
 
 type HubFilter = 'all' | 'playground' | 'academy' | 'professional';
 
+// Hub-branded styling
+const HUB_CARD_STYLES: Record<string, {
+  border: string;
+  bg: string;
+  badgeBg: string;
+  badgeText: string;
+  badgeIcon: React.ReactNode;
+  badgeLabel: string;
+  ctaGradient: string;
+}> = {
+  Playground: {
+    border: 'border-orange-400/40 hover:border-orange-500',
+    bg: 'bg-gradient-to-br from-amber-50/80 to-orange-50/50',
+    badgeBg: 'bg-gradient-to-br from-orange-400 to-amber-500',
+    badgeText: 'text-white',
+    badgeIcon: <Sun className="h-3 w-3" />,
+    badgeLabel: 'Playground Specialist',
+    ctaGradient: 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600',
+  },
+  Academy: {
+    border: 'border-blue-400/40 hover:border-blue-500',
+    bg: 'bg-gradient-to-br from-blue-50/80 to-indigo-50/50',
+    badgeBg: 'bg-gradient-to-br from-blue-600 to-indigo-600',
+    badgeText: 'text-white',
+    badgeIcon: <GraduationCap className="h-3 w-3" />,
+    badgeLabel: 'Academy Mentor',
+    ctaGradient: 'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600',
+  },
+  Professional: {
+    border: 'border-emerald-400/40 hover:border-emerald-500',
+    bg: 'bg-gradient-to-br from-emerald-50/80 to-teal-50/50',
+    badgeBg: 'bg-gradient-to-br from-emerald-500 to-teal-600',
+    badgeText: 'text-white',
+    badgeIcon: <Rocket className="h-3 w-3" />,
+    badgeLabel: 'Success Coach',
+    ctaGradient: 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600',
+  },
+  General: {
+    border: 'border-border/40 hover:border-primary/30',
+    bg: 'bg-card/60',
+    badgeBg: 'bg-muted',
+    badgeText: 'text-muted-foreground',
+    badgeIcon: null,
+    badgeLabel: 'Teacher',
+    ctaGradient: 'bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90',
+  },
+};
+
 const FindTeacher: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [teachers, setTeachers] = useState<TeacherProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [hubFilter, setHubFilter] = useState<HubFilter>('all');
+  // Auto-set hub filter from URL param (e.g. /find-teacher?hub=playground)
+  const initialHub = (searchParams.get('hub') as HubFilter) || 'all';
+  const [hubFilter, setHubFilter] = useState<HubFilter>(initialHub);
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
 
@@ -53,7 +105,6 @@ const FindTeacher: React.FC = () => {
       const { data, error } = await supabase.rpc('get_approved_teachers');
       if (error) throw error;
 
-      // Enrich with hub_specialty from their availability slots
       const teacherList = (data as any[]) || [];
       if (teacherList.length > 0) {
         const teacherIds = teacherList.map(t => t.user_id);
@@ -84,6 +135,19 @@ const FindTeacher: React.FC = () => {
     }
   };
 
+  const getTeacherHub = (teacher: TeacherProfile): string => {
+    const hubs = (teacher as any)._hubs || [];
+    if (hubs.includes('Playground')) return 'Playground';
+    if (hubs.includes('Academy')) return 'Academy';
+    if (hubs.includes('Professional')) return 'Professional';
+    // Fallback: infer from specializations
+    const specs = teacher.specializations?.join(' ').toLowerCase() || '';
+    if (specs.includes('kid') || specs.includes('playground') || specs.includes('young')) return 'Playground';
+    if (specs.includes('teen') || specs.includes('academy')) return 'Academy';
+    if (specs.includes('adult') || specs.includes('professional') || specs.includes('business')) return 'Professional';
+    return 'General';
+  };
+
   const filteredTeachers = teachers.filter(t => {
     const matchesSearch = !searchTerm ||
       t.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -92,13 +156,13 @@ const FindTeacher: React.FC = () => {
 
     const hubFilterMap: Record<string, string> = {
       playground: 'Playground',
-      academy: 'Academy', 
+      academy: 'Academy',
       professional: 'Professional',
     };
 
     const matchesHub = hubFilter === 'all' ||
       ((t as any)._hubs || []).includes(hubFilterMap[hubFilter]) ||
-      t.specializations?.some(s => s.toLowerCase().includes(hubFilter));
+      getTeacherHub(t) === hubFilterMap[hubFilter];
 
     return matchesSearch && matchesHub;
   });
@@ -108,22 +172,10 @@ const FindTeacher: React.FC = () => {
     setShowBookingModal(true);
   };
 
-  const getHubBadge = (specializations: string[] | null) => {
-    if (!specializations) return null;
-    const joined = specializations.join(' ').toLowerCase();
-    if (joined.includes('kid') || joined.includes('playground') || joined.includes('young')) return 'Playground';
-    if (joined.includes('teen') || joined.includes('academy')) return 'Academy';
-    if (joined.includes('adult') || joined.includes('professional') || joined.includes('business')) return 'Professional';
-    return 'General';
-  };
-
-  const hubBadgeColor = (hub: string) => {
-    switch (hub) {
-      case 'Playground': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-      case 'Academy': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
-      case 'Professional': return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-      default: return 'bg-muted text-muted-foreground';
-    }
+  const getStudentLevel = (): 'playground' | 'academy' | 'professional' => {
+    if (hubFilter === 'playground') return 'playground';
+    if (hubFilter === 'professional') return 'professional';
+    return 'academy';
   };
 
   return (
@@ -164,9 +216,9 @@ const FindTeacher: React.FC = () => {
           <Tabs value={hubFilter} onValueChange={(v) => setHubFilter(v as HubFilter)}>
             <TabsList className="bg-card/50 border border-border/30">
               <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="playground">🎮 Kids</TabsTrigger>
-              <TabsTrigger value="academy">📚 Teens</TabsTrigger>
-              <TabsTrigger value="professional">💼 Adults</TabsTrigger>
+              <TabsTrigger value="playground">🎪 Playground</TabsTrigger>
+              <TabsTrigger value="academy">📘 Academy</TabsTrigger>
+              <TabsTrigger value="professional">🏆 Success</TabsTrigger>
             </TabsList>
           </Tabs>
         </motion.div>
@@ -188,7 +240,9 @@ const FindTeacher: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <AnimatePresence mode="popLayout">
               {filteredTeachers.map((teacher, i) => {
-                const hub = getHubBadge(teacher.specializations);
+                const hub = getTeacherHub(teacher);
+                const style = HUB_CARD_STYLES[hub] || HUB_CARD_STYLES.General;
+
                 return (
                   <motion.div
                     key={teacher.id}
@@ -198,12 +252,28 @@ const FindTeacher: React.FC = () => {
                     transition={{ delay: i * 0.05 }}
                     layout
                   >
-                    <Card className="group relative overflow-hidden border-border/40 bg-card/60 backdrop-blur-sm hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
+                    <Card className={cn(
+                      "group relative overflow-hidden border-2 backdrop-blur-sm hover:shadow-lg transition-all duration-300",
+                      style.border,
+                      style.bg
+                    )}>
+                      {/* Hub Badge — top right */}
+                      <div className="absolute top-3 right-3 z-10">
+                        <div className={cn(
+                          "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold shadow-md",
+                          style.badgeBg,
+                          style.badgeText
+                        )}>
+                          {style.badgeIcon}
+                          {style.badgeLabel}
+                        </div>
+                      </div>
+
                       {/* Teacher Header */}
                       <div className="p-6 pb-4">
                         <div className="flex items-start gap-4">
                           <div className="relative">
-                            <Avatar className="h-16 w-16 border-2 border-primary/20">
+                            <Avatar className={cn("h-16 w-16 border-2", style.border)}>
                               <AvatarImage src={teacher.profile_image_url || undefined} />
                               <AvatarFallback className="bg-primary/10 text-primary font-bold text-lg">
                                 {teacher.full_name?.charAt(0) || 'T'}
@@ -213,7 +283,7 @@ const FindTeacher: React.FC = () => {
                               <span className="absolute -bottom-0.5 -right-0.5 h-4 w-4 bg-emerald-500 rounded-full border-2 border-card animate-pulse" />
                             )}
                           </div>
-                          <div className="flex-1 min-w-0">
+                          <div className="flex-1 min-w-0 pr-20">
                             <h3 className="font-bold text-lg text-foreground truncate">{teacher.full_name}</h3>
                             <div className="flex items-center gap-2 mt-1">
                               {teacher.rating && (
@@ -224,11 +294,6 @@ const FindTeacher: React.FC = () => {
                                 </div>
                               )}
                             </div>
-                            {hub && (
-                              <Badge variant="outline" className={cn("mt-2 text-xs", hubBadgeColor(hub))}>
-                                {hub} Expert
-                              </Badge>
-                            )}
                           </div>
                         </div>
                       </div>
@@ -286,7 +351,7 @@ const FindTeacher: React.FC = () => {
                         <Button
                           onClick={() => handleBookTeacher(teacher.user_id)}
                           size="sm"
-                          className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground shadow-md shadow-primary/20 gap-1.5"
+                          className={cn("text-white shadow-md gap-1.5", style.ctaGradient)}
                         >
                           Book Session <ChevronRight className="h-3.5 w-3.5" />
                         </Button>
@@ -294,9 +359,9 @@ const FindTeacher: React.FC = () => {
 
                       {/* Live indicator */}
                       {teacher.is_available && (
-                        <div className="absolute top-4 right-4">
+                        <div className="absolute top-12 right-3">
                           <Badge className="bg-emerald-500/90 text-white border-0 gap-1 text-xs animate-pulse">
-                            <Zap className="h-3 w-3" /> Live Now
+                            <Zap className="h-3 w-3" /> Live
                           </Badge>
                         </div>
                       )}
@@ -316,6 +381,7 @@ const FindTeacher: React.FC = () => {
           setShowBookingModal(false);
           setSelectedTeacherId(null);
         }}
+        studentLevel={getStudentLevel()}
       />
     </div>
   );
