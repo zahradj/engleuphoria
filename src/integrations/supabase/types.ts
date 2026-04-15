@@ -8153,6 +8153,7 @@ export type Database = {
           equipment_test_passed: boolean | null
           esl_certification: string | null
           first_name: string
+          hub_preference: string | null
           id: string
           interview_feedback: string | null
           interview_passed: boolean | null
@@ -8201,6 +8202,7 @@ export type Database = {
           equipment_test_passed?: boolean | null
           esl_certification?: string | null
           first_name: string
+          hub_preference?: string | null
           id?: string
           interview_feedback?: string | null
           interview_passed?: boolean | null
@@ -8249,6 +8251,7 @@ export type Database = {
           equipment_test_passed?: boolean | null
           esl_certification?: string | null
           first_name?: string
+          hub_preference?: string | null
           id?: string
           interview_feedback?: string | null
           interview_passed?: boolean | null
