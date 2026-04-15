@@ -32,12 +32,14 @@ export function ClassroomQuickJoin({ upcomingLessons }: ClassroomQuickJoinProps)
 
       const now = new Date();
       
-      // Find lesson starting within the next 15 minutes
-      const soonLesson = upcomingLessons.find(lesson => {
-        const lessonTime = new Date(lesson.scheduled_at);
-        const minutesDiff = (lessonTime.getTime() - now.getTime()) / 60000;
-        return minutesDiff <= 15 && minutesDiff >= -5; // Up to 5 min after start
-      });
+      // Show the next upcoming lesson (no time restriction)
+      const soonLesson = upcomingLessons
+        .filter(lesson => {
+          const lessonTime = new Date(lesson.scheduled_at);
+          const minutesDiff = (lessonTime.getTime() - now.getTime()) / 60000;
+          return minutesDiff >= -60; // Hide only if lesson ended over an hour ago
+        })
+        .sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime())[0] || null;
 
       if (soonLesson) {
         const lessonTime = new Date(soonLesson.scheduled_at);
