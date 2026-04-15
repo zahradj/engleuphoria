@@ -11,7 +11,7 @@ const HUB_ACCENT: Record<string, string> = {
 
 export function CertificatesTab() {
   const { studentLevel } = useStudentLevel();
-  const hubId = studentLevel?.system_id === 'kids' ? 'playground' : studentLevel?.system_id === 'teens' ? 'academy' : 'professional';
+  const hubId = studentLevel || 'playground';
   const accent = HUB_ACCENT[hubId] || HUB_ACCENT.playground;
 
   return (

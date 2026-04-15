@@ -42,7 +42,7 @@ const HUB_COLOR_MAP: Record<string, {
 export const TeachersTab = () => {
   const navigate = useNavigate();
   const { studentLevel } = useStudentLevel();
-  const hubId = (studentLevel?.system_id === 'kids' ? 'playground' : studentLevel?.system_id === 'teens' ? 'academy' : 'professional') as string;
+  const hubId = studentLevel || 'playground';
   const colors = HUB_COLOR_MAP[hubId] || HUB_COLOR_MAP.playground;
 
   const featuredTeachers: any[] = [];
