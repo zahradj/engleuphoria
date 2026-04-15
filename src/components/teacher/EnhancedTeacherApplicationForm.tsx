@@ -56,6 +56,7 @@ interface FormData {
   videoDescription: string;
   
   // Step 5: Preferences
+  hubPreference: string;
   preferredAgeGroup: string;
   availability: string;
   timeZone: string;
@@ -69,11 +70,11 @@ const steps = [
   { id: 5, title: 'Preferences', icon: Users },
 ];
 
-const ageGroupOptions = [
-  { value: 'kids', label: 'Kids (4-11)', description: 'Young learners who need playful, interactive lessons' },
-  { value: 'teens', label: 'Teens (12-17)', description: 'Teenagers who benefit from engaging, relevant content' },
-  { value: 'adults', label: 'Adults (18+)', description: 'Adult learners focused on professional development' },
-  { value: 'all', label: 'All Ages', description: 'Comfortable teaching any age group' },
+const hubPreferenceOptions = [
+  { value: 'playground_specialist', label: '🌈 Playground Specialist', description: 'Kids 4-11 • 30-minute fun sessions' },
+  { value: 'academy_mentor', label: '📘 Academy Mentor', description: 'Teens 12-17 • 60-minute deep learning' },
+  { value: 'success_mentor', label: '🎯 Success Coach', description: 'Adults 18+ • 60-minute professional coaching' },
+  { value: 'academy_success_mentor', label: '📘🎯 Academy + Success Mentor', description: 'Teens & Adults • 60-minute sessions in both hubs' },
 ];
 
 export const EnhancedTeacherApplicationForm: React.FC<EnhancedTeacherApplicationFormProps> = ({ 
@@ -101,6 +102,7 @@ export const EnhancedTeacherApplicationForm: React.FC<EnhancedTeacherApplication
     classroomManagement: '',
     videoUrl: '',
     videoDescription: '',
+    hubPreference: '',
     preferredAgeGroup: '',
     availability: '',
     timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -132,7 +134,7 @@ export const EnhancedTeacherApplicationForm: React.FC<EnhancedTeacherApplication
         }
         return true;
       case 5:
-        return !!(formData.preferredAgeGroup);
+        return !!(formData.hubPreference);
       default:
         return true;
     }
@@ -187,6 +189,7 @@ export const EnhancedTeacherApplicationForm: React.FC<EnhancedTeacherApplication
         video_description: formData.videoUrl
           ? `Video: ${formData.videoUrl}${formData.videoDescription ? ` — ${formData.videoDescription}` : ''}`
           : formData.videoDescription || null,
+        hub_preference: formData.hubPreference || null,
         preferred_age_groups: formData.preferredAgeGroup ? [formData.preferredAgeGroup] : null,
         availability: formData.availability
           ? `${formData.availability} (${formData.timeZone})`
@@ -512,27 +515,27 @@ export const EnhancedTeacherApplicationForm: React.FC<EnhancedTeacherApplication
         return (
           <div className="space-y-6">
             <div>
-              <Label className="text-base font-semibold">Preferred Age Group *</Label>
+              <Label className="text-base font-semibold">Hub Teaching Preference *</Label>
               <p className="text-sm text-muted-foreground mb-4">
-                Select the age group you prefer to teach
+                Choose which hub(s) you want to teach in. This determines your session duration and student audience.
               </p>
               <RadioGroup
-                value={formData.preferredAgeGroup}
-                onValueChange={(value) => handleInputChange('preferredAgeGroup', value)}
+                value={formData.hubPreference}
+                onValueChange={(value) => handleInputChange('hubPreference', value)}
                 className="grid gap-3"
               >
-                {ageGroupOptions.map((option) => (
+                {hubPreferenceOptions.map((option) => (
                   <Label
                     key={option.value}
-                    htmlFor={option.value}
+                    htmlFor={`hub-${option.value}`}
                     className={cn(
                       "flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all",
-                      formData.preferredAgeGroup === option.value
+                      formData.hubPreference === option.value
                         ? "border-primary bg-primary/5"
                         : "border-border hover:border-primary/50"
                     )}
                   >
-                    <RadioGroupItem value={option.value} id={option.value} className="mt-1" />
+                    <RadioGroupItem value={option.value} id={`hub-${option.value}`} className="mt-1" />
                     <div>
                       <span className="font-medium">{option.label}</span>
                       <p className="text-sm text-muted-foreground">{option.description}</p>

@@ -122,11 +122,21 @@ const FindTeacher: React.FC = () => {
           });
           teacherList.forEach(t => {
             const role = hubRoleMap[t.user_id] || 'academy_success_mentor';
-            if (role === 'playground_specialist') {
-              (t as any)._hubs = ['Playground'];
-            } else {
-              // Academy/Success mentors appear in both Academy and Professional
-              (t as any)._hubs = ['Academy', 'Professional'];
+            switch (role) {
+              case 'playground_specialist':
+                (t as any)._hubs = ['Playground'];
+                break;
+              case 'academy_mentor':
+                (t as any)._hubs = ['Academy'];
+                break;
+              case 'success_mentor':
+                (t as any)._hubs = ['Professional'];
+                break;
+              case 'academy_success_mentor':
+                (t as any)._hubs = ['Academy', 'Professional'];
+                break;
+              default:
+                (t as any)._hubs = ['Academy', 'Professional'];
             }
           });
         }
