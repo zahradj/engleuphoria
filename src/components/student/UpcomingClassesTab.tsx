@@ -72,7 +72,7 @@ export const UpcomingClassesTab = () => {
 
       const now = new Date();
       setUpcomingLessons(formattedLessons.filter(l =>
-        ['scheduled', 'confirmed'].includes(l.status) && new Date(l.scheduled_at) > now
+        ['scheduled', 'confirmed', 'pending'].includes(l.status) && new Date(l.scheduled_at) > now
       ));
       setCompletedLessons(formattedLessons.filter(l => l.status === 'completed'));
     } catch (error) {
@@ -106,10 +106,15 @@ export const UpcomingClassesTab = () => {
   };
 
   const getHubBadgeColor = (hubType?: string) => {
-    switch (hubType) {
-      case 'playground': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'academy': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'success': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+    const h = hubType?.toLowerCase();
+    switch (h) {
+      case 'playground':
+      case 'playground hub': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'academy':
+      case 'academy hub': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'success':
+      case 'success hub':
+      case 'professional': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
       default: return 'bg-blue-100 text-blue-800 border-blue-200';
     }
   };
