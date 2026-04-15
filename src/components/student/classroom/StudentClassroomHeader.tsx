@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import englePhoriaLogo from '@/assets/englephoria-logo.png';
 import { Badge } from '@/components/ui/badge';
-import { Mic, MicOff, Video, VideoOff, LogOut, Signal, SignalMedium, SignalLow, WifiOff, Maximize2, Minimize2 } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, LogOut, Signal, SignalMedium, SignalLow, WifiOff, Maximize2, Minimize2, RefreshCw } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useConnectionHealth } from '@/hooks/useConnectionHealth';
 
@@ -19,6 +19,8 @@ interface StudentClassroomHeaderProps {
   isZenMode?: boolean;
   onToggleZenMode?: () => void;
   hubType?: HubType;
+  rtcConnected?: boolean;
+  onReconnect?: () => void;
 }
 
 export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
@@ -31,7 +33,9 @@ export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
   onLeaveClass,
   isZenMode = false,
   onToggleZenMode,
-  hubType = 'academy'
+  hubType = 'academy',
+  rtcConnected = false,
+  onReconnect
 }) => {
   const { quality, latencyMs, suggestion } = useConnectionHealth();
 
@@ -122,6 +126,18 @@ export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
             title="Zen Mode (F11)"
           >
             {isZenMode ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          </Button>
+        )}
+        {/* Reconnect button - shown when RTC is disconnected */}
+        {onReconnect && !rtcConnected && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onReconnect}
+            className="h-9 rounded-full bg-amber-100 text-amber-700 hover:bg-amber-200 flex items-center gap-1"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Reconnect
           </Button>
         )}
         <div className="h-6 w-px bg-gray-200 mx-2" />
