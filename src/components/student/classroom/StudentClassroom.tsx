@@ -76,6 +76,8 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     role: 'student'
   });
 
+  const webrtcRoom = `engleuphoria-${roomId}`;
+
   // Auto-join local media after mount (post-PreFlightCheck)
   useEffect(() => { media.join(); return () => { media.leave(); }; }, []);
 
