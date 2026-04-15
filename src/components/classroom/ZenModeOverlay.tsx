@@ -48,22 +48,22 @@ export const ZenModeOverlay: React.FC<ZenModeOverlayProps> = ({
         {/* LIVE dot */}
         <div className="flex items-center gap-1.5">
           <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-          <span className="text-[10px] font-bold text-red-400">LIVE</span>
+          <span className="text-[10px] font-bold text-red-500">LIVE</span>
         </div>
 
-        <div className="h-4 w-px bg-gray-700" />
+        <div className="h-4 w-px bg-gray-300" />
 
         {/* Timer */}
-        <span className="text-xs font-mono text-gray-300">{formatTime(elapsed)}</span>
+        <span className="text-xs font-mono text-gray-600">{formatTime(elapsed)}</span>
 
-        <div className="h-4 w-px bg-gray-700" />
+        <div className="h-4 w-px bg-gray-300" />
 
         {/* Controls */}
         <Button
           variant="ghost"
           size="icon"
           onClick={onToggleMute}
-          className={`h-7 w-7 rounded-full ${isMuted ? 'bg-red-500/20 text-red-400' : 'text-gray-400 hover:text-white'}`}
+          className={`h-7 w-7 rounded-full ${isMuted ? 'bg-red-500/20 text-red-500' : 'text-gray-500 hover:text-gray-900'}`}
         >
           {isMuted ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
         </Button>
@@ -71,18 +71,18 @@ export const ZenModeOverlay: React.FC<ZenModeOverlayProps> = ({
           variant="ghost"
           size="icon"
           onClick={onToggleCamera}
-          className={`h-7 w-7 rounded-full ${isCameraOff ? 'bg-red-500/20 text-red-400' : 'text-gray-400 hover:text-white'}`}
+          className={`h-7 w-7 rounded-full ${isCameraOff ? 'bg-red-500/20 text-red-500' : 'text-gray-500 hover:text-gray-900'}`}
         >
           {isCameraOff ? <CameraOff className="h-3.5 w-3.5" /> : <Camera className="h-3.5 w-3.5" />}
         </Button>
 
-        <div className="h-4 w-px bg-gray-700" />
+        <div className="h-4 w-px bg-gray-300" />
 
         <Button
           variant="ghost"
           size="sm"
           onClick={onExitZen}
-          className="h-7 text-xs text-gray-400 hover:text-white px-2"
+          className="h-7 text-xs text-gray-500 hover:text-gray-900 px-2"
         >
           <Minimize2 className="h-3 w-3 mr-1" />
           Exit Zen

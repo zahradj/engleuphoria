@@ -137,10 +137,10 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
             exit={{ opacity: 0, scale: 0.9, y: -20 }}
             className="fixed top-20 left-1/2 -translate-x-1/2 z-50"
           >
-            <div className="bg-gray-900/95 backdrop-blur-sm rounded-2xl px-8 py-4 border border-blue-500/50 shadow-[0_0_30px_rgba(59,130,246,0.3)]">
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl px-8 py-4 border border-blue-300 shadow-lg">
               <div className="flex items-center gap-4">
-                <Timer className="w-8 h-8 text-blue-400" />
-                <div className="text-5xl font-mono font-bold text-blue-400">
+                <Timer className="w-8 h-8 text-blue-600" />
+                <div className="text-5xl font-mono font-bold text-blue-600">
                   {Math.floor(timerValue / 60).toString().padStart(2, '0')}:
                   {(timerValue % 60).toString().padStart(2, '0')}
                 </div>

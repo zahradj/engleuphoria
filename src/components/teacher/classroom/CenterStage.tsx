@@ -33,8 +33,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-
-
 interface QuizOption { id: string; text: string; isCorrect: boolean; }
 interface PollOption { id: string; text: string; }
 
@@ -66,7 +64,6 @@ interface CenterStageProps {
   sessionId?: string;
   onAddStroke: (stroke: Omit<WhiteboardStroke, 'id' | 'roomId' | 'timestamp'>) => void;
   onClearCanvas: () => void;
-  // Phase 8: Tabbed canvas
   activeCanvasTab?: string;
   onCanvasTabChange?: (tab: string) => void;
   embeddedUrl?: string | null;
@@ -189,7 +186,7 @@ export const CenterStage: React.FC<CenterStageProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-gray-950 relative overflow-hidden">
+    <div className="flex-1 flex flex-col bg-white/40 relative overflow-hidden">
       {/* Tabs */}
       <div className="flex items-center gap-1 px-4 pt-2 shrink-0">
         {CANVAS_TABS.map(tab => (
@@ -198,8 +195,8 @@ export const CenterStage: React.FC<CenterStageProps> = ({
             onClick={() => onCanvasTabChange?.(tab.id)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-t-lg text-xs font-medium transition-colors ${
               activeCanvasTab === tab.id
-                ? 'bg-gray-800 text-white border-b-2 border-purple-500'
-                : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50'
+                ? 'bg-white text-gray-900 border-b-2 border-purple-500 shadow-sm'
+                : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'
             }`}
           >
             <tab.icon className="h-3.5 w-3.5" />
@@ -305,10 +302,10 @@ export const CenterStage: React.FC<CenterStageProps> = ({
       {/* Navigation Arrows (slides tab only) */}
       {activeCanvasTab === 'slides' && (
         <>
-          <Button variant="ghost" size="icon" onClick={onPrevSlide} disabled={currentSlideIndex === 0} className="absolute left-4 top-1/2 -translate-y-1/2 h-14 w-14 rounded-full bg-gray-800/80 hover:bg-gray-700 text-white disabled:opacity-30">
+          <Button variant="ghost" size="icon" onClick={onPrevSlide} disabled={currentSlideIndex === 0} className="absolute left-4 top-1/2 -translate-y-1/2 h-14 w-14 rounded-full bg-white/80 hover:bg-gray-100 text-gray-700 shadow-md disabled:opacity-30">
             <ChevronLeft className="h-8 w-8" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={onNextSlide} disabled={currentSlideIndex === slides.length - 1} className="absolute right-4 top-1/2 -translate-y-1/2 h-14 w-14 rounded-full bg-gray-800/80 hover:bg-gray-700 text-white disabled:opacity-30">
+          <Button variant="ghost" size="icon" onClick={onNextSlide} disabled={currentSlideIndex === slides.length - 1} className="absolute right-4 top-1/2 -translate-y-1/2 h-14 w-14 rounded-full bg-white/80 hover:bg-gray-100 text-gray-700 shadow-md disabled:opacity-30">
             <ChevronRight className="h-8 w-8" />
           </Button>
         </>
@@ -327,7 +324,7 @@ export const CenterStage: React.FC<CenterStageProps> = ({
               key={tool.id}
               variant="ghost"
               size="icon"
-              className={`h-10 w-10 rounded-full ${activeTool === tool.id ? 'bg-primary text-primary-foreground' : 'text-gray-400 hover:text-white hover:bg-gray-700'}`}
+              className={`h-10 w-10 rounded-full ${activeTool === tool.id ? 'bg-primary text-primary-foreground' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}
               onClick={() => onToolChange(tool.id)}
               title={tool.label}
             >
@@ -336,28 +333,28 @@ export const CenterStage: React.FC<CenterStageProps> = ({
           ))}
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-gray-400 hover:text-white hover:bg-gray-700" title="Color">
+              <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-gray-500 hover:text-gray-900 hover:bg-gray-100" title="Color">
                 <div className="h-5 w-5 rounded-full border-2 border-gray-400" style={{ backgroundColor: activeColor }} />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-2 bg-gray-800 border-gray-700">
+            <PopoverContent className="w-auto p-2 bg-white border-gray-200">
               <div className="grid grid-cols-5 gap-1">
                 {COLORS.map(color => (
-                  <button key={color} onClick={() => onColorChange(color)} className={`w-6 h-6 rounded-full transition-transform ${activeColor === color ? 'ring-2 ring-white scale-110' : 'hover:scale-105'}`} style={{ backgroundColor: color }} />
+                  <button key={color} onClick={() => onColorChange(color)} className={`w-6 h-6 rounded-full transition-transform ${activeColor === color ? 'ring-2 ring-gray-800 scale-110' : 'hover:scale-105'}`} style={{ backgroundColor: color }} />
                 ))}
               </div>
             </PopoverContent>
           </Popover>
-          <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-gray-400 hover:text-red-400 hover:bg-gray-700" onClick={onClearCanvas} title="Clear Canvas">
+          <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-gray-500 hover:text-red-500 hover:bg-gray-100" onClick={onClearCanvas} title="Clear Canvas">
             <Trash2 className="h-5 w-5" />
           </Button>
           {activeCanvasTab === 'slides' && (
             <>
-              <div className="h-6 w-px bg-gray-600 mx-2" />
-              <Button variant="ghost" size="sm" onClick={onPrevSlide} disabled={currentSlideIndex === 0} className="text-gray-400 hover:text-white disabled:opacity-30">
+              <div className="h-6 w-px bg-gray-300 mx-2" />
+              <Button variant="ghost" size="sm" onClick={onPrevSlide} disabled={currentSlideIndex === 0} className="text-gray-500 hover:text-gray-900 disabled:opacity-30">
                 <ChevronLeft className="h-4 w-4 mr-1" /> Prev
               </Button>
-              <Button variant="ghost" size="sm" onClick={onNextSlide} disabled={currentSlideIndex === slides.length - 1} className="text-gray-400 hover:text-white disabled:opacity-30">
+              <Button variant="ghost" size="sm" onClick={onNextSlide} disabled={currentSlideIndex === slides.length - 1} className="text-gray-500 hover:text-gray-900 disabled:opacity-30">
                 Next <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             </>
