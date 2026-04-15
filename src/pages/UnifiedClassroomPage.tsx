@@ -143,12 +143,13 @@ const UnifiedClassroomPage: React.FC = () => {
 
   // Admin "God Mode" — admin enters as teacher view by default
   const classroomRole: 'teacher' | 'student' = isTeacher || (isAdmin && !isStudent) ? 'teacher' : 'student';
+  const hubType = (booking as any)?.hub_type || 'academy';
 
   if (!preFlightPassed) {
     return (
       <PreFlightCheck
         onComplete={() => setPreFlightPassed(true)}
-        hubType="academy"
+        hubType={hubType}
         role={classroomRole}
       />
     );
