@@ -63,6 +63,7 @@ interface TeacherApplication {
   certifications: string[] | null;
   languages_spoken: string[] | null;
   video_url?: string;
+  hub_preference?: string | null;
 }
 
 interface InterviewEmailTemplate {
@@ -89,6 +90,13 @@ const ageGroupLabels: Record<string, string> = {
   'teens': '🎓 Teens (12-17)',
   'adults': '💼 Adults (18+)',
   'all': '🌟 All Ages',
+};
+
+const hubPreferenceLabels: Record<string, { label: string; color: string }> = {
+  'playground_specialist': { label: '🎮 Playground Specialist', color: 'bg-orange-100 text-orange-800 border-orange-200' },
+  'academy_mentor': { label: '🎓 Academy Mentor', color: 'bg-blue-100 text-blue-800 border-blue-200' },
+  'success_mentor': { label: '💼 Success Coach', color: 'bg-green-100 text-green-800 border-green-200' },
+  'academy_success_mentor': { label: '🎓💼 Academy + Success', color: 'bg-purple-100 text-purple-800 border-purple-200' },
 };
 
 const getDisplayName = (app: TeacherApplication | null) => {
@@ -607,7 +615,7 @@ The EnglEuphoria Hiring Team`,
 
               <div className="space-y-6 mt-4">
                 {/* Quick Info */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   <div className="bg-muted/50 rounded-lg p-3">
                     <p className="text-xs text-muted-foreground">Nationality</p>
                     <p className="font-medium">{selectedApplication.nationality || 'Not specified'}</p>
@@ -619,6 +627,14 @@ The EnglEuphoria Hiring Team`,
                   <div className="bg-muted/50 rounded-lg p-3">
                     <p className="text-xs text-muted-foreground">Age Group</p>
                     <p className="font-medium">{selectedApplication.preferred_age_groups?.map(g => ageGroupLabels[g] || g).join(', ') || 'Not specified'}</p>
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-3">
+                    <p className="text-xs text-muted-foreground">Hub Preference</p>
+                    <p className="font-medium">
+                      {selectedApplication.hub_preference && hubPreferenceLabels[selectedApplication.hub_preference]
+                        ? hubPreferenceLabels[selectedApplication.hub_preference].label
+                        : 'Not specified'}
+                    </p>
                   </div>
                   <div className="bg-muted/50 rounded-lg p-3">
                     <p className="text-xs text-muted-foreground">Applied</p>
@@ -960,6 +976,13 @@ const ApplicationGrid: React.FC<ApplicationGridProps> = ({
                 <User className="h-4 w-4 text-muted-foreground" />
                 <span>{application.preferred_age_groups?.length ? application.preferred_age_groups.map(g => ageGroupLabels[g] || g).join(', ') : 'Not specified'}</span>
               </div>
+              {application.hub_preference && hubPreferenceLabels[application.hub_preference] && (
+                <div className="mt-1">
+                  <Badge variant="outline" className={hubPreferenceLabels[application.hub_preference].color}>
+                    {hubPreferenceLabels[application.hub_preference].label}
+                  </Badge>
+                </div>
+              )}
               {application.video_url && (
                 <div className="flex items-center gap-2 text-primary">
                   <Video className="h-4 w-4" />
