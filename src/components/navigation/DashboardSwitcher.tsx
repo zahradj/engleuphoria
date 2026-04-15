@@ -36,7 +36,7 @@ export const DashboardSwitcher = () => {
     {
       role: 'admin',
       label: 'Admin Dashboard',
-      path: '/admin',
+      path: '/super-admin',
       icon: Shield,
       available: user.role === 'admin'
     }

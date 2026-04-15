@@ -32,7 +32,7 @@ export function ClassroomControls({
   const { user } = useAuth();
   
   // SECURITY: Use server-validated role from database
-  const dashboardPath = user?.role === 'teacher' ? '/teacher' : user?.role === 'admin' ? '/admin' : '/student';
+  const dashboardPath = user?.role === 'teacher' ? '/teacher' : user?.role === 'admin' ? '/super-admin' : '/student';
   
   return (
     <div className="bg-white rounded-lg p-3 flex flex-wrap justify-center gap-2 shadow-sm">

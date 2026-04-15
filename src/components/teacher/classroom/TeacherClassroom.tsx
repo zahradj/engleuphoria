@@ -186,7 +186,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   const handleEndClass = useCallback(async () => {
     await endSession();
     toast({ title: "Class Ended", description: "The class session has been ended." });
-    navigate('/admin');
+    navigate('/teacher');
   }, [navigate, toast, endSession]);
 
   useEffect(() => { media.join(); return () => { media.leave(); }; }, []);

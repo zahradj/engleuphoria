@@ -68,13 +68,13 @@ export const QuickActions: React.FC = memo(() => {
           {
             icon: Plus,
             label: 'Add User',
-            action: () => navigate('/admin'),
+            action: () => navigate('/super-admin'),
             variant: 'default'
           },
           {
             icon: Calendar,
             label: 'All Schedules',
-            action: () => navigate('/admin'),
+            action: () => navigate('/super-admin'),
             variant: 'outline'
           },
           ...baseActions

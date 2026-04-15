@@ -56,7 +56,7 @@ const ErrorFallback = ({ onReset }: ErrorFallbackProps) => {
     } else if (user?.role === 'teacher') {
       navigate('/teacher');
     } else if (user?.role === 'admin') {
-      navigate('/admin');
+      navigate('/super-admin');
     } else {
       navigate('/');
     }
