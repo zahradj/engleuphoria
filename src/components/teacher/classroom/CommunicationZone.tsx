@@ -2,9 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send } from 'lucide-react';
+import { User, Send } from 'lucide-react';
 import { InteractionToolsGrid } from './InteractionToolsGrid';
-import { JitsiMeeting } from '@/components/video';
 
 interface CommunicationZoneProps {
   studentName: string;
@@ -23,7 +22,6 @@ interface CommunicationZoneProps {
   localStream?: MediaStream | null;
   isVideoConnected?: boolean;
   isLocalCameraOff?: boolean;
-  roomId: string;
 }
 
 export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
@@ -42,20 +40,26 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
   screenShareStream,
   localStream,
   isVideoConnected = false,
-  isLocalCameraOff = false,
-  roomId
+  isLocalCameraOff = false
 }) => {
   const [chatMessages, setChatMessages] = useState<Array<{ sender: string; text: string }>>([
     { sender: 'system', text: 'Class session started' }
   ]);
   const [newMessage, setNewMessage] = useState('');
   const screenShareVideoRef = useRef<HTMLVideoElement>(null);
+  const teacherVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (screenShareVideoRef.current && screenShareStream) {
       screenShareVideoRef.current.srcObject = screenShareStream;
     }
   }, [screenShareStream]);
+
+  useEffect(() => {
+    if (teacherVideoRef.current && localStream) {
+      teacherVideoRef.current.srcObject = localStream;
+    }
+  }, [localStream]);
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
@@ -64,12 +68,9 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
     }
   };
 
-  // Use same room name format as student so both connect to the same Jitsi room
-  const jitsiRoomName = `engleuphoria_class_${roomId}`;
-
   return (
     <div className="w-80 glass-panel border-r border-gray-200/50 flex flex-col shrink-0">
-      {/* Video Call */}
+      {/* Video Containers */}
       <div className="p-3 space-y-3">
         {/* Screen Share Preview (if active) */}
         {isScreenSharing && screenShareStream && (
@@ -87,13 +88,41 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
           </div>
         )}
 
-        {/* Jitsi Video Call - shared room with student */}
-        <JitsiMeeting
-          roomName={jitsiRoomName}
-          displayName={teacherName}
-          userRole="teacher"
-          className="rounded-lg aspect-[4/3]"
-        />
+        {/* Student Video Container */}
+        <div className="relative aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden border-2 border-primary/30">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center">
+              <User className="w-10 h-10 text-gray-400" />
+            </div>
+          </div>
+          <div className="absolute bottom-2 left-2 bg-white/80 px-2 py-1 rounded text-xs text-gray-700 shadow-sm">
+            {studentName}
+          </div>
+          <div className="absolute top-2 right-2 h-2 w-2 rounded-full bg-emerald-500" />
+        </div>
+
+        {/* Teacher Video Container (smaller) */}
+        <div className="relative aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden border border-gray-200 w-2/3">
+          {isVideoConnected && localStream && !isLocalCameraOff ? (
+            <video
+              ref={teacherVideoRef}
+              autoPlay
+              muted
+              playsInline
+              className="w-full h-full object-cover mirror"
+              style={{ transform: 'scaleX(-1)' }}
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                <User className="w-6 h-6 text-gray-400" />
+              </div>
+            </div>
+          )}
+          <div className="absolute bottom-1 left-1 bg-white/80 px-1.5 py-0.5 rounded text-[10px] text-gray-700 shadow-sm">
+            You
+          </div>
+        </div>
       </div>
 
       {/* Interaction Tools Grid */}

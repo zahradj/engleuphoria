@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send } from 'lucide-react';
-import { JitsiMeeting } from '@/components/video';
+import { Card, CardContent } from '@/components/ui/card';
+import { User, Send, Video, Mic, MicOff, VideoOff } from 'lucide-react';
 
 interface StudentCommunicationSidebarProps {
   studentName: string;
@@ -12,7 +12,6 @@ interface StudentCommunicationSidebarProps {
   isCameraOff: boolean;
   onToggleMute: () => void;
   onToggleCamera: () => void;
-  roomId: string;
 }
 
 export const StudentCommunicationSidebar: React.FC<StudentCommunicationSidebarProps> = ({
@@ -21,8 +20,7 @@ export const StudentCommunicationSidebar: React.FC<StudentCommunicationSidebarPr
   isMuted,
   isCameraOff,
   onToggleMute,
-  onToggleCamera,
-  roomId
+  onToggleCamera
 }) => {
   const [chatMessages, setChatMessages] = useState<Array<{ sender: string; text: string }>>([
     { sender: 'system', text: 'Class session started' }
@@ -36,19 +34,57 @@ export const StudentCommunicationSidebar: React.FC<StudentCommunicationSidebarPr
     }
   };
 
-  // Use same room name format as teacher so both connect to the same Jitsi room
-  const jitsiRoomName = `engleuphoria_class_${roomId}`;
-
   return (
     <div className="w-72 glass-panel border-r border-gray-200/50 flex flex-col shrink-0">
-      {/* Jitsi Video Call */}
-      <div className="p-3">
-        <JitsiMeeting
-          roomName={jitsiRoomName}
-          displayName={studentName}
-          userRole="student"
-          className="rounded-lg aspect-[4/3]"
-        />
+      {/* Video Containers */}
+      <div className="p-3 space-y-3">
+        {/* Teacher Video Container */}
+        <Card className="bg-gray-100 border-primary/30 overflow-hidden">
+          <CardContent className="p-0">
+            <div className="relative aspect-[4/3] bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
+                <span className="text-2xl">👩‍🏫</span>
+              </div>
+              <div className="absolute bottom-2 left-2 bg-white/80 px-2 py-1 rounded text-xs text-gray-700 shadow-sm">
+                {teacherName}
+              </div>
+              <div className="absolute top-2 right-2 h-2 w-2 rounded-full bg-emerald-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Student Video Container (self) */}
+        <Card className="bg-gray-100 border-gray-200 overflow-hidden">
+          <CardContent className="p-0">
+            <div className="relative aspect-[4/3] bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                <User className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="absolute bottom-2 left-2 bg-white/80 px-2 py-1 rounded text-xs text-gray-700 shadow-sm">
+                {studentName} (You)
+              </div>
+              {/* Camera/Mic Controls */}
+              <div className="absolute bottom-2 right-2 flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onToggleMute}
+                  className={`h-6 w-6 rounded-full ${isMuted ? 'bg-red-100 text-red-600' : 'bg-white/80 text-gray-600'}`}
+                >
+                  {isMuted ? <MicOff className="h-3 w-3" /> : <Mic className="h-3 w-3" />}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onToggleCamera}
+                  className={`h-6 w-6 rounded-full ${isCameraOff ? 'bg-red-100 text-red-600' : 'bg-white/80 text-gray-600'}`}
+                >
+                  {isCameraOff ? <VideoOff className="h-3 w-3" /> : <Video className="h-3 w-3" />}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Chat Box */}
