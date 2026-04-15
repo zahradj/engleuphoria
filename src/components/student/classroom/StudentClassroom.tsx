@@ -69,8 +69,6 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     sessionContext,
     activeCanvasTab,
     updateSharedNotes
-  const webrtcRoom = `engleuphoria-${roomId}`;
-
   } = useClassroomSync({
     roomId,
     userId: studentId,
