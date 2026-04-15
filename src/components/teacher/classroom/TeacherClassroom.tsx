@@ -269,7 +269,6 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   const startTimer = () => { setTimerValue(timerSeconds); setTimerRunning(true); };
   const resetTimer = () => { setTimerRunning(false); setTimerValue(timerSeconds); };
 
-  return (
   const hubBg = hubType === 'playground'
     ? 'bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50'
     : hubType === 'professional'
