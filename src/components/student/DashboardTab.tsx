@@ -54,19 +54,32 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
 
   const handleJoinClassroom = async () => {
     try {
-      const now = new Date().toISOString();
+      const fiveMinAgo = new Date(Date.now() - 5 * 60000).toISOString();
       const { data: nextBooking } = await supabase
         .from('class_bookings')
         .select('session_id, meeting_link')
         .eq('student_id', studentId)
         .in('status', ['scheduled', 'confirmed'])
-        .gte('scheduled_at', now)
+        .gte('scheduled_at', fiveMinAgo)
         .order('scheduled_at', { ascending: true })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (nextBooking?.meeting_link) {
-        navigate(nextBooking.meeting_link);
+      if (nextBooking?.session_id) {
+        navigate(`/student-classroom/${nextBooking.session_id}`);
+      } else if (nextBooking?.meeting_link) {
+        // Handle absolute URLs gracefully
+        const link = nextBooking.meeting_link;
+        if (link.startsWith('/')) {
+          navigate(link);
+        } else {
+          try {
+            const url = new URL(link);
+            navigate(url.pathname + url.search);
+          } catch {
+            navigate(link);
+          }
+        }
       } else {
         navigate('/discover-teachers');
       }
