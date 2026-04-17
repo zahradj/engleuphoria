@@ -89,17 +89,17 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
+    { id: 'classes', label: 'Classes', icon: Calendar },
+    { id: 'homework', label: 'Homework', icon: BookOpen },
+    { id: 'classroom', label: 'Join Classroom', icon: Video, action: handleEnterClassroom, badge: 'Live' },
+    { id: 'lessons', label: 'My Lessons', icon: BookOpen },
     { id: 'learning-path', label: 'My Learning Path', icon: Map, badge: 'New' },
     { id: 'sounds', label: 'Map of Sounds', icon: Sparkles, badge: 'New' },
     { id: 'vocabulary', label: 'Vocabulary Vault', icon: BookOpen, badge: 'New' },
     { id: 'milestones', label: 'Mastery Milestones', icon: Trophy, badge: 'New' },
-    { id: 'lessons', label: 'My Lessons', icon: BookOpen },
-    { id: 'classroom', label: 'Join Classroom', icon: Video, action: handleEnterClassroom, badge: 'Live' },
     { id: 'assessments', label: 'Assessments', icon: ClipboardList },
     { id: 'certificates', label: 'Certificates', icon: Library },
     { id: 'teachers', label: 'My Teachers', icon: Users },
-    { id: 'upcoming-classes', label: 'Classes', icon: Calendar },
-    { id: 'homework', label: 'Homework', icon: BookOpen },
     { id: 'progress', label: 'Progress', icon: TrendingUp },
     { id: 'referrals', label: 'Invite Friends', icon: Gift, badge: 'New' },
     { id: 'profile', label: 'Profile', icon: User }

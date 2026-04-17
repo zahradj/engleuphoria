@@ -34,7 +34,7 @@ export const QuickActions: React.FC = memo(() => {
           {
             icon: Plus,
             label: 'Book Lesson',
-            action: () => navigate('/student/book-lesson'),
+            action: () => navigate('/find-teacher'),
             variant: 'default'
           },
           {

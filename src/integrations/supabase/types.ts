@@ -3569,6 +3569,33 @@ export type Database = {
           },
         ]
       }
+      hub_payout_settings: {
+        Row: {
+          created_at: string
+          hub: string
+          id: string
+          payout_amount_eur: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          hub: string
+          id?: string
+          payout_amount_eur?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          hub?: string
+          id?: string
+          payout_amount_eur?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       integration_configs: {
         Row: {
           config_data: Json
@@ -9617,6 +9644,7 @@ export type Database = {
       }
       refund_credit: { Args: { p_student_id: string }; Returns: undefined }
       reset_monthly_class_usage: { Args: never; Returns: undefined }
+      resolve_classroom_id: { Args: { any_id: string }; Returns: string }
       save_placement_test_result: {
         Args: {
           p_cefr_level: string

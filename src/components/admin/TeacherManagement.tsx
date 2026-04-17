@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Search, Filter, MoreHorizontal, Star, DollarSign, Users, Clock, TrendingUp, Globe, Settings2, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { HubPayoutSettings } from './HubPayoutSettings';
 
 interface Teacher {
   id: string;
@@ -180,6 +181,9 @@ export const TeacherManagement = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Teacher Management</h1>
       </div>
+
+      {/* Hub Payout Rates — admin sets per-hub teacher payout */}
+      <HubPayoutSettings />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

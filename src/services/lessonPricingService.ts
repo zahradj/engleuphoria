@@ -63,6 +63,25 @@ export const lessonPricingService = {
     };
   },
 
+  // Look up payout amount per hub from admin-configurable settings
+  async getHubPayout(hub: string): Promise<number> {
+    try {
+      const { data, error } = await supabase
+        .from('hub_payout_settings')
+        .select('payout_amount_eur')
+        .eq('hub', hub)
+        .maybeSingle();
+      if (error || !data) {
+        console.warn('[lessonPricingService] hub payout lookup failed, using default', { hub, error });
+        return LESSON_PRICING.teacher_payout;
+      }
+      return Number(data.payout_amount_eur);
+    } catch (e) {
+      console.warn('[lessonPricingService] hub payout lookup threw, using default', e);
+      return LESSON_PRICING.teacher_payout;
+    }
+  },
+
   // Book a lesson with payment processing
   async bookLessonWithPayment(
     teacherId: string,
@@ -96,7 +115,23 @@ export const lessonPricingService = {
 
     const pricing = this.calculateLessonPrice();
     const durationMinutes = durationNum;
-    
+
+    // Look up the student's hub so we can apply the per-hub teacher payout
+    let studentHub: 'playground' | 'academy' | 'professional' = 'academy';
+    try {
+      const { data: profile } = await supabase
+        .from('student_profiles')
+        .select('cefr_level, final_cefr_level, grade_level')
+        .eq('user_id', studentId)
+        .maybeSingle();
+      const level = (profile?.final_cefr_level || profile?.cefr_level || profile?.grade_level || '').toString().toLowerCase();
+      if (level.includes('playground') || level.startsWith('a0') || level === 'pre-a1') studentHub = 'playground';
+      else if (level.includes('professional') || level.includes('success') || level.startsWith('c')) studentHub = 'professional';
+      else studentHub = 'academy';
+    } catch (_) { /* fall back to academy */ }
+    const hubPayout = await this.getHubPayout(studentHub);
+    console.log('💰 Using hub payout', { studentHub, hubPayout });
+
     // If using a package, check and redeem credits
     if (packagePurchaseId) {
       const { data: packageData, error: packageError } = await supabase
@@ -126,6 +161,7 @@ export const lessonPricingService = {
           duration: durationMinutes, // Set both duration fields
           duration_minutes: durationMinutes,
           lesson_price: 0, // No additional charge for package lessons
+          teacher_payout_amount: hubPayout,
           title: `${durationMinutes}-minute English Lesson`,
           status: 'scheduled'
         }])
@@ -217,6 +253,7 @@ export const lessonPricingService = {
           duration: durationMinutes, // Set both duration fields
           duration_minutes: durationMinutes,
           lesson_price: pricing.studentPrice,
+          teacher_payout_amount: hubPayout,
           title: `${durationMinutes}-minute English Lesson`,
           status: 'scheduled',
           payment_status: 'pending'
@@ -285,8 +322,8 @@ export const lessonPricingService = {
           student_id: studentId,
           teacher_id: teacherId,
           amount_charged: pricing.studentPrice,
-          teacher_payout: pricing.teacherPayout,
-          platform_profit: pricing.platformProfit
+          teacher_payout: hubPayout,
+          platform_profit: Math.max(0, pricing.studentPrice - hubPayout)
         }])
         .select()
         .single();

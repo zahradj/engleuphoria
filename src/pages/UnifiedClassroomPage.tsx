@@ -27,30 +27,26 @@ const UnifiedClassroomPage: React.FC = () => {
   const userRole = (user as any)?.role;
   const isAdmin = userRole === 'admin';
 
-  // Fetch booking to determine participant role — support both booking ID and classroom_id
+  // Fetch booking to determine participant role — resolve ANY ID flavor via RPC
   const { data: booking, isLoading: bookingLoading, error: bookingError } = useQuery({
     queryKey: ['classroom-booking', bookingId, user?.id],
     queryFn: async () => {
       if (!bookingId || !user?.id) return null;
-      
-      // Try by primary key first, then by classroom_id
-      let { data, error } = await supabase
+
+      // Resolve any flavor (class_bookings.id, classroom_id, lessons.id) → canonical booking id
+      const { data: resolvedId, error: resolveError } = await supabase.rpc('resolve_classroom_id', {
+        any_id: bookingId,
+      });
+
+      if (resolveError) throw resolveError;
+      if (!resolvedId) return null;
+
+      const { data, error } = await supabase
         .from('class_bookings')
         .select('id, teacher_id, student_id, scheduled_at, duration, status, hub_type, classroom_id')
-        .eq('id', bookingId)
+        .eq('id', resolvedId)
         .maybeSingle();
-      
-      if (!data && !error) {
-        // Fallback: look up by classroom_id
-        const result = await supabase
-          .from('class_bookings')
-          .select('id, teacher_id, student_id, scheduled_at, duration, status, hub_type, classroom_id')
-          .eq('classroom_id', bookingId)
-          .maybeSingle();
-        data = result.data;
-        error = result.error;
-      }
-      
+
       if (error) throw error;
       return data;
     },
