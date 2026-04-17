@@ -572,7 +572,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const sanitizedEmail = sanitizeText(email);
       
       const { error } = await supabase.auth.resetPasswordForEmail(sanitizedEmail, {
-        redirectTo: `https://engleuphoria.lovable.app/reset-password`
+        redirectTo: `https://engleuphoria.com/reset-password`
       });
       
       if (error) {

@@ -253,7 +253,7 @@ export const HiringKanbanBoard: React.FC = () => {
       }
 
       // Step 2: Build the classroom link
-      const classroomLink = `https://engleuphoria.lovable.app/classroom/${classroomRoomId}`;
+      const classroomLink = `https://engleuphoria.com/classroom/${classroomRoomId}`;
 
       // Step 3: Create interview record with the classroom link
       const { data: interviewData, error: interviewError } = await supabase
@@ -376,7 +376,7 @@ export const HiringKanbanBoard: React.FC = () => {
         return;
       }
 
-      const meetingLink = `https://engleuphoria.lovable.app/interview/${interview.room_token}`;
+      const meetingLink = `https://engleuphoria.com/interview/${interview.room_token}`;
       await supabase.functions.invoke('send-transactional-email', {
         body: {
           templateName: 'interview-invitation',
