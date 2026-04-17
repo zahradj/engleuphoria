@@ -33,9 +33,18 @@ export const useNextClassCountdown = (scheduledAt: Date | null): CountdownResult
   }, [scheduledAt]);
 
   const result = useMemo<CountdownResult>(() => {
-    const minutes = Math.floor(timeRemaining / 60);
+    const totalMinutes = Math.floor(timeRemaining / 60);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
     const seconds = timeRemaining % 60;
-    const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+    // Friendly formatting:
+    // - >= 1h  →  "2h 14m 03s"
+    // - <  1h  →  "14:03"
+    const formattedTime = hours > 0
+      ? `${hours}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`
+      : `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
     const canEnter = timeRemaining <= 5 * 60; // 5 minutes or less
     const isStartingSoon = timeRemaining <= 5 * 60 && timeRemaining > 0;
     const hasStarted = timeRemaining <= 0;
