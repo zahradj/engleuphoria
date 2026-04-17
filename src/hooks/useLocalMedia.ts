@@ -133,35 +133,37 @@ export function useLocalMedia() {
     logger.info("Successfully left video call");
   }, []);
 
-  // Mute/unmute audio
-  const toggleMicrophone = useCallback(() => {
+  // Mute/unmute audio. If `force` is a boolean, set explicitly (true = muted).
+  const toggleMicrophone = useCallback((force?: unknown) => {
     if (!mediaRef.current) {
       logger.warn("No media stream available for microphone toggle");
       return;
     }
-    
+
     const audioTracks = mediaRef.current.getAudioTracks();
     if (audioTracks[0]) {
-      const newMutedState = !audioTracks[0].enabled;
-      audioTracks[0].enabled = !newMutedState;
-      setIsMuted(newMutedState);
-      logger.debug(`Microphone ${newMutedState ? 'muted' : 'unmuted'}`);
+      // `enabled = true` means mic is ON (NOT muted).
+      const nextEnabled = typeof force === 'boolean' ? !force : !audioTracks[0].enabled;
+      audioTracks[0].enabled = nextEnabled;
+      setIsMuted(!nextEnabled);
+      logger.debug(`Microphone ${nextEnabled ? 'unmuted' : 'muted'}`);
     }
   }, []);
 
-  // Disable/enable camera
-  const toggleCamera = useCallback(() => {
+  // Disable/enable camera. If `force` is a boolean, set explicitly (true = camera off).
+  const toggleCamera = useCallback((force?: unknown) => {
     if (!mediaRef.current) {
       logger.warn("No media stream available for camera toggle");
       return;
     }
-    
+
     const videoTracks = mediaRef.current.getVideoTracks();
     if (videoTracks[0]) {
-      const newCameraOffState = !videoTracks[0].enabled;
-      videoTracks[0].enabled = !newCameraOffState;
-      setIsCameraOff(newCameraOffState);
-      logger.debug(`Camera ${newCameraOffState ? 'disabled' : 'enabled'}`);
+      // `enabled = true` means camera is ON.
+      const nextEnabled = typeof force === 'boolean' ? !force : !videoTracks[0].enabled;
+      videoTracks[0].enabled = nextEnabled;
+      setIsCameraOff(!nextEnabled);
+      logger.debug(`Camera ${nextEnabled ? 'enabled' : 'disabled'}`);
     }
   }, []);
 

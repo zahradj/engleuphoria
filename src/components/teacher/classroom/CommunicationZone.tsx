@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { User, Send } from 'lucide-react';
+import { User, Send, Mic, MicOff, Video, VideoOff } from 'lucide-react';
 import { InteractionToolsGrid } from './InteractionToolsGrid';
 
 interface CommunicationZoneProps {
@@ -24,6 +24,11 @@ interface CommunicationZoneProps {
   isVideoConnected?: boolean;
   isLocalCameraOff?: boolean;
   isRemoteConnected?: boolean;
+  // Remote control of student media (broadcast via session context)
+  studentMicMuted?: boolean;
+  studentCameraOff?: boolean;
+  onToggleStudentMic?: () => void;
+  onToggleStudentCamera?: () => void;
 }
 
 export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
@@ -44,7 +49,11 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
   remoteStream,
   isVideoConnected = false,
   isLocalCameraOff = false,
-  isRemoteConnected = false
+  isRemoteConnected = false,
+  studentMicMuted = false,
+  studentCameraOff = false,
+  onToggleStudentMic,
+  onToggleStudentCamera
 }) => {
   const [chatMessages, setChatMessages] = useState<Array<{ sender: string; text: string }>>([
     { sender: 'system', text: 'Class session started' }
@@ -122,6 +131,34 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
             {studentName}
           </div>
           <div className={`absolute top-2 right-2 h-2 w-2 rounded-full ${isRemoteConnected ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+
+          {/* Teacher remote-control over student mic & camera */}
+          {(onToggleStudentMic || onToggleStudentCamera) && (
+            <div className="absolute bottom-2 right-2 flex gap-1">
+              {onToggleStudentMic && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onToggleStudentMic}
+                  title={studentMicMuted ? "Unmute student" : "Mute student"}
+                  className={`h-7 w-7 rounded-full shadow-sm ${studentMicMuted ? 'bg-red-500/90 text-white hover:bg-red-600' : 'bg-white/90 text-gray-700 hover:bg-white'}`}
+                >
+                  {studentMicMuted ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
+                </Button>
+              )}
+              {onToggleStudentCamera && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onToggleStudentCamera}
+                  title={studentCameraOff ? "Turn on student camera" : "Turn off student camera"}
+                  className={`h-7 w-7 rounded-full shadow-sm ${studentCameraOff ? 'bg-red-500/90 text-white hover:bg-red-600' : 'bg-white/90 text-gray-700 hover:bg-white'}`}
+                >
+                  {studentCameraOff ? <VideoOff className="h-3.5 w-3.5" /> : <Video className="h-3.5 w-3.5" />}
+                </Button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Teacher Video Container (smaller) */}
