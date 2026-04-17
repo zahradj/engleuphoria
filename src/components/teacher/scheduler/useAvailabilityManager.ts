@@ -23,6 +23,11 @@ interface DbSlotRow {
   lesson_title: string | null;
 }
 
+interface StudentInfo {
+  name: string;
+  email?: string;
+}
+
 const DAY_INDEX_TO_NAME: Record<number, string> = {
   1: 'Monday',
   2: 'Tuesday',
@@ -47,9 +52,9 @@ export const useAvailabilityManager = (
   const [selectedDay, setSelectedDay] = useState<string>(DAYS[0]);
   const [weekOffset, setWeekOffset] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [studentNames, setStudentNames] = useState<Record<string, string>>({});
-  const studentNamesRef = useRef(studentNames);
-  studentNamesRef.current = studentNames;
+  const [studentInfo, setStudentInfo] = useState<Record<string, StudentInfo>>({});
+  const studentInfoRef = useRef(studentInfo);
+  studentInfoRef.current = studentInfo;
 
   // Clamp setter so callers can never pick a disallowed duration
   const setSlotDuration = useCallback(
@@ -120,17 +125,20 @@ export const useAvailabilityManager = (
         new Set(rows.map((r) => r.student_id).filter(Boolean) as string[])
       );
 
-      const newNames: Record<string, string> = { ...studentNamesRef.current };
-      const missing = studentIds.filter((id) => !newNames[id]);
+      const newInfo: Record<string, StudentInfo> = { ...studentInfoRef.current };
+      const missing = studentIds.filter((id) => !newInfo[id]);
       if (missing.length > 0) {
         const { data: students } = await supabase
           .from('users')
-          .select('id, full_name')
+          .select('id, full_name, email')
           .in('id', missing);
         for (const s of students ?? []) {
-          newNames[(s as any).id] = (s as any).full_name || 'Student';
+          newInfo[(s as any).id] = {
+            name: (s as any).full_name || 'Student',
+            email: (s as any).email,
+          };
         }
-        if (!signal?.aborted) setStudentNames(newNames);
+        if (!signal?.aborted) setStudentInfo(newInfo);
       }
 
       const mapped: AvailabilitySlot[] = rows.map((r) => {
@@ -140,15 +148,17 @@ export const useAvailabilityManager = (
           start.getMinutes()
         ).padStart(2, '0')}`;
         const dur: 30 | 60 = (r.duration ?? 30) >= 55 ? 60 : 30;
+        const info = r.student_id ? newInfo[r.student_id] : undefined;
         return {
           id: r.id,
           day: dayName,
           time,
           duration: dur,
           status: r.is_booked ? 'booked' : 'open',
-          studentName: r.is_booked
-            ? r.lesson_title || (r.student_id ? newNames[r.student_id] : undefined)
-            : undefined,
+          studentName: r.is_booked ? info?.name : undefined,
+          studentEmail: r.is_booked ? info?.email : undefined,
+          lessonTitle: r.is_booked ? r.lesson_title || undefined : undefined,
+          startTime: r.start_time,
         };
       });
 
