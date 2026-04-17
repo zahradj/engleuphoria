@@ -92,46 +92,26 @@ class ClassroomSyncService {
     try {
       // Clean up stale sessions before any room lookup
       await this.cleanupStaleSessions();
-      // Check for ANY existing session for this room (regardless of status)
-      const { data: existing } = await supabase
-        .from('classroom_sessions')
-        .select('*')
-        .eq('room_id', roomId)
-        .maybeSingle();
 
-      if (existing) {
-        // Reactivate / update existing session
-        const { data, error } = await supabase
-          .from('classroom_sessions')
-          .update({
+      // Upsert by room_id to avoid race conditions when both teacher and student
+      // attempt to create the same session simultaneously (23505 unique violation).
+      const { data, error } = await supabase
+        .from('classroom_sessions')
+        .upsert(
+          {
+            room_id: roomId,
             teacher_id: teacherId,
             lesson_title: lessonData.title,
             lesson_slides: lessonData.slides,
+            current_slide_index: 0,
+            active_tool: 'pointer',
+            student_can_draw: false,
             session_status: 'active',
             ended_at: null,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existing.id)
-          .select()
-          .single();
-
-        if (error) throw error;
-        return this.mapToSession(data);
-      }
-
-      // Create new session
-      const { data, error } = await supabase
-        .from('classroom_sessions')
-        .insert({
-          room_id: roomId,
-          teacher_id: teacherId,
-          lesson_title: lessonData.title,
-          lesson_slides: lessonData.slides,
-          current_slide_index: 0,
-          active_tool: 'pointer',
-          student_can_draw: false,
-          session_status: 'active'
-        })
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'room_id' }
+        )
         .select()
         .single();
 
