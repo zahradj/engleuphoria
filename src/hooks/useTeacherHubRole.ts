@@ -15,8 +15,8 @@ export type HubKind = 'playground' | 'academy' | 'professional';
  * Returns the raw hub_role plus a normalized hub kind and the
  * allowed slot durations for that hub.
  *
- * - Playground specialists: 30-minute slots only
- * - Academy / Success / Combined: 30 or 60-minute slots
+   * - Playground specialists: 30-minute slots only
+   * - Academy / Success / Combined: 60-minute slots only
  */
 export const useTeacherHubRole = (teacherId: string | undefined) => {
   const [hubRole, setHubRole] = useState<HubRole>(null);
@@ -53,7 +53,7 @@ export const useTeacherHubRole = (teacherId: string | undefined) => {
       ? 'professional'
       : 'academy';
 
-  const allowedDurations: (30 | 60)[] = isPlayground ? [30] : [30, 60];
+  const allowedDurations: (30 | 60)[] = isPlayground ? [30] : [60];
 
   return { hubRole, hubKind, allowedDurations, isPlayground, loading };
 };

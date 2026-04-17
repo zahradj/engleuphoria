@@ -88,20 +88,39 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
 
   // Compute display slots based on hub selection
   const displaySlots: (TimeSlot & { sourceSlotIds?: string[] })[] = useMemo(() => {
-    if (slotDuration === 30) {
-      return rawSlots.map(s => ({ ...s, sourceSlotIds: [s.id] }));
-    }
-    // 60-min: merge adjacent 30-min slots
-    return mergeAdjacentSlots(rawSlots);
+    // Strict per-hub duration: Playground = 30, Academy/Success = 60
+    const filtered = rawSlots.filter(s => s.duration === slotDuration);
+    return filtered.map(s => ({ ...s, sourceSlotIds: [s.id] }));
   }, [rawSlots, slotDuration]);
 
-  // Fetch available slots (always fetch raw 30-min slots)
+  // Allowed teacher hub_roles for this student's hub
+  const allowedHubRoles = useMemo<string[]>(() => {
+    if (selectedHub === 'playground') return ['playground_specialist'];
+    if (selectedHub === 'academy') return ['academy_mentor', 'academy_success_mentor'];
+    return ['success_mentor', 'academy_success_mentor']; // professional
+  }, [selectedHub]);
+
+  // Fetch available slots — only for teachers in the student's hub, matching duration
   const fetchSlots = useCallback(async () => {
     setLoadingSlots(true);
     try {
+      // 1. Find teachers in this hub
+      const { data: hubTeachers } = await supabase
+        .from('teacher_profiles')
+        .select('user_id, hub_role')
+        .in('hub_role', allowedHubRoles);
+
+      const teacherIds = (hubTeachers || []).map((t: any) => t.user_id).filter(Boolean);
+      if (teacherIds.length === 0) {
+        setRawSlots([]);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('teacher_availability')
         .select('id, teacher_id, start_time, end_time, duration, is_available, is_booked, hub_specialty')
+        .in('teacher_id', teacherIds)
+        .eq('duration', slotDuration)
         .eq('is_available', true)
         .eq('is_booked', false)
         .gt('start_time', new Date().toISOString())
@@ -111,11 +130,11 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
       if (error) throw error;
 
       if (data) {
-        const teacherIds = [...new Set(data.map(s => s.teacher_id))];
+        const usedTeacherIds = [...new Set(data.map(s => s.teacher_id))];
         const { data: teachers } = await supabase
           .from('users')
           .select('id, full_name')
-          .in('id', teacherIds);
+          .in('id', usedTeacherIds);
 
         const teacherMap: Record<string, string> = {};
         teachers?.forEach(t => { teacherMap[t.id] = t.full_name || 'Teacher'; });
@@ -126,7 +145,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
           teacherName: teacherMap[s.teacher_id] || 'Teacher',
           startTime: new Date(s.start_time),
           endTime: new Date(s.end_time),
-          duration: s.duration || 30,
+          duration: s.duration || slotDuration,
           isAvailable: s.is_available && !s.is_booked,
         }));
 
@@ -137,7 +156,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
     } finally {
       setLoadingSlots(false);
     }
-  }, []);
+  }, [allowedHubRoles, slotDuration]);
 
   useEffect(() => {
     if (isOpen) {
