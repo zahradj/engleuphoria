@@ -133,8 +133,8 @@ export function useLocalMedia() {
     logger.info("Successfully left video call");
   }, []);
 
-  // Mute/unmute audio. If `force` is provided, set explicitly.
-  const toggleMicrophone = useCallback((force?: boolean) => {
+  // Mute/unmute audio. If `force` is a boolean, set explicitly (true = muted).
+  const toggleMicrophone = useCallback((force?: unknown) => {
     if (!mediaRef.current) {
       logger.warn("No media stream available for microphone toggle");
       return;
@@ -150,8 +150,8 @@ export function useLocalMedia() {
     }
   }, []);
 
-  // Disable/enable camera. If `force` is provided, set explicitly.
-  const toggleCamera = useCallback((force?: boolean) => {
+  // Disable/enable camera. If `force` is a boolean, set explicitly (true = camera off).
+  const toggleCamera = useCallback((force?: unknown) => {
     if (!mediaRef.current) {
       logger.warn("No media stream available for camera toggle");
       return;
