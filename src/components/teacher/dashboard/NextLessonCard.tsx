@@ -161,12 +161,14 @@ export const NextLessonCard: React.FC<NextLessonCardProps> = ({ disabled = false
 
             {/* Countdown when not yet ready */}
             {!canEnter && !disabled && !hasStarted && (
-              <div className="text-center py-2 bg-muted/30 rounded-lg">
-                <p className="text-sm text-muted-foreground">
-                  Classroom opens in{' '}
-                  <span className="font-mono font-bold text-foreground">{formattedTime}</span>
+              <div className="text-center py-3 px-4 bg-muted/40 rounded-lg border border-border/50">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
+                  Class starts in
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="font-mono font-bold text-2xl text-foreground tabular-nums">
+                  {formattedTime}
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
                   You can enter 5 minutes before class starts
                 </p>
               </div>
