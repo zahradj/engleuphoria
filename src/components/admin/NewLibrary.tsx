@@ -307,7 +307,7 @@ export const NewLibrary = ({ onNavigate, initialContext }: NewLibraryProps) => {
             AI Lesson Generator
           </h1>
           <p className="text-muted-foreground">
-            Generate curriculum-aligned lessons powered by Lovable AI
+            Generate curriculum-aligned lessons powered by AI
           </p>
         </div>
         <TooltipProvider>
