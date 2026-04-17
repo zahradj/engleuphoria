@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Search, Filter, MoreHorizontal, Star, DollarSign, Users, Clock, TrendingUp, Globe, Settings2, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { HubPayoutSettings } from './HubPayoutSettings';
 
 interface Teacher {
   id: string;

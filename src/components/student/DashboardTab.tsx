@@ -169,7 +169,7 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">No classes scheduled</h3>
                 <p className="text-text-muted mb-4">Book your first lesson to get started!</p>
-                <Button onClick={() => navigate('/discover-teachers')} className="bg-gradient-to-r from-primary to-accent text-white hover:opacity-90">
+                <Button onClick={() => navigate('/find-teacher')} className="bg-gradient-to-r from-primary to-accent text-white hover:opacity-90">
                   <Plus className="h-4 w-4 mr-2" />
                   Book a Lesson
                 </Button>
