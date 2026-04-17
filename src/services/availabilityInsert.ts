@@ -28,34 +28,53 @@ function isDurationConstraintError(error: any): boolean {
   return code === "23514" || msg.includes("duration") || msg.includes("check constraint");
 }
 
+function isUniqueViolation(error: any): boolean {
+  const code = error?.code || error?.details?.code;
+  const msg = String(error?.message || "").toLowerCase();
+  return code === "23505" || msg.includes("duplicate key") || msg.includes("unique constraint");
+}
+
 /**
- * Tries to insert availability slots and automatically retries with the alternate
- * duration family (30/60 <-> 25/55) if a duration check constraint is hit.
+ * Insert helper that:
+ *  - Skips slots that already exist (unique idx on teacher_id + start_time WHERE is_booked=false)
+ *  - Falls back across duration families (30/60 ↔ 25/55) when a CHECK constraint trips
+ *
+ * Uses upsert with `ignoreDuplicates: true` so re-saving a partially-existing schedule
+ * never throws a "duplicate key value violates unique constraint" error.
  */
 export async function insertAvailabilitySlotsWithFallback(
   client: SupabaseClient,
   slots: AvailabilitySlotInsert[]
 ) {
+  if (!slots || slots.length === 0) return;
+
+  const tryUpsert = async (rows: AvailabilitySlotInsert[]) =>
+    client
+      .from("teacher_availability")
+      .upsert(rows, {
+        onConflict: "teacher_id,start_time",
+        ignoreDuplicates: true,
+      });
+
   // First try as-is
-  let { error } = await client.from("teacher_availability").insert(slots);
+  let { error } = await tryUpsert(slots);
   if (!error) return;
 
-  // If duration constraint triggers, try 30/60 mapping first, then 25/55
+  // Duplicate slot — already inserted; treat as success.
+  if (isUniqueViolation(error)) return;
+
+  // Duration check constraint → try alternate duration families
   if (isDurationConstraintError(error)) {
-    // Attempt 30/60
     const slots3060 = mapDurations(slots, to30or60);
-    const attempt3060 = await client.from("teacher_availability").insert(slots3060);
-    if (!attempt3060.error) return;
+    const attempt3060 = await tryUpsert(slots3060);
+    if (!attempt3060.error || isUniqueViolation(attempt3060.error)) return;
 
-    // Attempt 25/55
     const slots2555 = mapDurations(slots, to25or55);
-    const attempt2555 = await client.from("teacher_availability").insert(slots2555);
-    if (!attempt2555.error) return;
+    const attempt2555 = await tryUpsert(slots2555);
+    if (!attempt2555.error || isUniqueViolation(attempt2555.error)) return;
 
-    // If still failing, throw the last error
     throw attempt2555.error;
   }
 
-  // Non-duration error
   throw error;
 }
