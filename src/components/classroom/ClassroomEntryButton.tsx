@@ -34,11 +34,9 @@ export const ClassroomEntryButton: React.FC<ClassroomEntryButtonProps> = ({
     return () => clearInterval(interval);
   }, [scheduledAt]);
 
-  const isReady = timeUntil <= 5 * 60 * 1000; // 5 minutes before
-  const isLate = timeUntil < -2 * 60 * 60 * 1000; // 2 hours after
+  // Always-open mode: Enter Classroom is permanently available (per product directive)
+  const isReady = true;
   const minutesUntil = Math.max(0, Math.ceil(timeUntil / 60000));
-
-  if (isLate) return null;
 
   const handleEnter = () => {
     setEntering(true);
