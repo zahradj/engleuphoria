@@ -7,6 +7,7 @@ import { Clock, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { format, addDays, startOfWeek } from "date-fns";
+import { useTeacherHubRole } from "@/hooks/useTeacherHubRole";
 
 interface TeacherAvailabilityProps {
   teacherId: string;
@@ -21,11 +22,21 @@ interface TimeSlot {
 }
 
 export const TeacherAvailability = ({ teacherId }: TeacherAvailabilityProps) => {
+  const { allowedDurations, isPlayground } = useTeacherHubRole(teacherId);
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [timeSlots, setTimeSlots] = useState<string[]>([]);
-  const [duration, setDuration] = useState<"30" | "60">("60");
+  // Default to the first allowed duration for the teacher's hub
+  const defaultDuration = (allowedDurations[0] ?? 30).toString() as "30" | "60";
+  const [duration, setDuration] = useState<"30" | "60">(defaultDuration);
   const [existingSlots, setExistingSlots] = useState<TimeSlot[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Keep selected duration in sync with hub permissions
+  React.useEffect(() => {
+    if (!allowedDurations.includes(parseInt(duration) as 30 | 60)) {
+      setDuration((allowedDurations[0] ?? 30).toString() as "30" | "60");
+    }
+  }, [allowedDurations, duration]);
 
   const timeOptions = Array.from({ length: 24 }, (_, i) => {
     const hour = i.toString().padStart(2, '0');
@@ -182,10 +193,19 @@ export const TeacherAvailability = ({ teacherId }: TeacherAvailabilityProps) => 
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="30">30 minutes</SelectItem>
-                    <SelectItem value="60">60 minutes</SelectItem>
+                    {allowedDurations.includes(30) && (
+                      <SelectItem value="30">30 minutes</SelectItem>
+                    )}
+                    {allowedDurations.includes(60) && (
+                      <SelectItem value="60">60 minutes</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
+                {isPlayground && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    🎪 Playground lessons are 30 minutes only.
+                  </p>
+                )}
               </div>
 
               <div>
