@@ -115,7 +115,23 @@ export const lessonPricingService = {
 
     const pricing = this.calculateLessonPrice();
     const durationMinutes = durationNum;
-    
+
+    // Look up the student's hub so we can apply the per-hub teacher payout
+    let studentHub: 'playground' | 'academy' | 'professional' = 'academy';
+    try {
+      const { data: profile } = await supabase
+        .from('student_profiles')
+        .select('cefr_level, final_cefr_level, grade_level')
+        .eq('user_id', studentId)
+        .maybeSingle();
+      const level = (profile?.final_cefr_level || profile?.cefr_level || profile?.grade_level || '').toString().toLowerCase();
+      if (level.includes('playground') || level.startsWith('a0') || level === 'pre-a1') studentHub = 'playground';
+      else if (level.includes('professional') || level.includes('success') || level.startsWith('c')) studentHub = 'professional';
+      else studentHub = 'academy';
+    } catch (_) { /* fall back to academy */ }
+    const hubPayout = await this.getHubPayout(studentHub);
+    console.log('💰 Using hub payout', { studentHub, hubPayout });
+
     // If using a package, check and redeem credits
     if (packagePurchaseId) {
       const { data: packageData, error: packageError } = await supabase
