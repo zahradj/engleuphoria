@@ -23,6 +23,7 @@ interface StudentClassroomProps {
   roomId: string;
   studentId: string;
   studentName: string;
+  teacherName?: string;
   hubType?: HubType;
 }
 
@@ -30,6 +31,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
   roomId,
   studentId,
   studentName,
+  teacherName = "Teacher",
   hubType = "academy"
 }) => {
   const navigate = useNavigate();
@@ -273,11 +275,14 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
           <div style={sidebarIdle.style} onMouseMove={sidebarIdle.onMouseMove} onMouseEnter={sidebarIdle.onMouseEnter}>
             <StudentCommunicationSidebar
               studentName={studentName}
-              teacherName="Teacher"
+              teacherName={teacherName}
               isMuted={media.isMuted}
               isCameraOff={media.isCameraOff}
               onToggleMute={() => media.toggleMicrophone()}
               onToggleCamera={() => media.toggleCamera()}
+              localStream={media.stream}
+              remoteStream={participants[0]?.stream || null}
+              isRemoteConnected={rtcConnected}
             />
           </div>
         )}
@@ -321,7 +326,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
       <PostClassFeedbackModal
         isOpen={showFeedbackModal}
         onClose={handleFeedbackClose}
-        teacherName={(sessionContext as any)?.teacherName || 'Teacher'}
+        teacherName={teacherName || (sessionContext as any)?.teacherName || 'Teacher'}
         teacherId={(sessionContext as any)?.teacherId || ''}
         lessonId={roomId}
       />

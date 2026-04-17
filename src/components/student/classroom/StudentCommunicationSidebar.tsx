@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,9 @@ interface StudentCommunicationSidebarProps {
   isCameraOff: boolean;
   onToggleMute: () => void;
   onToggleCamera: () => void;
+  localStream?: MediaStream | null;
+  remoteStream?: MediaStream | null;
+  isRemoteConnected?: boolean;
 }
 
 export const StudentCommunicationSidebar: React.FC<StudentCommunicationSidebarProps> = ({
@@ -20,12 +23,29 @@ export const StudentCommunicationSidebar: React.FC<StudentCommunicationSidebarPr
   isMuted,
   isCameraOff,
   onToggleMute,
-  onToggleCamera
+  onToggleCamera,
+  localStream,
+  remoteStream,
+  isRemoteConnected = false
 }) => {
   const [chatMessages, setChatMessages] = useState<Array<{ sender: string; text: string }>>([
     { sender: 'system', text: 'Class session started' }
   ]);
   const [newMessage, setNewMessage] = useState('');
+  const teacherVideoRef = useRef<HTMLVideoElement>(null);
+  const studentVideoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (teacherVideoRef.current && remoteStream) {
+      teacherVideoRef.current.srcObject = remoteStream;
+    }
+  }, [remoteStream]);
+
+  useEffect(() => {
+    if (studentVideoRef.current && localStream) {
+      studentVideoRef.current.srcObject = localStream;
+    }
+  }, [localStream]);
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
@@ -39,27 +59,54 @@ export const StudentCommunicationSidebar: React.FC<StudentCommunicationSidebarPr
       {/* Video Containers */}
       <div className="p-3 space-y-3">
         {/* Teacher Video Container */}
-        <Card className="bg-gray-100 border-primary/30 overflow-hidden">
+        <Card className="bg-gray-900 border-primary/30 overflow-hidden">
           <CardContent className="p-0">
-            <div className="relative aspect-[4/3] bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-              <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
-                <span className="text-2xl">👩‍🏫</span>
-              </div>
+            <div className="relative aspect-[4/3] flex items-center justify-center">
+              {remoteStream ? (
+                <video
+                  ref={teacherVideoRef}
+                  autoPlay
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+                  <div className="text-center space-y-2">
+                    <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mx-auto">
+                      <span className="text-2xl">👩‍🏫</span>
+                    </div>
+                    <p className="text-[10px] text-gray-500">Waiting for teacher...</p>
+                  </div>
+                </div>
+              )}
               <div className="absolute bottom-2 left-2 bg-white/80 px-2 py-1 rounded text-xs text-gray-700 shadow-sm">
                 {teacherName}
               </div>
-              <div className="absolute top-2 right-2 h-2 w-2 rounded-full bg-emerald-500" />
+              <div className={`absolute top-2 right-2 h-2 w-2 rounded-full ${isRemoteConnected ? 'bg-emerald-500' : 'bg-gray-400'}`} />
             </div>
           </CardContent>
         </Card>
 
         {/* Student Video Container (self) */}
-        <Card className="bg-gray-100 border-gray-200 overflow-hidden">
+        <Card className="bg-gray-900 border-gray-200 overflow-hidden">
           <CardContent className="p-0">
-            <div className="relative aspect-[4/3] bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center">
-              <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                <User className="w-6 h-6 text-blue-600" />
-              </div>
+            <div className="relative aspect-[4/3] flex items-center justify-center">
+              {localStream && !isCameraOff ? (
+                <video
+                  ref={studentVideoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover"
+                  style={{ transform: 'scaleX(-1)' }}
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100">
+                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                    <User className="w-6 h-6 text-blue-600" />
+                  </div>
+                </div>
+              )}
               <div className="absolute bottom-2 left-2 bg-white/80 px-2 py-1 rounded text-xs text-gray-700 shadow-sm">
                 {studentName} (You)
               </div>

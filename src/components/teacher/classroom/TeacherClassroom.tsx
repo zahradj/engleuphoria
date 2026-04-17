@@ -372,7 +372,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
         {/* Left: Communication Zone */}
         {!isZenMode && (
           <div style={sidebarIdle.style} onMouseMove={sidebarIdle.onMouseMove} onMouseEnter={sidebarIdle.onMouseEnter}>
-            <CommunicationZone
+          <CommunicationZone
               studentName={studentName}
               teacherName={teacherName}
               onGiveStar={handleGiveStar}
@@ -387,8 +387,10 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
               onStopScreenShare={handleStopScreenShare}
               screenShareStream={screenShareStream}
               localStream={media.stream}
+              remoteStream={participants[0]?.stream || null}
               isVideoConnected={media.isConnected}
               isLocalCameraOff={media.isCameraOff}
+              isRemoteConnected={rtcConnected}
             />
           </div>
         )}

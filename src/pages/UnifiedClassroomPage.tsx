@@ -43,7 +43,11 @@ const UnifiedClassroomPage: React.FC = () => {
 
       const { data, error } = await supabase
         .from('class_bookings')
-        .select('id, teacher_id, student_id, scheduled_at, duration, status, hub_type, classroom_id')
+        .select(`
+          id, teacher_id, student_id, scheduled_at, duration, status, hub_type, classroom_id,
+          teacher:users!class_bookings_teacher_id_fkey(full_name, email),
+          student:users!class_bookings_student_id_fkey(full_name, email)
+        `)
         .eq('id', resolvedId)
         .maybeSingle();
 
@@ -167,11 +171,20 @@ const UnifiedClassroomPage: React.FC = () => {
 
   const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Participant';
 
+  const teacherRow: any = (booking as any).teacher;
+  const studentRow: any = (booking as any).student;
+  const teacherFullName =
+    teacherRow?.full_name || teacherRow?.email?.split('@')[0] || 'Teacher';
+  const studentFullName =
+    studentRow?.full_name || studentRow?.email?.split('@')[0] || 'Student';
+
   if (classroomRole === 'teacher') {
     return (
       <TeacherClassroom
         classId={bookingId}
         teacherName={displayName}
+        studentName={studentFullName}
+        studentId={booking.student_id}
       />
     );
   }
@@ -181,6 +194,7 @@ const UnifiedClassroomPage: React.FC = () => {
       roomId={bookingId}
       studentId={user.id}
       studentName={displayName}
+      teacherName={teacherFullName}
     />
   );
 };
