@@ -147,7 +147,7 @@ export const TeacherApplicationsManagement = () => {
         templateName = 'interview-invitation';
         templateData.interviewDate = interviewDate ? format(interviewDate, 'EEEE, MMMM do, yyyy') : undefined;
         templateData.interviewTime = interviewTime;
-        templateData.meetingLink = `https://engleuphoria.lovable.app/interview-room/${application.id}`;
+        templateData.meetingLink = `https://engleuphoria.com/interview-room/${application.id}`;
         templateData.applicationId = application.id;
       }
 
@@ -209,7 +209,7 @@ export const TeacherApplicationsManagement = () => {
       }
 
       // Step 2: Build the classroom link
-      const classroomLink = `https://engleuphoria.lovable.app/classroom/${classroomRoomId}`;
+      const classroomLink = `https://engleuphoria.com/classroom/${classroomRoomId}`;
 
       // Step 3: Create the interview record with the classroom link
       const { error: interviewError } = await supabase
