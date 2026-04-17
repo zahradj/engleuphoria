@@ -52,14 +52,15 @@ export const NextLessonCard: React.FC<NextLessonCardProps> = ({ disabled = false
   const isSessionLive = liveStatus.isLive && !!nextLesson &&
     (liveStatus.roomId === nextLesson.room_id || liveStatus.roomId === nextLesson.id);
 
-  const buttonEnabled = !disabled && !!nextLesson && (canEnter || hasStarted || isSessionLive);
-
   const handleEnterClassroom = () => {
     if (isSessionLive && liveStatus.classroomUrl) {
       navigate(liveStatus.classroomUrl);
       return;
     }
-    if (!buttonEnabled || !nextLesson) return;
+    if (!nextLesson) {
+      navigate('/teacher/schedule');
+      return;
+    }
     // Prefer the canonical class_booking_id; fall back to id (which is also the booking id
     // in the updated RPC) so the unified classroom resolver can locate the room.
     const targetId = (nextLesson as any).class_booking_id || nextLesson.id;
@@ -167,6 +168,7 @@ export const NextLessonCard: React.FC<NextLessonCardProps> = ({ disabled = false
         <Button
           onClick={handleEnterClassroom}
           size="lg"
+          disabled={disabled}
           className={`w-full transition-all duration-300 ${
             isSessionLive
               ? 'bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white shadow-lg shadow-red-500/30 animate-pulse'

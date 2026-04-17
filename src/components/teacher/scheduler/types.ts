@@ -5,6 +5,9 @@ export interface AvailabilitySlot {
   duration: 30 | 60;
   status: 'open' | 'booked' | 'past';
   studentName?: string;
+  studentEmail?: string;
+  lessonTitle?: string;
+  startTime?: string;
 }
 
 export interface SchedulerState {

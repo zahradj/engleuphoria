@@ -150,15 +150,30 @@ export const SlotControlPanel: React.FC<SlotControlPanelProps> = ({
                 {bookedSlots.map((slot) => (
                   <div
                     key={slot.id}
-                    className="flex items-center justify-between p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg"
+                    className="flex flex-col gap-1 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg"
                   >
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-3 w-3 text-blue-600 dark:text-blue-400" />
-                      <span className="text-sm text-blue-700 dark:text-blue-300">{slot.time}</span>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                        <span className="text-sm font-medium text-blue-700 dark:text-blue-300">{slot.time}</span>
+                      </div>
+                      <span className="text-[10px] text-blue-600 dark:text-blue-400">{slot.duration}min</span>
                     </div>
-                    <span className="text-xs text-blue-600 dark:text-blue-400 truncate max-w-[80px]">
-                      {slot.studentName || 'Student'}
-                    </span>
+                    <div className="pl-5">
+                      <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 truncate">
+                        {slot.studentName || 'Student'}
+                      </p>
+                      {slot.studentEmail && (
+                        <p className="text-[10px] text-blue-600/80 dark:text-blue-400/80 truncate">
+                          {slot.studentEmail}
+                        </p>
+                      )}
+                      {slot.lessonTitle && (
+                        <p className="text-[10px] text-blue-600/80 dark:text-blue-400/80 truncate italic">
+                          {slot.lessonTitle}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
