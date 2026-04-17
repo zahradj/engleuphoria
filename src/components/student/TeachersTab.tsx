@@ -65,7 +65,7 @@ export const TeachersTab = () => {
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="hover:shadow-md transition-shadow cursor-pointer" 
-              onClick={() => navigate('/find-teacher')}>
+              onClick={() => navigate(`/find-teacher?hub=${hubId}`)}>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className={cn('p-3 rounded-lg', colors.iconBg)}>
@@ -81,7 +81,7 @@ export const TeachersTab = () => {
         </Card>
 
         <Card className="hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => navigate('/find-teacher')}>
+              onClick={() => navigate(`/find-teacher?hub=${hubId}`)}>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className={cn('p-3 rounded-lg', colors.iconBg)}>
@@ -112,7 +112,7 @@ export const TeachersTab = () => {
               <h3 className="text-lg font-semibold mb-2">No Teachers Found</h3>
               <p className="text-muted-foreground mb-6">You haven't connected with any teachers yet.</p>
               <Button 
-                onClick={() => navigate('/find-teacher')}
+                onClick={() => navigate(`/find-teacher?hub=${hubId}`)}
                 className={cn('px-8 text-white bg-gradient-to-r', colors.headerGradient)}
               >
                 Discover Teachers
@@ -156,7 +156,7 @@ export const TeachersTab = () => {
                   <Button 
                     className={cn('w-full text-white bg-gradient-to-r', colors.headerGradient)} 
                     size="sm"
-                    onClick={() => navigate('/find-teacher')}
+                    onClick={() => navigate(`/find-teacher?hub=${hubId}`)}
                   >
                     View Profile
                   </Button>

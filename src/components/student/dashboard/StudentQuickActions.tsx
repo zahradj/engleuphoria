@@ -15,6 +15,7 @@ import {
   ArrowRight
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useStudentLevel } from "@/hooks/useStudentLevel";
 
 interface StudentQuickActionsProps {
   onJoinClassroom: () => void;
@@ -28,6 +29,8 @@ export const StudentQuickActions = ({
   onOpenMessageModal 
 }: StudentQuickActionsProps) => {
   const navigate = useNavigate();
+  const { studentLevel } = useStudentLevel();
+  const hubParam = studentLevel ? `?hub=${studentLevel}` : '';
 
   const quickActions = [
     {
@@ -37,7 +40,7 @@ export const StudentQuickActions = ({
       icon: Calendar,
       color: 'bg-blue-500 hover:bg-blue-600',
       textColor: 'text-white',
-      onClick: () => navigate('/find-teacher')
+      onClick: () => navigate(`/find-teacher${hubParam}`)
     },
     {
       id: 'join-classroom',
