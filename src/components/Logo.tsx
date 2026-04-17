@@ -1,6 +1,8 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useThemeMode } from '@/hooks/useThemeMode';
+import logoBlack from '@/assets/logo-black.png';
+import logoWhite from '@/assets/logo-white.png';
 
 interface LogoProps {
   size?: 'small' | 'medium' | 'large' | 'xlarge';
@@ -9,42 +11,49 @@ interface LogoProps {
   className?: string;
 }
 
-export const Logo: React.FC<LogoProps> = ({ 
+const SIZE_HEIGHTS: Record<NonNullable<LogoProps['size']>, string> = {
+  small: 'h-7',
+  medium: 'h-9',
+  large: 'h-11',
+  xlarge: 'h-14',
+};
+
+export const Logo: React.FC<LogoProps> = ({
   size = 'large',
-  variant = 'gradient',
+  variant,
   onClick,
-  className = ''
+  className = '',
 }) => {
   const navigate = useNavigate();
-  
-  const sizeClasses = {
-    small: 'text-xl',
-    medium: 'text-2xl',
-    large: 'text-3xl',
-    xlarge: 'text-4xl'
-  };
+  const { resolvedTheme } = useThemeMode();
 
-  const variantClasses = {
-    gradient: 'bg-gradient-to-r from-primary via-accent to-primary-light bg-clip-text text-transparent',
-    white: 'text-white'
-  };
-  
+  // `variant="white"` forces the white wordmark (e.g. on dark hero overlays).
+  // Otherwise we follow the active theme.
+  const src =
+    variant === 'white'
+      ? logoWhite
+      : resolvedTheme === 'dark'
+        ? logoWhite
+        : logoBlack;
+
   const handleClick = () => {
-    if (onClick) {
-      onClick();
-    } else {
-      navigate('/');
-    }
+    if (onClick) onClick();
+    else navigate('/');
   };
 
   return (
-    <div 
-      onClick={handleClick} 
-      className={`cursor-pointer transition-transform hover:scale-105 ${className}`}
+    <button
+      type="button"
+      onClick={handleClick}
+      aria-label="EnglEuphoria home"
+      className={`inline-flex items-center cursor-pointer transition-transform hover:scale-105 ${className}`}
     >
-      <h1 className={`${sizeClasses[size]} font-bold ${variantClasses[variant]} tracking-tight hover:tracking-normal transition-all duration-300`}>
-        Engleuphoria
-      </h1>
-    </div>
+      <img
+        src={src}
+        alt="EnglEuphoria"
+        className={`${SIZE_HEIGHTS[size]} w-auto object-contain select-none`}
+        draggable={false}
+      />
+    </button>
   );
 };
