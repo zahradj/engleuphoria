@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, Calendar, Users, TrendingUp } from 'lucide-react';
 import logoImage from '@/assets/engleuphoria-logo.png';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface TeacherWelcomeHeroProps {
   teacherName: string;
@@ -12,9 +15,9 @@ interface TeacherWelcomeHeroProps {
 }
 
 /**
- * A bespoke welcome hero for the teacher dashboard.
- * Editorial layout with a soft aurora background, the real EnglEuphoria logo
- * and at-a-glance stats. Designed to feel original — not the usual purple-gradient SaaS hero.
+ * Bespoke welcome hero for the teacher dashboard.
+ * Shows the teacher's avatar, a time-aware personal greeting, the EnglEuphoria
+ * logo and at-a-glance stats.
  */
 export const TeacherWelcomeHero: React.FC<TeacherWelcomeHeroProps> = ({
   teacherName,
@@ -23,6 +26,21 @@ export const TeacherWelcomeHero: React.FC<TeacherWelcomeHeroProps> = ({
   totalStudents = 0,
   weeklyHours = 0
 }) => {
+  const { user } = useAuth();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase
+      .from('teacher_profiles')
+      .select('avatar_url, profile_photo_url')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setAvatarUrl(data?.avatar_url || (data as any)?.profile_photo_url || null);
+      });
+  }, [user?.id]);
+
   const greeting = (() => {
     const h = new Date().getHours();
     if (h < 12) return 'Good morning';
@@ -31,6 +49,7 @@ export const TeacherWelcomeHero: React.FC<TeacherWelcomeHeroProps> = ({
   })();
 
   const firstName = teacherName.split(' ')[0] || teacherName;
+  const initials = teacherName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
   return (
     <motion.section
@@ -39,27 +58,30 @@ export const TeacherWelcomeHero: React.FC<TeacherWelcomeHeroProps> = ({
       transition={{ duration: 0.5, ease: 'easeOut' }}
       className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-background via-background to-muted/40 mb-6"
     >
-      {/* Aurora blobs */}
       <div aria-hidden className="pointer-events-none absolute -top-24 -right-24 w-[28rem] h-[28rem] rounded-full bg-primary/15 blur-3xl" />
       <div aria-hidden className="pointer-events-none absolute -bottom-32 -left-16 w-[26rem] h-[26rem] rounded-full bg-accent/15 blur-3xl" />
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary)/0.06),transparent_60%)]" />
 
+      {/* Top-right logo */}
+      <div className="absolute top-5 right-6 z-10 hidden sm:flex items-center gap-2 opacity-80">
+        <img src={logoImage} alt="EnglEuphoria" className="h-8 w-auto object-contain" />
+      </div>
+
       <div className="relative grid grid-cols-1 lg:grid-cols-[auto_1fr_auto] gap-8 items-center px-6 sm:px-10 py-8">
-        {/* Logo medallion */}
+        {/* Teacher avatar */}
         <motion.div
           initial={{ scale: 0.85, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.1, type: 'spring', stiffness: 220, damping: 18 }}
           className="relative"
         >
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary to-accent blur-md opacity-30" />
-          <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-card border border-border shadow-xl flex items-center justify-center p-3">
-            <img
-              src={logoImage}
-              alt="EnglEuphoria"
-              className="w-full h-full object-contain"
-            />
-          </div>
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-accent blur-md opacity-40" />
+          <Avatar className="relative w-24 h-24 sm:w-28 sm:h-28 border-4 border-card shadow-xl">
+            <AvatarImage src={avatarUrl ?? undefined} alt={teacherName} />
+            <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground text-2xl font-bold">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
         </motion.div>
 
         {/* Greeting */}
