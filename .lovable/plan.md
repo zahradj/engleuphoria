@@ -1,72 +1,39 @@
 
 
-# Plan: Real Names in Video, Working WebRTC Video Tiles, Clickable "Book a Lesson"
+# Plan — Lock Playground Schedule to 30 min + Fix Logo
 
-## Root Causes
-
-### 1. Wrong names in the video call
-`UnifiedClassroomPage` currently passes `user.user_metadata.full_name` as **both** `teacherName` (to `TeacherClassroom`) and `studentName` (to `StudentClassroom`). It never queries the booking's *other* participant. So:
-- The teacher sees `studentName="Emma"` (the hard-coded default in `TeacherClassroom`).
-- The student sees `teacherName="Teacher"` (a hard-coded literal in `StudentClassroom` line 276).
-- Neither side shows the **booker's** real name (the student who booked the lesson, fetched from `users.full_name` via `class_bookings.student_id`).
-
-### 2. Can't see each other on video
-WebRTC peer-to-peer **is** connecting (console confirms `Successfully connected to <peer>` and `Remote stream received`). The bug is purely UI: neither sidebar wires the streams into a `<video>` element.
-
-| Sidebar | Local stream | Remote stream |
-|---------|--------------|---------------|
-| Teacher's `CommunicationZone` | Wired to small "You" tile (line 107-114) ✓ | **Not wired** — the big "Student" tile (line 91-102) only shows a placeholder `<User>` icon |
-| Student's `StudentCommunicationSidebar` | **Not wired** — placeholder icon (line 60-62) | **Not wired** — placeholder emoji (line 45-47) |
-
-Result: both users see static avatar placeholders despite a healthy peer connection.
-
-### 3. "Book a Lesson" button not clickable
-In `JoinLessonHero.tsx` (the prominent CTA shown on Academy/Playground/Hub dashboards when the student has no upcoming lessons), the **"Book a Lesson"** Button (line 163-172) has **no `onClick` handler**. That's the button the user is clicking.
-
-Bonus: harmless duplicate session-create error in console (`duplicate key value violates unique constraint "classroom_sessions_room_id_key"`) — a race when both peers create the row. Already handled gracefully but we'll patch it to upsert silently.
+## Problem
+1. **Schedule (`/teacher` → Schedule tab)** uses `ClassScheduler` → `useAvailabilityManager` with a hardcoded default of **60 min** and a free 30/60 toggle in `SlotControlPanel`. This ignores `useTeacherHubRole`, so a Playground teacher can still create 60-min slots — violating the hub rule (Playground = 30 min only, Academy/Success = 60 min only).
+2. **Logo** in `TeacherTopNav` and `ScrollHeader` uses the text-only `<Logo>` component ("Engleuphoria" gradient text). Every other page (`NavHeader`, `ProfessionalNav`, `TeachWithUsPage`, `HubLogo`, classroom top bar) uses the actual brand image (`logo-black.png` / `logo-white.png`) with theme-aware switching.
 
 ## Solution
 
-### A. Fetch booking participant names in `UnifiedClassroomPage`
-Extend the existing `class_bookings` query to also return the counterparty's `users.full_name`/`email`:
-```
-SELECT cb.*, t:users!teacher_id(full_name, email), s:users!student_id(full_name, email)
-```
-Pass both `teacherName` and `studentName` (resolved to the booker's real full name) into `TeacherClassroom` and `StudentClassroom`.
+### A. Lock schedule to hub-allowed duration
+- **`useAvailabilityManager.ts`** — accept an optional `allowedDurations` arg; initialize `slotDuration` to `allowedDurations[0]`; clamp `setSlotDuration` so it can never be set to a non-allowed value.
+- **`ClassScheduler.tsx`** — call `useTeacherHubRole(teacherId)`, derive `hubSpecialty` from `hubKind` automatically (Playground → `Playground`, academy → `Academy`, professional → `Professional`), pass `allowedDurations` into the manager and down to `SlotControlPanel`.
+- **`SlotControlPanel.tsx`** — accept `allowedDurations` prop. If only one duration is allowed, replace the 30/60 toggle with a read-only "locked" pill ("🎪 Playground · 30-min slots only" or "📘 Academy · 60-min slots only"). Hide the unused option entirely.
+- **`WeeklyCalendarGrid`** stays the same (it already renders based on `slotDuration`).
 
-### B. Wire WebRTC streams into both sidebars
-Pass `participants[0]?.stream` (remote) and `media.stream` (local) from `TeacherClassroom` / `StudentClassroom` down to their sidebars, then render `<video autoPlay playsInline>` elements.
+### B. Enhance Schedule visuals (consistent with new dashboard hero)
+- **`SchedulerHeader.tsx`** — refresh with the same gradient/aurora treatment as `TeacherWelcomeHero`: rounded-3xl card, soft primary/accent blurs, hub badge, larger stat chips for Open / Booked counts. Keep it light — no extra dependencies.
 
-**`CommunicationZone` (teacher):**
-- Accept new props: `remoteStream` (student's video), keep `localStream` for "You" tile.
-- Replace the placeholder `<User>` icon in the big student tile with `<video srcObject={remoteStream}>`.
-- Show "Camera off" fallback when stream exists but track is disabled.
+### C. Fix the logo (single source of truth)
+- **`Logo.tsx`** — replace the text rendering with the brand image. Use `useThemeMode` to swap `logo-black.png` (light) / `logo-white.png` (dark), exactly like `HubLogo` and `NavHeader`. Keep the same `size` API (`small | medium | large | xlarge` → fixed heights) and `onClick`/`className` behavior so every existing call site (TeacherTopNav, ScrollHeader, etc.) automatically gets the proper image logo. Drop the unused `variant` prop or leave it as a no-op.
 
-**`StudentCommunicationSidebar` (student):**
-- Accept new props: `localStream`, `remoteStream`.
-- Replace teacher emoji with `<video srcObject={remoteStream}>`.
-- Replace student placeholder with `<video srcObject={localStream} muted>` (mirrored).
-
-### C. Fix "Book a Lesson" CTA in `JoinLessonHero`
-Add `onClick` to the empty-state Button: `navigate(\`/find-teacher?hub=${hubId}\`)`. Same on the lesson-active variant if there's a duplicate.
-
-### D. Silence duplicate-session race
-In `classroomSyncService.createOrUpdateSession`, replace the SELECT-then-INSERT with `.upsert({...}, { onConflict: 'room_id' })` so a parallel teacher/student insert does not throw the 23505.
+This single change fixes the logo on the Playground teacher dashboard **and** anywhere else `<Logo>` is used, matching the rest of the site.
 
 ## Files to Modify
 | File | Change |
 |------|--------|
-| `src/pages/UnifiedClassroomPage.tsx` | Join `users` for both participants, pass real names |
-| `src/components/student/JoinLessonHero.tsx` | Add `onClick` → `/find-teacher?hub={hubId}` on Book a Lesson button |
-| `src/components/teacher/classroom/TeacherClassroom.tsx` | Pass `participants[0]?.stream` and `media.stream` to `CommunicationZone` |
-| `src/components/teacher/classroom/CommunicationZone.tsx` | Render `<video>` for remote student + local teacher |
-| `src/components/student/classroom/StudentClassroom.tsx` | Pass `media.stream` and `participants[0]?.stream` to sidebar; also pass real teacher name |
-| `src/components/student/classroom/StudentCommunicationSidebar.tsx` | Render `<video>` for remote teacher + local student |
-| `src/services/classroomSyncService.ts` | Use `upsert(..., onConflict: 'room_id')` to avoid 23505 race |
+| `src/components/Logo.tsx` | Replace text with theme-aware brand image (logo-black/logo-white) |
+| `src/components/teacher/scheduler/useAvailabilityManager.ts` | Accept `allowedDurations`, default to first allowed, clamp setter |
+| `src/components/teacher/scheduler/ClassScheduler.tsx` | Use `useTeacherHubRole`, pass allowed durations + auto hubSpecialty |
+| `src/components/teacher/scheduler/SlotControlPanel.tsx` | Conditionally show duration toggle; show locked pill when 1 option |
+| `src/components/teacher/scheduler/SchedulerHeader.tsx` | Polished hero-style card, hub badge, stat chips |
 
 ## Expected Result
-- Teacher sidebar shows the **student's live video feed** with the **student's real full name** below it.
-- Student sidebar shows the **teacher's live video feed** with the teacher's real full name, plus the student's own self-view (mirrored).
-- "Book a Lesson" button on every empty-state hub dashboard navigates to `/find-teacher?hub=<student's hub>`.
-- No more `duplicate key` error spam in the console.
+- Playground teachers on `/teacher` → **Schedule** can only create **30-min** slots; the 60-min option is gone, replaced by a clear "Playground · 30-min only" badge.
+- Academy / Success teachers (Professional Hub) get the same treatment locked to **60 min**.
+- The "Engleuphoria" text wordmark is replaced everywhere `<Logo>` is used (top nav, scroll header) by the official brand image, matching landing/professional/teach-with-us pages.
+- The Schedule tab gets a refreshed, on-brand header that matches the new dashboard aesthetic.
 
