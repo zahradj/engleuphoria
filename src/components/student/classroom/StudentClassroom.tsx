@@ -102,6 +102,38 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     prevParticipantCount.current = participants.length;
   }, [participants.length]);
 
+  // Apply teacher's remote mic/camera control over the student
+  const ctx = sessionContext as any;
+  const remoteMicMuted = !!ctx?.studentMicMuted;
+  const remoteCameraOff = !!ctx?.studentCameraOff;
+  const prevRemoteMicRef = useRef<boolean | null>(null);
+  const prevRemoteCamRef = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    if (!media.isConnected) return;
+    // Force the student's local tracks to match the teacher's request
+    media.toggleMicrophone(remoteMicMuted);
+    if (prevRemoteMicRef.current !== null && prevRemoteMicRef.current !== remoteMicMuted) {
+      toast({
+        title: remoteMicMuted ? "🔇 Microphone muted by teacher" : "🔊 Microphone unmuted by teacher",
+        description: remoteMicMuted ? "Your teacher has muted your microphone" : "Your microphone is on again"
+      });
+    }
+    prevRemoteMicRef.current = remoteMicMuted;
+  }, [remoteMicMuted, media.isConnected]);
+
+  useEffect(() => {
+    if (!media.isConnected) return;
+    media.toggleCamera(remoteCameraOff);
+    if (prevRemoteCamRef.current !== null && prevRemoteCamRef.current !== remoteCameraOff) {
+      toast({
+        title: remoteCameraOff ? "📷 Camera turned off by teacher" : "📹 Camera turned on by teacher",
+        description: remoteCameraOff ? "Your teacher has turned off your camera" : "Your camera is back on"
+      });
+    }
+    prevRemoteCamRef.current = remoteCameraOff;
+  }, [remoteCameraOff, media.isConnected]);
+
   // Zen mode keyboard shortcut
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

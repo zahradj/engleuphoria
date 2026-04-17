@@ -391,6 +391,18 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
               isVideoConnected={media.isConnected}
               isLocalCameraOff={media.isCameraOff}
               isRemoteConnected={rtcConnected}
+              studentMicMuted={!!(sessionContext as any)?.studentMicMuted}
+              studentCameraOff={!!(sessionContext as any)?.studentCameraOff}
+              onToggleStudentMic={async () => {
+                const next = !((sessionContext as any)?.studentMicMuted);
+                await updateSessionContext({ ...(sessionContext || {}), studentMicMuted: next });
+                toast({ title: next ? "🔇 Student muted" : "🔊 Student unmuted", description: next ? "The student's microphone has been muted" : "The student can speak again" });
+              }}
+              onToggleStudentCamera={async () => {
+                const next = !((sessionContext as any)?.studentCameraOff);
+                await updateSessionContext({ ...(sessionContext || {}), studentCameraOff: next });
+                toast({ title: next ? "📷 Student camera off" : "📹 Student camera on", description: next ? "The student's camera has been turned off" : "The student's camera is back on" });
+              }}
             />
           </div>
         )}
