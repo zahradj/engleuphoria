@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { BackNavigation } from '@/components/navigation/BackNavigation';
 import { BookMyClassModal } from '@/components/student/BookMyClassModal';
+import { useStudentLevel } from '@/hooks/useStudentLevel';
 import { cn } from '@/lib/utils';
 
 interface TeacherProfile {
@@ -87,6 +88,7 @@ const FindTeacher: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
+  const { studentLevel } = useStudentLevel();
   const [teachers, setTeachers] = useState<TeacherProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -96,9 +98,23 @@ const FindTeacher: React.FC = () => {
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
 
+  // Auto-lock hub filter to the student's actual level. Students cannot browse other hubs.
+  useEffect(() => {
+    if (studentLevel && ['playground', 'academy', 'professional'].includes(studentLevel)) {
+      setHubFilter(studentLevel as HubFilter);
+    }
+  }, [studentLevel]);
+
   useEffect(() => {
     fetchTeachers();
   }, []);
+
+  const isLockedToHub = !!studentLevel && ['playground', 'academy', 'professional'].includes(studentLevel);
+  const lockedHubLabel: Record<string, { emoji: string; label: string }> = {
+    playground: { emoji: '🎪', label: 'Playground Teachers' },
+    academy: { emoji: '📘', label: 'Academy Teachers' },
+    professional: { emoji: '🏆', label: 'Success Hub Teachers' },
+  };
 
   const fetchTeachers = async () => {
     try {
@@ -188,6 +204,9 @@ const FindTeacher: React.FC = () => {
   };
 
   const getStudentLevel = (): 'playground' | 'academy' | 'professional' => {
+    if (studentLevel === 'playground' || studentLevel === 'academy' || studentLevel === 'professional') {
+      return studentLevel;
+    }
     if (hubFilter === 'playground') return 'playground';
     if (hubFilter === 'professional') return 'professional';
     return 'academy';
@@ -228,14 +247,20 @@ const FindTeacher: React.FC = () => {
               className="pl-10 bg-card/50 border-border/50 focus:border-primary/50"
             />
           </div>
-          <Tabs value={hubFilter} onValueChange={(v) => setHubFilter(v as HubFilter)}>
-            <TabsList className="bg-card/50 border border-border/30">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="playground">🎪 Playground</TabsTrigger>
-              <TabsTrigger value="academy">📘 Academy</TabsTrigger>
-              <TabsTrigger value="professional">🏆 Success</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          {isLockedToHub ? (
+            <Badge className="px-4 py-2 text-sm font-semibold self-center" variant="secondary">
+              {lockedHubLabel[studentLevel!]?.emoji} {lockedHubLabel[studentLevel!]?.label}
+            </Badge>
+          ) : (
+            <Tabs value={hubFilter} onValueChange={(v) => setHubFilter(v as HubFilter)}>
+              <TabsList className="bg-card/50 border border-border/30">
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="playground">🎪 Playground</TabsTrigger>
+                <TabsTrigger value="academy">📘 Academy</TabsTrigger>
+                <TabsTrigger value="professional">🏆 Success</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          )}
         </motion.div>
 
         {/* Teacher Grid */}
