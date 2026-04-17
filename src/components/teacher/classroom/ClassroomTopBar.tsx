@@ -17,6 +17,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { useSmartTimer, type TimerPhase } from '@/hooks/classroom/useSmartTimer';
+import logoWhite from '@/assets/logo-white.png';
 
 type HubType = 'playground' | 'academy' | 'professional';
 
@@ -127,7 +128,7 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
             className="w-8 h-8 rounded-full flex items-center justify-center shadow-md"
             style={{ background: hubGradient }}
           >
-            <img src="/logo-white.png" alt="EnglEuphoria" className="w-5 h-5 object-contain" />
+            <img src={logoWhite} alt="EnglEuphoria" className="w-5 h-5 object-contain" />
           </div>
           <span className="text-sm font-bold bg-clip-text text-transparent" style={{ backgroundImage: hubGradient }}>
             EnglEuphoria
