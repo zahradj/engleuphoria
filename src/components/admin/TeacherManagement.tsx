@@ -182,6 +182,9 @@ export const TeacherManagement = () => {
         <h1 className="text-2xl font-bold">Teacher Management</h1>
       </div>
 
+      {/* Hub Payout Rates — admin sets per-hub teacher payout */}
+      <HubPayoutSettings />
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
