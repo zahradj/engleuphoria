@@ -9521,6 +9521,7 @@ export type Database = {
       get_student_upcoming_lessons: {
         Args: { student_uuid: string }
         Returns: {
+          class_booking_id: string
           duration: number
           id: string
           room_id: string
@@ -9565,6 +9566,7 @@ export type Database = {
       get_teacher_upcoming_lessons: {
         Args: { teacher_uuid: string }
         Returns: {
+          class_booking_id: string
           duration: number
           id: string
           room_id: string
