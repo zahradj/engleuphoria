@@ -125,11 +125,10 @@ export const useAvailabilityManager = (
       if (missing.length > 0) {
         const { data: students } = await supabase
           .from('users')
-          .select('id, full_name, first_name')
+          .select('id, full_name')
           .in('id', missing);
         for (const s of students ?? []) {
-          newNames[(s as any).id] =
-            (s as any).full_name || (s as any).first_name || 'Student';
+          newNames[(s as any).id] = (s as any).full_name || 'Student';
         }
         if (!signal?.aborted) setStudentNames(newNames);
       }
