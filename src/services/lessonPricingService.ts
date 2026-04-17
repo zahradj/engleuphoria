@@ -161,6 +161,7 @@ export const lessonPricingService = {
           duration: durationMinutes, // Set both duration fields
           duration_minutes: durationMinutes,
           lesson_price: 0, // No additional charge for package lessons
+          teacher_payout_amount: hubPayout,
           title: `${durationMinutes}-minute English Lesson`,
           status: 'scheduled'
         }])
@@ -252,6 +253,7 @@ export const lessonPricingService = {
           duration: durationMinutes, // Set both duration fields
           duration_minutes: durationMinutes,
           lesson_price: pricing.studentPrice,
+          teacher_payout_amount: hubPayout,
           title: `${durationMinutes}-minute English Lesson`,
           status: 'scheduled',
           payment_status: 'pending'
@@ -320,8 +322,8 @@ export const lessonPricingService = {
           student_id: studentId,
           teacher_id: teacherId,
           amount_charged: pricing.studentPrice,
-          teacher_payout: pricing.teacherPayout,
-          platform_profit: pricing.platformProfit
+          teacher_payout: hubPayout,
+          platform_profit: Math.max(0, pricing.studentPrice - hubPayout)
         }])
         .select()
         .single();
