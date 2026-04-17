@@ -4,7 +4,9 @@ import { SlotManager } from "./calendar/modern/SlotManager";
 import { SyncStatusBadge } from "./calendar/SyncStatusBadge";
 import { LiveNowToggle } from "./LiveNowToggle";
 import { useTeacherAvailability } from "@/hooks/useTeacherAvailability";
+import { useTeacherHubRole } from "@/hooks/useTeacherHubRole";
 import { getWeekDays } from "@/utils/timezoneUtils";
+import { Badge } from "@/components/ui/badge";
 
 interface EnhancedCalendarTabProps {
   teacherId: string;
@@ -18,6 +20,7 @@ export const EnhancedCalendarTab = ({ teacherId }: EnhancedCalendarTabProps) => 
 
   const weekDays = useMemo(() => getWeekDays(currentWeek), [currentWeek]);
   const { slots, isLoading, createSlot, deleteSlot } = useTeacherAvailability(teacherId, weekDays);
+  const { allowedDurations, isPlayground, hubKind } = useTeacherHubRole(teacherId);
 
   const handleNavigateWeek = (direction: -1 | 1) => {
     const newWeek = new Date(currentWeek);
@@ -65,7 +68,12 @@ export const EnhancedCalendarTab = ({ teacherId }: EnhancedCalendarTabProps) => 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <h2 className="text-2xl font-bold">My Availability</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-2xl font-bold">My Availability</h2>
+          <Badge variant="outline" className="capitalize">
+            {isPlayground ? '🎪 Playground · 30-min slots' : `${hubKind} · 30 / 60-min slots`}
+          </Badge>
+        </div>
         <div className="flex items-center gap-3">
           <LiveNowToggle teacherId={teacherId} />
           <SyncStatusBadge teacherId={teacherId} />
@@ -91,6 +99,7 @@ export const EnhancedCalendarTab = ({ teacherId }: EnhancedCalendarTabProps) => 
         onCreateSlot={handleCreateSlot}
         onDeleteSlot={existingSlot && !existingSlot.isBooked ? handleDeleteSlot : undefined}
         existingSlot={!!existingSlot}
+        allowedDurations={allowedDurations}
       />
     </div>
   );

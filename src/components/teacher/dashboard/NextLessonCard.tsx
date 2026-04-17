@@ -60,8 +60,10 @@ export const NextLessonCard: React.FC<NextLessonCardProps> = ({ disabled = false
       return;
     }
     if (!buttonEnabled || !nextLesson) return;
-    // Always use the booking's primary key (id) as the universal room key
-    navigate(`/classroom/${nextLesson.id}`);
+    // Prefer the canonical class_booking_id; fall back to id (which is also the booking id
+    // in the updated RPC) so the unified classroom resolver can locate the room.
+    const targetId = (nextLesson as any).class_booking_id || nextLesson.id;
+    navigate(`/classroom/${targetId}`);
   };
 
   const getBadgeContent = () => {
