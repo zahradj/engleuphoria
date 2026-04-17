@@ -131,7 +131,34 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
             {studentName}
           </div>
           <div className={`absolute top-2 right-2 h-2 w-2 rounded-full ${isRemoteConnected ? 'bg-emerald-500' : 'bg-gray-400'}`} />
-        </div>
+
+          {/* Teacher remote-control over student mic & camera */}
+          {(onToggleStudentMic || onToggleStudentCamera) && (
+            <div className="absolute bottom-2 right-2 flex gap-1">
+              {onToggleStudentMic && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onToggleStudentMic}
+                  title={studentMicMuted ? "Unmute student" : "Mute student"}
+                  className={`h-7 w-7 rounded-full shadow-sm ${studentMicMuted ? 'bg-red-500/90 text-white hover:bg-red-600' : 'bg-white/90 text-gray-700 hover:bg-white'}`}
+                >
+                  {studentMicMuted ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
+                </Button>
+              )}
+              {onToggleStudentCamera && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onToggleStudentCamera}
+                  title={studentCameraOff ? "Turn on student camera" : "Turn off student camera"}
+                  className={`h-7 w-7 rounded-full shadow-sm ${studentCameraOff ? 'bg-red-500/90 text-white hover:bg-red-600' : 'bg-white/90 text-gray-700 hover:bg-white'}`}
+                >
+                  {studentCameraOff ? <VideoOff className="h-3.5 w-3.5" /> : <Video className="h-3.5 w-3.5" />}
+                </Button>
+              )}
+            </div>
+          )}
 
         {/* Teacher Video Container (smaller) */}
         <div className="relative aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden border border-gray-200 w-2/3">
