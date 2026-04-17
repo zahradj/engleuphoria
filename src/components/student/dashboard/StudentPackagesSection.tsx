@@ -154,7 +154,7 @@ export const StudentPackagesSection: React.FC<StudentPackagesSectionProps> = ({
               {pkg.lessons_remaining > 0 && (
                 <Button 
                   size="sm"
-                  onClick={() => navigate('/student/book-lesson')}
+                  onClick={() => navigate('/find-teacher')}
                   className="bg-gradient-to-r from-student to-student-accent hover:from-student-dark hover:to-student text-white"
                 >
                   Book Lesson

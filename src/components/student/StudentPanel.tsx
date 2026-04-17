@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { StudentSidebar } from "./StudentSidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { DashboardTab } from "./DashboardTab";
 import { ProfileTab } from "./ProfileTab";
 import { EnhancedUpcomingClassesTab } from "./EnhancedUpcomingClassesTab";
@@ -39,6 +40,13 @@ export const StudentPanel = ({
         return <ProfileTab studentName={studentName} />;
       case "classes":
         return <EnhancedUpcomingClassesTab studentId={studentId} />;
+      case "homework":
+        return (
+          <div className="p-6 text-center text-muted-foreground">
+            <h2 className="text-2xl font-bold text-foreground mb-2">Homework</h2>
+            <p>Your homework assignments will appear here.</p>
+          </div>
+        );
       case "learning-path":
         return <UnitRoadmap />;
       case "sounds":
@@ -66,18 +74,24 @@ export const StudentPanel = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <StudentSidebar 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab}
-        onLogout={signOut}
-      />
-      
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-6">
-          {renderActiveTab()}
-        </main>
+    <SidebarProvider>
+      <div className="min-h-screen bg-background flex w-full">
+        <StudentSidebar 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab}
+          onLogout={signOut}
+        />
+        
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <header className="h-12 flex items-center border-b bg-card/50 backdrop-blur-sm sticky top-0 z-30">
+            <SidebarTrigger className="ml-2" />
+            <span className="ml-3 text-sm font-medium text-muted-foreground">Student Dashboard</span>
+          </header>
+          <main className="flex-1 overflow-y-auto p-6">
+            {renderActiveTab()}
+          </main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
