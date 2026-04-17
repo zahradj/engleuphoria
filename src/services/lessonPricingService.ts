@@ -63,6 +63,25 @@ export const lessonPricingService = {
     };
   },
 
+  // Look up payout amount per hub from admin-configurable settings
+  async getHubPayout(hub: string): Promise<number> {
+    try {
+      const { data, error } = await supabase
+        .from('hub_payout_settings')
+        .select('payout_amount_eur')
+        .eq('hub', hub)
+        .maybeSingle();
+      if (error || !data) {
+        console.warn('[lessonPricingService] hub payout lookup failed, using default', { hub, error });
+        return LESSON_PRICING.teacher_payout;
+      }
+      return Number(data.payout_amount_eur);
+    } catch (e) {
+      console.warn('[lessonPricingService] hub payout lookup threw, using default', e);
+      return LESSON_PRICING.teacher_payout;
+    }
+  },
+
   // Book a lesson with payment processing
   async bookLessonWithPayment(
     teacherId: string,
