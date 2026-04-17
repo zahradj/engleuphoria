@@ -159,6 +159,7 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
               )}
             </div>
           )}
+        </div>
 
         {/* Teacher Video Container (smaller) */}
         <div className="relative aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden border border-gray-200 w-2/3">
