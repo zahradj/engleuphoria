@@ -159,35 +159,19 @@ export const NextLessonCard: React.FC<NextLessonCardProps> = ({ disabled = false
               </div>
             </div>
 
-            {/* Countdown when not yet ready */}
-            {!canEnter && !disabled && !hasStarted && (
-              <div className="text-center py-3 px-4 bg-muted/40 rounded-lg border border-border/50">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
-                  Class starts in
-                </p>
-                <p className="font-mono font-bold text-2xl text-foreground tabular-nums">
-                  {formattedTime}
-                </p>
-                <p className="text-xs text-muted-foreground mt-2">
-                  You can enter 5 minutes before class starts
-                </p>
-              </div>
-            )}
+            {/* Countdown removed — Enter Classroom is always open per product directive */}
           </>
         )}
 
-        {/* Enter Classroom Button */}
+        {/* Enter Classroom Button — always enabled */}
         <Button
           onClick={handleEnterClassroom}
-          disabled={!buttonEnabled && !isSessionLive}
           size="lg"
           className={`w-full transition-all duration-300 ${
             isSessionLive
               ? 'bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white shadow-lg shadow-red-500/30 animate-pulse'
-              : !buttonEnabled
-                ? 'bg-muted text-muted-foreground'
-                : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg shadow-emerald-500/25'
-          } ${(isStartingSoon || hasStarted) && !isSessionLive && nextLesson ? 'animate-pulse' : ''}`}
+              : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg shadow-emerald-500/25'
+          }`}
         >
           {isSessionLive ? (
             <>
@@ -197,7 +181,7 @@ export const NextLessonCard: React.FC<NextLessonCardProps> = ({ disabled = false
           ) : (
             <>
               <Video className="w-5 h-5 mr-2" />
-              {hasStarted ? 'Join Now!' : 'Enter Classroom'}
+              Enter Classroom
               <ChevronRight className="w-5 h-5 ml-2" />
             </>
           )}
