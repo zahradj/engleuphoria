@@ -20,25 +20,16 @@ export const useTeacherAvailability = (teacherId: string, weekDays: Date[]) => {
       const { data, error } = await supabase
         .from('teacher_availability')
         .select(`
-          id, 
-          teacher_id, 
-          start_time, 
-          end_time, 
-          duration, 
-          is_available, 
-          is_booked, 
-          student_id, 
-          lesson_id, 
-          lesson_title,
-          student_profiles:student_id (
-            cefr_level,
-            final_cefr_level,
-            grade_level,
-            user_id
-          ),
-          lessons:lesson_id (
-            student_id
-          )
+          id,
+          teacher_id,
+          start_time,
+          end_time,
+          duration,
+          is_available,
+          is_booked,
+          student_id,
+          lesson_id,
+          lesson_title
         `)
         .eq('teacher_id', teacherId)
         .gte('start_time', startDate)
@@ -50,33 +41,43 @@ export const useTeacherAvailability = (teacherId: string, weekDays: Date[]) => {
         throw error;
       }
 
-      // Fetch student emails for booked slots
-      const studentIds = [...new Set((data || [])
-        .map(slot => slot.student_id || (slot.lessons as any)?.student_id)
-        .filter(Boolean) as string[])];
+      const rows = data || [];
 
-      let studentEmails: Record<string, string> = {};
-      if (studentIds.length > 0) {
-        // Get emails from users table via RPC or direct query
-        const { data: profiles } = await supabase
-          .from('student_profiles')
-          .select('user_id')
-          .in('user_id', studentIds);
-        
-        // Fetch auth users to get emails (using a service role query would be needed)
-        // For now, we'll just use email domain or display names
-        // This is a simplified approach since we can't access auth.users from client
-        studentEmails = studentIds.reduce((acc, id) => {
-          // We'll use the student email if available from other sources
-          acc[id] = ''; // Placeholder, will be populated from available data
-          return acc;
-        }, {} as Record<string, string>);
+      // Resolve student_id from linked lessons when slot.student_id is null
+      const lessonIds = [...new Set(rows.map(r => r.lesson_id).filter(Boolean) as string[])];
+      let lessonStudentMap: Record<string, string> = {};
+      if (lessonIds.length > 0) {
+        const { data: lessonRows } = await supabase
+          .from('lessons')
+          .select('id, student_id')
+          .in('id', lessonIds);
+        (lessonRows || []).forEach((l: any) => {
+          if (l?.id && l?.student_id) lessonStudentMap[l.id] = l.student_id;
+        });
       }
 
-      const formattedSlots: AvailabilitySlot[] = (data || []).map(slot => {
-        const studentProfile = slot.student_profiles as any;
-        const actualStudentId = slot.student_id || (slot.lessons as any)?.student_id;
-        
+      // Fetch student profile data in a separate query (no FK relationship to embed)
+      const studentIds = [...new Set(
+        rows
+          .map(r => r.student_id || (r.lesson_id ? lessonStudentMap[r.lesson_id] : null))
+          .filter(Boolean) as string[]
+      )];
+
+      let studentProfileMap: Record<string, any> = {};
+      if (studentIds.length > 0) {
+        const { data: profileRows } = await supabase
+          .from('student_profiles')
+          .select('user_id, cefr_level, final_cefr_level, grade_level')
+          .in('user_id', studentIds);
+        (profileRows || []).forEach((p: any) => {
+          studentProfileMap[p.user_id] = p;
+        });
+      }
+
+      const formattedSlots: AvailabilitySlot[] = rows.map(slot => {
+        const actualStudentId = slot.student_id || (slot.lesson_id ? lessonStudentMap[slot.lesson_id] : undefined);
+        const studentProfile = actualStudentId ? studentProfileMap[actualStudentId] : undefined;
+
         return {
           id: slot.id,
           teacherId: slot.teacher_id,
@@ -90,7 +91,7 @@ export const useTeacherAvailability = (teacherId: string, weekDays: Date[]) => {
           studentName: undefined,
           studentId: actualStudentId || undefined,
           studentCefrLevel: studentProfile?.cefr_level || undefined,
-          studentEmail: studentEmails[actualStudentId] || `student${actualStudentId?.slice(0, 4)}`,
+          studentEmail: actualStudentId ? `student${actualStudentId.slice(0, 4)}` : undefined,
           studentGradeLevel: studentProfile?.grade_level || undefined,
           studentFinalCefrLevel: studentProfile?.final_cefr_level || undefined,
         };
