@@ -1,94 +1,72 @@
 
 
-# Plan: Unify Classroom Entry, Fix Sidebar, Set Teacher Payouts
+# Plan: Real Names in Video, Working WebRTC Video Tiles, Clickable "Book a Lesson"
 
-## Root Cause Analysis
+## Root Causes
 
-### 1. "Session is private" / different classroom IDs (teacher vs student)
-The platform has **three competing room ID systems** living side-by-side. Different parts of the UI navigate to different ID flavors, so teacher and student literally enter different rooms:
+### 1. Wrong names in the video call
+`UnifiedClassroomPage` currently passes `user.user_metadata.full_name` as **both** `teacherName` (to `TeacherClassroom`) and `studentName` (to `StudentClassroom`). It never queries the booking's *other* participant. So:
+- The teacher sees `studentName="Emma"` (the hard-coded default in `TeacherClassroom`).
+- The student sees `teacherName="Teacher"` (a hard-coded literal in `StudentClassroom` line 276).
+- Neither side shows the **booker's** real name (the student who booked the lesson, fetched from `users.full_name` via `class_bookings.student_id`).
 
-| Source | Navigates to | Looked up in `UnifiedClassroomPage` as |
-|--------|-------------|----------------------------------------|
-| Teacher `NextLessonCard` | `/classroom/{lessons.id}` | ❌ Not found in `class_bookings` |
-| Student `DashboardTab` "Join Class" | `/classroom/{lessons.id}` | ❌ Not found |
-| Student `BookMyClassModal` confirmation | `/classroom/{class_bookings.classroom_id}` | ✅ Found via `classroom_id` fallback |
-| `useLiveClassroomStatus` (Live badge) | `/classroom/{classroom_sessions.room_id}` | ❌ Not found |
+### 2. Can't see each other on video
+WebRTC peer-to-peer **is** connecting (console confirms `Successfully connected to <peer>` and `Remote stream received`). The bug is purely UI: neither sidebar wires the streams into a `<video>` element.
 
-`UnifiedClassroomPage` only knows how to resolve `class_bookings.id` or `class_bookings.classroom_id`. So when you click "Join" from either dashboard, you land on a `lessons.id` URL → no booking → either "Booking Not Found" or (when a stale booking row coincidentally exists) **"This session is private"**.
+| Sidebar | Local stream | Remote stream |
+|---------|--------------|---------------|
+| Teacher's `CommunicationZone` | Wired to small "You" tile (line 107-114) ✓ | **Not wired** — the big "Student" tile (line 91-102) only shows a placeholder `<User>` icon |
+| Student's `StudentCommunicationSidebar` | **Not wired** — placeholder icon (line 60-62) | **Not wired** — placeholder emoji (line 45-47) |
 
-### 2. "Book a Lesson" not clickable
-In `StudentQuickActions`, the Book a Lesson button navigates to `/find-teacher{hubParam}`. That route works, but on the **Playground dashboard** the action is wired through `StudentWelcomeSection`/legacy routes — the button is rendered but its `onClick` is overridden by an absent handler in some hub dashboards. Also, in `StudentPackagesSection` and `QuickActions`, several "Book Lesson" buttons still navigate to `/student/book-lesson` — a legacy route that requires an active package and silently bounces when no package is found, making it appear unclickable.
+Result: both users see static avatar placeholders despite a healthy peer connection.
 
-### 3. Sidebar order
-Current order: `Dashboard → Learning Path → Sounds → Vocab → Milestones → My Lessons → Join Classroom → Assessments → Certificates → Teachers → Classes → Homework → Progress → Referrals → Profile`. User wants **Classes immediately after Dashboard, then Homework**.
+### 3. "Book a Lesson" button not clickable
+In `JoinLessonHero.tsx` (the prominent CTA shown on Academy/Playground/Hub dashboards when the student has no upcoming lessons), the **"Book a Lesson"** Button (line 163-172) has **no `onClick` handler**. That's the button the user is clicking.
 
-### 4. Teacher payouts not configurable per hub
-Teacher payout amounts are not centrally tied to hub. Need: Academy €7, Playground €3.50, Success €7.
-
-### 5. Student left bar visibility
-Sidebar uses shadcn `<Sidebar collapsible="icon">` which already supports collapse — but there's no obvious trigger button visible to students. Need a visible toggle.
+Bonus: harmless duplicate session-create error in console (`duplicate key value violates unique constraint "classroom_sessions_room_id_key"`) — a race when both peers create the row. Already handled gracefully but we'll patch it to upsert silently.
 
 ## Solution
 
-### A. Unify the Classroom ID (Single Source of Truth)
-Make `class_bookings.id` the ONE canonical room key everywhere.
-
-**Database migration**:
-- Backfill: for every existing `lessons` row that has a matching `class_bookings` row (same teacher_id + student_id + scheduled_at), make sure they are linked via `class_bookings.lesson_id`.
-- Add a SECURITY DEFINER RPC `resolve_classroom_id(any_id uuid)` that, given any of `class_bookings.id`, `class_bookings.classroom_id`, or `lessons.id`, returns the canonical `class_bookings.id`. This makes the page resilient to old links.
-
-**Frontend**:
-- Update `UnifiedClassroomPage` to use `resolve_classroom_id` so it accepts ANY of the three ID flavors and resolves to the correct booking.
-- Update `lessonService` and the upcoming-lessons RPCs (`get_teacher_upcoming_lessons`, `get_student_upcoming_lessons`) to also return `class_booking_id` so dashboards always navigate to the canonical key.
-- Update `DashboardTab.tsx` (line 211), `NextLessonCard.tsx` (line 64), `ClassesSection.tsx`, and `CommandCenter.tsx` to navigate using `class_booking_id` (with `lesson.id` as fallback for legacy rows the resolver will still handle).
-
-### B. Fix "Book a Lesson" Button
-- In `StudentQuickActions`, keep `Book a Lesson` → `/find-teacher?hub={studentLevel}` (already correct).
-- In `StudentPackagesSection` (line 157) and `QuickActions.tsx` (line 37), redirect to `/find-teacher?hub={hub}` instead of the dead `/student/book-lesson` route.
-- Ensure the button in `DashboardTab` empty state (line 172) navigates with the hub param.
-
-### C. Reorder Sidebar
-Update `menuItems` in `StudentSidebar.tsx` to:
+### A. Fetch booking participant names in `UnifiedClassroomPage`
+Extend the existing `class_bookings` query to also return the counterparty's `users.full_name`/`email`:
 ```
-Dashboard → Classes → Homework → Join Classroom → My Lessons →
-Learning Path → Sounds → Vocabulary Vault → Mastery Milestones →
-Assessments → Certificates → Teachers → Progress → Invite Friends → Profile
+SELECT cb.*, t:users!teacher_id(full_name, email), s:users!student_id(full_name, email)
 ```
+Pass both `teacherName` and `studentName` (resolved to the booker's real full name) into `TeacherClassroom` and `StudentClassroom`.
 
-### D. Sidebar Hide/Show
-Add a visible `<SidebarTrigger />` (chevron) to the student layout header so the bar can be collapsed/expanded with one click. Persist collapsed state to `localStorage`.
+### B. Wire WebRTC streams into both sidebars
+Pass `participants[0]?.stream` (remote) and `media.stream` (local) from `TeacherClassroom` / `StudentClassroom` down to their sidebars, then render `<video autoPlay playsInline>` elements.
 
-### E. Teacher Payout Per Hub
-Migration: add `hub_payout_eur` config table (or a `payout_amount_eur` column on a settings table) with rows:
-```
-playground   → 3.50
-academy      → 7.00
-professional → 7.00
-```
-- Update the booking-creation flow (`lessonPricingService.bookLessonWithPayment` and `BookMyClassModal`) to look up the hub rate and write it to `lessons.teacher_payout_amount` so existing payroll views automatically pick it up.
-- Add a Super Admin UI tile in the existing TeacherManagement dashboard to edit these three values.
+**`CommunicationZone` (teacher):**
+- Accept new props: `remoteStream` (student's video), keep `localStream` for "You" tile.
+- Replace the placeholder `<User>` icon in the big student tile with `<video srcObject={remoteStream}>`.
+- Show "Camera off" fallback when stream exists but track is disabled.
+
+**`StudentCommunicationSidebar` (student):**
+- Accept new props: `localStream`, `remoteStream`.
+- Replace teacher emoji with `<video srcObject={remoteStream}>`.
+- Replace student placeholder with `<video srcObject={localStream} muted>` (mirrored).
+
+### C. Fix "Book a Lesson" CTA in `JoinLessonHero`
+Add `onClick` to the empty-state Button: `navigate(\`/find-teacher?hub=${hubId}\`)`. Same on the lesson-active variant if there's a duplicate.
+
+### D. Silence duplicate-session race
+In `classroomSyncService.createOrUpdateSession`, replace the SELECT-then-INSERT with `.upsert({...}, { onConflict: 'room_id' })` so a parallel teacher/student insert does not throw the 23505.
 
 ## Files to Modify
-
 | File | Change |
 |------|--------|
-| `supabase/migrations/<new>.sql` | Add `resolve_classroom_id` RPC, update `get_teacher_upcoming_lessons` & `get_student_upcoming_lessons` to return `class_booking_id`, create `hub_payout_settings` table seeded with 3.50/7/7 |
-| `src/pages/UnifiedClassroomPage.tsx` | Use `resolve_classroom_id` RPC for lookup |
-| `src/services/lessonService.ts` | Add `class_booking_id` to `ScheduledLesson` interface |
-| `src/components/student/DashboardTab.tsx` | Navigate to `class_booking_id` |
-| `src/components/teacher/dashboard/NextLessonCard.tsx` | Navigate to `class_booking_id` |
-| `src/components/dashboard/ClassesSection.tsx` | Same |
-| `src/components/teacher/professional/CommandCenter.tsx` | Same |
-| `src/components/student/StudentSidebar.tsx` | Reorder menu items |
-| `src/components/student/dashboard/StudentPackagesSection.tsx` | Fix Book Lesson route |
-| `src/components/navigation/QuickActions.tsx` | Fix Book Lesson route |
-| `src/components/student/StudentPanel.tsx` (or layout) | Add visible `<SidebarTrigger />` |
-| `src/services/lessonPricingService.ts` | Read hub payout from settings |
-| `src/components/admin/TeacherManagement.tsx` | Add "Hub Payout Rates" editor card |
+| `src/pages/UnifiedClassroomPage.tsx` | Join `users` for both participants, pass real names |
+| `src/components/student/JoinLessonHero.tsx` | Add `onClick` → `/find-teacher?hub={hubId}` on Book a Lesson button |
+| `src/components/teacher/classroom/TeacherClassroom.tsx` | Pass `participants[0]?.stream` and `media.stream` to `CommunicationZone` |
+| `src/components/teacher/classroom/CommunicationZone.tsx` | Render `<video>` for remote student + local teacher |
+| `src/components/student/classroom/StudentClassroom.tsx` | Pass `media.stream` and `participants[0]?.stream` to sidebar; also pass real teacher name |
+| `src/components/student/classroom/StudentCommunicationSidebar.tsx` | Render `<video>` for remote teacher + local student |
+| `src/services/classroomSyncService.ts` | Use `upsert(..., onConflict: 'room_id')` to avoid 23505 race |
 
 ## Expected Result
-- Teacher and student click "Join Class" → both land in the **same `/classroom/{class_bookings.id}`** URL → both see each other.
-- "Book a Lesson" button always opens the find-teacher discovery (locked to student's hub).
-- Sidebar order matches request; trigger button collapses/expands the bar.
-- New bookings auto-record €3.50 / €7 / €7 payouts depending on hub; admins can edit live.
+- Teacher sidebar shows the **student's live video feed** with the **student's real full name** below it.
+- Student sidebar shows the **teacher's live video feed** with the teacher's real full name, plus the student's own self-view (mirrored).
+- "Book a Lesson" button on every empty-state hub dashboard navigates to `/find-teacher?hub=<student's hub>`.
+- No more `duplicate key` error spam in the console.
 
