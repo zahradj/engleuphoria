@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { User, Send } from 'lucide-react';
+import { User, Send, Mic, MicOff, Video, VideoOff } from 'lucide-react';
 import { InteractionToolsGrid } from './InteractionToolsGrid';
 
 interface CommunicationZoneProps {
@@ -24,6 +24,11 @@ interface CommunicationZoneProps {
   isVideoConnected?: boolean;
   isLocalCameraOff?: boolean;
   isRemoteConnected?: boolean;
+  // Remote control of student media (broadcast via session context)
+  studentMicMuted?: boolean;
+  studentCameraOff?: boolean;
+  onToggleStudentMic?: () => void;
+  onToggleStudentCamera?: () => void;
 }
 
 export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
@@ -44,7 +49,11 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
   remoteStream,
   isVideoConnected = false,
   isLocalCameraOff = false,
-  isRemoteConnected = false
+  isRemoteConnected = false,
+  studentMicMuted = false,
+  studentCameraOff = false,
+  onToggleStudentMic,
+  onToggleStudentCamera
 }) => {
   const [chatMessages, setChatMessages] = useState<Array<{ sender: string; text: string }>>([
     { sender: 'system', text: 'Class session started' }
