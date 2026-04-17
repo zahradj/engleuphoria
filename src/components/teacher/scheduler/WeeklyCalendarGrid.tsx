@@ -54,11 +54,21 @@ export const WeeklyCalendarGrid: React.FC<WeeklyCalendarGridProps> = ({
       );
     }
 
-    if (slot.status === 'booked' && slot.studentName) {
+    if (slot.status === 'booked') {
+      const tooltip = [slot.studentName, slot.studentEmail, slot.lessonTitle]
+        .filter(Boolean)
+        .join(' • ');
       return (
-        <span className="text-[10px] font-medium truncate">
-          {slot.studentName}
-        </span>
+        <div className="flex flex-col items-center justify-center px-1 w-full" title={tooltip}>
+          <span className="text-[10px] font-semibold truncate w-full text-center leading-tight">
+            {slot.studentName || 'Booked'}
+          </span>
+          {slot.lessonTitle && (
+            <span className="text-[9px] opacity-90 truncate w-full text-center leading-tight">
+              {slot.lessonTitle}
+            </span>
+          )}
+        </div>
       );
     }
 
