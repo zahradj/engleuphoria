@@ -162,6 +162,7 @@ export const JoinLessonHero: React.FC<JoinLessonHeroProps> = ({ hubId, isDark = 
           </div>
           <Button
             size="lg"
+            onClick={() => navigate(`/find-teacher?hub=${hubId}`)}
             className={cn(
               'text-white font-bold px-6 rounded-xl',
               GLOW_CLASS_MAP[hubId],

@@ -20,8 +20,10 @@ interface CommunicationZoneProps {
   onStopScreenShare?: () => void;
   screenShareStream?: MediaStream | null;
   localStream?: MediaStream | null;
+  remoteStream?: MediaStream | null;
   isVideoConnected?: boolean;
   isLocalCameraOff?: boolean;
+  isRemoteConnected?: boolean;
 }
 
 export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
@@ -39,8 +41,10 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
   onStopScreenShare,
   screenShareStream,
   localStream,
+  remoteStream,
   isVideoConnected = false,
-  isLocalCameraOff = false
+  isLocalCameraOff = false,
+  isRemoteConnected = false
 }) => {
   const [chatMessages, setChatMessages] = useState<Array<{ sender: string; text: string }>>([
     { sender: 'system', text: 'Class session started' }
@@ -48,6 +52,7 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
   const [newMessage, setNewMessage] = useState('');
   const screenShareVideoRef = useRef<HTMLVideoElement>(null);
   const teacherVideoRef = useRef<HTMLVideoElement>(null);
+  const studentVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (screenShareVideoRef.current && screenShareStream) {
@@ -60,6 +65,12 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
       teacherVideoRef.current.srcObject = localStream;
     }
   }, [localStream]);
+
+  useEffect(() => {
+    if (studentVideoRef.current && remoteStream) {
+      studentVideoRef.current.srcObject = remoteStream;
+    }
+  }, [remoteStream]);
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
@@ -89,16 +100,28 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
         )}
 
         {/* Student Video Container */}
-        <div className="relative aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden border-2 border-primary/30">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center">
-              <User className="w-10 h-10 text-gray-400" />
+        <div className="relative aspect-[4/3] bg-gray-900 rounded-lg overflow-hidden border-2 border-primary/30">
+          {remoteStream ? (
+            <video
+              ref={studentVideoRef}
+              autoPlay
+              playsInline
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+              <div className="text-center space-y-2">
+                <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center mx-auto">
+                  <User className="w-10 h-10 text-gray-400" />
+                </div>
+                <p className="text-[10px] text-gray-500">Waiting for student...</p>
+              </div>
             </div>
-          </div>
+          )}
           <div className="absolute bottom-2 left-2 bg-white/80 px-2 py-1 rounded text-xs text-gray-700 shadow-sm">
             {studentName}
           </div>
-          <div className="absolute top-2 right-2 h-2 w-2 rounded-full bg-emerald-500" />
+          <div className={`absolute top-2 right-2 h-2 w-2 rounded-full ${isRemoteConnected ? 'bg-emerald-500' : 'bg-gray-400'}`} />
         </div>
 
         {/* Teacher Video Container (smaller) */}
