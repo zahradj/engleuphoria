@@ -290,6 +290,7 @@ export const StudentManagement = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Student</TableHead>
+                  <TableHead>Hub</TableHead>
                   <TableHead>CEFR Level</TableHead>
                   <TableHead>Total Lessons</TableHead>
                   <TableHead>Joined</TableHead>
@@ -304,6 +305,21 @@ export const StudentManagement = () => {
                         <div className="font-medium">{student.full_name}</div>
                         <div className="text-sm text-muted-foreground">{student.email}</div>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={student.student_level || ''}
+                        onValueChange={(v) => handleHubChange(student.id, v as HubValue)}
+                      >
+                        <SelectTrigger className="w-[170px] h-8">
+                          <SelectValue placeholder="Set hub" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {HUBS.map(hub => (
+                            <SelectItem key={hub.value} value={hub.value}>{hub.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell>
                       <Select
