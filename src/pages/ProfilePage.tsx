@@ -16,13 +16,19 @@ export const ProfilePage: React.FC = () => {
           <div className="h-24 bg-gradient-to-r from-primary/80 to-primary/40 relative">
             <Avatar className="w-20 h-20 absolute -bottom-10 left-1/2 -translate-x-1/2 border-4 border-card shadow-lg">
               <AvatarFallback className="text-lg bg-primary/10 text-primary font-semibold">
-                {user?.email?.slice(0, 2).toUpperCase() || 'U'}
+                {(((user as any)?.full_name || (user?.user_metadata as any)?.full_name || user?.email || 'U') as string)
+                  .trim()
+                  .split(/\s+/)
+                  .map((p: string) => p[0])
+                  .slice(0, 2)
+                  .join('')
+                  .toUpperCase()}
               </AvatarFallback>
             </Avatar>
           </div>
           <CardHeader className="text-center pt-14">
             <CardTitle className="text-xl text-foreground">
-              {user?.email?.split('@')[0] || 'Student'}
+              {(user as any)?.full_name || (user?.user_metadata as any)?.full_name || 'Student'}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
