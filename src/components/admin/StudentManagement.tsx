@@ -9,6 +9,12 @@ import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] as const;
+const HUBS = [
+  { value: 'playground', label: 'Playground (Kids)' },
+  { value: 'academy', label: 'Academy (Teens)' },
+  { value: 'professional', label: 'Success (Adults)' },
+] as const;
+type HubValue = typeof HUBS[number]['value'];
 
 interface Student {
   id: string;
@@ -16,6 +22,7 @@ interface Student {
   email: string;
   created_at: string;
   cefr_level?: string;
+  student_level?: HubValue;
   total_lessons: number;
 }
 
