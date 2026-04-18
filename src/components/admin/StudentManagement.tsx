@@ -145,6 +145,27 @@ export const StudentManagement = () => {
     fetchStudents();
   }, []);
 
+  const handleLevelChange = async (studentId: string, newLevel: string) => {
+    const previous = students;
+    setStudents(prev =>
+      prev.map(s => (s.id === studentId ? { ...s, cefr_level: newLevel } : s))
+    );
+    try {
+      const { error } = await supabase
+        .from('student_profiles')
+        .upsert(
+          { user_id: studentId, cefr_level: newLevel },
+          { onConflict: 'user_id' }
+        );
+      if (error) throw error;
+      toast.success(`Level updated to ${newLevel}`);
+    } catch (err) {
+      console.error('Failed to update CEFR level:', err);
+      setStudents(previous);
+      toast.error('Could not update level');
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center text-muted-foreground">Loading student data...</div>
