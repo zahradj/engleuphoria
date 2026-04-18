@@ -145,9 +145,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const createFallbackUser = async (authUser: any): Promise<User> => {
     const role = (await fetchUserRoleFromDatabase(authUser.id)) ?? 'student';
     
+    const fallbackName =
+      authUser.user_metadata?.full_name ||
+      authUser.user_metadata?.name ||
+      authUser.email?.split('@')[0] ||
+      'User';
+
     return {
       id: authUser.id,
       email: authUser.email || '',
+      full_name: fallbackName,
       role: role,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
