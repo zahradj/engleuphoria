@@ -75,6 +75,7 @@ export const StudentManagement = () => {
             email: student.email || 'Unknown',
             created_at: student.created_at,
             cefr_level: student.student_profiles?.[0]?.cefr_level,
+            student_level: student.student_profiles?.[0]?.student_level,
             total_lessons: count || 0,
           };
         })
