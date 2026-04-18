@@ -53,7 +53,7 @@ export const StudentManagement = () => {
           full_name,
           email,
           created_at,
-          student_profiles(cefr_level)
+          student_profiles(cefr_level, student_level)
         `)
         .eq('role', 'student')
         .order('created_at', { ascending: false })
