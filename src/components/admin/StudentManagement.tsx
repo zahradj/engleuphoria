@@ -174,6 +174,28 @@ export const StudentManagement = () => {
     }
   };
 
+  const handleHubChange = async (studentId: string, newHub: HubValue) => {
+    const previous = students;
+    setStudents(prev =>
+      prev.map(s => (s.id === studentId ? { ...s, student_level: newHub } : s))
+    );
+    try {
+      const { error } = await supabase
+        .from('student_profiles')
+        .upsert(
+          { user_id: studentId, student_level: newHub },
+          { onConflict: 'user_id' }
+        );
+      if (error) throw error;
+      const label = HUBS.find(h => h.value === newHub)?.label ?? newHub;
+      toast.success(`Hub updated to ${label}`);
+    } catch (err) {
+      console.error('Failed to update hub:', err);
+      setStudents(previous);
+      toast.error('Could not update hub');
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center text-muted-foreground">Loading student data...</div>
