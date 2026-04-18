@@ -1,5 +1,4 @@
-import { ReactNode } from 'react';
-import { Helmet } from 'react-helmet-async';
+import { ReactNode, useEffect } from 'react';
 import { FooterSection } from '@/components/landing/FooterSection';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { Link } from 'react-router-dom';
@@ -17,13 +16,19 @@ export function LegalPageLayout({ title, description, lastUpdated, children }: L
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
 
+  useEffect(() => {
+    document.title = `${title} | EnglEuphoria`;
+    let descTag = document.querySelector('meta[name="description"]');
+    if (!descTag) {
+      descTag = document.createElement('meta');
+      descTag.setAttribute('name', 'description');
+      document.head.appendChild(descTag);
+    }
+    descTag.setAttribute('content', description);
+  }, [title, description]);
+
   return (
     <div className={`min-h-screen ${isDark ? 'bg-slate-950 text-slate-100' : 'bg-[#FAFAFA] text-slate-900'}`}>
-      <Helmet>
-        <title>{title} | EnglEuphoria</title>
-        <meta name="description" content={description} />
-        <link rel="canonical" href={`https://engleuphoria.com${window.location.pathname}`} />
-      </Helmet>
 
       {/* Simple top nav */}
       <header className={`sticky top-0 z-40 backdrop-blur-md border-b ${
