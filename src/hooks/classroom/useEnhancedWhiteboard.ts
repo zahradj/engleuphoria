@@ -11,6 +11,7 @@ export function useEnhancedWhiteboard() {
   const [zoom, setZoom] = useState(100);
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPoint, setStartPoint] = useState<{ x: number; y: number } | null>(null);
+  const initializedRef = useRef(false);
 
   const {
     saveState,
@@ -25,20 +26,42 @@ export function useEnhancedWhiteboard() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Set canvas size
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
+    const resize = () => {
+      const w = canvas.offsetWidth;
+      const h = canvas.offsetHeight;
+      if (w === 0 || h === 0) return;
 
-    // Fill with white background
-    ctx.fillStyle = "#FFFFFF";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Preserve existing strokes
+      let snapshot: ImageData | null = null;
+      if (canvas.width > 0 && canvas.height > 0) {
+        try {
+          snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        } catch {
+          snapshot = null;
+        }
+      }
 
-    // Save initial state
-    saveState();
+      canvas.width = w;
+      canvas.height = h;
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (snapshot) {
+        ctx.putImageData(snapshot, 0, 0);
+      }
+
+      if (!initializedRef.current) {
+        initializedRef.current = true;
+        saveState();
+      }
+    };
+
+    resize();
+    const observer = new ResizeObserver(resize);
+    observer.observe(canvas);
+    return () => observer.disconnect();
   }, [saveState]);
 
   // Handle keyboard shortcuts
@@ -80,6 +103,10 @@ export function useEnhancedWhiteboard() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Always reset compositing state so pen works after eraser/highlighter
+    ctx.globalCompositeOperation = "source-over";
+    ctx.globalAlpha = 1;
+
     const point = getCanvasCoordinates(e);
     setStartPoint(point);
     setIsDrawing(true);
@@ -102,6 +129,7 @@ export function useEnhancedWhiteboard() {
     const point = getCanvasCoordinates(e);
 
     if (activeTool === "pencil") {
+      ctx.globalCompositeOperation = "source-over";
       ctx.strokeStyle = color;
       ctx.lineWidth = brushSize;
       ctx.lineCap = "round";
@@ -110,6 +138,7 @@ export function useEnhancedWhiteboard() {
       ctx.lineTo(point.x, point.y);
       ctx.stroke();
     } else if (activeTool === "highlighter") {
+      ctx.globalCompositeOperation = "source-over";
       ctx.strokeStyle = color;
       ctx.lineWidth = brushSize * 2;
       ctx.lineCap = "round";
@@ -137,6 +166,10 @@ export function useEnhancedWhiteboard() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Reset to safe defaults before any shape drawing
+    ctx.globalCompositeOperation = "source-over";
+    ctx.globalAlpha = 1;
+
     const endPoint = getCanvasCoordinates(e);
 
     // Draw shapes
@@ -144,7 +177,6 @@ export function useEnhancedWhiteboard() {
       ctx.strokeStyle = color;
       ctx.lineWidth = brushSize;
       ctx.lineCap = "round";
-      ctx.globalAlpha = 1;
       ctx.beginPath();
       ctx.moveTo(startPoint.x, startPoint.y);
       ctx.lineTo(endPoint.x, endPoint.y);
@@ -153,15 +185,12 @@ export function useEnhancedWhiteboard() {
       ctx.strokeStyle = color;
       ctx.lineWidth = brushSize;
       ctx.lineCap = "round";
-      ctx.globalAlpha = 1;
 
-      // Draw line
       ctx.beginPath();
       ctx.moveTo(startPoint.x, startPoint.y);
       ctx.lineTo(endPoint.x, endPoint.y);
       ctx.stroke();
 
-      // Draw arrow head
       const angle = Math.atan2(endPoint.y - startPoint.y, endPoint.x - startPoint.x);
       const headLength = brushSize * 5;
       ctx.beginPath();
@@ -179,7 +208,6 @@ export function useEnhancedWhiteboard() {
     } else if (activeTool === "rectangle") {
       ctx.strokeStyle = color;
       ctx.lineWidth = brushSize;
-      ctx.globalAlpha = 1;
       ctx.strokeRect(
         startPoint.x,
         startPoint.y,
@@ -189,7 +217,6 @@ export function useEnhancedWhiteboard() {
     } else if (activeTool === "circle") {
       ctx.strokeStyle = color;
       ctx.lineWidth = brushSize;
-      ctx.globalAlpha = 1;
       const radius = Math.sqrt(
         Math.pow(endPoint.x - startPoint.x, 2) + Math.pow(endPoint.y - startPoint.y, 2)
       );
@@ -199,7 +226,6 @@ export function useEnhancedWhiteboard() {
     } else if (activeTool === "triangle") {
       ctx.strokeStyle = color;
       ctx.lineWidth = brushSize;
-      ctx.globalAlpha = 1;
       ctx.beginPath();
       ctx.moveTo(startPoint.x, endPoint.y);
       ctx.lineTo((startPoint.x + endPoint.x) / 2, startPoint.y);
@@ -220,6 +246,8 @@ export function useEnhancedWhiteboard() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    ctx.globalCompositeOperation = "source-over";
+    ctx.globalAlpha = 1;
     ctx.fillStyle = "#FFFFFF";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     clearHistory();

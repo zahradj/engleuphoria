@@ -46,19 +46,25 @@ export function EnhancedWhiteboard() {
         onDownload={downloadCanvas}
       />
 
-      <div className="flex-1 relative overflow-hidden">
-        <canvas
-          ref={canvasRef}
-          className="w-full h-full cursor-crosshair bg-white rounded-xl shadow-soft"
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
+      <div className="flex-1 relative overflow-auto min-h-[400px] rounded-xl">
+        <div
+          className="w-full h-full min-h-[400px]"
           style={{
             transform: `scale(${zoom / 100})`,
-            transformOrigin: "center center"
+            transformOrigin: "top left",
+            width: `${10000 / zoom}%`,
+            height: `${10000 / zoom}%`,
           }}
-        />
+        >
+          <canvas
+            ref={canvasRef}
+            className="w-full h-full cursor-crosshair bg-white rounded-xl shadow-soft block"
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+          />
+        </div>
       </div>
     </div>
   );
