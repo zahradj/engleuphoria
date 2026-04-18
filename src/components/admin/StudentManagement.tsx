@@ -9,6 +9,12 @@ import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] as const;
+const HUBS = [
+  { value: 'playground', label: 'Playground (Kids)' },
+  { value: 'academy', label: 'Academy (Teens)' },
+  { value: 'professional', label: 'Success (Adults)' },
+] as const;
+type HubValue = typeof HUBS[number]['value'];
 
 interface Student {
   id: string;
@@ -16,6 +22,7 @@ interface Student {
   email: string;
   created_at: string;
   cefr_level?: string;
+  student_level?: HubValue;
   total_lessons: number;
 }
 
@@ -46,7 +53,7 @@ export const StudentManagement = () => {
           full_name,
           email,
           created_at,
-          student_profiles(cefr_level)
+          student_profiles(cefr_level, student_level)
         `)
         .eq('role', 'student')
         .order('created_at', { ascending: false })
@@ -68,6 +75,7 @@ export const StudentManagement = () => {
             email: student.email || 'Unknown',
             created_at: student.created_at,
             cefr_level: student.student_profiles?.[0]?.cefr_level,
+            student_level: student.student_profiles?.[0]?.student_level,
             total_lessons: count || 0,
           };
         })
@@ -166,6 +174,28 @@ export const StudentManagement = () => {
     }
   };
 
+  const handleHubChange = async (studentId: string, newHub: HubValue) => {
+    const previous = students;
+    setStudents(prev =>
+      prev.map(s => (s.id === studentId ? { ...s, student_level: newHub } : s))
+    );
+    try {
+      const { error } = await supabase
+        .from('student_profiles')
+        .upsert(
+          { user_id: studentId, student_level: newHub },
+          { onConflict: 'user_id' }
+        );
+      if (error) throw error;
+      const label = HUBS.find(h => h.value === newHub)?.label ?? newHub;
+      toast.success(`Hub updated to ${label}`);
+    } catch (err) {
+      console.error('Failed to update hub:', err);
+      setStudents(previous);
+      toast.error('Could not update hub');
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center text-muted-foreground">Loading student data...</div>
@@ -260,6 +290,7 @@ export const StudentManagement = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Student</TableHead>
+                  <TableHead>Hub</TableHead>
                   <TableHead>CEFR Level</TableHead>
                   <TableHead>Total Lessons</TableHead>
                   <TableHead>Joined</TableHead>
@@ -274,6 +305,21 @@ export const StudentManagement = () => {
                         <div className="font-medium">{student.full_name}</div>
                         <div className="text-sm text-muted-foreground">{student.email}</div>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={student.student_level || ''}
+                        onValueChange={(v) => handleHubChange(student.id, v as HubValue)}
+                      >
+                        <SelectTrigger className="w-[170px] h-8">
+                          <SelectValue placeholder="Set hub" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {HUBS.map(hub => (
+                            <SelectItem key={hub.value} value={hub.value}>{hub.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell>
                       <Select
