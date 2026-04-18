@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { Users, Calendar, TrendingUp, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
+const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] as const;
 
 interface Student {
   id: string;
@@ -252,11 +255,19 @@ export const StudentManagement = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {student.cefr_level ? (
-                        <Badge variant="outline">{student.cefr_level}</Badge>
-                      ) : (
-                        <span className="text-muted-foreground">Not set</span>
-                      )}
+                      <Select
+                        value={student.cefr_level || ''}
+                        onValueChange={(v) => handleLevelChange(student.id, v)}
+                      >
+                        <SelectTrigger className="w-[110px] h-8">
+                          <SelectValue placeholder="Set level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CEFR_LEVELS.map(level => (
+                            <SelectItem key={level} value={level}>{level}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell>{student.total_lessons}</TableCell>
                     <TableCell>
