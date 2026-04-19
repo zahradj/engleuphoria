@@ -19,6 +19,7 @@ import { HiringKanbanBoard } from '@/components/admin/HiringKanbanBoard';
 import { StaffOperations } from '@/components/admin/StaffOperations';
 import { TeacherProfileReviewQueue } from '@/components/admin/TeacherProfileReviewQueue';
 import { TestCreditButton } from '@/components/admin/TestCreditButton';
+import { DesktopOnlyNotice } from '@/components/admin/DesktopOnlyNotice';
 import { ScrollHeader } from '@/components/navigation/ScrollHeader';
 import { Loader2, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -138,11 +139,13 @@ const AdminDashboard = () => {
         <AdminHeader />
         
         <main className="p-6">
-          {/* Admin Quick Actions */}
-          <div className="mb-4 flex items-center gap-3">
-            <TestCreditButton />
-          </div>
-          {renderActiveTab()}
+          <DesktopOnlyNotice toolName="The Admin Dashboard">
+            {/* Admin Quick Actions */}
+            <div className="mb-4 flex items-center gap-3">
+              <TestCreditButton />
+            </div>
+            {renderActiveTab()}
+          </DesktopOnlyNotice>
         </main>
       </div>
     </div>
