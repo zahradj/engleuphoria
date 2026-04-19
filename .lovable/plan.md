@@ -1,63 +1,66 @@
 
+# Plan — Mobile/Phone Version of Engleuphoria
 
-# Plan — Fix Classroom Tools + Paddle Legal Pages
+"Everything" is huge — Engleuphoria has 3 hubs, student/teacher/admin dashboards, classroom, scheduler, lesson player, content creator. Some mobile infrastructure already exists (`MobileOptimizedLayout`, `MobileNavigation`, `MobileHeader`, `useIsMobile`, `MobileAwarePage`) but isn't applied consistently. I'll roll it out across the platform in phases, prioritizing what students and teachers actually use on phones.
 
-## Part 1: Fix Whiteboard / Slides / Web Content / Pen Tool
+## Phase 1 — Mobile Student Experience (highest impact)
+- **Landing & auth**: Audit `/`, `/student-signup`, `/auth` for single-column layout, large tap targets (≥44px), readable type
+- **Hub dashboards** (`/playground`, `/academy`, `/hub`): Stacked cards, swipeable unit carousel, sticky bottom nav (Home / Lessons / Book / Profile)
+- **Lesson player / Focus Reader**: Full-screen, swipe between slides, bottom-bar controls, large CTAs for activities (drag-drop, MCQ, mimic)
+- **Booking flow** (`/find-teacher` → profile → slot picker): Vertical teacher cards, day-tab calendar (replaces grid), sticky "Confirm Booking" bar
+- **Profile & Vault**: Stacked sections, bento-grid → 2-column on phone
 
-**Diagnosis**: The classroom uses `EnhancedWhiteboard` (modern variant). The pen tool fails because `useEnhancedWhiteboard.ts` initializes the canvas size only once on mount. When the whiteboard tab is hidden then shown, `canvas.offsetWidth` returns 0, and the `globalCompositeOperation = "destination-out"` from the eraser is not reset properly, so subsequent pen strokes draw nothing visible. Slides panel + embed (web content) tool also rely on the same canvas being live.
+## Phase 2 — Mobile Teacher Experience
+- **Teacher dashboard**: Collapsible cards, bottom nav (Dashboard / Schedule / Students / Profile)
+- **Schedule/availability**: Replace weekly grid with vertical day-by-day list with chip slots (grid is unusable on 430px)
+- **Next Lesson card**: Sticky bottom "Enter Classroom" CTA when session is live
 
-**Fixes (`src/hooks/classroom/useEnhancedWhiteboard.ts`)**:
-1. Use `ResizeObserver` to keep the canvas sized to its container; redraw white background on resize without wiping strokes.
-2. Reset `globalCompositeOperation = "source-over"` and `globalAlpha = 1` at the start of every `handleMouseDown` so pen always works after using eraser/highlighter.
-3. Guard against zero-size init (defer until container has dimensions).
+## Phase 3 — Mobile Classroom (most complex)
+- Tabbed mobile UI: **[Whiteboard] [Slides] [Chat] [Video]** — one tool fills screen at a time
+- Floating PiP for student/teacher video while on whiteboard or slides
+- Touch-optimized whiteboard: bigger tool buttons, color sheet, palm-rejection
+- Bottom sheet for tools, settings, observation tags
 
-**Fixes (`src/components/classroom/modern/EnhancedWhiteboard.tsx`)**:
-- Remove the `transform: scale()` zoom on the canvas element (it breaks coordinate math); apply zoom via a wrapper div instead, or recompute `getCanvasCoordinates` to account for it.
-- Ensure the canvas container has explicit `min-h-[400px]` so it has measurable size on first render.
+## Phase 4 — Admin & Content Creator
+- Show "Best experienced on desktop — open on a computer for full editing" notice on phones
+- Allow read-only viewing of admin dashboards (student list, teacher queue) but redirect heavy CRUD to desktop
 
-**Embed / Web Content tool**: Verify the embed dialog (`EmbedLinkDialog`) is wired into the active toolbar. If the modern toolbar lacks the embed button, add a "Web Content" button that opens the dialog and renders embedded iframes as overlays on the canvas.
+## Phase 5 — Installable PWA (Add to Home Screen)
+- Install `vite-plugin-pwa`, configure manifest with Engleuphoria branding (orange/purple/green hub colors), generate 192/512 icons from existing logo
+- Add iOS meta tags to `index.html`, splash screens
+- Service worker with offline fallback for last-viewed lesson; **denylist `/~oauth`** so OAuth always hits network
+- Create `/install` page with "Add to Home Screen" instructions for iOS Safari + Android Chrome
+- Show install prompt banner once per user (dismissible)
 
-**Slides panel**: Confirm `ModernLessonSlidesPanel` arrow keys + thumbnail click still navigate; no logic changes expected — only verify after whiteboard fix.
+## Cross-cutting changes
+- Wrap top-level routes in `MobileAwarePage` so mobile/desktop layouts auto-switch via `useIsMobile()`
+- Audit Tailwind classes: replace `flex` with `flex-col md:flex-row`, `grid-cols-3` with `grid-cols-1 sm:grid-cols-2 md:grid-cols-3`, hide desktop sidebars on `<md`
+- Add safe-area insets (`env(safe-area-inset-bottom)`) to bottom nav for iPhone notch
+- Respect `useMobileOptimizations()` to reduce animations on mobile / low battery
 
-## Part 2: Paddle Legal Pages
+## Files Touched (high-level)
 
-**Create three new pages** under `src/pages/legal/`:
-1. `TermsOfServicePage.tsx` → route `/terms-of-service`
-2. `PrivacyPolicyPage.tsx` → route `/privacy-policy`
-3. `RefundPolicyPage.tsx` → route `/refund-policy`
+**New**:
+- `src/components/mobile/MobileBottomNav.tsx` (student + teacher variants)
+- `src/components/mobile/MobileTeacherNav.tsx`
+- `src/components/classroom/mobile/MobileClassroomLayout.tsx`
+- `src/components/teacher/scheduler/MobileScheduleList.tsx`
+- `src/pages/InstallPage.tsx`
+- `public/manifest.json`, `public/icons/icon-192.png`, `public/icons/icon-512.png`
+- `vite.config.ts` (PWA plugin)
 
-**Shared layout**: One `LegalPageLayout.tsx` wrapper with:
-- `NavHeader` at top
-- Glassmorphic content card, max-width 800px, Inter typography
-- Section anchors, last-updated date
-- `FooterSection` at bottom
-
-**Content** uses the user-provided drafts plus the Hub-specific clauses from project memory:
-- ToS: User accounts, content ownership, prohibited conduct, **Hub system definition** (Playground 30m / Academy 60m / Success 60m).
-- Privacy: Supabase auth/data, Paddle payments, camera/mic usage during live lessons, optional session recording for quality.
-- Refund: **5-day (120-hour) cancellation rule**, trial lessons non-refundable, credit-only refund model.
-
-**Routing (`src/App.tsx`)**: Add three public `<Route>` entries with lazy `Suspense` loading, matching existing patterns.
-
-**Footer update (`src/components/landing/FooterSection.tsx`)**: Add a new "Legal" column with the 3 links so they appear on every landing/marketing page (Paddle requirement).
-
-## Files Touched
-
-**Whiteboard fixes** (3):
-- `src/hooks/classroom/useEnhancedWhiteboard.ts`
-- `src/components/classroom/modern/EnhancedWhiteboard.tsx`
-- `src/components/classroom/modern/EnhancedWhiteboardToolbar.tsx` (add embed/web-content button if missing)
-
-**Legal pages** (5 new + 2 edits):
-- `src/pages/legal/LegalPageLayout.tsx` (new)
-- `src/pages/legal/TermsOfServicePage.tsx` (new)
-- `src/pages/legal/PrivacyPolicyPage.tsx` (new)
-- `src/pages/legal/RefundPolicyPage.tsx` (new)
-- `src/App.tsx` (add 3 routes)
-- `src/components/landing/FooterSection.tsx` (add Legal column)
+**Edited**:
+- All hub dashboards (`PlaygroundDashboard`, `AcademyDashboard`, `ProfessionalHub`)
+- `LessonReaderPage`, lesson player slide components
+- `FindTeacherPage`, teacher profile, booking dialog
+- `TeacherDashboard`, `NextLessonCard`, scheduler components
+- `ClassroomLayout`, `EnhancedWhiteboard`, video panels, chat panel
+- `AdminDashboard`, content creator pages (add desktop-only notice)
+- `App.tsx` (PWA registration + `/install` route)
+- `index.html` (PWA meta tags, theme-color per hub)
 
 ## Outcome
+A platform that works beautifully on phones for students (browse → book → learn) and teachers (check schedule → enter class), with a mobile-optimized classroom, plus installable as a PWA so users can tap the icon on their home screen and launch like a native app. Admin/creator tools intentionally stay desktop-first.
 
-- Pen, eraser, highlighter, shapes, embed (web content), and slide navigation all work reliably in the classroom — no more dead canvas after tab switch or eraser use.
-- Three Paddle-compliant legal pages live at the exact URLs Paddle requires, linked from every page footer, with Engleuphoria's Hub-specific rules baked in.
-
+## Question Before Building
+Should I do **all 5 phases at once** (large change, hits everything), or should I start with **Phase 1 + Phase 5 (Student + PWA)** so you can ship a usable mobile app to students immediately, then layer in teacher/classroom/admin in follow-ups? I'd recommend the phased approach — please confirm or tell me to do it all.
