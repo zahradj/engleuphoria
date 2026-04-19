@@ -8,6 +8,8 @@ import { StudentsTab } from "./StudentsTab";
 import { AssignmentsTab } from "./AssignmentsTab";
 import { MessagesTab } from "./MessagesTab";
 import { TeacherClassroom } from "./classroom/TeacherClassroom";
+import { MobileTeacherNav } from "./mobile/MobileTeacherNav";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface TeacherPanelProps {
   teacherId?: string;
@@ -20,6 +22,7 @@ export const TeacherPanel = ({
 }: TeacherPanelProps) => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const { signOut } = useAuth();
+  const isMobile = useIsMobile();
 
   const renderActiveTab = () => {
     switch (activeTab) {
@@ -41,15 +44,24 @@ export const TeacherPanel = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
-      <TeacherSidebar 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab}
-        onLogout={signOut}
-      />
-      
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col md:flex-row">
+      {isMobile ? (
+        <MobileTeacherNav
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          onLogout={signOut}
+          teacherName={teacherName}
+        />
+      ) : (
+        <TeacherSidebar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          onLogout={signOut}
+        />
+      )}
+
       <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-3 md:p-6 pb-20 md:pb-6">
           {renderActiveTab()}
         </main>
       </div>
