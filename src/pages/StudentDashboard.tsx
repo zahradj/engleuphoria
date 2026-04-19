@@ -26,6 +26,8 @@ import { QuickActions } from "@/components/navigation/QuickActions";
 import { AssessmentsTab } from "@/components/student/tabs/AssessmentsTab";
 import { CertificatesTab } from "@/components/student/tabs/CertificatesTab";
 import { ReferralTab } from "@/components/student/tabs/ReferralTab";
+import { MobileBottomNav, type StudentNavTab } from "@/components/mobile/MobileBottomNav";
+import { InstallPrompt } from "@/components/mobile/InstallPrompt";
 
 // Hub-specific mesh gradient blob configs
 const HUB_MESH_COLORS: Record<string, { blobs: string[]; darkBlobs: string[] }> = {
@@ -269,8 +271,11 @@ const StudentDashboard = () => {
               hasProfile={hasProfile}
               studentProfile={studentProfile}
             />
-            <main className="flex-1 overflow-y-auto p-4 md:p-6">
-              <div className="max-w-7xl mx-auto">
+            <main
+              className="flex-1 overflow-y-auto p-4 md:p-6"
+              style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 80px)' }}
+            >
+              <div className="max-w-7xl mx-auto pb-4 md:pb-0">
                 <div className="mb-4 flex items-center justify-between">
                   <SidebarTrigger className={`lg:hidden backdrop-blur-xl rounded-xl p-3 border shadow-md transition-colors ${
                     hubKey === 'playground'
@@ -285,6 +290,13 @@ const StudentDashboard = () => {
               </div>
             </main>
           </div>
+
+          {/* Mobile-only bottom navigation + install prompt */}
+          <MobileBottomNav
+            activeTab={activeTab}
+            onTabChange={(tab: StudentNavTab) => setActiveTab(tab)}
+          />
+          <InstallPrompt />
         </div>
       </SidebarProvider>
     </ErrorBoundary>

@@ -48,6 +48,7 @@ const SetPassword = lazy(() => import("./pages/SetPassword"));
 const TermsOfServicePage = lazy(() => import("./pages/legal/TermsOfServicePage"));
 const PrivacyPolicyPage = lazy(() => import("./pages/legal/PrivacyPolicyPage"));
 const RefundPolicyPage = lazy(() => import("./pages/legal/RefundPolicyPage"));
+const InstallPage = lazy(() => import("./pages/InstallPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -104,6 +105,9 @@ const App = () => {
                       <Route path="/terms-of-service" element={<Suspense fallback={<LoadingFallback />}><TermsOfServicePage /></Suspense>} />
                       <Route path="/privacy-policy" element={<Suspense fallback={<LoadingFallback />}><PrivacyPolicyPage /></Suspense>} />
                       <Route path="/refund-policy" element={<Suspense fallback={<LoadingFallback />}><RefundPolicyPage /></Suspense>} />
+
+                      {/* PWA install instructions */}
+                      <Route path="/install" element={<Suspense fallback={<LoadingFallback />}><InstallPage /></Suspense>} />
 
                       {/* Assessment Routes */}
                       <Route path="/assessment/:assessmentId" element={
