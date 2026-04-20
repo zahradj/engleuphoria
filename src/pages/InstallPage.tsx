@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Smartphone, Share, Plus, Download, ArrowLeft, Check } from 'lucide-react';
+import { Share, Plus, Download, ArrowLeft, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { usePWA } from '@/hooks/usePWA';
+import { Logo } from '@/components/Logo';
+import AnimatedLogo from '@/components/ui/AnimatedLogo';
 
 type Platform = 'ios' | 'android' | 'desktop';
 
