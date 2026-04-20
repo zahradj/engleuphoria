@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Smartphone, Share, Plus, Download, ArrowLeft, Check } from 'lucide-react';
+import { Share, Plus, Download, ArrowLeft, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { usePWA } from '@/hooks/usePWA';
+import { Logo } from '@/components/Logo';
+import AnimatedLogo from '@/components/ui/AnimatedLogo';
 
 type Platform = 'ios' | 'android' | 'desktop';
 
@@ -38,10 +40,13 @@ const InstallPage: React.FC = () => {
         </Link>
 
         <div className="text-center mb-8">
-          <div className="inline-flex p-4 rounded-3xl bg-gradient-to-br from-orange-500/20 via-purple-500/20 to-emerald-500/20 backdrop-blur-xl mb-4 ring-1 ring-border">
-            <Smartphone className="w-12 h-12 text-primary" />
+          <div className="flex justify-center mb-4">
+            <Logo size="xlarge" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">Install Engleuphoria</h1>
+          <div className="relative inline-flex p-6 rounded-3xl bg-gradient-to-br from-orange-500/20 via-purple-500/20 to-emerald-500/20 backdrop-blur-xl mb-6 ring-1 ring-border">
+            <AnimatedLogo size="lg" />
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight mb-2">Download the App</h1>
           <p className="text-muted-foreground">
             Add Engleuphoria to your home screen for the fastest, most app-like experience.
             Works offline for cached lessons. No app store required.
