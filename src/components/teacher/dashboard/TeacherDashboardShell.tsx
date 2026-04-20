@@ -109,9 +109,14 @@ export const TeacherDashboardShell = ({
       )}
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 py-6 pb-24 md:pb-6">
         {renderContent()}
       </main>
+
+      {/* Mobile Bottom Nav */}
+      {status === 'APPROVED' && (
+        <MobileTeacherBottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      )}
 
       {/* Floating Help Button */}
       <FloatingHelpButton />
