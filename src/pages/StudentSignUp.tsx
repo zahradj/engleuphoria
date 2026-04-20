@@ -17,7 +17,7 @@ import { determineStudentLevel } from "@/hooks/useStudentLevel";
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
-  age: z.number().min(5).max(18, { message: "Age must be between 5 and 18" }),
+  age: z.number().min(5, { message: "Age must be at least 5" }).max(99, { message: "Please enter a valid age" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
   confirmPassword: z.string().min(6, { message: "Please confirm your password" }),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -123,22 +123,21 @@ const StudentSignUp = () => {
       }
 
       if (data?.user) {
-        // Verify profile was created, if not create it manually (fallback for trigger failures)
+        // Determine system tag and student level based on age
+        const systemTag = values.age >= 4 && values.age <= 10 ? 'KIDS'
+                        : values.age >= 11 && values.age <= 17 ? 'TEENS'
+                        : 'ADULTS';
+        const studentLevel = determineStudentLevel(values.age);
+
+        // Verify users row exists (trigger should have created it). If not, create it.
         const { data: existingProfile } = await supabase
           .from('users')
           .select('id')
           .eq('id', data.user.id)
           .maybeSingle();
-        
+
         if (!existingProfile) {
-          console.log('Trigger failed to create student profile, creating manually...');
-          
-          // Determine system tag and student level based on age
-          const systemTag = values.age >= 4 && values.age <= 10 ? 'KIDS' 
-                          : values.age >= 11 && values.age <= 17 ? 'TEENS' 
-                          : 'ADULTS';
-          const studentLevel = determineStudentLevel(values.age);
-          
+          console.log('Trigger failed to create user row, creating manually...');
           await supabase.from('users').insert({
             id: data.user.id,
             email: values.email,
@@ -146,20 +145,30 @@ const StudentSignUp = () => {
             role: 'student',
             current_system: systemTag
           });
-          
           await supabase.from('user_roles').insert({
             user_id: data.user.id,
             role: 'student'
           });
+        } else {
+          // Ensure current_system is set on the users row
+          await supabase.from('users').update({ current_system: systemTag }).eq('id', data.user.id);
+        }
 
-          // Create student profile with student_level
-          await supabase.from('student_profiles').insert({
+        // ALWAYS upsert student_profiles with the age-derived student_level.
+        // The DB trigger does NOT create student_profiles, so without this,
+        // student_level is null and the dashboard router falls back to /playground.
+        const { error: profileError } = await supabase.from('student_profiles').upsert(
+          {
             user_id: data.user.id,
             student_level: studentLevel,
-            onboarding_completed: false
-          });
-          
-          console.log('Manually created student profile for:', values.email, 'with level:', studentLevel);
+            onboarding_completed: false,
+          },
+          { onConflict: 'user_id' }
+        );
+        if (profileError) {
+          console.error('Failed to upsert student_profiles:', profileError);
+        } else {
+          console.log('✅ student_profiles set for', values.email, '→ level:', studentLevel);
         }
 
         toast({
