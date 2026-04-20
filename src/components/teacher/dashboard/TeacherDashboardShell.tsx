@@ -14,6 +14,7 @@ import { Loader2 } from 'lucide-react';
 import { FloatingHelpButton } from '@/components/support/FloatingHelpButton';
 import { ThemeModeToggle } from '@/components/ui/ThemeModeToggle';
 import { WelcomeSuccessModal } from './WelcomeSuccessModal';
+import { MobileTeacherBottomNav } from './MobileTeacherBottomNav';
 
 type TabType = 'dashboard' | 'schedule' | 'analytics' | 'methodology' | 'account' | 'teacher-hub' | 'help';
 
@@ -108,9 +109,14 @@ export const TeacherDashboardShell = ({
       )}
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 py-6 pb-24 md:pb-6">
         {renderContent()}
       </main>
+
+      {/* Mobile Bottom Nav */}
+      {status === 'APPROVED' && (
+        <MobileTeacherBottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      )}
 
       {/* Floating Help Button */}
       <FloatingHelpButton />
