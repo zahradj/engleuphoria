@@ -14,6 +14,7 @@ import { Loader2 } from 'lucide-react';
 import { FloatingHelpButton } from '@/components/support/FloatingHelpButton';
 import { ThemeModeToggle } from '@/components/ui/ThemeModeToggle';
 import { WelcomeSuccessModal } from './WelcomeSuccessModal';
+import { MobileTeacherBottomNav } from './MobileTeacherBottomNav';
 
 type TabType = 'dashboard' | 'schedule' | 'analytics' | 'methodology' | 'account' | 'teacher-hub' | 'help';
 
