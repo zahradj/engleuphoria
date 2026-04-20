@@ -15,7 +15,8 @@ import {
   CourseOfferingsSection,
   PersonalizedPathSection,
   GamificationSection,
-  FinalCTASection
+  FinalCTASection,
+  AppDownloadSection
 } from '@/components/landing';
 
 export default function LandingPage() {
@@ -38,6 +39,7 @@ export default function LandingPage() {
         <PersonalizedPathSection />
         <GamificationSection />
         <PricingSection />
+        <AppDownloadSection />
         <TestimonialsSection />
         <FinalCTASection />
         <ContactSection />
