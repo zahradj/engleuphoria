@@ -46,7 +46,7 @@ const Dashboard: React.FC = () => {
       if (studentLoading) return;
 
       if (!onboardingCompleted && studentLevel) {
-        setRedirectPath('/onboarding');
+        setRedirectPath('/hub-confirmation');
         return;
       }
 

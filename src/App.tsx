@@ -49,6 +49,7 @@ const TermsOfServicePage = lazy(() => import("./pages/legal/TermsOfServicePage")
 const PrivacyPolicyPage = lazy(() => import("./pages/legal/PrivacyPolicyPage"));
 const RefundPolicyPage = lazy(() => import("./pages/legal/RefundPolicyPage"));
 const InstallPage = lazy(() => import("./pages/InstallPage"));
+const HubConfirmation = lazy(() => import("./pages/HubConfirmation"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -231,6 +232,13 @@ const App = () => {
                       <Route path="/onboarding" element={
                         <ImprovedProtectedRoute requiredRole="student">
                           <Suspense fallback={<LoadingFallback />}><StudentOnboardingFlow /></Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
+
+                      {/* Hub Confirmation — post-signup step */}
+                      <Route path="/hub-confirmation" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <Suspense fallback={<LoadingFallback />}><HubConfirmation /></Suspense>
                         </ImprovedProtectedRoute>
                       } />
 
