@@ -121,19 +121,19 @@ const App = () => {
                         </ImprovedProtectedRoute>
                       } />
 
-                      {/* Student Dashboard Routes - Protected */}
+                      {/* Student Dashboard Routes - Protected with hub-level guards */}
                       <Route path="/playground/*" element={
-                        <ImprovedProtectedRoute requiredRole="student">
+                        <ImprovedProtectedRoute requiredRole="student" requiredStudentLevel="playground">
                           <Suspense fallback={<LoadingFallback />}><StudentDashboard /></Suspense>
                         </ImprovedProtectedRoute>
                       } />
                       <Route path="/academy/*" element={
-                        <ImprovedProtectedRoute requiredRole="student">
+                        <ImprovedProtectedRoute requiredRole="student" requiredStudentLevel="academy">
                           <Suspense fallback={<LoadingFallback />}><StudentDashboard /></Suspense>
                         </ImprovedProtectedRoute>
                       } />
                       <Route path="/hub/*" element={
-                        <ImprovedProtectedRoute requiredRole="student">
+                        <ImprovedProtectedRoute requiredRole="student" requiredStudentLevel="professional">
                           <Suspense fallback={<LoadingFallback />}><StudentDashboard /></Suspense>
                         </ImprovedProtectedRoute>
                       } />
