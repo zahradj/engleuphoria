@@ -23,7 +23,7 @@ const TeacherDashboard = () => {
 
     if (user.role !== "teacher") {
       if (user.role === "student") {
-        navigate("/playground");
+        navigate("/dashboard");
       } else if (user.role === "admin") {
         navigate("/super-admin");
       } else {

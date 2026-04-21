@@ -42,7 +42,7 @@ const StudentClassroomPage: React.FC = () => {
   }
 
   if (!roomId) {
-    return <Navigate to="/playground" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   if (!user) {
@@ -51,7 +51,7 @@ const StudentClassroomPage: React.FC = () => {
 
   // If booking not found or user is not the student, redirect
   if (!booking || booking.student_id !== user.id) {
-    return <Navigate to="/playground" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   if (!preFlightPassed) {
