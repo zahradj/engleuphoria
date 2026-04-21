@@ -292,7 +292,7 @@ const StudentSignUp = () => {
                         <Input 
                           type="number" 
                           min="5" 
-                          max="18" 
+                          max="99" 
                           placeholder="Your age" 
                           {...field} 
                           onChange={(e) => field.onChange(parseInt(e.target.value) || 10)}
