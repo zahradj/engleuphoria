@@ -149,7 +149,7 @@ const StudentApplication = () => {
       });
       
       setTimeout(() => {
-        navigate('/playground');
+        navigate('/dashboard');
       }, 1500);
       
     } catch (error) {
