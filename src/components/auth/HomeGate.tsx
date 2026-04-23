@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStudentLevel, getStudentDashboardRoute } from '@/hooks/useStudentLevel';
+import LandingPage from '@/pages/LandingPage';
 
 export const HomeGate: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
@@ -20,7 +21,7 @@ export const HomeGate: React.FC = () => {
   }
 
   if (!user) {
-    return <Navigate to="/" replace />;
+    return <LandingPage />;
   }
 
   const role = (user as any).role;
@@ -29,6 +30,7 @@ export const HomeGate: React.FC = () => {
   if (role === 'teacher') return <Navigate to="/teacher" replace />;
   if (role === 'parent') return <Navigate to="/parent" replace />;
   if (role === 'student' && studentLevel) return <Navigate to={getStudentDashboardRoute(studentLevel)} replace />;
+
 
   return <Navigate to="/dashboard" replace />;
 };
