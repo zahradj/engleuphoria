@@ -345,6 +345,8 @@ export const useClassroomSync = ({
     sharedNotes: session?.sharedNotes ?? '',
     sessionContext: session?.sessionContext ?? {},
     activeCanvasTab: session?.activeCanvasTab ?? 'slides',
+    stageMode,
+    drawingEnabled,
     strokes,
     updateSlide,
     updateTool,
@@ -355,6 +357,8 @@ export const useClassroomSync = ({
     updateSharedDisplay,
     updateSharedNotes,
     updateSessionContext,
-    updateCanvasTab
+    updateCanvasTab,
+    setStageMode,
+    setDrawingEnabled
   };
 };
