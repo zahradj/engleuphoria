@@ -118,7 +118,8 @@ const StudentSignUp = () => {
 
       const { data, error } = await signUp(values.email, values.password, {
         role: 'student',
-        hub_type: resolvedHub,
+        age: values.age,                // ← AGE-FIRST: trigger uses this to assign hub
+        hub_type: resolvedHub,          // legacy fallback for the trigger
         full_name: values.fullName,
       } as any);
 
