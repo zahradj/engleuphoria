@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { resolveHub, normalizeHub, getHubRoute, type HubLevel } from '@/lib/hubResolver';
@@ -39,7 +39,7 @@ export function useStudentLevel(): StudentLevelData {
   const [error, setError] = useState<string | null>(null);
   const healAttemptedRef = useRef(false);
 
-  const fetchStudentLevel = async () => {
+  const fetchStudentLevel = useCallback(async () => {
     if (!user?.id) {
       setLoading(false);
       return;
@@ -100,7 +100,7 @@ export function useStudentLevel(): StudentLevelData {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     if (!user?.id) {
@@ -127,8 +127,7 @@ export function useStudentLevel(): StudentLevelData {
     }, 3000);
 
     return () => clearTimeout(safetyTimeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [user?.id, fetchStudentLevel]);
 
   return {
     studentLevel,
