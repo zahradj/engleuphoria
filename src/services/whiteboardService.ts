@@ -52,6 +52,8 @@ class WhiteboardService {
 
     const strokeListeners = new Set<StrokeListener>();
     const scrollListeners = new Set<ScrollListener>();
+    const stageModeListeners = new Set<StageModeListener>();
+    const drawingEnabledListeners = new Set<DrawingEnabledListener>();
 
     const channel = supabase
       .channel(channelName, { config: { broadcast: { self: false, ack: false } } })
@@ -73,6 +75,12 @@ class WhiteboardService {
       })
       .on('broadcast', { event: 'web_scroll' }, (payload) => {
         scrollListeners.forEach((cb) => cb(payload.payload as any));
+      })
+      .on('broadcast', { event: 'stage_mode' }, (payload) => {
+        stageModeListeners.forEach((cb) => cb(payload.payload as any));
+      })
+      .on('broadcast', { event: 'drawing_enabled' }, (payload) => {
+        drawingEnabledListeners.forEach((cb) => cb(payload.payload as any));
       });
 
     const ready = new Promise<void>((resolve) => {
@@ -81,7 +89,15 @@ class WhiteboardService {
       });
     });
 
-    const room: RoomChannel = { channel, ready, strokeListeners, scrollListeners, refCount: 0 };
+    const room: RoomChannel = {
+      channel,
+      ready,
+      strokeListeners,
+      scrollListeners,
+      stageModeListeners,
+      drawingEnabledListeners,
+      refCount: 0,
+    };
     this.rooms.set(channelName, room);
     return room;
   }
