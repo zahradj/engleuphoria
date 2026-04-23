@@ -70,6 +70,8 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     sharedNotes,
     sessionContext,
     activeCanvasTab,
+    stageMode,
+    drawingEnabled,
     updateSharedNotes
   } = useClassroomSync({
     roomId,
@@ -339,6 +341,8 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
           isScreenSharing={isScreenSharing}
           activeCanvasTab={activeCanvasTab}
           sessionContext={sessionContext}
+          stageMode={stageMode}
+          drawingEnabled={drawingEnabled}
           onAddStroke={addStroke}
         />
       </div>

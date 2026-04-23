@@ -1,0 +1,124 @@
+import React from 'react';
+import { Badge } from '@/components/ui/badge';
+import { StageMode, WhiteboardStroke } from '@/services/whiteboardService';
+import { StageContent } from './StageContent';
+import { TransparentCanvas } from './TransparentCanvas';
+import { Layout, Globe, PenTool, Wifi } from 'lucide-react';
+
+interface Slide {
+  id: string;
+  title: string;
+  imageUrl?: string;
+  content?: React.ReactNode;
+}
+
+interface MainStageProps {
+  mode: StageMode;
+  slides: Slide[];
+  currentSlideIndex: number;
+  embeddedUrl: string | null;
+  drawingEnabled: boolean;
+  activeTool: 'pen' | 'highlighter' | 'eraser' | 'pointer';
+  activeColor: string;
+  strokes: WhiteboardStroke[];
+  roomId: string;
+  userId: string;
+  userName: string;
+  role: 'teacher' | 'student';
+  onAddStroke: (stroke: Omit<WhiteboardStroke, 'id' | 'roomId' | 'timestamp'>) => void;
+}
+
+const MODE_META: Record<StageMode, { label: string; Icon: React.ComponentType<{ className?: string }> }> = {
+  slide: { label: 'Slide', Icon: Layout },
+  web: { label: 'Web Content', Icon: Globe },
+  blank: { label: 'Whiteboard', Icon: PenTool },
+};
+
+/**
+ * The unified Main Stage — a single 16:9 container that fills ~90% of the
+ * viewport. Whatever the teacher selects (slide / web / blank) appears here
+ * for both teacher and student, with a transparent annotation overlay on top.
+ */
+export const MainStage: React.FC<MainStageProps> = ({
+  mode,
+  slides,
+  currentSlideIndex,
+  embeddedUrl,
+  drawingEnabled,
+  activeTool,
+  activeColor,
+  strokes,
+  roomId,
+  userId,
+  userName,
+  role,
+  onAddStroke,
+}) => {
+  const { label, Icon } = MODE_META[mode];
+
+  return (
+    <div className="flex-1 flex items-center justify-center p-6 relative">
+      <div
+        className="relative w-full aspect-[16/9] max-h-[calc(100vh-160px)] bg-white rounded-2xl shadow-2xl overflow-hidden border border-border"
+      >
+        {/* Underlying content (slide / web / blank) */}
+        <StageContent
+          mode={mode}
+          slides={slides}
+          currentSlideIndex={currentSlideIndex}
+          embeddedUrl={embeddedUrl}
+          roomId={roomId}
+          userId={userId}
+          role={role}
+        />
+
+        {/* Universal annotation overlay — always mounted, on top */}
+        <TransparentCanvas
+          roomId={roomId}
+          userId={userId}
+          userName={userName}
+          role={role}
+          drawingEnabled={drawingEnabled}
+          activeTool={activeTool}
+          activeColor={activeColor}
+          strokes={strokes}
+          onAddStroke={onAddStroke}
+        />
+
+        {/* Mode badge (top-left) */}
+        <div className="absolute top-3 left-3 z-[60] flex items-center gap-2 pointer-events-none">
+          <Badge
+            variant="secondary"
+            className="flex items-center gap-1.5 bg-background/90 backdrop-blur-sm border border-border shadow-sm text-foreground"
+          >
+            <Icon className="h-3 w-3" />
+            {label}
+          </Badge>
+          {role === 'student' && (
+            <Badge
+              variant="secondary"
+              className="flex items-center gap-1.5 bg-background/90 backdrop-blur-sm border border-border shadow-sm text-foreground"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Teacher is presenting
+            </Badge>
+          )}
+        </div>
+
+        {/* Slide counter (only in slide mode) */}
+        {mode === 'slide' && slides.length > 0 && (
+          <div className="absolute bottom-3 right-3 z-[60] bg-foreground/70 text-background px-3 py-1 rounded-full text-xs font-medium pointer-events-none">
+            {currentSlideIndex + 1} / {slides.length}
+          </div>
+        )}
+
+        {/* Drawing-OFF hint */}
+        {!drawingEnabled && role === 'student' && (
+          <div className="absolute bottom-3 left-3 z-[60] bg-background/80 text-muted-foreground text-[10px] px-2 py-1 rounded-md pointer-events-none flex items-center gap-1">
+            <Wifi className="w-3 h-3" /> View only
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};

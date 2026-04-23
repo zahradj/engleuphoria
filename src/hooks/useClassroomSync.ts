@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { classroomSyncService, ClassroomSession } from '@/services/classroomSyncService';
-import { whiteboardService, WhiteboardStroke } from '@/services/whiteboardService';
+import { whiteboardService, WhiteboardStroke, StageMode } from '@/services/whiteboardService';
 
 interface UseClassroomSyncOptions {
   roomId: string;
@@ -48,6 +48,9 @@ interface UseClassroomSyncReturn {
   sessionContext: Record<string, any>;
   // Phase 8: Canvas tab sync
   activeCanvasTab: string;
+  // Unified Main Stage sync
+  stageMode: StageMode;
+  drawingEnabled: boolean;
   // Whiteboard state
   strokes: WhiteboardStroke[];
   
@@ -78,6 +81,9 @@ interface UseClassroomSyncReturn {
   updateSessionContext: (context: Record<string, any>) => Promise<void>;
   // Phase 8: Canvas tab
   updateCanvasTab: (tab: string) => Promise<void>;
+  // Unified Main Stage actions (teacher)
+  setStageMode: (mode: StageMode) => Promise<void>;
+  setDrawingEnabled: (enabled: boolean) => Promise<void>;
 }
 
 export const useClassroomSync = ({
@@ -90,6 +96,8 @@ export const useClassroomSync = ({
   const [session, setSession] = useState<ClassroomSession | null>(null);
   const [strokes, setStrokes] = useState<WhiteboardStroke[]>([]);
   const [isConnected, setIsConnected] = useState(false);
+  const [stageMode, setStageModeState] = useState<StageMode>('slide');
+  const [drawingEnabled, setDrawingEnabledState] = useState<boolean>(false);
   const cleanupRef = useRef<(() => void) | null>(null);
   const strokeCleanupRef = useRef<(() => void) | null>(null);
 
@@ -163,6 +171,35 @@ export const useClassroomSync = ({
       }
     };
   }, [roomId]);
+
+  // Subscribe to stage_mode + drawing_enabled (Unified Main Stage sync)
+  useEffect(() => {
+    if (!roomId) return;
+    const unsubMode = whiteboardService.subscribeToStageMode(roomId, ({ mode, senderId }) => {
+      if (senderId === userId) return;
+      setStageModeState(mode);
+    });
+    const unsubDraw = whiteboardService.subscribeToDrawingEnabled(roomId, ({ enabled, senderId }) => {
+      if (senderId === userId) return;
+      setDrawingEnabledState(enabled);
+    });
+    return () => { unsubMode(); unsubDraw(); };
+  }, [roomId, userId]);
+
+  // Teacher: broadcast stage mode and drawing toggle
+  const setStageMode = useCallback(async (mode: StageMode) => {
+    setStageModeState(mode);
+    if (role !== 'teacher') return;
+    try { await whiteboardService.sendStageMode(roomId, mode, userId); }
+    catch (error) { console.error('Failed to send stage mode:', error); }
+  }, [roomId, role, userId]);
+
+  const setDrawingEnabled = useCallback(async (enabled: boolean) => {
+    setDrawingEnabledState(enabled);
+    if (role !== 'teacher') return;
+    try { await whiteboardService.sendDrawingEnabled(roomId, enabled, userId); }
+    catch (error) { console.error('Failed to send drawing enabled:', error); }
+  }, [roomId, role, userId]);
 
   // Teacher actions
   const updateSlide = useCallback(async (index: number) => {
@@ -308,6 +345,8 @@ export const useClassroomSync = ({
     sharedNotes: session?.sharedNotes ?? '',
     sessionContext: session?.sessionContext ?? {},
     activeCanvasTab: session?.activeCanvasTab ?? 'slides',
+    stageMode,
+    drawingEnabled,
     strokes,
     updateSlide,
     updateTool,
@@ -318,6 +357,8 @@ export const useClassroomSync = ({
     updateSharedDisplay,
     updateSharedNotes,
     updateSessionContext,
-    updateCanvasTab
+    updateCanvasTab,
+    setStageMode,
+    setDrawingEnabled
   };
 };

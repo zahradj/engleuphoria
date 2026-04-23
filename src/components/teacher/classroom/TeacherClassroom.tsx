@@ -9,7 +9,8 @@ import { useStudentContext } from "@/hooks/useStudentContext";
 import { useWebRTCConnection } from "@/hooks/useWebRTCConnection";
 import { ClassroomTopBar } from "./ClassroomTopBar";
 import { CommunicationZone } from "./CommunicationZone";
-import { CenterStage } from "./CenterStage";
+import { MainStage } from "@/components/classroom/stage/MainStage";
+import { TeacherControlDock } from "@/components/classroom/stage/TeacherControlDock";
 import { SlideNavigator } from "./SlideNavigator";
 import { DiceRoller } from "./DiceRoller";
 import { StarCelebration } from "./StarCelebration";
@@ -112,6 +113,8 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     sessionContext,
     activeCanvasTab,
     embeddedUrl,
+    stageMode,
+    drawingEnabled,
     updateSlide,
     updateTool,
     setStudentCanDraw,
@@ -121,7 +124,9 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     updateSharedDisplay,
     updateSharedNotes,
     updateSessionContext,
-    updateCanvasTab
+    updateCanvasTab,
+    setStageMode,
+    setDrawingEnabled
   } = useClassroomSync({
     roomId: roomName,
     userId: user?.id || (() => {
@@ -150,6 +155,16 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
       });
     }
   }, [studentContext, isConnected]);
+
+  // Re-broadcast unified stage state periodically so late-joining students sync.
+  useEffect(() => {
+    if (!isConnected) return;
+    const t = setInterval(() => {
+      void setStageMode(stageMode);
+      void setDrawingEnabled(drawingEnabled);
+    }, 5000);
+    return () => clearInterval(t);
+  }, [isConnected, stageMode, drawingEnabled, setStageMode, setDrawingEnabled]);
 
   // Screen share hook
   const {
@@ -409,28 +424,55 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
           </div>
         )}
 
-        {/* Center: Main Stage with Tabbed Canvas */}
+        {/* Center: Unified Main Stage */}
         <div className="flex-1 relative">
-          <CenterStage
+          <MainStage
+            mode={stageMode}
             slides={slides}
             currentSlideIndex={currentSlide}
-            onPrevSlide={handlePrevSlide}
-            onNextSlide={handleNextSlide}
-            activeTool={activeTool}
-            onToolChange={handleToolChange}
+            embeddedUrl={embeddedUrl}
+            drawingEnabled={drawingEnabled}
+            activeTool={(activeTool === 'pen' || activeTool === 'eraser' || activeTool === 'highlighter' || activeTool === 'pointer') ? activeTool : 'pen'}
             activeColor={activeColor}
-            onColorChange={setActiveColor}
             strokes={strokes}
             roomId={roomName}
-            userId={user?.id || sessionStorage.getItem('demo-teacher-id') || crypto.randomUUID()}
+            userId={user?.id || sessionStorage.getItem('demo-teacher-id') || ''}
             userName={teacherName}
+            role="teacher"
             onAddStroke={addStroke}
-            onClearCanvas={handleClearCanvas}
-            activeCanvasTab={activeCanvasTab}
-            onCanvasTabChange={handleCanvasTabChange}
+          />
+          <TeacherControlDock
+            mode={stageMode}
+            onModeChange={async (m) => {
+              await setStageMode(m);
+              if (m === 'web') {
+                await updateCanvasTab('web');
+              } else if (m === 'slide') {
+                await updateCanvasTab('slides');
+              } else {
+                await updateCanvasTab('whiteboard');
+              }
+            }}
             embeddedUrl={embeddedUrl}
-            onCloseEmbed={handleCloseEmbed}
-            sessionContext={sessionContext}
+            onEmbedUrl={async (url) => {
+              await updateSharedDisplay({ embeddedUrl: url });
+              await setStageMode('web');
+              await updateCanvasTab('web');
+            }}
+            drawingEnabled={drawingEnabled}
+            onToggleDrawing={async (enabled) => {
+              await setDrawingEnabled(enabled);
+              await setStudentCanDraw(enabled); // keep legacy flag in sync
+            }}
+            activeTool={(activeTool === 'pen' || activeTool === 'eraser' || activeTool === 'highlighter' || activeTool === 'pointer') ? activeTool : 'pen'}
+            onToolChange={(t) => handleToolChange(t)}
+            activeColor={activeColor}
+            onColorChange={setActiveColor}
+            currentSlideIndex={currentSlide}
+            totalSlides={slides.length}
+            onPrevSlide={handlePrevSlide}
+            onNextSlide={handleNextSlide}
+            onClearCanvas={handleClearCanvas}
           />
         </div>
 
