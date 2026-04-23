@@ -383,11 +383,11 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
                 slides={slides}
                 selectedSlideId={selectedSlideId}
                 onSelectSlide={setSelectedSlideId}
-                onAddSlide={handleAddSlide}
-                onDeleteSlide={handleDeleteSlide}
-                onReorderSlides={handleReorderSlides}
-                onImageUploaded={handleImageUploaded}
-                onAddElement={handleAddElement}
+                onAddSlide={canEdit ? handleAddSlide : undefined}
+                onDeleteSlide={canEdit ? handleDeleteSlide : undefined}
+                onReorderSlides={canEdit ? handleReorderSlides : undefined}
+                onImageUploaded={canEdit ? handleImageUploaded : undefined}
+                onAddElement={canEdit ? handleAddElement : undefined}
               />
             </div>
           )}
@@ -395,7 +395,7 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
 
         {/* Center: Full Canvas */}
         <div className="flex-1 min-w-0" data-canvas-editor ref={canvasRef}>
-          <EditorCanvas slide={selectedSlide} onUpdateSlide={handleUpdateSlide} />
+          <EditorCanvas slide={selectedSlide} onUpdateSlide={canEdit ? handleUpdateSlide : () => {}} readOnly={!canEdit} />
         </div>
       </div>
 
