@@ -9,6 +9,7 @@ import { Slide, CanvasElementType } from './types';
 import { SlidePhase, PHASE_COLORS } from '@/services/slideSkeletonEngine';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { InsertAISlideButton } from './InsertAISlideButton';
 
 interface SlideFilmstripProps {
   slides: Slide[];
@@ -19,6 +20,10 @@ interface SlideFilmstripProps {
   onReorderSlides?: (startIndex: number, endIndex: number) => void;
   onImageUploaded?: (slideId: string, imageUrl: string) => void;
   onAddElement?: (type: CanvasElementType) => void;
+  onInsertSlide?: (index: number, slide: Slide) => void;
+  hub?: string;
+  topic?: string;
+  canEdit?: boolean;
 }
 
 const ELEMENTS: { type: CanvasElementType; icon: React.ElementType; label: string }[] = [
@@ -45,6 +50,10 @@ export const SlideFilmstrip: React.FC<SlideFilmstripProps> = ({
   onReorderSlides,
   onImageUploaded,
   onAddElement,
+  onInsertSlide,
+  hub = 'playground',
+  topic = '',
+  canEdit = true,
 }) => {
   const { toast } = useToast();
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
