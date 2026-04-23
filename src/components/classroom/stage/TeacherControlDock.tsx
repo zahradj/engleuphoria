@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Layout, Globe, PenTool, Pencil, Eraser, MousePointer2, Hand, Trash2, ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { Layout, Globe, PenTool, Pencil, Eraser, MousePointer2, Hand, Trash2, ChevronLeft, ChevronRight, Check, Unlock } from 'lucide-react';
 import { StageMode } from '@/services/whiteboardService';
 
 const PEN_COLORS = ['#FF3B30', '#007AFF', '#34C759', '#FF9500', '#AF52DE', '#000000'];
@@ -27,6 +28,9 @@ interface TeacherControlDockProps {
   onNextSlide: () => void;
 
   onClearCanvas: () => void;
+
+  iframeUnlocked: boolean;
+  onToggleIframeUnlock: (unlocked: boolean) => void;
 }
 
 /**
@@ -49,6 +53,8 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
   onPrevSlide,
   onNextSlide,
   onClearCanvas,
+  iframeUnlocked,
+  onToggleIframeUnlock,
 }) => {
   const [urlDraft, setUrlDraft] = useState(embeddedUrl ?? '');
 
