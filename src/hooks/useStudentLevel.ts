@@ -121,12 +121,12 @@ export function evaluateStudentLevel(
 export function getStudentDashboardRoute(level: StudentLevel): string {
   switch (level) {
     case 'playground':
-      return '/playground';
+      return '/dashboard/playground';
     case 'academy':
-      return '/academy';
+      return '/dashboard/academy';
     case 'professional':
-      return '/hub';
+      return '/dashboard/hub';
     default:
-      return '/playground';
+      return '/dashboard/playground';
   }
 }

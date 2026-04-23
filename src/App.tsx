@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 // Only the landing page is eagerly loaded (entry point)
 import LandingPage from "./pages/LandingPage";
+import { HomeGate } from "./components/auth/HomeGate";
 
 // All other pages are lazy-loaded for bundle optimization
 const AboutPage = lazy(() => import("./pages/AboutPage"));
@@ -89,7 +90,7 @@ const App = () => {
                   <AppErrorBoundary>
                     <Routes>
                       {/* Public Entry Point - Landing Page */}
-                      <Route path="/" element={<LandingPage />} />
+                      <Route path="/" element={<HomeGateWrapper />} />
                       <Route path="/about" element={<Suspense fallback={<LoadingFallback />}><AboutPage /></Suspense>} />
                       <Route path="/teach-with-us" element={<Navigate to="/for-teachers" replace />} />
                       <Route path="/for-teachers" element={<Suspense fallback={<LoadingFallback />}><ForTeachersPage /></Suspense>} />
@@ -126,16 +127,25 @@ const App = () => {
 
                       {/* Student Dashboard Routes - Protected with hub-level guards */}
                       <Route path="/playground/*" element={
+                        <Navigate to="/dashboard/playground" replace />
+                      } />
+                      <Route path="/academy/*" element={
+                        <Navigate to="/dashboard/academy" replace />
+                      } />
+                      <Route path="/hub/*" element={
+                        <Navigate to="/dashboard/hub" replace />
+                      } />
+                      <Route path="/dashboard/playground/*" element={
                         <ImprovedProtectedRoute requiredRole="student" requiredStudentLevel="playground">
                           <Suspense fallback={<LoadingFallback />}><StudentDashboard /></Suspense>
                         </ImprovedProtectedRoute>
                       } />
-                      <Route path="/academy/*" element={
+                      <Route path="/dashboard/academy/*" element={
                         <ImprovedProtectedRoute requiredRole="student" requiredStudentLevel="academy">
                           <Suspense fallback={<LoadingFallback />}><StudentDashboard /></Suspense>
                         </ImprovedProtectedRoute>
                       } />
-                      <Route path="/hub/*" element={
+                      <Route path="/dashboard/hub/*" element={
                         <ImprovedProtectedRoute requiredRole="student" requiredStudentLevel="professional">
                           <Suspense fallback={<LoadingFallback />}><StudentDashboard /></Suspense>
                         </ImprovedProtectedRoute>
@@ -290,5 +300,11 @@ const App = () => {
     </QueryClientProvider>
   );
 };
+
+const HomeGateWrapper = () => (
+  <Suspense fallback={<LoadingFallback />}>
+    <HomeGate />
+  </Suspense>
+);
 
 export default App;

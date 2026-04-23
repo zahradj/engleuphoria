@@ -123,9 +123,9 @@ const AuthCallback = () => {
             const hubLevel = freshProfile?.student_level
               || session.user.user_metadata?.hub_type
               || 'playground';
-            const hubRoute = hubLevel === 'academy' ? '/academy'
-              : hubLevel === 'professional' ? '/hub'
-              : '/playground';
+            const hubRoute = hubLevel === 'academy' ? '/dashboard/academy'
+              : hubLevel === 'professional' ? '/dashboard/hub'
+              : '/dashboard/playground';
             navigate(hubRoute, { replace: true });
           }
         }
