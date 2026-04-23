@@ -91,6 +91,22 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
           </div>
         )}
 
+        {/* Independent Play toggle — only when web mode */}
+        {mode === 'web' && (
+          <div className="flex items-center gap-2 pr-2 border-r border-border">
+            <Unlock className={`h-3.5 w-3.5 ${iframeUnlocked ? 'text-primary' : 'text-muted-foreground'}`} />
+            <label className="text-xs text-foreground select-none cursor-pointer" htmlFor="iframe-unlock-toggle">
+              Unlock Student Interaction
+            </label>
+            <Switch
+              id="iframe-unlock-toggle"
+              checked={iframeUnlocked}
+              onCheckedChange={onToggleIframeUnlock}
+              aria-label="Unlock student interaction with embedded web page"
+            />
+          </div>
+        )}
+
         {/* Slide nav — visible only when slide mode */}
         {mode === 'slide' && totalSlides > 0 && (
           <div className="flex items-center gap-1 pr-2 border-r border-border">
