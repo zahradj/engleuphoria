@@ -1,68 +1,140 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
+  const [statusMessage, setStatusMessage] = useState('Confirming your account...');
 
   useEffect(() => {
+    let mounted = true;
+    let timeout: ReturnType<typeof setTimeout>;
+
     const handleCallback = async () => {
       try {
-        // Exchange the code/token from the URL for a session
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Auth callback error:', error);
-          navigate('/login', { replace: true });
-          return;
-        }
+        // Step 1: Get or establish session
+        let session = (await supabase.auth.getSession()).data.session;
 
-        if (session) {
-          // Session exists — redirect to the smart dashboard router
-          navigate('/dashboard', { replace: true });
-        } else {
-          // No session yet — try exchanging code from URL params
+        // If no session yet, try extracting tokens from URL hash (email confirmation flow)
+        if (!session) {
           const hashParams = new URLSearchParams(window.location.hash.substring(1));
           const accessToken = hashParams.get('access_token');
           const refreshToken = hashParams.get('refresh_token');
 
           if (accessToken && refreshToken) {
-            await supabase.auth.setSession({
+            const { data } = await supabase.auth.setSession({
               access_token: accessToken,
               refresh_token: refreshToken,
             });
-            navigate('/dashboard', { replace: true });
-          } else {
-            // Fallback: wait briefly for Supabase to process the URL
-            const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-              if (event === 'SIGNED_IN') {
+            session = data.session;
+          }
+        }
+
+        // If still no session, wait for Supabase auth state change (magic link, etc.)
+        if (!session) {
+          if (mounted) setStatusMessage('Verifying your credentials...');
+          
+          const sessionFromListener = await new Promise<typeof session>((resolve) => {
+            const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
+              if (event === 'SIGNED_IN' && s) {
                 subscription.unsubscribe();
-                navigate('/dashboard', { replace: true });
+                resolve(s);
               }
             });
-
-            // Timeout fallback
-            setTimeout(() => {
+            // Timeout after 8 seconds
+            timeout = setTimeout(() => {
               subscription.unsubscribe();
-              navigate('/dashboard', { replace: true });
-            }, 3000);
-          }
+              resolve(null);
+            }, 8000);
+          });
+          session = sessionFromListener;
+        }
+
+        if (!session?.user) {
+          console.error('Auth callback: No session established');
+          navigate('/login', { replace: true });
+          return;
+        }
+
+        if (mounted) setStatusMessage('Preparing your personalized experience...');
+
+        const userId = session.user.id;
+
+        // Step 2: Auto-heal — ensure student_profiles exists
+        // The DB trigger should have created it, but let's verify
+        const { data: profile } = await supabase
+          .from('student_profiles')
+          .select('student_level')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        if (!profile) {
+          // Trigger missed — create student_profiles from auth metadata
+          const hubType = session.user.user_metadata?.hub_type || 'playground';
+          const resolvedLevel = hubType === 'academy' ? 'academy'
+            : (hubType === 'professional' || hubType === 'success') ? 'professional'
+            : 'playground';
+
+          await supabase.from('student_profiles').upsert(
+            { user_id: userId, student_level: resolvedLevel, onboarding_completed: false },
+            { onConflict: 'user_id' }
+          );
+          
+          console.log('🔧 Auth callback auto-healed student_profiles →', resolvedLevel);
+        }
+
+        // Step 3: Also ensure users row exists (belt + suspenders)
+        const { data: userRow } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', userId)
+          .maybeSingle();
+
+        if (!userRow) {
+          const fullName = session.user.user_metadata?.full_name 
+            || session.user.email?.split('@')[0] 
+            || 'Student';
+          await supabase.from('users').upsert({
+            id: userId,
+            email: session.user.email,
+            full_name: fullName,
+            role: session.user.user_metadata?.role || 'student',
+          }, { onConflict: 'id' });
+          console.log('🔧 Auth callback auto-healed users row');
+        }
+
+        // Step 4: Route to dashboard — the smart router handles hub-specific routing
+        if (mounted) {
+          navigate('/dashboard', { replace: true });
         }
       } catch (err) {
         console.error('Auth callback unexpected error:', err);
-        navigate('/login', { replace: true });
+        if (mounted) {
+          navigate('/login', { replace: true });
+        }
       }
     };
 
     handleCallback();
+
+    return () => {
+      mounted = false;
+      if (timeout) clearTimeout(timeout);
+    };
   }, [navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center space-y-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-        <p className="text-muted-foreground text-sm">Confirming your account...</p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-50 via-pink-50 to-orange-50">
+      <div className="text-center space-y-6">
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#6B21A8] via-[#FE6A2F] to-[#059669] blur-xl opacity-30 animate-pulse" />
+          <Loader2 className="h-12 w-12 animate-spin text-[#6B21A8] mx-auto relative" />
+        </div>
+        <div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-1">EnglEuphoria</h2>
+          <p className="text-gray-500 text-sm">{statusMessage}</p>
+        </div>
       </div>
     </div>
   );
