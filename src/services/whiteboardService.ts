@@ -23,10 +23,44 @@ export interface WhiteboardState {
 
 export type StageMode = 'slide' | 'web' | 'blank';
 
+export type RewardType = 'star' | 'sticker';
+export interface RewardPayload {
+  rewardType: RewardType;
+  /** Optional emoji or sticker key (for 'sticker') */
+  sticker?: string;
+  /** Running star total when rewardType === 'star' (optional). */
+  starCount?: number;
+  /** True every 5th star — triggers the carnival celebration */
+  isMilestone?: boolean;
+  senderId: string;
+  timestamp: number;
+}
+
+export type ToolName = 'dice';
+export interface ToolActionPayload {
+  tool: ToolName;
+  /** Numeric result of the action — e.g. dice value 1-6 */
+  result: number;
+  senderId: string;
+  timestamp: number;
+}
+
+export interface ChatBroadcastPayload {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderRole: 'teacher' | 'student';
+  text: string;
+  timestamp: number;
+}
+
 type StrokeListener = (stroke: WhiteboardStroke) => void;
 type ScrollListener = (payload: { scrollPercentage: number; senderId: string }) => void;
 type StageModeListener = (payload: { mode: StageMode; senderId: string }) => void;
 type DrawingEnabledListener = (payload: { enabled: boolean; senderId: string }) => void;
+type RewardListener = (payload: RewardPayload) => void;
+type ToolActionListener = (payload: ToolActionPayload) => void;
+type ChatListener = (payload: ChatBroadcastPayload) => void;
 
 interface RoomChannel {
   channel: ReturnType<typeof supabase.channel>;
@@ -35,6 +69,9 @@ interface RoomChannel {
   scrollListeners: Set<ScrollListener>;
   stageModeListeners: Set<StageModeListener>;
   drawingEnabledListeners: Set<DrawingEnabledListener>;
+  rewardListeners: Set<RewardListener>;
+  toolActionListeners: Set<ToolActionListener>;
+  chatListeners: Set<ChatListener>;
   refCount: number;
 }
 
