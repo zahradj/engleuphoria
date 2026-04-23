@@ -43,6 +43,11 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
   const [zenElapsed, setZenElapsed] = useState(0);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
+  // Instant broadcast-driven overlays (separate from slow DB-backed sync)
+  const [liveStar, setLiveStar] = useState<{ count: number; isMilestone: boolean; key: number } | null>(null);
+  const [liveDice, setLiveDice] = useState<{ value: number; key: number } | null>(null);
+  const [liveSticker, setLiveSticker] = useState<{ emoji: string; key: number } | null>(null);
+
   const headerIdle = useIdleOpacity({ idleTimeout: 3000, idleOpacity: 0.4 });
   const sidebarIdle = useIdleOpacity({ idleTimeout: 4000, idleOpacity: 0.3 });
 
