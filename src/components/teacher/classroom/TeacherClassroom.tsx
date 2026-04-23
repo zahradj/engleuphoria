@@ -434,19 +434,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
           />
         </div>
 
-        {/* Right: Slide Navigator */}
-        {!isZenMode && (
-          <div style={sidebarIdle.style} onMouseMove={sidebarIdle.onMouseMove} onMouseEnter={sidebarIdle.onMouseEnter}>
-            <SlideNavigator
-              slides={slides}
-              currentSlideIndex={currentSlide}
-              onSlideSelect={handleSlideSelect}
-              lessonTitle={lessonTitle}
-              isCollapsed={rightSidebarCollapsed}
-              onToggleCollapse={() => setRightSidebarCollapsed(!rightSidebarCollapsed)}
-            />
-          </div>
-        )}
+        {/* Right: Slide Navigator — hidden by teacher request to maximize lesson frame */}
       </div>
 
       {/* Teacher Instructions Sidebar (hidden in Zen) */}
