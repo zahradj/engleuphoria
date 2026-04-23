@@ -30,6 +30,7 @@ const Dashboard: React.FC = () => {
   }, [user, redirectPath]);
 
   useEffect(() => {
+    if (redirectPath) return;
     if (authLoading) return;
 
     if (!user) {
