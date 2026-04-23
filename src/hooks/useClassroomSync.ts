@@ -172,6 +172,35 @@ export const useClassroomSync = ({
     };
   }, [roomId]);
 
+  // Subscribe to stage_mode + drawing_enabled (Unified Main Stage sync)
+  useEffect(() => {
+    if (!roomId) return;
+    const unsubMode = whiteboardService.subscribeToStageMode(roomId, ({ mode, senderId }) => {
+      if (senderId === userId) return;
+      setStageModeState(mode);
+    });
+    const unsubDraw = whiteboardService.subscribeToDrawingEnabled(roomId, ({ enabled, senderId }) => {
+      if (senderId === userId) return;
+      setDrawingEnabledState(enabled);
+    });
+    return () => { unsubMode(); unsubDraw(); };
+  }, [roomId, userId]);
+
+  // Teacher: broadcast stage mode and drawing toggle
+  const setStageMode = useCallback(async (mode: StageMode) => {
+    setStageModeState(mode);
+    if (role !== 'teacher') return;
+    try { await whiteboardService.sendStageMode(roomId, mode, userId); }
+    catch (error) { console.error('Failed to send stage mode:', error); }
+  }, [roomId, role, userId]);
+
+  const setDrawingEnabled = useCallback(async (enabled: boolean) => {
+    setDrawingEnabledState(enabled);
+    if (role !== 'teacher') return;
+    try { await whiteboardService.sendDrawingEnabled(roomId, enabled, userId); }
+    catch (error) { console.error('Failed to send drawing enabled:', error); }
+  }, [roomId, role, userId]);
+
   // Teacher actions
   const updateSlide = useCallback(async (index: number) => {
     if (role !== 'teacher') return;
