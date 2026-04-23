@@ -1,26 +1,25 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Process base64 in chunks to prevent memory issues
 function processBase64Chunks(base64String: string, chunkSize = 32768) {
   const chunks: Uint8Array[] = [];
   let position = 0;
-  
+
   while (position < base64String.length) {
     const chunk = base64String.slice(position, position + chunkSize);
     const binaryChunk = atob(chunk);
     const bytes = new Uint8Array(binaryChunk.length);
-    
+
     for (let i = 0; i < binaryChunk.length; i++) {
       bytes[i] = binaryChunk.charCodeAt(i);
     }
-    
+
     chunks.push(bytes);
     position += chunkSize;
   }
@@ -43,24 +42,42 @@ serve(async (req) => {
   }
 
   try {
+    // Require authentication to prevent anonymous OpenAI credit abuse
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claims, error: authError } = await supabase.auth.getClaims(token);
+    if (authError || !claims?.claims) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { audio } = await req.json();
-    
+
     if (!audio) {
       throw new Error('No audio data provided');
     }
 
-    console.log('Processing audio transcription...');
-
-    // Process audio in chunks
     const binaryAudio = processBase64Chunks(audio);
-    
-    // Prepare form data
+
     const formData = new FormData();
     const blob = new Blob([binaryAudio], { type: 'audio/webm' });
     formData.append('file', blob, 'audio.webm');
     formData.append('model', 'whisper-1');
 
-    // Send to OpenAI
     const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
       headers: {
@@ -76,7 +93,6 @@ serve(async (req) => {
     }
 
     const result = await response.json();
-    console.log('Transcription successful:', result.text);
 
     return new Response(
       JSON.stringify({ text: result.text }),

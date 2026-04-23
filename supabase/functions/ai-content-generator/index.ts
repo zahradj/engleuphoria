@@ -17,8 +17,46 @@ serve(async (req) => {
   }
 
   try {
+    // Require authentication + content_creator/admin role to prevent abuse of OpenAI credits
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const authClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claims, error: authError } = await authClient.auth.getClaims(token);
+    if (authError || !claims?.claims) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const userId = claims.claims.sub;
+    // Check role using service-role client
+    const adminClient = createClient(supabaseUrl, supabaseKey);
+    const { data: roleRows } = await adminClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId);
+    const allowed = (roleRows || []).some((r: any) =>
+      r.role === 'admin' || r.role === 'content_creator' || r.role === 'teacher'
+    );
+    if (!allowed) {
+      return new Response(JSON.stringify({ error: 'Forbidden: content creation requires teacher, content_creator, or admin role' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     console.log('Request received:', req.method);
-    
+
     const requestBody = await req.json();
     console.log('Request body received:', JSON.stringify(requestBody, null, 2));
     
