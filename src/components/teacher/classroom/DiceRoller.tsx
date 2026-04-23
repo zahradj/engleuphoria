@@ -7,15 +7,19 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Dice1, Dice2, Dice3, Dice4, Dice5, Dice6 } from 'lucide-react';
+import { whiteboardService } from '@/services/whiteboardService';
 
 interface DiceRollerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Required to broadcast the roll over the unified classroom channel. */
+  roomId?: string;
+  senderId?: string;
 }
 
 const diceIcons = [Dice1, Dice2, Dice3, Dice4, Dice5, Dice6];
 
-export const DiceRoller: React.FC<DiceRollerProps> = ({ open, onOpenChange }) => {
+export const DiceRoller: React.FC<DiceRollerProps> = ({ open, onOpenChange, roomId, senderId }) => {
   const [result, setResult] = useState<number | null>(null);
   const [isRolling, setIsRolling] = useState(false);
 
@@ -30,8 +34,16 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({ open, onOpenChange }) =>
       rollCount++;
       if (rollCount >= maxRolls) {
         clearInterval(interval);
+        // Final authoritative roll — computed once on the teacher side and broadcast.
+        const finalResult = Math.floor(Math.random() * 6) + 1;
+        setResult(finalResult);
         setIsRolling(false);
-        setResult(Math.floor(Math.random() * 6) + 1);
+
+        if (roomId && senderId) {
+          void whiteboardService
+            .sendToolAction(roomId, { tool: 'dice', result: finalResult, senderId })
+            .catch((err) => console.error('Dice broadcast failed:', err));
+        }
       }
     }, 100);
   };
@@ -51,7 +63,7 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({ open, onOpenChange }) =>
           <DialogTitle className="text-center">Roll the Dice!</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col items-center py-6 gap-6">
-          <div 
+          <div
             className={`w-32 h-32 rounded-2xl bg-gradient-to-br from-purple-600 to-purple-800 flex items-center justify-center shadow-lg ${
               isRolling ? 'animate-bounce' : ''
             }`}
