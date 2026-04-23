@@ -11,6 +11,7 @@ import { LessonPreviewDialog } from './LessonPreviewDialog';
 import { LessonBlueprint } from './LessonBlueprint';
 import { Slide, LessonDeck, CanvasElementData, CanvasElementType } from './types';
 import { AILessonWizard } from './ai-wizard';
+import { AISlideGeneratorPanel } from './AISlideGeneratorPanel';
 import type { WizardLessonContext } from './ai-wizard';
 import { GeneratedSlide, HubType } from './ai-wizard/types';
 import { resolveHub } from './ai-wizard/hubConfig';
