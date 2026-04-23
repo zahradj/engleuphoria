@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { hub, topic, targetGrammar, targetVocabulary, mode, previousSlideContent, prompt: userInjectPrompt, studentAge } = body;
+    const { hub, topic, targetGrammar, targetVocabulary, mode, previousSlideContent, prompt: userInjectPrompt, studentAge, lessonPrompt } = body;
 
     // Validate hub
     const validHubs = ["playground", "academy", "success"];
