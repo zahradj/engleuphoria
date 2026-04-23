@@ -252,21 +252,30 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
           </Button>
         )}
 
-        <Input
-          value={lessonTitle}
-          onChange={(e) => setLessonTitle(e.target.value)}
-          className="max-w-[200px] h-7 text-sm font-semibold border-none shadow-none focus-visible:ring-0 px-1"
-        />
+        {canEdit ? (
+          <Input
+            value={lessonTitle}
+            onChange={(e) => setLessonTitle(e.target.value)}
+            className="max-w-[200px] h-7 text-sm font-semibold border-none shadow-none focus-visible:ring-0 px-1"
+          />
+        ) : (
+          <span className="max-w-[200px] h-7 text-sm font-semibold px-1 truncate flex items-center">{lessonTitle}</span>
+        )}
 
-        <Select value={level} onValueChange={setLevel}>
-          <SelectTrigger className="w-16 h-7 text-xs"><SelectValue /></SelectTrigger>
-          <SelectContent>{levels.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
-        </Select>
-
-        <Select value={ageGroup} onValueChange={setAgeGroup}>
-          <SelectTrigger className="w-20 h-7 text-xs"><SelectValue /></SelectTrigger>
-          <SelectContent>{ageGroups.map(a => <SelectItem key={a} value={a}>{a}y</SelectItem>)}</SelectContent>
-        </Select>
+        {canEdit ? (
+          <>
+            <Select value={level} onValueChange={setLevel}>
+              <SelectTrigger className="w-16 h-7 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>{levels.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+            </Select>
+            <Select value={ageGroup} onValueChange={setAgeGroup}>
+              <SelectTrigger className="w-20 h-7 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>{ageGroups.map(a => <SelectItem key={a} value={a}>{a}y</SelectItem>)}</SelectContent>
+            </Select>
+          </>
+        ) : (
+          <span className="text-xs text-muted-foreground">{level} · {ageGroup}y</span>
+        )}
 
         <div className="flex-1" />
 
