@@ -25,6 +25,8 @@ interface MainStageProps {
   userId: string;
   userName: string;
   role: 'teacher' | 'student';
+  /** Web-mode "Independent Play" — when true the student can interact directly with the iframe. */
+  iframeUnlocked?: boolean;
   onAddStroke: (stroke: Omit<WhiteboardStroke, 'id' | 'roomId' | 'timestamp'>) => void;
 }
 
@@ -52,6 +54,7 @@ export const MainStage: React.FC<MainStageProps> = ({
   userId,
   userName,
   role,
+  iframeUnlocked = false,
   onAddStroke,
 }) => {
   const { label, Icon } = MODE_META[mode];
@@ -70,6 +73,7 @@ export const MainStage: React.FC<MainStageProps> = ({
           roomId={roomId}
           userId={userId}
           role={role}
+          iframeUnlocked={iframeUnlocked}
         />
 
         {/* Universal annotation overlay — always mounted, on top */}
@@ -83,6 +87,8 @@ export const MainStage: React.FC<MainStageProps> = ({
           activeColor={activeColor}
           strokes={strokes}
           onAddStroke={onAddStroke}
+          mode={mode}
+          iframeUnlocked={iframeUnlocked}
         />
 
         {/* Mode badge (top-left) */}

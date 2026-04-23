@@ -17,6 +17,8 @@ interface StageContentProps {
   roomId: string;
   userId: string;
   role: 'teacher' | 'student';
+  /** When true and mode === 'web', the student can interact with the iframe directly. */
+  iframeUnlocked?: boolean;
 }
 
 /**
@@ -33,9 +35,18 @@ export const StageContent: React.FC<StageContentProps> = ({
   roomId,
   userId,
   role,
+  iframeUnlocked = false,
 }) => {
   if (mode === 'web') {
-    return <ScrollSyncedIframe url={embeddedUrl} roomId={roomId} userId={userId} role={role} />;
+    return (
+      <ScrollSyncedIframe
+        url={embeddedUrl}
+        roomId={roomId}
+        userId={userId}
+        role={role}
+        interactive={iframeUnlocked}
+      />
+    );
   }
 
   if (mode === 'blank') {

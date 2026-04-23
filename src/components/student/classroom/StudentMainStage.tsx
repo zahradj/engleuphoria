@@ -49,6 +49,7 @@ interface StudentMainStageProps {
   /** Unified Main Stage state, synced from teacher */
   stageMode: StageMode;
   drawingEnabled: boolean;
+  iframeUnlocked?: boolean;
   onAddStroke: (stroke: Omit<WhiteboardStroke, 'id' | 'roomId' | 'timestamp'>) => void;
 }
 
@@ -77,6 +78,7 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
   sessionContext = {},
   stageMode,
   drawingEnabled,
+  iframeUnlocked = false,
   onAddStroke,
 }) => {
   const currentSlide = slides[currentSlideIndex];
@@ -161,6 +163,7 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
         userId={userId}
         userName={userName}
         role="student"
+        iframeUnlocked={iframeUnlocked}
         onAddStroke={onAddStroke}
       />
 
