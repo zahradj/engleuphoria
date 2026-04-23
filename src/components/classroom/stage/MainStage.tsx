@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { StageMode, WhiteboardStroke } from '@/services/whiteboardService';
 import { StageContent } from './StageContent';
 import { TransparentCanvas } from './TransparentCanvas';
-import { Layout, Globe, PenTool, Wifi } from 'lucide-react';
+import { Layout, Globe, PenTool, Wifi, Gamepad2 } from 'lucide-react';
 
 interface Slide {
   id: string;
@@ -34,6 +34,10 @@ const MODE_META: Record<StageMode, { label: string; Icon: React.ComponentType<{ 
   slide: { label: 'Slide', Icon: Layout },
   web: { label: 'Web Content', Icon: Globe },
   blank: { label: 'Whiteboard', Icon: PenTool },
+  native_game_flashcards: { label: 'Flashcards', Icon: Gamepad2 },
+  native_game_memory: { label: 'Memory Match', Icon: Gamepad2 },
+  native_game_sentence: { label: 'Sentence Builder', Icon: Gamepad2 },
+  native_game_blanks: { label: 'Fill in the Blanks', Icon: Gamepad2 },
 };
 
 /**
