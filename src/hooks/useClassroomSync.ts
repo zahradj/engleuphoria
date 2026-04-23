@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { classroomSyncService, ClassroomSession } from '@/services/classroomSyncService';
-import { whiteboardService, WhiteboardStroke } from '@/services/whiteboardService';
+import { whiteboardService, WhiteboardStroke, StageMode } from '@/services/whiteboardService';
 
 interface UseClassroomSyncOptions {
   roomId: string;
@@ -48,6 +48,9 @@ interface UseClassroomSyncReturn {
   sessionContext: Record<string, any>;
   // Phase 8: Canvas tab sync
   activeCanvasTab: string;
+  // Unified Main Stage sync
+  stageMode: StageMode;
+  drawingEnabled: boolean;
   // Whiteboard state
   strokes: WhiteboardStroke[];
   
@@ -78,6 +81,9 @@ interface UseClassroomSyncReturn {
   updateSessionContext: (context: Record<string, any>) => Promise<void>;
   // Phase 8: Canvas tab
   updateCanvasTab: (tab: string) => Promise<void>;
+  // Unified Main Stage actions (teacher)
+  setStageMode: (mode: StageMode) => Promise<void>;
+  setDrawingEnabled: (enabled: boolean) => Promise<void>;
 }
 
 export const useClassroomSync = ({
@@ -90,6 +96,8 @@ export const useClassroomSync = ({
   const [session, setSession] = useState<ClassroomSession | null>(null);
   const [strokes, setStrokes] = useState<WhiteboardStroke[]>([]);
   const [isConnected, setIsConnected] = useState(false);
+  const [stageMode, setStageModeState] = useState<StageMode>('slide');
+  const [drawingEnabled, setDrawingEnabledState] = useState<boolean>(false);
   const cleanupRef = useRef<(() => void) | null>(null);
   const strokeCleanupRef = useRef<(() => void) | null>(null);
 
