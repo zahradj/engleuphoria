@@ -50,6 +50,7 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
   const [showPreview, setShowPreview] = useState(false);
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
   const [filmstripCollapsed, setFilmstripCollapsed] = useState(false);
+  const [aiPanelCollapsed, setAiPanelCollapsed] = useState(false);
   const [rawGeneratedSlides, setRawGeneratedSlides] = useState<GeneratedSlide[]>([]);
   const [currentHub, setCurrentHub] = useState<HubType>('playground');
   const [wizardContext, setWizardContext] = useState<WizardLessonContext | null>(null);
