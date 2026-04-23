@@ -110,8 +110,16 @@ const StudentSignUp = () => {
     }
 
     try {
+      // Determine student level early so we can pass hub_type to the DB trigger
+      const resolvedHub = hubParam === 'academy' ? 'academy'
+        : hubParam === 'playground' ? 'playground'
+        : (hubParam === 'professional' || hubParam === 'success') ? 'professional'
+        : determineStudentLevel(values.age);
+
       const { data, error } = await signUp(values.email, values.password, {
-        role: 'student'
+        role: 'student',
+        hub_type: resolvedHub,
+        full_name: values.fullName,
       } as any);
 
       if (error) {
