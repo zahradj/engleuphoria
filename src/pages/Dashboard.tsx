@@ -54,6 +54,10 @@ const Dashboard: React.FC = () => {
 
     if (userRole === 'student') {
       // Metadata-first routing — never wait on DB. Auto-complete onboarding silently.
+      if (studentLoading && !studentLevel) {
+        return;
+      }
+
       if (studentLevel) {
         if (!studentLoading && !onboardingCompleted) {
           // Background heal — mark onboarding complete so we don't re-prompt.
@@ -91,7 +95,7 @@ const Dashboard: React.FC = () => {
 
     // Unknown role fallback
     setRedirectPath('/dashboard/playground');
-  }, [user, authLoading, studentLevel, studentLoading, onboardingCompleted, refetch]);
+  }, [user, authLoading, studentLevel, studentLoading, onboardingCompleted, redirectPath, refetch]);
 
   if (redirectPath) {
     return <Navigate to={redirectPath} replace />;
