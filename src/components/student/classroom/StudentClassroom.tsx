@@ -17,7 +17,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Timer, Dice6 } from 'lucide-react';
 import { useIdleOpacity } from '@/hooks/useIdleOpacity';
 import { whiteboardService } from '@/services/whiteboardService';
-import { supabase } from '@/lib/supabase';
 
 type HubType = 'playground' | 'academy' | 'professional';
 
@@ -95,50 +94,44 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
   useEffect(() => {
     if (!roomId || !studentId) return;
 
-    const channelName = `classroom_${roomId}`;
-    console.log('Joining channel:', channelName);
-
-    const channel = supabase.channel(channelName, {
-      config: { broadcast: { self: false } }
+    const unsubStage = whiteboardService.subscribeToStageMode(roomId, ({ mode, senderId }) => {
+      if (senderId === studentId || !mode) return;
+      applyRemoteStageMode(mode);
     });
-
-    channel
-      .on('broadcast', { event: 'stage_mode' }, ({ payload }) => {
-        if (payload?.senderId === studentId || !payload?.mode) return;
-        applyRemoteStageMode(payload.mode);
-      })
-      .on('broadcast', { event: 'drawing_enabled' }, ({ payload }) => {
-        if (payload?.senderId === studentId || typeof payload?.enabled !== 'boolean') return;
-        applyRemoteDrawingEnabled(payload.enabled);
-      })
-      .on('broadcast', { event: 'reward' }, ({ payload }) => {
-        if (payload?.senderId === studentId) return;
-        if (payload?.rewardType === 'star') {
-          setLiveStar({
-            count: payload.starCount ?? 1,
-            isMilestone: !!payload.isMilestone,
-            key: Date.now(),
-          });
-        }
-        if (payload?.rewardType === 'sticker') {
-          setLiveSticker({ emoji: payload.sticker || '😊', key: Date.now() });
-          setTimeout(() => setLiveSticker(null), 1500);
-        }
-      })
-      .on('broadcast', { event: 'tool_action' }, ({ payload }) => {
-        if (payload?.senderId === studentId || payload?.tool !== 'dice') return;
-        setLiveDice({ value: payload.result, key: Date.now() });
-        setTimeout(() => setLiveDice(null), 1500);
-      });
-
-    channel.subscribe((status) => {
-      if (status === 'SUBSCRIBED' || status === 'CLOSED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-        setChannelStatus(status);
+    const unsubDrawing = whiteboardService.subscribeToDrawingEnabled(roomId, ({ enabled, senderId }) => {
+      if (senderId === studentId || typeof enabled !== 'boolean') return;
+      applyRemoteDrawingEnabled(enabled);
+    });
+    const unsubReward = whiteboardService.subscribeToRewards(roomId, (payload) => {
+      if (payload.senderId === studentId) return;
+      if (payload.rewardType === 'star') {
+        setLiveStar({
+          count: payload.starCount ?? 1,
+          isMilestone: !!payload.isMilestone,
+          key: Date.now(),
+        });
+      } else if (payload.rewardType === 'sticker') {
+        setLiveSticker({ emoji: payload.sticker || '😊', key: Date.now() });
+        setTimeout(() => setLiveSticker(null), 1500);
+      }
+    });
+    const unsubTool = whiteboardService.subscribeToToolActions(roomId, (payload) => {
+      if (payload.senderId === studentId || payload.tool !== 'dice') return;
+      setLiveDice({ value: payload.result, key: Date.now() });
+      setTimeout(() => setLiveDice(null), 1500);
+    });
+    const unsubStatus = whiteboardService.subscribeToStatus(roomId, (status) => {
+      if (status === 'SUBSCRIBED' || status === 'CLOSED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CONNECTING') {
+        setChannelStatus(status as 'CONNECTING' | 'SUBSCRIBED' | 'CLOSED' | 'CHANNEL_ERROR' | 'TIMED_OUT');
       }
     });
 
     return () => {
-      supabase.removeChannel(channel);
+      unsubStage();
+      unsubDrawing();
+      unsubReward();
+      unsubTool();
+      unsubStatus();
     };
   }, [roomId, studentId, applyRemoteStageMode, applyRemoteDrawingEnabled]);
 

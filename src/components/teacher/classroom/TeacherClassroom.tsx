@@ -28,7 +28,6 @@ import { useIdleOpacity } from "@/hooks/useIdleOpacity";
 import { useClassroomTimer } from "@/hooks/classroom/useClassroomTimer";
 import { useSmartTimer } from "@/hooks/classroom/useSmartTimer";
 import { whiteboardService } from "@/services/whiteboardService";
-import { supabase } from "@/lib/supabase";
 
 type HubType = 'playground' | 'academy' | 'professional';
 
@@ -165,37 +164,31 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   useEffect(() => {
     if (!roomName || !teacherUserId) return;
 
-    const channelName = `classroom_${roomName}`;
-    console.log('Joining channel:', channelName);
-
-    const channel = supabase.channel(channelName, {
-      config: { broadcast: { self: false } }
+    const unsubStage = whiteboardService.subscribeToStageMode(roomName, ({ mode, senderId }) => {
+      if (senderId === teacherUserId || !mode) return;
+      applyRemoteStageMode(mode);
     });
-
-    channel
-      .on('broadcast', { event: 'stage_mode' }, ({ payload }) => {
-        if (payload?.senderId === teacherUserId || !payload?.mode) return;
-        applyRemoteStageMode(payload.mode);
-      })
-      .on('broadcast', { event: 'drawing_enabled' }, ({ payload }) => {
-        if (payload?.senderId === teacherUserId || typeof payload?.enabled !== 'boolean') return;
-        applyRemoteDrawingEnabled(payload.enabled);
-      })
-      .on('broadcast', { event: 'reward' }, ({ payload }) => {
-        if (payload?.senderId === teacherUserId || payload?.rewardType !== 'star') return;
-        setStudentStars(payload.starCount ?? 1);
-        setIsMilestone(!!payload.isMilestone);
-        setShowStarCelebration(true);
-      });
-
-    channel.subscribe((status) => {
-      if (status === 'SUBSCRIBED' || status === 'CLOSED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-        setChannelStatus(status);
+    const unsubDrawing = whiteboardService.subscribeToDrawingEnabled(roomName, ({ enabled, senderId }) => {
+      if (senderId === teacherUserId || typeof enabled !== 'boolean') return;
+      applyRemoteDrawingEnabled(enabled);
+    });
+    const unsubReward = whiteboardService.subscribeToRewards(roomName, (payload) => {
+      if (payload.senderId === teacherUserId || payload.rewardType !== 'star') return;
+      setStudentStars(payload.starCount ?? 1);
+      setIsMilestone(!!payload.isMilestone);
+      setShowStarCelebration(true);
+    });
+    const unsubStatus = whiteboardService.subscribeToStatus(roomName, (status) => {
+      if (status === 'SUBSCRIBED' || status === 'CLOSED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CONNECTING') {
+        setChannelStatus(status as 'CONNECTING' | 'SUBSCRIBED' | 'CLOSED' | 'CHANNEL_ERROR' | 'TIMED_OUT');
       }
     });
 
     return () => {
-      supabase.removeChannel(channel);
+      unsubStage();
+      unsubDrawing();
+      unsubReward();
+      unsubStatus();
     };
   }, [roomName, teacherUserId, applyRemoteStageMode, applyRemoteDrawingEnabled]);
 
