@@ -507,7 +507,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         } else if (resolvedRole === 'content_creator') {
           redirectPath = '/content-creator';
         } else if (resolvedRole === 'teacher') {
-          redirectPath = '/admin';
+          redirectPath = '/teacher';
         } else if (resolvedRole === 'parent') {
           redirectPath = '/parent';
         } else if (resolvedRole === 'student') {
