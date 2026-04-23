@@ -1,81 +1,79 @@
 
 
-# Plan: Hub Color Standardization & Academy Redirect Hardening
+# Plan: Fix "Database error saving new user" — Missing Type Resolution
 
-## Problem Summary
+## Root Cause
 
-1. **45 files use the old Academy color `#1A237E` (navy blue)** instead of the correct `#6B21A8` (royal purple). The `hubDesignTokens.ts` file is correct, but the actual components never reference it -- they have hardcoded hex values.
-2. **The `emailRedirectTo` in AuthContext points to `/`** (root), which means after email confirmation the user lands on the homepage instead of being routed through the smart Dashboard router.
-3. **No `/auth/callback` route exists** to handle Supabase email confirmation redirects and route users to their correct hub.
-4. **Student classroom header still uses navy blue** for Academy gradient instead of purple.
+The `handle_new_user()` trigger function declares a variable of type `student_level`, but the function has **no `search_path` configuration** (confirmed: `proconfig` is NULL). When the trigger fires from the `auth.users` table insert, PostgreSQL cannot resolve the `student_level` type because it looks in the `auth` schema context, not `public`.
 
----
+Error: `ERROR: type "student_level" does not exist (SQLSTATE 42704)`
 
-## Changes
+## Fix (Single Migration)
 
-### 1. Replace `#1A237E` with `#6B21A8` across all 45 files
+Recreate the `handle_new_user()` function with two changes:
 
-Every instance of `#1A237E` (navy blue) will be replaced with `#6B21A8` (royal purple) across all component files. Similarly, `#3F51B5` (indigo -- the old Academy secondary) will be replaced with `#A855F7` (lighter purple) where it appears as a gradient endpoint.
+1. Add `SET search_path = public` to the function definition so all type lookups resolve correctly.
+2. Fully qualify the type as `public.student_level` in the variable declaration for extra safety.
 
-**Affected areas include:**
-- Lesson player activities (LetterHunt, SentenceTransform, MouthMirror, WordBuilder, OddOneOut, etc.)
-- Teacher professional components (CurriculumMapView, StudentEntityDashboard, diagnostics)
-- Admin components (ContractManagement)
-- Classroom components (WarmUpMystery, StudentClassroomHeader)
-- All other files using the old navy palette
+### SQL Migration
 
-### 2. Fix StudentClassroomHeader hub gradient
+```sql
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+DECLARE
+  user_role TEXT;
+  user_full_name TEXT;
+  hub_meta TEXT;
+  resolved_level public.student_level;
+BEGIN
+  user_role := COALESCE(NEW.raw_user_meta_data->>'role', 'student');
+  user_full_name := COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1));
+  
+  INSERT INTO public.users (id, email, full_name, role)
+  VALUES (NEW.id, NEW.email, user_full_name, user_role)
+  ON CONFLICT (id) DO UPDATE SET
+    email = EXCLUDED.email,
+    full_name = COALESCE(EXCLUDED.full_name, public.users.full_name),
+    role = COALESCE(EXCLUDED.role, public.users.role);
+  
+  IF user_role IN ('student', 'teacher', 'admin', 'content_creator', 'parent') THEN
+    INSERT INTO public.user_roles (user_id, role)
+    VALUES (NEW.id, user_role::public.app_role)
+    ON CONFLICT (user_id, role) DO NOTHING;
+  ELSE
+    INSERT INTO public.user_roles (user_id, role)
+    VALUES (NEW.id, 'student'::public.app_role)
+    ON CONFLICT (user_id, role) DO NOTHING;
+  END IF;
+  
+  IF user_role = 'teacher' THEN
+    INSERT INTO public.teacher_profiles (user_id, profile_complete, can_teach, profile_approved_by_admin)
+    VALUES (NEW.id, false, false, false)
+    ON CONFLICT (user_id) DO NOTHING;
+  END IF;
 
-**File**: `src/components/student/classroom/StudentClassroomHeader.tsx`
+  IF user_role = 'student' THEN
+    hub_meta := NEW.raw_user_meta_data->>'hub_type';
+    CASE hub_meta
+      WHEN 'academy' THEN resolved_level := 'academy';
+      WHEN 'professional', 'success' THEN resolved_level := 'professional';
+      ELSE resolved_level := 'playground';
+    END CASE;
+    
+    INSERT INTO public.student_profiles (user_id, student_level, onboarding_completed)
+    VALUES (NEW.id, resolved_level, false)
+    ON CONFLICT (user_id) DO NOTHING;
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+```
 
-Change the Academy fallback gradient from `linear-gradient(135deg, #1A237E, #3F51B5)` to `linear-gradient(135deg, #6B21A8, #A855F7)`.
+## No Frontend Changes Required
 
-### 3. Update `emailRedirectTo` to use `/dashboard`
+The trigger fix is the only change needed. Once the function can resolve the `student_level` type, signups will succeed and the existing frontend routing logic will work.
 
-**File**: `src/contexts/AuthContext.tsx`
-
-Change the redirect URL from `window.location.origin + '/'` to `window.location.origin + '/dashboard'` so that after email confirmation, users hit the smart router which reads their `student_level` and sends them to the correct hub.
-
-### 4. Create `/auth/callback` route
-
-**New file**: `src/pages/AuthCallback.tsx`
-
-A lightweight page that:
-- Extracts the Supabase auth tokens from the URL hash/params
-- Calls `supabase.auth.exchangeCodeForSession()` or handles the token exchange
-- Redirects to `/dashboard` which then routes to the correct hub
-
-**Modified file**: `src/App.tsx` -- add the `/auth/callback` route.
-
-### 5. Update `emailRedirectTo` to point to `/auth/callback`
-
-**File**: `src/contexts/AuthContext.tsx`
-
-After creating the callback route, update: `emailRedirectTo: window.location.origin + '/auth/callback'`
-
-**File**: `src/components/security/AdvancedAuth.tsx` -- same update.
-
----
-
-## Technical Details
-
-### Files Created
-- `src/pages/AuthCallback.tsx`
-
-### Files Modified
-- ~45 component files (batch `#1A237E` to `#6B21A8` replacement)
-- `src/contexts/AuthContext.tsx` (emailRedirectTo)
-- `src/components/security/AdvancedAuth.tsx` (emailRedirectTo)
-- `src/components/student/classroom/StudentClassroomHeader.tsx` (gradient fix)
-- `src/App.tsx` (add `/auth/callback` route)
-
-### No Database Migrations Required
-The `student_profiles.student_level` field and hub-based routing logic are already in place.
-
-### Verification Checklist
-- Playground pages: `#FE6A2F` orange (already correct)
-- Academy pages: `#6B21A8` purple (fixing 45 files)
-- Success Hub pages: `#059669` green (already correct)
-- Email confirmation redirects to `/auth/callback` then to correct hub dashboard
-- Student signup with `?hub=academy` stamps `student_level: 'academy'` (already working)
+## Files Affected
+- One database migration only (no code file changes)
 
