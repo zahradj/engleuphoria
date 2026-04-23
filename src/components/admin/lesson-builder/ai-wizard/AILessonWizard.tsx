@@ -764,6 +764,36 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated, lessonCo
                     </p>
                   </div>
 
+                  {formData.ageGroup === 'kids' && (
+                    <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 flex items-start gap-2">
+                      <span className="text-base leading-none">🛝</span>
+                      <p className="text-xs text-foreground">
+                        <strong>Playground reminder:</strong> Students are <strong>4 to 9 years old</strong>. Use ultra-simple language, lots of visuals, songs, and short sentences. Avoid abstract grammar terminology.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Lesson Prompt — auto-filled from curriculum context, just like PPP */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      Lesson Prompt
+                      {magicLessonPrompt && lessonContext && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/15 text-primary font-semibold">
+                          AUTO-FILLED
+                        </span>
+                      )}
+                    </Label>
+                    <Textarea
+                      placeholder="Describe the lesson context, objectives, scaffolding, or any specific instructions for the AI..."
+                      value={magicLessonPrompt}
+                      onChange={(e) => setMagicLessonPrompt(e.target.value)}
+                      className="min-h-[90px] text-sm resize-none"
+                    />
+                    <p className="text-[11px] text-muted-foreground">
+                      Auto-filled from the selected curriculum lesson — edit freely to steer the AI.
+                    </p>
+                  </div>
+
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Grammar Focus <span className="text-muted-foreground font-normal">(optional)</span></Label>
                     <Input
@@ -787,7 +817,7 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated, lessonCo
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Student Age / Level <span className="text-muted-foreground font-normal">(optional)</span></Label>
                     <Input
-                      placeholder="e.g., 14 years old, B1 level"
+                      placeholder={formData.ageGroup === 'kids' ? 'e.g., 6 years old, A1 level' : 'e.g., 14 years old, B1 level'}
                       value={magicAge}
                       onChange={(e) => setMagicAge(e.target.value)}
                       className="h-10 text-sm"
