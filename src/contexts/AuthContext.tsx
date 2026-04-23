@@ -215,7 +215,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                   if (!mounted) return;
                   try {
                     await autoHealUserRows(currentSession.user);
-                    const dbUser = await fetchUserFromDatabase(currentSession.user.id);
+                    const dbUser = await fetchUserFromDatabase(currentSession.user);
                     const finalUser = dbUser || await createFallbackUser(currentSession.user);
                     if (mounted) {
                       setUser(finalUser);
@@ -238,7 +238,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 setTimeout(async () => {
                   if (!mounted) return;
                   try {
-                    const dbUser = await fetchUserFromDatabase(currentSession.user.id);
+                    const dbUser = await fetchUserFromDatabase(currentSession.user);
                     if (mounted) {
                       const finalUser = dbUser || await createFallbackUser(currentSession.user);
                       setUser(finalUser);
@@ -271,7 +271,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             // see a truthy user with undefined role and redirect to /dashboard
             // prematurely. Wait for the DB fetch to complete.
             try {
-              const dbUser = await fetchUserFromDatabase(initialSession.user.id);
+                const dbUser = await fetchUserFromDatabase(initialSession.user);
               setUser(dbUser || await createFallbackUser(initialSession.user));
             } catch (error) {
               console.error('Error fetching initial user:', error);
