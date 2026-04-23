@@ -373,6 +373,15 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
 
       {/* ─── Main Content ─── */}
       <div className="flex-1 flex min-h-0">
+        {/* Far Left: AI Slide Generator Panel — only for editors */}
+        {canEdit && (
+          <AISlideGeneratorPanel
+            onSlidesGenerated={handleMagicDeckGenerated}
+            isCollapsed={aiPanelCollapsed}
+            onToggleCollapse={() => setAiPanelCollapsed(!aiPanelCollapsed)}
+          />
+        )}
+
         {/* Left: Collapsible Filmstrip with merged element toolbar */}
         <div className="flex shrink-0 h-full">
           {filmstripCollapsed ? (
@@ -408,6 +417,10 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
                 onReorderSlides={canEdit ? handleReorderSlides : undefined}
                 onImageUploaded={canEdit ? handleImageUploaded : undefined}
                 onAddElement={canEdit ? handleAddElement : undefined}
+                onInsertSlide={canEdit ? handleInsertSlide : undefined}
+                hub={currentHub}
+                topic={lessonTopic || lessonTitle}
+                canEdit={canEdit}
               />
             </div>
           )}
