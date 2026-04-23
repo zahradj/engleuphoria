@@ -275,6 +275,7 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated, lessonCo
           targetGrammar: magicGrammar.trim() || undefined,
           targetVocabulary: magicVocabulary.trim() || undefined,
           studentAge: magicAge.trim() || undefined,
+          lessonPrompt: magicLessonPrompt.trim() || undefined,
           mode: 'full_deck',
         },
       });
