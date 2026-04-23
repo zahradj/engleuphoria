@@ -78,9 +78,11 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     activeCanvasTab,
     stageMode,
     drawingEnabled,
+    iframeUnlocked,
     updateSharedNotes,
     applyRemoteStageMode,
-    applyRemoteDrawingEnabled
+    applyRemoteDrawingEnabled,
+    applyRemoteIframeUnlocked
   } = useClassroomSync({
     roomId,
     userId: studentId,
@@ -101,6 +103,17 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     const unsubDrawing = whiteboardService.subscribeToDrawingEnabled(roomId, ({ enabled, senderId }) => {
       if (senderId === studentId || typeof enabled !== 'boolean') return;
       applyRemoteDrawingEnabled(enabled);
+    });
+    const unsubIframeLock = whiteboardService.subscribeToIframeLockState(roomId, ({ isUnlocked, senderId }) => {
+      if (senderId === studentId || typeof isUnlocked !== 'boolean') return;
+      applyRemoteIframeUnlocked(isUnlocked);
+      if (isUnlocked) {
+        toast({
+          title: '🔓 Web page unlocked',
+          description: 'You can now interact with the web page!',
+          duration: 2500,
+        });
+      }
     });
     const unsubReward = whiteboardService.subscribeToRewards(roomId, (payload) => {
       if (payload.senderId === studentId) return;
@@ -129,11 +142,12 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     return () => {
       unsubStage();
       unsubDrawing();
+      unsubIframeLock();
       unsubReward();
       unsubTool();
       unsubStatus();
     };
-  }, [roomId, studentId, applyRemoteStageMode, applyRemoteDrawingEnabled]);
+  }, [roomId, studentId, applyRemoteStageMode, applyRemoteDrawingEnabled, applyRemoteIframeUnlocked, toast]);
 
   // Auto-join local media after mount (post-PreFlightCheck)
   useEffect(() => { media.join(); return () => { media.leave(); }; }, []);
@@ -449,6 +463,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
           sessionContext={sessionContext}
           stageMode={stageMode}
           drawingEnabled={drawingEnabled}
+          iframeUnlocked={iframeUnlocked}
           onAddStroke={addStroke}
         />
       </div>
