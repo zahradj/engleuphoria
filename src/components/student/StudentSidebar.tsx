@@ -91,7 +91,6 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'classes', label: 'Classes', icon: Calendar },
     { id: 'homework', label: 'Homework', icon: BookOpen },
-    { id: 'classroom', label: 'Join Classroom', icon: Video, action: handleEnterClassroom, badge: 'Live' },
     { id: 'lessons', label: 'My Lessons', icon: BookOpen },
     { id: 'learning-path', label: 'My Learning Path', icon: Map, badge: 'New' },
     { id: 'sounds', label: 'Map of Sounds', icon: Sparkles, badge: 'New' },
