@@ -181,6 +181,7 @@ export const SlideFilmstrip: React.FC<SlideFilmstripProps> = ({
                       </div>
                     )}
                   </Draggable>
+                  </React.Fragment>
                 ))}
                 {provided.placeholder}
               </div>
