@@ -25,7 +25,7 @@ export const StarCelebration: React.FC<StarCelebrationProps> = ({
       setShowContent(true);
       
       // Fire confetti
-      const duration = isMilestone ? 6000 : 3000;
+      const duration = 1200;
       const end = Date.now() + duration;
 
       const colors = isMilestone 
@@ -33,107 +33,89 @@ export const StarCelebration: React.FC<StarCelebrationProps> = ({
         : ['#ffd700', '#ffed4a', '#ffc107', '#fff176'];
 
       if (isMilestone) {
-        // BIG CARNIVAL celebration for milestone (5 stars)
         const interval = setInterval(() => {
           if (Date.now() > end) {
             clearInterval(interval);
             return;
           }
 
-          // Multiple confetti bursts from all directions
           confetti({
-            particleCount: 150,
-            spread: 180,
+            particleCount: 60,
+            spread: 150,
             origin: { x: Math.random(), y: Math.random() * 0.5 },
             colors,
-            startVelocity: 60,
+            startVelocity: 42,
             gravity: 0.6,
-            scalar: 1.5
+            scalar: 1.2
           });
 
-          // Star shapes bursting
           confetti({
-            particleCount: 30,
-            spread: 100,
+            particleCount: 18,
+            spread: 90,
             origin: { x: 0.5, y: 0.5 },
             colors: ['#ffd700', '#ffed4a'],
             shapes: ['star'],
-            scalar: 2.5
+            scalar: 1.8
           });
-        }, 150);
+        }, 180);
 
-        // Massive initial fireworks
         setTimeout(() => {
           confetti({
-            particleCount: 300,
-            spread: 360,
+            particleCount: 120,
+            spread: 220,
             origin: { y: 0.5, x: 0.5 },
             colors,
-            startVelocity: 70,
-            scalar: 2
+            startVelocity: 55,
+            scalar: 1.4
           });
         }, 100);
 
-        // Side cannons
         setTimeout(() => {
           confetti({
-            particleCount: 100,
+            particleCount: 50,
             angle: 60,
             spread: 55,
             origin: { x: 0, y: 0.7 },
             colors,
-            startVelocity: 50
+            startVelocity: 40
           });
           confetti({
-            particleCount: 100,
+            particleCount: 50,
             angle: 120,
             spread: 55,
             origin: { x: 1, y: 0.7 },
             colors,
-            startVelocity: 50
+            startVelocity: 40
           });
-        }, 500);
-
-        // Second wave
-        setTimeout(() => {
-          confetti({
-            particleCount: 200,
-            spread: 180,
-            origin: { y: 0.6 },
-            colors,
-            startVelocity: 80,
-            scalar: 1.8
-          });
-        }, 1500);
+        }, 380);
 
       } else {
-        // Regular star celebration - still impressive
         confetti({
-          particleCount: 80,
+          particleCount: 50,
           spread: 100,
           origin: { y: 0.6 },
           colors,
-          startVelocity: 40,
-          scalar: 1.2
+          startVelocity: 34,
+          scalar: 1
         });
 
         setTimeout(() => {
           confetti({
-            particleCount: 40,
+            particleCount: 24,
             spread: 60,
             origin: { x: 0.5, y: 0.5 },
             colors: ['#ffd700'],
             shapes: ['star'],
-            scalar: 1.8
+            scalar: 1.3
           });
-        }, 300);
+        }, 220);
       }
 
       // Auto-hide after animation
       const timer = setTimeout(() => {
         setShowContent(false);
         setTimeout(onComplete, 300);
-      }, isMilestone ? 6500 : 3500);
+      }, 1200);
 
       return () => clearTimeout(timer);
     }

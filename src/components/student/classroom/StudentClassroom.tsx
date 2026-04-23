@@ -78,7 +78,9 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     activeCanvasTab,
     stageMode,
     drawingEnabled,
-    updateSharedNotes
+    updateSharedNotes,
+    applyRemoteStageMode,
+    applyRemoteDrawingEnabled
   } = useClassroomSync({
     roomId,
     userId: studentId,
@@ -87,6 +89,51 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
   });
 
   const webrtcRoom = `engleuphoria-${roomId}`;
+  const [channelStatus, setChannelStatus] = useState<'CONNECTING' | 'SUBSCRIBED' | 'CLOSED' | 'CHANNEL_ERROR' | 'TIMED_OUT'>('CONNECTING');
+
+  useEffect(() => {
+    if (!roomId || !studentId) return;
+
+    const unsubStage = whiteboardService.subscribeToStageMode(roomId, ({ mode, senderId }) => {
+      if (senderId === studentId || !mode) return;
+      applyRemoteStageMode(mode);
+    });
+    const unsubDrawing = whiteboardService.subscribeToDrawingEnabled(roomId, ({ enabled, senderId }) => {
+      if (senderId === studentId || typeof enabled !== 'boolean') return;
+      applyRemoteDrawingEnabled(enabled);
+    });
+    const unsubReward = whiteboardService.subscribeToRewards(roomId, (payload) => {
+      if (payload.senderId === studentId) return;
+      if (payload.rewardType === 'star') {
+        setLiveStar({
+          count: payload.starCount ?? 1,
+          isMilestone: !!payload.isMilestone,
+          key: Date.now(),
+        });
+      } else if (payload.rewardType === 'sticker') {
+        setLiveSticker({ emoji: payload.sticker || '😊', key: Date.now() });
+        setTimeout(() => setLiveSticker(null), 1500);
+      }
+    });
+    const unsubTool = whiteboardService.subscribeToToolActions(roomId, (payload) => {
+      if (payload.senderId === studentId || payload.tool !== 'dice') return;
+      setLiveDice({ value: payload.result, key: Date.now() });
+      setTimeout(() => setLiveDice(null), 1500);
+    });
+    const unsubStatus = whiteboardService.subscribeToStatus(roomId, (status) => {
+      if (status === 'SUBSCRIBED' || status === 'CLOSED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CONNECTING') {
+        setChannelStatus(status as 'CONNECTING' | 'SUBSCRIBED' | 'CLOSED' | 'CHANNEL_ERROR' | 'TIMED_OUT');
+      }
+    });
+
+    return () => {
+      unsubStage();
+      unsubDrawing();
+      unsubReward();
+      unsubTool();
+      unsubStatus();
+    };
+  }, [roomId, studentId, applyRemoteStageMode, applyRemoteDrawingEnabled]);
 
   // Auto-join local media after mount (post-PreFlightCheck)
   useEffect(() => { media.join(); return () => { media.leave(); }; }, []);
@@ -154,30 +201,6 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Instant broadcast subscriptions (chat is wired in RealTimeChatPanel itself)
-  useEffect(() => {
-    if (!roomId) return;
-    const unsubReward = whiteboardService.subscribeToRewards(roomId, (payload) => {
-      if (payload.rewardType === 'star') {
-        setLiveStar({
-          count: payload.starCount ?? 1,
-          isMilestone: !!payload.isMilestone,
-          key: Date.now(),
-        });
-      } else if (payload.rewardType === 'sticker') {
-        setLiveSticker({ emoji: payload.sticker || '😊', key: Date.now() });
-        setTimeout(() => setLiveSticker(null), 2500);
-      }
-    });
-    const unsubTool = whiteboardService.subscribeToToolActions(roomId, (payload) => {
-      if (payload.tool === 'dice') {
-        setLiveDice({ value: payload.result, key: Date.now() });
-        setTimeout(() => setLiveDice(null), 4000);
-      }
-    });
-    return () => { unsubReward(); unsubTool(); };
-  }, [roomId]);
-
   // Zen mode elapsed timer
   useEffect(() => {
     if (!isZenMode) return;
@@ -218,6 +241,10 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
 
   return (
     <div className={`h-screen w-full ${hubBg} text-gray-900 flex flex-col overflow-hidden relative`}>
+      <div className="fixed top-3 right-3 z-[110] flex items-center gap-2 rounded-full bg-background/85 px-3 py-1.5 shadow-sm ring-1 ring-border backdrop-blur-md">
+        <div className={`h-2.5 w-2.5 rounded-full ${channelStatus === 'SUBSCRIBED' ? 'bg-success animate-pulse' : 'bg-destructive'}`} />
+        <span className="text-[11px] font-medium text-foreground">Realtime</span>
+      </div>
       {/* Debug Room ID Label */}
       {showDebug && (
         <div className="fixed bottom-2 left-2 z-[100] bg-black/50 text-white text-[10px] font-mono px-2 py-1 rounded backdrop-blur-sm">

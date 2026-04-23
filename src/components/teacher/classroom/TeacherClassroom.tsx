@@ -127,7 +127,9 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     updateSessionContext,
     updateCanvasTab,
     setStageMode,
-    setDrawingEnabled
+    setDrawingEnabled,
+    applyRemoteStageMode,
+    applyRemoteDrawingEnabled
   } = useClassroomSync({
     roomId: roomName,
     userId: user?.id || (() => {
@@ -157,15 +159,39 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     }
   }, [studentContext, isConnected]);
 
-  // Re-broadcast unified stage state periodically so late-joining students sync.
+  const teacherUserId = user?.id || sessionStorage.getItem('demo-teacher-id') || 'teacher';
+  const [channelStatus, setChannelStatus] = useState<'CONNECTING' | 'SUBSCRIBED' | 'CLOSED' | 'CHANNEL_ERROR' | 'TIMED_OUT'>('CONNECTING');
+
   useEffect(() => {
-    if (!isConnected) return;
-    const t = setInterval(() => {
-      void setStageMode(stageMode);
-      void setDrawingEnabled(drawingEnabled);
-    }, 5000);
-    return () => clearInterval(t);
-  }, [isConnected, stageMode, drawingEnabled, setStageMode, setDrawingEnabled]);
+    if (!roomName || !teacherUserId) return;
+
+    const unsubStage = whiteboardService.subscribeToStageMode(roomName, ({ mode, senderId }) => {
+      if (senderId === teacherUserId || !mode) return;
+      applyRemoteStageMode(mode);
+    });
+    const unsubDrawing = whiteboardService.subscribeToDrawingEnabled(roomName, ({ enabled, senderId }) => {
+      if (senderId === teacherUserId || typeof enabled !== 'boolean') return;
+      applyRemoteDrawingEnabled(enabled);
+    });
+    const unsubReward = whiteboardService.subscribeToRewards(roomName, (payload) => {
+      if (payload.senderId === teacherUserId || payload.rewardType !== 'star') return;
+      setStudentStars(payload.starCount ?? 1);
+      setIsMilestone(!!payload.isMilestone);
+      setShowStarCelebration(true);
+    });
+    const unsubStatus = whiteboardService.subscribeToStatus(roomName, (status) => {
+      if (status === 'SUBSCRIBED' || status === 'CLOSED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CONNECTING') {
+        setChannelStatus(status as 'CONNECTING' | 'SUBSCRIBED' | 'CLOSED' | 'CHANNEL_ERROR' | 'TIMED_OUT');
+      }
+    });
+
+    return () => {
+      unsubStage();
+      unsubDrawing();
+      unsubReward();
+      unsubStatus();
+    };
+  }, [roomName, teacherUserId, applyRemoteStageMode, applyRemoteDrawingEnabled]);
 
   // Screen share hook
   const {
@@ -236,8 +262,6 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   const toggleMute = useCallback(() => { media.toggleMicrophone(); }, [media]);
   const toggleCamera = useCallback(() => { media.toggleCamera(); }, [media]);
 
-  const teacherUserId = user?.id || sessionStorage.getItem('demo-teacher-id') || 'teacher';
-
   const handleGiveStar = useCallback(async () => {
     const newStarCount = studentStars + 1;
     setStudentStars(newStarCount);
@@ -252,7 +276,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
       senderId: teacherUserId,
     }).catch((e) => console.error('Star broadcast failed:', e));
     await updateSharedDisplay({ starCount: newStarCount, showStarCelebration: true, isMilestone: milestone });
-    setTimeout(async () => { await updateSharedDisplay({ showStarCelebration: false }); }, milestone ? 6500 : 3500);
+    setTimeout(async () => { await updateSharedDisplay({ showStarCelebration: false }); }, 1500);
   }, [studentStars, updateSharedDisplay, roomName, teacherUserId]);
 
   const handleOpenTimer = useCallback(() => { setTimerDialogOpen(true); }, []);
@@ -335,6 +359,10 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   return (
     <div className={`h-screen w-full ${hubBg} text-gray-900 flex flex-col overflow-hidden relative`}>
+      <div className="fixed top-3 right-3 z-[110] flex items-center gap-2 rounded-full bg-background/85 px-3 py-1.5 shadow-sm ring-1 ring-border backdrop-blur-md">
+        <div className={`h-2.5 w-2.5 rounded-full ${channelStatus === 'SUBSCRIBED' ? 'bg-success animate-pulse' : 'bg-destructive'}`} />
+        <span className="text-[11px] font-medium text-foreground">Realtime</span>
+      </div>
       {/* Debug Room ID Label */}
       {showDebug && (
         <div className="fixed bottom-2 left-2 z-[100] bg-black/50 text-white text-[10px] font-mono px-2 py-1 rounded backdrop-blur-sm">
