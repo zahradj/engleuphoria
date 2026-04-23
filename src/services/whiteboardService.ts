@@ -267,6 +267,24 @@ class WhiteboardService {
     return () => this.release(roomId, () => room.drawingEnabledListeners.delete(onChange));
   }
 
+  /** Broadcast whether the student is allowed to interact directly with the embedded iframe. */
+  async sendIframeLockState(roomId: string, isUnlocked: boolean, senderId: string): Promise<void> {
+    const room = this.getRoom(roomId);
+    await room.ready;
+    await room.channel.send({
+      type: 'broadcast',
+      event: 'iframe_lock_state',
+      payload: { isUnlocked, senderId },
+    });
+  }
+
+  subscribeToIframeLockState(roomId: string, onChange: IframeLockListener): () => void {
+    const room = this.getRoom(roomId);
+    room.iframeLockListeners.add(onChange);
+    room.refCount += 1;
+    return () => this.release(roomId, () => room.iframeLockListeners.delete(onChange));
+  }
+
   /** Broadcast a teacher reward (star or sticker) so the student animates instantly. */
   async sendReward(
     roomId: string,
@@ -351,6 +369,7 @@ class WhiteboardService {
       room.scrollListeners.size === 0 &&
       room.stageModeListeners.size === 0 &&
       room.drawingEnabledListeners.size === 0 &&
+      room.iframeLockListeners.size === 0 &&
       room.rewardListeners.size === 0 &&
       room.toolActionListeners.size === 0 &&
       room.chatListeners.size === 0 &&
