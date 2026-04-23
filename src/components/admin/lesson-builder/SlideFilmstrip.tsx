@@ -148,14 +148,16 @@ export const SlideFilmstrip: React.FC<SlideFilmstripProps> = ({
                             />
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="absolute top-0 right-0 h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={(e) => { e.stopPropagation(); onDeleteSlide(slide.id); }}
-                        >
-                          <Trash2 className="h-2 w-2 text-destructive" />
-                        </Button>
+                        {onDeleteSlide && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-0 right-0 h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => { e.stopPropagation(); onDeleteSlide(slide.id); }}
+                          >
+                            <Trash2 className="h-2 w-2 text-destructive" />
+                          </Button>
+                        )}
                       </div>
                     )}
                   </Draggable>
