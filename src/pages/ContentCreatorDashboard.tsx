@@ -4,7 +4,7 @@ import { usePipelineProgress } from '@/hooks/usePipelineProgress';
 import { CurriculumStep, CurriculumContext } from '@/components/content-creator/CurriculumStep';
 import { AdminLessonEditor } from '@/components/admin/lesson-builder';
 import LessonLibraryHub from '@/components/lesson-player/LessonLibraryHub';
-import { AILessonArchitect } from '@/components/content-creator/AILessonArchitect';
+// AILessonArchitect is now integrated inside the Slide Builder (AdminLessonEditor)
 import { useAuth } from '@/contexts/AuthContext';
 import { LogOut, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -25,9 +25,6 @@ const ContentCreatorDashboard: React.FC = () => {
         return (
           <div className="space-y-8">
             <CurriculumStep onNextStep={goNext} onCurriculumSelected={setCurriculumContext} />
-            <div className="border-t border-border/50 pt-6">
-              <AILessonArchitect />
-            </div>
           </div>
         );
       case 2:
