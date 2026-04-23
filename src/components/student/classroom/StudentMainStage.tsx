@@ -214,8 +214,9 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
             {!isQuizSlide && !isPollSlide && (
               <CollaborativeCanvas
                 roomId={roomId} userId={userId} userName={userName} role="student"
-                canDraw={studentCanDraw} activeTool={studentCanDraw ? 'pen' : 'pointer'}
-                activeColor={activeColor} strokes={strokes} onAddStroke={onAddStroke}
+                canDraw={canDrawOnSlides && studentTool !== 'pointer'}
+                activeTool={studentTool === 'pointer' ? 'pen' : studentTool}
+                activeColor={studentColor} strokes={strokes} onAddStroke={onAddStroke}
               />
             )}
             <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm z-20">
@@ -228,8 +229,9 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
           <div className="relative w-full max-w-5xl aspect-[16/9] bg-white rounded-xl shadow-2xl overflow-hidden">
             <CollaborativeCanvas
               roomId={roomId} userId={userId} userName={userName} role="student"
-              canDraw={studentCanDraw} activeTool={studentCanDraw ? 'pen' : 'pointer'}
-              activeColor={activeColor} strokes={strokes} onAddStroke={onAddStroke}
+              canDraw={canDrawOnWhiteboard && studentTool !== 'pointer'}
+              activeTool={studentTool === 'pointer' ? 'pen' : studentTool}
+              activeColor={studentColor} strokes={strokes} onAddStroke={onAddStroke}
             />
           </div>
         )}
@@ -245,11 +247,12 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
                   allowFullScreen
                   sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
                 />
-                {studentCanDraw && (
+                {canDrawOnWeb && studentTool !== 'pointer' && (
                   <CollaborativeCanvas
                     roomId={roomId} userId={userId} userName={userName} role="student"
-                    canDraw={studentCanDraw} activeTool="pen"
-                    activeColor={activeColor} strokes={strokes} onAddStroke={onAddStroke}
+                    canDraw={true}
+                    activeTool={studentTool}
+                    activeColor={studentColor} strokes={strokes} onAddStroke={onAddStroke}
                   />
                 )}
               </>
@@ -264,6 +267,60 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
           </div>
         )}
       </div>
+
+      {/* Student Drawing Toolbar (whiteboard always; slides/web when teacher allows) */}
+      {(activeCanvasTab === 'whiteboard' ||
+        (activeCanvasTab === 'slides' && canDrawOnSlides) ||
+        (activeCanvasTab === 'web' && canDrawOnWeb && embeddedUrl)) && (
+        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-30">
+          <div className="flex items-center gap-1 bg-white/95 backdrop-blur-md rounded-full px-2 py-2 shadow-xl border border-gray-200">
+            <Button
+              variant="ghost" size="icon"
+              onClick={() => setStudentTool('pointer')}
+              className={`h-9 w-9 rounded-full ${studentTool === 'pointer' ? 'bg-purple-500 text-white hover:bg-purple-600' : 'text-gray-600 hover:bg-gray-100'}`}
+              title="Pointer"
+            >
+              <MousePointer2 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost" size="icon"
+              onClick={() => setStudentTool('pen')}
+              className={`h-9 w-9 rounded-full ${studentTool === 'pen' ? 'bg-purple-500 text-white hover:bg-purple-600' : 'text-gray-600 hover:bg-gray-100'}`}
+              title="Pen"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost" size="icon"
+              onClick={() => setStudentTool('eraser')}
+              className={`h-9 w-9 rounded-full ${studentTool === 'eraser' ? 'bg-orange-500 text-white hover:bg-orange-600' : 'text-gray-600 hover:bg-gray-100'}`}
+              title="Eraser"
+            >
+              <Eraser className="h-4 w-4" />
+            </Button>
+            <div className="h-5 w-px bg-gray-300 mx-1" />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-gray-100" title="Color">
+                  <div className="h-5 w-5 rounded-full border-2 border-gray-300" style={{ backgroundColor: studentColor }} />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-2" align="center">
+                <div className="grid grid-cols-3 gap-1.5">
+                  {STUDENT_COLORS.map(color => (
+                    <button
+                      key={color}
+                      onClick={() => setStudentColor(color)}
+                      className={`w-7 h-7 rounded-full transition-transform ${studentColor === color ? 'ring-2 ring-offset-1 ring-purple-500 scale-110' : 'hover:scale-105'}`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+      )}
 
       {/* Teacher Control Indicator */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
