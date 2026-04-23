@@ -17,6 +17,48 @@ const readSavedDevice = (key: string): string | undefined => {
   return v && v.length > 0 ? v : undefined;
 };
 
+const clearSavedDevice = (key: string) => {
+  if (typeof localStorage === "undefined") return;
+  localStorage.removeItem(key);
+};
+
+const getGenericAudioConstraints = (): MediaTrackConstraints => ({
+  echoCancellation: true,
+  noiseSuppression: true,
+  autoGainControl: true,
+});
+
+const getGenericVideoConstraints = (includeFacingMode = false): MediaTrackConstraints => ({
+  width: { ideal: 640 },
+  height: { ideal: 480 },
+  ...(includeFacingMode ? { facingMode: "user" } : {}),
+});
+
+const getValidatedSavedDevices = async () => {
+  const savedCameraId = readSavedDevice(CAMERA_KEY);
+  const savedMicId = readSavedDevice(MIC_KEY);
+
+  if (!navigator.mediaDevices?.enumerateDevices) {
+    return { cameraId: savedCameraId, micId: savedMicId };
+  }
+
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  const availableCameraIds = new Set(
+    devices.filter((device) => device.kind === "videoinput").map((device) => device.deviceId)
+  );
+  const availableMicIds = new Set(
+    devices.filter((device) => device.kind === "audioinput").map((device) => device.deviceId)
+  );
+
+  const cameraId = savedCameraId && availableCameraIds.has(savedCameraId) ? savedCameraId : undefined;
+  const micId = savedMicId && availableMicIds.has(savedMicId) ? savedMicId : undefined;
+
+  if (savedCameraId && !cameraId) clearSavedDevice(CAMERA_KEY);
+  if (savedMicId && !micId) clearSavedDevice(MIC_KEY);
+
+  return { cameraId, micId };
+};
+
 export function useLocalMedia() {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isMuted, setIsMuted] = useState(false);
@@ -64,20 +106,69 @@ export function useLocalMedia() {
 
       logger.debug("Requesting media permissions");
 
-      // Use saved device IDs from the device-picker dropdown if present.
-      const camId = readSavedDevice(CAMERA_KEY);
-      const micId = readSavedDevice(MIC_KEY);
+      const { cameraId, micId } = await getValidatedSavedDevices();
+      const joinAttempts: MediaStreamConstraints[] = [];
 
-      const constraints: MediaStreamConstraints = {
-        video: camId
-          ? { deviceId: { exact: camId }, width: { ideal: 640 }, height: { ideal: 480 } }
-          : { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" },
-        audio: micId
-          ? { deviceId: { exact: micId }, echoCancellation: true, noiseSuppression: true, autoGainControl: true }
-          : { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-      };
+      if (cameraId || micId) {
+        joinAttempts.push({
+          video: cameraId
+            ? { ...getGenericVideoConstraints(), deviceId: { exact: cameraId } }
+            : getGenericVideoConstraints(),
+          audio: micId
+            ? { ...getGenericAudioConstraints(), deviceId: { exact: micId } }
+            : getGenericAudioConstraints(),
+        });
 
-      const userStream = await navigator.mediaDevices.getUserMedia(constraints);
+        joinAttempts.push({
+          video: cameraId
+            ? { ...getGenericVideoConstraints(), deviceId: { ideal: cameraId } }
+            : getGenericVideoConstraints(),
+          audio: micId
+            ? { ...getGenericAudioConstraints(), deviceId: { ideal: micId } }
+            : getGenericAudioConstraints(),
+        });
+      }
+
+      joinAttempts.push(
+        {
+          video: getGenericVideoConstraints(),
+          audio: getGenericAudioConstraints(),
+        },
+        {
+          video: getGenericVideoConstraints(true),
+          audio: getGenericAudioConstraints(),
+        }
+      );
+
+      let userStream: MediaStream | null = null;
+      let lastMediaError: unknown = null;
+
+      for (let attemptIndex = 0; attemptIndex < joinAttempts.length; attemptIndex += 1) {
+        try {
+          userStream = await navigator.mediaDevices.getUserMedia(joinAttempts[attemptIndex]);
+          break;
+        } catch (attemptError) {
+          lastMediaError = attemptError;
+
+          const errorName = attemptError instanceof Error ? attemptError.name : "UnknownError";
+          logger.warn("Media join attempt failed", { attemptIndex, errorName });
+
+          if (attemptIndex === 0 && (cameraId || micId) && (errorName === "OverconstrainedError" || errorName === "NotFoundError")) {
+            if (cameraId) clearSavedDevice(CAMERA_KEY);
+            if (micId) clearSavedDevice(MIC_KEY);
+          }
+
+          if (errorName === "OverconstrainedError" || errorName === "NotFoundError") {
+            continue;
+          }
+
+          throw attemptError;
+        }
+      }
+
+      if (!userStream) {
+        throw (lastMediaError ?? new Error("Unable to access camera/microphone"));
+      }
 
       logger.debug("Media access granted", {
         video: userStream.getVideoTracks().length,

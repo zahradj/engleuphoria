@@ -10,6 +10,20 @@ export interface MediaDevicesState {
 const CAMERA_KEY = "preferredCameraId";
 const MIC_KEY = "preferredMicId";
 
+const readSavedSelection = (key: string) => {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(key);
+};
+
+const persistSelection = (key: string, value: string | null) => {
+  if (typeof window === "undefined") return;
+  if (value) {
+    localStorage.setItem(key, value);
+  } else {
+    localStorage.removeItem(key);
+  }
+};
+
 /**
  * Lists available cameras and microphones. If labels are empty (the page hasn't
  * yet been granted permission) we fire a one-shot getUserMedia({ audio, video })
@@ -19,8 +33,8 @@ const MIC_KEY = "preferredMicId";
 export function useMediaDevices() {
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
   const [microphones, setMicrophones] = useState<MediaDeviceInfo[]>([]);
-  const [selectedCameraId, setSelectedCameraId] = useState<string | null>(() => localStorage.getItem(CAMERA_KEY));
-  const [selectedMicId, setSelectedMicId] = useState<string | null>(() => localStorage.getItem(MIC_KEY));
+  const [selectedCameraId, setSelectedCameraId] = useState<string | null>(() => readSavedSelection(CAMERA_KEY));
+  const [selectedMicId, setSelectedMicId] = useState<string | null>(() => readSavedSelection(MIC_KEY));
 
   const enumerate = useCallback(async (forcePermissionPrompt = false) => {
     try {
@@ -49,9 +63,17 @@ export function useMediaDevices() {
       setCameras(finalCams);
       setMicrophones(finalMics);
 
-      // Initialize selections if none.
-      if (!selectedCameraId && finalCams.length > 0) setSelectedCameraId(finalCams[0].deviceId || null);
-      if (!selectedMicId && finalMics.length > 0) setSelectedMicId(finalMics[0].deviceId || null);
+      const nextCameraId =
+        selectedCameraId && finalCams.some((device) => device.deviceId === selectedCameraId)
+          ? selectedCameraId
+          : finalCams[0]?.deviceId || null;
+      const nextMicId =
+        selectedMicId && finalMics.some((device) => device.deviceId === selectedMicId)
+          ? selectedMicId
+          : finalMics[0]?.deviceId || null;
+
+      if (nextCameraId !== selectedCameraId) setSelectedCameraId(nextCameraId);
+      if (nextMicId !== selectedMicId) setSelectedMicId(nextMicId);
     } catch (e) {
       console.warn("Failed to enumerate devices", e);
     }
@@ -65,11 +87,11 @@ export function useMediaDevices() {
   }, [enumerate]);
 
   useEffect(() => {
-    if (selectedCameraId) localStorage.setItem(CAMERA_KEY, selectedCameraId);
+    persistSelection(CAMERA_KEY, selectedCameraId);
   }, [selectedCameraId]);
 
   useEffect(() => {
-    if (selectedMicId) localStorage.setItem(MIC_KEY, selectedMicId);
+    persistSelection(MIC_KEY, selectedMicId);
   }, [selectedMicId]);
 
   /** Force a permission prompt + re-enumeration so labels populate. */
