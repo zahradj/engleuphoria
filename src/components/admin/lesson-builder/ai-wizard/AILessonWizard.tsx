@@ -249,6 +249,86 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated, lessonCo
     }
   };
 
+  // ─── Magic Deck Generation (Gemini multimedia slides) ──────
+  const handleGenerateMagicDeck = async () => {
+    if (!formData.topic.trim()) return;
+
+    setIsGenerating(true);
+    setCurrentStep(0);
+
+    try {
+      setCurrentStep(1);
+      const hubMap: Record<string, string> = { kids: 'playground', teens: 'academy', adults: 'success' };
+      const hub = hubMap[formData.ageGroup] || 'playground';
+
+      setCurrentStep(2);
+      const { data, error } = await supabase.functions.invoke('generate-lesson-plan', {
+        body: {
+          hub,
+          topic: formData.topic.trim(),
+          targetGrammar: magicGrammar.trim() || undefined,
+          targetVocabulary: magicVocabulary.trim() || undefined,
+          studentAge: magicAge.trim() || undefined,
+          mode: 'full_deck',
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      setCurrentStep(3);
+      const aiSlides: AISlideSchema[] = data?.slides || [];
+      if (aiSlides.length === 0) throw new Error('AI returned no slides');
+
+      setCurrentStep(4);
+      const canvasSlides = convertAISlidesToCanvasSlides(aiSlides);
+      const title = data?.lesson_title || formData.topic.trim();
+
+      setCurrentStep(5);
+      setMagicDeckSlides(canvasSlides);
+      setMagicDeckTitle(title);
+
+      await new Promise(resolve => setTimeout(resolve, 400));
+    } catch (err) {
+      console.error('Magic Deck generation failed:', err);
+      toast({
+        title: 'Generation Failed',
+        description: err instanceof Error ? err.message : 'Could not generate Magic Deck.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleApplyMagicDeck = () => {
+    if (!magicDeckSlides) return;
+
+    const levelMap: Record<string, string> = { beginner: 'A1', intermediate: 'B1', advanced: 'C1' };
+    const ageGroupMap: Record<string, string> = { kids: '6-8', teens: '12-15', adults: '18+' };
+
+    onLessonGenerated(
+      magicDeckSlides,
+      magicDeckTitle,
+      levelMap[formData.level] || 'A1',
+      ageGroupMap[formData.ageGroup] || '6-8',
+    );
+
+    resetState();
+    onOpenChange(false);
+  };
+
+  const resetState = () => {
+    setGeneratedPlan(null);
+    setMagicDeckSlides(null);
+    setMagicDeckTitle('');
+    setFormData({ topic: '', level: 'beginner', ageGroup: 'kids' });
+    setLessonPrompt('');
+    setMagicGrammar('');
+    setMagicVocabulary('');
+    setMagicAge('');
+    setImageCount(0);
+  };
   const handleGenerateImages = async () => {
     if (!generatedPlan) return;
 
