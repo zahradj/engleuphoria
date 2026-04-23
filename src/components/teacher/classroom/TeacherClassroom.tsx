@@ -414,28 +414,55 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
           </div>
         )}
 
-        {/* Center: Main Stage with Tabbed Canvas */}
+        {/* Center: Unified Main Stage */}
         <div className="flex-1 relative">
-          <CenterStage
+          <MainStage
+            mode={stageMode}
             slides={slides}
             currentSlideIndex={currentSlide}
-            onPrevSlide={handlePrevSlide}
-            onNextSlide={handleNextSlide}
-            activeTool={activeTool}
-            onToolChange={handleToolChange}
+            embeddedUrl={embeddedUrl}
+            drawingEnabled={drawingEnabled}
+            activeTool={(activeTool === 'pen' || activeTool === 'eraser' || activeTool === 'highlighter' || activeTool === 'pointer') ? activeTool : 'pen'}
             activeColor={activeColor}
-            onColorChange={setActiveColor}
             strokes={strokes}
             roomId={roomName}
-            userId={user?.id || sessionStorage.getItem('demo-teacher-id') || crypto.randomUUID()}
+            userId={user?.id || sessionStorage.getItem('demo-teacher-id') || ''}
             userName={teacherName}
+            role="teacher"
             onAddStroke={addStroke}
-            onClearCanvas={handleClearCanvas}
-            activeCanvasTab={activeCanvasTab}
-            onCanvasTabChange={handleCanvasTabChange}
+          />
+          <TeacherControlDock
+            mode={stageMode}
+            onModeChange={async (m) => {
+              await setStageMode(m);
+              if (m === 'web') {
+                await updateCanvasTab('web');
+              } else if (m === 'slide') {
+                await updateCanvasTab('slides');
+              } else {
+                await updateCanvasTab('whiteboard');
+              }
+            }}
             embeddedUrl={embeddedUrl}
-            onCloseEmbed={handleCloseEmbed}
-            sessionContext={sessionContext}
+            onEmbedUrl={async (url) => {
+              await updateSharedDisplay({ embeddedUrl: url });
+              await setStageMode('web');
+              await updateCanvasTab('web');
+            }}
+            drawingEnabled={drawingEnabled}
+            onToggleDrawing={async (enabled) => {
+              await setDrawingEnabled(enabled);
+              await setStudentCanDraw(enabled); // keep legacy flag in sync
+            }}
+            activeTool={(activeTool === 'pen' || activeTool === 'eraser' || activeTool === 'highlighter' || activeTool === 'pointer') ? activeTool : 'pen'}
+            onToolChange={(t) => handleToolChange(t)}
+            activeColor={activeColor}
+            onColorChange={setActiveColor}
+            currentSlideIndex={currentSlide}
+            totalSlides={slides.length}
+            onPrevSlide={handlePrevSlide}
+            onNextSlide={handleNextSlide}
+            onClearCanvas={handleClearCanvas}
           />
         </div>
 
