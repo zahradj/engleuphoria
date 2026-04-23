@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 // Only the landing page is eagerly loaded (entry point)
 import LandingPage from "./pages/LandingPage";
+import { HomeGate } from "./components/auth/HomeGate";
 
 // All other pages are lazy-loaded for bundle optimization
 const AboutPage = lazy(() => import("./pages/AboutPage"));
@@ -89,7 +90,7 @@ const App = () => {
                   <AppErrorBoundary>
                     <Routes>
                       {/* Public Entry Point - Landing Page */}
-                      <Route path="/" element={<LandingPage />} />
+                      <Route path="/" element={<HomeGateWrapper />} />
                       <Route path="/about" element={<Suspense fallback={<LoadingFallback />}><AboutPage /></Suspense>} />
                       <Route path="/teach-with-us" element={<Navigate to="/for-teachers" replace />} />
                       <Route path="/for-teachers" element={<Suspense fallback={<LoadingFallback />}><ForTeachersPage /></Suspense>} />
@@ -299,5 +300,11 @@ const App = () => {
     </QueryClientProvider>
   );
 };
+
+const HomeGateWrapper = () => (
+  <Suspense fallback={<LoadingFallback />}>
+    <HomeGate />
+  </Suspense>
+);
 
 export default App;
