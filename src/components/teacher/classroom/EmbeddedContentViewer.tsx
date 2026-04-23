@@ -49,6 +49,15 @@ export const EmbeddedContentViewer: React.FC<EmbeddedContentViewerProps> = ({
   const [activeTool, setActiveTool] = useState<'pen' | 'eraser'>('pen');
   const [activeColor, setActiveColor] = useState('#FF6B6B');
 
+  // Teacher broadcasts wrapper scroll; student receives it. Iframe internal
+  // scroll is locked because cross-origin iframes cannot be controlled.
+  const { wrapperRef, onScroll } = useWebScrollSync({
+    roomId: roomId || '',
+    userId: userId || '',
+    role: 'teacher',
+    enabled: !!roomId,
+  });
+
   // Transform URL for better embedding (e.g., YouTube)
   const getEmbedUrl = (inputUrl: string): string => {
     try {
