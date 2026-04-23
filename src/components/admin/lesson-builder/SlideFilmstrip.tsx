@@ -131,8 +131,29 @@ export const SlideFilmstrip: React.FC<SlideFilmstripProps> = ({
                               <GripVertical className="h-2.5 w-2.5" />
                             </div>
                             <span className="text-[8px] font-medium text-muted-foreground">{index + 1}</span>
-                            {/* Phase badge from skeleton */}
+                            {/* PPP stage badge (Magic Deck) — takes priority */}
                             {(() => {
+                              const ppp = (slide as any).pppStage as string | undefined;
+                              if (ppp) {
+                                const pppColors: Record<string, string> = {
+                                  'Warm-Up': 'bg-amber-500 text-white',
+                                  'Presentation': 'bg-blue-500 text-white',
+                                  'Practice': 'bg-emerald-500 text-white',
+                                  'Production': 'bg-fuchsia-500 text-white',
+                                  'Review': 'bg-sky-500 text-white',
+                                };
+                                return (
+                                  <span
+                                    title={`PPP: ${ppp}`}
+                                    className={cn(
+                                      'text-[6px] px-1 py-0 rounded-full font-bold ml-auto leading-tight',
+                                      pppColors[ppp] || 'bg-primary text-primary-foreground'
+                                    )}
+                                  >
+                                    {ppp.split('-')[0]}
+                                  </span>
+                                );
+                              }
                               const phaseKey = (slide as any).phase as SlidePhase | undefined;
                               if (phaseKey && PHASE_COLORS[phaseKey]) {
                                 const phaseConfig = PHASE_COLORS[phaseKey];
