@@ -133,23 +133,12 @@ const StudentSignUp = () => {
       }
 
       if (data?.user) {
-        // Determine system tag and student level based on age
-        // If a hub param was provided (e.g. ?hub=academy), use it as an override
         const systemTag = values.age >= 4 && values.age <= 10 ? 'KIDS'
                         : values.age >= 11 && values.age <= 17 ? 'TEENS'
                         : 'ADULTS';
         
-        // Hub param overrides age-based level when explicitly provided
-        let studentLevel: string;
-        if (hubParam === 'academy') {
-          studentLevel = 'academy';
-        } else if (hubParam === 'playground') {
-          studentLevel = 'playground';
-        } else if (hubParam === 'professional' || hubParam === 'success') {
-          studentLevel = 'professional';
-        } else {
-          studentLevel = determineStudentLevel(values.age);
-        }
+        // resolvedHub was already computed above and passed to the DB trigger via metadata
+        const studentLevel = resolvedHub;
 
         // Verify users row exists (trigger should have created it). If not, create it.
         const { data: existingProfile } = await supabase
