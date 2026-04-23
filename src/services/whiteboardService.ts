@@ -239,6 +239,70 @@ class WhiteboardService {
     return () => this.release(roomId, () => room.drawingEnabledListeners.delete(onChange));
   }
 
+  /** Broadcast a teacher reward (star or sticker) so the student animates instantly. */
+  async sendReward(
+    roomId: string,
+    reward: Omit<RewardPayload, 'timestamp'>
+  ): Promise<void> {
+    const room = this.getRoom(roomId);
+    await room.ready;
+    await room.channel.send({
+      type: 'broadcast',
+      event: 'reward',
+      payload: { ...reward, timestamp: Date.now() } satisfies RewardPayload,
+    });
+  }
+
+  subscribeToRewards(roomId: string, onReward: RewardListener): () => void {
+    const room = this.getRoom(roomId);
+    room.rewardListeners.add(onReward);
+    room.refCount += 1;
+    return () => this.release(roomId, () => room.rewardListeners.delete(onReward));
+  }
+
+  /** Broadcast an interactive tool result (e.g. dice roll) — the result is computed
+   *  by the sender so every receiver renders the SAME number. */
+  async sendToolAction(
+    roomId: string,
+    action: Omit<ToolActionPayload, 'timestamp'>
+  ): Promise<void> {
+    const room = this.getRoom(roomId);
+    await room.ready;
+    await room.channel.send({
+      type: 'broadcast',
+      event: 'tool_action',
+      payload: { ...action, timestamp: Date.now() } satisfies ToolActionPayload,
+    });
+  }
+
+  subscribeToToolActions(roomId: string, onAction: ToolActionListener): () => void {
+    const room = this.getRoom(roomId);
+    room.toolActionListeners.add(onAction);
+    room.refCount += 1;
+    return () => this.release(roomId, () => room.toolActionListeners.delete(onAction));
+  }
+
+  /** Broadcast a chat message instantly (in addition to DB persistence). */
+  async sendChatMessage(
+    roomId: string,
+    message: Omit<ChatBroadcastPayload, 'timestamp'>
+  ): Promise<void> {
+    const room = this.getRoom(roomId);
+    await room.ready;
+    await room.channel.send({
+      type: 'broadcast',
+      event: 'chat_message',
+      payload: { ...message, timestamp: Date.now() } satisfies ChatBroadcastPayload,
+    });
+  }
+
+  subscribeToChatMessages(roomId: string, onMessage: ChatListener): () => void {
+    const room = this.getRoom(roomId);
+    room.chatListeners.add(onMessage);
+    room.refCount += 1;
+    return () => this.release(roomId, () => room.chatListeners.delete(onMessage));
+  }
+
   private release(roomId: string, cleanup: () => void) {
     const channelName = `classroom_${roomId}`;
     const room = this.rooms.get(channelName);
@@ -250,7 +314,10 @@ class WhiteboardService {
       room.strokeListeners.size === 0 &&
       room.scrollListeners.size === 0 &&
       room.stageModeListeners.size === 0 &&
-      room.drawingEnabledListeners.size === 0
+      room.drawingEnabledListeners.size === 0 &&
+      room.rewardListeners.size === 0 &&
+      room.toolActionListeners.size === 0 &&
+      room.chatListeners.size === 0
     ) {
       supabase.removeChannel(room.channel);
       this.rooms.delete(channelName);
