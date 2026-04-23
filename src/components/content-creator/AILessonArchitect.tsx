@@ -33,6 +33,7 @@ const HUB_CONFIG: Record<HubType, { label: string; color: string; bg: string; bo
 
 export const AILessonArchitect: React.FC = () => {
   const { user } = useAuth();
+  const userRole = (user as any)?.role;
   const [hub, setHub] = useState<HubType | ''>('');
   const [topic, setTopic] = useState('');
   const [targetGrammar, setTargetGrammar] = useState('');
@@ -43,6 +44,11 @@ export const AILessonArchitect: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Only admin and content_creator can access AI lesson generation
+  if (userRole !== 'admin' && userRole !== 'content_creator') {
+    return null;
+  }
 
   const handleGenerate = async () => {
     if (!hub || !topic.trim()) {

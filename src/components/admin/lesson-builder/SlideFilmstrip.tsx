@@ -14,9 +14,9 @@ interface SlideFilmstripProps {
   slides: Slide[];
   selectedSlideId: string | null;
   onSelectSlide: (id: string) => void;
-  onAddSlide: () => void;
-  onDeleteSlide: (id: string) => void;
-  onReorderSlides: (startIndex: number, endIndex: number) => void;
+  onAddSlide?: () => void;
+  onDeleteSlide?: (id: string) => void;
+  onReorderSlides?: (startIndex: number, endIndex: number) => void;
   onImageUploaded?: (slideId: string, imageUrl: string) => void;
   onAddElement?: (type: CanvasElementType) => void;
 }
@@ -52,7 +52,7 @@ export const SlideFilmstrip: React.FC<SlideFilmstripProps> = ({
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
-    onReorderSlides(result.source.index, result.destination.index);
+    onReorderSlides?.(result.source.index, result.destination.index);
   };
 
   const handleUploadClick = (slideId: string, e: React.MouseEvent) => {
@@ -148,14 +148,16 @@ export const SlideFilmstrip: React.FC<SlideFilmstripProps> = ({
                             />
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="absolute top-0 right-0 h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={(e) => { e.stopPropagation(); onDeleteSlide(slide.id); }}
-                        >
-                          <Trash2 className="h-2 w-2 text-destructive" />
-                        </Button>
+                        {onDeleteSlide && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-0 right-0 h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => { e.stopPropagation(); onDeleteSlide(slide.id); }}
+                          >
+                            <Trash2 className="h-2 w-2 text-destructive" />
+                          </Button>
+                        )}
                       </div>
                     )}
                   </Draggable>
@@ -168,11 +170,13 @@ export const SlideFilmstrip: React.FC<SlideFilmstripProps> = ({
       </ScrollArea>
 
       {/* Add Slide button */}
-      <div className="px-1 py-1 border-t border-border">
-        <Button onClick={onAddSlide} size="sm" variant="outline" className="w-full h-6 text-[9px] gap-0.5">
-          <Plus className="h-2.5 w-2.5" /> Slide
-        </Button>
-      </div>
+        {onAddSlide && (
+          <div className="px-1 py-1 border-t border-border">
+            <Button onClick={onAddSlide} size="sm" variant="outline" className="w-full h-6 text-[9px] gap-0.5">
+              <Plus className="h-2.5 w-2.5" /> Slide
+            </Button>
+          </div>
+        )}
 
       {/* Merged Element Toolbar */}
       {onAddElement && (

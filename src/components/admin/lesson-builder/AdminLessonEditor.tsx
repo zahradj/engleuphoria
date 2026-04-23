@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { useCanEditContent } from '@/hooks/useCanEditContent';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { SlideFilmstrip } from './SlideFilmstrip';
@@ -42,6 +43,7 @@ const ageGroups = ['3-5', '6-8', '9-12', '13-17', '18+'];
 export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, onBack, curriculumContext }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const canEdit = useCanEditContent();
   const [isSaving, setIsSaving] = useState(false);
   const [showAIWizard, setShowAIWizard] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -250,21 +252,30 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
           </Button>
         )}
 
-        <Input
-          value={lessonTitle}
-          onChange={(e) => setLessonTitle(e.target.value)}
-          className="max-w-[200px] h-7 text-sm font-semibold border-none shadow-none focus-visible:ring-0 px-1"
-        />
+        {canEdit ? (
+          <Input
+            value={lessonTitle}
+            onChange={(e) => setLessonTitle(e.target.value)}
+            className="max-w-[200px] h-7 text-sm font-semibold border-none shadow-none focus-visible:ring-0 px-1"
+          />
+        ) : (
+          <span className="max-w-[200px] h-7 text-sm font-semibold px-1 truncate flex items-center">{lessonTitle}</span>
+        )}
 
-        <Select value={level} onValueChange={setLevel}>
-          <SelectTrigger className="w-16 h-7 text-xs"><SelectValue /></SelectTrigger>
-          <SelectContent>{levels.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
-        </Select>
-
-        <Select value={ageGroup} onValueChange={setAgeGroup}>
-          <SelectTrigger className="w-20 h-7 text-xs"><SelectValue /></SelectTrigger>
-          <SelectContent>{ageGroups.map(a => <SelectItem key={a} value={a}>{a}y</SelectItem>)}</SelectContent>
-        </Select>
+        {canEdit ? (
+          <>
+            <Select value={level} onValueChange={setLevel}>
+              <SelectTrigger className="w-16 h-7 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>{levels.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+            </Select>
+            <Select value={ageGroup} onValueChange={setAgeGroup}>
+              <SelectTrigger className="w-20 h-7 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>{ageGroups.map(a => <SelectItem key={a} value={a}>{a}y</SelectItem>)}</SelectContent>
+            </Select>
+          </>
+        ) : (
+          <span className="text-xs text-muted-foreground">{level} · {ageGroup}y</span>
+        )}
 
         <div className="flex-1" />
 
@@ -310,28 +321,34 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
           </SheetContent>
         </Sheet>
 
-        {/* AI Buttons */}
-        <AIActivityGenerator
-          lessonContent={slides.map(s => s.title || '').join(' ')}
-          level={level}
-          onActivitiesGenerated={(newElements) => {
-            if (selectedSlide) {
-              handleUpdateSlide({ canvasElements: [...(selectedSlide.canvasElements || []), ...newElements] });
-            }
-          }}
-        />
+        {/* AI Buttons — only for editors */}
+        {canEdit && (
+          <>
+            <AIActivityGenerator
+              lessonContent={slides.map(s => s.title || '').join(' ')}
+              level={level}
+              onActivitiesGenerated={(newElements) => {
+                if (selectedSlide) {
+                  handleUpdateSlide({ canvasElements: [...(selectedSlide.canvasElements || []), ...newElements] });
+                }
+              }}
+            />
 
-        <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => setShowAIWizard(true)}>
-          <Wand2 className="h-3.5 w-3.5" /> AI
-        </Button>
+            <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => setShowAIWizard(true)}>
+              <Wand2 className="h-3.5 w-3.5" /> AI
+            </Button>
+          </>
+        )}
 
         <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setShowPreview(true)}>
           <Eye className="h-3.5 w-3.5" /> Preview
         </Button>
 
-        <Button size="sm" className="h-7 text-xs gap-1" onClick={handleSave} disabled={isSaving}>
-          <Save className="h-3.5 w-3.5" /> {isSaving ? '...' : 'Save'}
-        </Button>
+        {canEdit && (
+          <Button size="sm" className="h-7 text-xs gap-1" onClick={handleSave} disabled={isSaving}>
+            <Save className="h-3.5 w-3.5" /> {isSaving ? '...' : 'Save'}
+          </Button>
+        )}
       </div>
 
       {/* ─── Main Content ─── */}
@@ -366,11 +383,11 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
                 slides={slides}
                 selectedSlideId={selectedSlideId}
                 onSelectSlide={setSelectedSlideId}
-                onAddSlide={handleAddSlide}
-                onDeleteSlide={handleDeleteSlide}
-                onReorderSlides={handleReorderSlides}
-                onImageUploaded={handleImageUploaded}
-                onAddElement={handleAddElement}
+                onAddSlide={canEdit ? handleAddSlide : undefined}
+                onDeleteSlide={canEdit ? handleDeleteSlide : undefined}
+                onReorderSlides={canEdit ? handleReorderSlides : undefined}
+                onImageUploaded={canEdit ? handleImageUploaded : undefined}
+                onAddElement={canEdit ? handleAddElement : undefined}
               />
             </div>
           )}
@@ -378,12 +395,12 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
 
         {/* Center: Full Canvas */}
         <div className="flex-1 min-w-0" data-canvas-editor ref={canvasRef}>
-          <EditorCanvas slide={selectedSlide} onUpdateSlide={handleUpdateSlide} />
+          <EditorCanvas slide={selectedSlide} onUpdateSlide={canEdit ? handleUpdateSlide : () => {}} readOnly={!canEdit} />
         </div>
       </div>
 
-      {/* ─── Bottom Pipeline Nav ─── */}
-      {(onBack || onFinish) && (
+      {/* ─── Bottom Pipeline Nav — only for editors ─── */}
+      {canEdit && (onBack || onFinish) && (
         <div className="flex items-center justify-between px-6 py-2 border-t border-border bg-card shrink-0">
           {onBack ? (
             <Button variant="outline" onClick={onBack} className="gap-2" size="sm">
