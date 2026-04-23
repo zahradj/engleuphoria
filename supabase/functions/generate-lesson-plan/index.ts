@@ -150,6 +150,12 @@ Topic: "${topic.trim()}"${
         targetVocabulary ? `\nTarget Vocabulary: ${targetVocabulary.trim()}` : ""
       }${
         studentAge ? `\nStudent Age/Level: ${studentAge}` : ""
+      }${
+        hub === "playground"
+          ? `\n\nIMPORTANT — PLAYGROUND HUB AUDIENCE: Students are 4 to 9 years old. Use ultra-simple vocabulary, very short sentences (max 6 words), lots of repetition, songs, chants, and visual cues. Avoid abstract grammar terms — teach patterns through examples and play. Tone must be warm, playful, and encouraging.`
+          : ""
+      }${
+        lessonPrompt ? `\n\nAdditional context & instructions from the curriculum:\n${lessonPrompt.trim()}` : ""
       }`;
     }
 
