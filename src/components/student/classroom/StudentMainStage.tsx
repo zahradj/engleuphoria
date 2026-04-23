@@ -1,12 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CollaborativeCanvas } from '@/components/classroom/shared/CollaborativeCanvas';
 import { StudentQuizView } from './StudentQuizView';
 import { StudentPollView } from './StudentPollView';
 import { WhiteboardStroke } from '@/services/whiteboardService';
 import { TargetWordsOverlay } from '@/components/classroom/TargetWordsOverlay';
 import { SmartSummaryTip } from '@/components/classroom/SmartSummaryTip';
-import { Eye, PenLine, Monitor, ExternalLink, Layout, PenTool, Globe } from 'lucide-react';
+import { Eye, PenLine, Monitor, Layout, PenTool, Globe, Pencil, Eraser, MousePointer2 } from 'lucide-react';
+
+const STUDENT_COLORS = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#AA96DA', '#2D4059', '#000000'];
 
 interface QuizOption { id: string; text: string; isCorrect: boolean; }
 interface PollOption { id: string; text: string; }
