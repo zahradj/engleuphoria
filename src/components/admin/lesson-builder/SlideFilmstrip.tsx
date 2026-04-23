@@ -14,9 +14,9 @@ interface SlideFilmstripProps {
   slides: Slide[];
   selectedSlideId: string | null;
   onSelectSlide: (id: string) => void;
-  onAddSlide: () => void;
-  onDeleteSlide: (id: string) => void;
-  onReorderSlides: (startIndex: number, endIndex: number) => void;
+  onAddSlide?: () => void;
+  onDeleteSlide?: (id: string) => void;
+  onReorderSlides?: (startIndex: number, endIndex: number) => void;
   onImageUploaded?: (slideId: string, imageUrl: string) => void;
   onAddElement?: (type: CanvasElementType) => void;
 }
