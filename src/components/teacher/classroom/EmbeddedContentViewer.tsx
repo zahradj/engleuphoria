@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { X, ExternalLink, Maximize2, Minimize2, RefreshCw, Pencil, Eraser, Palette, Trash2 } from 'lucide-react';
 import { CollaborativeCanvas } from '@/components/classroom/shared/CollaborativeCanvas';
 import { WhiteboardStroke } from '@/services/whiteboardService';
+import { useWebScrollSync } from '@/hooks/useWebScrollSync';
 import {
   Popover,
   PopoverContent,
