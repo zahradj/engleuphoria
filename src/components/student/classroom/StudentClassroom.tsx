@@ -154,6 +154,30 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Instant broadcast subscriptions (chat is wired in RealTimeChatPanel itself)
+  useEffect(() => {
+    if (!roomId) return;
+    const unsubReward = whiteboardService.subscribeToRewards(roomId, (payload) => {
+      if (payload.rewardType === 'star') {
+        setLiveStar({
+          count: payload.starCount ?? 1,
+          isMilestone: !!payload.isMilestone,
+          key: Date.now(),
+        });
+      } else if (payload.rewardType === 'sticker') {
+        setLiveSticker({ emoji: payload.sticker || '😊', key: Date.now() });
+        setTimeout(() => setLiveSticker(null), 2500);
+      }
+    });
+    const unsubTool = whiteboardService.subscribeToToolActions(roomId, (payload) => {
+      if (payload.tool === 'dice') {
+        setLiveDice({ value: payload.result, key: Date.now() });
+        setTimeout(() => setLiveDice(null), 4000);
+      }
+    });
+    return () => { unsubReward(); unsubTool(); };
+  }, [roomId]);
+
   // Zen mode elapsed timer
   useEffect(() => {
     if (!isZenMode) return;
