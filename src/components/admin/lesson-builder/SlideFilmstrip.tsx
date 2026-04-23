@@ -183,6 +183,16 @@ export const SlideFilmstrip: React.FC<SlideFilmstripProps> = ({
                   </Draggable>
                   </React.Fragment>
                 ))}
+                {/* Trailing Insert AI button */}
+                {canEdit && onInsertSlide && slides.length > 0 && (
+                  <InsertAISlideButton
+                    index={slides.length}
+                    hub={hub}
+                    topic={topic}
+                    previousSlide={slides[slides.length - 1]}
+                    onInsertSlide={onInsertSlide}
+                  />
+                )}
                 {provided.placeholder}
               </div>
             )}
