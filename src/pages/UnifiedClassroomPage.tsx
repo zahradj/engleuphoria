@@ -181,7 +181,7 @@ const UnifiedClassroomPage: React.FC = () => {
   if (classroomRole === 'teacher') {
     return (
       <TeacherClassroom
-        classId={bookingId}
+        classId={booking.id}
         teacherName={displayName}
         studentName={studentFullName}
         studentId={booking.student_id}
@@ -191,7 +191,7 @@ const UnifiedClassroomPage: React.FC = () => {
 
   return (
     <StudentClassroom
-      roomId={bookingId}
+      roomId={booking.id}
       studentId={user.id}
       studentName={displayName}
       teacherName={teacherFullName}
