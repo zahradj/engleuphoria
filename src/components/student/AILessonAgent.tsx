@@ -42,6 +42,18 @@ const levelStyles = {
   },
 };
 
+const normalizeGeneratedLesson = (lesson: Partial<GeneratedLesson> | null | undefined, studentLevel: AILessonAgentProps['studentLevel']): GeneratedLesson => ({
+  topic: lesson?.topic || `${studentLevel === 'professional' ? 'Business English: Presentations' : 'Daily Conversations'}`,
+  tagline: lesson?.tagline || 'Practice makes perfect!',
+  vocabulary: Array.isArray(lesson?.vocabulary) ? lesson.vocabulary : [],
+  quest: {
+    title: lesson?.quest?.title || 'Conversation Challenge',
+    description: lesson?.quest?.description || 'Use your new vocabulary in a short speaking task.',
+    type: lesson?.quest?.type || 'dialogue',
+  },
+  estimatedMinutes: typeof lesson?.estimatedMinutes === 'number' ? lesson.estimatedMinutes : 15,
+});
+
 export const AILessonAgent: React.FC<AILessonAgentProps> = ({
   studentLevel,
   studentInterests = ['technology', 'travel'],
@@ -109,8 +121,8 @@ export const AILessonAgent: React.FC<AILessonAgentProps> = ({
 
     if (cached) {
       try {
-        const parsed = JSON.parse(cached) as GeneratedLesson;
-        setGeneratedLesson(parsed);
+        const parsed = JSON.parse(cached) as Partial<GeneratedLesson>;
+        setGeneratedLesson(normalizeGeneratedLesson(parsed, studentLevel));
         setState('complete');
         return;
       } catch {
@@ -153,13 +165,14 @@ export const AILessonAgent: React.FC<AILessonAgentProps> = ({
       if (fnError) throw new Error(fnError.message);
       
       if (data?.success && data?.lesson) {
-        setGeneratedLesson(data.lesson);
-        onLessonGenerated?.(data.lesson);
+        const normalizedLesson = normalizeGeneratedLesson(data.lesson, studentLevel);
+        setGeneratedLesson(normalizedLesson);
+        onLessonGenerated?.(normalizedLesson);
         setState('complete');
         // Cache lesson for today
         if (user?.id) {
           const today = new Date().toISOString().split('T')[0];
-          localStorage.setItem(`dailyLesson_${user.id}_${today}`, JSON.stringify(data.lesson));
+          localStorage.setItem(`dailyLesson_${user.id}_${today}`, JSON.stringify(normalizedLesson));
         }
       } else {
         throw new Error(data?.error || 'Failed to generate lesson');
@@ -187,7 +200,7 @@ export const AILessonAgent: React.FC<AILessonAgentProps> = ({
         },
         estimatedMinutes: 15,
       };
-      setGeneratedLesson(fallbackLesson);
+      setGeneratedLesson(normalizeGeneratedLesson(fallbackLesson, studentLevel));
       setState('complete');
     }
   };
