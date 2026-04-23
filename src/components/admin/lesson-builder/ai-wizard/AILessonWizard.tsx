@@ -603,159 +603,202 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated, lessonCo
         </DialogHeader>
 
         <AnimatePresence mode="wait">
-          {!isGenerating && !generatedPlan && (
+          {!isGenerating && !generatedPlan && !magicDeckSlides && (
             <motion.div
               key="form"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="space-y-5 py-4"
+              className="space-y-4 py-4"
             >
-              {/* ─── Injected Context Banner ─── */}
-              {lessonContext && lessonContext.unitNumber != null && (
-                <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-1">
-                  <p className="text-xs font-semibold text-primary flex items-center gap-1.5">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    Context Loaded — Unit {lessonContext.unitNumber}, Lesson {lessonContext.lessonNumber}
-                    {lessonContext.cycleType && <span className="ml-1 text-muted-foreground">({lessonContext.cycleType})</span>}
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {lessonContext.phonicsTarget && (
-                      <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">🔤 {lessonContext.phonicsTarget}</span>
-                    )}
-                    {lessonContext.grammarTarget && (
-                      <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">📐 {lessonContext.grammarTarget}</span>
-                    )}
-                    {lessonContext.hintsDisabled && (
-                      <span className="inline-flex items-center rounded-md bg-destructive/10 px-2 py-0.5 text-[11px] font-medium text-destructive">🧪 Quiz Mode</span>
-                    )}
-                    {lessonContext.highSupport && (
-                      <span className="inline-flex items-center rounded-md bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-600">🛡️ Review Mode</span>
-                    )}
+              {/* ─── Mode Tabs ─── */}
+              <Tabs value={wizardMode} onValueChange={(v) => setWizardMode(v as 'ppp' | 'magic')} className="w-full">
+                <TabsList className="w-full grid grid-cols-2 h-10">
+                  <TabsTrigger value="ppp" className="text-xs gap-1.5">
+                    <Wand2 className="h-3.5 w-3.5" /> PPP Wizard
+                  </TabsTrigger>
+                  <TabsTrigger value="magic" className="text-xs gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5" /> ✨ Magic Deck
+                  </TabsTrigger>
+                </TabsList>
+
+                {/* ─── SHARED: Context Banner ─── */}
+                {lessonContext && lessonContext.unitNumber != null && (
+                  <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-1 mt-3">
+                    <p className="text-xs font-semibold text-primary flex items-center gap-1.5">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Context Loaded — Unit {lessonContext.unitNumber}, Lesson {lessonContext.lessonNumber}
+                      {lessonContext.cycleType && <span className="ml-1 text-muted-foreground">({lessonContext.cycleType})</span>}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {lessonContext.phonicsTarget && (
+                        <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">🔤 {lessonContext.phonicsTarget}</span>
+                      )}
+                      {lessonContext.grammarTarget && (
+                        <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">📐 {lessonContext.grammarTarget}</span>
+                      )}
+                      {lessonContext.hintsDisabled && (
+                        <span className="inline-flex items-center rounded-md bg-destructive/10 px-2 py-0.5 text-[11px] font-medium text-destructive">🧪 Quiz Mode</span>
+                      )}
+                      {lessonContext.highSupport && (
+                        <span className="inline-flex items-center rounded-md bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-600">🛡️ Review Mode</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* ─── SHARED: Topic + Level + Hub ─── */}
+                <div className="space-y-3 mt-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="topic" className="text-sm font-medium">Lesson Topic</Label>
+                    <div className="relative">
+                      <Input
+                        id="topic"
+                        placeholder="e.g., Hello Pip, Zoo Animals, Business Negotiations"
+                        value={formData.topic}
+                        onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
+                        className="h-12 text-base pr-12"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className={`absolute right-1 top-1 h-10 w-10 rounded-lg transition-colors ${activeListening === 'topic' ? 'bg-destructive/10 text-destructive animate-pulse' : 'text-muted-foreground hover:text-primary'}`}
+                        onClick={() => activeListening === 'topic' ? stopListening() : startListening('topic')}
+                      >
+                        {activeListening === 'topic' ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Student Level</Label>
+                      <Select value={formData.level} onValueChange={(value: 'beginner' | 'intermediate' | 'advanced') => setFormData({ ...formData, level: value })}>
+                        <SelectTrigger className="h-12"><SelectValue placeholder="Select level" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="beginner"><div className="flex items-center gap-2"><span className="text-green-500">●</span> Beginner (A1-A2)</div></SelectItem>
+                          <SelectItem value="intermediate"><div className="flex items-center gap-2"><span className="text-yellow-500">●</span> Intermediate (B1-B2)</div></SelectItem>
+                          <SelectItem value="advanced"><div className="flex items-center gap-2"><span className="text-red-500">●</span> Advanced (C1-C2)</div></SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Target Hub</Label>
+                      <Select value={formData.ageGroup} onValueChange={(value: 'kids' | 'teens' | 'adults') => setFormData({ ...formData, ageGroup: value })}>
+                        <SelectTrigger className="h-12"><SelectValue placeholder="Select hub" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="kids">🛝 Playground — Kids</SelectItem>
+                          <SelectItem value="teens">🏫 Academy — Teens</SelectItem>
+                          <SelectItem value="adults">🏢 Professional — Adults</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
-              )}
-              <div className="space-y-2">
-                <Label htmlFor="topic" className="text-sm font-medium">Lesson Topic</Label>
-                <div className="relative">
-                  <Input
-                    id="topic"
-                    placeholder="e.g., Hello Pip, Zoo Animals, Business Negotiations"
-                    value={formData.topic}
-                    onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
-                    className="h-12 text-base pr-12"
-                  />
+
+                {/* ─── PPP WIZARD TAB ─── */}
+                <TabsContent value="ppp" className="space-y-4 mt-3">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Lesson Prompt <span className="text-muted-foreground font-normal">(describe what the lesson should teach)</span></Label>
+                    <div className="relative">
+                      <Textarea
+                        placeholder="e.g., Teach students how to order food at a restaurant..."
+                        value={lessonPrompt}
+                        onChange={(e) => setLessonPrompt(e.target.value)}
+                        className="min-h-[100px] text-sm resize-none pr-12"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className={`absolute right-1 top-1 h-8 w-8 rounded-lg transition-colors ${activeListening === 'notes' ? 'bg-destructive/10 text-destructive animate-pulse' : 'text-muted-foreground hover:text-primary'}`}
+                        onClick={() => activeListening === 'notes' ? stopListening() : startListening('notes')}
+                      >
+                        {activeListening === 'notes' ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Hub Preview Card */}
+                  <div className="rounded-xl border p-4 text-sm" style={{ 
+                    borderColor: currentHub.colorPalette.primary + '44',
+                    background: currentHub.colorPalette.highlight + '33',
+                  }}>
+                    <div className="flex items-center gap-2 font-semibold mb-2">
+                      {currentHub.emoji} {currentHub.label}
+                    </div>
+                    <p className="text-muted-foreground text-xs mb-3">{currentHub.tone}</p>
+                    <div className="flex gap-2 flex-wrap">
+                      <span className="text-xs px-2.5 py-1 rounded-full bg-background/80 border">📷 {currentHub.mediaType}</span>
+                      <span className="text-xs px-2.5 py-1 rounded-full bg-background/80 border">✨ {currentHub.defaultAnimation}</span>
+                      {currentHub.permittedActivities.slice(0, 2).map(a => (
+                        <span key={a} className="text-xs px-2.5 py-1 rounded-full bg-background/80 border">🎯 {a.replace(/_/g, ' ')}</span>
+                      ))}
+                    </div>
+                  </div>
+
                   <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className={`absolute right-1 top-1 h-10 w-10 rounded-lg transition-colors ${activeListening === 'topic' ? 'bg-red-500/10 text-red-500 animate-pulse' : 'text-muted-foreground hover:text-primary'}`}
-                    onClick={() => activeListening === 'topic' ? stopListening() : startListening('topic')}
+                    onClick={handleGenerate}
+                    disabled={!formData.topic.trim()}
+                    className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 hover:from-purple-700 hover:via-pink-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
                   >
-                    {activeListening === 'topic' ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                    <Sparkles className="mr-2 h-5 w-5" />
+                    ✨ Generate {currentHub.label} Lesson
                   </Button>
-                </div>
-              </div>
+                </TabsContent>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Student Level</Label>
-                  <Select
-                    value={formData.level}
-                    onValueChange={(value: 'beginner' | 'intermediate' | 'advanced') =>
-                      setFormData({ ...formData, level: value })
-                    }
-                  >
-                    <SelectTrigger className="h-12">
-                      <SelectValue placeholder="Select level" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="beginner">
-                        <div className="flex items-center gap-2">
-                          <span className="text-green-500">●</span> Beginner (A1-A2)
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="intermediate">
-                        <div className="flex items-center gap-2">
-                          <span className="text-yellow-500">●</span> Intermediate (B1-B2)
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="advanced">
-                        <div className="flex items-center gap-2">
-                          <span className="text-red-500">●</span> Advanced (C1-C2)
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {/* ─── MAGIC DECK TAB ─── */}
+                <TabsContent value="magic" className="space-y-4 mt-3">
+                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
+                    <p className="text-xs text-muted-foreground">
+                      <strong className="text-foreground">✨ Magic Deck</strong> generates a complete multimedia slide deck with video songs, vocabulary images, grammar presentations, and interactive activities — all powered by Gemini AI.
+                    </p>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Target Hub</Label>
-                  <Select
-                    value={formData.ageGroup}
-                    onValueChange={(value: 'kids' | 'teens' | 'adults') =>
-                      setFormData({ ...formData, ageGroup: value })
-                    }
-                  >
-                    <SelectTrigger className="h-12">
-                      <SelectValue placeholder="Select hub" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="kids">🛝 Playground — Kids</SelectItem>
-                      <SelectItem value="teens">🏫 Academy — Teens</SelectItem>
-                      <SelectItem value="adults">🏢 Professional — Adults</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Grammar Focus <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                    <Input
+                      placeholder="e.g., Present Perfect, Comparatives"
+                      value={magicGrammar}
+                      onChange={(e) => setMagicGrammar(e.target.value)}
+                      className="h-10 text-sm"
+                    />
+                  </div>
 
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Lesson Prompt <span className="text-muted-foreground font-normal">(describe what the lesson should teach)</span></Label>
-                <div className="relative">
-                  <Textarea
-                    placeholder="e.g., Teach students how to order food at a restaurant using polite expressions. Include vocabulary for common dishes, practice dialogues between waiter and customer, and a roleplay activity..."
-                    value={lessonPrompt}
-                    onChange={(e) => setLessonPrompt(e.target.value)}
-                    className="min-h-[100px] text-sm resize-none pr-12"
-                  />
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Vocabulary Focus <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                    <Input
+                      placeholder="e.g., travel, airport, luggage, boarding pass"
+                      value={magicVocabulary}
+                      onChange={(e) => setMagicVocabulary(e.target.value)}
+                      className="h-10 text-sm"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Student Age / Level <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                    <Input
+                      placeholder="e.g., 14 years old, B1 level"
+                      value={magicAge}
+                      onChange={(e) => setMagicAge(e.target.value)}
+                      className="h-10 text-sm"
+                    />
+                  </div>
+
                   <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className={`absolute right-1 top-1 h-8 w-8 rounded-lg transition-colors ${activeListening === 'notes' ? 'bg-red-500/10 text-red-500 animate-pulse' : 'text-muted-foreground hover:text-primary'}`}
-                    onClick={() => activeListening === 'notes' ? stopListening() : startListening('notes')}
+                    onClick={handleGenerateMagicDeck}
+                    disabled={!formData.topic.trim()}
+                    className="w-full h-14 text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl"
+                    style={{
+                      background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.7))',
+                    }}
                   >
-                    {activeListening === 'notes' ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
+                    <Sparkles className="mr-2 h-5 w-5" />
+                    ✨ Generate Magic Deck
                   </Button>
-                </div>
-              </div>
-
-              {/* Hub Preview Card */}
-              <div className="rounded-xl border p-4 text-sm" style={{ 
-                borderColor: currentHub.colorPalette.primary + '44',
-                background: currentHub.colorPalette.highlight + '33',
-              }}>
-                <div className="flex items-center gap-2 font-semibold mb-2">
-                  {currentHub.emoji} {currentHub.label}
-                </div>
-                <p className="text-muted-foreground text-xs mb-3">{currentHub.tone}</p>
-                <div className="flex gap-2 flex-wrap">
-                  <span className="text-xs px-2.5 py-1 rounded-full bg-background/80 border">📷 {currentHub.mediaType}</span>
-                  <span className="text-xs px-2.5 py-1 rounded-full bg-background/80 border">✨ {currentHub.defaultAnimation}</span>
-                  {currentHub.permittedActivities.slice(0, 2).map(a => (
-                    <span key={a} className="text-xs px-2.5 py-1 rounded-full bg-background/80 border">🎯 {a.replace(/_/g, ' ')}</span>
-                  ))}
-                </div>
-              </div>
-
-              <Button
-                onClick={handleGenerate}
-                disabled={!formData.topic.trim()}
-                className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 hover:from-purple-700 hover:via-pink-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
-              >
-                <Sparkles className="mr-2 h-5 w-5" />
-                ✨ Generate {currentHub.label} Lesson
-              </Button>
+                </TabsContent>
+              </Tabs>
             </motion.div>
           )}
 
