@@ -95,6 +95,7 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated, lessonCo
   const [magicGrammar, setMagicGrammar] = useState('');
   const [magicVocabulary, setMagicVocabulary] = useState('');
   const [magicAge, setMagicAge] = useState('');
+  const [magicLessonPrompt, setMagicLessonPrompt] = useState('');
 
   // ─── Auto-Fill from Curriculum Context ──────────────────────
   React.useEffect(() => {
