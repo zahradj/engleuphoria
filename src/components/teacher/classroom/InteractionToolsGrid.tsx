@@ -1,12 +1,14 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Star, Timer, Dice6, Smile, PenLine, PenOff, Monitor, Link, MonitorStop } from 'lucide-react';
 
 interface InteractionToolsGridProps {
   onGiveStar: () => void;
   onOpenTimer: () => void;
   onRollDice: () => void;
-  onSendSticker: () => void;
+  /** Send a sticker reaction emoji to the student. */
+  onSendSticker: (emoji: string) => void;
   studentCanDraw?: boolean;
   onToggleStudentDrawing?: () => void;
   onShareScreen?: () => void;
@@ -14,6 +16,21 @@ interface InteractionToolsGridProps {
   isScreenSharing?: boolean;
   onStopScreenShare?: () => void;
 }
+
+/**
+ * Reaction palette — each emoji is broadcast through the same realtime channel
+ * and shown as a giant overlay on both the teacher's and the student's screens.
+ */
+const STICKER_PACK: Array<{ emoji: string; label: string }> = [
+  { emoji: '👏', label: 'Clap' },
+  { emoji: '👍', label: 'Thumbs Up' },
+  { emoji: '❤️', label: 'Heart' },
+  { emoji: '🔥', label: 'Fire' },
+  { emoji: '🎉', label: 'Party' },
+  { emoji: '🌟', label: 'Star' },
+  { emoji: '💯', label: 'Hundred' },
+  { emoji: '😂', label: 'Laugh' },
+];
 
 export const InteractionToolsGrid: React.FC<InteractionToolsGridProps> = ({
   onGiveStar,
@@ -31,7 +48,6 @@ export const InteractionToolsGrid: React.FC<InteractionToolsGridProps> = ({
     { icon: Star, label: 'Star', color: 'bg-yellow-500 hover:bg-yellow-600', action: onGiveStar },
     { icon: Timer, label: 'Timer', color: 'bg-blue-500 hover:bg-blue-600', action: onOpenTimer },
     { icon: Dice6, label: 'Dice', color: 'bg-purple-500 hover:bg-purple-600', action: onRollDice },
-    { icon: Smile, label: 'Sticker', color: 'bg-pink-500 hover:bg-pink-600', action: onSendSticker }
   ];
 
   return (
@@ -48,6 +64,34 @@ export const InteractionToolsGrid: React.FC<InteractionToolsGridProps> = ({
             <span className="text-[10px] font-medium">{tool.label}</span>
           </Button>
         ))}
+
+        {/* Reactions — full sticker pack popover */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              className="h-12 flex flex-col items-center justify-center gap-1 bg-pink-500 hover:bg-pink-600 text-white"
+            >
+              <Smile className="h-5 w-5" />
+              <span className="text-[10px] font-medium">Reactions</span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-2" align="center" side="top">
+            <div className="grid grid-cols-4 gap-1.5">
+              {STICKER_PACK.map(({ emoji, label }) => (
+                <button
+                  key={emoji}
+                  onClick={() => onSendSticker(emoji)}
+                  title={label}
+                  className="h-12 w-12 text-2xl rounded-lg hover:bg-pink-100 active:scale-95 transition-all flex items-center justify-center"
+                  aria-label={`Send ${label} reaction`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
 
       {/* Screen Share & Embed Link Row */}

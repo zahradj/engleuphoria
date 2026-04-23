@@ -10,24 +10,48 @@ export interface MediaDevicesState {
 const CAMERA_KEY = "preferredCameraId";
 const MIC_KEY = "preferredMicId";
 
+/**
+ * Lists available cameras and microphones. If labels are empty (the page hasn't
+ * yet been granted permission) we fire a one-shot getUserMedia({ audio, video })
+ * and immediately stop the tracks so subsequent enumerateDevices() returns
+ * useful labels — without this the dropdown shows "Camera 1 / Camera 2".
+ */
 export function useMediaDevices() {
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
   const [microphones, setMicrophones] = useState<MediaDeviceInfo[]>([]);
   const [selectedCameraId, setSelectedCameraId] = useState<string | null>(() => localStorage.getItem(CAMERA_KEY));
   const [selectedMicId, setSelectedMicId] = useState<string | null>(() => localStorage.getItem(MIC_KEY));
 
-  const enumerate = useCallback(async () => {
+  const enumerate = useCallback(async (forcePermissionPrompt = false) => {
     try {
       if (!navigator.mediaDevices?.enumerateDevices) return;
-      const devices = await navigator.mediaDevices.enumerateDevices();
+      let devices = await navigator.mediaDevices.enumerateDevices();
       const cams = devices.filter((d) => d.kind === "videoinput");
       const mics = devices.filter((d) => d.kind === "audioinput");
-      setCameras(cams);
-      setMicrophones(mics);
 
-      // Initialize selections if none
-      if (!selectedCameraId && cams.length > 0) setSelectedCameraId(cams[0].deviceId || null);
-      if (!selectedMicId && mics.length > 0) setSelectedMicId(mics[0].deviceId || null);
+      // Labels are empty until the user grants permission. Trigger a one-shot
+      // permission request so the dropdown can show real device names.
+      const labelsMissing = (cams.length > 0 && cams.every((d) => !d.label)) ||
+                            (mics.length > 0 && mics.every((d) => !d.label));
+
+      if (forcePermissionPrompt || labelsMissing) {
+        try {
+          const probe = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+          probe.getTracks().forEach((t) => t.stop());
+          devices = await navigator.mediaDevices.enumerateDevices();
+        } catch {
+          // User denied — keep the unlabeled list rather than crashing.
+        }
+      }
+
+      const finalCams = devices.filter((d) => d.kind === "videoinput");
+      const finalMics = devices.filter((d) => d.kind === "audioinput");
+      setCameras(finalCams);
+      setMicrophones(finalMics);
+
+      // Initialize selections if none.
+      if (!selectedCameraId && finalCams.length > 0) setSelectedCameraId(finalCams[0].deviceId || null);
+      if (!selectedMicId && finalMics.length > 0) setSelectedMicId(finalMics[0].deviceId || null);
     } catch (e) {
       console.warn("Failed to enumerate devices", e);
     }
@@ -48,7 +72,8 @@ export function useMediaDevices() {
     if (selectedMicId) localStorage.setItem(MIC_KEY, selectedMicId);
   }, [selectedMicId]);
 
-  const refreshDevices = useCallback(() => enumerate(), [enumerate]);
+  /** Force a permission prompt + re-enumeration so labels populate. */
+  const refreshDevices = useCallback(() => enumerate(true), [enumerate]);
 
   return {
     cameras,
