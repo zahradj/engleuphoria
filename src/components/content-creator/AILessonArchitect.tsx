@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Sparkles, Save, Pencil, Eye, Loader2, Video, ExternalLink } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { handleAIResponse, showAIErrorToast } from '@/lib/aiErrorHandler';
 
 type HubType = 'playground' | 'academy' | 'success';
 
@@ -67,8 +68,10 @@ export const AILessonArchitect: React.FC = () => {
         body: { hub, topic, targetGrammar, targetVocabulary },
       });
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      if (!handleAIResponse({ data, error, onRetry: handleGenerate, context: 'Lesson Architect' })) {
+        setIsGenerating(false);
+        return;
+      }
 
       setLessonPlan(data.lessonPlan);
 
@@ -80,7 +83,7 @@ export const AILessonArchitect: React.FC = () => {
       toast.success('Lesson plan generated with video & scaffolding!');
     } catch (err: any) {
       console.error('Generation error:', err);
-      toast.error(err.message || 'Failed to generate lesson plan');
+      showAIErrorToast(err?.message || 'Failed to generate lesson plan', handleGenerate, 'Lesson Architect');
     } finally {
       setIsGenerating(false);
     }

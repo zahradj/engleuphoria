@@ -30,6 +30,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { convertAISlidesToCanvasSlides, AISlideSchema } from '../utils/convertAISlideSchema';
+import { handleAIResponse, showAIErrorToast } from '@/lib/aiErrorHandler';
 
 /** Context injected from the curriculum selection to pre-fill the Wizard */
 export interface WizardLessonContext {
@@ -280,23 +281,18 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated, lessonCo
         },
       });
 
-      if (error) throw error;
-      // Graceful overload response from edge function — show glass warning toast, stop spinner
-      if (data?.error === true && data?.message) {
-        toast({
-          title: '⚠️ AI Engine Overloaded',
-          description: data.message,
-          variant: 'default',
-          className: 'backdrop-blur-xl bg-amber-500/10 border border-amber-400/40 text-amber-50 shadow-2xl shadow-amber-500/20',
-        });
+      if (!handleAIResponse({ data, error, onRetry: () => handleGenerateMagicDeck(), context: 'Magic Deck' })) {
         setIsGenerating(false);
         return;
       }
-      if (data?.error) throw new Error(typeof data.error === 'string' ? data.error : 'Generation failed');
 
       setCurrentStep(3);
       const aiSlides: AISlideSchema[] = data?.slides || [];
-      if (aiSlides.length === 0) throw new Error('AI returned no slides');
+      if (aiSlides.length === 0) {
+        showAIErrorToast('AI returned no slides', () => handleGenerateMagicDeck(), 'Magic Deck');
+        setIsGenerating(false);
+        return;
+      }
 
       setCurrentStep(4);
       const canvasSlides = convertAISlidesToCanvasSlides(aiSlides);

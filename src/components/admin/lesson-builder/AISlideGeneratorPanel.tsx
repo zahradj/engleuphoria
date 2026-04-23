@@ -6,6 +6,7 @@ import { Sparkles, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { convertAISlidesToCanvasSlides, AISlideSchema } from './utils/convertAISlideSchema';
+import { handleAIResponse, showAIErrorToast } from '@/lib/aiErrorHandler';
 import type { Slide } from './types';
 import { cn } from '@/lib/utils';
 
@@ -55,16 +56,15 @@ export const AISlideGeneratorPanel: React.FC<AISlideGeneratorPanelProps> = ({
         },
       });
 
-      if (error) throw error;
-
-      if (data?.error) {
-        toast({ title: 'Generation Failed', description: data.error, variant: 'destructive' });
+      if (!handleAIResponse({ data, error, onRetry: handleGenerate, context: 'Magic Deck' })) {
+        setIsGenerating(false);
         return;
       }
 
       const aiSlides: AISlideSchema[] = data?.slides || [];
       if (aiSlides.length === 0) {
-        toast({ title: 'No slides generated', description: 'AI returned empty results.', variant: 'destructive' });
+        showAIErrorToast('AI returned empty slides array', handleGenerate, 'Magic Deck');
+        setIsGenerating(false);
         return;
       }
 
@@ -75,7 +75,7 @@ export const AISlideGeneratorPanel: React.FC<AISlideGeneratorPanelProps> = ({
       toast({ title: '✨ Magic Deck Generated!', description: `Created ${canvasSlides.length} slides for "${title}"` });
     } catch (err: any) {
       console.error('Generation error:', err);
-      toast({ title: 'Generation Failed', description: err.message || 'Unknown error', variant: 'destructive' });
+      showAIErrorToast(err?.message || 'Unknown error', handleGenerate, 'Magic Deck');
     } finally {
       setIsGenerating(false);
     }

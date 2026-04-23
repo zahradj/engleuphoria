@@ -6,6 +6,7 @@ import { Plus, Loader2, Zap, MessageSquare, Video, Brain } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { convertSingleAISlide, AISlideSchema } from './utils/convertAISlideSchema';
+import { handleAIResponse, showAIErrorToast } from '@/lib/aiErrorHandler';
 import type { Slide } from './types';
 
 interface InsertAISlideButtonProps {
@@ -77,15 +78,13 @@ export const InsertAISlideButton: React.FC<InsertAISlideButtonProps> = ({
         },
       });
 
-      if (error) throw error;
-      if (data?.error) {
-        toast({ title: 'Generation Failed', description: data.error, variant: 'destructive' });
+      if (!handleAIResponse({ data, error, onRetry: () => generateSlide(prompt, presetId), context: 'Slide Injection' })) {
         return;
       }
 
       const aiSlide: AISlideSchema = data?.slide;
       if (!aiSlide) {
-        toast({ title: 'No slide generated', variant: 'destructive' });
+        showAIErrorToast('No slide returned', () => generateSlide(prompt, presetId), 'Slide Injection');
         return;
       }
 
@@ -96,7 +95,7 @@ export const InsertAISlideButton: React.FC<InsertAISlideButtonProps> = ({
       toast({ title: '✨ Slide Injected!', description: `New slide added at position ${index + 1}` });
     } catch (err: any) {
       console.error('Slide injection error:', err);
-      toast({ title: 'Generation Failed', description: err.message, variant: 'destructive' });
+      showAIErrorToast(err?.message || 'Slide injection failed', () => generateSlide(prompt, presetId), 'Slide Injection');
     } finally {
       setIsGenerating(false);
       setActivePreset(null);
