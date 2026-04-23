@@ -245,6 +245,23 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
     toast({ title: 'Lesson Generated!', description: `Created ${generatedSlides.length} slides.` });
   }, [toast]);
 
+  const handleMagicDeckGenerated = useCallback((generatedSlides: Slide[], title: string) => {
+    setSlides(generatedSlides);
+    setLessonTitle(title);
+    setLessonTopic(title);
+    setSelectedSlideId(generatedSlides[0]?.id || null);
+    toast({ title: '✨ Magic Deck Generated!', description: `Created ${generatedSlides.length} slides.` });
+  }, [toast]);
+
+  const handleInsertSlide = useCallback((index: number, newSlide: Slide) => {
+    setSlides(prev => {
+      const updated = [...prev];
+      updated.splice(index, 0, newSlide);
+      return updated.map((s, i) => ({ ...s, order: i }));
+    });
+    setSelectedSlideId(newSlide.id);
+  }, []);
+
   return (
     <div className="h-full flex flex-col bg-background" style={{ minHeight: 'calc(100vh - 4rem)' }}>
       {/* ─── Top Action Bar ─── */}
