@@ -185,10 +185,18 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
         }
       } else {
         const systemTag = formData.role === 'student' && formData.dateOfBirth ? calculateSystemTag(formData.dateOfBirth) : null;
+        // Derive hub_type from age for the DB trigger to auto-create student_profiles
+        let hubType = 'playground';
+        if (formData.dateOfBirth) {
+          const age = Math.floor((Date.now() - new Date(formData.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+          if (age >= 18) hubType = 'professional';
+          else if (age >= 11) hubType = 'academy';
+        }
         const { data, error } = await signUp(formData.email, formData.password, {
           role: formData.role,
           full_name: formData.fullName,
-          system_tag: systemTag
+          system_tag: systemTag,
+          hub_type: formData.role === 'student' ? hubType : undefined,
         } as any);
 
         if (error) {
