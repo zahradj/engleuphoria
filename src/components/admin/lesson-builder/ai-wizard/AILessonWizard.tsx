@@ -334,6 +334,7 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated, lessonCo
     setMagicGrammar('');
     setMagicVocabulary('');
     setMagicAge('');
+    setMagicLessonPrompt('');
     setImageCount(0);
   };
   const handleGenerateImages = async () => {
