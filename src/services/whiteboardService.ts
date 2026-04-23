@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 
 export interface WhiteboardStroke {
@@ -22,125 +21,143 @@ export interface WhiteboardState {
   backgroundImage?: string;
 }
 
+type StrokeListener = (stroke: WhiteboardStroke) => void;
+type ScrollListener = (payload: { scrollPercentage: number; senderId: string }) => void;
+
+interface RoomChannel {
+  channel: ReturnType<typeof supabase.channel>;
+  ready: Promise<void>;
+  strokeListeners: Set<StrokeListener>;
+  scrollListeners: Set<ScrollListener>;
+  refCount: number;
+}
+
 class WhiteboardService {
-  private listeners: Map<string, (stroke: WhiteboardStroke) => void> = new Map();
-  private channels: Map<string, any> = new Map();
+  private rooms: Map<string, RoomChannel> = new Map();
 
-  async saveStroke(roomId: string, stroke: Omit<WhiteboardStroke, 'id'>): Promise<void> {
-    try {
-      // For now, we'll use real-time channels for immediate sync
-      // In production, you might also want to persist to database
-      const channel = this.getOrCreateChannel(roomId);
-      
-      await channel.send({
-        type: 'broadcast',
-        event: 'whiteboard_stroke',
-        payload: {
-          ...stroke,
-          id: `${Date.now()}-${Math.random()}`
-        }
-      });
-    } catch (error) {
-      console.error('Failed to save whiteboard stroke:', error);
-      throw error;
-    }
-  }
+  /**
+   * Get (or create) a single SUBSCRIBED realtime channel per room.
+   * Critical: Supabase requires `.subscribe()` before `.send()` will deliver.
+   */
+  private getRoom(roomId: string): RoomChannel {
+    const channelName = `classroom_${roomId}`;
+    const existing = this.rooms.get(channelName);
+    if (existing) return existing;
 
-  subscribeToStrokes(roomId: string, onStroke: (stroke: WhiteboardStroke) => void): () => void {
-    const channelName = `whiteboard_${roomId}`;
-    
-    // Clean up existing channel if it exists
-    if (this.channels.has(channelName)) {
-      supabase.removeChannel(this.channels.get(channelName));
-    }
+    const strokeListeners = new Set<StrokeListener>();
+    const scrollListeners = new Set<ScrollListener>();
 
     const channel = supabase
-      .channel(channelName)
+      .channel(channelName, { config: { broadcast: { self: false, ack: false } } })
       .on('broadcast', { event: 'whiteboard_stroke' }, (payload) => {
-        onStroke(payload.payload as WhiteboardStroke);
+        const stroke = payload.payload as WhiteboardStroke;
+        strokeListeners.forEach((cb) => cb(stroke));
       })
       .on('broadcast', { event: 'whiteboard_clear' }, () => {
-        // Handle whiteboard clear event
-        onStroke({
-          id: 'clear',
-          roomId,
-          userId: 'system',
-          userName: 'System',
-          strokeData: {
-            points: [],
-            color: 'transparent',
-            width: 0,
-            tool: 'eraser'
-          },
-          timestamp: Date.now()
-        });
+        strokeListeners.forEach((cb) =>
+          cb({
+            id: 'clear',
+            roomId,
+            userId: 'system',
+            userName: 'System',
+            strokeData: { points: [], color: 'transparent', width: 0, tool: 'eraser' },
+            timestamp: Date.now(),
+          })
+        );
       })
-      .subscribe();
+      .on('broadcast', { event: 'web_scroll' }, (payload) => {
+        scrollListeners.forEach((cb) => cb(payload.payload as any));
+      });
 
-    this.channels.set(channelName, channel);
+    const ready = new Promise<void>((resolve) => {
+      channel.subscribe((status) => {
+        if (status === 'SUBSCRIBED') resolve();
+      });
+    });
 
-    // Store listener for cleanup
-    this.listeners.set(roomId, onStroke);
+    const room: RoomChannel = { channel, ready, strokeListeners, scrollListeners, refCount: 0 };
+    this.rooms.set(channelName, room);
+    return room;
+  }
 
-    // Return cleanup function
-    return () => {
-      if (this.channels.has(channelName)) {
-        supabase.removeChannel(this.channels.get(channelName));
-        this.channels.delete(channelName);
-      }
-      this.listeners.delete(roomId);
-    };
+  async saveStroke(roomId: string, stroke: Omit<WhiteboardStroke, 'id'>): Promise<void> {
+    const room = this.getRoom(roomId);
+    await room.ready;
+    await room.channel.send({
+      type: 'broadcast',
+      event: 'whiteboard_stroke',
+      payload: { ...stroke, id: `${Date.now()}-${Math.random()}` },
+    });
   }
 
   async clearWhiteboard(roomId: string): Promise<void> {
-    try {
-      const channel = this.getOrCreateChannel(roomId);
-      
-      await channel.send({
-        type: 'broadcast',
-        event: 'whiteboard_clear',
-        payload: { roomId, timestamp: Date.now() }
-      });
-    } catch (error) {
-      console.error('Failed to clear whiteboard:', error);
-      throw error;
+    const room = this.getRoom(roomId);
+    await room.ready;
+    await room.channel.send({
+      type: 'broadcast',
+      event: 'whiteboard_clear',
+      payload: { roomId, timestamp: Date.now() },
+    });
+  }
+
+  /**
+   * Sync the parent-wrapper scroll position of embedded web content.
+   * Cross-origin iframes can't be scrolled directly — caller must wrap
+   * the iframe in a scrollable div and broadcast that wrapper's scroll %.
+   */
+  async sendScroll(roomId: string, scrollPercentage: number, senderId: string): Promise<void> {
+    const room = this.getRoom(roomId);
+    await room.ready;
+    await room.channel.send({
+      type: 'broadcast',
+      event: 'web_scroll',
+      payload: { scrollPercentage, senderId },
+    });
+  }
+
+  subscribeToStrokes(roomId: string, onStroke: StrokeListener): () => void {
+    const room = this.getRoom(roomId);
+    room.strokeListeners.add(onStroke);
+    room.refCount += 1;
+    return () => this.release(roomId, () => room.strokeListeners.delete(onStroke));
+  }
+
+  subscribeToScroll(roomId: string, onScroll: ScrollListener): () => void {
+    const room = this.getRoom(roomId);
+    room.scrollListeners.add(onScroll);
+    room.refCount += 1;
+    return () => this.release(roomId, () => room.scrollListeners.delete(onScroll));
+  }
+
+  private release(roomId: string, cleanup: () => void) {
+    const channelName = `classroom_${roomId}`;
+    const room = this.rooms.get(channelName);
+    if (!room) return;
+    cleanup();
+    room.refCount = Math.max(0, room.refCount - 1);
+    if (room.refCount === 0 && room.strokeListeners.size === 0 && room.scrollListeners.size === 0) {
+      supabase.removeChannel(room.channel);
+      this.rooms.delete(channelName);
     }
   }
 
   async changeBackground(roomId: string, backgroundImage: string): Promise<void> {
-    try {
-      const channel = this.getOrCreateChannel(roomId);
-      
-      await channel.send({
-        type: 'broadcast',
-        event: 'whiteboard_background',
-        payload: { roomId, backgroundImage, timestamp: Date.now() }
-      });
-    } catch (error) {
-      console.error('Failed to change whiteboard background:', error);
-      throw error;
-    }
-  }
-
-  private getOrCreateChannel(roomId: string) {
-    const channelName = `whiteboard_${roomId}`;
-    
-    if (!this.channels.has(channelName)) {
-      const channel = supabase.channel(channelName);
-      this.channels.set(channelName, channel);
-      return channel;
-    }
-    
-    return this.channels.get(channelName);
+    const room = this.getRoom(roomId);
+    await room.ready;
+    await room.channel.send({
+      type: 'broadcast',
+      event: 'whiteboard_background',
+      payload: { roomId, backgroundImage, timestamp: Date.now() },
+    });
   }
 
   disconnect(roomId: string) {
-    const channelName = `whiteboard_${roomId}`;
-    if (this.channels.has(channelName)) {
-      supabase.removeChannel(this.channels.get(channelName));
-      this.channels.delete(channelName);
+    const channelName = `classroom_${roomId}`;
+    const room = this.rooms.get(channelName);
+    if (room) {
+      supabase.removeChannel(room.channel);
+      this.rooms.delete(channelName);
     }
-    this.listeners.delete(roomId);
   }
 }
 
