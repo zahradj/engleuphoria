@@ -1,73 +1,133 @@
 
 
-# Plan: AI Lesson Architect — Generator UI + Edge Function
+# Plan: Multimedia AI Slide Architect — Integrated Generator + Injection System
 
 ## Summary
 
-Build a Glassmorphism-styled "AI Lesson Architect" panel inside the Content Creator Dashboard (Step 1 area or as a new tab). It calls a new `generate-lesson-plan` edge function that uses the existing `GEMINI_API_KEY` secret to generate PPP-structured lesson plans via the Lovable AI Gateway. Results display in a Markdown viewer with Edit and Save capabilities, inserting into the existing `curriculum_lessons` table.
+Overhaul the Content Creator Slide Builder into a unified AI-powered workspace. The AI Lesson Architect moves from Step 1 into the Slide Builder itself as a left sidebar panel. The edge function evolves to output structured JSON slide arrays with multimedia fields. New "Insert AI Slide" buttons between thumbnails enable context-aware single-slide injection with one-click presets.
 
-## 1. New Edge Function: `generate-lesson-plan`
+## 1. Edge Function Overhaul: `generate-lesson-plan`
 
 **File:** `supabase/functions/generate-lesson-plan/index.ts`
 
-- Reads `GEMINI_API_KEY` from `Deno.env`
-- Accepts JSON body: `{ hub, topic, targetGrammar, targetVocabulary }`
-- Validates inputs with basic checks (non-empty strings, hub in allowed list)
-- Constructs a system prompt enforcing PPP pedagogy with hub-specific rules:
-  - **Playground**: 30 min, high-energy, gamified, age 5-11
-  - **Academy**: 60 min, grammar-focused deep learning, age 12-17
-  - **Success**: 60 min, professional coaching, adults 18+
-- Calls `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent` using the GEMINI_API_KEY directly (not the Lovable AI Gateway, since we have a dedicated Gemini key)
-- Returns the generated Markdown lesson plan as `{ lessonPlan: string, hub, topic }`
-- Includes CORS headers and proper error handling (429/402/500)
+Add a new `mode` parameter to support two generation modes:
 
-**Config:** Add `[functions.generate-lesson-plan]` with `verify_jwt = false` to `supabase/config.toml`
+- **`mode: "full_deck"`** (default): Returns a JSON array of 7-10 slide objects following the new schema:
+  ```json
+  {
+    "slides": [
+      {
+        "slide_type": "title | video_song | vocabulary_image | grammar_presentation | interactive_practice",
+        "headline": "string",
+        "body_text": "string",
+        "video_url": "string | null",
+        "visual_search_keyword": "string (1-2 words for image fetch)",
+        "teacher_notes": "string (CCQs, step-up/step-down scaffolding)"
+      }
+    ],
+    "lesson_title": "string",
+    "target_grammar": "string",
+    "target_vocabulary": "string"
+  }
+  ```
+- **`mode: "single_slide"`**: Accepts `previousSlideContent`, `prompt`, and `hub`. Returns a single slide object. Used by the injection system.
 
-## 2. New Frontend Component: `AILessonArchitect`
+The system prompt enforces PPP pedagogy, hub-specific duration/tone, video channel suggestions, and mandatory scaffolding. Gemini returns `responseMimeType: "application/json"`.
 
-**File:** `src/components/content-creator/AILessonArchitect.tsx`
+## 2. New Component: `AISlideGeneratorPanel`
 
-A two-column layout (form left, output right) with Glassmorphism styling:
+**File:** `src/components/admin/lesson-builder/AISlideGeneratorPanel.tsx`
 
-**Left Column — Form:**
-- Hub Selection dropdown (Playground / Academy / Success Hub) with hub-colored badges
-- Lesson Topic text input
-- Target Grammar/Vocabulary text input
-- "Generate Lesson Plan" button with pulsing animation during loading (uses `animate-pulse` + gradient border)
+A collapsible left sidebar panel (Glassmorphism styled) inside the Slide Builder containing:
 
-**Right Column — Output:**
-- Markdown viewer using `react-markdown` (already in project or will be added)
-- "Edit" button toggles between Markdown preview and a textarea for manual edits
-- "Save to Curriculum Library" button that inserts into `curriculum_lessons` table:
-  - `title`: extracted from topic
-  - `target_system`: mapped from hub (playground/teens/adults)
-  - `difficulty_level`: mapped from hub
-  - `duration_minutes`: 30 or 60 based on hub
-  - `content`: JSON with the markdown stored inside
-  - `created_by`: current user ID
-  - `is_published`: false (draft)
+- Hub dropdown (Playground/Academy/Success) with hub-colored badges
+- Topic input, Student Age/Level input
+- "Generate Magic Deck" button with pulsing gradient animation
+- Skeleton loader state that shows on the canvas while generating
+- On response: converts the JSON slide array into `Slide[]` using a new converter, populating `canvasElements` with text elements for headline/body, video embeds, and image placeholders using `visual_search_keyword`
 
-## 3. Integration into Content Creator Dashboard
+## 3. Image Integration via `visual_search_keyword`
 
-**File:** `src/pages/ContentCreatorDashboard.tsx`
+**File:** `src/components/admin/lesson-builder/utils/fetchSlideImage.ts`
 
-Add the `AILessonArchitect` component into Step 1 (Curriculum Step) as a tab or a prominent card, or as a floating action accessible from any step. The simplest approach: add it as a collapsible section within Step 1 below the curriculum explorer.
+A utility that takes a `visual_search_keyword` and returns an image URL:
 
-## 4. Database Migration
+- Primary: Uses the existing `ai-image-generation` edge function (Gemini image gen) with the keyword as prompt, styled as "flat 2D educational illustration"
+- Fallback: Constructs an Unsplash source URL: `https://source.unsplash.com/1920x1080/?{keyword}`
+- Images are placed as canvas elements on the slide
 
-**No new tables needed.** The existing `curriculum_lessons` table has all required columns (`title`, `content`, `target_system`, `difficulty_level`, `duration_minutes`, `created_by`, `is_published`). The AI-generated content will be saved as a JSON object in the `content` column with the markdown in a `markdown` field.
+## 4. Slide Conversion: AI JSON to Canvas Slides
 
-## 5. Dependency
+**File:** `src/components/admin/lesson-builder/utils/convertAISlideSchema.ts`
 
-Add `react-markdown` package if not already present, for rendering the AI output.
+Maps the new Gemini slide schema into the existing `Slide` + `CanvasElementData[]` format:
+
+- `headline` → Text element (large, centered top)
+- `body_text` → Text element (medium, below headline)
+- `video_url` → Video canvas element (YouTube iframe embed)
+- `visual_search_keyword` → Image element (fetched async, placeholder initially)
+- `slide_type` → Maps to existing `SlideType` and sets phase labels
+- `teacher_notes` → Stored in `Slide.teacherNotes`
+
+## 5. Insert AI Slide System
+
+**File:** `src/components/admin/lesson-builder/InsertAISlideButton.tsx`
+
+A small `+AI` button rendered between every two thumbnails in `SlideFilmstrip.tsx`:
+
+- Click opens a Glassmorphism popover with:
+  - Free-text prompt field ("What kind of slide should I build here?")
+  - Four preset buttons in a row:
+    - **Quick Quiz**: "Create a 3-question MCQ based on the previous slide"
+    - **Speaking Prompt**: "Create a discussion question with key vocabulary hints"
+    - **Video Break**: "Find and embed a 2-3 min YouTube video for this topic"
+    - **Concept Check**: "Create a True/False or Fill-in-the-blanks check"
+  - Each preset sends a hardcoded instruction + previous slide content + hub context to the edge function with `mode: "single_slide"`
+- On response: splice the new slide into `slides[]` at the clicked index
+- Animate with `animate-fade-in` and auto-select the new slide
+- Hub color scheme auto-applied to the new slide styling
+
+## 6. Integration into AdminLessonEditor
+
+**File:** `src/components/admin/lesson-builder/AdminLessonEditor.tsx`
+
+- Add `AISlideGeneratorPanel` as a toggleable left panel (replaces the current AI Wizard dialog for full-deck generation)
+- Wire "Generate Magic Deck" to call the edge function, convert results, and populate `slides` state
+- Pass `slides`, `selectedSlideId`, and `hub` to `SlideFilmstrip` for the insert buttons
+- Add "Publish Curriculum" button in the top-right action bar
+- Show skeleton loader on the canvas during generation
+
+## 7. SlideFilmstrip Update
+
+**File:** `src/components/admin/lesson-builder/SlideFilmstrip.tsx`
+
+- Render `InsertAISlideButton` between each thumbnail (and at the end)
+- Only shown when `canEdit` is true
+- Pass `onInsertSlide(index, slide)` callback to splice into the array
+
+## 8. Canvas Enhancements for Video Embeds
+
+**File:** `src/components/admin/lesson-builder/canvas/CanvasEditor.tsx`
+
+- When a slide has a video canvas element, render a YouTube iframe embed (using `youtube-nocookie.com` for privacy)
+- Editable: clicking the video element shows a URL input to swap the video
+- Read-only: plays inline
 
 ## Files Affected
 
 | Action | File |
 |--------|------|
-| Create | `supabase/functions/generate-lesson-plan/index.ts` |
-| Create | `src/components/content-creator/AILessonArchitect.tsx` |
-| Modify | `supabase/config.toml` (add function entry) |
-| Modify | `src/pages/ContentCreatorDashboard.tsx` (integrate component) |
-| Add dep | `react-markdown` (if missing) |
+| Modify | `supabase/functions/generate-lesson-plan/index.ts` |
+| Create | `src/components/admin/lesson-builder/AISlideGeneratorPanel.tsx` |
+| Create | `src/components/admin/lesson-builder/InsertAISlideButton.tsx` |
+| Create | `src/components/admin/lesson-builder/utils/convertAISlideSchema.ts` |
+| Create | `src/components/admin/lesson-builder/utils/fetchSlideImage.ts` |
+| Modify | `src/components/admin/lesson-builder/AdminLessonEditor.tsx` |
+| Modify | `src/components/admin/lesson-builder/SlideFilmstrip.tsx` |
+| Modify | `src/components/admin/lesson-builder/canvas/CanvasEditor.tsx` |
+| Modify | `src/pages/ContentCreatorDashboard.tsx` (minor — remove standalone AILessonArchitect from Step 1) |
+
+## No Database Changes Required
+
+The existing `curriculum_lessons` table and `Slide`/`CanvasElementData` types already support all required fields. Video URLs are stored in canvas element content. The `video_url` column added earlier remains for lesson-level video references.
 
