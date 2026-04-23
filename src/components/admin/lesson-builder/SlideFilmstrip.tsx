@@ -52,7 +52,7 @@ export const SlideFilmstrip: React.FC<SlideFilmstripProps> = ({
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
-    onReorderSlides(result.source.index, result.destination.index);
+    onReorderSlides?.(result.source.index, result.destination.index);
   };
 
   const handleUploadClick = (slideId: string, e: React.MouseEvent) => {
