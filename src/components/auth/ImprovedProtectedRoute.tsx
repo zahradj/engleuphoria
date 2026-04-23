@@ -132,7 +132,7 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
 
   // Check student level if required (for student-specific routes)
   if (requiredStudentLevel && userRole === 'student') {
-    if (studentLoading && !studentLevel) {
+    if (studentLoading) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
           <div className="text-center">

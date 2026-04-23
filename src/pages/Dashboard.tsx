@@ -53,8 +53,8 @@ const Dashboard: React.FC = () => {
     if (userRole === 'parent') { setRedirectPath('/parent'); return; }
 
     if (userRole === 'student') {
-      // Metadata-first routing — never wait on DB. Auto-complete onboarding silently.
-      if (studentLoading && !studentLevel) {
+      // Wait until hub resolution settles before enforcing a destination.
+      if (studentLoading) {
         return;
       }
 
