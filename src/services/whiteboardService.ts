@@ -21,7 +21,41 @@ export interface WhiteboardState {
   backgroundImage?: string;
 }
 
-export type StageMode = 'slide' | 'web' | 'blank';
+export type StageMode =
+  | 'slide'
+  | 'web'
+  | 'blank'
+  | 'native_game_flashcards'
+  | 'native_game_memory'
+  | 'native_game_sentence'
+  | 'native_game_blanks';
+
+/** Worksheet shape returned by the `generate-smart-worksheet` edge function. */
+export interface SmartWorksheet {
+  flashcards: Array<{ word: string; definition: string; example_sentence: string }>;
+  memory_match: Array<{ pair_1: string; pair_2: string }>;
+  sentence_builder: Array<{ full_sentence: string; scrambled_words: string[] }>;
+  fill_in_blanks: Array<{ sentence_with_blank: string; correct_answer: string; distractors: string[] }>;
+}
+
+export type NativeGameType = 'flashcards' | 'memory' | 'sentence' | 'blanks';
+
+export interface WorksheetLoadPayload {
+  worksheet: SmartWorksheet;
+  gameType: NativeGameType;
+  /** Stable per-launch nonce so receivers know whether they've already applied this worksheet. */
+  launchId: string;
+  senderId: string;
+  timestamp: number;
+}
+
+export interface GameStatePayload {
+  gameType: NativeGameType;
+  /** Game-specific state (chip order, flipped indices, selection, etc.) */
+  state: Record<string, any>;
+  senderId: string;
+  timestamp: number;
+}
 
 export type RewardType = 'star' | 'sticker';
 export interface RewardPayload {
@@ -62,6 +96,8 @@ type IframeLockListener = (payload: { isUnlocked: boolean; senderId: string }) =
 type RewardListener = (payload: RewardPayload) => void;
 type ToolActionListener = (payload: ToolActionPayload) => void;
 type ChatListener = (payload: ChatBroadcastPayload) => void;
+type WorksheetLoadListener = (payload: WorksheetLoadPayload) => void;
+type GameStateListener = (payload: GameStatePayload) => void;
 
 interface RoomChannel {
   channel: ReturnType<typeof supabase.channel>;

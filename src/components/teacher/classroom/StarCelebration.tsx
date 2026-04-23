@@ -24,8 +24,9 @@ export const StarCelebration: React.FC<StarCelebrationProps> = ({
     if (isVisible) {
       setShowContent(true);
       
-      // Fire confetti
-      const duration = 1200;
+      // Fire confetti — keep total fireworks under 800ms so the overlay
+      // (auto-hides at 1000ms) doesn't end with confetti still spawning.
+      const duration = 800;
       const end = Date.now() + duration;
 
       const colors = isMilestone 
@@ -40,7 +41,7 @@ export const StarCelebration: React.FC<StarCelebrationProps> = ({
           }
 
           confetti({
-            particleCount: 60,
+            particleCount: 50,
             spread: 150,
             origin: { x: Math.random(), y: Math.random() * 0.5 },
             colors,
@@ -50,29 +51,29 @@ export const StarCelebration: React.FC<StarCelebrationProps> = ({
           });
 
           confetti({
-            particleCount: 18,
+            particleCount: 14,
             spread: 90,
             origin: { x: 0.5, y: 0.5 },
             colors: ['#ffd700', '#ffed4a'],
             shapes: ['star'],
             scalar: 1.8
           });
-        }, 180);
+        }, 160);
 
         setTimeout(() => {
           confetti({
-            particleCount: 120,
+            particleCount: 100,
             spread: 220,
             origin: { y: 0.5, x: 0.5 },
             colors,
             startVelocity: 55,
             scalar: 1.4
           });
-        }, 100);
+        }, 60);
 
         setTimeout(() => {
           confetti({
-            particleCount: 50,
+            particleCount: 40,
             angle: 60,
             spread: 55,
             origin: { x: 0, y: 0.7 },
@@ -80,14 +81,14 @@ export const StarCelebration: React.FC<StarCelebrationProps> = ({
             startVelocity: 40
           });
           confetti({
-            particleCount: 50,
+            particleCount: 40,
             angle: 120,
             spread: 55,
             origin: { x: 1, y: 0.7 },
             colors,
             startVelocity: 40
           });
-        }, 380);
+        }, 220);
 
       } else {
         confetti({
@@ -101,21 +102,21 @@ export const StarCelebration: React.FC<StarCelebrationProps> = ({
 
         setTimeout(() => {
           confetti({
-            particleCount: 24,
+            particleCount: 22,
             spread: 60,
             origin: { x: 0.5, y: 0.5 },
             colors: ['#ffd700'],
             shapes: ['star'],
             scalar: 1.3
           });
-        }, 220);
+        }, 140);
       }
 
-      // Auto-hide after animation
+      // Auto-hide after 1s — matches the student-side timing.
       const timer = setTimeout(() => {
         setShowContent(false);
-        setTimeout(onComplete, 300);
-      }, 1200);
+        setTimeout(onComplete, 200);
+      }, 1000);
 
       return () => clearTimeout(timer);
     }

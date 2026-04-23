@@ -11,7 +11,8 @@ interface CommunicationZoneProps {
   onGiveStar: () => void;
   onOpenTimer: () => void;
   onRollDice: () => void;
-  onSendSticker: () => void;
+  /** Send a sticker reaction emoji to the student. */
+  onSendSticker: (emoji: string) => void;
   studentCanDraw?: boolean;
   onToggleStudentDrawing?: () => void;
   onShareScreen?: () => void;

@@ -90,6 +90,8 @@ project_id = "dcoxpyzoqjvmuuygvlme"
     verify_jwt = false
   [functions.generate-speech]
     verify_jwt = true
+  [functions.generate-smart-worksheet]
+    verify_jwt = true
   [functions.generate-welcome-lesson]
     verify_jwt = false
   [functions.get-dashboard]
