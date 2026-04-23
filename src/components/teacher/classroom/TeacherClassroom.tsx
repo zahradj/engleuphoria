@@ -159,6 +159,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     }
   }, [studentContext, isConnected]);
 
+  const teacherUserId = user?.id || sessionStorage.getItem('demo-teacher-id') || 'teacher';
   const [channelStatus, setChannelStatus] = useState<'CONNECTING' | 'SUBSCRIBED' | 'CLOSED' | 'CHANNEL_ERROR' | 'TIMED_OUT'>('CONNECTING');
 
   useEffect(() => {
@@ -260,8 +261,6 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   const toggleMute = useCallback(() => { media.toggleMicrophone(); }, [media]);
   const toggleCamera = useCallback(() => { media.toggleCamera(); }, [media]);
-
-  const teacherUserId = user?.id || sessionStorage.getItem('demo-teacher-id') || 'teacher';
 
   const handleGiveStar = useCallback(async () => {
     const newStarCount = studentStars + 1;
