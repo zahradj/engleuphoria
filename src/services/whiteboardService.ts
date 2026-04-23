@@ -65,6 +65,7 @@ type ChatListener = (payload: ChatBroadcastPayload) => void;
 interface RoomChannel {
   channel: ReturnType<typeof supabase.channel>;
   ready: Promise<void>;
+  statusListeners: Set<(status: string) => void>;
   strokeListeners: Set<StrokeListener>;
   scrollListeners: Set<ScrollListener>;
   stageModeListeners: Set<StageModeListener>;
@@ -94,9 +95,10 @@ class WhiteboardService {
     const rewardListeners = new Set<RewardListener>();
     const toolActionListeners = new Set<ToolActionListener>();
     const chatListeners = new Set<ChatListener>();
+    const statusListeners = new Set<(status: string) => void>();
 
     const channel = supabase
-      .channel(channelName, { config: { broadcast: { self: false, ack: false } } })
+      .channel(channelName, { config: { broadcast: { self: false } } })
       .on('broadcast', { event: 'whiteboard_stroke' }, (payload) => {
         const stroke = payload.payload as WhiteboardStroke;
         strokeListeners.forEach((cb) => cb(stroke));
@@ -134,6 +136,7 @@ class WhiteboardService {
 
     const ready = new Promise<void>((resolve) => {
       channel.subscribe((status) => {
+        statusListeners.forEach((cb) => cb(status));
         if (status === 'SUBSCRIBED') resolve();
       });
     });
@@ -141,6 +144,7 @@ class WhiteboardService {
     const room: RoomChannel = {
       channel,
       ready,
+      statusListeners,
       strokeListeners,
       scrollListeners,
       stageModeListeners,
@@ -303,6 +307,13 @@ class WhiteboardService {
     return () => this.release(roomId, () => room.chatListeners.delete(onMessage));
   }
 
+  subscribeToStatus(roomId: string, onStatus: (status: string) => void): () => void {
+    const room = this.getRoom(roomId);
+    room.statusListeners.add(onStatus);
+    room.refCount += 1;
+    return () => this.release(roomId, () => room.statusListeners.delete(onStatus));
+  }
+
   private release(roomId: string, cleanup: () => void) {
     const channelName = `classroom_${roomId}`;
     const room = this.rooms.get(channelName);
@@ -317,7 +328,8 @@ class WhiteboardService {
       room.drawingEnabledListeners.size === 0 &&
       room.rewardListeners.size === 0 &&
       room.toolActionListeners.size === 0 &&
-      room.chatListeners.size === 0
+      room.chatListeners.size === 0 &&
+      room.statusListeners.size === 0
     ) {
       supabase.removeChannel(room.channel);
       this.rooms.delete(channelName);
