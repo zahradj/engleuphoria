@@ -23,10 +23,44 @@ export interface WhiteboardState {
 
 export type StageMode = 'slide' | 'web' | 'blank';
 
+export type RewardType = 'star' | 'sticker';
+export interface RewardPayload {
+  rewardType: RewardType;
+  /** Optional emoji or sticker key (for 'sticker') */
+  sticker?: string;
+  /** Running star total when rewardType === 'star' (optional). */
+  starCount?: number;
+  /** True every 5th star — triggers the carnival celebration */
+  isMilestone?: boolean;
+  senderId: string;
+  timestamp: number;
+}
+
+export type ToolName = 'dice';
+export interface ToolActionPayload {
+  tool: ToolName;
+  /** Numeric result of the action — e.g. dice value 1-6 */
+  result: number;
+  senderId: string;
+  timestamp: number;
+}
+
+export interface ChatBroadcastPayload {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderRole: 'teacher' | 'student';
+  text: string;
+  timestamp: number;
+}
+
 type StrokeListener = (stroke: WhiteboardStroke) => void;
 type ScrollListener = (payload: { scrollPercentage: number; senderId: string }) => void;
 type StageModeListener = (payload: { mode: StageMode; senderId: string }) => void;
 type DrawingEnabledListener = (payload: { enabled: boolean; senderId: string }) => void;
+type RewardListener = (payload: RewardPayload) => void;
+type ToolActionListener = (payload: ToolActionPayload) => void;
+type ChatListener = (payload: ChatBroadcastPayload) => void;
 
 interface RoomChannel {
   channel: ReturnType<typeof supabase.channel>;
@@ -35,6 +69,9 @@ interface RoomChannel {
   scrollListeners: Set<ScrollListener>;
   stageModeListeners: Set<StageModeListener>;
   drawingEnabledListeners: Set<DrawingEnabledListener>;
+  rewardListeners: Set<RewardListener>;
+  toolActionListeners: Set<ToolActionListener>;
+  chatListeners: Set<ChatListener>;
   refCount: number;
 }
 
@@ -54,6 +91,9 @@ class WhiteboardService {
     const scrollListeners = new Set<ScrollListener>();
     const stageModeListeners = new Set<StageModeListener>();
     const drawingEnabledListeners = new Set<DrawingEnabledListener>();
+    const rewardListeners = new Set<RewardListener>();
+    const toolActionListeners = new Set<ToolActionListener>();
+    const chatListeners = new Set<ChatListener>();
 
     const channel = supabase
       .channel(channelName, { config: { broadcast: { self: false, ack: false } } })
@@ -81,6 +121,15 @@ class WhiteboardService {
       })
       .on('broadcast', { event: 'drawing_enabled' }, (payload) => {
         drawingEnabledListeners.forEach((cb) => cb(payload.payload as any));
+      })
+      .on('broadcast', { event: 'reward' }, (payload) => {
+        rewardListeners.forEach((cb) => cb(payload.payload as RewardPayload));
+      })
+      .on('broadcast', { event: 'tool_action' }, (payload) => {
+        toolActionListeners.forEach((cb) => cb(payload.payload as ToolActionPayload));
+      })
+      .on('broadcast', { event: 'chat_message' }, (payload) => {
+        chatListeners.forEach((cb) => cb(payload.payload as ChatBroadcastPayload));
       });
 
     const ready = new Promise<void>((resolve) => {
@@ -96,6 +145,9 @@ class WhiteboardService {
       scrollListeners,
       stageModeListeners,
       drawingEnabledListeners,
+      rewardListeners,
+      toolActionListeners,
+      chatListeners,
       refCount: 0,
     };
     this.rooms.set(channelName, room);
@@ -187,6 +239,70 @@ class WhiteboardService {
     return () => this.release(roomId, () => room.drawingEnabledListeners.delete(onChange));
   }
 
+  /** Broadcast a teacher reward (star or sticker) so the student animates instantly. */
+  async sendReward(
+    roomId: string,
+    reward: Omit<RewardPayload, 'timestamp'>
+  ): Promise<void> {
+    const room = this.getRoom(roomId);
+    await room.ready;
+    await room.channel.send({
+      type: 'broadcast',
+      event: 'reward',
+      payload: { ...reward, timestamp: Date.now() } satisfies RewardPayload,
+    });
+  }
+
+  subscribeToRewards(roomId: string, onReward: RewardListener): () => void {
+    const room = this.getRoom(roomId);
+    room.rewardListeners.add(onReward);
+    room.refCount += 1;
+    return () => this.release(roomId, () => room.rewardListeners.delete(onReward));
+  }
+
+  /** Broadcast an interactive tool result (e.g. dice roll) — the result is computed
+   *  by the sender so every receiver renders the SAME number. */
+  async sendToolAction(
+    roomId: string,
+    action: Omit<ToolActionPayload, 'timestamp'>
+  ): Promise<void> {
+    const room = this.getRoom(roomId);
+    await room.ready;
+    await room.channel.send({
+      type: 'broadcast',
+      event: 'tool_action',
+      payload: { ...action, timestamp: Date.now() } satisfies ToolActionPayload,
+    });
+  }
+
+  subscribeToToolActions(roomId: string, onAction: ToolActionListener): () => void {
+    const room = this.getRoom(roomId);
+    room.toolActionListeners.add(onAction);
+    room.refCount += 1;
+    return () => this.release(roomId, () => room.toolActionListeners.delete(onAction));
+  }
+
+  /** Broadcast a chat message instantly (in addition to DB persistence). */
+  async sendChatMessage(
+    roomId: string,
+    message: Omit<ChatBroadcastPayload, 'timestamp'>
+  ): Promise<void> {
+    const room = this.getRoom(roomId);
+    await room.ready;
+    await room.channel.send({
+      type: 'broadcast',
+      event: 'chat_message',
+      payload: { ...message, timestamp: Date.now() } satisfies ChatBroadcastPayload,
+    });
+  }
+
+  subscribeToChatMessages(roomId: string, onMessage: ChatListener): () => void {
+    const room = this.getRoom(roomId);
+    room.chatListeners.add(onMessage);
+    room.refCount += 1;
+    return () => this.release(roomId, () => room.chatListeners.delete(onMessage));
+  }
+
   private release(roomId: string, cleanup: () => void) {
     const channelName = `classroom_${roomId}`;
     const room = this.rooms.get(channelName);
@@ -198,7 +314,10 @@ class WhiteboardService {
       room.strokeListeners.size === 0 &&
       room.scrollListeners.size === 0 &&
       room.stageModeListeners.size === 0 &&
-      room.drawingEnabledListeners.size === 0
+      room.drawingEnabledListeners.size === 0 &&
+      room.rewardListeners.size === 0 &&
+      room.toolActionListeners.size === 0 &&
+      room.chatListeners.size === 0
     ) {
       supabase.removeChannel(room.channel);
       this.rooms.delete(channelName);

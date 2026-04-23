@@ -1,11 +1,12 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useRealTimeChat } from '@/hooks/useRealTimeChat';
 import { ChatMessage } from '@/services/chatService';
+import { whiteboardService, ChatBroadcastPayload } from '@/services/whiteboardService';
 import { Send, Paperclip, Download, AlertCircle, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import { LoadingSpinner, ErrorState } from '@/components/ui/loading-states';
@@ -81,13 +82,51 @@ export function RealTimeChatPanel({ roomId, currentUser }: RealTimeChatPanelProp
   const [inputMessage, setInputMessage] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  const { messages, isLoading, isSending, error, retryCount, sendMessage, sendFile, retry } = useRealTimeChat({
+
+  // Instant-broadcast messages received over the unified classroom channel.
+  // These are merged with DB-backed messages and de-duped by id below.
+  const [broadcastMessages, setBroadcastMessages] = useState<ChatMessage[]>([]);
+
+  const { messages: dbMessages, isLoading, isSending, error, retryCount, sendMessage, sendFile, retry } = useRealTimeChat({
     roomId,
     userId: currentUser.id,
     userName: currentUser.name,
     userRole: currentUser.role
   });
+
+  // Subscribe to live chat broadcasts on the unified classroom_${roomId} channel.
+  useEffect(() => {
+    if (!roomId) return;
+    const unsub = whiteboardService.subscribeToChatMessages(roomId, (payload) => {
+      // Ignore own broadcasts — local optimistic insert already added the message.
+      if (payload.senderId === currentUser.id) return;
+      setBroadcastMessages((prev) => {
+        if (prev.some((m) => m.id === payload.id)) return prev;
+        const incoming: ChatMessage = {
+          id: payload.id,
+          content: payload.text,
+          sender_id: payload.senderId,
+          sender_name: payload.senderName,
+          sender_role: payload.senderRole,
+          room_id: roomId,
+          created_at: new Date(payload.timestamp).toISOString(),
+          message_type: 'text',
+        };
+        return [...prev, incoming];
+      });
+    });
+    return unsub;
+  }, [roomId, currentUser.id]);
+
+  // Merge DB-backed and broadcast messages. De-dupe by id; sort by created_at.
+  const messages = useMemo<ChatMessage[]>(() => {
+    const map = new Map<string, ChatMessage>();
+    for (const m of dbMessages) map.set(m.id, m);
+    for (const m of broadcastMessages) if (!map.has(m.id)) map.set(m.id, m);
+    return Array.from(map.values()).sort(
+      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    );
+  }, [dbMessages, broadcastMessages]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -97,9 +136,42 @@ export function RealTimeChatPanel({ roomId, currentUser }: RealTimeChatPanelProp
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputMessage.trim() || isSending) return;
-    
-    await sendMessage(inputMessage);
+
+    const text = inputMessage.trim();
     setInputMessage('');
+
+    // Instant broadcast on the unified channel — both peers render immediately.
+    const broadcastId = `live-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const payload: ChatBroadcastPayload = {
+      id: broadcastId,
+      senderId: currentUser.id,
+      senderName: currentUser.name,
+      senderRole: currentUser.role,
+      text,
+      timestamp: Date.now(),
+    };
+
+    // Optimistic insert for self
+    setBroadcastMessages((prev) => [
+      ...prev,
+      {
+        id: broadcastId,
+        content: text,
+        sender_id: currentUser.id,
+        sender_name: currentUser.name,
+        sender_role: currentUser.role,
+        room_id: roomId,
+        created_at: new Date(payload.timestamp).toISOString(),
+        message_type: 'text',
+      },
+    ]);
+
+    // Fire-and-forget broadcast (instant); DB persistence runs in parallel.
+    void whiteboardService.sendChatMessage(roomId, payload).catch((err) =>
+      console.error('Chat broadcast failed:', err)
+    );
+
+    await sendMessage(text);
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
