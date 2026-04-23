@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, BookOpen, Users, GraduationCap, Wand2, Loader2, Check, ArrowRight, Image, AlertTriangle, Save, Mic, MicOff } from 'lucide-react';
+import { Sparkles, BookOpen, Users, GraduationCap, Wand2, Loader2, Check, ArrowRight, Image, AlertTriangle, Save, Mic, MicOff, Zap, Video, Brain, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,6 +19,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { generateTopicPackWithAI, buildPPPLessonFromPack } from './generatePPPLesson';
 import { WizardFormData, PPPLessonPlan, GeneratedSlide, HubType } from './types';
 import { Slide, CanvasElementData } from '../types';
@@ -27,6 +28,8 @@ import { generateLessonImages } from '@/services/lessonImageService';
 import { saveToLibrary } from '@/services/lessonLibraryService';
 import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { convertAISlidesToCanvasSlides, AISlideSchema } from '../utils/convertAISlideSchema';
 
 /** Context injected from the curriculum selection to pre-fill the Wizard */
 export interface WizardLessonContext {
