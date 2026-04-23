@@ -16,6 +16,7 @@ import { PictureInPicture } from '@/components/classroom/PictureInPicture';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Timer, Dice6 } from 'lucide-react';
 import { useIdleOpacity } from '@/hooks/useIdleOpacity';
+import { whiteboardService } from '@/services/whiteboardService';
 
 type HubType = 'playground' | 'academy' | 'professional';
 
