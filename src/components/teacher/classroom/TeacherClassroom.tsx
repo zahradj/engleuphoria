@@ -9,7 +9,8 @@ import { useStudentContext } from "@/hooks/useStudentContext";
 import { useWebRTCConnection } from "@/hooks/useWebRTCConnection";
 import { ClassroomTopBar } from "./ClassroomTopBar";
 import { CommunicationZone } from "./CommunicationZone";
-import { CenterStage } from "./CenterStage";
+import { MainStage } from "@/components/classroom/stage/MainStage";
+import { TeacherControlDock } from "@/components/classroom/stage/TeacherControlDock";
 import { SlideNavigator } from "./SlideNavigator";
 import { DiceRoller } from "./DiceRoller";
 import { StarCelebration } from "./StarCelebration";
@@ -112,6 +113,8 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     sessionContext,
     activeCanvasTab,
     embeddedUrl,
+    stageMode,
+    drawingEnabled,
     updateSlide,
     updateTool,
     setStudentCanDraw,
@@ -121,7 +124,9 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     updateSharedDisplay,
     updateSharedNotes,
     updateSessionContext,
-    updateCanvasTab
+    updateCanvasTab,
+    setStageMode,
+    setDrawingEnabled
   } = useClassroomSync({
     roomId: roomName,
     userId: user?.id || (() => {
