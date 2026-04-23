@@ -216,7 +216,7 @@ export const CenterStage: React.FC<CenterStageProps> = ({
       <div className="flex-1 flex items-center justify-center p-6">
         {activeCanvasTab === 'slides' && (
           <>
-            <div className="relative w-full max-w-4xl aspect-[16/9] bg-white rounded-xl shadow-2xl overflow-hidden">
+            <div className="relative w-full h-full max-h-full bg-white rounded-xl shadow-2xl overflow-hidden" style={{ aspectRatio: '16 / 9' }}>
               {renderSlideContent()}
               {!isQuizSlide && !isPollSlide && (
                 <CollaborativeCanvas
@@ -245,7 +245,7 @@ export const CenterStage: React.FC<CenterStageProps> = ({
         )}
 
         {activeCanvasTab === 'whiteboard' && (
-          <div className="relative w-full max-w-5xl aspect-[16/9] bg-white rounded-xl shadow-2xl overflow-hidden">
+          <div className="relative w-full h-full bg-white rounded-xl shadow-2xl overflow-hidden" style={{ aspectRatio: '16 / 9' }}>
             <CollaborativeCanvas
               roomId={roomId} userId={userId} userName={userName} role="teacher"
               canDraw={activeTool !== 'pointer' && activeTool !== 'laser'}
@@ -256,7 +256,7 @@ export const CenterStage: React.FC<CenterStageProps> = ({
         )}
 
         {activeCanvasTab === 'web' && (
-          <div className="relative w-full max-w-5xl aspect-[16/9] bg-white rounded-xl shadow-2xl overflow-hidden">
+          <div className="relative w-full h-full bg-white rounded-xl shadow-2xl overflow-hidden" style={{ aspectRatio: '16 / 9' }}>
             {embeddedUrl ? (
               <EmbeddedContentViewer
                 url={embeddedUrl}
