@@ -50,6 +50,7 @@ const PrivacyPolicyPage = lazy(() => import("./pages/legal/PrivacyPolicyPage"));
 const RefundPolicyPage = lazy(() => import("./pages/legal/RefundPolicyPage"));
 const InstallPage = lazy(() => import("./pages/InstallPage"));
 const HubConfirmation = lazy(() => import("./pages/HubConfirmation"));
+const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -264,6 +265,9 @@ const App = () => {
                           <LessonReaderPage />
                         </Suspense>
                       } />
+
+                      {/* Auth callback for email confirmation */}
+                      <Route path="/auth/callback" element={<AuthCallback />} />
 
                       {/* Legacy routes - redirect to new paths */}
                       <Route path="/student/*" element={<Navigate to="/playground" replace />} />
