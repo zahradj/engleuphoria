@@ -16,7 +16,10 @@ export const ProfileDebugPanel: React.FC = () => {
   const { hubRole, hubKind, loading: teacherLoading } = useTeacherHubRole(user?.id);
 
   const isDev = import.meta.env.DEV;
-  const debugParam = new URLSearchParams(window.location.search).get('debug') === 'true';
+  const debugParam = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('debug') === 'true'
+    : false;
+
   if (!isDev && !debugParam) return null;
   if (!user) return null;
 
