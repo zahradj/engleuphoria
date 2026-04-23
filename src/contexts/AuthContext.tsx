@@ -501,15 +501,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           || data.user.user_metadata?.role
           || 'student';
 
-        const redirectPath = resolvedRole === 'admin'
-          ? '/super-admin'
-          : resolvedRole === 'content_creator'
-            ? '/content-creator'
-            : resolvedRole === 'teacher'
-              ? '/admin'
-              : resolvedRole === 'parent'
-                ? '/parent'
-                : '/dashboard';
+        let redirectPath = '/dashboard';
+        if (resolvedRole === 'admin') {
+          redirectPath = '/super-admin';
+        } else if (resolvedRole === 'content_creator') {
+          redirectPath = '/content-creator';
+        } else if (resolvedRole === 'teacher') {
+          redirectPath = '/admin';
+        } else if (resolvedRole === 'parent') {
+          redirectPath = '/parent';
+        } else if (resolvedRole === 'student') {
+          // Hardcoded hub-based redirect: fetch student_level and go directly
+          const { data: profile } = await supabase
+            .from('student_profiles')
+            .select('student_level')
+            .eq('user_id', data.user.id)
+            .maybeSingle();
+          const hubType = profile?.student_level
+            || data.user.user_metadata?.hub_type
+            || 'playground';
+          redirectPath = hubType === 'academy' ? '/academy'
+            : hubType === 'professional' ? '/hub'
+            : '/playground';
+        }
 
         setSession(data.session ?? null);
         setUser({ ...(data.user as any), role: resolvedRole } as any);
