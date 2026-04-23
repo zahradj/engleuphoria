@@ -21,14 +21,20 @@ export interface WhiteboardState {
   backgroundImage?: string;
 }
 
+export type StageMode = 'slide' | 'web' | 'blank';
+
 type StrokeListener = (stroke: WhiteboardStroke) => void;
 type ScrollListener = (payload: { scrollPercentage: number; senderId: string }) => void;
+type StageModeListener = (payload: { mode: StageMode; senderId: string }) => void;
+type DrawingEnabledListener = (payload: { enabled: boolean; senderId: string }) => void;
 
 interface RoomChannel {
   channel: ReturnType<typeof supabase.channel>;
   ready: Promise<void>;
   strokeListeners: Set<StrokeListener>;
   scrollListeners: Set<ScrollListener>;
+  stageModeListeners: Set<StageModeListener>;
+  drawingEnabledListeners: Set<DrawingEnabledListener>;
   refCount: number;
 }
 
