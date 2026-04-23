@@ -1,79 +1,73 @@
 
 
-# Plan: Fix "Database error saving new user" — Missing Type Resolution
+# Plan: AI Lesson Architect — Generator UI + Edge Function
 
-## Root Cause
+## Summary
 
-The `handle_new_user()` trigger function declares a variable of type `student_level`, but the function has **no `search_path` configuration** (confirmed: `proconfig` is NULL). When the trigger fires from the `auth.users` table insert, PostgreSQL cannot resolve the `student_level` type because it looks in the `auth` schema context, not `public`.
+Build a Glassmorphism-styled "AI Lesson Architect" panel inside the Content Creator Dashboard (Step 1 area or as a new tab). It calls a new `generate-lesson-plan` edge function that uses the existing `GEMINI_API_KEY` secret to generate PPP-structured lesson plans via the Lovable AI Gateway. Results display in a Markdown viewer with Edit and Save capabilities, inserting into the existing `curriculum_lessons` table.
 
-Error: `ERROR: type "student_level" does not exist (SQLSTATE 42704)`
+## 1. New Edge Function: `generate-lesson-plan`
 
-## Fix (Single Migration)
+**File:** `supabase/functions/generate-lesson-plan/index.ts`
 
-Recreate the `handle_new_user()` function with two changes:
+- Reads `GEMINI_API_KEY` from `Deno.env`
+- Accepts JSON body: `{ hub, topic, targetGrammar, targetVocabulary }`
+- Validates inputs with basic checks (non-empty strings, hub in allowed list)
+- Constructs a system prompt enforcing PPP pedagogy with hub-specific rules:
+  - **Playground**: 30 min, high-energy, gamified, age 5-11
+  - **Academy**: 60 min, grammar-focused deep learning, age 12-17
+  - **Success**: 60 min, professional coaching, adults 18+
+- Calls `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent` using the GEMINI_API_KEY directly (not the Lovable AI Gateway, since we have a dedicated Gemini key)
+- Returns the generated Markdown lesson plan as `{ lessonPlan: string, hub, topic }`
+- Includes CORS headers and proper error handling (429/402/500)
 
-1. Add `SET search_path = public` to the function definition so all type lookups resolve correctly.
-2. Fully qualify the type as `public.student_level` in the variable declaration for extra safety.
+**Config:** Add `[functions.generate-lesson-plan]` with `verify_jwt = false` to `supabase/config.toml`
 
-### SQL Migration
+## 2. New Frontend Component: `AILessonArchitect`
 
-```sql
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS trigger AS $$
-DECLARE
-  user_role TEXT;
-  user_full_name TEXT;
-  hub_meta TEXT;
-  resolved_level public.student_level;
-BEGIN
-  user_role := COALESCE(NEW.raw_user_meta_data->>'role', 'student');
-  user_full_name := COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1));
-  
-  INSERT INTO public.users (id, email, full_name, role)
-  VALUES (NEW.id, NEW.email, user_full_name, user_role)
-  ON CONFLICT (id) DO UPDATE SET
-    email = EXCLUDED.email,
-    full_name = COALESCE(EXCLUDED.full_name, public.users.full_name),
-    role = COALESCE(EXCLUDED.role, public.users.role);
-  
-  IF user_role IN ('student', 'teacher', 'admin', 'content_creator', 'parent') THEN
-    INSERT INTO public.user_roles (user_id, role)
-    VALUES (NEW.id, user_role::public.app_role)
-    ON CONFLICT (user_id, role) DO NOTHING;
-  ELSE
-    INSERT INTO public.user_roles (user_id, role)
-    VALUES (NEW.id, 'student'::public.app_role)
-    ON CONFLICT (user_id, role) DO NOTHING;
-  END IF;
-  
-  IF user_role = 'teacher' THEN
-    INSERT INTO public.teacher_profiles (user_id, profile_complete, can_teach, profile_approved_by_admin)
-    VALUES (NEW.id, false, false, false)
-    ON CONFLICT (user_id) DO NOTHING;
-  END IF;
+**File:** `src/components/content-creator/AILessonArchitect.tsx`
 
-  IF user_role = 'student' THEN
-    hub_meta := NEW.raw_user_meta_data->>'hub_type';
-    CASE hub_meta
-      WHEN 'academy' THEN resolved_level := 'academy';
-      WHEN 'professional', 'success' THEN resolved_level := 'professional';
-      ELSE resolved_level := 'playground';
-    END CASE;
-    
-    INSERT INTO public.student_profiles (user_id, student_level, onboarding_completed)
-    VALUES (NEW.id, resolved_level, false)
-    ON CONFLICT (user_id) DO NOTHING;
-  END IF;
-  
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
-```
+A two-column layout (form left, output right) with Glassmorphism styling:
 
-## No Frontend Changes Required
+**Left Column — Form:**
+- Hub Selection dropdown (Playground / Academy / Success Hub) with hub-colored badges
+- Lesson Topic text input
+- Target Grammar/Vocabulary text input
+- "Generate Lesson Plan" button with pulsing animation during loading (uses `animate-pulse` + gradient border)
 
-The trigger fix is the only change needed. Once the function can resolve the `student_level` type, signups will succeed and the existing frontend routing logic will work.
+**Right Column — Output:**
+- Markdown viewer using `react-markdown` (already in project or will be added)
+- "Edit" button toggles between Markdown preview and a textarea for manual edits
+- "Save to Curriculum Library" button that inserts into `curriculum_lessons` table:
+  - `title`: extracted from topic
+  - `target_system`: mapped from hub (playground/teens/adults)
+  - `difficulty_level`: mapped from hub
+  - `duration_minutes`: 30 or 60 based on hub
+  - `content`: JSON with the markdown stored inside
+  - `created_by`: current user ID
+  - `is_published`: false (draft)
+
+## 3. Integration into Content Creator Dashboard
+
+**File:** `src/pages/ContentCreatorDashboard.tsx`
+
+Add the `AILessonArchitect` component into Step 1 (Curriculum Step) as a tab or a prominent card, or as a floating action accessible from any step. The simplest approach: add it as a collapsible section within Step 1 below the curriculum explorer.
+
+## 4. Database Migration
+
+**No new tables needed.** The existing `curriculum_lessons` table has all required columns (`title`, `content`, `target_system`, `difficulty_level`, `duration_minutes`, `created_by`, `is_published`). The AI-generated content will be saved as a JSON object in the `content` column with the markdown in a `markdown` field.
+
+## 5. Dependency
+
+Add `react-markdown` package if not already present, for rendering the AI output.
 
 ## Files Affected
-- One database migration only (no code file changes)
+
+| Action | File |
+|--------|------|
+| Create | `supabase/functions/generate-lesson-plan/index.ts` |
+| Create | `src/components/content-creator/AILessonArchitect.tsx` |
+| Modify | `supabase/config.toml` (add function entry) |
+| Modify | `src/pages/ContentCreatorDashboard.tsx` (integrate component) |
+| Add dep | `react-markdown` (if missing) |
 
