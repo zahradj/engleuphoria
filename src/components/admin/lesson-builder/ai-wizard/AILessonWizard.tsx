@@ -153,7 +153,12 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated, lessonCo
 
     if (parts.length > 0) {
       setLessonPrompt(parts.join(' '));
+      setMagicLessonPrompt(parts.join(' '));
     }
+
+    // Auto-fill Magic Deck fields from curriculum context
+    if (lessonContext.grammarTarget) setMagicGrammar(lessonContext.grammarTarget);
+    if (lessonContext.vocabularyList?.length) setMagicVocabulary(lessonContext.vocabularyList.join(', '));
   }, [open, lessonContext]);
 
   const startListening = useCallback((target: 'topic' | 'notes') => {
