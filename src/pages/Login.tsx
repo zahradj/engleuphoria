@@ -5,6 +5,7 @@ import { AuthPageLayout } from '@/components/auth/AuthPageLayout';
 import { SimpleAuthForm } from '@/components/auth/SimpleAuthForm';
 import { useAuth } from '@/contexts/AuthContext';
 import { HeroThemeProvider } from '@/contexts/HeroThemeContext';
+import { resolveHubRoute } from '@/lib/hubResolver';
 import { toast } from 'sonner';
 
 const Login = () => {
@@ -12,6 +13,7 @@ const Login = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const redirectedRef = useRef(false);
+  const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (searchParams.get('reason') === 'access_denied') {
@@ -22,20 +24,47 @@ const Login = () => {
     }
   }, [searchParams]);
 
-  // Safety net: redirect authenticated users based on role
-  // Guard: only redirect once AND only when role is resolved
+  // Safety net: redirect authenticated users based on role.
+  // If role doesn't resolve in 3s, fall back to metadata-based hub routing.
   useEffect(() => {
-    if (!loading && user && !redirectedRef.current) {
-      const role = (user as any).role;
-      // Don't redirect if role hasn't been resolved yet
-      if (!role) return;
+    if (loading || !user || redirectedRef.current) return;
+
+    const role = (user as any).role;
+    const doRedirect = (path: string) => {
       redirectedRef.current = true;
-      if (role === 'admin') navigate('/super-admin', { replace: true });
-      else if (role === 'content_creator') navigate('/content-creator', { replace: true });
-      else if (role === 'teacher') navigate('/teacher', { replace: true });
-      else if (role === 'parent') navigate('/parent', { replace: true });
-      else navigate('/dashboard', { replace: true });
+      navigate(path, { replace: true });
+    };
+
+    if (role) {
+      if (role === 'admin') doRedirect('/super-admin');
+      else if (role === 'content_creator') doRedirect('/content-creator');
+      else if (role === 'teacher') doRedirect('/teacher');
+      else if (role === 'parent') doRedirect('/parent');
+      else if (role === 'student') {
+        const { route } = resolveHubRoute({ metadata: (user as any).user_metadata });
+        doRedirect(route);
+      } else {
+        doRedirect('/dashboard');
+      }
+      return;
     }
+
+    // No role yet — arm a 3s metadata fallback so we never freeze.
+    if (!fallbackTimerRef.current) {
+      fallbackTimerRef.current = setTimeout(() => {
+        if (redirectedRef.current) return;
+        const { route, source } = resolveHubRoute({ metadata: (user as any).user_metadata });
+        console.warn(`⏱️ [Login] role timeout — routing from ${source} →`, route);
+        doRedirect(route);
+      }, 3000);
+    }
+
+    return () => {
+      if (fallbackTimerRef.current) {
+        clearTimeout(fallbackTimerRef.current);
+        fallbackTimerRef.current = null;
+      }
+    };
   }, [loading, user, navigate]);
 
   if (loading || user) {

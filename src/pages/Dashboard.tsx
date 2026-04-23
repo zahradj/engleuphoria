@@ -2,8 +2,10 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStudentLevel, getStudentDashboardRoute } from '@/hooks/useStudentLevel';
+import { resolveHubRoute } from '@/lib/hubResolver';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const Dashboard: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
@@ -11,14 +13,19 @@ const Dashboard: React.FC = () => {
   const [redirectPath, setRedirectPath] = useState<string | null>(null);
   const autoHealAttemptedRef = useRef(false);
 
-  // Hard safety timeout — if nothing resolves in 10s, force to /playground
+  // Hard escape hatch — if nothing resolves in 4s, route from metadata.
   useEffect(() => {
     const hardTimeout = setTimeout(() => {
       if (!redirectPath && user) {
-        console.warn('⏱️ Dashboard hard timeout (10s) — forcing /playground');
-        setRedirectPath('/playground');
+        const { route, source } = resolveHubRoute({ metadata: (user as any).user_metadata });
+        console.warn(`⏱️ [Dashboard] 4s timeout — routing from ${source} →`, route);
+        toast.warning("We couldn't verify your hub from the database.", {
+          description: 'Redirecting you to your default dashboard.',
+          duration: 4000,
+        });
+        setRedirectPath(route);
       }
-    }, 10000);
+    }, 4000);
     return () => clearTimeout(hardTimeout);
   }, [user, redirectPath]);
 
@@ -33,11 +40,11 @@ const Dashboard: React.FC = () => {
     const userRole = (user as any).role;
 
     if (!userRole) {
-      console.log('⏳ Waiting for user role to be populated...');
+      console.log('⏳ [Dashboard] Waiting for user role to be populated...');
       return;
     }
 
-    console.log('📍 Dashboard redirecting user with role:', userRole);
+    console.log('📍 [Dashboard] redirecting user with role:', userRole);
 
     if (userRole === 'admin') { setRedirectPath('/super-admin'); return; }
     if (userRole === 'teacher') { setRedirectPath('/teacher'); return; }
@@ -45,53 +52,41 @@ const Dashboard: React.FC = () => {
     if (userRole === 'parent') { setRedirectPath('/parent'); return; }
 
     if (userRole === 'student') {
-      if (studentLoading) return;
+      // Onboarding gate — only when DB has confirmed the row and onboarding is incomplete.
+      if (!studentLoading && studentLevel && !onboardingCompleted) {
+        setRedirectPath('/hub-confirmation');
+        return;
+      }
 
-      // If studentLevel is loaded and valid, route to the right dashboard
+      // Metadata-first routing — never wait on DB.
       if (studentLevel) {
-        if (!onboardingCompleted) {
-          setRedirectPath('/hub-confirmation');
-          return;
-        }
         setRedirectPath(getStudentDashboardRoute(studentLevel));
         return;
       }
 
-      // studentLevel is null — auto-heal: create student_profiles from metadata
+      // Last-resort: pure metadata + background heal.
+      const { route, level, source } = resolveHubRoute({ metadata: (user as any).user_metadata });
+      console.log(`📍 [Dashboard] hub from ${source} →`, level);
       if (!autoHealAttemptedRef.current) {
         autoHealAttemptedRef.current = true;
-        (async () => {
-          try {
-            const hubType = user.user_metadata?.hub_type || 'playground';
-            const resolvedLevel = hubType === 'academy' ? 'academy'
-              : (hubType === 'professional' || hubType === 'success') ? 'professional'
-              : 'playground';
-
-            console.log('🔧 Dashboard auto-healing student_profiles →', resolvedLevel);
-            
-            await supabase.from('student_profiles').upsert(
-              { user_id: user.id, student_level: resolvedLevel, onboarding_completed: false },
-              { onConflict: 'user_id' }
-            );
-
-            // Re-fetch student level after healing
-            await refetch();
-          } catch (err) {
-            console.error('Auto-heal failed:', err);
-            setRedirectPath('/playground');
+        supabase.from('student_profiles').upsert(
+          { user_id: user.id, student_level: level, onboarding_completed: false },
+          { onConflict: 'user_id' }
+        ).then(({ error }) => {
+          if (error) console.error('🔴 [Dashboard] background heal failed:', error);
+          else {
+            console.log('🟢 [Dashboard] background heal OK →', level);
+            refetch();
           }
-        })();
-        return;
+        });
       }
-
-      // Auto-heal was attempted but level is still null — force fallback
-      setRedirectPath('/playground');
+      setRedirectPath(route);
       return;
     }
 
     // Unknown role fallback
-    setRedirectPath('/playground');
-  }, [user, authLoading, studentLevel, studentLoading, onboardingCompleted]);
+    setRedirectPath('/dashboard/playground');
+  }, [user, authLoading, studentLevel, studentLoading, onboardingCompleted, refetch]);
 
   if (redirectPath) {
     return <Navigate to={redirectPath} replace />;
