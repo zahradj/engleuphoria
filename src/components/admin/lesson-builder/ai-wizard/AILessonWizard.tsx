@@ -1046,6 +1046,76 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated, lessonCo
               </div>
             </motion.div>
           )}
+
+          {/* ─── Magic Deck Success View ─── */}
+          {magicDeckSlides && !isGenerating && (
+            <motion.div
+              key="magic-success"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="py-6"
+            >
+              <div className="text-center mb-6">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 200 }}
+                  className="inline-flex p-4 rounded-full bg-primary/10 mb-4"
+                >
+                  <Sparkles className="h-8 w-8 text-primary" />
+                </motion.div>
+                <h3 className="text-xl font-semibold mb-2">✨ Magic Deck Ready!</h3>
+                <p className="text-muted-foreground">
+                  {magicDeckSlides.length} multimedia slides for "{magicDeckTitle}"
+                </p>
+              </div>
+
+              {/* Slide preview strip */}
+              <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-thin">
+                {magicDeckSlides.map((slide, i) => (
+                  <div key={slide.id} className="shrink-0 w-20 rounded-lg overflow-hidden border bg-muted/30">
+                    <div className="w-full h-12 flex items-center justify-center text-lg bg-muted/50">
+                      {slide.type === 'video' ? '📺' : slide.type === 'quiz' ? '🎮' : '📋'}
+                    </div>
+                    <div className="px-1.5 py-1 text-[9px] text-muted-foreground truncate">
+                      {slide.title || `Slide ${i + 1}`}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="bg-muted/50 rounded-lg p-4 mb-4">
+                <h4 className="text-sm font-medium mb-3">Slide Types:</h4>
+                <div className="space-y-1.5 text-sm">
+                  {['video', 'image', 'quiz'].map(type => {
+                    const count = magicDeckSlides.filter(s => s.type === type).length;
+                    if (count === 0) return null;
+                    const emoji = type === 'video' ? '📺' : type === 'quiz' ? '🎮' : '🖼️';
+                    return (
+                      <div key={type} className="flex items-center justify-between">
+                        <span className="text-muted-foreground capitalize">{emoji} {type}</span>
+                        <span className="font-medium">{count} slides</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <p className="text-xs text-muted-foreground text-center mb-4">
+                Videos, images, and activities are auto-embedded. You can edit everything in the canvas.
+              </p>
+
+              <Button
+                onClick={handleApplyMagicDeck}
+                className="w-full h-12"
+                style={{ background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.7))' }}
+              >
+                Open in Editor
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </motion.div>
+          )}
         </AnimatePresence>
       </DialogContent>
     </Dialog>
