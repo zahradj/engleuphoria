@@ -580,10 +580,7 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated, lessonCo
 
   const handleClose = () => {
     if (!isGenerating && !isGeneratingImages) {
-      setGeneratedPlan(null);
-      setFormData({ topic: '', level: 'beginner', ageGroup: 'kids' });
-      setLessonPrompt('');
-      setImageCount(0);
+      resetState();
       onOpenChange(false);
     }
   };
