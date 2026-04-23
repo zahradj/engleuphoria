@@ -247,14 +247,13 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
                   allowFullScreen
                   sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
                 />
-                {canDrawOnWeb && studentTool !== 'pointer' && (
-                  <CollaborativeCanvas
-                    roomId={roomId} userId={userId} userName={userName} role="student"
-                    canDraw={true}
-                    activeTool={studentTool}
-                    activeColor={studentColor} strokes={strokes} onAddStroke={onAddStroke}
-                  />
-                )}
+                {/* Always render canvas overlay so teacher's strokes appear; only intercept pointer when student is drawing */}
+                <CollaborativeCanvas
+                  roomId={roomId} userId={userId} userName={userName} role="student"
+                  canDraw={canDrawOnWeb && studentTool !== 'pointer'}
+                  activeTool={studentTool === 'pointer' ? 'pen' : studentTool}
+                  activeColor={studentColor} strokes={strokes} onAddStroke={onAddStroke}
+                />
               </>
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400">
