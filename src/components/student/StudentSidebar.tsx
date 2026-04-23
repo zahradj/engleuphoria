@@ -13,11 +13,9 @@ import {
   Map,
   Sparkles,
   LogOut,
-  Video,
   Gift,
   Trophy
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -73,25 +71,18 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
   hasProfile = false,
   onLogout 
 }) => {
-  const navigate = useNavigate();
   const { studentLevel } = useStudentLevel();
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
-  
+
   const hubKey = studentLevel || 'playground';
   const hubColors = HUB_ICON_COLORS[hubKey] || HUB_ICON_COLORS.playground;
   const hubId = hubKey as 'playground' | 'academy' | 'professional';
-
-  const handleEnterClassroom = () => {
-    // Navigate to dashboard to find and join a booked classroom
-    navigate('/playground');
-  };
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'classes', label: 'Classes', icon: Calendar },
     { id: 'homework', label: 'Homework', icon: BookOpen },
-    { id: 'classroom', label: 'Join Classroom', icon: Video, action: handleEnterClassroom, badge: 'Live' },
     { id: 'lessons', label: 'My Lessons', icon: BookOpen },
     { id: 'learning-path', label: 'My Learning Path', icon: Map, badge: 'New' },
     { id: 'sounds', label: 'Map of Sounds', icon: Sparkles, badge: 'New' },
@@ -131,7 +122,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton 
                       isActive={isActive}
-                      onClick={() => item.action ? item.action() : setActiveTab(item.id)}
+                      onClick={() => setActiveTab(item.id)}
                       className={`
                         relative px-4 py-3 mx-2 my-0.5 rounded-xl transition-all duration-200 font-medium border
                         ${isActive 
