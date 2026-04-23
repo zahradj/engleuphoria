@@ -125,7 +125,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
         });
       } else if (payload.rewardType === 'sticker') {
         setLiveSticker({ emoji: payload.sticker || '😊', key: Date.now() });
-        setTimeout(() => setLiveSticker(null), 1500);
+        setTimeout(() => setLiveSticker(null), 1000);
       }
     });
     const unsubTool = whiteboardService.subscribeToToolActions(roomId, (payload) => {

@@ -278,18 +278,18 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
       senderId: teacherUserId,
     }).catch((e) => console.error('Star broadcast failed:', e));
     await updateSharedDisplay({ starCount: newStarCount, showStarCelebration: true, isMilestone: milestone });
-    setTimeout(async () => { await updateSharedDisplay({ showStarCelebration: false }); }, 1500);
+    setTimeout(async () => { await updateSharedDisplay({ showStarCelebration: false }); }, 1000);
   }, [studentStars, updateSharedDisplay, roomName, teacherUserId]);
 
   const handleOpenTimer = useCallback(() => { setTimerDialogOpen(true); }, []);
   const handleRollDice = useCallback(() => { setDiceDialogOpen(true); }, []);
-  const handleSendSticker = useCallback(() => {
+  const handleSendSticker = useCallback((emoji: string = '😊') => {
     void whiteboardService.sendReward(roomName, {
       rewardType: 'sticker',
-      sticker: '😊',
+      sticker: emoji,
       senderId: teacherUserId,
     }).catch((e) => console.error('Sticker broadcast failed:', e));
-    toast({ title: "😊 Sticker Sent!", description: "Sticker sent to the student's screen" });
+    toast({ title: `${emoji} Sticker Sent!`, description: "Sticker sent to the student's screen" });
   }, [toast, roomName, teacherUserId]);
 
   const handleToggleStudentDrawing = useCallback(async () => {
