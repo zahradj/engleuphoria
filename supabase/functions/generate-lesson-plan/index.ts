@@ -152,34 +152,63 @@ Topic: "${topic.trim()}"${
       }`;
     }
 
-    // Call Google Gemini API directly
+    // Call Google Gemini API with exponential backoff (handles 429/503)
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-    const aiResponse = await fetch(geminiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: systemPrompt }] },
-        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-        generationConfig: {
-          responseMimeType: "application/json",
-          temperature: 0.7,
-          maxOutputTokens: 8192,
-        },
-      }),
+    const geminiBody = JSON.stringify({
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        temperature: 0.7,
+        maxOutputTokens: 8192,
+      },
     });
 
-    if (!aiResponse.ok) {
-      const errText = await aiResponse.text();
-      console.error("Gemini API error:", aiResponse.status, errText);
-      const status = aiResponse.status === 429 ? 429 : 500;
-      const errorMsg = status === 429
-        ? "Gemini rate limit/quota exceeded. Please wait or check your Google AI Studio quota."
-        : "AI generation failed";
+    const MAX_RETRIES = 3;
+    const BASE_DELAY_MS = 2000;
+    let aiResponse: Response | null = null;
+    let lastErrText = "";
+
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      aiResponse = await fetch(geminiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: geminiBody,
+      });
+
+      if (aiResponse.ok) break;
+
+      lastErrText = await aiResponse.text();
+      console.error(`Gemini attempt ${attempt + 1}/${MAX_RETRIES} failed:`, aiResponse.status, lastErrText);
+
+      // Retry only on 429 (rate limit) or 503 (overloaded)
+      if (aiResponse.status === 429 || aiResponse.status === 503) {
+        if (attempt < MAX_RETRIES - 1) {
+          const delay = BASE_DELAY_MS * Math.pow(2, attempt); // 2s, 4s, 8s
+          console.log(`Retrying in ${delay}ms...`);
+          await new Promise((r) => setTimeout(r, delay));
+          continue;
+        }
+      } else {
+        // Non-retryable error — break immediately
+        break;
+      }
+    }
+
+    if (!aiResponse || !aiResponse.ok) {
+      const isOverload = aiResponse?.status === 429 || aiResponse?.status === 503;
       return new Response(
-        JSON.stringify({ error: errorMsg, details: errText }),
-        { status, headers: { ...CORS, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: true,
+          message: isOverload
+            ? "The AI curriculum engine is currently overloaded. Please try generating the lesson again in 10 seconds."
+            : "AI generation failed. Please try again.",
+          details: lastErrText,
+        }),
+        { status: 200, headers: { ...CORS, "Content-Type": "application/json" } }
       );
     }
+
 
     const aiData = await aiResponse.json();
     const rawText = aiData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
