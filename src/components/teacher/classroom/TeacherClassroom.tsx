@@ -156,6 +156,16 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     }
   }, [studentContext, isConnected]);
 
+  // Re-broadcast unified stage state periodically so late-joining students sync.
+  useEffect(() => {
+    if (!isConnected) return;
+    const t = setInterval(() => {
+      void setStageMode(stageMode);
+      void setDrawingEnabled(drawingEnabled);
+    }, 5000);
+    return () => clearInterval(t);
+  }, [isConnected, stageMode, drawingEnabled, setStageMode, setDrawingEnabled]);
+
   // Screen share hook
   const {
     isSharing: isScreenSharing,
