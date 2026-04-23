@@ -58,6 +58,7 @@ type StrokeListener = (stroke: WhiteboardStroke) => void;
 type ScrollListener = (payload: { scrollPercentage: number; senderId: string }) => void;
 type StageModeListener = (payload: { mode: StageMode; senderId: string }) => void;
 type DrawingEnabledListener = (payload: { enabled: boolean; senderId: string }) => void;
+type IframeLockListener = (payload: { isUnlocked: boolean; senderId: string }) => void;
 type RewardListener = (payload: RewardPayload) => void;
 type ToolActionListener = (payload: ToolActionPayload) => void;
 type ChatListener = (payload: ChatBroadcastPayload) => void;
@@ -71,6 +72,7 @@ interface RoomChannel {
   scrollListeners: Set<ScrollListener>;
   stageModeListeners: Set<StageModeListener>;
   drawingEnabledListeners: Set<DrawingEnabledListener>;
+  iframeLockListeners: Set<IframeLockListener>;
   rewardListeners: Set<RewardListener>;
   toolActionListeners: Set<ToolActionListener>;
   chatListeners: Set<ChatListener>;
@@ -95,6 +97,7 @@ class WhiteboardService {
     const scrollListeners = new Set<ScrollListener>();
     const stageModeListeners = new Set<StageModeListener>();
     const drawingEnabledListeners = new Set<DrawingEnabledListener>();
+    const iframeLockListeners = new Set<IframeLockListener>();
     const rewardListeners = new Set<RewardListener>();
     const toolActionListeners = new Set<ToolActionListener>();
     const chatListeners = new Set<ChatListener>();
@@ -129,6 +132,9 @@ class WhiteboardService {
       })
       .on('broadcast', { event: 'drawing_enabled' }, (payload) => {
         drawingEnabledListeners.forEach((cb) => cb(payload.payload as any));
+      })
+      .on('broadcast', { event: 'iframe_lock_state' }, (payload) => {
+        iframeLockListeners.forEach((cb) => cb(payload.payload as any));
       })
       .on('broadcast', { event: 'reward' }, (payload) => {
         rewardListeners.forEach((cb) => cb(payload.payload as RewardPayload));
@@ -166,6 +172,7 @@ class WhiteboardService {
       scrollListeners,
       stageModeListeners,
       drawingEnabledListeners,
+      iframeLockListeners,
       rewardListeners,
       toolActionListeners,
       chatListeners,
