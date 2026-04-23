@@ -84,6 +84,8 @@ interface UseClassroomSyncReturn {
   // Unified Main Stage actions (teacher)
   setStageMode: (mode: StageMode) => Promise<void>;
   setDrawingEnabled: (enabled: boolean) => Promise<void>;
+  applyRemoteStageMode: (mode: StageMode) => void;
+  applyRemoteDrawingEnabled: (enabled: boolean) => void;
 }
 
 export const useClassroomSync = ({
@@ -172,19 +174,13 @@ export const useClassroomSync = ({
     };
   }, [roomId]);
 
-  // Subscribe to stage_mode + drawing_enabled (Unified Main Stage sync)
-  useEffect(() => {
-    if (!roomId) return;
-    const unsubMode = whiteboardService.subscribeToStageMode(roomId, ({ mode, senderId }) => {
-      if (senderId === userId) return;
-      setStageModeState(mode);
-    });
-    const unsubDraw = whiteboardService.subscribeToDrawingEnabled(roomId, ({ enabled, senderId }) => {
-      if (senderId === userId) return;
-      setDrawingEnabledState(enabled);
-    });
-    return () => { unsubMode(); unsubDraw(); };
-  }, [roomId, userId]);
+  const applyRemoteStageMode = useCallback((mode: StageMode) => {
+    setStageModeState(mode);
+  }, []);
+
+  const applyRemoteDrawingEnabled = useCallback((enabled: boolean) => {
+    setDrawingEnabledState(enabled);
+  }, []);
 
   // Teacher: broadcast stage mode and drawing toggle
   const setStageMode = useCallback(async (mode: StageMode) => {
@@ -359,6 +355,8 @@ export const useClassroomSync = ({
     updateSessionContext,
     updateCanvasTab,
     setStageMode,
-    setDrawingEnabled
+    setDrawingEnabled,
+    applyRemoteStageMode,
+    applyRemoteDrawingEnabled
   };
 };
