@@ -1,98 +1,81 @@
 
 
-# Plan: Engleuphoria Master Architecture Alignment
+# Plan: Hub Color Standardization & Academy Redirect Hardening
 
-This plan audits the current codebase against the "Engleuphoria Master Architecture" spec and addresses the gaps. Many items are already implemented correctly; this plan focuses on what still needs fixing.
+## Problem Summary
 
----
-
-## Already Implemented (No Changes Needed)
-
-- **Legal pages**: `/terms-of-service`, `/privacy-policy`, `/refund-policy` all exist with the 5-Day (120-hour) cancellation rule explicitly documented
-- **Unified classroom route**: `/classroom/:bookingId` resolves any ID flavor, checks `teacher_id`/`student_id` match, and grants admin bypass
-- **Hub-level route guards**: `/playground`, `/academy`, `/hub` are protected with `requiredStudentLevel`
-- **Teacher path cleanup**: All teacher routes use `/teacher/*`, not `/admin`
-- **GEMINI_API_KEY**: Already configured as an Edge Function secret and used by `geminiClient.ts`
-- **Glassmorphism on landing page**: `backdrop-blur`, mesh gradients, and glass panels are present across 12+ landing components
+1. **45 files use the old Academy color `#1A237E` (navy blue)** instead of the correct `#6B21A8` (royal purple). The `hubDesignTokens.ts` file is correct, but the actual components never reference it -- they have hardcoded hex values.
+2. **The `emailRedirectTo` in AuthContext points to `/`** (root), which means after email confirmation the user lands on the homepage instead of being routed through the smart Dashboard router.
+3. **No `/auth/callback` route exists** to handle Supabase email confirmation redirects and route users to their correct hub.
+4. **Student classroom header still uses navy blue** for Academy gradient instead of purple.
 
 ---
 
-## Changes Required
+## Changes
 
-### 1. Fix Hub Design Tokens to Match Brand Standards
+### 1. Replace `#1A237E` with `#6B21A8` across all 45 files
 
-**File**: `src/constants/hubDesignTokens.ts`
+Every instance of `#1A237E` (navy blue) will be replaced with `#6B21A8` (royal purple) across all component files. Similarly, `#3F51B5` (indigo -- the old Academy secondary) will be replaced with `#A855F7` (lighter purple) where it appears as a gradient endpoint.
 
-The current tokens use incorrect hex values. Update to match workspace rules:
+**Affected areas include:**
+- Lesson player activities (LetterHunt, SentenceTransform, MouthMirror, WordBuilder, OddOneOut, etc.)
+- Teacher professional components (CurriculumMapView, StudentEntityDashboard, diagnostics)
+- Admin components (ContractManagement)
+- Classroom components (WarmUpMystery, StudentClassroomHeader)
+- All other files using the old navy palette
 
-| Hub | Current | Corrected |
-|-----|---------|-----------|
-| Playground primary | `#1A237E` (navy) | `#FE6A2F` (orange) |
-| Academy primary | N/A (missing) | `#6B21A8` (royal purple) |
-| Professional primary | `#059669` | `#059669` (correct) |
+### 2. Fix StudentClassroomHeader hub gradient
 
-- Rename the `academy` key values to use purple branding (`#6B21A8` primary, `#F5F3FF` lavender accent)
-- Fix `playground` to use orange/yellow (`#FE6A2F` primary, `#FEFBDD` yellow accent)
-- Ensure Success Hub keeps emerald green with mint accent (`#F0FDFA`)
+**File**: `src/components/student/classroom/StudentClassroomHeader.tsx`
 
-### 2. Add Teacher Instructions Sidebar to Classroom
+Change the Academy fallback gradient from `linear-gradient(135deg, #1A237E, #3F51B5)` to `linear-gradient(135deg, #6B21A8, #A855F7)`.
 
-**New file**: `src/components/classroom/TeacherInstructionsSidebar.tsx`
+### 3. Update `emailRedirectTo` to use `/dashboard`
 
-**Modified file**: `src/components/teacher/classroom/TeacherClassroom.tsx`
+**File**: `src/contexts/AuthContext.tsx`
 
-- Create a collapsible sidebar panel that displays teacher-facing lesson instructions
-- Include sections: Lesson Objectives, Key Vocabulary, Activity Notes, Timing Suggestions
-- Only visible to the teacher participant (not students)
-- Uses glassmorphic styling consistent with classroom UI standards
-- Toggle button in the ClassroomTopBar
+Change the redirect URL from `window.location.origin + '/'` to `window.location.origin + '/dashboard'` so that after email confirmation, users hit the smart router which reads their `student_level` and sends them to the correct hub.
 
-### 3. Registration Hub Tagging
+### 4. Create `/auth/callback` route
 
-**Modified file**: `src/pages/StudentSignUp.tsx`
+**New file**: `src/pages/AuthCallback.tsx`
 
-- Detect the referring hub from the URL path or query parameter (e.g., `/student-signup?hub=academy`)
-- Save the detected hub as metadata during signup so the `determineStudentLevel` function can use it as a secondary signal alongside age
-- Ensure that a student registering from the Academy landing page flow gets `student_level: 'academy'` even without age-based inference
+A lightweight page that:
+- Extracts the Supabase auth tokens from the URL hash/params
+- Calls `supabase.auth.exchangeCodeForSession()` or handles the token exchange
+- Redirects to `/dashboard` which then routes to the correct hub
 
-### 4. Apply Glassmorphism to Student Dashboards
+**Modified file**: `src/App.tsx` -- add the `/auth/callback` route.
 
-**Modified files**: Student dashboard shell components
+### 5. Update `emailRedirectTo` to point to `/auth/callback`
 
-- Add `backdrop-blur-xl`, semi-transparent backgrounds, and subtle border glow to the main dashboard cards and navigation
-- Apply hub-specific mesh gradient backgrounds:
-  - Playground: warm orange-to-yellow gradient
-  - Academy: purple-to-lavender gradient  
-  - Professional: emerald-to-mint gradient
-- Preserve all existing functionality and layout structure
+**File**: `src/contexts/AuthContext.tsx`
 
-### 5. System Audit Verification
+After creating the callback route, update: `emailRedirectTo: window.location.origin + '/auth/callback'`
 
-After all changes, verify:
-- Playground pages render with `#FE6A2F` orange coating
-- Academy pages render with `#6B21A8` purple coating
-- Success Hub pages render with `#059669` green coating
-- Playground lessons show 30-minute duration; Academy/Success show 60 minutes
-- Academy students cannot access `/playground` routes (already enforced by `ImprovedProtectedRoute`)
-- `/classroom/:id` blocks unauthorized users (already working)
+**File**: `src/components/security/AdvancedAuth.tsx` -- same update.
 
 ---
 
 ## Technical Details
 
 ### Files Created
-- `src/components/classroom/TeacherInstructionsSidebar.tsx`
+- `src/pages/AuthCallback.tsx`
 
 ### Files Modified
-- `src/constants/hubDesignTokens.ts` (correct hex values)
-- `src/pages/StudentSignUp.tsx` (hub detection from URL)
-- `src/components/teacher/classroom/TeacherClassroom.tsx` (add instructions sidebar toggle)
-- `src/components/teacher/classroom/ClassroomTopBar.tsx` (add sidebar toggle button)
-- Student dashboard layout components (glassmorphism coating)
+- ~45 component files (batch `#1A237E` to `#6B21A8` replacement)
+- `src/contexts/AuthContext.tsx` (emailRedirectTo)
+- `src/components/security/AdvancedAuth.tsx` (emailRedirectTo)
+- `src/components/student/classroom/StudentClassroomHeader.tsx` (gradient fix)
+- `src/App.tsx` (add `/auth/callback` route)
 
 ### No Database Migrations Required
-All booking/classroom logic (`classroom_id` UUID generation, `resolve_classroom_id` RPC, permission checks) is already in place.
+The `student_profiles.student_level` field and hub-based routing logic are already in place.
 
-### No New Secrets Required
-`GEMINI_API_KEY` is already configured.
+### Verification Checklist
+- Playground pages: `#FE6A2F` orange (already correct)
+- Academy pages: `#6B21A8` purple (fixing 45 files)
+- Success Hub pages: `#059669` green (already correct)
+- Email confirmation redirects to `/auth/callback` then to correct hub dashboard
+- Student signup with `?hub=academy` stamps `student_level: 'academy'` (already working)
 
