@@ -61,22 +61,87 @@ export const TeacherGuide: React.FC<TeacherGuideProps> = ({ slide, onUpdateSlide
       </div>
 
       <div className="flex-1 p-4 space-y-6 overflow-auto">
-        {/* Teacher Notes */}
-        <div className="space-y-2">
-          <Label htmlFor="teacher-notes" className="flex items-center gap-2">
-            <span>Instructions & Notes</span>
-          </Label>
-          <Textarea
-            id="teacher-notes"
-            value={slide.teacherNotes || ''}
-            onChange={(e) => onUpdateSlide({ teacherNotes: e.target.value })}
-            placeholder="Example: Ask the student to point to the red apple. Wait for response, then praise and move on..."
-            className="min-h-[200px] resize-none"
-          />
-          <p className="text-xs text-muted-foreground">
-            Write prompts, questions, or reminders for teaching this slide
-          </p>
-        </div>
+        {/* PPP Stage Badge */}
+        {slide.pppStage && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">PPP Stage:</span>
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-primary text-primary-foreground">
+              {slide.pppStage}
+            </span>
+          </div>
+        )}
+
+        {/* Structured Teacher Notes (Magic Deck) */}
+        {slide.teacherNotesStructured ? (
+          <div className="space-y-4">
+            <Label className="flex items-center gap-2">
+              <span>📋 Presenter Notes (Live Class)</span>
+            </Label>
+
+            {slide.teacherNotesStructured.script && (
+              <div className="rounded-lg border border-border bg-muted/30 p-3">
+                <h4 className="text-xs font-bold uppercase tracking-wide text-primary mb-1">🎤 Script</h4>
+                <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+                  {slide.teacherNotesStructured.script}
+                </p>
+              </div>
+            )}
+
+            {slide.teacherNotesStructured.ccq && slide.teacherNotesStructured.ccq.length > 0 && (
+              <div className="rounded-lg border border-border bg-blue-500/5 p-3">
+                <h4 className="text-xs font-bold uppercase tracking-wide text-blue-600 dark:text-blue-400 mb-1">❓ CCQs</h4>
+                <ul className="text-sm text-foreground space-y-1 list-disc pl-5">
+                  {slide.teacherNotesStructured.ccq.map((q, i) => (
+                    <li key={i}>{q}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {slide.teacherNotesStructured.step_down && (
+              <div className="rounded-lg border border-border bg-amber-500/5 p-3">
+                <h4 className="text-xs font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400 mb-1">⬇️ Step-Down (Struggling)</h4>
+                <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+                  {slide.teacherNotesStructured.step_down}
+                </p>
+              </div>
+            )}
+
+            {slide.teacherNotesStructured.step_up && (
+              <div className="rounded-lg border border-border bg-emerald-500/5 p-3">
+                <h4 className="text-xs font-bold uppercase tracking-wide text-emerald-600 dark:text-emerald-400 mb-1">⬆️ Step-Up (Fast Finisher)</h4>
+                <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+                  {slide.teacherNotesStructured.step_up}
+                </p>
+              </div>
+            )}
+
+            <details className="text-xs text-muted-foreground">
+              <summary className="cursor-pointer hover:text-foreground">Edit raw notes</summary>
+              <Textarea
+                value={slide.teacherNotes || ''}
+                onChange={(e) => onUpdateSlide({ teacherNotes: e.target.value })}
+                className="min-h-[120px] resize-none mt-2"
+              />
+            </details>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <Label htmlFor="teacher-notes" className="flex items-center gap-2">
+              <span>Instructions & Notes</span>
+            </Label>
+            <Textarea
+              id="teacher-notes"
+              value={slide.teacherNotes || ''}
+              onChange={(e) => onUpdateSlide({ teacherNotes: e.target.value })}
+              placeholder="Example: Ask the student to point to the red apple. Wait for response, then praise and move on..."
+              className="min-h-[200px] resize-none"
+            />
+            <p className="text-xs text-muted-foreground">
+              Write prompts, questions, or reminders for teaching this slide
+            </p>
+          </div>
+        )}
 
         {/* Keywords */}
         <div className="space-y-2">

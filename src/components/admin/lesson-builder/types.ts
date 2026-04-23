@@ -1,5 +1,14 @@
 export type SlideType = 'image' | 'video' | 'quiz' | 'poll' | 'draw';
 
+export type PPPStage = 'Warm-Up' | 'Presentation' | 'Practice' | 'Production' | 'Review';
+
+export interface StructuredTeacherNotes {
+  script?: string;
+  ccq?: string[];
+  step_down?: string;
+  step_up?: string;
+}
+
 export type CanvasElementType = 'text' | 'image' | 'shape' | 'quiz' | 'matching' | 'fill-blank' | 'drag-drop' | 'sorting' | 'sentence-builder' | 'audio' | 'video' | 'character';
 
 export interface CanvasElementData {
@@ -36,6 +45,10 @@ export interface Slide {
   pollQuestion?: string;
   pollOptions?: PollOption[];
   teacherNotes: string;
+  /** Structured PPP-style notes (script, ccq, step_down, step_up) */
+  teacherNotesStructured?: StructuredTeacherNotes;
+  /** PPP pedagogical stage badge */
+  pppStage?: PPPStage;
   keywords: string[];
   title?: string;
   canvasElements?: CanvasElementData[];
