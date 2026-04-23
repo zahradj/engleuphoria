@@ -9,7 +9,7 @@ export const StaffOperations: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-[#1A237E] font-inter tracking-tight">
+        <h1 className="text-2xl font-semibold text-[#6B21A8] font-inter tracking-tight">
           Staff Operations
         </h1>
         <p className="text-sm text-[#9E9E9E] mt-1">

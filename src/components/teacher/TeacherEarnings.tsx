@@ -75,7 +75,7 @@ export const TeacherEarnings: React.FC<TeacherEarningsProps> = ({ teacherId }) =
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-[#1A237E] font-inter tracking-tight">
+        <h1 className="text-2xl font-semibold text-[#6B21A8] font-inter tracking-tight">
           My Earnings
         </h1>
         <p className="text-sm text-[#9E9E9E] mt-1">
@@ -84,15 +84,15 @@ export const TeacherEarnings: React.FC<TeacherEarningsProps> = ({ teacherId }) =
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-l-4 border-l-[#1A237E]">
+        <Card className="border-l-4 border-l-[#6B21A8]">
           <CardContent className="pt-5 pb-5">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-[#1A237E]/10 rounded-xl">
-                <BookOpen className="h-5 w-5 text-[#1A237E]" />
+              <div className="p-2.5 bg-[#6B21A8]/10 rounded-xl">
+                <BookOpen className="h-5 w-5 text-[#6B21A8]" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">This Week</p>
-                <p className="text-2xl font-bold text-[#1A237E]">{weekLessons}</p>
+                <p className="text-2xl font-bold text-[#6B21A8]">{weekLessons}</p>
                 <p className="text-xs text-muted-foreground">lessons taught</p>
               </div>
             </div>
@@ -148,7 +148,7 @@ export const TeacherEarnings: React.FC<TeacherEarningsProps> = ({ teacherId }) =
       {/* Weekly lesson chart placeholder */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base text-[#1A237E]">Lessons This Week</CardTitle>
+          <CardTitle className="text-base text-[#6B21A8]">Lessons This Week</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-end gap-2 h-32">
@@ -158,10 +158,10 @@ export const TeacherEarnings: React.FC<TeacherEarningsProps> = ({ teacherId }) =
               return (
                 <div key={day} className="flex-1 flex flex-col items-center gap-1">
                   <div
-                    className={`w-full rounded-t transition-all ${isToday ? 'bg-[#1A237E]' : 'bg-[#1A237E]/20'}`}
+                    className={`w-full rounded-t transition-all ${isToday ? 'bg-[#6B21A8]' : 'bg-[#6B21A8]/20'}`}
                     style={{ height: `${height}%` }}
                   />
-                  <span className={`text-[10px] ${isToday ? 'font-bold text-[#1A237E]' : 'text-muted-foreground'}`}>
+                  <span className={`text-[10px] ${isToday ? 'font-bold text-[#6B21A8]' : 'text-muted-foreground'}`}>
                     {day}
                   </span>
                 </div>

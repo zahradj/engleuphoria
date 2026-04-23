@@ -13,7 +13,7 @@ interface SkillHexagonProps {
 
 const COLORS = {
   fill: 'rgba(26, 35, 126, 0.12)',
-  stroke: '#1A237E',
+  stroke: '#6B21A8',
   gridStroke: '#E2E8F0',
   text: '#64748B',
   accent: '#2E7D32',
@@ -60,7 +60,7 @@ export const SkillHexagon: React.FC<SkillHexagonProps> = ({ skills, studentName 
   return (
     <Card className="border border-border bg-card shadow-sm">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-semibold text-[#1A237E] flex items-center justify-between">
+        <CardTitle className="text-sm font-semibold text-[#6B21A8] flex items-center justify-between">
           <span>Skill Hexagon</span>
           {studentName && (
             <span className="text-xs font-normal text-muted-foreground">{studentName}</span>
@@ -151,8 +151,8 @@ export const SkillHexagon: React.FC<SkillHexagonProps> = ({ skills, studentName 
               key={i}
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border"
               style={{
-                borderColor: s.value >= 80 ? '#2E7D32' : s.value >= 50 ? '#1A237E' : '#EF5350',
-                color: s.value >= 80 ? '#2E7D32' : s.value >= 50 ? '#1A237E' : '#EF5350',
+                borderColor: s.value >= 80 ? '#2E7D32' : s.value >= 50 ? '#6B21A8' : '#EF5350',
+                color: s.value >= 80 ? '#2E7D32' : s.value >= 50 ? '#6B21A8' : '#EF5350',
                 backgroundColor:
                   s.value >= 80
                     ? 'rgba(46,125,50,0.06)'

@@ -50,7 +50,7 @@ export default function OddOneOut({ slide, onCorrect, onIncorrect }: Props) {
     <div className="w-full h-full flex flex-col items-center justify-center rounded-3xl p-8 bg-gradient-to-b from-background to-muted/30">
       <h2 className="text-2xl font-bold text-foreground mb-2">🔍 Odd One Out</h2>
       <p className="text-muted-foreground text-sm mb-2">
-        Which word does NOT have the <span className="font-mono font-bold text-[#1A237E]">{phoneme}</span> sound?
+        Which word does NOT have the <span className="font-mono font-bold text-[#6B21A8]">{phoneme}</span> sound?
       </p>
       <p className="text-xs text-muted-foreground mb-8">Tap the word that doesn't belong</p>
 
@@ -60,7 +60,7 @@ export default function OddOneOut({ slide, onCorrect, onIncorrect }: Props) {
           const bgClass = isThis
             ? isCorrect ? 'border-[#4CAF50] bg-[#4CAF50]/10 ring-2 ring-[#4CAF50]/30'
               : 'border-[#EF5350] bg-[#EF5350]/10 ring-2 ring-[#EF5350]/30'
-            : 'border-border bg-card hover:border-[#1A237E]/30';
+            : 'border-border bg-card hover:border-[#6B21A8]/30';
 
           return (
             <motion.button

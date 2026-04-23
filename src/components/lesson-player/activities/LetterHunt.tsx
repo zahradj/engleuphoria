@@ -54,7 +54,7 @@ const LetterHunt: React.FC<LetterHuntProps> = ({ slide, onCorrect, onIncorrect }
   return (
     <div className="flex flex-col items-center justify-center h-full gap-6 p-6">
       <div className="text-center">
-        <h2 className="text-xl font-semibold text-[#1A237E] font-inter flex items-center justify-center gap-2">
+        <h2 className="text-xl font-semibold text-[#6B21A8] font-inter flex items-center justify-center gap-2">
           <Search className="h-5 w-5" />
           Letter Hunt
         </h2>
@@ -66,7 +66,7 @@ const LetterHunt: React.FC<LetterHuntProps> = ({ slide, onCorrect, onIncorrect }
       {/* Ghost Vector Image */}
       <motion.div
         className={`w-40 h-40 rounded-2xl overflow-hidden border-2 transition-all ${
-          isUnlocked ? 'border-[#2E7D32]' : 'border-[#1A237E]/20'
+          isUnlocked ? 'border-[#2E7D32]' : 'border-[#6B21A8]/20'
         }`}
         animate={isUnlocked ? { filter: 'grayscale(0)' } : { filter: 'grayscale(1)' }}
       >
@@ -97,8 +97,8 @@ const LetterHunt: React.FC<LetterHuntProps> = ({ slide, onCorrect, onIncorrect }
                   ? 'bg-[#2E7D32]/10 border-2 border-[#2E7D32] text-[#2E7D32]'
                   : result === 'incorrect'
                   ? 'bg-[#EF5350]/10 border-2 border-[#EF5350] text-[#EF5350]'
-                  : 'bg-[#1A237E]/5 border-2 border-dashed border-[#1A237E]/40 text-[#1A237E]'
-                : 'bg-card border border-border text-[#1A237E]'
+                  : 'bg-[#6B21A8]/5 border-2 border-dashed border-[#6B21A8]/40 text-[#6B21A8]'
+                : 'bg-card border border-border text-[#6B21A8]'
             }`}
             animate={
               item.isMissing && result === 'incorrect'
@@ -134,7 +134,7 @@ const LetterHunt: React.FC<LetterHuntProps> = ({ slide, onCorrect, onIncorrect }
         <button
           onClick={handleSubmit}
           disabled={!inputLetter}
-          className="px-6 py-2.5 bg-[#1A237E] text-white rounded-xl font-medium shadow hover:bg-[#1A237E]/90 disabled:opacity-40 transition"
+          className="px-6 py-2.5 bg-[#6B21A8] text-white rounded-xl font-medium shadow hover:bg-[#6B21A8]/90 disabled:opacity-40 transition"
         >
           Check Letter
         </button>

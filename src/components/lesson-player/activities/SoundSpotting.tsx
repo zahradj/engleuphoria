@@ -77,11 +77,11 @@ const SoundSpotting: React.FC<SoundSpottingProps> = ({ slide, onCorrect, onIncor
     <div className="flex flex-col items-center justify-center h-full gap-6 p-6">
       {/* Title */}
       <div className="text-center">
-        <h2 className="text-xl font-semibold text-[#1A237E] font-inter">
+        <h2 className="text-xl font-semibold text-[#6B21A8] font-inter">
           🎧 Sound Spotting
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Tap the image every time you hear the sound <span className="font-bold text-[#1A237E]">{phonemeTarget}</span>
+          Tap the image every time you hear the sound <span className="font-bold text-[#6B21A8]">{phonemeTarget}</span>
         </p>
       </div>
 
@@ -89,8 +89,8 @@ const SoundSpotting: React.FC<SoundSpottingProps> = ({ slide, onCorrect, onIncor
       <motion.button
         onClick={handleTap}
         disabled={phase !== 'listening'}
-        className="relative w-48 h-48 rounded-2xl overflow-hidden border-4 border-[#1A237E]/10 shadow-lg 
-                   focus:outline-none focus:ring-4 focus:ring-[#1A237E]/20 transition-all"
+        className="relative w-48 h-48 rounded-2xl overflow-hidden border-4 border-[#6B21A8]/10 shadow-lg 
+                   focus:outline-none focus:ring-4 focus:ring-[#6B21A8]/20 transition-all"
         whileTap={{ scale: 0.9 }}
         animate={
           phase === 'listening'
@@ -102,7 +102,7 @@ const SoundSpotting: React.FC<SoundSpottingProps> = ({ slide, onCorrect, onIncor
         {imageUrl ? (
           <img src={imageUrl} alt={targetWord} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-[#1A237E]/10 to-[#1A237E]/5 flex items-center justify-center">
+          <div className="w-full h-full bg-gradient-to-br from-[#6B21A8]/10 to-[#6B21A8]/5 flex items-center justify-center">
             <span className="text-5xl">🦁</span>
           </div>
         )}
@@ -128,13 +128,13 @@ const SoundSpotting: React.FC<SoundSpottingProps> = ({ slide, onCorrect, onIncor
         </AnimatePresence>
       </motion.button>
 
-      <p className="text-lg font-medium text-[#1A237E]">{targetWord}</p>
+      <p className="text-lg font-medium text-[#6B21A8]">{targetWord}</p>
 
       {/* Controls */}
       {phase === 'ready' && (
         <motion.button
           onClick={startListening}
-          className="flex items-center gap-2 px-6 py-3 bg-[#1A237E] text-white rounded-xl font-medium shadow-md hover:bg-[#1A237E]/90 transition"
+          className="flex items-center gap-2 px-6 py-3 bg-[#6B21A8] text-white rounded-xl font-medium shadow-md hover:bg-[#6B21A8]/90 transition"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
@@ -160,7 +160,7 @@ const SoundSpotting: React.FC<SoundSpottingProps> = ({ slide, onCorrect, onIncor
           animate={{ opacity: 1, y: 0 }}
           className="text-center bg-card border rounded-xl p-4 shadow-sm"
         >
-          <p className="text-sm font-medium text-[#1A237E]">Results</p>
+          <p className="text-sm font-medium text-[#6B21A8]">Results</p>
           <div className="flex items-center justify-center gap-6 mt-2">
             <div className="text-center">
               <p className="text-2xl font-bold text-[#2E7D32]">{correctTaps}</p>
@@ -171,7 +171,7 @@ const SoundSpotting: React.FC<SoundSpottingProps> = ({ slide, onCorrect, onIncor
               <p className="text-xs text-muted-foreground">Missed</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-[#1A237E]">{accuracy}%</p>
+              <p className="text-2xl font-bold text-[#6B21A8]">{accuracy}%</p>
               <p className="text-xs text-muted-foreground">Accuracy</p>
             </div>
           </div>

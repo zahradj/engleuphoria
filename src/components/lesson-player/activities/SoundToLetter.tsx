@@ -40,7 +40,7 @@ export default function SoundToLetter({ slide, onCorrect, onIncorrect }: Props) 
     <div className="w-full h-full flex flex-col items-center justify-center rounded-3xl p-8 bg-gradient-to-b from-background to-muted/30">
       <h2 className="text-2xl font-bold text-foreground mb-2">🔤 Sound to Letter</h2>
       <p className="text-muted-foreground text-sm mb-6">
-        Tap the letter that makes the <span className="font-mono font-bold text-[#1A237E]">{phoneme}</span> sound
+        Tap the letter that makes the <span className="font-mono font-bold text-[#6B21A8]">{phoneme}</span> sound
       </p>
 
       {/* Flat 2.0 Image */}
@@ -61,7 +61,7 @@ export default function SoundToLetter({ slide, onCorrect, onIncorrect }: Props) 
           const bgClass = isSelected
             ? correct ? 'bg-[#4CAF50] text-white border-[#2E7D32] scale-110'
               : 'bg-[#EF5350] text-white border-[#C62828]'
-            : 'bg-card border-border hover:border-[#1A237E]/40 text-foreground';
+            : 'bg-card border-border hover:border-[#6B21A8]/40 text-foreground';
 
           return (
             <motion.button

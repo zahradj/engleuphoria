@@ -427,7 +427,7 @@ export const HiringKanbanBoard: React.FC = () => {
         <div className="flex items-center gap-3">
           <Logo size="small" />
           <div>
-            <h1 className="text-2xl font-bold text-[#1A237E]">Hiring Pipeline</h1>
+            <h1 className="text-2xl font-bold text-[#6B21A8]">Hiring Pipeline</h1>
             <p className="text-sm text-muted-foreground">
               Drag candidates between stages · {applications.length} total applicants
             </p>
@@ -793,7 +793,7 @@ export const HiringKanbanBoard: React.FC = () => {
 
           <div className="space-y-4">
             <div className="bg-indigo-50 dark:bg-indigo-950/30 rounded-lg p-3 flex items-center gap-3">
-              <Video className="h-5 w-5 text-[#1A237E]" />
+              <Video className="h-5 w-5 text-[#6B21A8]" />
               <div>
                 <p className="font-medium text-sm">Internal Interview Room</p>
                 <p className="text-xs text-muted-foreground">
@@ -833,7 +833,7 @@ export const HiringKanbanBoard: React.FC = () => {
             <Button
               onClick={confirmInterviewInvitation}
               disabled={actionLoading}
-              className="bg-[#1A237E] hover:bg-[#1A237E]/90"
+              className="bg-[#6B21A8] hover:bg-[#6B21A8]/90"
             >
               {actionLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-1" />

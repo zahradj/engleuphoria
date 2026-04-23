@@ -74,7 +74,7 @@ export const UnitMasteryReportButton: React.FC<Props> = ({
       <Button
         onClick={handleGenerate}
         disabled={generating}
-        className="bg-[#1A237E] hover:bg-[#1A237E]/90 text-white"
+        className="bg-[#6B21A8] hover:bg-[#6B21A8]/90 text-white"
         size="sm"
       >
         {generating ? (
@@ -89,7 +89,7 @@ export const UnitMasteryReportButton: React.FC<Props> = ({
         disabled={generating}
         variant="outline"
         size="sm"
-        className="border-[#1A237E]/30 text-[#1A237E]"
+        className="border-[#6B21A8]/30 text-[#6B21A8]"
       >
         <Eye className="h-4 w-4 mr-2" />
         Preview

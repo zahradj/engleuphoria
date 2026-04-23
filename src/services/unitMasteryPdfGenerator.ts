@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 
 // ─── Engleuphoria Brand Colors ────────────────────────────
-const NAVY = '#1A237E';
+const NAVY = '#6B21A8';
 const GOLD = '#C9A84C';
 const SAGE = '#5A8A5C';
 const LIGHT_SAGE = '#E8F0E8';

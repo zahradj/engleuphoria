@@ -31,11 +31,11 @@ export const AcademyLessonLayout: React.FC<AcademyLessonLayoutProps> = ({
       {/* Top Header */}
       <header className="h-14 border-b border-slate-200 bg-white flex items-center px-6 gap-4">
         {onBack && (
-          <Button variant="ghost" size="sm" onClick={onBack} className="text-slate-500 hover:text-[#1A237E]">
+          <Button variant="ghost" size="sm" onClick={onBack} className="text-slate-500 hover:text-[#6B21A8]">
             <ChevronLeft className="w-4 h-4 mr-1" /> Back
           </Button>
         )}
-        <h1 className="text-base font-semibold text-[#1A237E] truncate">{lessonTitle}</h1>
+        <h1 className="text-base font-semibold text-[#6B21A8] truncate">{lessonTitle}</h1>
         <span className="ml-auto text-xs text-slate-400 font-medium">
           Slide {currentSlideIndex + 1} / {slides.length}
         </span>
@@ -59,7 +59,7 @@ export const AcademyLessonLayout: React.FC<AcademyLessonLayoutProps> = ({
         <aside className="w-80 border-l border-slate-200 bg-[#FAFBFC] flex flex-col overflow-y-auto">
           {/* Lesson Objectives */}
           <div className="p-5 border-b border-slate-200">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-[#1A237E] mb-3 flex items-center gap-1.5">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-[#6B21A8] mb-3 flex items-center gap-1.5">
               <Target className="w-3.5 h-3.5" />
               Objectives
             </h2>
@@ -77,7 +77,7 @@ export const AcademyLessonLayout: React.FC<AcademyLessonLayoutProps> = ({
 
           {/* II Wizard Script */}
           <div className="p-5 border-b border-slate-200 flex-1">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-[#1A237E] mb-3 flex items-center gap-1.5">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-[#6B21A8] mb-3 flex items-center gap-1.5">
               <BookOpen className="w-3.5 h-3.5" />
               Teacher Script
             </h2>

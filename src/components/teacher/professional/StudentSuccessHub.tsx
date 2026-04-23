@@ -189,7 +189,7 @@ export const StudentSuccessHub: React.FC<StudentSuccessHubProps> = ({ teacherId 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-[#1A237E] font-inter tracking-tight">
+        <h1 className="text-2xl font-semibold text-[#6B21A8] font-inter tracking-tight">
           Student Success Hub
         </h1>
         <p className="text-sm text-[#9E9E9E] mt-1">
@@ -235,7 +235,7 @@ export const StudentSuccessHub: React.FC<StudentSuccessHubProps> = ({ teacherId 
 
       {selectedStudentId && diagLoading && (
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-[#1A237E]" />
+          <Loader2 className="h-6 w-6 animate-spin text-[#6B21A8]" />
         </div>
       )}
 

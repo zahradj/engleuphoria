@@ -50,7 +50,7 @@ export const PhoneticMasteryMatrix: React.FC<PhoneticMasteryMatrixProps> = ({
     <Card className="border border-border bg-card shadow-sm">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-semibold text-[#1A237E] flex items-center gap-2">
+          <CardTitle className="text-sm font-semibold text-[#6B21A8] flex items-center gap-2">
             🎯 Phonetic Accuracy Pulse
           </CardTitle>
           <div className="flex items-center gap-2">
@@ -74,7 +74,7 @@ export const PhoneticMasteryMatrix: React.FC<PhoneticMasteryMatrixProps> = ({
                 <Tooltip key={phoneme.phoneme}>
                   <TooltipTrigger asChild>
                     <div className="flex items-center gap-3 group cursor-default">
-                      <span className="w-10 text-sm font-mono font-semibold text-[#1A237E] text-right shrink-0">
+                      <span className="w-10 text-sm font-mono font-semibold text-[#6B21A8] text-right shrink-0">
                         /{phoneme.phoneme}/
                       </span>
                       <div className="flex-1 h-6 bg-muted/50 rounded-md overflow-hidden relative">

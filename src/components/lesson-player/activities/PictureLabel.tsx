@@ -44,7 +44,7 @@ export default function PictureLabel({ slide, onCorrect, onIncorrect }: Props) {
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="h-44 w-44 rounded-2xl border-4 border-[#1A237E]/10 bg-white flex items-center justify-center mb-8 overflow-hidden shadow-sm"
+        className="h-44 w-44 rounded-2xl border-4 border-[#6B21A8]/10 bg-white flex items-center justify-center mb-8 overflow-hidden shadow-sm"
       >
         {imageUrl ? (
           <img src={imageUrl} alt="mystery" className="h-full w-full object-contain p-2" />
@@ -60,7 +60,7 @@ export default function PictureLabel({ slide, onCorrect, onIncorrect }: Props) {
           const bgClass = isThis
             ? isCorrect ? 'bg-[#4CAF50] text-white border-[#2E7D32]'
               : 'bg-[#EF5350] text-white border-[#C62828]'
-            : 'bg-card border-border hover:border-[#1A237E]/30 text-foreground';
+            : 'bg-card border-border hover:border-[#6B21A8]/30 text-foreground';
 
           return (
             <motion.button

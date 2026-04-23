@@ -74,7 +74,7 @@ export const HUB_THEMES: Record<HubId, HubTheme> = {
     duration: 60,
     priceMultiplier: 1,
     // Day
-    primary: '#1A237E',
+    primary: '#6B21A8',
     secondary: '#4A148C',
     accent: '#7C4DFF',
     gradient: 'from-blue-900 to-purple-900',

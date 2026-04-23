@@ -69,7 +69,7 @@ export const FivePhaseProgressTracker: React.FC<FivePhaseProgressTrackerProps> =
   return (
     <Card className="border border-border bg-card shadow-sm">
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-semibold text-[#1A237E]">
+        <CardTitle className="text-sm font-semibold text-[#6B21A8]">
           📐 5-Phase Mastery Sequence
         </CardTitle>
         {(studentName || unitTitle) && (

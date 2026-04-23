@@ -47,7 +47,7 @@ export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
     ? 'linear-gradient(135deg, #FF9F1C, #F59E0B)'
     : hubType === 'professional'
     ? 'linear-gradient(135deg, #059669, #10B981)'
-    : 'linear-gradient(135deg, #1A237E, #3F51B5)';
+    : 'linear-gradient(135deg, #6B21A8, #A855F7)';
 
   const hubBorderColor = hubType === 'playground'
     ? 'border-amber-200'

@@ -113,7 +113,7 @@ export const StudentEntityDashboard: React.FC<StudentEntityDashboardProps> = ({ 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-[#1A237E] font-inter tracking-tight">
+        <h1 className="text-2xl font-semibold text-[#6B21A8] font-inter tracking-tight">
           Diagnostic Lab
         </h1>
         <p className="text-sm text-[#9E9E9E] mt-1">
@@ -169,7 +169,7 @@ export const StudentEntityDashboard: React.FC<StudentEntityDashboardProps> = ({ 
             {/* Phonics snapshot */}
             <Card className="border border-border bg-card shadow-sm">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold text-[#1A237E]">
+                <CardTitle className="text-sm font-semibold text-[#6B21A8]">
                   Phonics Mastery
                 </CardTitle>
               </CardHeader>
@@ -205,7 +205,7 @@ export const StudentEntityDashboard: React.FC<StudentEntityDashboardProps> = ({ 
             {/* Vocabulary Vault */}
             <Card className="border border-border bg-card shadow-sm">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold text-[#1A237E] flex items-center justify-between">
+                <CardTitle className="text-sm font-semibold text-[#6B21A8] flex items-center justify-between">
                   <span className="flex items-center gap-2">
                     <BookOpen className="h-4 w-4" />
                     Vocabulary Vault
@@ -243,10 +243,10 @@ export const StudentEntityDashboard: React.FC<StudentEntityDashboardProps> = ({ 
                   </div>
 
                   {/* Recognized */}
-                  <div className="p-4 rounded-lg border border-[#1A237E]/10 bg-[#1A237E]/3">
+                  <div className="p-4 rounded-lg border border-[#6B21A8]/10 bg-[#6B21A8]/3">
                     <div className="flex items-center gap-2 mb-3">
-                      <BookOpen className="h-4 w-4 text-[#1A237E]" />
-                      <span className="text-sm font-medium text-[#1A237E]">
+                      <BookOpen className="h-4 w-4 text-[#6B21A8]" />
+                      <span className="text-sm font-medium text-[#6B21A8]">
                         Recognized ({studentData.recognizedWords.length})
                       </span>
                     </div>
@@ -258,7 +258,7 @@ export const StudentEntityDashboard: React.FC<StudentEntityDashboardProps> = ({ 
                           <Badge
                             key={i}
                             variant="outline"
-                            className="text-xs border-[#1A237E]/20 text-[#1A237E]/70"
+                            className="text-xs border-[#6B21A8]/20 text-[#6B21A8]/70"
                           >
                             {w.word}
                           </Badge>
@@ -273,7 +273,7 @@ export const StudentEntityDashboard: React.FC<StudentEntityDashboardProps> = ({ 
             {/* Phonics Mastery Grid (Map of Sounds) */}
             <Card className="border border-border bg-card shadow-sm">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold text-[#1A237E]">
+                <CardTitle className="text-sm font-semibold text-[#6B21A8]">
                   Phonics Mastery Grid
                 </CardTitle>
               </CardHeader>

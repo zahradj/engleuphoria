@@ -128,8 +128,8 @@ export const CurriculumMapView: React.FC<CurriculumMapViewProps> = ({
 
   const getNodeColor = (status: string) => {
     switch (status) {
-      case 'mastered': return 'bg-[#1A237E]';
-      case 'current': return 'bg-[#1A237E]/60';
+      case 'mastered': return 'bg-[#6B21A8]';
+      case 'current': return 'bg-[#6B21A8]/60';
       case 'locked': return 'bg-muted/40';
       default: return 'bg-muted/40';
     }
@@ -158,7 +158,7 @@ export const CurriculumMapView: React.FC<CurriculumMapViewProps> = ({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-[#1A237E] font-inter flex items-center gap-2">
+        <h2 className="text-xl font-semibold text-[#6B21A8] font-inter flex items-center gap-2">
           <Map className="h-5 w-5" />
           Curriculum Map — {studentName}
         </h2>
@@ -173,7 +173,7 @@ export const CurriculumMapView: React.FC<CurriculumMapViewProps> = ({
           <Card key={unit.unitId} className="border shadow-sm">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold text-[#1A237E]">
+                <CardTitle className="text-sm font-semibold text-[#6B21A8]">
                   {unit.unitTitle}
                 </CardTitle>
                 <Badge
@@ -193,7 +193,7 @@ export const CurriculumMapView: React.FC<CurriculumMapViewProps> = ({
                       onClick={() => setSelectedNode(selectedNode?.id === lesson.id ? null : lesson)}
                       className={`relative w-8 h-8 rounded-full ${getNodeColor(lesson.status)} 
                                   flex items-center justify-center shadow-sm transition-all
-                                  hover:ring-2 hover:ring-[#1A237E]/20`}
+                                  hover:ring-2 hover:ring-[#6B21A8]/20`}
                       animate={
                         lesson.status === 'current'
                           ? { scale: [1, 1.15, 1], opacity: [0.6, 1, 0.6] }
@@ -214,7 +214,7 @@ export const CurriculumMapView: React.FC<CurriculumMapViewProps> = ({
                     {lessonIdx < unit.lessons.length - 1 && (
                       <div className={`flex-1 h-0.5 max-w-8 ${
                         unit.lessons[lessonIdx + 1].status !== 'locked'
-                          ? 'bg-[#1A237E]/30'
+                          ? 'bg-[#6B21A8]/30'
                           : 'bg-muted/20'
                       }`} />
                     )}
@@ -230,7 +230,7 @@ export const CurriculumMapView: React.FC<CurriculumMapViewProps> = ({
                   exit={{ opacity: 0, height: 0 }}
                   className="border-t pt-3 mt-2"
                 >
-                  <p className="text-xs font-medium text-[#1A237E] mb-2">{selectedNode.title}</p>
+                  <p className="text-xs font-medium text-[#6B21A8] mb-2">{selectedNode.title}</p>
                   {selectedNode.scores ? (
                     <div className="space-y-1 max-w-48">
                       <SkillBar label="L" score={selectedNode.scores.listening} color="#3B82F6" />

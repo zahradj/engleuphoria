@@ -40,7 +40,7 @@ export const GhostVectorReveal: React.FC<GhostVectorRevealProps> = ({
   return (
     <Card className="border border-border bg-card shadow-sm">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-semibold text-[#1A237E] flex items-center gap-2">
+        <CardTitle className="text-sm font-semibold text-[#6B21A8] flex items-center gap-2">
           <MapPin className="h-4 w-4" />
           🗺️ Memory Map — Ghost Vectors
         </CardTitle>
@@ -63,8 +63,8 @@ export const GhostVectorReveal: React.FC<GhostVectorRevealProps> = ({
                   isRevealed
                     ? 'border-[#2E7D32]/30 bg-[#2E7D32]/5'
                     : isActive
-                    ? 'border-[#1A237E]/40 bg-[#1A237E]/10'
-                    : 'border-border bg-muted/20 hover:border-[#1A237E]/20'
+                    ? 'border-[#6B21A8]/40 bg-[#6B21A8]/10'
+                    : 'border-border bg-muted/20 hover:border-[#6B21A8]/20'
                 }`}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
@@ -92,8 +92,8 @@ export const GhostVectorReveal: React.FC<GhostVectorRevealProps> = ({
                       className="text-center"
                     >
                       {/* Ghost silhouette */}
-                      <div className="h-16 w-16 mx-auto rounded-full bg-[#1A237E]/10 flex items-center justify-center">
-                        <Eye className={`h-6 w-6 ${isActive ? 'text-[#1A237E]' : 'text-muted-foreground/30'}`} />
+                      <div className="h-16 w-16 mx-auto rounded-full bg-[#6B21A8]/10 flex items-center justify-center">
+                        <Eye className={`h-6 w-6 ${isActive ? 'text-[#6B21A8]' : 'text-muted-foreground/30'}`} />
                       </div>
                       <p className="text-[10px] text-muted-foreground mt-1">
                         {isActive ? '🔍 Giving clues...' : '?'}

@@ -55,7 +55,7 @@ export default function PhonemeTap({ slide, onCorrect, onIncorrect }: Props) {
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="h-20 w-20 rounded-full bg-[#1A237E] text-white flex items-center justify-center shadow-lg mb-8"
+        className="h-20 w-20 rounded-full bg-[#6B21A8] text-white flex items-center justify-center shadow-lg mb-8"
       >
         <Volume2 className="h-8 w-8" />
       </motion.button>
@@ -69,7 +69,7 @@ export default function PhonemeTap({ slide, onCorrect, onIncorrect }: Props) {
           const bgClass = isThis
             ? isCorrect ? 'bg-[#4CAF50] text-white border-[#2E7D32]'
               : 'bg-[#EF5350] text-white border-[#C62828] animate-[wiggle_0.3s_ease-in-out]'
-            : 'bg-card border-border hover:border-[#1A237E]/40';
+            : 'bg-card border-border hover:border-[#6B21A8]/40';
 
           return (
             <motion.button

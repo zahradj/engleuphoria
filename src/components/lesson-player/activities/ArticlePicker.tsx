@@ -60,7 +60,7 @@ export default function ArticlePicker({ slide, onCorrect, onIncorrect }: Props) 
       <div className="flex items-center gap-2 mb-8 text-2xl font-bold text-foreground">
         <span>It is</span>
         <span className={`px-4 py-2 rounded-xl border-2 border-dashed min-w-[60px] text-center ${
-          completed ? 'border-[#4CAF50] bg-[#4CAF50]/10 text-[#2E7D32]' : 'border-[#1A237E]/30 text-[#1A237E]'
+          completed ? 'border-[#4CAF50] bg-[#4CAF50]/10 text-[#2E7D32]' : 'border-[#6B21A8]/30 text-[#6B21A8]'
         }`}>
           {completed ? correctArticle : '?'}
         </span>
@@ -74,7 +74,7 @@ export default function ArticlePicker({ slide, onCorrect, onIncorrect }: Props) 
           const bgClass = isThis
             ? isCorrect ? 'bg-[#4CAF50] text-white border-[#2E7D32] scale-110'
               : 'bg-[#EF5350] text-white border-[#C62828]'
-            : 'bg-card border-[#1A237E]/20 text-[#1A237E] hover:bg-[#1A237E]/5';
+            : 'bg-card border-[#6B21A8]/20 text-[#6B21A8] hover:bg-[#6B21A8]/5';
 
           return (
             <motion.button

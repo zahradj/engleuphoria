@@ -129,15 +129,15 @@ export const TeacherObservationHUD: React.FC<TeacherObservationHUDProps> = ({
   }, [observations, freeNote, sessionId, studentId, currentPhoneme]);
 
   return (
-    <Card className="border border-[#1A237E]/10 bg-card shadow-sm">
+    <Card className="border border-[#6B21A8]/10 bg-card shadow-sm">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-semibold text-[#1A237E] flex items-center gap-2">
+          <CardTitle className="text-sm font-semibold text-[#6B21A8] flex items-center gap-2">
             <Sparkles className="h-4 w-4" />
             Professional Observation
           </CardTitle>
           {currentPhase && (
-            <Badge variant="outline" className="text-[10px] border-[#1A237E]/20 text-[#1A237E]">
+            <Badge variant="outline" className="text-[10px] border-[#6B21A8]/20 text-[#6B21A8]">
               Phase: {currentPhase}
             </Badge>
           )}
@@ -269,7 +269,7 @@ export const TeacherObservationHUD: React.FC<TeacherObservationHUDProps> = ({
             size="sm"
             onClick={saveObservations}
             disabled={saving || (observations.length === 0 && !freeNote)}
-            className="bg-[#1A237E] hover:bg-[#1A237E]/90 text-white gap-1 flex-1"
+            className="bg-[#6B21A8] hover:bg-[#6B21A8]/90 text-white gap-1 flex-1"
           >
             <Send className="h-3.5 w-3.5" />
             {saving ? 'Saving...' : 'Save to Profile'}

@@ -109,10 +109,10 @@ export const ContractManagement: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold text-[#1A237E]">Digital Contracts</h2>
+        <h2 className="text-lg font-semibold text-[#6B21A8]">Digital Contracts</h2>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2 bg-[#1A237E] hover:bg-[#1A237E]/90">
+            <Button className="gap-2 bg-[#6B21A8] hover:bg-[#6B21A8]/90">
               <Plus className="h-4 w-4" /> New Contract
             </Button>
           </DialogTrigger>
@@ -153,7 +153,7 @@ export const ContractManagement: React.FC = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={createContract} className="w-full bg-[#1A237E] hover:bg-[#1A237E]/90"
+              <Button onClick={createContract} className="w-full bg-[#6B21A8] hover:bg-[#6B21A8]/90"
                 disabled={!form.teacher_id}>
                 Generate Contract
               </Button>
@@ -180,8 +180,8 @@ export const ContractManagement: React.FC = () => {
                 <CardContent className="py-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="p-2 bg-[#1A237E]/10 rounded-lg">
-                        <FileText className="h-5 w-5 text-[#1A237E]" />
+                      <div className="p-2 bg-[#6B21A8]/10 rounded-lg">
+                        <FileText className="h-5 w-5 text-[#6B21A8]" />
                       </div>
                       <div>
                         <p className="font-medium">{c.teacher_name}</p>

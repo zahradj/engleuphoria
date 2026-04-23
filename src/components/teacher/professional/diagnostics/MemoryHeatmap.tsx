@@ -63,7 +63,7 @@ export const MemoryHeatmap: React.FC<MemoryHeatmapProps> = ({ vocabulary, studen
     <Card className="border border-border bg-card shadow-sm">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-semibold text-[#1A237E]">
+          <CardTitle className="text-sm font-semibold text-[#6B21A8]">
             🧠 Memory Retention Heatmap
           </CardTitle>
           <div className="flex items-center gap-2">
