@@ -151,13 +151,55 @@ class WhiteboardService {
     return () => this.release(roomId, () => room.scrollListeners.delete(onScroll));
   }
 
+  /** Broadcast which mode the unified Main Stage is showing (slide / web / blank). */
+  async sendStageMode(roomId: string, mode: StageMode, senderId: string): Promise<void> {
+    const room = this.getRoom(roomId);
+    await room.ready;
+    await room.channel.send({
+      type: 'broadcast',
+      event: 'stage_mode',
+      payload: { mode, senderId },
+    });
+  }
+
+  subscribeToStageMode(roomId: string, onMode: StageModeListener): () => void {
+    const room = this.getRoom(roomId);
+    room.stageModeListeners.add(onMode);
+    room.refCount += 1;
+    return () => this.release(roomId, () => room.stageModeListeners.delete(onMode));
+  }
+
+  /** Broadcast whether the transparent annotation overlay captures pointer events. */
+  async sendDrawingEnabled(roomId: string, enabled: boolean, senderId: string): Promise<void> {
+    const room = this.getRoom(roomId);
+    await room.ready;
+    await room.channel.send({
+      type: 'broadcast',
+      event: 'drawing_enabled',
+      payload: { enabled, senderId },
+    });
+  }
+
+  subscribeToDrawingEnabled(roomId: string, onChange: DrawingEnabledListener): () => void {
+    const room = this.getRoom(roomId);
+    room.drawingEnabledListeners.add(onChange);
+    room.refCount += 1;
+    return () => this.release(roomId, () => room.drawingEnabledListeners.delete(onChange));
+  }
+
   private release(roomId: string, cleanup: () => void) {
     const channelName = `classroom_${roomId}`;
     const room = this.rooms.get(channelName);
     if (!room) return;
     cleanup();
     room.refCount = Math.max(0, room.refCount - 1);
-    if (room.refCount === 0 && room.strokeListeners.size === 0 && room.scrollListeners.size === 0) {
+    if (
+      room.refCount === 0 &&
+      room.strokeListeners.size === 0 &&
+      room.scrollListeners.size === 0 &&
+      room.stageModeListeners.size === 0 &&
+      room.drawingEnabledListeners.size === 0
+    ) {
       supabase.removeChannel(room.channel);
       this.rooms.delete(channelName);
     }
