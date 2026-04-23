@@ -1,5 +1,3 @@
-import { corsHeaders } from "https://deno.land/x/cors@v1.2.2/mod.ts";
-
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -46,71 +44,54 @@ Deno.serve(async (req) => {
 
     // Build hub-specific context
     let hubContext = "";
+    let duration = 60;
     switch (hub) {
       case "playground":
-        hubContext = `This is for The Playground Hub (Kids ages 5-11).
-- Duration: 30 minutes across 20-25 interactive slides
-- Style: HIGH-ENERGY, gamified, colorful, fun characters
-- Include at least 2 interactive games (drag-and-drop, spinning wheel, matching pairs)
-- Use simple vocabulary, short sentences, lots of repetition
-- Include a warm-up song/chant and a cool-down activity
-- Phonics focus is important for this age group`;
+        duration = 30;
+        hubContext = `Hub: The Playground (Kids ages 5-11). Duration: EXACTLY 30 minutes. 
+Tone: HIGH-ENERGY, gamified, colorful, fun characters. Use simple vocabulary, short sentences, lots of repetition. Phonics focus is critical.
+Video Song Channels: Super Simple Songs, Cocomelon, Maple Leaf Learning, Pinkfong, English Singsing.`;
         break;
       case "academy":
-        hubContext = `This is for The Academy Hub (Teens ages 12-17).
-- Duration: 60 minutes across 20-25 interactive slides
-- Style: Grammar-focused deep learning with engaging teen-relevant contexts
-- Include structured grammar explanations with clear examples
-- Activities should challenge critical thinking and real-world application
-- Include peer discussion prompts and collaborative exercises
-- Balance accuracy and fluency practice`;
+        duration = 60;
+        hubContext = `Hub: The Academy (Teens ages 12-17). Duration: EXACTLY 60 minutes.
+Tone: Grammar-focused deep learning with engaging teen-relevant contexts. Challenge critical thinking. Balance accuracy and fluency.
+Video Song Channels: BBC Learning English, English with Lucy, mmmEnglish, Learn English with TV Series.`;
         break;
       case "success":
-        hubContext = `This is for The Success Hub (Professional Adults 18+).
-- Duration: 60 minutes across 20-25 interactive slides  
-- Style: Professional coaching, business English, career-focused
-- Include role-play scenarios (job interviews, meetings, presentations)
-- Focus on professional vocabulary, idiomatic expressions, formal/informal register
-- Activities should simulate real workplace communication
-- Include self-reflection and goal-setting components`;
+        duration = 60;
+        hubContext = `Hub: The Success Hub (Professional Adults 18+). Duration: EXACTLY 60 minutes.
+Tone: Professional coaching, business English, career-focused. Include role-play scenarios. Focus on professional vocabulary, idiomatic expressions, formal/informal register.
+Video Song Channels: BBC Learning English, Business English Pod, English with Lucy, TED-Ed.`;
         break;
     }
 
-    const systemPrompt = `You are an expert curriculum designer for Engleuphoria, a premium English language learning platform. 
-
-Create a structured lesson plan based on the PPP method (Presentation, Practice, Production).
+    const systemPrompt = `You are the Engleuphoria Curriculum AI — a Master ESL Curriculum Architect. You must return a valid JSON object. Do not use markdown code blocks or any text outside the JSON.
 
 ${hubContext}
 
-LESSON STRUCTURE (PPP Method):
-## 📋 Lesson Overview
-- Title, objectives, CEFR alignment, duration, materials needed
+CRITICAL RULES:
+1. Generate a world-class, minute-by-minute lesson plan based on the PPP method (Presentation, Practice, Production).
+2. Strictly follow the duration: ${duration} minutes total.
+3. For the video_url field, you MUST generate a real, accurate YouTube search URL for a highly popular ESL video song or animated story that matches the lesson topic. Use the format: https://www.youtube.com/results?search_query=ENCODED_SEARCH_TERMS. Rely on famous channels like Super Simple Songs, Cocomelon, English Singsing, BBC Learning English, or Maple Leaf Learning to ensure relevance.
+4. The "practice" field MUST include BOTH a "Step-Down" method (if the student is struggling) AND a "Step-Up" extension (if the student finishes early). This scaffolding is CRITICAL.
+5. Include Concept Check Questions (CCQs) in the practice section.
+6. Include specific teacher scripts and interactive whiteboard activity descriptions.
 
-## 🎯 Presentation Phase (25% of lesson time)
-- Teacher-led introduction of new language
-- Context setting with visuals/story
-- Clear grammar/vocabulary presentation with examples
-- Comprehension check questions
-
-## 💪 Practice Phase (50% of lesson time)  
-- Controlled practice activities (fill-in-the-blank, matching, multiple choice)
-- Semi-controlled practice (guided conversations, sentence building)
-- At least 2 interactive/gamified activities
-- Error correction strategies
-
-## 🚀 Production Phase (25% of lesson time)
-- Free practice / communicative activities
-- Real-world application tasks
-- Student-led conversations or presentations
-- Assessment / exit ticket
-
-## 📝 Teacher Notes
-- Differentiation strategies
-- Common errors to watch for
-- Extension activities for fast finishers
-- Homework suggestions
-
-Format the entire response in clean Markdown with headers, bullet points, and numbered lists. Make it classroom-ready for teachers.`;
+You MUST return ONLY a valid JSON object with this exact schema:
+{
+  "lesson_title": "string - A creative, engaging lesson title",
+  "target_grammar": "string - The primary grammar/structure focus",
+  "target_vocabulary": "string - Key vocabulary items (comma-separated)",
+  "video_url": "string - YouTube search URL for a relevant ESL video",
+  "video_search_title": "string - The exact search title the teacher should use to find the video",
+  "warm_up": "string - Detailed warm-up activity (3-5 mins) including the video song integration with specific timestamps and interaction prompts",
+  "presentation": "string - Detailed Presentation phase with teacher scripts, flashcard/whiteboard activities, and comprehension checks (${hub === 'playground' ? '7' : '15'} mins)",
+  "practice": "string - Detailed Practice phase with controlled & semi-controlled activities, CCQs, interactive games, STEP-DOWN scaffolding for struggling students, and STEP-UP extensions for fast finishers (${hub === 'playground' ? '10' : '25'} mins)",
+  "production": "string - Detailed Production phase with free practice, real-world application tasks, and student-led activities (${hub === 'playground' ? '7' : '12'} mins)",
+  "homework": "string - A specific post-lesson review task for the student dashboard",
+  "teacher_notes": "string - Differentiation strategies, common errors to watch for, and extension activities"
+}`;
 
     const userPrompt = `Create a lesson plan for the topic: "${topic.trim()}"${
       targetGrammar ? `\nTarget Grammar/Structure: ${targetGrammar.trim()}` : ""
@@ -118,7 +99,7 @@ Format the entire response in clean Markdown with headers, bullet points, and nu
       targetVocabulary ? `\nTarget Vocabulary: ${targetVocabulary.trim()}` : ""
     }`;
 
-    // Call Gemini API
+    // Call Gemini API with JSON response format
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
     const geminiResponse = await fetch(geminiUrl, {
@@ -131,6 +112,7 @@ Format the entire response in clean Markdown with headers, bullet points, and nu
         generationConfig: {
           temperature: 0.7,
           maxOutputTokens: 8192,
+          responseMimeType: "application/json",
         },
       }),
     });
@@ -146,18 +128,62 @@ Format the entire response in clean Markdown with headers, bullet points, and nu
     }
 
     const geminiData = await geminiResponse.json();
-    const lessonPlan =
+    const rawText =
       geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-    if (!lessonPlan) {
+    if (!rawText) {
       return new Response(
         JSON.stringify({ error: "AI returned empty response" }),
         { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
       );
     }
 
+    // Parse the JSON response
+    let lessonData;
+    try {
+      lessonData = JSON.parse(rawText);
+    } catch (parseErr) {
+      console.error("Failed to parse Gemini JSON:", parseErr, rawText);
+      // Fallback: return raw text as markdown
+      return new Response(
+        JSON.stringify({ lessonPlan: rawText, lessonData: null, hub, topic: topic.trim() }),
+        { status: 200, headers: { ...CORS, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Build a formatted Markdown version from the structured data
+    const lessonPlan = `# ${lessonData.lesson_title || topic.trim()}
+
+## 📋 Target Summary
+- **Grammar:** ${lessonData.target_grammar || 'N/A'}
+- **Vocabulary:** ${lessonData.target_vocabulary || 'N/A'}
+- **Duration:** ${duration} minutes
+- **Hub:** ${hub.charAt(0).toUpperCase() + hub.slice(1)}
+
+## 🎵 Video Song Integration
+🔗 [Search Video](${lessonData.video_url || '#'})
+**Search Title:** ${lessonData.video_search_title || 'N/A'}
+
+## 🎯 Warm-Up (${hub === 'playground' ? '3-5' : '5'} mins)
+${lessonData.warm_up || ''}
+
+## 📖 Presentation Phase (${hub === 'playground' ? '7' : '15'} mins)
+${lessonData.presentation || ''}
+
+## 💪 Practice Phase (${hub === 'playground' ? '10' : '25'} mins)
+${lessonData.practice || ''}
+
+## 🚀 Production Phase (${hub === 'playground' ? '7' : '12'} mins)
+${lessonData.production || ''}
+
+## 📝 Homework / Review Task
+${lessonData.homework || ''}
+
+## 👩‍🏫 Teacher Notes
+${lessonData.teacher_notes || ''}`;
+
     return new Response(
-      JSON.stringify({ lessonPlan, hub, topic: topic.trim() }),
+      JSON.stringify({ lessonPlan, lessonData, hub, topic: topic.trim() }),
       { status: 200, headers: { ...CORS, "Content-Type": "application/json" } }
     );
   } catch (err) {

@@ -6,10 +6,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { Sparkles, Save, Pencil, Eye, Loader2 } from 'lucide-react';
+import { Sparkles, Save, Pencil, Eye, Loader2, Video, ExternalLink } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 type HubType = 'playground' | 'academy' | 'success';
+
+interface LessonData {
+  lesson_title?: string;
+  target_grammar?: string;
+  target_vocabulary?: string;
+  video_url?: string;
+  video_search_title?: string;
+  warm_up?: string;
+  presentation?: string;
+  practice?: string;
+  production?: string;
+  homework?: string;
+  teacher_notes?: string;
+}
 
 const HUB_CONFIG: Record<HubType, { label: string; color: string; bg: string; border: string; targetSystem: string; difficulty: string; duration: number }> = {
   playground: { label: 'Playground Hub', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/30', targetSystem: 'playground', difficulty: 'beginner', duration: 30 },
@@ -24,6 +38,8 @@ export const AILessonArchitect: React.FC = () => {
   const [targetGrammar, setTargetGrammar] = useState('');
   const [targetVocabulary, setTargetVocabulary] = useState('');
   const [lessonPlan, setLessonPlan] = useState('');
+  const [lessonData, setLessonData] = useState<LessonData | null>(null);
+  const [videoUrl, setVideoUrl] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -36,6 +52,8 @@ export const AILessonArchitect: React.FC = () => {
 
     setIsGenerating(true);
     setLessonPlan('');
+    setLessonData(null);
+    setVideoUrl('');
     setIsEditing(false);
 
     try {
@@ -47,7 +65,13 @@ export const AILessonArchitect: React.FC = () => {
       if (data?.error) throw new Error(data.error);
 
       setLessonPlan(data.lessonPlan);
-      toast.success('Lesson plan generated!');
+
+      if (data.lessonData) {
+        setLessonData(data.lessonData);
+        setVideoUrl(data.lessonData.video_url || '');
+      }
+
+      toast.success('Lesson plan generated with video & scaffolding!');
     } catch (err: any) {
       console.error('Generation error:', err);
       toast.error(err.message || 'Failed to generate lesson plan');
@@ -63,19 +87,34 @@ export const AILessonArchitect: React.FC = () => {
     setIsSaving(true);
 
     try {
-      const { error } = await supabase.from('curriculum_lessons').insert({
-        title: `AI: ${topic.trim()}`,
-        content: { markdown: lessonPlan, generatedAt: new Date().toISOString(), hub, targetGrammar, targetVocabulary },
+      const contentPayload: Record<string, unknown> = {
+        markdown: lessonPlan,
+        generatedAt: new Date().toISOString(),
+        hub,
+        targetGrammar,
+        targetVocabulary,
+      };
+
+      if (lessonData) {
+        contentPayload.structuredData = lessonData;
+      }
+
+      const insertData: Record<string, unknown> = {
+        title: lessonData?.lesson_title || `AI: ${topic.trim()}`,
+        content: contentPayload,
         target_system: config.targetSystem,
         difficulty_level: config.difficulty,
         duration_minutes: config.duration,
         created_by: user.id,
         is_published: false,
         skills_focus: targetGrammar ? [targetGrammar] : [],
-      });
+        video_url: videoUrl || null,
+      };
+
+      const { error } = await supabase.from('curriculum_lessons').insert(insertData as any);
 
       if (error) throw error;
-      toast.success('Saved to Curriculum Library!');
+      toast.success('Saved to Curriculum Library with video URL!');
     } catch (err: any) {
       console.error('Save error:', err);
       toast.error(err.message || 'Failed to save lesson');
@@ -92,7 +131,7 @@ export const AILessonArchitect: React.FC = () => {
           AI Lesson Architect
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Generate PPP-structured lesson plans powered by Gemini AI.
+          Generate PPP-structured lesson plans with video songs, scaffolding &amp; minute-by-minute breakdowns.
         </p>
       </div>
 
@@ -149,6 +188,37 @@ export const AILessonArchitect: React.FC = () => {
             />
           </div>
 
+          {/* Video URL field - auto-populated by AI */}
+          {videoUrl && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground flex items-center gap-1.5">
+                <Video className="h-4 w-4 text-red-400" />
+                AI-Suggested Video URL
+              </label>
+              <div className="flex gap-2">
+                <Input
+                  value={videoUrl}
+                  onChange={(e) => setVideoUrl(e.target.value)}
+                  className="bg-background/50 flex-1"
+                  placeholder="YouTube video URL..."
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => window.open(videoUrl, '_blank')}
+                  title="Test video link"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                </Button>
+              </div>
+              {lessonData?.video_search_title && (
+                <p className="text-xs text-muted-foreground">
+                  🔍 Search: "{lessonData.video_search_title}"
+                </p>
+              )}
+            </div>
+          )}
+
           <Button
             onClick={handleGenerate}
             disabled={isGenerating || !hub || !topic.trim()}
@@ -184,7 +254,7 @@ export const AILessonArchitect: React.FC = () => {
                 <Sparkles className="h-10 w-10 text-amber-400 animate-pulse" />
               </div>
               <p className="text-sm text-muted-foreground animate-pulse">
-                Crafting your PPP lesson plan...
+                Crafting your PPP lesson plan with scaffolding &amp; video songs...
               </p>
             </div>
           ) : (
