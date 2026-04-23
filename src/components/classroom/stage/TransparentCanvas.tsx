@@ -1,6 +1,6 @@
 import React from 'react';
 import { CollaborativeCanvas } from '@/components/classroom/shared/CollaborativeCanvas';
-import { WhiteboardStroke } from '@/services/whiteboardService';
+import { WhiteboardStroke, StageMode } from '@/services/whiteboardService';
 
 interface TransparentCanvasProps {
   roomId: string;
@@ -14,6 +14,9 @@ interface TransparentCanvasProps {
   activeColor: string;
   strokes: WhiteboardStroke[];
   onAddStroke: (stroke: Omit<WhiteboardStroke, 'id' | 'roomId' | 'timestamp'>) => void;
+  /** Current stage mode — when 'web' + iframeUnlocked, students bypass the overlay. */
+  mode?: StageMode;
+  iframeUnlocked?: boolean;
 }
 
 /**
@@ -31,10 +34,16 @@ export const TransparentCanvas: React.FC<TransparentCanvasProps> = ({
   activeColor,
   strokes,
   onAddStroke,
+  mode,
+  iframeUnlocked,
 }) => {
   // When drawing is OFF, the overlay must be fully click-through so the user
   // can interact with iframe links / slide elements underneath.
-  const passThrough = !drawingEnabled || activeTool === 'pointer';
+  // Additionally: when the teacher hands the iframe to the student
+  // (mode === 'web' && iframeUnlocked), the student's overlay must step aside
+  // even if drawing was on, so clicks land on the page.
+  const studentBypassForIframe = role === 'student' && mode === 'web' && !!iframeUnlocked;
+  const passThrough = !drawingEnabled || activeTool === 'pointer' || studentBypassForIframe;
 
   return (
     <div

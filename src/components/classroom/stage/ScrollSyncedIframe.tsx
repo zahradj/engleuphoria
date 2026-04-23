@@ -7,6 +7,8 @@ interface ScrollSyncedIframeProps {
   roomId: string;
   userId: string;
   role: 'teacher' | 'student';
+  /** When true, the iframe captures pointer events (clicks/scroll). Defaults to teacher=true, student=false. */
+  interactive?: boolean;
 }
 
 const getEmbedUrl = (inputUrl: string): string => {
@@ -40,13 +42,18 @@ export const ScrollSyncedIframe: React.FC<ScrollSyncedIframeProps> = ({
   roomId,
   userId,
   role,
+  interactive,
 }) => {
   const [loadError, setLoadError] = useState(false);
+  // Teachers are always interactive; students follow the explicit prop (defaults to false).
+  const isInteractive = role === 'teacher' ? true : !!interactive;
+  // Students should only follow remote scroll when locked. Teachers always broadcast.
+  const scrollSyncEnabled = !!url && (role === 'teacher' || !isInteractive);
   const { wrapperRef, onScroll } = useWebScrollSync({
     roomId,
     userId,
     role,
-    enabled: !!url,
+    enabled: scrollSyncEnabled,
   });
 
   if (!url) {
@@ -100,9 +107,8 @@ export const ScrollSyncedIframe: React.FC<ScrollSyncedIframeProps> = ({
           height: '3000px',
           border: 0,
           display: 'block',
-          // Student view: lock interaction so teacher controls scroll/clicks.
-          // Teacher view: stays interactive for navigation.
-          pointerEvents: role === 'student' ? 'none' : 'auto',
+          // Teacher: always interactive. Student: only when teacher unlocks.
+          pointerEvents: isInteractive ? 'auto' : 'none',
         }}
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowFullScreen

@@ -116,6 +116,8 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     embeddedUrl,
     stageMode,
     drawingEnabled,
+    iframeUnlocked,
+    setIframeUnlocked,
     updateSlide,
     updateTool,
     setStudentCanDraw,
@@ -484,6 +486,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             userId={user?.id || sessionStorage.getItem('demo-teacher-id') || ''}
             userName={teacherName}
             role="teacher"
+            iframeUnlocked={iframeUnlocked}
             onAddStroke={addStroke}
           />
           <TeacherControlDock
@@ -518,6 +521,8 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             onPrevSlide={handlePrevSlide}
             onNextSlide={handleNextSlide}
             onClearCanvas={handleClearCanvas}
+            iframeUnlocked={iframeUnlocked}
+            onToggleIframeUnlock={setIframeUnlocked}
           />
         </div>
 

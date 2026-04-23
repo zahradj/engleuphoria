@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Layout, Globe, PenTool, Pencil, Eraser, MousePointer2, Hand, Trash2, ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { Layout, Globe, PenTool, Pencil, Eraser, MousePointer2, Hand, Trash2, ChevronLeft, ChevronRight, Check, Unlock } from 'lucide-react';
 import { StageMode } from '@/services/whiteboardService';
 
 const PEN_COLORS = ['#FF3B30', '#007AFF', '#34C759', '#FF9500', '#AF52DE', '#000000'];
@@ -27,6 +28,9 @@ interface TeacherControlDockProps {
   onNextSlide: () => void;
 
   onClearCanvas: () => void;
+
+  iframeUnlocked: boolean;
+  onToggleIframeUnlock: (unlocked: boolean) => void;
 }
 
 /**
@@ -49,6 +53,8 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
   onPrevSlide,
   onNextSlide,
   onClearCanvas,
+  iframeUnlocked,
+  onToggleIframeUnlock,
 }) => {
   const [urlDraft, setUrlDraft] = useState(embeddedUrl ?? '');
 
@@ -82,6 +88,22 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
             <Button size="icon" variant="ghost" className="h-8 w-8" onClick={submitUrl} title="Load URL">
               <Check className="h-4 w-4" />
             </Button>
+          </div>
+        )}
+
+        {/* Independent Play toggle — only when web mode */}
+        {mode === 'web' && (
+          <div className="flex items-center gap-2 pr-2 border-r border-border">
+            <Unlock className={`h-3.5 w-3.5 ${iframeUnlocked ? 'text-primary' : 'text-muted-foreground'}`} />
+            <label className="text-xs text-foreground select-none cursor-pointer" htmlFor="iframe-unlock-toggle">
+              Unlock Student Interaction
+            </label>
+            <Switch
+              id="iframe-unlock-toggle"
+              checked={iframeUnlocked}
+              onCheckedChange={onToggleIframeUnlock}
+              aria-label="Unlock student interaction with embedded web page"
+            />
           </div>
         )}
 

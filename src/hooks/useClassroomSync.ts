@@ -86,6 +86,9 @@ interface UseClassroomSyncReturn {
   setDrawingEnabled: (enabled: boolean) => Promise<void>;
   applyRemoteStageMode: (mode: StageMode) => void;
   applyRemoteDrawingEnabled: (enabled: boolean) => void;
+  iframeUnlocked: boolean;
+  setIframeUnlocked: (unlocked: boolean) => Promise<void>;
+  applyRemoteIframeUnlocked: (unlocked: boolean) => void;
 }
 
 export const useClassroomSync = ({
@@ -100,6 +103,7 @@ export const useClassroomSync = ({
   const [isConnected, setIsConnected] = useState(false);
   const [stageMode, setStageModeState] = useState<StageMode>('slide');
   const [drawingEnabled, setDrawingEnabledState] = useState<boolean>(false);
+  const [iframeUnlocked, setIframeUnlockedState] = useState<boolean>(false);
   const cleanupRef = useRef<(() => void) | null>(null);
   const strokeCleanupRef = useRef<(() => void) | null>(null);
 
@@ -185,6 +189,14 @@ export const useClassroomSync = ({
   // Teacher: broadcast stage mode and drawing toggle
   const setStageMode = useCallback(async (mode: StageMode) => {
     setStageModeState(mode);
+    // Defensive: leaving 'web' mode auto-locks the iframe again.
+    if (mode !== 'web') {
+      setIframeUnlockedState(false);
+      if (role === 'teacher') {
+        try { await whiteboardService.sendIframeLockState(roomId, false, userId); }
+        catch (error) { console.error('Failed to reset iframe lock:', error); }
+      }
+    }
     if (role !== 'teacher') return;
     try { await whiteboardService.sendStageMode(roomId, mode, userId); }
     catch (error) { console.error('Failed to send stage mode:', error); }
@@ -195,6 +207,17 @@ export const useClassroomSync = ({
     if (role !== 'teacher') return;
     try { await whiteboardService.sendDrawingEnabled(roomId, enabled, userId); }
     catch (error) { console.error('Failed to send drawing enabled:', error); }
+  }, [roomId, role, userId]);
+
+  const applyRemoteIframeUnlocked = useCallback((unlocked: boolean) => {
+    setIframeUnlockedState(unlocked);
+  }, []);
+
+  const setIframeUnlocked = useCallback(async (unlocked: boolean) => {
+    setIframeUnlockedState(unlocked);
+    if (role !== 'teacher') return;
+    try { await whiteboardService.sendIframeLockState(roomId, unlocked, userId); }
+    catch (error) { console.error('Failed to send iframe lock state:', error); }
   }, [roomId, role, userId]);
 
   // Teacher actions
@@ -357,6 +380,9 @@ export const useClassroomSync = ({
     setStageMode,
     setDrawingEnabled,
     applyRemoteStageMode,
-    applyRemoteDrawingEnabled
+    applyRemoteDrawingEnabled,
+    iframeUnlocked,
+    setIframeUnlocked,
+    applyRemoteIframeUnlocked
   };
 };
