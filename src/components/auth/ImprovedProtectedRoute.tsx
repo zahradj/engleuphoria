@@ -132,6 +132,18 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
 
   // Check student level if required (for student-specific routes)
   if (requiredStudentLevel && userRole === 'student') {
+    if (studentLoading && !studentLevel) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
+            <p className="text-foreground text-lg font-medium">Loading your dashboard...</p>
+            <p className="text-muted-foreground text-sm mt-2">Confirming your hub access</p>
+          </div>
+        </div>
+      );
+    }
+
     if (studentLevel !== requiredStudentLevel) {
       // Redirect to the smart dashboard router which will handle proper routing
       return <Navigate to="/dashboard" replace />;
