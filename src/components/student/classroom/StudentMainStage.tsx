@@ -107,6 +107,14 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
   const canDrawOnSlides = studentCanDraw;
   const canDrawOnWeb = studentCanDraw;
 
+  // Receive teacher's web-content scroll position
+  const { wrapperRef: webWrapperRef, onScroll: webOnScroll } = useWebScrollSync({
+    roomId,
+    userId,
+    role: 'student',
+    enabled: !!embeddedUrl && activeCanvasTab === 'web',
+  });
+
   // Show screen share if teacher is sharing
   if (isScreenSharing) {
     return (
@@ -240,22 +248,32 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
         {activeCanvasTab === 'web' && (
           <div className="relative w-full max-w-5xl aspect-[16/9] bg-white rounded-xl shadow-2xl overflow-hidden">
             {embeddedUrl ? (
-              <>
+              <div
+                ref={webWrapperRef}
+                onScroll={webOnScroll}
+                className="absolute inset-0 overflow-y-auto overflow-x-hidden"
+              >
+                {/* scrolling="no" + tall fixed height makes the WRAPPER scroll, which we sync */}
                 <iframe
                   src={getEmbedUrl(embeddedUrl)}
-                  className="w-full h-full border-0"
+                  scrolling="no"
+                  style={{ width: '100%', height: '3000px', border: 0, display: 'block', pointerEvents: 'none' }}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
                   sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
                 />
-                {/* Always render canvas overlay so teacher's strokes appear; only intercept pointer when student is drawing */}
-                <CollaborativeCanvas
-                  roomId={roomId} userId={userId} userName={userName} role="student"
-                  canDraw={canDrawOnWeb && studentTool !== 'pointer'}
-                  activeTool={studentTool === 'pointer' ? 'pen' : studentTool}
-                  activeColor={studentColor} strokes={strokes} onAddStroke={onAddStroke}
-                />
-              </>
+                {/* Drawing canvas pinned to the visible viewport */}
+                <div className="sticky top-0 left-0 w-full h-0 z-20 pointer-events-none">
+                  <div className="absolute top-0 left-0 w-full h-full pointer-events-auto" style={{ height: '100%' }}>
+                    <CollaborativeCanvas
+                      roomId={roomId} userId={userId} userName={userName} role="student"
+                      canDraw={canDrawOnWeb && studentTool !== 'pointer'}
+                      activeTool={studentTool === 'pointer' ? 'pen' : studentTool}
+                      activeColor={studentColor} strokes={strokes} onAddStroke={onAddStroke}
+                    />
+                  </div>
+                </div>
+              </div>
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400">
                 <div className="text-center">
