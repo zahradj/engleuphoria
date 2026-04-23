@@ -30,6 +30,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { convertAISlidesToCanvasSlides, AISlideSchema } from '../utils/convertAISlideSchema';
+import { handleAIResponse, showAIErrorToast } from '@/lib/aiErrorHandler';
 
 /** Context injected from the curriculum selection to pre-fill the Wizard */
 export interface WizardLessonContext {
