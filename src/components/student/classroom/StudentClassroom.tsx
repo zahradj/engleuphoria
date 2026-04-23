@@ -224,7 +224,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
           Room: {roomId} | WebRTC: {webrtcRoom}
         </div>
       )}
-      {/* Star Celebration Overlay */}
+      {/* Star Celebration Overlay (DB-backed) */}
       <StarCelebration
         isVisible={showStarCelebration}
         starCount={starCount}
@@ -232,6 +232,55 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
         isMilestone={isMilestone}
         onComplete={() => {}}
       />
+
+      {/* Star Celebration Overlay (instant broadcast) */}
+      {liveStar && (
+        <StarCelebration
+          key={liveStar.key}
+          isVisible={true}
+          starCount={liveStar.count}
+          studentName={studentName}
+          isMilestone={liveStar.isMilestone}
+          onComplete={() => setLiveStar(null)}
+        />
+      )}
+
+      {/* Sticker Overlay (instant broadcast) */}
+      <AnimatePresence>
+        {liveSticker && (
+          <motion.div
+            key={liveSticker.key}
+            initial={{ opacity: 0, scale: 0.2, y: 80 }}
+            animate={{ opacity: 1, scale: 1.2, y: 0 }}
+            exit={{ opacity: 0, scale: 0.5, y: -40 }}
+            transition={{ type: 'spring', stiffness: 220 }}
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] pointer-events-none text-[180px] drop-shadow-2xl"
+          >
+            {liveSticker.emoji}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Dice Overlay (instant broadcast) */}
+      <AnimatePresence>
+        {liveDice && (
+          <motion.div
+            key={liveDice.key}
+            initial={{ opacity: 0, scale: 0, rotate: -180 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            exit={{ opacity: 0, scale: 0 }}
+            transition={{ type: 'spring', stiffness: 200 }}
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] pointer-events-none"
+          >
+            <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-3xl p-8 shadow-[0_0_50px_rgba(168,85,247,0.5)]">
+              <div className="flex flex-col items-center gap-4">
+                <Dice6 className="w-12 h-12 text-white" />
+                <div className="text-7xl font-bold text-white">{liveDice.value}</div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Timer Overlay */}
       <AnimatePresence>
