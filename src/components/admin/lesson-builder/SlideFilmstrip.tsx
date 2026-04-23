@@ -9,6 +9,7 @@ import { Slide, CanvasElementType } from './types';
 import { SlidePhase, PHASE_COLORS } from '@/services/slideSkeletonEngine';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { InsertAISlideButton } from './InsertAISlideButton';
 
 interface SlideFilmstripProps {
   slides: Slide[];
@@ -19,6 +20,10 @@ interface SlideFilmstripProps {
   onReorderSlides?: (startIndex: number, endIndex: number) => void;
   onImageUploaded?: (slideId: string, imageUrl: string) => void;
   onAddElement?: (type: CanvasElementType) => void;
+  onInsertSlide?: (index: number, slide: Slide) => void;
+  hub?: string;
+  topic?: string;
+  canEdit?: boolean;
 }
 
 const ELEMENTS: { type: CanvasElementType; icon: React.ElementType; label: string }[] = [
@@ -45,6 +50,10 @@ export const SlideFilmstrip: React.FC<SlideFilmstripProps> = ({
   onReorderSlides,
   onImageUploaded,
   onAddElement,
+  onInsertSlide,
+  hub = 'playground',
+  topic = '',
+  canEdit = true,
 }) => {
   const { toast } = useToast();
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -88,6 +97,17 @@ export const SlideFilmstrip: React.FC<SlideFilmstripProps> = ({
                 className="p-1 space-y-1"
               >
                 {slides.map((slide, index) => (
+                  <React.Fragment key={slide.id}>
+                    {/* Insert AI Slide button between slides */}
+                    {canEdit && onInsertSlide && index > 0 && (
+                      <InsertAISlideButton
+                        index={index}
+                        hub={hub}
+                        topic={topic}
+                        previousSlide={slides[index - 1]}
+                        onInsertSlide={onInsertSlide}
+                      />
+                    )}
                   <Draggable key={slide.id} draggableId={slide.id} index={index}>
                     {(provided, snapshot) => (
                       <div
@@ -161,7 +181,18 @@ export const SlideFilmstrip: React.FC<SlideFilmstripProps> = ({
                       </div>
                     )}
                   </Draggable>
+                  </React.Fragment>
                 ))}
+                {/* Trailing Insert AI button */}
+                {canEdit && onInsertSlide && slides.length > 0 && (
+                  <InsertAISlideButton
+                    index={slides.length}
+                    hub={hub}
+                    topic={topic}
+                    previousSlide={slides[slides.length - 1]}
+                    onInsertSlide={onInsertSlide}
+                  />
+                )}
                 {provided.placeholder}
               </div>
             )}

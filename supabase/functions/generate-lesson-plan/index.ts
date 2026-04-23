@@ -19,9 +19,9 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { hub, topic, targetGrammar, targetVocabulary } = body;
+    const { hub, topic, targetGrammar, targetVocabulary, mode, previousSlideContent, prompt: userInjectPrompt, studentAge } = body;
 
-    // Validate inputs
+    // Validate hub
     const validHubs = ["playground", "academy", "success"];
     if (!hub || !validHubs.includes(hub)) {
       return new Response(
@@ -29,77 +29,131 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
       );
     }
-    if (!topic || typeof topic !== "string" || topic.trim().length === 0) {
+
+    // For full_deck mode, topic is required
+    const generationMode = mode || "full_deck";
+    if (generationMode === "full_deck" && (!topic || typeof topic !== "string" || topic.trim().length === 0)) {
       return new Response(
-        JSON.stringify({ error: "Topic is required" }),
+        JSON.stringify({ error: "Topic is required for full deck generation" }),
         { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
       );
     }
-    if (topic.length > 500 || (targetGrammar && targetGrammar.length > 500) || (targetVocabulary && targetVocabulary.length > 500)) {
+
+    if ((topic && topic.length > 500) || (targetGrammar && targetGrammar.length > 500) || (targetVocabulary && targetVocabulary.length > 500)) {
       return new Response(
         JSON.stringify({ error: "Input fields must be under 500 characters" }),
         { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
       );
     }
 
-    // Build hub-specific context
+    // Hub-specific context
     let hubContext = "";
     let duration = 60;
     switch (hub) {
       case "playground":
         duration = 30;
-        hubContext = `Hub: The Playground (Kids ages 5-11). Duration: EXACTLY 30 minutes. 
+        hubContext = `Hub: The Playground (Kids ages 5-11). Duration: EXACTLY 30 minutes.
 Tone: HIGH-ENERGY, gamified, colorful, fun characters. Use simple vocabulary, short sentences, lots of repetition. Phonics focus is critical.
-Video Song Channels: Super Simple Songs, Cocomelon, Maple Leaf Learning, Pinkfong, English Singsing.`;
+Video Song Channels: Super Simple Songs, Cocomelon, Maple Leaf Learning, Pinkfong, English Singsing.
+Hub Colors: Primary #FE6A2F (Orange), Accent #FEFBDD (Yellow).`;
         break;
       case "academy":
         duration = 60;
         hubContext = `Hub: The Academy (Teens ages 12-17). Duration: EXACTLY 60 minutes.
 Tone: Grammar-focused deep learning with engaging teen-relevant contexts. Challenge critical thinking. Balance accuracy and fluency.
-Video Song Channels: BBC Learning English, English with Lucy, mmmEnglish, Learn English with TV Series.`;
+Video Channels: BBC Learning English, English with Lucy, mmmEnglish, Learn English with TV Series.
+Hub Colors: Primary #6B21A8 (Purple), Accent #F5F3FF (Lavender).`;
         break;
       case "success":
         duration = 60;
         hubContext = `Hub: The Success Hub (Professional Adults 18+). Duration: EXACTLY 60 minutes.
 Tone: Professional coaching, business English, career-focused. Include role-play scenarios. Focus on professional vocabulary, idiomatic expressions, formal/informal register.
-Video Song Channels: BBC Learning English, Business English Pod, English with Lucy, TED-Ed.`;
+Video Channels: BBC Learning English, Business English Pod, English with Lucy, TED-Ed.
+Hub Colors: Primary #059669 (Emerald Green), Accent #F0FDFA (Mint).`;
         break;
     }
 
-    const systemPrompt = `You are the Engleuphoria Curriculum AI — a Master ESL Curriculum Architect. You must return a valid JSON object. Do not use markdown code blocks or any text outside the JSON.
+    let systemPrompt: string;
+    let userPrompt: string;
+
+    if (generationMode === "single_slide") {
+      // ─── SINGLE SLIDE INJECTION MODE ───
+      systemPrompt = `You are the Engleuphoria Master Curriculum Designer. Generate a SINGLE slide for an ESL lesson.
+
+${hubContext}
+
+You must output ONLY a valid JSON object (not an array) with this exact schema:
+{
+  "slide_type": "title | video_song | vocabulary_image | grammar_presentation | interactive_practice",
+  "headline": "The main large text for the slide",
+  "body_text": "Secondary text or instructions",
+  "video_url": "A real YouTube search URL if this is a video slide, otherwise null",
+  "visual_search_keyword": "A specific 1-2 word keyword for fetching an educational illustration (e.g. 'classroom', 'airport_luggage', 'happy_student')",
+  "teacher_notes": "Hidden scaffolding notes, CCQs, step-up/step-down instructions"
+}
+
+RULES:
+- If asked for a quiz, use slide_type "interactive_practice" and put the questions in body_text as numbered items with options (A, B, C, D) and mark correct answers.
+- For video slides, use https://www.youtube.com/results?search_query=ENCODED_TERMS format.
+- The visual_search_keyword must be highly specific and relevant for finding educational imagery.
+- teacher_notes MUST include scaffolding (step-up for fast finishers, step-down for struggling students).`;
+
+      const prevContext = previousSlideContent ? `\nContext from the previous slide: ${JSON.stringify(previousSlideContent)}` : "";
+      userPrompt = `${userInjectPrompt || "Create an engaging slide for this lesson."}${prevContext}\nHub: ${hub}, Topic: ${topic || "General English"}`;
+
+    } else {
+      // ─── FULL DECK MODE ───
+      systemPrompt = `You are the Engleuphoria Master Curriculum Designer. Create a world-class, 7-to-10 slide ESL lesson deck.
+Output ONLY a valid JSON object (no markdown, no code blocks).
 
 ${hubContext}
 
 CRITICAL RULES:
-1. Generate a world-class, minute-by-minute lesson plan based on the PPP method (Presentation, Practice, Production).
-2. Strictly follow the duration: ${duration} minutes total.
-3. For the video_url field, you MUST generate a real, accurate YouTube search URL for a highly popular ESL video song or animated story that matches the lesson topic. Use the format: https://www.youtube.com/results?search_query=ENCODED_SEARCH_TERMS. Rely on famous channels like Super Simple Songs, Cocomelon, English Singsing, BBC Learning English, or Maple Leaf Learning to ensure relevance.
-4. The "practice" field MUST include BOTH a "Step-Down" method (if the student is struggling) AND a "Step-Up" extension (if the student finishes early). This scaffolding is CRITICAL.
-5. Include Concept Check Questions (CCQs) in the practice section.
-6. Include specific teacher scripts and interactive whiteboard activity descriptions.
+1. Follow PPP methodology (Presentation, Practice, Production) strictly.
+2. Duration: ${duration} minutes total.
+3. For video_url fields, provide real YouTube search URLs: https://www.youtube.com/results?search_query=ENCODED_TERMS. Use famous ESL channels.
+4. Every slide MUST have a visual_search_keyword — a highly specific 1-2 word keyword for fetching educational illustrations.
+5. Practice slides MUST include BOTH Step-Down (struggling students) AND Step-Up (fast finishers) scaffolding.
+6. Include Concept Check Questions (CCQs) in teacher_notes.
+7. Include specific teacher scripts and interactive whiteboard activity descriptions.
 
-You MUST return ONLY a valid JSON object with this exact schema:
+You MUST return this exact JSON schema:
 {
-  "lesson_title": "string - A creative, engaging lesson title",
-  "target_grammar": "string - The primary grammar/structure focus",
-  "target_vocabulary": "string - Key vocabulary items (comma-separated)",
-  "video_url": "string - YouTube search URL for a relevant ESL video",
-  "video_search_title": "string - The exact search title the teacher should use to find the video",
-  "warm_up": "string - Detailed warm-up activity (3-5 mins) including the video song integration with specific timestamps and interaction prompts",
-  "presentation": "string - Detailed Presentation phase with teacher scripts, flashcard/whiteboard activities, and comprehension checks (${hub === 'playground' ? '7' : '15'} mins)",
-  "practice": "string - Detailed Practice phase with controlled & semi-controlled activities, CCQs, interactive games, STEP-DOWN scaffolding for struggling students, and STEP-UP extensions for fast finishers (${hub === 'playground' ? '10' : '25'} mins)",
-  "production": "string - Detailed Production phase with free practice, real-world application tasks, and student-led activities (${hub === 'playground' ? '7' : '12'} mins)",
-  "homework": "string - A specific post-lesson review task for the student dashboard",
-  "teacher_notes": "string - Differentiation strategies, common errors to watch for, and extension activities"
-}`;
+  "lesson_title": "A creative, engaging lesson title",
+  "target_grammar": "The primary grammar/structure focus",
+  "target_vocabulary": "Key vocabulary items (comma-separated)",
+  "slides": [
+    {
+      "slide_type": "title | video_song | vocabulary_image | grammar_presentation | interactive_practice",
+      "headline": "The main large text for the slide",
+      "body_text": "Secondary text or detailed instructions",
+      "video_url": "YouTube search URL or null",
+      "visual_search_keyword": "Specific 1-2 word keyword for image search",
+      "teacher_notes": "Hidden scaffolding, CCQs, step-up/step-down"
+    }
+  ]
+}
 
-    const userPrompt = `Create a lesson plan for the topic: "${topic.trim()}"${
-      targetGrammar ? `\nTarget Grammar/Structure: ${targetGrammar.trim()}` : ""
-    }${
-      targetVocabulary ? `\nTarget Vocabulary: ${targetVocabulary.trim()}` : ""
-    }`;
+SLIDE SEQUENCE RULES:
+- Slide 1: Always "title" type — lesson title, objectives, and key vocabulary preview.
+- Slide 2: Always "video_song" type — an engaging warm-up video from a popular ESL channel.
+- Slides 3-4: "vocabulary_image" type — introduce target vocabulary with visual associations.
+- Slides 5-6: "grammar_presentation" type — present the target grammar with clear examples and rules.
+- Slides 7-8: "interactive_practice" type — controlled and semi-controlled practice activities.
+- Slide 9: "interactive_practice" type — production/free practice activity.
+- Slide 10 (optional): "title" type — lesson summary and homework assignment.`;
 
-    // Call Gemini API with JSON response format
+      userPrompt = `Create a complete lesson deck for:
+Topic: "${topic.trim()}"${
+        targetGrammar ? `\nTarget Grammar/Structure: ${targetGrammar.trim()}` : ""
+      }${
+        targetVocabulary ? `\nTarget Vocabulary: ${targetVocabulary.trim()}` : ""
+      }${
+        studentAge ? `\nStudent Age/Level: ${studentAge}` : ""
+      }`;
+    }
+
+    // Call Gemini API
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
     const geminiResponse = await fetch(geminiUrl, {
@@ -120,16 +174,15 @@ You MUST return ONLY a valid JSON object with this exact schema:
     if (!geminiResponse.ok) {
       const errText = await geminiResponse.text();
       console.error("Gemini API error:", geminiResponse.status, errText);
-      const status = geminiResponse.status === 429 ? 429 : 500;
+      const status = geminiResponse.status === 429 ? 429 : geminiResponse.status === 402 ? 402 : 500;
       return new Response(
-        JSON.stringify({ error: status === 429 ? "Rate limited. Please wait and try again." : "AI generation failed" }),
+        JSON.stringify({ error: status === 429 ? "Rate limited. Please wait and try again." : status === 402 ? "Payment required." : "AI generation failed" }),
         { status, headers: { ...CORS, "Content-Type": "application/json" } }
       );
     }
 
     const geminiData = await geminiResponse.json();
-    const rawText =
-      geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     if (!rawText) {
       return new Response(
@@ -138,52 +191,47 @@ You MUST return ONLY a valid JSON object with this exact schema:
       );
     }
 
-    // Parse the JSON response
-    let lessonData;
+    let parsedData;
     try {
-      lessonData = JSON.parse(rawText);
+      parsedData = JSON.parse(rawText);
     } catch (parseErr) {
       console.error("Failed to parse Gemini JSON:", parseErr, rawText);
-      // Fallback: return raw text as markdown
       return new Response(
-        JSON.stringify({ lessonPlan: rawText, lessonData: null, hub, topic: topic.trim() }),
+        JSON.stringify({ error: "AI returned invalid JSON", raw: rawText }),
+        { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (generationMode === "single_slide") {
+      return new Response(
+        JSON.stringify({ slide: parsedData, hub, mode: "single_slide" }),
         { status: 200, headers: { ...CORS, "Content-Type": "application/json" } }
       );
     }
 
-    // Build a formatted Markdown version from the structured data
-    const lessonPlan = `# ${lessonData.lesson_title || topic.trim()}
+    // Full deck response — also build a legacy markdown version for backward compat
+    const lessonPlan = `# ${parsedData.lesson_title || topic.trim()}
 
 ## 📋 Target Summary
-- **Grammar:** ${lessonData.target_grammar || 'N/A'}
-- **Vocabulary:** ${lessonData.target_vocabulary || 'N/A'}
+- **Grammar:** ${parsedData.target_grammar || 'N/A'}
+- **Vocabulary:** ${parsedData.target_vocabulary || 'N/A'}
 - **Duration:** ${duration} minutes
 - **Hub:** ${hub.charAt(0).toUpperCase() + hub.slice(1)}
 
-## 🎵 Video Song Integration
-🔗 [Search Video](${lessonData.video_url || '#'})
-**Search Title:** ${lessonData.video_search_title || 'N/A'}
-
-## 🎯 Warm-Up (${hub === 'playground' ? '3-5' : '5'} mins)
-${lessonData.warm_up || ''}
-
-## 📖 Presentation Phase (${hub === 'playground' ? '7' : '15'} mins)
-${lessonData.presentation || ''}
-
-## 💪 Practice Phase (${hub === 'playground' ? '10' : '25'} mins)
-${lessonData.practice || ''}
-
-## 🚀 Production Phase (${hub === 'playground' ? '7' : '12'} mins)
-${lessonData.production || ''}
-
-## 📝 Homework / Review Task
-${lessonData.homework || ''}
-
-## 👩‍🏫 Teacher Notes
-${lessonData.teacher_notes || ''}`;
+${(parsedData.slides || []).map((s: any, i: number) => `### Slide ${i + 1}: ${s.headline}\n${s.body_text}\n\n*Teacher Notes: ${s.teacher_notes}*`).join('\n\n')}`;
 
     return new Response(
-      JSON.stringify({ lessonPlan, lessonData, hub, topic: topic.trim() }),
+      JSON.stringify({
+        lessonPlan,
+        lessonData: parsedData,
+        slides: parsedData.slides || [],
+        lesson_title: parsedData.lesson_title,
+        target_grammar: parsedData.target_grammar,
+        target_vocabulary: parsedData.target_vocabulary,
+        hub,
+        topic: topic?.trim(),
+        mode: "full_deck",
+      }),
       { status: 200, headers: { ...CORS, "Content-Type": "application/json" } }
     );
   } catch (err) {

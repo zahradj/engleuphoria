@@ -11,6 +11,7 @@ import { LessonPreviewDialog } from './LessonPreviewDialog';
 import { LessonBlueprint } from './LessonBlueprint';
 import { Slide, LessonDeck, CanvasElementData, CanvasElementType } from './types';
 import { AILessonWizard } from './ai-wizard';
+import { AISlideGeneratorPanel } from './AISlideGeneratorPanel';
 import type { WizardLessonContext } from './ai-wizard';
 import { GeneratedSlide, HubType } from './ai-wizard/types';
 import { resolveHub } from './ai-wizard/hubConfig';
@@ -49,12 +50,14 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
   const [showPreview, setShowPreview] = useState(false);
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
   const [filmstripCollapsed, setFilmstripCollapsed] = useState(false);
+  const [aiPanelCollapsed, setAiPanelCollapsed] = useState(false);
   const [rawGeneratedSlides, setRawGeneratedSlides] = useState<GeneratedSlide[]>([]);
   const [currentHub, setCurrentHub] = useState<HubType>('playground');
   const [wizardContext, setWizardContext] = useState<WizardLessonContext | null>(null);
   const canvasRef = React.useRef<HTMLDivElement>(null);
 
   const [lessonTitle, setLessonTitle] = useState('Untitled Lesson');
+  const [lessonTopic, setLessonTopic] = useState('');
   const [level, setLevel] = useState('A1');
   const [ageGroup, setAgeGroup] = useState('6-8');
 
@@ -242,6 +245,23 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
     toast({ title: 'Lesson Generated!', description: `Created ${generatedSlides.length} slides.` });
   }, [toast]);
 
+  const handleMagicDeckGenerated = useCallback((generatedSlides: Slide[], title: string) => {
+    setSlides(generatedSlides);
+    setLessonTitle(title);
+    setLessonTopic(title);
+    setSelectedSlideId(generatedSlides[0]?.id || null);
+    toast({ title: '✨ Magic Deck Generated!', description: `Created ${generatedSlides.length} slides.` });
+  }, [toast]);
+
+  const handleInsertSlide = useCallback((index: number, newSlide: Slide) => {
+    setSlides(prev => {
+      const updated = [...prev];
+      updated.splice(index, 0, newSlide);
+      return updated.map((s, i) => ({ ...s, order: i }));
+    });
+    setSelectedSlideId(newSlide.id);
+  }, []);
+
   return (
     <div className="h-full flex flex-col bg-background" style={{ minHeight: 'calc(100vh - 4rem)' }}>
       {/* ─── Top Action Bar ─── */}
@@ -353,6 +373,15 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
 
       {/* ─── Main Content ─── */}
       <div className="flex-1 flex min-h-0">
+        {/* Far Left: AI Slide Generator Panel — only for editors */}
+        {canEdit && (
+          <AISlideGeneratorPanel
+            onSlidesGenerated={handleMagicDeckGenerated}
+            isCollapsed={aiPanelCollapsed}
+            onToggleCollapse={() => setAiPanelCollapsed(!aiPanelCollapsed)}
+          />
+        )}
+
         {/* Left: Collapsible Filmstrip with merged element toolbar */}
         <div className="flex shrink-0 h-full">
           {filmstripCollapsed ? (
@@ -388,6 +417,10 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
                 onReorderSlides={canEdit ? handleReorderSlides : undefined}
                 onImageUploaded={canEdit ? handleImageUploaded : undefined}
                 onAddElement={canEdit ? handleAddElement : undefined}
+                onInsertSlide={canEdit ? handleInsertSlide : undefined}
+                hub={currentHub}
+                topic={lessonTopic || lessonTitle}
+                canEdit={canEdit}
               />
             </div>
           )}
