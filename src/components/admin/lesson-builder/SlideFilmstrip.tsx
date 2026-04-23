@@ -97,6 +97,17 @@ export const SlideFilmstrip: React.FC<SlideFilmstripProps> = ({
                 className="p-1 space-y-1"
               >
                 {slides.map((slide, index) => (
+                  <React.Fragment key={slide.id}>
+                    {/* Insert AI Slide button between slides */}
+                    {canEdit && onInsertSlide && index > 0 && (
+                      <InsertAISlideButton
+                        index={index}
+                        hub={hub}
+                        topic={topic}
+                        previousSlide={slides[index - 1]}
+                        onInsertSlide={onInsertSlide}
+                      />
+                    )}
                   <Draggable key={slide.id} draggableId={slide.id} index={index}>
                     {(provided, snapshot) => (
                       <div
