@@ -8,6 +8,7 @@ interface CanvasEditorProps {
   slide: Slide | null;
   onUpdateSlide: (updates: Partial<Slide>) => void;
   onAddElement?: (type: CanvasElementType) => void;
+  readOnly?: boolean;
 }
 
 const CANVAS_W = 1920;
