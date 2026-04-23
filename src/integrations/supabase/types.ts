@@ -7414,6 +7414,7 @@ export type Database = {
       }
       student_profiles: {
         Row: {
+          age: number | null
           cefr_level: string
           created_at: string
           current_streak: number | null
@@ -7461,6 +7462,7 @@ export type Database = {
           words_learned_today: number | null
         }
         Insert: {
+          age?: number | null
           cefr_level?: string
           created_at?: string
           current_streak?: number | null
@@ -7508,6 +7510,7 @@ export type Database = {
           words_learned_today?: number | null
         }
         Update: {
+          age?: number | null
           cefr_level?: string
           created_at?: string
           current_streak?: number | null
