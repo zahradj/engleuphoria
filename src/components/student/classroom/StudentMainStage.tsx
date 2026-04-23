@@ -8,6 +8,7 @@ import { StudentPollView } from './StudentPollView';
 import { WhiteboardStroke } from '@/services/whiteboardService';
 import { TargetWordsOverlay } from '@/components/classroom/TargetWordsOverlay';
 import { SmartSummaryTip } from '@/components/classroom/SmartSummaryTip';
+import { useWebScrollSync } from '@/hooks/useWebScrollSync';
 import { Eye, PenLine, Monitor, Layout, PenTool, Globe, Pencil, Eraser, MousePointer2 } from 'lucide-react';
 
 const STUDENT_COLORS = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#AA96DA', '#2D4059', '#000000'];
