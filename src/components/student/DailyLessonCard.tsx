@@ -75,6 +75,12 @@ export const DailyLessonCard: React.FC<DailyLessonCardProps> = ({
 }) => {
   const [isVocabOpen, setIsVocabOpen] = useState(false);
   const style = levelStyles[studentLevel];
+  const vocabulary = Array.isArray(lesson?.vocabulary) ? lesson.vocabulary : [];
+  const quest = lesson?.quest ?? {
+    title: 'Conversation Challenge',
+    description: 'Use your new vocabulary in a short speaking task.',
+    type: 'dialogue' as const,
+  };
 
   return (
     <motion.div
@@ -110,7 +116,7 @@ export const DailyLessonCard: React.FC<DailyLessonCardProps> = ({
             }`}
           >
             <span className={`font-medium ${style.isDark ? 'text-white' : 'text-gray-900'}`}>
-              📚 {lesson.vocabulary.length} New Words
+              📚 {vocabulary.length} New Words
             </span>
             {isVocabOpen ? (
               <ChevronUp className={`w-5 h-5 ${style.isDark ? 'text-gray-400' : 'text-gray-500'}`} />
@@ -128,7 +134,7 @@ export const DailyLessonCard: React.FC<DailyLessonCardProps> = ({
               exit={{ opacity: 0, height: 0 }}
               className="space-y-2 mt-2"
             >
-              {lesson.vocabulary.map((word, index) => (
+              {vocabulary.map((word, index) => (
                 <motion.div
                   key={word.word}
                   initial={{ opacity: 0, x: -10 }}
@@ -167,13 +173,13 @@ export const DailyLessonCard: React.FC<DailyLessonCardProps> = ({
       {/* Quest Card */}
       <div className={`p-4 rounded-xl text-white ${style.questBg}`}>
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-2xl">{questIcons[lesson.quest.type]}</span>
+          <span className="text-2xl">{questIcons[quest.type]}</span>
           <div>
             <p className="text-xs text-white/80">Today's Quest</p>
-            <h3 className="font-bold">{lesson.quest.title}</h3>
+            <h3 className="font-bold">{quest.title}</h3>
           </div>
         </div>
-        <p className="text-sm text-white/90 mb-3">{lesson.quest.description}</p>
+        <p className="text-sm text-white/90 mb-3">{quest.description}</p>
         
         <Button
           onClick={onStartQuest}
