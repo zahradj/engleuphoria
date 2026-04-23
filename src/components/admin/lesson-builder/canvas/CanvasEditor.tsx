@@ -29,7 +29,7 @@ const DEFAULT_SIZES: Record<CanvasElementType, { w: number; h: number }> = {
   character: { w: 250, h: 300 },
 };
 
-export const CanvasEditor: React.FC<CanvasEditorProps> = ({ slide, onUpdateSlide }) => {
+export const CanvasEditor: React.FC<CanvasEditorProps> = ({ slide, onUpdateSlide, readOnly }) => {
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [scale, setScale] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
