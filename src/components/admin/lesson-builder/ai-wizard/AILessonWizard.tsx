@@ -281,7 +281,18 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated, lessonCo
       });
 
       if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      // Graceful overload response from edge function — show glass warning toast, stop spinner
+      if (data?.error === true && data?.message) {
+        toast({
+          title: '⚠️ AI Engine Overloaded',
+          description: data.message,
+          variant: 'default',
+          className: 'backdrop-blur-xl bg-amber-500/10 border border-amber-400/40 text-amber-50 shadow-2xl shadow-amber-500/20',
+        });
+        setIsGenerating(false);
+        return;
+      }
+      if (data?.error) throw new Error(typeof data.error === 'string' ? data.error : 'Generation failed');
 
       setCurrentStep(3);
       const aiSlides: AISlideSchema[] = data?.slides || [];
