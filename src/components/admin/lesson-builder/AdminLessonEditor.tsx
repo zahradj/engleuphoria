@@ -149,6 +149,8 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
         imageUrl: s.imageUrl, videoUrl: s.videoUrl, quizQuestion: s.quizQuestion,
         quizOptions: s.quizOptions, pollQuestion: s.pollQuestion, pollOptions: s.pollOptions,
         teacherNotes: s.teacherNotes || '', keywords: s.keywords || [],
+        teacherNotesStructured: s.teacherNotesStructured,
+        pppStage: s.pppStage,
         title: s.title, canvasElements: s.canvasElements,
       }));
       setSlides(loadedSlides);
