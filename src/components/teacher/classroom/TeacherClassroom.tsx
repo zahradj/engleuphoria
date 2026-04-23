@@ -15,6 +15,7 @@ import { SlideNavigator } from "./SlideNavigator";
 import { DiceRoller } from "./DiceRoller";
 import { StarCelebration } from "./StarCelebration";
 import { EmbedLinkDialog } from "./EmbedLinkDialog";
+import { AIGameGeneratorModal } from "./AIGameGeneratorModal";
 import { FloatingCoPilot } from "@/components/classroom/FloatingCoPilot";
 import { ZenModeOverlay } from "@/components/classroom/ZenModeOverlay";
 import { PictureInPicture } from "@/components/classroom/PictureInPicture";
@@ -24,10 +25,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AnimatePresence } from "framer-motion";
+import { Wand2 } from "lucide-react";
 import { useIdleOpacity } from "@/hooks/useIdleOpacity";
 import { useClassroomTimer } from "@/hooks/classroom/useClassroomTimer";
 import { useSmartTimer } from "@/hooks/classroom/useSmartTimer";
-import { whiteboardService } from "@/services/whiteboardService";
+import { whiteboardService, type SmartWorksheet, type NativeGameType, type StageMode } from "@/services/whiteboardService";
 
 type HubType = 'playground' | 'academy' | 'professional';
 
@@ -74,6 +76,10 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   // Embed link state
   const [embedDialogOpen, setEmbedDialogOpen] = useState(false);
+
+  // AI Game Generator state
+  const [gameGeneratorOpen, setGameGeneratorOpen] = useState(false);
+  const [activeWorksheet, setActiveWorksheet] = useState<SmartWorksheet | null>(null);
 
   // Teacher instructions sidebar
   const [instructionsSidebarOpen, setInstructionsSidebarOpen] = useState(false);
