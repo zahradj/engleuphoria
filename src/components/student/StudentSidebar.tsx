@@ -130,7 +130,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton 
                       isActive={isActive}
-                      onClick={() => item.action ? item.action() : setActiveTab(item.id)}
+                      onClick={() => setActiveTab(item.id)}
                       className={`
                         relative px-4 py-3 mx-2 my-0.5 rounded-xl transition-all duration-200 font-medium border
                         ${isActive 
