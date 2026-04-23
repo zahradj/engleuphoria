@@ -321,28 +321,34 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
           </SheetContent>
         </Sheet>
 
-        {/* AI Buttons */}
-        <AIActivityGenerator
-          lessonContent={slides.map(s => s.title || '').join(' ')}
-          level={level}
-          onActivitiesGenerated={(newElements) => {
-            if (selectedSlide) {
-              handleUpdateSlide({ canvasElements: [...(selectedSlide.canvasElements || []), ...newElements] });
-            }
-          }}
-        />
+        {/* AI Buttons — only for editors */}
+        {canEdit && (
+          <>
+            <AIActivityGenerator
+              lessonContent={slides.map(s => s.title || '').join(' ')}
+              level={level}
+              onActivitiesGenerated={(newElements) => {
+                if (selectedSlide) {
+                  handleUpdateSlide({ canvasElements: [...(selectedSlide.canvasElements || []), ...newElements] });
+                }
+              }}
+            />
 
-        <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => setShowAIWizard(true)}>
-          <Wand2 className="h-3.5 w-3.5" /> AI
-        </Button>
+            <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => setShowAIWizard(true)}>
+              <Wand2 className="h-3.5 w-3.5" /> AI
+            </Button>
+          </>
+        )}
 
         <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setShowPreview(true)}>
           <Eye className="h-3.5 w-3.5" /> Preview
         </Button>
 
-        <Button size="sm" className="h-7 text-xs gap-1" onClick={handleSave} disabled={isSaving}>
-          <Save className="h-3.5 w-3.5" /> {isSaving ? '...' : 'Save'}
-        </Button>
+        {canEdit && (
+          <Button size="sm" className="h-7 text-xs gap-1" onClick={handleSave} disabled={isSaving}>
+            <Save className="h-3.5 w-3.5" /> {isSaving ? '...' : 'Save'}
+          </Button>
+        )}
       </div>
 
       {/* ─── Main Content ─── */}
