@@ -72,7 +72,6 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   // Embed link state
   const [embedDialogOpen, setEmbedDialogOpen] = useState(false);
-  const [embeddedUrl, setEmbeddedUrl] = useState<string | null>(null);
 
   // Teacher instructions sidebar
   const [instructionsSidebarOpen, setInstructionsSidebarOpen] = useState(false);
@@ -112,6 +111,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     sharedNotes,
     sessionContext,
     activeCanvasTab,
+    embeddedUrl,
     updateSlide,
     updateTool,
     setStudentCanDraw,
@@ -248,14 +248,12 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   const handleEmbedLink = useCallback(() => { setEmbedDialogOpen(true); }, []);
 
   const handleEmbed = useCallback(async (url: string) => {
-    setEmbeddedUrl(url);
     await updateSharedDisplay({ embeddedUrl: url });
     await updateCanvasTab('web');
     toast({ title: "Content Embedded", description: "External content is now visible to students", className: "bg-teal-900 border-teal-700" });
   }, [toast, updateSharedDisplay, updateCanvasTab]);
 
   const handleCloseEmbed = useCallback(async () => {
-    setEmbeddedUrl(null);
     await updateSharedDisplay({ embeddedUrl: null });
     await updateCanvasTab('slides');
   }, [updateSharedDisplay, updateCanvasTab]);
