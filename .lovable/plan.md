@@ -1,121 +1,91 @@
+## Web Content "Independent Play" Toggle — Plan
 
-
-## Unified "Main Stage" Classroom — Plan
-
-Replace the tabbed 3-panel classroom (Slides / Whiteboard / Web) with a single synchronized stage. The teacher controls *what* is shown; both teacher and student can draw on top of it; web content becomes true co-browsing.
+Give the teacher a switch to hand the student local control of an embedded web page. While unlocked, the student can scroll/click inside the iframe; the annotation overlay steps aside so clicks reach the page.
 
 ---
 
-### 1. New stage model
+### 1. New synced state: `iframeUnlocked`
 
-Introduce a single synced state `stage_mode` with three values:
+Broadcast on the existing `classroom_${roomId}` Realtime channel (no new connections).
 
-- `slide` — current lesson slide (existing slide rendering)
-- `web` — embedded URL (iframe + scroll sync)
-- `blank` — empty white whiteboard surface
+| State | Default | Direction | Event |
+|---|---|---|---|
+| `iframeUnlocked` | `false` | teacher → student | `iframe_lock_state` |
 
-Plus a synced `embeddedUrl` (already exists) and a new synced `drawingEnabled` flag (controls whether the transparent canvas captures pointer events or lets clicks pass through to the iframe/slide).
+### 2. Service layer — `src/services/whiteboardService.ts`
 
-These all live in the existing `useClassroomSync` hook, broadcast via the existing `classroom_${roomId}` Supabase Realtime channel (same channel already used for strokes + scroll).
+Mirror the existing `sendDrawingEnabled` / `subscribeToDrawingEnabled` pattern:
+- Add `IframeLockListener` type + `iframeLockListeners` set on `RoomChannel`.
+- Register `.on('broadcast', { event: 'iframe_lock_state' }, …)` inside `getRoom`.
+- Add `sendIframeLockState(roomId, isUnlocked, senderId)`.
+- Add `subscribeToIframeLockState(roomId, cb)` with ref-counted release (extend `release()` cleanup check).
 
----
+### 3. Hook — `src/hooks/useClassroomSync.ts`
 
-### 2. Component architecture
+- Add local state `iframeUnlocked`.
+- `setIframeUnlocked(unlocked)` — broadcasts when role === teacher.
+- `applyRemoteIframeUnlocked(unlocked)` — used by the centralized listener in `StudentClassroom`.
+- Auto-reset to `false` when `stageMode` changes away from `'web'`.
+- Expose all three in the return value.
 
+### 4. Teacher UI — `src/components/classroom/stage/TeacherControlDock.tsx`
+
+Add a shadcn `<Switch>` inside the dock, **only when `mode === 'web'`**, between the URL input and the tools group, labeled "Unlock Student Interaction".
+
+New props:
+- `iframeUnlocked: boolean`
+- `onToggleIframeUnlock: (unlocked: boolean) => void`
+
+### 5. Student-side rendering
+
+**`ScrollSyncedIframe.tsx`**
+- New prop `interactive?: boolean` (default `false`).
+- Iframe `pointer-events`: `interactive ? 'auto' : 'none'` (replaces the current `role === 'student' ? 'none' : 'auto'`).
+- When student is interactive, skip applying remote scroll % so they can scroll locally.
+- Teacher iframe is always interactive.
+
+**`StageContent.tsx`** — thread new `iframeUnlocked` prop down to `ScrollSyncedIframe`.
+
+**`MainStage.tsx`** — accept `iframeUnlocked`, forward to `StageContent` and `TransparentCanvas`.
+
+**`TransparentCanvas.tsx`** — extend `passThrough`:
 ```text
-<MainStage>                        ← 90% of viewport, single container
-  ├── <StageContent mode={...}>    ← swaps based on stage_mode
-  │     • slide  → SlideRenderer (current slide image/content)
-  │     • web    → ScrollSyncedIframe (wrapper + iframe, scroll synced)
-  │     • blank  → plain white background
-  │
-  └── <TransparentCanvas>          ← absolute inset-0, z-50
-        • Always mounted, on top of everything
-        • pointer-events: auto when drawingEnabled, else none
-        • Renders + broadcasts strokes for BOTH roles
-
-<TeacherControlDock>               ← floating, bottom-center, teacher only
-  • Mode buttons: [Slide] [Web] [Blank]
-  • URL input (visible when mode = web)
-  • Pen / Eraser / Color picker
-  • "Drawing ON/OFF" toggle (controls drawingEnabled)
-  • Slide nav arrows (when mode = slide)
-
-<StudentMiniDock>                  ← floating, bottom-center, student only
-  • Pen / Eraser / Color picker (local tool state)
-  • No mode controls, no URL input
-  • Drawing only enabled when teacher's drawingEnabled = true
+passThrough = !drawingEnabled || activeTool === 'pointer'
+            || (mode === 'web' && iframeUnlocked && role === 'student')
 ```
+Requires passing `mode` + `iframeUnlocked` props in.
 
-Files to **add**:
+### 6. Wiring
+
+**`StudentClassroom.tsx`** — in the existing broadcast-listener `useEffect`, add:
+```text
+whiteboardService.subscribeToIframeLockState(roomId, ({ isUnlocked }) => {
+  applyRemoteIframeUnlocked(isUnlocked);
+  if (isUnlocked) toast("You can now interact with the web page!", { duration: 2500 });
+});
+```
+Toast fires only on rising edge.
+
+**`TeacherClassroom.tsx`** — pass `iframeUnlocked` + `setIframeUnlocked` into `TeacherControlDock`; pass `iframeUnlocked` into `MainStage`.
+
+**`StudentMainStage.tsx`** — accept and forward `iframeUnlocked` into `MainStage`.
+
+### 7. Files touched
+
+- `src/services/whiteboardService.ts`
+- `src/hooks/useClassroomSync.ts`
+- `src/components/classroom/stage/TeacherControlDock.tsx`
 - `src/components/classroom/stage/MainStage.tsx`
 - `src/components/classroom/stage/StageContent.tsx`
-- `src/components/classroom/stage/TransparentCanvas.tsx`
 - `src/components/classroom/stage/ScrollSyncedIframe.tsx`
-- `src/components/classroom/stage/TeacherControlDock.tsx`
-- `src/components/classroom/stage/StudentMiniDock.tsx`
+- `src/components/classroom/stage/TransparentCanvas.tsx`
+- `src/components/teacher/classroom/TeacherClassroom.tsx`
+- `src/components/student/classroom/StudentClassroom.tsx`
+- `src/components/student/classroom/StudentMainStage.tsx`
 
-Files to **edit**:
-- `src/components/teacher/classroom/TeacherClassroom.tsx` — replace center-stage + tab logic with `<MainStage role="teacher">` + `<TeacherControlDock>`
-- `src/components/student/classroom/StudentMainStage.tsx` — replace tab logic with `<MainStage role="student">` + `<StudentMiniDock>`
-- `src/hooks/useClassroomSync.ts` — add `stageMode`, `setStageMode`, `drawingEnabled`, `setDrawingEnabled`
-- `src/services/whiteboardService.ts` — add `sendStageMode` / `subscribeToStageMode` and `sendDrawingEnabled` / `subscribeToDrawingEnabled` broadcasts (mirrors existing `sendScroll` pattern)
+### 8. UX summary
 
-Files to **remove from active use** (kept on disk but no longer rendered):
-- `CenterStage.tsx`, `EmbeddedContentViewer.tsx`, the per-tab `CollaborativeCanvas` mounts in `StudentMainStage`
-
----
-
-### 3. The Universal Annotation Overlay
-
-`<TransparentCanvas>` is mounted **once**, on top of the stage, regardless of mode:
-
-```text
-position: absolute; inset: 0; z-index: 50;
-pointer-events: drawingEnabled ? 'auto' : 'none';
-```
-
-- Strokes are sent and received via the existing `whiteboardService` (already broadcasts on `classroom_${roomId}`).
-- Both teacher and student render the same `strokes` array, so circles drawn by the teacher on a BBC article appear instantly on the student's screen overlaying the same article.
-- When the teacher toggles "Drawing OFF", `drawingEnabled` syncs to both clients → canvas becomes click-through → users can actually click links inside the iframe.
-- A "Clear" button in the teacher dock wipes strokes (existing `clearMyStrokes` extended to clear all).
-
----
-
-### 4. Web Co-Browsing Fix
-
-`<ScrollSyncedIframe>` reuses the existing `useWebScrollSync` hook + the `scrolling="no"` + tall iframe + scrollable wrapper pattern already implemented. Now it lives inside the unified stage, so the transparent canvas naturally sits on top — the teacher can switch pen on, circle a vocabulary word on the live BBC page, switch pen off, and click a link to navigate. URL changes broadcast through `updateSharedDisplay` (already exists).
-
----
-
-### 5. Realtime sync summary
-
-| State | Direction | Mechanism |
-|---|---|---|
-| `stage_mode` | teacher → student | new broadcast event `stage_mode` |
-| `embeddedUrl` | teacher → student | existing `updateSharedDisplay` |
-| `drawingEnabled` | teacher → student | new broadcast event `drawing_enabled` |
-| Pen strokes | both ↔ both | existing `whiteboardService` |
-| Scroll position (web) | teacher → student | existing `useWebScrollSync` |
-| Current slide index | teacher → student | existing slide-sync |
-
-All ride the single `classroom_${roomId}` channel — no extra connections.
-
----
-
-### 6. UX details
-
-- Stage container fills ~90% of viewport (16:9, max-h: `calc(100vh - 120px)`).
-- Teacher dock: floating glass-panel, bottom-center, auto-hides cursor area, follows the platform's Premium Glassmorphism style.
-- Student dock: same style, smaller, only pen/eraser/color.
-- Mode-switch buttons show active state with the hub's brand color (Playground orange / Academy purple / Success green) pulled from current theme.
-- A small badge top-left shows current mode + a green pulse indicator "Teacher is presenting".
-
----
-
-### 7. Out of scope / known limits
-
-- Cross-origin iframes still cannot have their **internal** scroll read; we keep the wrapper-scroll workaround.
-- Some sites (YouTube embeds, sites with `X-Frame-Options: DENY`) cannot be iframed at all — we'll show a friendly "This site blocks embedding — open in new tab" fallback when the iframe fails to load.
-- Strokes are not persisted across sessions (broadcast-only), matching current behavior.
-
+- Teacher sees the switch only in Web mode; flipping it instantly hands or revokes local iframe control.
+- Student sees a one-time toast on unlock; their overlay & iframe step aside so clicks land on the page.
+- Locking again restores teacher-driven scroll sync and the drawing overlay.
+- Switching out of Web mode auto-locks (defensive reset).
