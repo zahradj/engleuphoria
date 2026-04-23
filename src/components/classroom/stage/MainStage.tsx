@@ -1,6 +1,6 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { StageMode, WhiteboardStroke } from '@/services/whiteboardService';
+import { StageMode, WhiteboardStroke, SmartWorksheet } from '@/services/whiteboardService';
 import { StageContent } from './StageContent';
 import { TransparentCanvas } from './TransparentCanvas';
 import { Layout, Globe, PenTool, Wifi, Gamepad2 } from 'lucide-react';
@@ -27,6 +27,8 @@ interface MainStageProps {
   role: 'teacher' | 'student';
   /** Web-mode "Independent Play" — when true the student can interact directly with the iframe. */
   iframeUnlocked?: boolean;
+  /** Active Smart Worksheet for native game modes. */
+  worksheet?: SmartWorksheet | null;
   onAddStroke: (stroke: Omit<WhiteboardStroke, 'id' | 'roomId' | 'timestamp'>) => void;
 }
 
@@ -59,6 +61,7 @@ export const MainStage: React.FC<MainStageProps> = ({
   userName,
   role,
   iframeUnlocked = false,
+  worksheet = null,
   onAddStroke,
 }) => {
   const { label, Icon } = MODE_META[mode];
@@ -68,7 +71,7 @@ export const MainStage: React.FC<MainStageProps> = ({
       <div
         className="relative w-full aspect-[16/9] max-h-[calc(100vh-160px)] bg-white rounded-2xl shadow-2xl overflow-hidden border border-border"
       >
-        {/* Underlying content (slide / web / blank) */}
+        {/* Underlying content (slide / web / blank / native game) */}
         <StageContent
           mode={mode}
           slides={slides}
@@ -78,6 +81,7 @@ export const MainStage: React.FC<MainStageProps> = ({
           userId={userId}
           role={role}
           iframeUnlocked={iframeUnlocked}
+          worksheet={worksheet}
         />
 
         {/* Universal annotation overlay — always mounted, on top */}

@@ -1,6 +1,7 @@
 import React from 'react';
-import { StageMode } from '@/services/whiteboardService';
+import { StageMode, SmartWorksheet } from '@/services/whiteboardService';
 import { ScrollSyncedIframe } from './ScrollSyncedIframe';
+import { NativeGameStage } from '@/components/classroom/native-games/NativeGameStage';
 
 interface Slide {
   id: string;
@@ -19,6 +20,8 @@ interface StageContentProps {
   role: 'teacher' | 'student';
   /** When true and mode === 'web', the student can interact with the iframe directly. */
   iframeUnlocked?: boolean;
+  /** Active Smart Worksheet for native game modes. */
+  worksheet?: SmartWorksheet | null;
 }
 
 /**
@@ -26,6 +29,7 @@ interface StageContentProps {
  * - 'slide' → current lesson slide
  * - 'web'   → co-browsing iframe
  * - 'blank' → empty whiteboard surface
+ * - 'native_game_*' → fully-synced AI-generated mini-game
  */
 export const StageContent: React.FC<StageContentProps> = ({
   mode,
@@ -36,7 +40,20 @@ export const StageContent: React.FC<StageContentProps> = ({
   userId,
   role,
   iframeUnlocked = false,
+  worksheet = null,
 }) => {
+  if (mode.startsWith('native_game_')) {
+    return (
+      <NativeGameStage
+        mode={mode}
+        worksheet={worksheet}
+        roomId={roomId}
+        userId={userId}
+        role={role}
+      />
+    );
+  }
+
   if (mode === 'web') {
     return (
       <ScrollSyncedIframe
