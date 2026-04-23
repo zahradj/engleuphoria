@@ -13,11 +13,9 @@ import {
   Map,
   Sparkles,
   LogOut,
-  Video,
   Gift,
   Trophy
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -73,19 +71,13 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
   hasProfile = false,
   onLogout 
 }) => {
-  const navigate = useNavigate();
   const { studentLevel } = useStudentLevel();
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
-  
+
   const hubKey = studentLevel || 'playground';
   const hubColors = HUB_ICON_COLORS[hubKey] || HUB_ICON_COLORS.playground;
   const hubId = hubKey as 'playground' | 'academy' | 'professional';
-
-  const handleEnterClassroom = () => {
-    // Navigate to dashboard to find and join a booked classroom
-    navigate('/playground');
-  };
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
