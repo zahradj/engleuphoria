@@ -69,8 +69,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   // Function to fetch user data from database
-  const fetchUserFromDatabase = async (userId: string): Promise<User | null> => {
+  const fetchUserFromDatabase = async (authUser: any): Promise<User | null> => {
     try {
+      const userId = authUser.id;
       const { data: userData, error } = await supabase
         .from('users')
         .select('*')
@@ -85,7 +86,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Attach role from user_roles table (do NOT read role from users table)
       const role = (await fetchUserRoleFromDatabase(userId)) ?? 'student';
       return {
+        ...(authUser as any),
         ...(userData as any),
+        user_metadata: authUser.user_metadata || {},
+        app_metadata: authUser.app_metadata || {},
         role
       } as any;
     } catch (error) {
