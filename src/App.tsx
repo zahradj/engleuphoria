@@ -277,6 +277,7 @@ const App = () => {
                       {/* 404 - Redirect to Login */}
                       <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
+                    <ProfileDebugPanel />
                   </AppErrorBoundary>
                 </BrowserRouter>
               </TooltipProvider>
