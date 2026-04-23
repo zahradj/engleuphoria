@@ -104,9 +104,30 @@ const AuthCallback = () => {
           console.log('🔧 Auth callback auto-healed users row');
         }
 
-        // Step 4: Route to dashboard — the smart router handles hub-specific routing
+        // Step 4: Direct hub-based redirect — bypass /dashboard smart router
         if (mounted) {
-          navigate('/dashboard', { replace: true });
+          const userRole = session.user.user_metadata?.role || 'student';
+          if (userRole === 'teacher') {
+            navigate('/teacher', { replace: true });
+          } else if (userRole === 'admin') {
+            navigate('/super-admin', { replace: true });
+          } else if (userRole === 'content_creator') {
+            navigate('/content-creator', { replace: true });
+          } else {
+            // Student: read the profile we just ensured exists
+            const { data: freshProfile } = await supabase
+              .from('student_profiles')
+              .select('student_level')
+              .eq('user_id', userId)
+              .maybeSingle();
+            const hubLevel = freshProfile?.student_level
+              || session.user.user_metadata?.hub_type
+              || 'playground';
+            const hubRoute = hubLevel === 'academy' ? '/academy'
+              : hubLevel === 'professional' ? '/hub'
+              : '/playground';
+            navigate(hubRoute, { replace: true });
+          }
         }
       } catch (err) {
         console.error('Auth callback unexpected error:', err);
