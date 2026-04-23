@@ -72,7 +72,6 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   // Embed link state
   const [embedDialogOpen, setEmbedDialogOpen] = useState(false);
-  const [embeddedUrl, setEmbeddedUrl] = useState<string | null>(null);
 
   // Teacher instructions sidebar
   const [instructionsSidebarOpen, setInstructionsSidebarOpen] = useState(false);
