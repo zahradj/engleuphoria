@@ -52,14 +52,18 @@ const Dashboard: React.FC = () => {
     if (userRole === 'parent') { setRedirectPath('/parent'); return; }
 
     if (userRole === 'student') {
-      // Onboarding gate — only when DB has confirmed the row and onboarding is incomplete.
-      if (!studentLoading && studentLevel && !onboardingCompleted) {
-        setRedirectPath('/hub-confirmation');
-        return;
-      }
-
-      // Metadata-first routing — never wait on DB.
+      // Metadata-first routing — never wait on DB. Auto-complete onboarding silently.
       if (studentLevel) {
+        if (!studentLoading && !onboardingCompleted) {
+          // Background heal — mark onboarding complete so we don't re-prompt.
+          supabase
+            .from('student_profiles')
+            .update({ onboarding_completed: true })
+            .eq('user_id', user.id)
+            .then(({ error }) => {
+              if (error) console.error('🔴 [Dashboard] auto-complete onboarding failed:', error);
+            });
+        }
         setRedirectPath(getStudentDashboardRoute(studentLevel));
         return;
       }
