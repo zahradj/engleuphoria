@@ -57,6 +57,7 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
   const canvasRef = React.useRef<HTMLDivElement>(null);
 
   const [lessonTitle, setLessonTitle] = useState('Untitled Lesson');
+  const [lessonTopic, setLessonTopic] = useState('');
   const [level, setLevel] = useState('A1');
   const [ageGroup, setAgeGroup] = useState('6-8');
 
