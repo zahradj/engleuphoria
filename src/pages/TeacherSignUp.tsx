@@ -105,7 +105,9 @@ const TeacherSignUp = () => {
 
     try {
       const { data, error } = await signUp(values.email, values.password, {
-        role: 'teacher'
+        role: 'teacher',
+        hub_type: 'academy',
+        full_name: values.fullName,
       } as any);
 
       if (error) {
