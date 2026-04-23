@@ -220,8 +220,11 @@ const StudentSignUp = () => {
           if (error) console.error('Failed to send admin notification:', error);
         });
         
-        // Redirect to student application
-        navigate("/student-application");
+        // Redirect directly to the correct hub dashboard
+        const hubRoute = studentLevel === 'academy' ? '/academy'
+          : studentLevel === 'professional' ? '/hub'
+          : '/playground';
+        navigate(hubRoute);
       }
     } catch (error: any) {
       toast({
