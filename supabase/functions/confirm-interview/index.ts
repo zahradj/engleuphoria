@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
           <head><style>
             body { font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #f4f5f7; margin: 0; }
             .card { background: white; border-radius: 16px; padding: 48px; text-align: center; max-width: 500px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
-            h1 { color: #1A237E; font-size: 24px; }
+            h1 { color: #6B21A8; font-size: 24px; }
             p { color: #455A64; font-size: 16px; line-height: 1.6; }
           </style></head>
           <body>
@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
             body { font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #f4f5f7; margin: 0; }
             .card { background: white; border-radius: 16px; padding: 48px; text-align: center; max-width: 520px; box-shadow: 0 8px 32px rgba(26,35,126,0.12); }
             .seal { font-size: 64px; margin-bottom: 16px; }
-            h1 { color: #1A237E; font-size: 28px; font-family: 'Sora', sans-serif; margin: 0 0 12px; }
+            h1 { color: #6B21A8; font-size: 28px; font-family: 'Sora', sans-serif; margin: 0 0 12px; }
             .subtitle { color: #2E7D32; font-size: 16px; font-weight: 600; margin: 0 0 24px; }
             p { color: #455A64; font-size: 15px; line-height: 1.7; margin: 0 0 16px; }
             .footer { color: #78909C; font-size: 12px; font-style: italic; margin-top: 24px; }
