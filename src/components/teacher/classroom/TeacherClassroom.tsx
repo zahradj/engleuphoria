@@ -27,6 +27,7 @@ import { AnimatePresence } from "framer-motion";
 import { useIdleOpacity } from "@/hooks/useIdleOpacity";
 import { useClassroomTimer } from "@/hooks/classroom/useClassroomTimer";
 import { useSmartTimer } from "@/hooks/classroom/useSmartTimer";
+import { whiteboardService } from "@/services/whiteboardService";
 
 type HubType = 'playground' | 'academy' | 'professional';
 
