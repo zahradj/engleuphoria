@@ -57,7 +57,10 @@ export class WebRTCVideoService {
     console.log(`🔗 Subscribing to Supabase Realtime channel: ${channelName}`);
 
     this.channel = supabase.channel(channelName, {
-      config: { broadcast: { self: false } }
+      config: {
+        broadcast: { self: false },
+        presence: { key: userId },
+      },
     });
 
     // Listen for signaling events
@@ -76,14 +79,21 @@ export class WebRTCVideoService {
       })
       .on('broadcast', { event: 'leave' }, (payload) => {
         this.handleUserLeft(payload.payload.userId);
+      })
+      .on('presence', { event: 'sync' }, () => {
+        this.handlePresenceSync();
       });
 
     // Subscribe and then announce join
     return new Promise((resolve, reject) => {
-      this.channel!.subscribe((status) => {
+      this.channel!.subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
           console.log(`✅ Subscribed to Realtime channel: ${channelName}`);
           this.isJoined = true;
+
+          // Track presence so peers can deterministically discover each other
+          // even when broadcast 'join' messages race the subscribe handshake.
+          await this.channel!.track({ userId, joinedAt: Date.now() });
 
           // Announce our presence — other participants will initiate offers
           this.channel!.send({
@@ -104,12 +114,45 @@ export class WebRTCVideoService {
   }
 
   /**
-   * When another user joins, the existing user initiates the WebRTC offer.
-   * This avoids both sides trying to offer simultaneously.
+   * Presence sync fires whenever the participant list changes. We use it as
+   * the authoritative source of truth and run a deterministic offerer rule:
+   * the peer with the lexicographically smaller userId initiates. This makes
+   * negotiation immune to broadcast races on simultaneous joins.
+   */
+  private handlePresenceSync() {
+    if (!this.channel || !this.userId) return;
+    const state = this.channel.presenceState() as Record<string, Array<{ userId?: string }>>;
+
+    const remoteUserIds = new Set<string>();
+    Object.entries(state).forEach(([key, presences]) => {
+      const presenceUserId = presences?.[0]?.userId || key;
+      if (presenceUserId && presenceUserId !== this.userId) {
+        remoteUserIds.add(presenceUserId);
+      }
+    });
+
+    remoteUserIds.forEach((remoteUserId) => {
+      if (this.peerManager.getConnectionState(remoteUserId)) return;
+      if (this.userId! < remoteUserId) {
+        console.log(`🤝 Presence — initiating offer to ${remoteUserId}`);
+        this.initiateConnectionToUser(remoteUserId).catch((err) =>
+          console.error('Presence-driven offer failed', err)
+        );
+      } else {
+        console.log(`⏳ Presence — waiting for offer from ${remoteUserId}`);
+      }
+    });
+  }
+
+  /**
+   * Broadcast 'join' fallback. Same deterministic offerer rule as presence
+   * sync to avoid glare; getConnectionState() guards against duplicates.
    */
   private async handleRemoteJoin(payload: { userId: string; roomId: string }) {
     const remoteUserId = payload.userId;
     if (remoteUserId === this.userId) return;
+    if (this.peerManager.getConnectionState(remoteUserId)) return;
+    if (this.userId! >= remoteUserId) return;
 
     console.log(`👤 User ${remoteUserId} joined — initiating offer`);
     await this.initiateConnectionToUser(remoteUserId);
