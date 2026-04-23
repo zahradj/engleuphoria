@@ -111,6 +111,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     sharedNotes,
     sessionContext,
     activeCanvasTab,
+    embeddedUrl,
     updateSlide,
     updateTool,
     setStudentCanDraw,
