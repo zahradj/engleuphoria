@@ -71,6 +71,7 @@ const generationSteps = [
 ];
 
 export function AILessonWizard({ open, onOpenChange, onLessonGenerated, lessonContext }: AILessonWizardProps) {
+  const [wizardMode, setWizardMode] = useState<'ppp' | 'magic'>('ppp');
   const [formData, setFormData] = useState<WizardFormData>({
     topic: '',
     level: 'beginner',
@@ -80,6 +81,8 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated, lessonCo
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [generatedPlan, setGeneratedPlan] = useState<PPPLessonPlan | null>(null);
+  const [magicDeckSlides, setMagicDeckSlides] = useState<Slide[] | null>(null);
+  const [magicDeckTitle, setMagicDeckTitle] = useState('');
   const [isGeneratingImages, setIsGeneratingImages] = useState(false);
   const [imageProgress, setImageProgress] = useState({ completed: 0, total: 0, current: '' });
   const [imageCount, setImageCount] = useState(0);
@@ -87,6 +90,11 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated, lessonCo
   const [activeListening, setActiveListening] = useState<'topic' | 'notes' | null>(null);
   const recognitionRef = useRef<any>(null);
   const { toast } = useToast();
+
+  // Magic Deck form state
+  const [magicGrammar, setMagicGrammar] = useState('');
+  const [magicVocabulary, setMagicVocabulary] = useState('');
+  const [magicAge, setMagicAge] = useState('');
 
   // ─── Auto-Fill from Curriculum Context ──────────────────────
   React.useEffect(() => {
