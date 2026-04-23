@@ -2237,6 +2237,7 @@ export type Database = {
           title: string
           unit_id: string | null
           updated_at: string | null
+          video_url: string | null
           vocabulary_list: Json | null
           xp_reward: number | null
         }
@@ -2264,6 +2265,7 @@ export type Database = {
           title: string
           unit_id?: string | null
           updated_at?: string | null
+          video_url?: string | null
           vocabulary_list?: Json | null
           xp_reward?: number | null
         }
@@ -2291,6 +2293,7 @@ export type Database = {
           title?: string
           unit_id?: string | null
           updated_at?: string | null
+          video_url?: string | null
           vocabulary_list?: Json | null
           xp_reward?: number | null
         }
