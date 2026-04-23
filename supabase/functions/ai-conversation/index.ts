@@ -1,6 +1,6 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 
@@ -15,6 +15,29 @@ serve(async (req) => {
   }
 
   try {
+    // Require authentication to prevent anonymous abuse of OpenAI credits
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claims, error: authError } = await supabase.auth.getClaims(token);
+    if (authError || !claims?.claims) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { userMessage, scenario, conversationHistory } = await req.json();
 
     if (!openAIApiKey) {
@@ -22,11 +45,9 @@ serve(async (req) => {
     }
 
     console.log('Generating AI response for scenario:', scenario.name);
-    console.log('User message:', userMessage);
 
-    // Build conversation context
-    const systemPrompt = `You are an AI English teacher helping a student practice ${scenario.type}. 
-    
+    const systemPrompt = `You are an AI English teacher helping a student practice ${scenario.type}.
+
 Scenario: ${scenario.name}
 Level: ${scenario.cefr_level}
 Context: ${scenario.context_instructions}
@@ -63,14 +84,13 @@ Guidelines:
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
       console.error('OpenAI API error:', data);
       throw new Error(data.error?.message || 'Failed to generate AI response');
     }
 
     const aiResponse = data.choices[0].message.content;
-    console.log('AI response generated:', aiResponse);
 
     return new Response(JSON.stringify({ response: aiResponse }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

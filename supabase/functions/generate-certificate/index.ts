@@ -60,9 +60,19 @@ serve(async (req) => {
   }
 });
 
+function escHtml(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function generateCertificateHTML(certificate: any): string {
-  const studentName = certificate.student?.full_name || 'Student';
-  const teacherName = certificate.teacher?.full_name || 'Instructor';
+  const studentName = escHtml(certificate.student?.full_name || 'Student');
+  const teacherName = escHtml(certificate.teacher?.full_name || 'Instructor');
   const issueDate = new Date(certificate.issue_date).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
