@@ -399,8 +399,8 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
         </div>
       </div>
 
-      {/* ─── Bottom Pipeline Nav ─── */}
-      {(onBack || onFinish) && (
+      {/* ─── Bottom Pipeline Nav — only for editors ─── */}
+      {canEdit && (onBack || onFinish) && (
         <div className="flex items-center justify-between px-6 py-2 border-t border-border bg-card shrink-0">
           {onBack ? (
             <Button variant="outline" onClick={onBack} className="gap-2" size="sm">
