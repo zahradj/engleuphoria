@@ -150,18 +150,18 @@ function generateCertificateHTML(certificate: any): string {
           <p class="presented-to">This is proudly presented to</p>
           <h2 class="student-name">${studentName}</h2>
           
-          <p class="description">${certificate.description || 'Has successfully completed the English language program and demonstrated exceptional proficiency.'}</p>
+          <p class="description">${escHtml(certificate.description || 'Has successfully completed the English language program and demonstrated exceptional proficiency.')}</p>
           
-          ${certificate.cefr_level ? `<div class="cefr-badge">CEFR Level ${certificate.cefr_level}</div>` : ''}
+          ${certificate.cefr_level ? `<div class="cefr-badge">CEFR Level ${escHtml(certificate.cefr_level)}</div>` : ''}
           
-          ${certificate.score_achieved ? `<p class="description">Final Score: ${certificate.score_achieved}%</p>` : ''}
+          ${certificate.score_achieved ? `<p class="description">Final Score: ${escHtml(certificate.score_achieved)}%</p>` : ''}
           
-          ${certificate.hours_completed ? `<p class="description">${certificate.hours_completed} hours of instruction completed</p>` : ''}
+          ${certificate.hours_completed ? `<p class="description">${escHtml(certificate.hours_completed)} hours of instruction completed</p>` : ''}
           
           ${certificate.skills_demonstrated && certificate.skills_demonstrated.length > 0 ? `
             <div class="skills">
               <strong>Skills Mastered:</strong><br>
-              ${certificate.skills_demonstrated.map((skill: string) => `<span class="skill-tag">${skill}</span>`).join('')}
+              ${certificate.skills_demonstrated.map((skill: string) => `<span class="skill-tag">${escHtml(skill)}</span>`).join('')}
             </div>
           ` : ''}
         </div>
@@ -172,13 +172,13 @@ function generateCertificateHTML(certificate: any): string {
             <div class="date">Instructor</div>
           </div>
           <div class="signature-block">
-            <div class="signature-line">${issueDate}</div>
+            <div class="signature-line">${escHtml(issueDate)}</div>
             <div class="date">Date Issued</div>
           </div>
         </div>
         
-        <div class="cert-number">Certificate No: ${certificate.certificate_number}</div>
-        <div class="verification">Verification Code: ${certificate.verification_code}</div>
+        <div class="cert-number">Certificate No: ${escHtml(certificate.certificate_number)}</div>
+        <div class="verification">Verification Code: ${escHtml(certificate.verification_code)}</div>
       </div>
     </body>
     </html>
