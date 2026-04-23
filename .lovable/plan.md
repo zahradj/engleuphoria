@@ -1,133 +1,89 @@
 
+Goal: eliminate the infinite “Verifying your access…” loop by making student routing metadata-first, timeout-safe, and self-healing.
 
-# Plan: Multimedia AI Slide Architect — Integrated Generator + Injection System
+1. Replace DB-first hub routing with a shared resolver
+- Add a small shared utility used by auth/routing code to resolve the student hub from:
+  1) `user.user_metadata.hub_type`
+  2) `user.user_metadata.preferred_hub`
+  3) `student_profiles.student_level`
+  4) fallback `'playground'`
+- Normalize everything with lowercase and alias mapping:
+  - `academy` -> `academy`
+  - `professional` / `success` -> `professional`
+  - anything else / null -> `playground`
+- Keep existing route mapping already used in this app:
+  - `playground` -> `/dashboard/playground`
+  - `academy` -> `/dashboard/academy`
+  - `professional` -> `/dashboard/hub`
 
-## Summary
+2. Make `useStudentLevel` metadata-first and non-blocking
+- Update `src/hooks/useStudentLevel.ts` so it:
+  - seeds `studentLevel` immediately from auth metadata if available
+  - queries `student_profiles` in the background only to confirm/sync
+  - logs Supabase fetch errors with `console.error`
+  - never leaves `loading=true` indefinitely
+- If the DB query fails because of RLS or missing row, the hook should still return the metadata-resolved level and finish loading.
 
-Overhaul the Content Creator Slide Builder into a unified AI-powered workspace. The AI Lesson Architect moves from Step 1 into the Slide Builder itself as a left sidebar panel. The edge function evolves to output structured JSON slide arrays with multimedia fields. New "Insert AI Slide" buttons between thumbnails enable context-aware single-slide injection with one-click presets.
+3. Harden the spinner/redirect path in all entry points
+- Update:
+  - `src/components/auth/ImprovedProtectedRoute.tsx`
+  - `src/components/auth/HomeGate.tsx`
+  - `src/pages/Dashboard.tsx`
+  - `src/pages/AuthCallback.tsx`
+  - `src/pages/Login.tsx`
+- Use the shared hub resolver so these screens do not depend on `student_profiles` before routing.
+- Add a timeout escape hatch:
+  - if auth/session is present but hub resolution is still pending after ~3–5 seconds, route to the resolved metadata hub or `/dashboard/playground`
+  - show a toast like: “We couldn’t verify your hub from the database. Redirecting to your default dashboard.”
+- Remove any route path assumptions from the old prompt that do not match this project (`/dashboard/success` is not correct here; this app uses `/dashboard/hub`).
 
-## 1. Edge Function Overhaul: `generate-lesson-plan`
+4. Keep the database in sync silently after redirect
+- After the user is routed, run a background upsert to `student_profiles` when needed:
+  - `user_id`
+  - normalized `student_level`
+  - preserve `onboarding_completed` when possible
+- This preserves fast UX while healing missing rows created by failed triggers or blocked reads.
 
-**File:** `supabase/functions/generate-lesson-plan/index.ts`
+5. Verify and, if needed, clean up RLS for `student_profiles`
+- Audit existing policies instead of creating a new `profiles` table, because this codebase uses `student_profiles`, not `profiles.preferred_hub`.
+- If policy coverage is inconsistent, update migrations so authenticated users can:
+  - `SELECT` their own row with `auth.uid() = user_id`
+  - `INSERT` their own row with `auth.uid() = user_id`
+  - `UPDATE` their own row with `auth.uid() = user_id`
+- Keep role checks on `user_roles` server-safe and do not move roles onto `users` or client storage.
 
-Add a new `mode` parameter to support two generation modes:
+6. Preserve onboarding behavior
+- Ensure the new routing still respects:
+  - `onboarding_completed === false` -> `/hub-confirmation` for students when appropriate
+- Only use metadata to resolve hub/system, not to bypass onboarding gates.
 
-- **`mode: "full_deck"`** (default): Returns a JSON array of 7-10 slide objects following the new schema:
-  ```json
-  {
-    "slides": [
-      {
-        "slide_type": "title | video_song | vocabulary_image | grammar_presentation | interactive_practice",
-        "headline": "string",
-        "body_text": "string",
-        "video_url": "string | null",
-        "visual_search_keyword": "string (1-2 words for image fetch)",
-        "teacher_notes": "string (CCQs, step-up/step-down scaffolding)"
-      }
-    ],
-    "lesson_title": "string",
-    "target_grammar": "string",
-    "target_vocabulary": "string"
-  }
-  ```
-- **`mode: "single_slide"`**: Accepts `previousSlideContent`, `prompt`, and `hub`. Returns a single slide object. Used by the injection system.
+7. Add clearer diagnostics for future debugging
+- Improve console messages around:
+  - student profile fetch failure
+  - metadata hub used as fallback
+  - self-heal upsert success/failure
+- Keep `ProfileDebugPanel` aligned so it clearly shows:
+  - resolved role
+  - metadata hub
+  - DB student level
+  - whether fallback routing was used
 
-The system prompt enforces PPP pedagogy, hub-specific duration/tone, video channel suggestions, and mandatory scaffolding. Gemini returns `responseMimeType: "application/json"`.
+Technical details
+- Actual codebase findings:
+  - the app does not use `profiles.preferred_hub`; it uses `student_profiles.student_level`
+  - signup already writes `hub_type` metadata and auto-creates `student_profiles`
+  - routing currently mixes metadata fallback and DB reads across several files, which creates race conditions and repeated spinners
+- Files likely involved:
+  - `src/hooks/useStudentLevel.ts`
+  - `src/components/auth/ImprovedProtectedRoute.tsx`
+  - `src/components/auth/HomeGate.tsx`
+  - `src/pages/Dashboard.tsx`
+  - `src/pages/AuthCallback.tsx`
+  - `src/pages/Login.tsx`
+  - possibly a migration if `student_profiles` RLS needs cleanup
 
-## 2. New Component: `AISlideGeneratorPanel`
-
-**File:** `src/components/admin/lesson-builder/AISlideGeneratorPanel.tsx`
-
-A collapsible left sidebar panel (Glassmorphism styled) inside the Slide Builder containing:
-
-- Hub dropdown (Playground/Academy/Success) with hub-colored badges
-- Topic input, Student Age/Level input
-- "Generate Magic Deck" button with pulsing gradient animation
-- Skeleton loader state that shows on the canvas while generating
-- On response: converts the JSON slide array into `Slide[]` using a new converter, populating `canvasElements` with text elements for headline/body, video embeds, and image placeholders using `visual_search_keyword`
-
-## 3. Image Integration via `visual_search_keyword`
-
-**File:** `src/components/admin/lesson-builder/utils/fetchSlideImage.ts`
-
-A utility that takes a `visual_search_keyword` and returns an image URL:
-
-- Primary: Uses the existing `ai-image-generation` edge function (Gemini image gen) with the keyword as prompt, styled as "flat 2D educational illustration"
-- Fallback: Constructs an Unsplash source URL: `https://source.unsplash.com/1920x1080/?{keyword}`
-- Images are placed as canvas elements on the slide
-
-## 4. Slide Conversion: AI JSON to Canvas Slides
-
-**File:** `src/components/admin/lesson-builder/utils/convertAISlideSchema.ts`
-
-Maps the new Gemini slide schema into the existing `Slide` + `CanvasElementData[]` format:
-
-- `headline` → Text element (large, centered top)
-- `body_text` → Text element (medium, below headline)
-- `video_url` → Video canvas element (YouTube iframe embed)
-- `visual_search_keyword` → Image element (fetched async, placeholder initially)
-- `slide_type` → Maps to existing `SlideType` and sets phase labels
-- `teacher_notes` → Stored in `Slide.teacherNotes`
-
-## 5. Insert AI Slide System
-
-**File:** `src/components/admin/lesson-builder/InsertAISlideButton.tsx`
-
-A small `+AI` button rendered between every two thumbnails in `SlideFilmstrip.tsx`:
-
-- Click opens a Glassmorphism popover with:
-  - Free-text prompt field ("What kind of slide should I build here?")
-  - Four preset buttons in a row:
-    - **Quick Quiz**: "Create a 3-question MCQ based on the previous slide"
-    - **Speaking Prompt**: "Create a discussion question with key vocabulary hints"
-    - **Video Break**: "Find and embed a 2-3 min YouTube video for this topic"
-    - **Concept Check**: "Create a True/False or Fill-in-the-blanks check"
-  - Each preset sends a hardcoded instruction + previous slide content + hub context to the edge function with `mode: "single_slide"`
-- On response: splice the new slide into `slides[]` at the clicked index
-- Animate with `animate-fade-in` and auto-select the new slide
-- Hub color scheme auto-applied to the new slide styling
-
-## 6. Integration into AdminLessonEditor
-
-**File:** `src/components/admin/lesson-builder/AdminLessonEditor.tsx`
-
-- Add `AISlideGeneratorPanel` as a toggleable left panel (replaces the current AI Wizard dialog for full-deck generation)
-- Wire "Generate Magic Deck" to call the edge function, convert results, and populate `slides` state
-- Pass `slides`, `selectedSlideId`, and `hub` to `SlideFilmstrip` for the insert buttons
-- Add "Publish Curriculum" button in the top-right action bar
-- Show skeleton loader on the canvas during generation
-
-## 7. SlideFilmstrip Update
-
-**File:** `src/components/admin/lesson-builder/SlideFilmstrip.tsx`
-
-- Render `InsertAISlideButton` between each thumbnail (and at the end)
-- Only shown when `canEdit` is true
-- Pass `onInsertSlide(index, slide)` callback to splice into the array
-
-## 8. Canvas Enhancements for Video Embeds
-
-**File:** `src/components/admin/lesson-builder/canvas/CanvasEditor.tsx`
-
-- When a slide has a video canvas element, render a YouTube iframe embed (using `youtube-nocookie.com` for privacy)
-- Editable: clicking the video element shows a URL input to swap the video
-- Read-only: plays inline
-
-## Files Affected
-
-| Action | File |
-|--------|------|
-| Modify | `supabase/functions/generate-lesson-plan/index.ts` |
-| Create | `src/components/admin/lesson-builder/AISlideGeneratorPanel.tsx` |
-| Create | `src/components/admin/lesson-builder/InsertAISlideButton.tsx` |
-| Create | `src/components/admin/lesson-builder/utils/convertAISlideSchema.ts` |
-| Create | `src/components/admin/lesson-builder/utils/fetchSlideImage.ts` |
-| Modify | `src/components/admin/lesson-builder/AdminLessonEditor.tsx` |
-| Modify | `src/components/admin/lesson-builder/SlideFilmstrip.tsx` |
-| Modify | `src/components/admin/lesson-builder/canvas/CanvasEditor.tsx` |
-| Modify | `src/pages/ContentCreatorDashboard.tsx` (minor — remove standalone AILessonArchitect from Step 1) |
-
-## No Database Changes Required
-
-The existing `curriculum_lessons` table and `Slide`/`CanvasElementData` types already support all required fields. Video URLs are stored in canvas element content. The `video_url` column added earlier remains for lesson-level video references.
-
+Expected result
+- A newly registered or returning student is routed instantly from session metadata.
+- Missing or unreadable `student_profiles` rows no longer trap the user on a spinner.
+- The database is repaired in the background.
+- All student hub matching is case-insensitive and null-safe.
