@@ -78,9 +78,9 @@ export const PhonicsDrillSlide: React.FC<PhonicsDrillSlideProps> = ({
       <motion.div
         animate={{ scale: isRecording ? [1, 1.06, 1] : 1 }}
         transition={{ repeat: isRecording ? Infinity : 0, duration: 0.6 }}
-        className="h-32 w-32 rounded-full border-4 border-[#1A237E]/20 bg-[#1A237E]/5 flex flex-col items-center justify-center mb-6"
+        className="h-32 w-32 rounded-full border-4 border-[#6B21A8]/20 bg-[#6B21A8]/5 flex flex-col items-center justify-center mb-6"
       >
-        <span className="font-mono text-5xl font-bold text-[#1A237E]">/{phonemeTarget}/</span>
+        <span className="font-mono text-5xl font-bold text-[#6B21A8]">/{phonemeTarget}/</span>
         {phonemeLabel && (
           <span className="text-xs text-muted-foreground mt-1">{phonemeLabel}</span>
         )}
@@ -116,7 +116,7 @@ export const PhonicsDrillSlide: React.FC<PhonicsDrillSlideProps> = ({
                 className="w-1.5 rounded-full"
                 animate={{ height: `${v * 100}%` }}
                 transition={{ duration: 0.08 }}
-                style={{ backgroundColor: isRecording ? '#1A237E' : '#94a3b8' }}
+                style={{ backgroundColor: isRecording ? '#6B21A8' : '#94a3b8' }}
               />
             ))}
           </div>
@@ -132,7 +132,7 @@ export const PhonicsDrillSlide: React.FC<PhonicsDrillSlideProps> = ({
         onTouchEnd={stopRecording}
         className={cn(
           'h-20 w-20 rounded-full flex items-center justify-center shadow-lg transition-colors',
-          isRecording ? 'bg-[#EF5350] text-white' : 'bg-[#1A237E] text-white hover:bg-[#1A237E]/90'
+          isRecording ? 'bg-[#EF5350] text-white' : 'bg-[#6B21A8] text-white hover:bg-[#6B21A8]/90'
         )}
       >
         {isRecording ? <Square className="h-8 w-8" /> : <Mic className="h-8 w-8" />}

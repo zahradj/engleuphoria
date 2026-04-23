@@ -112,7 +112,7 @@ export const TeacherOverridePanel: React.FC<TeacherOverridePanelProps> = ({
   return (
     <Card className="border shadow-sm">
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-semibold text-[#1A237E] flex items-center gap-2">
+        <CardTitle className="text-sm font-semibold text-[#6B21A8] flex items-center gap-2">
           <Shield className="h-4 w-4" />
           Manual Override — {studentName}
         </CardTitle>
@@ -134,7 +134,7 @@ export const TeacherOverridePanel: React.FC<TeacherOverridePanelProps> = ({
 
         {/* Override selection */}
         <div className="space-y-2">
-          <label className="text-xs font-medium text-[#1A237E]">Set Scaffold Level:</label>
+          <label className="text-xs font-medium text-[#6B21A8]">Set Scaffold Level:</label>
           <Select value={overrideLevel} onValueChange={setOverrideLevel}>
             <SelectTrigger className="h-9 text-xs">
               <SelectValue placeholder="Select level..." />
@@ -160,7 +160,7 @@ export const TeacherOverridePanel: React.FC<TeacherOverridePanelProps> = ({
 
         {/* Notes */}
         <div className="space-y-1">
-          <label className="text-xs font-medium text-[#1A237E]">Override Notes:</label>
+          <label className="text-xs font-medium text-[#6B21A8]">Override Notes:</label>
           <Textarea
             value={notes}
             onChange={e => setNotes(e.target.value)}
@@ -175,7 +175,7 @@ export const TeacherOverridePanel: React.FC<TeacherOverridePanelProps> = ({
             onClick={handleApplyOverride}
             disabled={!overrideLevel || saving}
             size="sm"
-            className="bg-[#1A237E] hover:bg-[#1A237E]/90 text-xs"
+            className="bg-[#6B21A8] hover:bg-[#6B21A8]/90 text-xs"
           >
             {saving ? 'Saving...' : 'Apply Override'}
           </Button>

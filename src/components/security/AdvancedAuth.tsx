@@ -251,7 +251,7 @@ export const AdvancedAuth: React.FC = () => {
           email: sanitizedData.email,
           password: sanitizedData.password,
           options: {
-            emailRedirectTo: `${window.location.origin}/`
+            emailRedirectTo: `${window.location.origin}/auth/callback`
           }
         });
 

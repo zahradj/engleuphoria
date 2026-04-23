@@ -46,7 +46,7 @@ const TactileTracing: React.FC<TactileTracingProps> = ({ slide, onCorrect, onInc
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.setLineDash([4, 6]);
-    ctx.strokeStyle = '#1A237E40';
+    ctx.strokeStyle = '#6B21A840';
     ctx.lineWidth = 3;
     ctx.strokeText(targetLetter, 150, 155);
     ctx.setLineDash([]);
@@ -85,7 +85,7 @@ const TactileTracing: React.FC<TactileTracingProps> = ({ slide, onCorrect, onInc
     setTracedPoints(prev => [...prev, point]);
 
     // Draw the tracing line
-    ctx.strokeStyle = '#1A237E';
+    ctx.strokeStyle = '#6B21A8';
     ctx.lineWidth = 6;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -132,7 +132,7 @@ const TactileTracing: React.FC<TactileTracingProps> = ({ slide, onCorrect, onInc
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.setLineDash([4, 6]);
-    ctx.strokeStyle = '#1A237E40';
+    ctx.strokeStyle = '#6B21A840';
     ctx.lineWidth = 3;
     ctx.strokeText(targetLetter, 150, 155);
     ctx.setLineDash([]);
@@ -141,12 +141,12 @@ const TactileTracing: React.FC<TactileTracingProps> = ({ slide, onCorrect, onInc
   return (
     <div className="flex flex-col items-center justify-center h-full gap-4 p-6">
       <div className="text-center">
-        <h2 className="text-xl font-semibold text-[#1A237E] font-inter flex items-center justify-center gap-2">
+        <h2 className="text-xl font-semibold text-[#6B21A8] font-inter flex items-center justify-center gap-2">
           <PenTool className="h-5 w-5" />
           Tactile Tracing
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Trace the letter <span className="font-bold text-[#1A237E]">"{targetLetter}"</span> along the dotted lines
+          Trace the letter <span className="font-bold text-[#6B21A8]">"{targetLetter}"</span> along the dotted lines
         </p>
       </div>
 
@@ -159,7 +159,7 @@ const TactileTracing: React.FC<TactileTracingProps> = ({ slide, onCorrect, onInc
               ? accuracy! >= 90
                 ? 'border-[#2E7D32] shadow-[0_0_20px_rgba(46,125,50,0.3)]'
                 : 'border-[#EF5350] shadow-[0_0_20px_rgba(239,83,80,0.3)]'
-              : 'border-[#1A237E]/20'
+              : 'border-[#6B21A8]/20'
           } bg-white cursor-crosshair touch-none transition-all`}
           style={{ width: 280, height: 280 }}
           onMouseDown={startDrawing}
@@ -189,7 +189,7 @@ const TactileTracing: React.FC<TactileTracingProps> = ({ slide, onCorrect, onInc
           <>
             <button
               onClick={resetTracing}
-              className="flex items-center gap-1.5 px-4 py-2 text-sm text-muted-foreground hover:text-[#1A237E] border rounded-lg transition"
+              className="flex items-center gap-1.5 px-4 py-2 text-sm text-muted-foreground hover:text-[#6B21A8] border rounded-lg transition"
             >
               <RotateCcw className="h-4 w-4" />
               Reset
@@ -197,7 +197,7 @@ const TactileTracing: React.FC<TactileTracingProps> = ({ slide, onCorrect, onInc
             <button
               onClick={scoreTracing}
               disabled={tracedPoints.length < 10}
-              className="flex items-center gap-1.5 px-5 py-2 text-sm bg-[#1A237E] text-white rounded-lg shadow hover:bg-[#1A237E]/90 disabled:opacity-40 transition"
+              className="flex items-center gap-1.5 px-5 py-2 text-sm bg-[#6B21A8] text-white rounded-lg shadow hover:bg-[#6B21A8]/90 disabled:opacity-40 transition"
             >
               <Check className="h-4 w-4" />
               Submit
@@ -220,7 +220,7 @@ const TactileTracing: React.FC<TactileTracingProps> = ({ slide, onCorrect, onInc
             {accuracy! < 90 && (
               <button
                 onClick={resetTracing}
-                className="mt-2 text-xs text-[#1A237E] underline"
+                className="mt-2 text-xs text-[#6B21A8] underline"
               >
                 Try Again
               </button>

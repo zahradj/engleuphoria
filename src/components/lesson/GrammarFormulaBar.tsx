@@ -44,7 +44,7 @@ export const GrammarFormulaBar: React.FC<GrammarFormulaBarProps> = ({
                       className={cn(
                         'px-3 py-1.5 rounded-lg border text-sm font-bold transition-all',
                         isActive
-                          ? 'border-[#1A237E] bg-[#1A237E]/10 text-[#1A237E] ring-1 ring-[#1A237E]/20'
+                          ? 'border-[#6B21A8] bg-[#6B21A8]/10 text-[#6B21A8] ring-1 ring-[#6B21A8]/20'
                           : 'border-border bg-muted/30 text-muted-foreground'
                       )}
                     >

@@ -63,9 +63,9 @@ export default function PhonicsSlider({ slide, onCorrect, onIncorrect }: Props) 
       <motion.div
         animate={{ scale: isRecording ? [1, 1.05, 1] : 1 }}
         transition={{ repeat: isRecording ? Infinity : 0, duration: 0.8 }}
-        className="h-28 w-28 rounded-full border-4 border-[#1A237E]/20 bg-[#1A237E]/5 flex items-center justify-center mb-8"
+        className="h-28 w-28 rounded-full border-4 border-[#6B21A8]/20 bg-[#6B21A8]/5 flex items-center justify-center mb-8"
       >
-        <span className="font-mono text-4xl font-bold text-[#1A237E]">{phoneme}</span>
+        <span className="font-mono text-4xl font-bold text-[#6B21A8]">{phoneme}</span>
       </motion.div>
 
       {/* Master Waveform */}
@@ -88,7 +88,7 @@ export default function PhonicsSlider({ slide, onCorrect, onIncorrect }: Props) 
               className="w-2 rounded-full"
               animate={{ height: `${v * 100}%` }}
               transition={{ duration: 0.1 }}
-              style={{ backgroundColor: isRecording ? '#1A237E' : '#94a3b8' }}
+              style={{ backgroundColor: isRecording ? '#6B21A8' : '#94a3b8' }}
             />
           ))}
         </div>
@@ -102,7 +102,7 @@ export default function PhonicsSlider({ slide, onCorrect, onIncorrect }: Props) 
         onTouchStart={startRecording}
         onTouchEnd={stopRecording}
         className={`h-20 w-20 rounded-full flex items-center justify-center shadow-lg transition-colors ${
-          isRecording ? 'bg-[#EF5350] text-white' : 'bg-[#1A237E] text-white'
+          isRecording ? 'bg-[#EF5350] text-white' : 'bg-[#6B21A8] text-white'
         }`}
       >
         {isRecording ? <Square className="h-8 w-8" /> : <Mic className="h-8 w-8" />}

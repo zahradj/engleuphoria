@@ -85,8 +85,8 @@ export default function SoundSort({ slide, onCorrect, onIncorrect }: Props) {
             onClick={() => handleWordTap(w.word)}
             className={`px-4 py-3 rounded-xl border-2 text-lg font-bold transition-all ${
               activeWord === w.word
-                ? 'border-[#1A237E] bg-[#1A237E]/10 text-[#1A237E] scale-105'
-                : 'border-border bg-card text-foreground hover:border-[#1A237E]/30'
+                ? 'border-[#6B21A8] bg-[#6B21A8]/10 text-[#6B21A8] scale-105'
+                : 'border-border bg-card text-foreground hover:border-[#6B21A8]/30'
             }`}
           >
             {w.word}
@@ -103,9 +103,9 @@ export default function SoundSort({ slide, onCorrect, onIncorrect }: Props) {
               key={bucket}
               whileTap={{ scale: 0.97 }}
               onClick={() => handleBucketDrop(bucket)}
-              className="flex-1 min-h-[140px] rounded-2xl border-2 border-dashed border-[#1A237E]/30 bg-[#1A237E]/5 p-4 flex flex-col items-center"
+              className="flex-1 min-h-[140px] rounded-2xl border-2 border-dashed border-[#6B21A8]/30 bg-[#6B21A8]/5 p-4 flex flex-col items-center"
             >
-              <span className="font-mono text-2xl font-bold text-[#1A237E] mb-2">{bucket}</span>
+              <span className="font-mono text-2xl font-bold text-[#6B21A8] mb-2">{bucket}</span>
               <div className="flex flex-wrap gap-1 justify-center">
                 {bucketWords.map(w => (
                   <span key={w.word} className="text-xs bg-[#4CAF50]/20 text-[#2E7D32] px-2 py-1 rounded-full font-medium">

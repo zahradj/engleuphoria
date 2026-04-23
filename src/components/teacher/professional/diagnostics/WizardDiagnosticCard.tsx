@@ -70,10 +70,10 @@ Use a warm, professional tone. Do not use jargon.`;
   };
 
   return (
-    <Card className="border border-[#1A237E]/10 bg-gradient-to-br from-[#1A237E]/[0.02] to-transparent shadow-sm">
+    <Card className="border border-[#6B21A8]/10 bg-gradient-to-br from-[#6B21A8]/[0.02] to-transparent shadow-sm">
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-semibold text-[#1A237E] flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-[#1A237E]" />
+        <CardTitle className="text-sm font-semibold text-[#6B21A8] flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-[#6B21A8]" />
           II Wizard's Perspective
         </CardTitle>
       </CardHeader>
@@ -86,7 +86,7 @@ Use a warm, professional tone. Do not use jargon.`;
             <Button
               size="sm"
               onClick={generateDiagnosis}
-              className="bg-[#1A237E] hover:bg-[#1A237E]/90 text-white gap-1.5"
+              className="bg-[#6B21A8] hover:bg-[#6B21A8]/90 text-white gap-1.5"
             >
               <Sparkles className="h-3.5 w-3.5" />
               Generate Diagnosis
@@ -96,18 +96,18 @@ Use a warm, professional tone. Do not use jargon.`;
 
         {loading && (
           <div className="flex items-center justify-center gap-2 py-6">
-            <Loader2 className="h-4 w-4 animate-spin text-[#1A237E]" />
+            <Loader2 className="h-4 w-4 animate-spin text-[#6B21A8]" />
             <span className="text-xs text-muted-foreground">Wizard is analyzing...</span>
           </div>
         )}
 
         {diagnosis && !loading && (
           <div className="space-y-3">
-            <div className="p-3 rounded-lg bg-white border border-[#1A237E]/10">
+            <div className="p-3 rounded-lg bg-white border border-[#6B21A8]/10">
               <p className="text-sm text-foreground leading-relaxed">{diagnosis}</p>
             </div>
             <div className="flex items-center justify-between">
-              <Badge variant="outline" className="text-[10px] border-[#1A237E]/20 text-[#1A237E]">
+              <Badge variant="outline" className="text-[10px] border-[#6B21A8]/20 text-[#6B21A8]">
                 Wizard's Prescription
               </Badge>
               <Button

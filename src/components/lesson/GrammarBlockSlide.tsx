@@ -111,7 +111,7 @@ export const GrammarBlockSlide: React.FC<GrammarBlockSlideProps> = ({
                 slot.filled
                   ? 'border-[#4CAF50] bg-[#4CAF50]/10'
                   : isActive
-                  ? `${colorClass} ring-2 ring-[#1A237E]/30 scale-105`
+                  ? `${colorClass} ring-2 ring-[#6B21A8]/30 scale-105`
                   : `${colorClass} border-dashed`
               )}
             >
@@ -147,7 +147,7 @@ export const GrammarBlockSlide: React.FC<GrammarBlockSlideProps> = ({
                 isWrong ? 'border-[#EF5350] bg-[#EF5350]/10 text-[#C62828]'
                 : isHinted ? 'border-[#4CAF50] bg-[#4CAF50]/10 text-[#2E7D32]'
                 : used ? 'border-muted bg-muted/10 text-muted-foreground'
-                : 'border-[#1A237E]/20 bg-card text-[#1A237E] hover:bg-[#1A237E]/5'
+                : 'border-[#6B21A8]/20 bg-card text-[#6B21A8] hover:bg-[#6B21A8]/5'
               )}
             >
               {block}

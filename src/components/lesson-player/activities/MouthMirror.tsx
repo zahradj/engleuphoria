@@ -88,8 +88,8 @@ export default function MouthMirror({ slide, onCorrect, onIncorrect }: Props) {
       </div>
 
       {/* Phoneme Label */}
-      <div className="h-16 w-16 rounded-full bg-[#1A237E]/10 border-2 border-[#1A237E]/20 flex items-center justify-center mb-6">
-        <span className="font-mono text-2xl font-bold text-[#1A237E]">{phoneme}</span>
+      <div className="h-16 w-16 rounded-full bg-[#6B21A8]/10 border-2 border-[#6B21A8]/20 flex items-center justify-center mb-6">
+        <span className="font-mono text-2xl font-bold text-[#6B21A8]">{phoneme}</span>
       </div>
 
       {/* Action Buttons */}
@@ -97,7 +97,7 @@ export default function MouthMirror({ slide, onCorrect, onIncorrect }: Props) {
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={playAnimation}
-          className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#1A237E] text-white font-bold shadow-lg"
+          className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#6B21A8] text-white font-bold shadow-lg"
         >
           <Play className="h-5 w-5" /> Watch Articulation
         </motion.button>

@@ -8,7 +8,7 @@ interface VictorySyncProps {
   onDismiss?: () => void;
 }
 
-const CONFETTI_COLORS = ['#1A237E', '#2E7D32', '#F59E0B', '#EF5350', '#3B82F6', '#8B5CF6'];
+const CONFETTI_COLORS = ['#6B21A8', '#2E7D32', '#F59E0B', '#EF5350', '#3B82F6', '#8B5CF6'];
 
 const ConfettiPiece: React.FC<{ delay: number; color: string }> = ({ delay, color }) => (
   <motion.div
@@ -74,7 +74,7 @@ export const VictorySync: React.FC<VictorySyncProps> = ({
               <PartyPopper className="h-16 w-16 text-[#F59E0B] mx-auto mb-4" />
             </motion.div>
 
-            <h2 className="text-2xl font-bold text-[#1A237E] font-inter">
+            <h2 className="text-2xl font-bold text-[#6B21A8] font-inter">
               🌟 Perfect Score! 🌟
             </h2>
             <p className="text-sm text-muted-foreground mt-2">

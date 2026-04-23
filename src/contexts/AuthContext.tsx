@@ -357,7 +357,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         role: userData.role ? sanitizeText(userData.role) : 'student'
       };
       
-      const redirectUrl = `${window.location.origin}/`;
+      const redirectUrl = `${window.location.origin}/auth/callback`;
       
       const { data, error } = await supabase.auth.signUp({
         email: sanitizedEmail,

@@ -50,14 +50,14 @@ export const VocabularyIntegrationSlide: React.FC<VocabularyIntegrationSlideProp
 
       <h2 className="text-xl font-bold text-foreground mb-1">Sound-to-Letter Match</h2>
       <p className="text-sm text-muted-foreground mb-6">
-        Tap the letter that makes the <span className="font-mono font-bold text-[#1A237E]">/{phonemeTarget}/</span> sound
+        Tap the letter that makes the <span className="font-mono font-bold text-[#6B21A8]">/{phonemeTarget}/</span> sound
       </p>
 
       {/* Flat 2.0 Asset */}
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="h-36 w-36 rounded-2xl border-4 border-[#1A237E]/10 bg-white flex items-center justify-center mb-6 overflow-hidden shadow-sm"
+        className="h-36 w-36 rounded-2xl border-4 border-[#6B21A8]/10 bg-white flex items-center justify-center mb-6 overflow-hidden shadow-sm"
       >
         {imageUrl ? (
           <img src={imageUrl} alt={targetWord} className="h-full w-full object-contain p-3" />
@@ -74,7 +74,7 @@ export const VocabularyIntegrationSlide: React.FC<VocabularyIntegrationSlideProp
             ? correct
               ? 'border-[#4CAF50] bg-[#4CAF50]/10 text-[#2E7D32] scale-110 ring-2 ring-[#4CAF50]/30'
               : 'border-[#EF5350] bg-[#EF5350]/10 text-[#C62828]'
-            : 'border-border bg-card text-foreground hover:border-[#1A237E]/40';
+            : 'border-border bg-card text-foreground hover:border-[#6B21A8]/40';
 
           return (
             <motion.button
@@ -102,7 +102,7 @@ export const VocabularyIntegrationSlide: React.FC<VocabularyIntegrationSlideProp
         <motion.button
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1A237E]/10 text-[#1A237E] font-medium mb-4"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#6B21A8]/10 text-[#6B21A8] font-medium mb-4"
         >
           <Volume2 className="h-4 w-4" />
           Listen: "{targetWord}"

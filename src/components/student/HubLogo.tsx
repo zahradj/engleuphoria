@@ -11,7 +11,7 @@ interface HubLogoProps {
 
 const HUB_GRADIENTS: Record<string, { from: string; to: string }> = {
   playground: { from: '#FF9800', to: '#FFC107' },
-  academy: { from: '#3F51B5', to: '#7C4DFF' },
+  academy: { from: '#6B21A8', to: '#A855F7' },
   professional: { from: '#1B5E20', to: '#009688' },
 };
 

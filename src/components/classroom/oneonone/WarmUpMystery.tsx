@@ -53,9 +53,9 @@ export const WarmUpMystery: React.FC<WarmUpMysteryProps> = ({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
         >
-          <Card className="border-2 border-[#1A237E]/20 bg-gradient-to-br from-[#1A237E]/[0.03] to-transparent shadow-md">
+          <Card className="border-2 border-[#6B21A8]/20 bg-gradient-to-br from-[#6B21A8]/[0.03] to-transparent shadow-md">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold text-[#1A237E] flex items-center gap-2">
+              <CardTitle className="text-sm font-semibold text-[#6B21A8] flex items-center gap-2">
                 <Sparkles className="h-4 w-4" />
                 🕵️ Warm-Up Mystery
               </CardTitle>
@@ -70,12 +70,12 @@ export const WarmUpMystery: React.FC<WarmUpMysteryProps> = ({
               <div className="flex items-center justify-center py-6">
                 {!revealed ? (
                   <motion.div
-                    className="h-24 w-24 rounded-2xl bg-[#1A237E]/10 flex items-center justify-center cursor-pointer"
+                    className="h-24 w-24 rounded-2xl bg-[#6B21A8]/10 flex items-center justify-center cursor-pointer"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={isTeacher ? handleReveal : undefined}
                   >
-                    <HelpCircle className="h-12 w-12 text-[#1A237E]/40" />
+                    <HelpCircle className="h-12 w-12 text-[#6B21A8]/40" />
                   </motion.div>
                 ) : (
                   <motion.div
@@ -83,7 +83,7 @@ export const WarmUpMystery: React.FC<WarmUpMysteryProps> = ({
                     animate={{ scale: 1, rotate: 0 }}
                     className="text-center"
                   >
-                    <p className="text-3xl font-bold text-[#1A237E] font-inter">
+                    <p className="text-3xl font-bold text-[#6B21A8] font-inter">
                       {mystery.word}
                     </p>
                     <p className="text-sm text-muted-foreground mt-2">
@@ -109,7 +109,7 @@ export const WarmUpMystery: React.FC<WarmUpMysteryProps> = ({
                   <Button
                     size="sm"
                     onClick={handleReveal}
-                    className="flex-1 bg-[#1A237E] hover:bg-[#1A237E]/90 text-white gap-1"
+                    className="flex-1 bg-[#6B21A8] hover:bg-[#6B21A8]/90 text-white gap-1"
                   >
                     <Eye className="h-3.5 w-3.5" />
                     Reveal to Student

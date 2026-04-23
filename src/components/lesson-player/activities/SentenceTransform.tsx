@@ -57,8 +57,8 @@ export default function SentenceTransform({ slide, onCorrect, onIncorrect }: Pro
       </p>
 
       {/* Original sentence */}
-      <div className="px-6 py-3 rounded-xl bg-[#1A237E]/5 border border-[#1A237E]/10 mb-4">
-        <p className="text-lg font-bold text-[#1A237E]">📖 {original}</p>
+      <div className="px-6 py-3 rounded-xl bg-[#6B21A8]/5 border border-[#6B21A8]/10 mb-4">
+        <p className="text-lg font-bold text-[#6B21A8]">📖 {original}</p>
       </div>
 
       <div className="flex items-center gap-2 mb-6 text-muted-foreground">
@@ -70,7 +70,7 @@ export default function SentenceTransform({ slide, onCorrect, onIncorrect }: Pro
       <motion.div
         animate={wrongShake ? { x: [-4, 4, -4, 4, 0] } : {}}
         transition={{ duration: 0.3 }}
-        className="flex gap-1 flex-wrap justify-center min-h-[50px] px-4 py-3 rounded-xl border-2 border-dashed border-[#1A237E]/20 bg-muted/10 mb-6 max-w-md w-full"
+        className="flex gap-1 flex-wrap justify-center min-h-[50px] px-4 py-3 rounded-xl border-2 border-dashed border-[#6B21A8]/20 bg-muted/10 mb-6 max-w-md w-full"
       >
         {builtSentence.length === 0 ? (
           <span className="text-muted-foreground text-sm">Tap words below to build your answer...</span>
@@ -94,7 +94,7 @@ export default function SentenceTransform({ slide, onCorrect, onIncorrect }: Pro
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => handleWordTap(word, i)}
-            className="px-4 py-2 rounded-xl border-2 border-[#1A237E]/20 bg-card text-lg font-bold text-[#1A237E] hover:bg-[#1A237E]/5"
+            className="px-4 py-2 rounded-xl border-2 border-[#6B21A8]/20 bg-card text-lg font-bold text-[#6B21A8] hover:bg-[#6B21A8]/5"
           >
             {word}
           </motion.button>

@@ -98,9 +98,9 @@ export const ParentDiagnosticVault: React.FC<Props> = ({ studentId, studentName 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <Card className="border-[#1A237E]/20 bg-white dark:bg-gray-950">
+      <Card className="border-[#6B21A8]/20 bg-white dark:bg-gray-950">
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg font-bold text-[#1A237E] dark:text-blue-300 flex items-center gap-2">
+          <CardTitle className="text-lg font-bold text-[#6B21A8] dark:text-blue-300 flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
             {studentName}'s Language Progress
           </CardTitle>
@@ -108,7 +108,7 @@ export const ParentDiagnosticVault: React.FC<Props> = ({ studentId, studentName 
         <CardContent>
           <div className="grid grid-cols-4 gap-4">
             <div className="text-center p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30">
-              <p className="text-2xl font-black text-[#1A237E] dark:text-blue-300">{totalWords}</p>
+              <p className="text-2xl font-black text-[#6B21A8] dark:text-blue-300">{totalWords}</p>
               <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">Words Learned</p>
             </div>
             <div className="text-center p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30">
@@ -165,7 +165,7 @@ export const ParentDiagnosticVault: React.FC<Props> = ({ studentId, studentName 
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-bold flex items-center gap-2">
-            <BookOpen className="h-4 w-4 text-[#1A237E]" />
+            <BookOpen className="h-4 w-4 text-[#6B21A8]" />
             Phonics Mastery — 44 English Sounds
             <div className="flex gap-2 ml-auto text-[10px]">
               <span className="flex items-center gap-1">

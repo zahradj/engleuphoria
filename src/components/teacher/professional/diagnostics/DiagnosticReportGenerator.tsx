@@ -131,7 +131,7 @@ Use warm, professional language suitable for parents. No jargon.`;
   return (
     <Card className="border border-border bg-card shadow-sm">
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-semibold text-[#1A237E] flex items-center gap-2">
+        <CardTitle className="text-sm font-semibold text-[#6B21A8] flex items-center gap-2">
           <FileText className="h-4 w-4" />
           Teacher-Parent Diagnostic Bridge
         </CardTitle>
@@ -158,7 +158,7 @@ Use warm, professional language suitable for parents. No jargon.`;
             <Button
               onClick={generateReport}
               disabled={generating}
-              className="w-full bg-[#1A237E] hover:bg-[#1A237E]/90 text-white gap-1.5"
+              className="w-full bg-[#6B21A8] hover:bg-[#6B21A8]/90 text-white gap-1.5"
             >
               {generating ? (
                 <><Loader2 className="h-4 w-4 animate-spin" /> Generating...</>

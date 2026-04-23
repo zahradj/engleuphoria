@@ -80,7 +80,7 @@ export const PerformanceBonuses: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-[#1A237E]">Performance-Based Bonuses</h2>
+        <h2 className="text-lg font-semibold text-[#6B21A8]">Performance-Based Bonuses</h2>
         <p className="text-sm text-muted-foreground">
           Teachers whose students maintain &gt;85% mastery qualify for the Quality Bonus
         </p>

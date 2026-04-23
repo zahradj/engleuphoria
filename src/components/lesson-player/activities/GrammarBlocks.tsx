@@ -75,7 +75,7 @@ export default function GrammarBlocks({ slide, onCorrect, onIncorrect }: Props) 
     <div className="w-full h-full flex flex-col items-center justify-center rounded-3xl p-6 bg-gradient-to-b from-background to-muted/30">
       <h2 className="text-2xl font-bold text-foreground mb-1">🧱 Grammar Blocks</h2>
       <p className="text-muted-foreground text-sm mb-2">Build the sentence by snapping blocks into slots</p>
-      <p className="text-xs font-mono text-[#1A237E]/60 mb-6">Pattern: {pattern}</p>
+      <p className="text-xs font-mono text-[#6B21A8]/60 mb-6">Pattern: {pattern}</p>
 
       {imageUrl && (
         <img src={imageUrl} alt="" className="h-20 w-20 object-contain rounded-xl mb-4" />
@@ -95,7 +95,7 @@ export default function GrammarBlocks({ slide, onCorrect, onIncorrect }: Props) 
                 slot.filled
                   ? 'border-[#4CAF50] bg-[#4CAF50]/10'
                   : isActive
-                  ? `${colorClass} ring-2 ring-[#1A237E]/30 scale-105`
+                  ? `${colorClass} ring-2 ring-[#6B21A8]/30 scale-105`
                   : `${colorClass} border-dashed`
               }`}
             >
@@ -130,7 +130,7 @@ export default function GrammarBlocks({ slide, onCorrect, onIncorrect }: Props) 
                 isWrong ? 'border-[#EF5350] bg-[#EF5350]/10 text-[#C62828]'
                 : isHint ? 'border-[#4CAF50] bg-[#4CAF50]/10 text-[#2E7D32] animate-pulse'
                 : used ? 'border-muted bg-muted/10 text-muted-foreground'
-                : 'border-[#1A237E]/20 bg-card text-[#1A237E] hover:bg-[#1A237E]/5'
+                : 'border-[#6B21A8]/20 bg-card text-[#6B21A8] hover:bg-[#6B21A8]/5'
               }`}
             >
               {block}

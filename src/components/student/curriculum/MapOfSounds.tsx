@@ -42,8 +42,8 @@ export const MapOfSounds: React.FC<MapOfSoundsProps> = ({ hub = 'academy' }) => 
       : isPlayground
         ? 'bg-white/80 border-sky-200/50'
         : 'bg-white border-slate-200',
-    title: isNight ? 'text-indigo-100' : isPlayground ? 'text-sky-800' : 'text-[#1A237E]',
-    icon: isNight ? 'text-indigo-400' : isPlayground ? 'text-sky-500' : 'text-[#1A237E]',
+    title: isNight ? 'text-indigo-100' : isPlayground ? 'text-sky-800' : 'text-[#6B21A8]',
+    icon: isNight ? 'text-indigo-400' : isPlayground ? 'text-sky-500' : 'text-[#6B21A8]',
     sectionTitle: isNight ? 'text-indigo-200' : isPlayground ? 'text-sky-700' : 'text-slate-700',
     progressTrack: isNight ? 'bg-indigo-800/40' : isPlayground ? 'bg-sky-100' : 'bg-slate-100',
     progressBar: isNight

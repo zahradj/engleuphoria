@@ -74,7 +74,7 @@ const SoundTrigger: React.FC<SoundTriggerProps> = ({ slide, onCorrect, onIncorre
   return (
     <div className="flex flex-col items-center justify-center h-full gap-6 p-6">
       <div className="text-center">
-        <h2 className="text-xl font-semibold text-[#1A237E] font-inter flex items-center justify-center gap-2">
+        <h2 className="text-xl font-semibold text-[#6B21A8] font-inter flex items-center justify-center gap-2">
           <Ear className="h-5 w-5" />
           Sound Trigger
         </h2>
@@ -89,16 +89,16 @@ const SoundTrigger: React.FC<SoundTriggerProps> = ({ slide, onCorrect, onIncorre
       {isWaiting && (
         <div className="flex flex-col items-center gap-4">
           <motion.div
-            className="w-20 h-20 rounded-full bg-[#1A237E]/5 flex items-center justify-center"
+            className="w-20 h-20 rounded-full bg-[#6B21A8]/5 flex items-center justify-center"
             animate={{ scale: [1, 1.1, 1], opacity: [0.6, 1, 0.6] }}
             transition={{ repeat: Infinity, duration: 2 }}
           >
-            <Volume2 className="h-10 w-10 text-[#1A237E]/40" />
+            <Volume2 className="h-10 w-10 text-[#6B21A8]/40" />
           </motion.div>
           {!sessionId && (
             <button
               onClick={selfPlaySound}
-              className="text-sm text-[#1A237E] underline"
+              className="text-sm text-[#6B21A8] underline"
             >
               Play sound (practice mode)
             </button>
@@ -119,7 +119,7 @@ const SoundTrigger: React.FC<SoundTriggerProps> = ({ slide, onCorrect, onIncorre
                   ? 'border-[#2E7D32] bg-[#2E7D32]/5 shadow-[0_0_15px_rgba(46,125,50,0.2)]'
                   : selectedId === idx && result === 'incorrect'
                   ? 'border-[#EF5350] bg-[#EF5350]/5'
-                  : 'border-border hover:border-[#1A237E]/30 bg-card'
+                  : 'border-border hover:border-[#6B21A8]/30 bg-card'
               }`}
               whileHover={{ scale: result ? 1 : 1.03 }}
               whileTap={{ scale: result ? 1 : 0.97 }}
@@ -134,7 +134,7 @@ const SoundTrigger: React.FC<SoundTriggerProps> = ({ slide, onCorrect, onIncorre
                   {idx === 0 ? '🦁' : idx === 1 ? '🍎' : idx === 2 ? '🐱' : '🐕'}
                 </span>
               </div>
-              <p className="text-sm font-medium text-[#1A237E]">{word}</p>
+              <p className="text-sm font-medium text-[#6B21A8]">{word}</p>
 
               {selectedId === idx && result === 'correct' && (
                 <motion.div

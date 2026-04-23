@@ -29,7 +29,7 @@ const DIMENSIONS = [
   { key: 'writing', label: 'W', color: '#F59E0B' },
   { key: 'phonics', label: 'Ph', color: '#EF5350' },
   { key: 'vocab', label: 'Vc', color: '#06B6D4' },
-  { key: 'grammar', label: 'Gr', color: '#1A237E' },
+  { key: 'grammar', label: 'Gr', color: '#6B21A8' },
 ] as const;
 
 const getHeatColor = (score: number): string => {
@@ -128,7 +128,7 @@ export const MasteryHeatmap: React.FC<MasteryHeatmapProps> = ({ studentId, stude
     <div className="space-y-4">
       <Card className="border shadow-sm">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold text-[#1A237E] flex items-center gap-2">
+          <CardTitle className="text-sm font-semibold text-[#6B21A8] flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Mastery Heatmap — {studentName}
           </CardTitle>
@@ -157,7 +157,7 @@ export const MasteryHeatmap: React.FC<MasteryHeatmapProps> = ({ studentId, stude
                 <tbody>
                   {rows.map((row, idx) => (
                     <tr key={row.unitId} className="border-t border-border/30">
-                      <td className="py-2 pr-3 text-[#1A237E] font-medium truncate max-w-32">
+                      <td className="py-2 pr-3 text-[#6B21A8] font-medium truncate max-w-32">
                         {row.unitTitle}
                       </td>
                       {DIMENSIONS.map(d => {
@@ -199,7 +199,7 @@ export const MasteryHeatmap: React.FC<MasteryHeatmapProps> = ({ studentId, stude
                   {gap.gap}
                 </Badge>
                 <div>
-                  <p className="text-xs text-[#1A237E] font-medium">
+                  <p className="text-xs text-[#6B21A8] font-medium">
                     High: {gap.highSkill} → Low: {gap.lowSkill}
                   </p>
                   <p className="text-[10px] text-muted-foreground mt-0.5">

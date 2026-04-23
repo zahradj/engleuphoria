@@ -73,7 +73,7 @@ export default function WordBuilder({ slide, onCorrect, onIncorrect }: Props) {
             className={`h-14 w-12 rounded-xl border-2 flex items-center justify-center text-2xl font-bold transition-all ${
               builtLetters[i]
                 ? 'border-[#4CAF50] bg-[#4CAF50]/10 text-[#2E7D32]'
-                : 'border-dashed border-[#1A237E]/30 bg-muted/20 text-muted-foreground'
+                : 'border-dashed border-[#6B21A8]/30 bg-muted/20 text-muted-foreground'
             }`}
           >
             {builtLetters[i] || ''}
@@ -92,7 +92,7 @@ export default function WordBuilder({ slide, onCorrect, onIncorrect }: Props) {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleLetterTap(letter, i)}
-            className="h-12 w-12 rounded-xl border-2 border-[#1A237E]/20 bg-card text-xl font-bold text-[#1A237E] hover:bg-[#1A237E]/5 transition-colors"
+            className="h-12 w-12 rounded-xl border-2 border-[#6B21A8]/20 bg-card text-xl font-bold text-[#6B21A8] hover:bg-[#6B21A8]/5 transition-colors"
           >
             {letter}
           </motion.button>
