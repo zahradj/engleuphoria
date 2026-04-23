@@ -108,16 +108,16 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
   })();
 
   const hubGradient = hubType === 'playground'
-    ? 'linear-gradient(135deg, #FF9F1C, #F59E0B)'
+    ? 'linear-gradient(135deg, #FE6A2F, #F59E0B)'
     : hubType === 'professional'
     ? 'linear-gradient(135deg, #059669, #10B981)'
-    : 'linear-gradient(135deg, #1A237E, #3F51B5)';
+    : 'linear-gradient(135deg, #6B21A8, #A855F7)';
 
   const hubBorderColor = hubType === 'playground'
-    ? 'border-amber-200'
+    ? 'border-orange-200'
     : hubType === 'professional'
     ? 'border-emerald-200'
-    : 'border-indigo-200';
+    : 'border-purple-200';
 
   return (
     <div className={`h-14 bg-white/80 backdrop-blur-md border-b ${hubBorderColor} flex items-center justify-between px-4 shrink-0 shadow-sm`}>

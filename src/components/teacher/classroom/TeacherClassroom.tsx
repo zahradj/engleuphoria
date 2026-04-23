@@ -18,6 +18,7 @@ import { FloatingCoPilot } from "@/components/classroom/FloatingCoPilot";
 import { ZenModeOverlay } from "@/components/classroom/ZenModeOverlay";
 import { PictureInPicture } from "@/components/classroom/PictureInPicture";
 import { LessonWrapUpDialog } from "@/components/classroom/LessonWrapUpDialog";
+import { TeacherInstructionsSidebar } from "@/components/classroom/TeacherInstructionsSidebar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -72,6 +73,9 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   // Embed link state
   const [embedDialogOpen, setEmbedDialogOpen] = useState(false);
   const [embeddedUrl, setEmbeddedUrl] = useState<string | null>(null);
+
+  // Teacher instructions sidebar
+  const [instructionsSidebarOpen, setInstructionsSidebarOpen] = useState(false);
 
   // Smart timer for Professional Buffer
   const sessionDuration: 25 | 55 = 25; // TODO: derive from booking data
@@ -292,10 +296,10 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   const resetTimer = () => { setTimerRunning(false); setTimerValue(timerSeconds); };
 
   const hubBg = hubType === 'playground'
-    ? 'bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50'
+    ? 'bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50'
     : hubType === 'professional'
-    ? 'bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50'
-    : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50';
+    ? 'bg-gradient-to-br from-emerald-50 via-teal-50 to-mint-50'
+    : 'bg-gradient-to-br from-purple-50 via-violet-50 to-fuchsia-50';
 
   const showDebug = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug');
 
@@ -446,6 +450,15 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
           </div>
         )}
       </div>
+
+      {/* Teacher Instructions Sidebar (hidden in Zen) */}
+      {!isZenMode && (
+        <TeacherInstructionsSidebar
+          lessonTitle={lessonTitle}
+          isOpen={instructionsSidebarOpen}
+          onToggle={() => setInstructionsSidebarOpen(!instructionsSidebarOpen)}
+        />
+      )}
 
       {/* Floating AI Co-Pilot (hidden in Zen) */}
       {!isZenMode && (

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,6 +27,8 @@ const formSchema = z.object({
 
 const StudentSignUp = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const hubParam = searchParams.get('hub'); // e.g. ?hub=academy
   const { toast } = useToast();
   const { user, signUp, isConfigured, loading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
@@ -124,10 +126,22 @@ const StudentSignUp = () => {
 
       if (data?.user) {
         // Determine system tag and student level based on age
+        // If a hub param was provided (e.g. ?hub=academy), use it as an override
         const systemTag = values.age >= 4 && values.age <= 10 ? 'KIDS'
                         : values.age >= 11 && values.age <= 17 ? 'TEENS'
                         : 'ADULTS';
-        const studentLevel = determineStudentLevel(values.age);
+        
+        // Hub param overrides age-based level when explicitly provided
+        let studentLevel: string;
+        if (hubParam === 'academy') {
+          studentLevel = 'academy';
+        } else if (hubParam === 'playground') {
+          studentLevel = 'playground';
+        } else if (hubParam === 'professional' || hubParam === 'success') {
+          studentLevel = 'professional';
+        } else {
+          studentLevel = determineStudentLevel(values.age);
+        }
 
         // Verify users row exists (trigger should have created it). If not, create it.
         const { data: existingProfile } = await supabase
