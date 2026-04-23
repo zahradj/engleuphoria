@@ -170,11 +170,13 @@ export const SlideFilmstrip: React.FC<SlideFilmstripProps> = ({
       </ScrollArea>
 
       {/* Add Slide button */}
-      <div className="px-1 py-1 border-t border-border">
-        <Button onClick={onAddSlide} size="sm" variant="outline" className="w-full h-6 text-[9px] gap-0.5">
-          <Plus className="h-2.5 w-2.5" /> Slide
-        </Button>
-      </div>
+        {onAddSlide && (
+          <div className="px-1 py-1 border-t border-border">
+            <Button onClick={onAddSlide} size="sm" variant="outline" className="w-full h-6 text-[9px] gap-0.5">
+              <Plus className="h-2.5 w-2.5" /> Slide
+            </Button>
+          </div>
+        )}
 
       {/* Merged Element Toolbar */}
       {onAddElement && (
