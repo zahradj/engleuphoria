@@ -27,6 +27,7 @@ import { usePollInteraction } from '@/hooks/usePollInteraction';
 import { useIdleOpacity } from '@/hooks/useIdleOpacity';
 import { TargetWordsOverlay } from '@/components/classroom/TargetWordsOverlay';
 import { SmartSummaryTip } from '@/components/classroom/SmartSummaryTip';
+import { EmbeddedContentViewer } from './EmbeddedContentViewer';
 import {
   Popover,
   PopoverContent,
@@ -257,23 +258,17 @@ export const CenterStage: React.FC<CenterStageProps> = ({
         {activeCanvasTab === 'web' && (
           <div className="relative w-full max-w-5xl aspect-[16/9] bg-white rounded-xl shadow-2xl overflow-hidden">
             {embeddedUrl ? (
-              <>
-                <iframe
-                  src={getEmbedUrl(embeddedUrl)}
-                  className="w-full h-full border-0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
-                />
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  className="absolute top-3 right-3 z-20"
-                  onClick={onCloseEmbed}
-                >
-                  Close
-                </Button>
-              </>
+              <EmbeddedContentViewer
+                url={embeddedUrl}
+                onClose={() => onCloseEmbed?.()}
+                enableDrawing
+                roomId={roomId}
+                userId={userId}
+                userName={userName}
+                strokes={strokes}
+                onAddStroke={onAddStroke}
+                onClearCanvas={onClearCanvas}
+              />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400">
                 <div className="text-center">
