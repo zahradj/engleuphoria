@@ -125,26 +125,26 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({ slide, onUpdateSlide
           <CanvasElement
             key={element.id}
             element={element}
-            isSelected={element.id === selectedElementId}
+            isSelected={!readOnly && element.id === selectedElementId}
             scale={scale}
-            onSelect={() => setSelectedElementId(element.id)}
-            onUpdate={(updates) => updateElement(element.id, updates)}
-            onDelete={() => deleteElement(element.id)}
+            onSelect={() => !readOnly && setSelectedElementId(element.id)}
+            onUpdate={readOnly ? () => {} : (updates) => updateElement(element.id, updates)}
+            onDelete={readOnly ? () => {} : () => deleteElement(element.id)}
           />
         ))}
 
         {elements.length === 0 && !slide.imageUrl && (
           <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/50">
             <div className="text-center">
-              <p className="text-2xl font-light mb-2">Empty Canvas</p>
-              <p className="text-sm">Add elements from the left toolbar</p>
+              <p className="text-2xl font-light mb-2">{readOnly ? 'No Content' : 'Empty Canvas'}</p>
+              {!readOnly && <p className="text-sm">Add elements from the left toolbar</p>}
             </div>
           </div>
         )}
       </div>
 
-      {/* Floating Properties Panel */}
-      {selectedElement && (
+      {/* Floating Properties Panel — hidden in read-only mode */}
+      {!readOnly && selectedElement && (
         <div className="absolute right-4 top-4 z-50" onClick={(e) => e.stopPropagation()}>
           <PropertiesPanel
             element={selectedElement}
