@@ -10,10 +10,10 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const apiKey = Deno.env.get("LOVABLE_API_KEY");
+    const apiKey = Deno.env.get("GEMINI_API_KEY");
     if (!apiKey) {
       return new Response(
-        JSON.stringify({ error: "LOVABLE_API_KEY not configured" }),
+        JSON.stringify({ error: "GEMINI_API_KEY not configured" }),
         { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
       );
     }
@@ -152,42 +152,40 @@ Topic: "${topic.trim()}"${
       }`;
     }
 
-    // Call Lovable AI Gateway (Gemini 2.5 Flash)
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Call Google Gemini API directly
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const aiResponse = await fetch(geminiUrl, {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        response_format: { type: "json_object" },
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.7,
+          maxOutputTokens: 8192,
+        },
       }),
     });
 
     if (!aiResponse.ok) {
       const errText = await aiResponse.text();
-      console.error("Lovable AI Gateway error:", aiResponse.status, errText);
-      const status = aiResponse.status === 429 ? 429 : aiResponse.status === 402 ? 402 : 500;
+      console.error("Gemini API error:", aiResponse.status, errText);
+      const status = aiResponse.status === 429 ? 429 : 500;
       const errorMsg = status === 429
-        ? "Rate limited. Please wait a moment and try again."
-        : status === 402
-        ? "AI credits exhausted. Please add credits in Settings → Workspace → Usage."
+        ? "Gemini rate limit/quota exceeded. Please wait or check your Google AI Studio quota."
         : "AI generation failed";
       return new Response(
-        JSON.stringify({ error: errorMsg }),
+        JSON.stringify({ error: errorMsg, details: errText }),
         { status, headers: { ...CORS, "Content-Type": "application/json" } }
       );
     }
 
     const aiData = await aiResponse.json();
-    const rawText = aiData?.choices?.[0]?.message?.content || "";
+    const rawText = aiData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     if (!rawText) {
+      console.error("Empty Gemini response:", JSON.stringify(aiData));
       return new Response(
         JSON.stringify({ error: "AI returned empty response" }),
         { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
