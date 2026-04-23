@@ -91,6 +91,9 @@ class WhiteboardService {
     const scrollListeners = new Set<ScrollListener>();
     const stageModeListeners = new Set<StageModeListener>();
     const drawingEnabledListeners = new Set<DrawingEnabledListener>();
+    const rewardListeners = new Set<RewardListener>();
+    const toolActionListeners = new Set<ToolActionListener>();
+    const chatListeners = new Set<ChatListener>();
 
     const channel = supabase
       .channel(channelName, { config: { broadcast: { self: false, ack: false } } })
@@ -118,6 +121,15 @@ class WhiteboardService {
       })
       .on('broadcast', { event: 'drawing_enabled' }, (payload) => {
         drawingEnabledListeners.forEach((cb) => cb(payload.payload as any));
+      })
+      .on('broadcast', { event: 'reward' }, (payload) => {
+        rewardListeners.forEach((cb) => cb(payload.payload as RewardPayload));
+      })
+      .on('broadcast', { event: 'tool_action' }, (payload) => {
+        toolActionListeners.forEach((cb) => cb(payload.payload as ToolActionPayload));
+      })
+      .on('broadcast', { event: 'chat_message' }, (payload) => {
+        chatListeners.forEach((cb) => cb(payload.payload as ChatBroadcastPayload));
       });
 
     const ready = new Promise<void>((resolve) => {
@@ -133,6 +145,9 @@ class WhiteboardService {
       scrollListeners,
       stageModeListeners,
       drawingEnabledListeners,
+      rewardListeners,
+      toolActionListeners,
+      chatListeners,
       refCount: 0,
     };
     this.rooms.set(channelName, room);
