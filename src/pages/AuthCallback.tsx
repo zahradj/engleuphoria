@@ -114,19 +114,19 @@ const AuthCallback = () => {
           } else if (userRole === 'content_creator') {
             navigate('/content-creator', { replace: true });
           } else {
-            // Student: read the profile we just ensured exists
+            // Student: resolve via shared resolver (metadata-first, DB-confirmed).
+            const { resolveHubRoute } = await import('@/lib/hubResolver');
             const { data: freshProfile } = await supabase
               .from('student_profiles')
               .select('student_level')
               .eq('user_id', userId)
               .maybeSingle();
-            const hubLevel = freshProfile?.student_level
-              || session.user.user_metadata?.hub_type
-              || 'playground';
-            const hubRoute = hubLevel === 'academy' ? '/dashboard/academy'
-              : hubLevel === 'professional' ? '/dashboard/hub'
-              : '/dashboard/playground';
-            navigate(hubRoute, { replace: true });
+            const { route, level, source } = resolveHubRoute({
+              metadata: session.user.user_metadata,
+              dbStudentLevel: freshProfile?.student_level,
+            });
+            console.log(`📍 [AuthCallback] hub from ${source} →`, level, route);
+            navigate(route, { replace: true });
           }
         }
       } catch (err) {

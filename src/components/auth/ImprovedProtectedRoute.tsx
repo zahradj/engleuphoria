@@ -53,9 +53,10 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
     return <DevBypassWrapper role={bypassRole}>{children}</DevBypassWrapper>;
   }
 
-  // Show loading spinner while auth is being determined
-  const isLoadingStudentData = user?.role === 'student' && studentLoading;
-  if (loading || isLoadingStudentData) {
+  // Show loading spinner while auth itself is being determined.
+  // We intentionally do NOT block on student profile loading — useStudentLevel
+  // is metadata-seeded and non-blocking, so routing decisions can proceed.
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
         <div className="text-center">

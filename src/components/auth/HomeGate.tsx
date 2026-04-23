@@ -3,13 +3,14 @@ import { Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStudentLevel, getStudentDashboardRoute } from '@/hooks/useStudentLevel';
+import { resolveHubRoute } from '@/lib/hubResolver';
 import LandingPage from '@/pages/LandingPage';
 
 export const HomeGate: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
-  const { studentLevel, loading: studentLoading } = useStudentLevel();
+  const { studentLevel } = useStudentLevel(); // metadata-seeded, non-blocking
 
-  if (authLoading || (user && (user as any).role === 'student' && studentLoading)) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
         <div className="text-center">
@@ -29,8 +30,13 @@ export const HomeGate: React.FC = () => {
   if (role === 'content_creator') return <Navigate to="/content-creator" replace />;
   if (role === 'teacher') return <Navigate to="/teacher" replace />;
   if (role === 'parent') return <Navigate to="/parent" replace />;
-  if (role === 'student' && studentLevel) return <Navigate to={getStudentDashboardRoute(studentLevel)} replace />;
 
+  if (role === 'student') {
+    // Always resolve from metadata first; falls back instantly even if DB is empty.
+    if (studentLevel) return <Navigate to={getStudentDashboardRoute(studentLevel)} replace />;
+    const { route } = resolveHubRoute({ metadata: (user as any).user_metadata });
+    return <Navigate to={route} replace />;
+  }
 
   return <Navigate to="/dashboard" replace />;
 };
