@@ -73,8 +73,8 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
 
   if (isLoading) return <AcademySkeleton />;
 
-  const textPrimary = isDark ? 'text-indigo-100' : 'text-[#174EA6]';
-  const textSecondary = isDark ? 'text-indigo-300' : 'text-slate-500';
+  const textPrimary = isDark ? 'text-purple-100' : 'text-[#6B21A8]';
+  const textSecondary = isDark ? 'text-purple-300' : 'text-slate-500';
 
   return (
     <div className="relative space-y-6">
@@ -103,10 +103,10 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
         transition={{ delay: 0.05 }}
         className="glass-card-hub glass-academy p-6 backdrop-blur-md relative overflow-hidden"
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-[#174EA6]/10 via-[#B75EED]/10 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#6B21A8]/10 via-[#A855F7]/10 to-transparent pointer-events-none" />
         <div className="relative flex items-center justify-between">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#174EA6] to-[#B75EED] bg-clip-text text-transparent">
+            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#6B21A8] to-[#A855F7] bg-clip-text text-transparent">
               Welcome back, {studentName} 📚
             </h1>
             <p className={cn('text-sm mt-1', textSecondary)}>
