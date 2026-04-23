@@ -43,6 +43,7 @@ const ageGroups = ['3-5', '6-8', '9-12', '13-17', '18+'];
 export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, onBack, curriculumContext }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const canEdit = useCanEditContent();
   const [isSaving, setIsSaving] = useState(false);
   const [showAIWizard, setShowAIWizard] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
