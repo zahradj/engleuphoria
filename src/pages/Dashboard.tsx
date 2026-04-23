@@ -1,22 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStudentLevel, getStudentDashboardRoute } from '@/hooks/useStudentLevel';
+import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
-  const { studentLevel, onboardingCompleted, loading: studentLoading } = useStudentLevel();
+  const { studentLevel, onboardingCompleted, loading: studentLoading, refetch } = useStudentLevel();
   const [redirectPath, setRedirectPath] = useState<string | null>(null);
+  const autoHealAttemptedRef = useRef(false);
 
-  // Hard safety timeout — if nothing resolves in 8s, force to /playground
+  // Hard safety timeout — if nothing resolves in 10s, force to /playground
   useEffect(() => {
     const hardTimeout = setTimeout(() => {
       if (!redirectPath && user) {
-        console.warn('⏱️ Dashboard hard timeout (8s) — forcing /playground');
+        console.warn('⏱️ Dashboard hard timeout (10s) — forcing /playground');
         setRedirectPath('/playground');
       }
-    }, 8000);
+    }, 10000);
     return () => clearTimeout(hardTimeout);
   }, [user, redirectPath]);
 
@@ -45,17 +47,44 @@ const Dashboard: React.FC = () => {
     if (userRole === 'student') {
       if (studentLoading) return;
 
-      if (!onboardingCompleted && studentLevel) {
-        setRedirectPath('/hub-confirmation');
-        return;
-      }
-
+      // If studentLevel is loaded and valid, route to the right dashboard
       if (studentLevel) {
+        if (!onboardingCompleted) {
+          setRedirectPath('/hub-confirmation');
+          return;
+        }
         setRedirectPath(getStudentDashboardRoute(studentLevel));
         return;
       }
 
-      // No level set — default
+      // studentLevel is null — auto-heal: create student_profiles from metadata
+      if (!autoHealAttemptedRef.current) {
+        autoHealAttemptedRef.current = true;
+        (async () => {
+          try {
+            const hubType = user.user_metadata?.hub_type || 'playground';
+            const resolvedLevel = hubType === 'academy' ? 'academy'
+              : (hubType === 'professional' || hubType === 'success') ? 'professional'
+              : 'playground';
+
+            console.log('🔧 Dashboard auto-healing student_profiles →', resolvedLevel);
+            
+            await supabase.from('student_profiles').upsert(
+              { user_id: user.id, student_level: resolvedLevel, onboarding_completed: false },
+              { onConflict: 'user_id' }
+            );
+
+            // Re-fetch student level after healing
+            await refetch();
+          } catch (err) {
+            console.error('Auto-heal failed:', err);
+            setRedirectPath('/playground');
+          }
+        })();
+        return;
+      }
+
+      // Auto-heal was attempted but level is still null — force fallback
       setRedirectPath('/playground');
       return;
     }
