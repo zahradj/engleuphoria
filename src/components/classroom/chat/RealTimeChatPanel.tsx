@@ -1,11 +1,12 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useRealTimeChat } from '@/hooks/useRealTimeChat';
 import { ChatMessage } from '@/services/chatService';
+import { whiteboardService, ChatBroadcastPayload } from '@/services/whiteboardService';
 import { Send, Paperclip, Download, AlertCircle, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import { LoadingSpinner, ErrorState } from '@/components/ui/loading-states';
