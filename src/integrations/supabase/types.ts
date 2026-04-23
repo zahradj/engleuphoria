@@ -6182,6 +6182,39 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_games: {
+        Row: {
+          age_level: string | null
+          created_at: string
+          game_data: Json
+          id: string
+          teacher_id: string
+          title: string
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          age_level?: string | null
+          created_at?: string
+          game_data: Json
+          id?: string
+          teacher_id: string
+          title: string
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          age_level?: string | null
+          created_at?: string
+          game_data?: Json
+          id?: string
+          teacher_id?: string
+          title?: string
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       seasonal_events: {
         Row: {
           created_at: string
