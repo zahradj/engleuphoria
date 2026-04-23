@@ -98,6 +98,14 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
   const isQuizSlide = currentSlide?.type === 'quiz';
   const isPollSlide = currentSlide?.type === 'poll';
 
+  // Student-local drawing controls
+  const [studentTool, setStudentTool] = useState<'pointer' | 'pen' | 'eraser'>('pen');
+  const [studentColor, setStudentColor] = useState<string>(activeColor || STUDENT_COLORS[0]);
+  // Whiteboard tab is collaborative — student can always draw there
+  const canDrawOnWhiteboard = true;
+  const canDrawOnSlides = studentCanDraw;
+  const canDrawOnWeb = studentCanDraw;
+
   // Show screen share if teacher is sharing
   if (isScreenSharing) {
     return (
