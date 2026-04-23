@@ -235,19 +235,35 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   const toggleMute = useCallback(() => { media.toggleMicrophone(); }, [media]);
   const toggleCamera = useCallback(() => { media.toggleCamera(); }, [media]);
 
+  const teacherUserId = user?.id || sessionStorage.getItem('demo-teacher-id') || 'teacher';
+
   const handleGiveStar = useCallback(async () => {
     const newStarCount = studentStars + 1;
     setStudentStars(newStarCount);
     const milestone = newStarCount % 5 === 0;
     setIsMilestone(milestone);
     setShowStarCelebration(true);
+    // Instant broadcast to student via the unified classroom channel
+    void whiteboardService.sendReward(roomName, {
+      rewardType: 'star',
+      starCount: newStarCount,
+      isMilestone: milestone,
+      senderId: teacherUserId,
+    }).catch((e) => console.error('Star broadcast failed:', e));
     await updateSharedDisplay({ starCount: newStarCount, showStarCelebration: true, isMilestone: milestone });
     setTimeout(async () => { await updateSharedDisplay({ showStarCelebration: false }); }, milestone ? 6500 : 3500);
-  }, [studentStars, updateSharedDisplay]);
+  }, [studentStars, updateSharedDisplay, roomName, teacherUserId]);
 
   const handleOpenTimer = useCallback(() => { setTimerDialogOpen(true); }, []);
   const handleRollDice = useCallback(() => { setDiceDialogOpen(true); }, []);
-  const handleSendSticker = useCallback(() => { toast({ title: "😊 Sticker Sent!", description: "Sticker sent to the student's screen" }); }, [toast]);
+  const handleSendSticker = useCallback(() => {
+    void whiteboardService.sendReward(roomName, {
+      rewardType: 'sticker',
+      sticker: '😊',
+      senderId: teacherUserId,
+    }).catch((e) => console.error('Sticker broadcast failed:', e));
+    toast({ title: "😊 Sticker Sent!", description: "Sticker sent to the student's screen" });
+  }, [toast, roomName, teacherUserId]);
 
   const handleToggleStudentDrawing = useCallback(async () => {
     await setStudentCanDraw(!studentCanDraw);
@@ -513,7 +529,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
       />
 
       {/* Dice Roller Dialog */}
-      <DiceRoller open={diceDialogOpen} onOpenChange={setDiceDialogOpen} />
+      <DiceRoller open={diceDialogOpen} onOpenChange={setDiceDialogOpen} roomId={roomName} senderId={teacherUserId} />
 
       {/* Embed Link Dialog */}
       <EmbedLinkDialog open={embedDialogOpen} onOpenChange={setEmbedDialogOpen} onEmbed={handleEmbed} />
