@@ -97,19 +97,25 @@ export const WeeklyCalendarGrid: React.FC<WeeklyCalendarGridProps> = ({
     return <span className="text-[10px] font-bold">{slot.duration}m</span>;
   };
 
-  // Build rows: every 30-minute slot
-  const rows = useMemo(() => TIME_SLOTS.map((time) => {
-    const [h, m] = time.split(':').map(Number);
-    return { time, hour: h, minute: m, isHour: m === 0, period: periodFor(h) };
-  }), []);
+  // Build rows. For 60-min hubs (Academy / Success) only render hour-aligned rows
+  // so each cell visually represents a full one-hour slot (e.g. 6→7, 7→8…).
+  // For 30-min hubs (Playground) keep both :00 and :30.
+  const rows = useMemo(() => {
+    const all = TIME_SLOTS.map((time) => {
+      const [h, m] = time.split(':').map(Number);
+      return { time, hour: h, minute: m, isHour: m === 0, period: periodFor(h) };
+    });
+    return slotDuration === 60 ? all.filter((r) => r.isHour) : all;
+  }, [slotDuration]);
 
-  // Auto-scroll to morning (08:00) on first render so 24h grid isn't disorienting
+  // Auto-scroll to morning (06:00) on first render so 24h grid isn't disorienting
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    // 16 rows * 36px ≈ 576px (08:00). Tune to taste.
-    el.scrollTop = 16 * 36;
-  }, []);
+    const rowPx = slotDuration === 60 ? 56 : 36;
+    const targetIdx = slotDuration === 60 ? 6 : 12; // 06:00
+    el.scrollTop = targetIdx * rowPx;
+  }, [slotDuration]);
 
   return (
     <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
