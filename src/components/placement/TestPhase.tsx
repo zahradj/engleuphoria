@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ChatBubble from './ChatBubble';
 
@@ -8,6 +8,7 @@ export interface TestResult {
   correctOption: number;
   isCorrect: boolean;
   difficulty: number;
+  targetLevel?: string;
 }
 
 interface Question {
@@ -15,6 +16,7 @@ interface Question {
   options: string[];
   correctIndex: number;
   difficulty: number;
+  targetLevel: 'A1' | 'A2' | 'B1' | 'B2' | 'C1';
   feedback: { correct: string; incorrect: string };
 }
 
@@ -23,48 +25,124 @@ interface TestPhaseProps {
   onComplete: (results: TestResult[]) => void;
 }
 
+// Kids stay on the playful adaptive bank (under 12).
 const PLAYGROUND_QUESTIONS: Question[] = [
-  { question: "Which animal says 'Meow'? 🐱🐶🐸🐦", options: ["🐱 Cat", "🐶 Dog", "🐸 Frog", "🐦 Bird"], correctIndex: 0, difficulty: 0.3, feedback: { correct: "That's right! 🎉 Cats say Meow!", incorrect: "Not quite! Cats say Meow! 🐱" } },
-  { question: "What color is the sky on a sunny day? ☀️", options: ["🔴 Red", "🔵 Blue", "🟢 Green", "🟡 Yellow"], correctIndex: 1, difficulty: 0.3, feedback: { correct: "Yes! The sky is blue! 🌤️", incorrect: "The sky is blue on a sunny day! 🔵" } },
-  { question: "How do you say 'Hello' to a friend?", options: ["Goodbye!", "Hi there!", "Thank you!", "Sorry!"], correctIndex: 1, difficulty: 0.4, feedback: { correct: "Perfect! 'Hi there!' is a great greeting! 👋", incorrect: "We say 'Hi there!' to greet a friend! 👋" } },
-  { question: "How many legs does a dog have?", options: ["Two", "Four", "Six", "Eight"], correctIndex: 1, difficulty: 0.4, feedback: { correct: "Correct! Dogs have four legs! 🐕", incorrect: "Dogs have four legs! 🐾" } },
-  { question: "What do you do with a book? 📖", options: ["Eat it", "Read it", "Throw it", "Wear it"], correctIndex: 1, difficulty: 0.5, feedback: { correct: "Yes! We read books! 📚", incorrect: "We read books! 📖" } },
-  { question: "Which word is a fruit? 🍎", options: ["Chair", "Apple", "Car", "Hat"], correctIndex: 1, difficulty: 0.5, feedback: { correct: "Right! An apple is a fruit! 🍏", incorrect: "An apple is a fruit! 🍎" } },
-  { question: "What season comes after summer?", options: ["Spring", "Winter", "Autumn", "Summer"], correctIndex: 2, difficulty: 0.6, feedback: { correct: "Great! Autumn comes after summer! 🍂", incorrect: "Autumn (Fall) comes after summer! 🍂" } },
-  { question: "Complete: 'She ___ a student.'", options: ["am", "is", "are", "be"], correctIndex: 1, difficulty: 0.7, feedback: { correct: "Correct! 'She is a student.' ✅", incorrect: "The correct answer is 'She is a student.'" } },
+  { question: "Which animal says 'Meow'? 🐱🐶🐸🐦", options: ["🐱 Cat", "🐶 Dog", "🐸 Frog", "🐦 Bird"], correctIndex: 0, difficulty: 0.3, targetLevel: 'A1', feedback: { correct: "That's right! 🎉 Cats say Meow!", incorrect: "Not quite! Cats say Meow! 🐱" } },
+  { question: "What color is the sky on a sunny day? ☀️", options: ["🔴 Red", "🔵 Blue", "🟢 Green", "🟡 Yellow"], correctIndex: 1, difficulty: 0.3, targetLevel: 'A1', feedback: { correct: "Yes! The sky is blue! 🌤️", incorrect: "The sky is blue on a sunny day! 🔵" } },
+  { question: "How do you say 'Hello' to a friend?", options: ["Goodbye!", "Hi there!", "Thank you!", "Sorry!"], correctIndex: 1, difficulty: 0.4, targetLevel: 'A1', feedback: { correct: "Perfect! 'Hi there!' is a great greeting! 👋", incorrect: "We say 'Hi there!' to greet a friend! 👋" } },
+  { question: "How many legs does a dog have?", options: ["Two", "Four", "Six", "Eight"], correctIndex: 1, difficulty: 0.4, targetLevel: 'A1', feedback: { correct: "Correct! Dogs have four legs! 🐕", incorrect: "Dogs have four legs! 🐾" } },
+  { question: "What do you do with a book? 📖", options: ["Eat it", "Read it", "Throw it", "Wear it"], correctIndex: 1, difficulty: 0.5, targetLevel: 'A1', feedback: { correct: "Yes! We read books! 📚", incorrect: "We read books! 📖" } },
 ];
 
-const ACADEMY_QUESTIONS: Question[] = [
-  { question: "Choose the correct sentence:", options: ["She go to school every day.", "She goes to school every day.", "She going to school every day.", "She gone to school every day."], correctIndex: 1, difficulty: 0.5, feedback: { correct: "Correct! Third person singular uses 'goes'. ✅", incorrect: "The correct form is 'She goes' — third person singular." } },
-  { question: "If I ____ rich, I would travel the world.", options: ["am", "was", "were", "be"], correctIndex: 2, difficulty: 0.6, feedback: { correct: "Perfect! 'Were' is used in second conditional. 🎯", incorrect: "In second conditional, we use 'were' for all subjects." } },
-  { question: "Your friend invites you to a party. How do you respond?", options: ["I don't care.", "Sounds great! I'd love to come!", "Maybe. Whatever.", "No."], correctIndex: 1, difficulty: 0.5, feedback: { correct: "Great social skills! That's the polite response. 🎉", incorrect: "The most appropriate response is enthusiastic and polite!" } },
-  { question: "'Look up' means to:", options: ["Search for information", "Look at the ceiling", "Wake up early", "Clean your room"], correctIndex: 0, difficulty: 0.7, feedback: { correct: "Right! 'Look up' is a phrasal verb meaning to search for info. 📖", incorrect: "'Look up' means to search for information." } },
-  { question: "I've been studying English ____ three years.", options: ["since", "for", "during", "while"], correctIndex: 1, difficulty: 0.7, feedback: { correct: "Excellent! 'For' is used with durations. ⏰", incorrect: "'For' is used with periods of time (three years)." } },
-  { question: "Which sentence uses the passive voice correctly?", options: ["The cake eaten by us.", "The cake was eaten by us.", "The cake is eat by us.", "The cake eating by us."], correctIndex: 1, difficulty: 0.8, feedback: { correct: "Great! Passive = 'was/were + past participle'. ✅", incorrect: "Passive voice: 'The cake was eaten by us.'" } },
-  { question: "She asked me where I ____.", options: ["live", "lived", "living", "lives"], correctIndex: 1, difficulty: 0.8, feedback: { correct: "Correct! Reported speech uses past tense. 📝", incorrect: "In reported speech, we shift 'live' → 'lived'." } },
-  { question: "Not only ____ intelligent, but also creative.", options: ["she is", "is she", "she was", "does she"], correctIndex: 1, difficulty: 0.9, feedback: { correct: "Excellent! Inverted structure after 'Not only'. 🎯", incorrect: "'Not only is she' uses subject-verb inversion." } },
-];
+// 15-question CEFR Master Assessment for ages 12+ (Academy & Professional hubs).
+// Strictly ordered by progressive difficulty: A1 → A2 → B1 → B2 → C1.
+const CEFR_MASTER_QUESTIONS: Question[] = [
+  // ===== A1 (Beginner) — Questions 1-3 =====
+  {
+    question: "Choose the correct sentence:",
+    options: ["She are my sister.", "She is my sister.", "She am my sister.", "She be my sister."],
+    correctIndex: 1, difficulty: 0.1, targetLevel: 'A1',
+    feedback: { correct: "Correct! 'She is my sister.' ✅", incorrect: "With 'she/he/it' we use 'is'." },
+  },
+  {
+    question: "Complete: 'I ___ a cup of coffee every morning.'",
+    options: ["drinks", "drinking", "drink", "drank"],
+    correctIndex: 2, difficulty: 0.15, targetLevel: 'A1',
+    feedback: { correct: "Right! Simple present with 'I' uses 'drink'. ☕", incorrect: "With 'I' in the simple present, we use 'drink'." },
+  },
+  {
+    question: "Which pronoun replaces 'Tom and I'?",
+    options: ["They", "Us", "We", "Them"],
+    correctIndex: 2, difficulty: 0.2, targetLevel: 'A1',
+    feedback: { correct: "Yes! 'Tom and I' = 'We'. 👍", incorrect: "'Tom and I' is a subject pronoun → 'We'." },
+  },
 
-const PROFESSIONAL_QUESTIONS: Question[] = [
-  { question: "Which opening is most appropriate for a formal email to a client?", options: ["Hey! What's up?", "Dear Mr. Johnson,", "Yo, check this out.", "Hi buddy,"], correctIndex: 1, difficulty: 0.6, feedback: { correct: "Perfect professional etiquette! ✉️", incorrect: "'Dear Mr. Johnson,' is the standard formal opening." } },
-  { question: "'Let's touch base next week' means:", options: ["Let's play sports", "Let's communicate/meet again", "Let's finish the project", "Let's take a break"], correctIndex: 1, difficulty: 0.6, feedback: { correct: "Correct! It's a common business idiom. 🤝", incorrect: "'Touch base' means to communicate or reconnect." } },
-  { question: "The board ____ the proposal if we had presented better data.", options: ["would approve", "would have approved", "will approve", "approves"], correctIndex: 1, difficulty: 0.8, feedback: { correct: "Excellent! Third conditional — past hypothetical. 🎯", incorrect: "Third conditional: 'would have approved' (past unreal)." } },
-  { question: "Which phrase is best for a client presentation?", options: ["I think maybe this could work...", "I'd like to walk you through our findings.", "So basically, here's the stuff.", "Let me just tell you what we did."], correctIndex: 1, difficulty: 0.7, feedback: { correct: "Very professional and confident delivery! 📊", incorrect: "The most professional phrasing is clear and structured." } },
-  { question: "Choose the correct word: 'The merger will have significant ____ on our revenue.'", options: ["affect", "effect", "impact", "affection"], correctIndex: 2, difficulty: 0.8, feedback: { correct: "Correct! 'Impact' fits perfectly here. 💼", incorrect: "'Impact' is the best noun choice in this context." } },
-  { question: "Which is the most diplomatic way to disagree in a meeting?", options: ["You're wrong.", "I see your point, however I'd suggest we consider...", "That's a terrible idea.", "No way, that won't work."], correctIndex: 1, difficulty: 0.7, feedback: { correct: "Excellent diplomatic phrasing! 🤝", incorrect: "Diplomatic disagreement starts with acknowledging the other view." } },
-  { question: "'Synergy' in business most closely means:", options: ["Working alone", "Combined effort exceeding individual parts", "Company merger", "Employee termination"], correctIndex: 1, difficulty: 0.9, feedback: { correct: "Perfect! Synergy = the whole is greater than the sum. 📈", incorrect: "Synergy means combined efforts produce greater results." } },
-  { question: "Identify the error: 'The datas shows a clear trend.'", options: ["'datas' should be 'data'", "'shows' should be 'show'", "Both A and B", "No error"], correctIndex: 2, difficulty: 1.0, feedback: { correct: "Correct! 'Data' is plural (or uncountable), and the verb should match. 🎓", incorrect: "'Data' doesn't take an 's', and as a plural noun it uses 'show'." } },
-];
+  // ===== A2 (Elementary) — Questions 4-6 =====
+  {
+    question: "Complete: 'Yesterday, I ___ to the cinema with my friends.'",
+    options: ["go", "went", "going", "have gone"],
+    correctIndex: 1, difficulty: 0.3, targetLevel: 'A2',
+    feedback: { correct: "Correct! Past simple of 'go' is 'went'. 🎬", incorrect: "'Yesterday' signals past simple → 'went'." },
+  },
+  {
+    question: "What is happening right now? 'Look! It ___.'",
+    options: ["rains", "is raining", "rained", "rain"],
+    correctIndex: 1, difficulty: 0.35, targetLevel: 'A2',
+    feedback: { correct: "Perfect! Present continuous for actions happening now. 🌧️", incorrect: "Actions happening right now use present continuous: 'is raining'." },
+  },
+  {
+    question: "Choose the correct preposition: 'The book is ___ the table.'",
+    options: ["in", "on", "at", "between"],
+    correctIndex: 1, difficulty: 0.4, targetLevel: 'A2',
+    feedback: { correct: "Right! Things sit 'on' a surface. 📚", incorrect: "Use 'on' for surfaces like a table." },
+  },
 
-const TOTAL_QUESTIONS = 5;
+  // ===== B1 (Intermediate) — Questions 7-9 =====
+  {
+    question: "Complete: 'I ___ in this city since 2015.'",
+    options: ["live", "lived", "have lived", "am living"],
+    correctIndex: 2, difficulty: 0.55, targetLevel: 'B1',
+    feedback: { correct: "Excellent! Present perfect with 'since'. 🏙️", incorrect: "'Since 2015' (until now) needs present perfect: 'have lived'." },
+  },
+  {
+    question: "Choose the best modal: 'You ___ wear a helmet when riding a motorcycle — it's the law.'",
+    options: ["might", "could", "must", "may"],
+    correctIndex: 2, difficulty: 0.6, targetLevel: 'B1',
+    feedback: { correct: "Correct! 'Must' expresses obligation. 🛡️", incorrect: "Legal obligations use 'must'." },
+  },
+  {
+    question: "Choose the comparative: 'My new phone is ___ than my old one.'",
+    options: ["more fast", "faster", "fastest", "most fast"],
+    correctIndex: 1, difficulty: 0.65, targetLevel: 'B1',
+    feedback: { correct: "Right! Short adjectives add '-er'. 📱", incorrect: "Short adjectives form the comparative with '-er' → 'faster'." },
+  },
+
+  // ===== B2 (Upper Intermediate) — Questions 10-12 =====
+  {
+    question: "Complete: 'If I ___ more time, I would learn another language.'",
+    options: ["have", "had", "would have", "will have"],
+    correctIndex: 1, difficulty: 0.75, targetLevel: 'B2',
+    feedback: { correct: "Excellent! Second conditional: 'If + past simple'. 🌍", incorrect: "Second conditional uses 'If + past simple, would + infinitive'." },
+  },
+  {
+    question: "Rewrite in passive voice: 'The chef prepared the meal.'",
+    options: ["The meal prepared by the chef.", "The meal was prepared by the chef.", "The meal is preparing by the chef.", "The meal has prepare by the chef."],
+    correctIndex: 1, difficulty: 0.8, targetLevel: 'B2',
+    feedback: { correct: "Perfect! Passive: 'was/were + past participle'. 🍽️", incorrect: "Past passive = 'was/were + past participle' → 'was prepared'." },
+  },
+  {
+    question: "Choose the correct phrasal verb: 'I need to ___ this word — I don't know what it means.'",
+    options: ["look after", "look up", "look for", "look into"],
+    correctIndex: 1, difficulty: 0.85, targetLevel: 'B2',
+    feedback: { correct: "Correct! 'Look up' = search for information. 📖", incorrect: "'Look up' means to search for information (e.g., in a dictionary)." },
+  },
+
+  // ===== C1 (Advanced) — Questions 13-15 =====
+  {
+    question: "Choose the most precise word: 'Her arguments were so ___ that no one could refute them.'",
+    options: ["nice", "compelling", "okay", "different"],
+    correctIndex: 1, difficulty: 0.9, targetLevel: 'C1',
+    feedback: { correct: "Excellent vocabulary! 'Compelling' = persuasive and convincing. 🎯", incorrect: "'Compelling' means powerfully persuasive — the precise C1 choice." },
+  },
+  {
+    question: "Complete the inversion: 'Not only ___ the deadline, but he also exceeded expectations.'",
+    options: ["he met", "did he meet", "he did meet", "met he"],
+    correctIndex: 1, difficulty: 0.95, targetLevel: 'C1',
+    feedback: { correct: "Perfect! Negative adverbials trigger subject-auxiliary inversion. 🏆", incorrect: "After 'Not only', we invert: 'did he meet'." },
+  },
+  {
+    question: "What does the idiom 'to bite the bullet' mean?",
+    options: ["To eat very quickly", "To face a difficult situation with courage", "To make a serious mistake", "To speak without thinking"],
+    correctIndex: 1, difficulty: 1.0, targetLevel: 'C1',
+    feedback: { correct: "Correct! It means to endure something painful with courage. 💪", incorrect: "'Bite the bullet' = face an unpleasant task with courage." },
+  },
+];
 
 const TestPhase = ({ age, onComplete }: TestPhaseProps) => {
-  const allQuestions = age < 12 ? PLAYGROUND_QUESTIONS : age < 18 ? ACADEMY_QUESTIONS : PROFESSIONAL_QUESTIONS;
+  const isPlayground = age < 12;
+  const questions = isPlayground ? PLAYGROUND_QUESTIONS : CEFR_MASTER_QUESTIONS;
+  const TOTAL_QUESTIONS = questions.length;
 
-  // Sort by difficulty for initial pool
-  const sortedPool = [...allQuestions].sort((a, b) => a.difficulty - b.difficulty);
-
-  const [askedQuestions, setAskedQuestions] = useState<Question[]>([sortedPool[Math.floor(sortedPool.length / 2)]]);
   const [currentQIndex, setCurrentQIndex] = useState(0);
   const [results, setResults] = useState<TestResult[]>([]);
   const [phase, setPhase] = useState<'typing' | 'answering' | 'feedback'>('typing');
@@ -76,25 +154,7 @@ const TestPhase = ({ age, onComplete }: TestPhaseProps) => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, phase]);
 
-  const currentQuestion = askedQuestions[currentQIndex];
-
-  const selectNextQuestion = useCallback((wasCorrect: boolean) => {
-    const asked = new Set(askedQuestions.map(q => q.question));
-    const remaining = allQuestions.filter(q => !asked.has(q.question));
-    if (remaining.length === 0) return remaining[0] || allQuestions[0];
-
-    const currentDiff = currentQuestion.difficulty;
-
-    if (wasCorrect) {
-      // Pick the easiest question that's harder than current
-      const harder = remaining.filter(q => q.difficulty > currentDiff).sort((a, b) => a.difficulty - b.difficulty);
-      return harder[0] || remaining[remaining.length - 1];
-    } else {
-      // Pick the hardest question that's easier than current
-      const easier = remaining.filter(q => q.difficulty < currentDiff).sort((a, b) => b.difficulty - a.difficulty);
-      return easier[0] || remaining[0];
-    }
-  }, [allQuestions, askedQuestions, currentQuestion]);
+  const currentQuestion = questions[currentQIndex];
 
   const handleAnswer = (index: number) => {
     if (phase !== 'answering') return;
@@ -107,6 +167,7 @@ const TestPhase = ({ age, onComplete }: TestPhaseProps) => {
       correctOption: currentQuestion.correctIndex,
       isCorrect,
       difficulty: currentQuestion.difficulty,
+      targetLevel: currentQuestion.targetLevel,
     };
     setResults(prev => [...prev, result]);
     setMessages(prev => [...prev, { role: 'user', text: currentQuestion.options[index] }]);
@@ -123,30 +184,37 @@ const TestPhase = ({ age, onComplete }: TestPhaseProps) => {
     if (answeredCount >= TOTAL_QUESTIONS) {
       setTimeout(() => onComplete(results), 600);
     } else {
-      const nextQ = selectNextQuestion(isCorrect);
-      setAskedQuestions(prev => [...prev, nextQ]);
-      setCurrentQIndex(prev => prev + 1);
       setSelectedAnswer(-1);
+      setCurrentQIndex(prev => prev + 1);
       setPhase('typing');
     }
   };
 
   const isCorrect = selectedAnswer === currentQuestion?.correctIndex;
+  const progressPct = Math.round((results.length / TOTAL_QUESTIONS) * 100);
 
   return (
     <div className="flex flex-col h-full">
-      {/* Progress dots */}
-      <div className="flex justify-center gap-2 py-3">
-        {Array.from({ length: TOTAL_QUESTIONS }).map((_, i) => (
-          <div
-            key={i}
-            className={`w-3 h-3 rounded-full transition-all duration-300 ${
-              i < results.length ? (results[i]?.isCorrect ? 'bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.5)]' : 'bg-red-400 shadow-[0_0_6px_rgba(248,113,113,0.5)]')
-                : i === results.length ? 'bg-violet-400 shadow-[0_0_6px_rgba(167,139,250,0.5)] scale-125'
-                : 'bg-white/30'
-            }`}
+      {/* Progress bar (15 dots can crowd; show a slim bar + count for the CEFR set) */}
+      <div className="px-5 pt-3 pb-2">
+        <div className="flex items-center justify-between text-[11px] text-white/60 mb-1.5">
+          <span className="font-medium tracking-wide">
+            {isPlayground ? 'Question' : 'CEFR Assessment'} {Math.min(results.length + 1, TOTAL_QUESTIONS)} / {TOTAL_QUESTIONS}
+          </span>
+          {!isPlayground && currentQuestion && (
+            <span className="px-2 py-0.5 rounded-full bg-white/10 border border-white/15 text-white/70 font-semibold">
+              {currentQuestion.targetLevel}
+            </span>
+          )}
+        </div>
+        <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+          <motion.div
+            className="h-full bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400"
+            initial={false}
+            animate={{ width: `${progressPct}%` }}
+            transition={{ type: 'spring', stiffness: 120, damping: 20 }}
           />
-        ))}
+        </div>
       </div>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-4 p-4">
@@ -156,38 +224,60 @@ const TestPhase = ({ age, onComplete }: TestPhaseProps) => {
 
         <AnimatePresence mode="wait">
           {phase === 'typing' && currentQuestion && (
-            <ChatBubble
-              key={`q-${currentQIndex}`}
-              role="guide"
-              message={currentQuestion.question}
-              animate
-              onTypingComplete={() => {
-                setMessages(prev => [...prev, { role: 'guide', text: currentQuestion.question }]);
-                setPhase('answering');
-              }}
-            />
+            <motion.div
+              key={`q-wrap-${currentQIndex}`}
+              initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, y: -12, filter: 'blur(4px)' }}
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <ChatBubble
+                key={`q-${currentQIndex}`}
+                role="guide"
+                message={currentQuestion.question}
+                animate
+                onTypingComplete={() => {
+                  setMessages(prev => [...prev, { role: 'guide', text: currentQuestion.question }]);
+                  setPhase('answering');
+                }}
+              />
+            </motion.div>
           )}
 
           {phase === 'feedback' && currentQuestion && (
-            <ChatBubble
-              key={`fb-${currentQIndex}`}
-              role="guide"
-              message={isCorrect ? currentQuestion.feedback.correct : currentQuestion.feedback.incorrect}
-              animate
-              onTypingComplete={handleFeedbackComplete}
-            />
+            <motion.div
+              key={`fb-wrap-${currentQIndex}`}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.35 }}
+            >
+              <ChatBubble
+                key={`fb-${currentQIndex}`}
+                role="guide"
+                message={isCorrect ? currentQuestion.feedback.correct : currentQuestion.feedback.incorrect}
+                animate
+                onTypingComplete={handleFeedbackComplete}
+              />
+            </motion.div>
           )}
         </AnimatePresence>
 
         {phase === 'answering' && currentQuestion && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            key={`opts-${currentQIndex}`}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
             className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2"
           >
             {currentQuestion.options.map((opt, i) => (
               <motion.button
                 key={i}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 * i, duration: 0.3 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => handleAnswer(i)}
