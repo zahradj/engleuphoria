@@ -11,6 +11,7 @@ import { SystemId } from "@/types/multiTenant";
 import { DashboardRouter } from "@/components/student/dashboards/DashboardRouter";
 import { useStudentLevel, StudentLevel } from "@/hooks/useStudentLevel";
 import { useThemeMode } from "@/hooks/useThemeMode";
+import { PlacementGatekeeper } from "@/components/student/PlacementGatekeeper";
 
 // Lazy load components to improve initial load time
 import { MinimalStudentHeader } from "@/components/student/MinimalStudentHeader";
