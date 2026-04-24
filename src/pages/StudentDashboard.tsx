@@ -305,6 +305,7 @@ const StudentDashboard = () => {
           <InstallPrompt />
         </div>
       </SidebarProvider>
+      </PlacementGatekeeper>
     </ErrorBoundary>
   );
 };
