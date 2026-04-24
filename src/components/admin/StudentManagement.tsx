@@ -129,9 +129,8 @@ export const StudentManagement = () => {
             .lte('scheduled_at', `${date}T23:59:59`);
 
           const { count: newStudents } = await supabase
-            .from('users')
+            .from('student_profiles')
             .select('*', { count: 'exact', head: true })
-            .eq('role', 'student')
             .gte('created_at', `${date}T00:00:00`)
             .lte('created_at', `${date}T23:59:59`);
 
