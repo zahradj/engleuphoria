@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { ProfessionalHub } from "@/components/teacher/professional/ProfessionalHub";
+import { TeacherDashboardShell } from "@/components/teacher/dashboard/TeacherDashboardShell";
 
 const LoadingScreen = ({ label }: { label: string }) => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -51,9 +51,9 @@ const TeacherDashboard = () => {
     return <LoadingScreen label="Redirecting..." />;
   }
 
-  // All teachers (Playground, Academy, Success, Combined) now use the
-  // unified Professional Hub — the latest dashboard design.
-  return <ProfessionalHub teacherName={teacherName} teacherId={teacherId} />;
+  // Unified dashboard: ALL teachers (Playground, Academy, Success, Combined)
+  // now use the Playground-style TeacherDashboardShell design.
+  return <TeacherDashboardShell teacherName={teacherName} teacherId={teacherId} />;
 };
 
 export default TeacherDashboard;
