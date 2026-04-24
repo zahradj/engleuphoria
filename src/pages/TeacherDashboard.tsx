@@ -2,54 +2,58 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProfessionalHub } from "@/components/teacher/professional/ProfessionalHub";
-import { TeacherDashboardShell } from "@/components/teacher/dashboard/TeacherDashboardShell";
-import { useTeacherHubRole } from "@/hooks/useTeacherHubRole";
+
+const LoadingScreen = ({ label }: { label: string }) => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+      <p className="text-muted-foreground">{label}</p>
+    </div>
+  </div>
+);
 
 const TeacherDashboard = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   const teacherName = user?.user_metadata?.full_name || user?.email || "Teacher";
   const teacherId = user?.id || "";
 
-  // Resolve hub assignment to pick the right dashboard experience
-  const { isPlayground, loading: hubLoading } = useTeacherHubRole(teacherId);
-
   useEffect(() => {
+    // Wait until auth has finished loading before redirecting
+    if (loading) return;
+
     if (!user) {
-      navigate("/");
+      navigate("/", { replace: true });
       return;
     }
 
     if (user.role !== "teacher") {
       if (user.role === "student") {
-        navigate("/dashboard");
+        navigate("/dashboard", { replace: true });
       } else if (user.role === "admin") {
-        navigate("/super-admin");
+        navigate("/super-admin", { replace: true });
       } else {
-        navigate("/");
+        navigate("/", { replace: true });
       }
     }
-  }, [user, navigate]);
+  }, [user, loading, navigate]);
 
-  if (!user || hubLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
+  // Block render until auth is ready — prevents the dashboard from
+  // briefly mounting (and showing an outdated UI) before the redirect runs.
+  if (loading || !user) {
+    return <LoadingScreen label="Loading..." />;
   }
 
-  // Playground specialists get the kid-themed dashboard;
-  // Academy / Success / Combined teachers get the Professional Hub.
-  if (isPlayground) {
-    return <TeacherDashboardShell teacherName={teacherName} teacherId={teacherId} />;
+  // If the role isn't teacher, the effect above is redirecting — show
+  // a loader instead of mounting the dashboard for a frame.
+  if (user.role !== "teacher") {
+    return <LoadingScreen label="Redirecting..." />;
   }
 
+  // All teachers (Playground, Academy, Success, Combined) now use the
+  // unified Professional Hub — the latest dashboard design.
   return <ProfessionalHub teacherName={teacherName} teacherId={teacherId} />;
-}
+};
 
 export default TeacherDashboard;
