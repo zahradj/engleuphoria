@@ -11,7 +11,6 @@ const API_KEY = Deno.env.get('LOVABLE_API_KEY') || ''
 interface QueueMessage {
   id: number
   payload: {
-    message_id: string
     to: string
     from: string
     sender_domain: string
@@ -33,7 +32,7 @@ interface QueueMessage {
 }
 
 async function releaseClaim(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   messageId: number,
   visibleAt: string,
 ) {

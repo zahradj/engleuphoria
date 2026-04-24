@@ -39,6 +39,8 @@ serve(async (req) => {
       throw new Error(`Failed to fetch lesson: ${lessonError?.message}`);
     }
 
+    const teacher: any = Array.isArray((lesson as any).teacher) ? (lesson as any).teacher[0] : (lesson as any).teacher;
+    const student: any = Array.isArray((lesson as any).student) ? (lesson as any).student[0] : (lesson as any).student;
     const scheduledDate = new Date(lesson.scheduled_at);
     const formattedDate = scheduledDate.toLocaleDateString("en-US", {
       weekday: "long", year: "numeric", month: "long", day: "numeric",
@@ -50,11 +52,11 @@ serve(async (req) => {
     const { error } = await supabase.functions.invoke('send-transactional-email', {
       body: {
         templateName: 'teacher-booking',
-        recipientEmail: lesson.teacher.email,
+        recipientEmail: teacher?.email,
         idempotencyKey: `teacher-booking-${lessonId}`,
         templateData: {
-          teacherName: lesson.teacher.full_name,
-          studentName: lesson.student.full_name,
+          teacherName: teacher?.full_name,
+          studentName: student?.full_name,
           lessonTitle: lesson.title,
           lessonDate: formattedDate,
           lessonTime: formattedTime,
