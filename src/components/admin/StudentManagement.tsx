@@ -45,37 +45,41 @@ export const StudentManagement = () => {
 
   const fetchStudents = async () => {
     try {
-      // Get recent students
-      const { data: studentsData, error: studentsError } = await supabase
-        .from('users')
+      // Drive the list off student_profiles (truthful "is a student" signal)
+      // rather than users.role, which can be flipped to 'teacher' /
+      // 'content_creator' for multi-role accounts and would otherwise hide
+      // legitimate student registrations from this admin tab.
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('student_profiles')
         .select(`
-          id,
-          full_name,
-          email,
+          user_id,
+          cefr_level,
+          student_level,
           created_at,
-          student_profiles(cefr_level, student_level)
+          users!inner(id, full_name, email, created_at)
         `)
-        .eq('role', 'student')
         .order('created_at', { ascending: false })
         .limit(50);
 
-      if (studentsError) throw studentsError;
+      if (profilesError) throw profilesError;
 
       // Get lesson counts for each student
       const studentsWithLessons = await Promise.all(
-        (studentsData || []).map(async (student: any) => {
+        (profilesData || []).map(async (row: any) => {
           const { count } = await supabase
             .from('lessons')
             .select('*', { count: 'exact', head: true })
-            .eq('student_id', student.id);
+            .eq('student_id', row.user_id);
 
           return {
-            id: student.id,
-            full_name: student.full_name || 'Unknown',
-            email: student.email || 'Unknown',
-            created_at: student.created_at,
-            cefr_level: student.student_profiles?.[0]?.cefr_level,
-            student_level: student.student_profiles?.[0]?.student_level,
+            id: row.user_id,
+            full_name: row.users?.full_name || 'Unknown',
+            email: row.users?.email || 'Unknown',
+            // Prefer the user's signup time for "Joined" display; fall back
+            // to the profile creation time if missing.
+            created_at: row.users?.created_at || row.created_at,
+            cefr_level: row.cefr_level,
+            student_level: row.student_level,
             total_lessons: count || 0,
           };
         })
@@ -83,18 +87,17 @@ export const StudentManagement = () => {
 
       setStudents(studentsWithLessons);
 
-      // Get basic stats
+      // Get basic stats — count from student_profiles too so the totals
+      // match the list above and don't undercount multi-role accounts.
       const today = new Date().toISOString().split('T')[0];
-      
+
       const { count: totalCount } = await supabase
-        .from('users')
-        .select('*', { count: 'exact', head: true })
-        .eq('role', 'student');
+        .from('student_profiles')
+        .select('*', { count: 'exact', head: true });
 
       const { count: newTodayCount } = await supabase
-        .from('users')
+        .from('student_profiles')
         .select('*', { count: 'exact', head: true })
-        .eq('role', 'student')
         .gte('created_at', `${today}T00:00:00`);
 
       const { count: classesTodayCount } = await supabase
@@ -126,9 +129,8 @@ export const StudentManagement = () => {
             .lte('scheduled_at', `${date}T23:59:59`);
 
           const { count: newStudents } = await supabase
-            .from('users')
+            .from('student_profiles')
             .select('*', { count: 'exact', head: true })
-            .eq('role', 'student')
             .gte('created_at', `${date}T00:00:00`)
             .lte('created_at', `${date}T23:59:59`);
 
