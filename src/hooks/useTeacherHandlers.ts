@@ -1,17 +1,22 @@
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const useTeacherHandlers = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signOut } = useAuth();
 
-  const handleLogout = () => {
-    // Clear all user data
+  const handleLogout = async () => {
+    // Clear cached UI state
     localStorage.removeItem("teacherName");
     localStorage.removeItem("studentName");
     localStorage.removeItem("userType");
     localStorage.removeItem("points");
-    navigate("/");
+    // Properly terminate the Supabase session — signOut performs a full
+    // window.location.replace('/') so no extra navigate() is needed and
+    // the dashboard cannot re-render against a stale session.
+    await signOut();
   };
 
   const handleCreateLessonPlan = () => {
