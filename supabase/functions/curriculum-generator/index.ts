@@ -183,14 +183,15 @@ async function generateFullCurriculum(supabase: any, batchSize: number = 10) {
             });
 
             // Add curriculum-specific fields
-            lessonData.curriculum_level_id = lessonConfig.curriculum_level_id;
-            lessonData.lesson_number = lessonConfig.lesson_number;
-            lessonData.difficulty_level = lessonConfig.difficulty;
-            lessonData.estimated_duration = lessonConfig.duration;
-            lessonData.is_review_lesson = lessonConfig.is_review_lesson;
-            lessonData.status = 'published';
+            const enriched: any = lessonData;
+            enriched.curriculum_level_id = lessonConfig.curriculum_level_id;
+            enriched.lesson_number = lessonConfig.lesson_number;
+            enriched.difficulty_level = lessonConfig.difficulty;
+            enriched.estimated_duration = lessonConfig.duration;
+            enriched.is_review_lesson = lessonConfig.is_review_lesson;
+            enriched.status = 'published';
 
-            return lessonData;
+            return enriched;
           } catch (error) {
             console.error(`❌ Failed to generate lesson ${lessonConfig.lesson_number} for ${lessonConfig.cefr_level}:`, error);
             generationErrors.push(`${lessonConfig.cefr_level} Lesson ${lessonConfig.lesson_number}: ${error.message}`);

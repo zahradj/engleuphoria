@@ -86,7 +86,7 @@ async function handleBatchGeneration(supabase: any) {
       console.log(`Generated slides for lesson: ${lesson.title}`);
     } catch (error) {
       console.error(`Failed to generate slides for lesson ${lesson.id}:`, error);
-      errors.push(`Lesson "${lesson.title}": ${error.message}`);
+      errors.push(`Lesson "${lesson.title}": ${(error as Error).message}`);
     }
   }
 

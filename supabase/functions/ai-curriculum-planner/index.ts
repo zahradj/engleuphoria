@@ -174,7 +174,7 @@ Output JSON schema:
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message || 'An unexpected error occurred' 
+        error: (error as Error).message || 'An unexpected error occurred' 
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

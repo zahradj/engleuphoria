@@ -499,8 +499,8 @@ CRITICAL: Always return valid JSON that exactly matches the requested structure.
       'advanced': 'C1'
     };
     
-    const mappedCefrLevel = actualLevel && cefrLevelMapping[actualLevel] 
-      ? cefrLevelMapping[actualLevel] 
+    const mappedCefrLevel = actualLevel && (cefrLevelMapping as Record<string, string>)[actualLevel] 
+      ? (cefrLevelMapping as Record<string, string>)[actualLevel] 
       : actualLevel || 'B1'; // Default to B1 if no level provided
 
     console.log('Saving to database with CEFR level:', mappedCefrLevel);

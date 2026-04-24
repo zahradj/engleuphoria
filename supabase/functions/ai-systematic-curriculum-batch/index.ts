@@ -230,7 +230,7 @@ async function generateCurriculumInBackground(jobId: string, supabase: any) {
       .from('content_generation_jobs')
       .update({ 
         status: 'failed',
-        error_details: error.message,
+        error_details: (error as Error).message,
         completed_at: new Date().toISOString()
       })
       .eq('id', jobId);

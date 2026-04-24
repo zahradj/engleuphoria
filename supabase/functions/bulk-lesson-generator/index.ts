@@ -63,7 +63,7 @@ function generateLearningObjectives(level: number, topic: string): string[] {
     6: [`Synthesize information about ${topic.toLowerCase()}`, `Argue persuasively about ${topic.toLowerCase()}`, `Demonstrate stylistic awareness`],
     7: [`Lead discussions on ${topic.toLowerCase()}`, `Create original content about ${topic.toLowerCase()}`, `Master specialized terminology`]
   };
-  return baseObjectives[level] || baseObjectives[7];
+  return (baseObjectives as Record<number, string[]>)[level] || baseObjectives[7];
 }
 
 function generateVocabulary(level: number, topic: string): string[] {
@@ -76,7 +76,7 @@ function generateVocabulary(level: number, topic: string): string[] {
     6: ['paradigmatic', 'substantiate', 'corroborate', 'extrapolate', 'synthesize', 'conceptualize', 'articulate', 'scrutinize'],
     7: ['elucidate', 'exemplify', 'substantive', 'nuanced', 'multifaceted', 'comprehensive', 'systematic', 'sophisticated']
   };
-  return vocabularyBanks[level] || vocabularyBanks[7];
+  return (vocabularyBanks as Record<number, string[]>)[level] || vocabularyBanks[7];
 }
 
 function generateGrammarFocus(level: number): string[] {
@@ -89,7 +89,7 @@ function generateGrammarFocus(level: number): string[] {
     6: ['Complex sentence structures', 'Discourse markers', 'Stylistic devices'],
     7: ['Advanced syntax', 'Rhetorical structures', 'Register variation']
   };
-  return grammarTopics[level] || grammarTopics[7];
+  return (grammarTopics as Record<number, string[]>)[level] || grammarTopics[7];
 }
 
 serve(async (req) => {

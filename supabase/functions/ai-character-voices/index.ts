@@ -54,7 +54,7 @@ serve(async (req) => {
     }
 
     // Get the appropriate voice for this character type
-    const voiceId = CHARACTER_VOICES[characterType] || CHARACTER_VOICES.default;
+    const voiceId = (CHARACTER_VOICES as Record<string, string>)[characterType] || CHARACTER_VOICES.default;
     
     console.log(`Generating voice for character: ${characterType}, text: "${text.substring(0, 50)}..."`);
 
