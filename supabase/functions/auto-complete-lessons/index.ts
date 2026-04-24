@@ -98,7 +98,7 @@ serve(async (req) => {
         results.push({
           lesson_id: lesson.id,
           status: 'error',
-          error: error.message
+          error: (error as Error).message
         });
       }
     }
