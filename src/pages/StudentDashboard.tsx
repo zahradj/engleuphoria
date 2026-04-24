@@ -11,6 +11,7 @@ import { SystemId } from "@/types/multiTenant";
 import { DashboardRouter } from "@/components/student/dashboards/DashboardRouter";
 import { useStudentLevel, StudentLevel } from "@/hooks/useStudentLevel";
 import { useThemeMode } from "@/hooks/useThemeMode";
+import { PlacementGatekeeper } from "@/components/student/PlacementGatekeeper";
 
 // Lazy load components to improve initial load time
 import { MinimalStudentHeader } from "@/components/student/MinimalStudentHeader";
@@ -227,6 +228,11 @@ const StudentDashboard = () => {
 
   return (
     <ErrorBoundary>
+      <PlacementGatekeeper
+        studentLevel={studentLevel}
+        studentName={studentName}
+        onComplete={() => window.location.reload()}
+      >
       <SidebarProvider defaultOpen={true}>
         <div className="flex min-h-screen w-full relative overflow-hidden">
           {/* ═══ ANIMATED MESH GRADIENT BACKGROUND ═══ */}
@@ -299,6 +305,7 @@ const StudentDashboard = () => {
           <InstallPrompt />
         </div>
       </SidebarProvider>
+      </PlacementGatekeeper>
     </ErrorBoundary>
   );
 };
