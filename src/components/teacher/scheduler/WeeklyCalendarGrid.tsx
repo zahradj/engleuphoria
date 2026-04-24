@@ -184,7 +184,11 @@ export const WeeklyCalendarGrid: React.FC<WeeklyCalendarGridProps> = ({
                     row.isHour ? 'text-xs font-semibold text-foreground/80' : 'text-[10px] text-muted-foreground/70'
                   )}
                 >
-                  {row.isHour ? (
+                  {slotDuration === 60 ? (
+                    <span className="tabular-nums whitespace-nowrap text-[11px] font-semibold">
+                      {hr}–{((hr % 12) + 1) || 12} <span className="text-[9px] opacity-70">{period}</span>
+                    </span>
+                  ) : row.isHour ? (
                     <>
                       <span className="tabular-nums">{hr}</span>
                       <span className="text-[9px] font-bold opacity-70">{period}</span>
@@ -202,7 +206,7 @@ export const WeeklyCalendarGrid: React.FC<WeeklyCalendarGridProps> = ({
                       onClick={() => onSlotClick(day, row.time)}
                       className={cn(
                         'group border-l border-border/40 flex items-center justify-center rounded-[3px] m-[1px]',
-                        row.isHour ? 'h-9' : 'h-8',
+                        slotDuration === 60 ? 'h-14' : row.isHour ? 'h-9' : 'h-8',
                         today && 'ring-inset ring-1 ring-primary/10',
                         getSlotStyle(day, row.time)
                       )}
