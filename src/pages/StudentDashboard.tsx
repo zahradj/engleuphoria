@@ -228,6 +228,11 @@ const StudentDashboard = () => {
 
   return (
     <ErrorBoundary>
+      <PlacementGatekeeper
+        studentLevel={studentLevel}
+        studentName={studentName}
+        onComplete={() => window.location.reload()}
+      >
       <SidebarProvider defaultOpen={true}>
         <div className="flex min-h-screen w-full relative overflow-hidden">
           {/* ═══ ANIMATED MESH GRADIENT BACKGROUND ═══ */}
