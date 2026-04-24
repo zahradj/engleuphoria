@@ -57,7 +57,8 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
     const token = authHeader.replace('Bearer ', '');
-    const { data: claims, error: authError } = await supabase.auth.getClaims(token);
+    const { data: userData, error: authError } = await supabase.auth.getUser(token);
+    const claims = userData?.user ? { claims: userData.user } : null;
     if (authError || !claims?.claims) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
