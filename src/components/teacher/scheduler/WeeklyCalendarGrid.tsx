@@ -40,6 +40,7 @@ export const WeeklyCalendarGrid: React.FC<WeeklyCalendarGridProps> = ({
   getSlotAt,
   isSlotInPast,
   onSlotClick,
+  slotDuration,
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
