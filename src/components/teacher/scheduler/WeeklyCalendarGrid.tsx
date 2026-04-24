@@ -1,7 +1,8 @@
-import React from 'react';
-import { AvailabilitySlot, DAYS, TIME_SLOTS } from './types';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { AvailabilitySlot, TIME_SLOTS } from './types';
 import { format, isToday } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Moon, Sunrise, Sun, Sunset } from 'lucide-react';
 
 interface WeeklyCalendarGridProps {
   weekDates: Array<{ day: string; date: Date; formatted: string }>;
@@ -11,44 +12,65 @@ interface WeeklyCalendarGridProps {
   slotDuration: 30 | 60;
 }
 
+type Period = 'night' | 'morning' | 'afternoon' | 'evening';
+
+const periodFor = (hour: number): Period => {
+  if (hour < 6) return 'night';
+  if (hour < 12) return 'morning';
+  if (hour < 18) return 'afternoon';
+  return 'evening';
+};
+
+const PERIOD_META: Record<Period, { label: string; icon: React.ReactNode; tint: string; chip: string }> = {
+  night:     { label: 'Night',     icon: <Moon className="h-3 w-3" />,    tint: 'bg-indigo-500/[0.04]', chip: 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/20' },
+  morning:   { label: 'Morning',   icon: <Sunrise className="h-3 w-3" />, tint: 'bg-amber-500/[0.04]',  chip: 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20' },
+  afternoon: { label: 'Afternoon', icon: <Sun className="h-3 w-3" />,     tint: 'bg-sky-500/[0.04]',    chip: 'bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/20' },
+  evening:   { label: 'Evening',   icon: <Sunset className="h-3 w-3" />,  tint: 'bg-rose-500/[0.04]',   chip: 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20' },
+};
+
+const formatHour12 = (time: string) => {
+  const [h] = time.split(':').map(Number);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const hr = h % 12 === 0 ? 12 : h % 12;
+  return { hr, period };
+};
+
 export const WeeklyCalendarGrid: React.FC<WeeklyCalendarGridProps> = ({
   weekDates,
   getSlotAt,
   isSlotInPast,
   onSlotClick,
-  slotDuration
 }) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
   const getSlotStyle = (day: string, time: string) => {
     const slot = getSlotAt(day, time);
     const isPast = isSlotInPast(day, time);
 
     if (isPast) {
-      return 'bg-muted/50 cursor-not-allowed opacity-50';
+      return 'bg-muted/40 cursor-not-allowed opacity-50';
     }
 
     if (!slot) {
-      return 'bg-background hover:bg-muted/50 cursor-pointer border border-border/50 hover:border-primary/30 transition-all';
+      return 'bg-background/60 hover:bg-primary/10 cursor-pointer hover:ring-2 hover:ring-primary/40 transition-all';
     }
 
     if (slot.status === 'booked') {
-      return 'bg-blue-500 text-white cursor-default shadow-md';
+      return 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white cursor-default shadow-md ring-1 ring-blue-400/40';
     }
 
-    // Open slot
-    return 'bg-emerald-500 hover:bg-emerald-600 text-white cursor-pointer shadow-md transition-all';
+    return 'bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white cursor-pointer shadow-md ring-1 ring-emerald-400/40 transition-all';
   };
 
   const renderSlotContent = (day: string, time: string) => {
     const slot = getSlotAt(day, time);
     const isPast = isSlotInPast(day, time);
 
-    if (isPast) {
-      return null;
-    }
+    if (isPast) return null;
 
     if (!slot) {
       return (
-        <span className="text-[10px] text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+        <span className="text-[11px] text-muted-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity font-semibold">
           +
         </span>
       );
@@ -72,87 +94,118 @@ export const WeeklyCalendarGrid: React.FC<WeeklyCalendarGridProps> = ({
       );
     }
 
-    return (
-      <span className="text-[10px] font-medium">
-        {slot.duration}m
-      </span>
-    );
+    return <span className="text-[10px] font-bold">{slot.duration}m</span>;
   };
 
-  // Filter to show only hourly times for the row headers
-  const hourlyTimes = TIME_SLOTS.filter(t => t.endsWith(':00'));
+  // Build rows: every 30-minute slot
+  const rows = useMemo(() => TIME_SLOTS.map((time) => {
+    const [h, m] = time.split(':').map(Number);
+    return { time, hour: h, minute: m, isHour: m === 0, period: periodFor(h) };
+  }), []);
+
+  // Auto-scroll to morning (08:00) on first render so 24h grid isn't disorienting
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    // 16 rows * 36px ≈ 576px (08:00). Tune to taste.
+    el.scrollTop = 16 * 36;
+  }, []);
 
   return (
-    <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
-      {/* Header row with days */}
-      <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-border bg-muted/30">
-        <div className="p-2 text-center text-xs font-medium text-muted-foreground">
+    <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+      {/* Sticky Header row with days */}
+      <div className="grid grid-cols-[88px_repeat(7,1fr)] border-b border-border bg-gradient-to-b from-muted/60 to-muted/20 backdrop-blur sticky top-0 z-20">
+        <div className="p-2 text-center text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-center">
           Time
         </div>
-        {weekDates.map(({ day, date, formatted }) => (
-          <div
-            key={day}
-            className={cn(
-              "p-2 text-center border-l border-border",
-              isToday(date) && "bg-primary/10"
-            )}
-          >
-            <p className="text-xs font-semibold text-foreground">{day.slice(0, 3)}</p>
-            <p className={cn(
-              "text-[10px]",
-              isToday(date) ? "text-primary font-medium" : "text-muted-foreground"
-            )}>
-              {formatted}
-            </p>
-          </div>
-        ))}
+        {weekDates.map(({ day, date, formatted }) => {
+          const today = isToday(date);
+          return (
+            <div
+              key={day}
+              className={cn(
+                'p-2 text-center border-l border-border/60 transition-colors',
+                today && 'bg-primary/15'
+              )}
+            >
+              <p className={cn('text-xs font-bold tracking-wide', today ? 'text-primary' : 'text-foreground')}>
+                {day.slice(0, 3).toUpperCase()}
+              </p>
+              <p className={cn('text-[10px] mt-0.5', today ? 'text-primary font-semibold' : 'text-muted-foreground')}>
+                {formatted}
+              </p>
+              {today && (
+                <span className="mt-1 inline-block h-1 w-1 rounded-full bg-primary" />
+              )}
+            </div>
+          );
+        })}
       </div>
 
-      {/* Time grid */}
-      <div className="max-h-[600px] overflow-y-auto">
-        {hourlyTimes.map((time, rowIndex) => {
-          const halfHourTime = time.replace(':00', ':30');
-          
-          return (
-            <React.Fragment key={time}>
-              {/* Hour row */}
-              <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-border/50">
-                <div className="p-1 text-center text-xs text-muted-foreground flex items-center justify-center bg-muted/20">
-                  {time}
-                </div>
-                {weekDates.map(({ day }) => (
-                  <button
-                    key={`${day}-${time}`}
-                    onClick={() => onSlotClick(day, time)}
-                    className={cn(
-                      "group h-10 border-l border-border/50 flex items-center justify-center",
-                      getSlotStyle(day, time)
-                    )}
-                    disabled={isSlotInPast(day, time)}
-                  >
-                    {renderSlotContent(day, time)}
-                  </button>
-                ))}
-              </div>
+      {/* Scrollable time grid — taller for 24h coverage */}
+      <div ref={scrollRef} className="max-h-[640px] overflow-y-auto scroll-smooth">
+        {rows.map((row, idx) => {
+          const prev = rows[idx - 1];
+          const showPeriodDivider = !prev || prev.period !== row.period;
+          const meta = PERIOD_META[row.period];
+          const { hr, period } = formatHour12(row.time);
 
-              {/* Half-hour row */}
-              <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-border/30">
-                <div className="p-1 text-center text-[10px] text-muted-foreground/70 flex items-center justify-center bg-muted/10">
-                  {halfHourTime}
+          return (
+            <React.Fragment key={row.time}>
+              {showPeriodDivider && (
+                <div className="grid grid-cols-[88px_repeat(7,1fr)] border-b border-border/60 bg-muted/20">
+                  <div className="col-span-8 px-3 py-1.5 flex items-center gap-2">
+                    <span className={cn('inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider', meta.chip)}>
+                      {meta.icon}
+                      {meta.label}
+                    </span>
+                    <span className="h-px flex-1 bg-border/60" />
+                  </div>
                 </div>
-                {weekDates.map(({ day }) => (
-                  <button
-                    key={`${day}-${halfHourTime}`}
-                    onClick={() => onSlotClick(day, halfHourTime)}
-                    className={cn(
-                      "group h-8 border-l border-border/30 flex items-center justify-center",
-                      getSlotStyle(day, halfHourTime)
-                    )}
-                    disabled={isSlotInPast(day, halfHourTime)}
-                  >
-                    {renderSlotContent(day, halfHourTime)}
-                  </button>
-                ))}
+              )}
+
+              <div
+                className={cn(
+                  'grid grid-cols-[88px_repeat(7,1fr)]',
+                  row.isHour ? 'border-b border-border/60' : 'border-b border-border/20',
+                  meta.tint,
+                )}
+              >
+                <div
+                  className={cn(
+                    'flex items-center justify-end gap-1 pr-2 text-muted-foreground border-r border-border/40',
+                    row.isHour ? 'text-xs font-semibold text-foreground/80' : 'text-[10px] text-muted-foreground/70'
+                  )}
+                >
+                  {row.isHour ? (
+                    <>
+                      <span className="tabular-nums">{hr}</span>
+                      <span className="text-[9px] font-bold opacity-70">{period}</span>
+                    </>
+                  ) : (
+                    <span className="tabular-nums">:30</span>
+                  )}
+                </div>
+
+                {weekDates.map(({ day, date }) => {
+                  const today = isToday(date);
+                  return (
+                    <button
+                      key={`${day}-${row.time}`}
+                      onClick={() => onSlotClick(day, row.time)}
+                      className={cn(
+                        'group border-l border-border/40 flex items-center justify-center rounded-[3px] m-[1px]',
+                        row.isHour ? 'h-9' : 'h-8',
+                        today && 'ring-inset ring-1 ring-primary/10',
+                        getSlotStyle(day, row.time)
+                      )}
+                      disabled={isSlotInPast(day, row.time)}
+                      aria-label={`${day} ${row.time}`}
+                    >
+                      {renderSlotContent(day, row.time)}
+                    </button>
+                  );
+                })}
               </div>
             </React.Fragment>
           );
