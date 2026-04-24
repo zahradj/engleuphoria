@@ -3,6 +3,41 @@ import { useAuth } from '@/contexts/AuthContext';
 import { evaluateStudentLevel, getStudentDashboardRoute, determineStudentLevel } from '@/hooks/useStudentLevel';
 import type { TestResult } from '@/components/placement/TestPhase';
 
+export type CefrLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1';
+
+/**
+ * Strict CEFR scoring band — based on the number of correct answers out of 15.
+ *  0–3   → A1 (Beginner)
+ *  4–6   → A2 (Elementary)
+ *  7–9   → B1 (Intermediate)
+ *  10–12 → B2 (Upper Intermediate)
+ *  13–15 → C1 (Advanced)
+ *
+ * For shorter quizzes (e.g. the kids' Playground bank) we proportionally scale
+ * the score to the same 15-point band so the function always returns a level.
+ */
+export function calculateCefrLevel(correctCount: number, totalQuestions: number): CefrLevel {
+  const scaled = totalQuestions === 15
+    ? correctCount
+    : Math.round((correctCount / Math.max(totalQuestions, 1)) * 15);
+
+  if (scaled <= 3) return 'A1';
+  if (scaled <= 6) return 'A2';
+  if (scaled <= 9) return 'B1';
+  if (scaled <= 12) return 'B2';
+  return 'C1';
+}
+
+export function cefrLevelLabel(cefr: CefrLevel): string {
+  switch (cefr) {
+    case 'A1': return 'A1 (Beginner)';
+    case 'A2': return 'A2 (Elementary)';
+    case 'B1': return 'B1 (Intermediate)';
+    case 'B2': return 'B2 (Upper Intermediate)';
+    case 'C1': return 'C1 (Advanced)';
+  }
+}
+
 export function usePlacementTest() {
   const { user } = useAuth();
 
@@ -14,13 +49,16 @@ export function usePlacementTest() {
     if (!user?.id) throw new Error('User not authenticated');
 
     const correctCount = results.filter(r => r.isCorrect).length;
-    const score = Math.round((correctCount / results.length) * 100);
-    const avgComplexity = results.reduce((acc, r) => acc + r.difficulty, 0) / results.length;
+    const total = results.length;
+    const score = Math.round((correctCount / Math.max(total, 1)) * 100);
+    const avgComplexity = results.reduce((acc, r) => acc + r.difficulty, 0) / Math.max(total, 1);
 
-    const { level, track } = evaluateStudentLevel(age, correctCount, results.length, avgComplexity);
+    const cefrLevel = calculateCefrLevel(correctCount, total);
+    const { level, track } = evaluateStudentLevel(age, correctCount, total, avgComplexity);
 
     const updateData: Record<string, unknown> = {
       student_level: level,
+      cefr_level: cefrLevel,
       onboarding_completed: true,
       placement_test_score: score,
       placement_test_completed_at: new Date().toISOString(),
@@ -37,10 +75,12 @@ export function usePlacementTest() {
 
     if (error) throw error;
 
-    console.log(`Placement result: level=${level}, track=${track}, score=${score}%, avgComplexity=${avgComplexity.toFixed(2)}`);
+    console.log(
+      `Placement result: hub=${level}, track=${track}, cefr=${cefrLevel}, score=${score}% (${correctCount}/${total}), avgComplexity=${avgComplexity.toFixed(2)}`
+    );
 
     return getStudentDashboardRoute(level);
   };
 
-  return { completeTest, determineStudentLevel };
+  return { completeTest, determineStudentLevel, calculateCefrLevel };
 }
