@@ -118,6 +118,7 @@ export class WebRTCService {
 
     const channelName = `webrtc-${this.roomId}`;
     console.log('📡 WebRTC: opening signaling channel', channelName);
+    logWebRTC('info', 'Opening signaling channel', { channel: channelName });
 
     this.channel = supabase
       .channel(channelName)
