@@ -245,7 +245,7 @@ export const CenterStage: React.FC<CenterStageProps> = ({
         )}
 
         {activeCanvasTab === 'whiteboard' && (
-          <div className="relative w-full h-full bg-white rounded-xl shadow-2xl overflow-hidden" style={{ aspectRatio: '16 / 9' }}>
+          <div className="relative w-full h-full bg-white rounded-lg shadow-xl overflow-hidden">
             <CollaborativeCanvas
               roomId={roomId} userId={userId} userName={userName} role="teacher"
               canDraw={activeTool !== 'pointer' && activeTool !== 'laser'}
