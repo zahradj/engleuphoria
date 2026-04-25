@@ -53,6 +53,9 @@ interface UseClassroomSyncReturn {
   drawingEnabled: boolean;
   // Whiteboard state
   strokes: WhiteboardStroke[];
+  // Session lifecycle
+  sessionStatus: string;
+  sessionEnded: boolean;
   
   // Teacher actions
   updateSlide: (index: number) => Promise<void>;
@@ -377,6 +380,8 @@ export const useClassroomSync = ({
     stageMode,
     drawingEnabled,
     strokes,
+    sessionStatus: session?.sessionStatus ?? 'waiting',
+    sessionEnded: session?.sessionStatus === 'ended',
     updateSlide,
     updateTool,
     setStudentCanDraw,
