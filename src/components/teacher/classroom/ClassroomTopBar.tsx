@@ -74,6 +74,7 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
   onSwitchMicrophone
 }) => {
   const smartTimer = useSmartTimer(elapsedSeconds, sessionDuration);
+  const earnedStars = Math.min(Math.max(studentStars, 0), 10);
 
   const totalSec = sessionDuration * 60;
   const remaining = Math.max(0, totalSec - elapsedSeconds);
@@ -161,9 +162,24 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
 
       {/* Centered: Star Count + Timer */}
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-1.5 bg-amber-500/20 border border-amber-500/40 px-3 py-1 rounded-full shadow-[0_0_12px_rgba(245,158,11,0.3)]">
-          <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-          <span className="font-bold text-amber-300 text-sm">{studentStars} {studentStars === 1 ? 'Star' : 'Stars'}</span>
+        <div className="flex items-center gap-1 bg-background/85 border border-[hsl(var(--classroom-reward)/0.45)] px-3 py-1 rounded-full shadow-[0_0_12px_hsl(var(--classroom-reward)/0.24)]">
+          {Array.from({ length: 10 }).map((_, index) => {
+            const isEarned = index < earnedStars;
+            return (
+              <span key={index} className="relative flex h-5 w-5 items-center justify-center">
+                <Star
+                  className={`h-4 w-4 transition-colors ${
+                    isEarned
+                      ? 'fill-[hsl(var(--classroom-reward))] text-[hsl(var(--classroom-reward))]'
+                      : 'fill-muted text-muted-foreground/35'
+                  }`}
+                />
+                <span className={`absolute text-[8px] font-bold leading-none ${isEarned ? 'text-background' : 'text-muted-foreground'}`}>
+                  {index + 1}
+                </span>
+              </span>
+            );
+          })}
         </div>
 
         {/* Smart Timer Display */}
