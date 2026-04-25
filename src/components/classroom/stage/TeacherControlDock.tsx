@@ -145,6 +145,41 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
           </div>
         )}
 
+        {/* Co-browser navigation — Back / Forward / Reload / Home (Co-Play only) */}
+        {mode === 'web' && isCoPlay && (
+          <div className="flex items-center gap-1 pr-2 border-r border-border">
+            <Button
+              size="icon" variant="ghost" className="h-8 w-8"
+              onClick={() => coBrowserController.emit('back')}
+              title="Back"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              size="icon" variant="ghost" className="h-8 w-8"
+              onClick={() => coBrowserController.emit('forward')}
+              title="Forward"
+            >
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+            <Button
+              size="icon" variant="ghost" className="h-8 w-8"
+              onClick={() => coBrowserController.emit('reload')}
+              title="Reload"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+            <Button
+              size="icon" variant="ghost" className="h-8 w-8"
+              onClick={() => coBrowserController.emit('home')}
+              disabled={!coBrowserController.homeUrl}
+              title={coBrowserController.homeUrl ? `Home: ${coBrowserController.homeUrl}` : 'Set a Home URL by submitting a URL above'}
+            >
+              <Home className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
         {/* Independent Play toggle — only when web mode */}
         {mode === 'web' && (
           <div className="flex items-center gap-2 pr-2 border-r border-border">
