@@ -435,3 +435,77 @@ export const StudentManagement = () => {
     </div>
   );
 };
+
+interface CreditsCellProps {
+  balance: number;
+  onAdd: (amount: number) => Promise<void>;
+}
+
+const CreditsCell: React.FC<CreditsCellProps> = ({ balance, onAdd }) => {
+  const [open, setOpen] = useState(false);
+  const [amount, setAmount] = useState<string>('10');
+  const [submitting, setSubmitting] = useState(false);
+
+  const submit = async (value: number) => {
+    setSubmitting(true);
+    try {
+      await onAdd(value);
+      setOpen(false);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <Badge variant="outline" className="gap-1 font-medium">
+        <CreditCard className="h-3 w-3" />
+        {balance}
+      </Badge>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button size="sm" variant="ghost" className="h-7 px-2 gap-1">
+            <Plus className="h-3 w-3" />
+            Add
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-64 space-y-3" align="start">
+          <div>
+            <p className="text-sm font-medium">Grant credits</p>
+            <p className="text-xs text-muted-foreground">
+              Use a negative number to remove credits.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {[5, 10, 25].map(n => (
+              <Button
+                key={n}
+                size="sm"
+                variant="outline"
+                disabled={submitting}
+                onClick={() => submit(n)}
+              >
+                +{n}
+              </Button>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <Input
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="h-9"
+            />
+            <Button
+              size="sm"
+              disabled={submitting}
+              onClick={() => submit(Number(amount))}
+            >
+              Apply
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+};
