@@ -36,38 +36,13 @@ export const AssignmentsTab = () => {
 
   const loadSubmissions = async () => {
     try {
-      // In real implementation, would load all submissions for this teacher
-      const mockSubmissions: AssignmentSubmission[] = [
-        {
-          id: '1',
-          assignmentId: '1',
-          studentId: 'student-1',
-          studentName: 'Emma Johnson',
-          content: 'Last weekend, I visited my grandmother in the countryside. We cooked traditional food together and talked about old family stories. It was a wonderful experience that I will never forget.',
-          attachments: [],
-          status: 'submitted',
-          submittedAt: '2024-12-06T14:30:00Z',
-          createdAt: '2024-12-06T14:30:00Z',
-          updatedAt: '2024-12-06T14:30:00Z'
-        },
-        {
-          id: '2',
-          assignmentId: '1', 
-          studentId: 'student-2',
-          studentName: 'Alex Johnson',
-          content: 'My weekend was very busy. I played soccer with my friends, helped my parents with housework, and studied for my English test. I enjoyed every moment.',
-          attachments: [],
-          status: 'graded',
-          grade: 22,
-          feedback: 'Great use of past tense! Your vocabulary is improving. Try to add more descriptive details next time.',
-          submittedAt: '2024-12-05T16:00:00Z',
-          createdAt: '2024-12-05T16:00:00Z',
-          updatedAt: '2024-12-07T10:00:00Z'
-        }
-      ];
-      setSubmissions(mockSubmissions);
+      // Real-data hook: assignment submissions feed will be wired to Supabase
+      // (homework_assignments + homework_assignment_students) once the grading
+      // workflow ships. Until then, render the empty state instead of fixtures.
+      setSubmissions([]);
     } catch (error) {
       console.error('Failed to load submissions:', error);
+      setSubmissions([]);
     }
   };
 
