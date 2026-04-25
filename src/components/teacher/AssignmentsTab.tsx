@@ -10,7 +10,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { useToast } from "@/hooks/use-toast";
 import { CreateAssignmentDialog } from "@/components/classroom/assignment/CreateAssignmentDialog";
 import { GradingInterface } from "@/components/classroom/assignment/GradingInterface";
-import { Assignment, AssignmentSubmission, assignmentService } from "@/services/assignmentService";
+import { Assignment, AssignmentSubmission } from "@/services/assignmentService";
 
 export const AssignmentsTab = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
