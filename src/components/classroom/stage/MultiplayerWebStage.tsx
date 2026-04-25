@@ -48,6 +48,10 @@ export const MultiplayerWebStage: React.FC<MultiplayerWebStageProps> = ({
     controlEnabledRef.current = controlEnabled;
   }, [role, adminToken, controlEnabled]);
 
+  // Warn if the Hyperbeam container ever collapses to 0×0 — common cause of
+  // "Hyperbeam playing but invisible" bugs.
+  useCollapseWatcher(containerRef, 'hyperbeam-container', !!embedUrl);
+
   // Mount / unmount Hyperbeam when the embed URL changes.
   // Serialized via initPromiseRef so a new instance never attaches to a div
   // that still holds the previous (or in-flight) instance.
