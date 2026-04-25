@@ -101,6 +101,7 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
 
       const channelName = `classroom_sync_${roomId}_${userId}`;
       console.log('🔄 Opening sync channel:', channelName);
+      logRealtime('info', 'Opening sync channel', { channel: channelName, userRole });
       setConnectionStatus(reconnectAttemptsRef.current === 0 ? 'connecting' : 'reconnecting');
 
       const channel = supabase
