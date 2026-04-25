@@ -240,7 +240,27 @@ export async function createHyperbeamSession(startUrl?: string): Promise<{
   const { data, error } = await supabase.functions.invoke('hyperbeam-session', {
     body: { startUrl },
   });
-  if (error) throw error;
+
+  // supabase-js wraps non-2xx responses in FunctionsHttpError and hides the body.
+  // Re-fetch the structured error payload so the UI can show why it failed.
+  if (error) {
+    let detail: any = null;
+    try {
+      const ctx: any = (error as any).context;
+      if (ctx?.json) detail = await ctx.json();
+      else if (ctx?.text) detail = JSON.parse(await ctx.text());
+    } catch (_) { /* swallow parse errors */ }
+
+    const status = detail?.status ?? (error as any)?.status;
+    if (status === 429 || /too[_ ]many|rate[- ]limit/i.test(detail?.detail ?? '')) {
+      throw new Error('Hyperbeam rate-limited (too many cloud-browser sessions in a short period). Please wait ~60 seconds and try again, or use the regular Embed instead.');
+    }
+    if (detail?.error === 'hyperbeam_failed') {
+      throw new Error(`Cloud browser failed (HTTP ${detail.status}). ${detail.detail ?? ''}`.trim());
+    }
+    throw new Error(detail?.error ?? error.message ?? 'Could not start cloud browser.');
+  }
+
   if (!data?.embedUrl) throw new Error('No embedUrl returned from hyperbeam-session');
   return {
     embedUrl: data.embedUrl as string,

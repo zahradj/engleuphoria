@@ -101,8 +101,24 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
       onEmbedUrl(embedUrl);
       toast({ title: 'Co-Play stage ready', description: 'You and the student are now in the same browser.' });
     } catch (err: any) {
-      console.error(err);
-      toast({ title: 'Co-Play failed', description: err?.message ?? 'Could not start cloud browser.', variant: 'destructive' });
+      console.error('[Co-Play] failed:', err);
+      const msg: string = err?.message ?? 'Could not start cloud browser.';
+      const isRateLimit = /rate[- ]limit|too[_ ]many/i.test(msg);
+      // Fall back to a regular iframe so the teacher can still share the page.
+      const fallback = urlDraft.trim();
+      if (fallback) {
+        const normalized = /^https?:\/\//i.test(fallback) ? fallback : `https://${fallback}`;
+        onEmbedUrl(normalized);
+        toast({
+          title: isRateLimit ? 'Co-Play unavailable — using regular embed' : 'Co-Play failed — using regular embed',
+          description: isRateLimit
+            ? 'Hyperbeam is rate-limited. Showing the page in a normal iframe instead. Try Co-Play again in ~60s.'
+            : msg,
+          variant: isRateLimit ? 'default' : 'destructive',
+        });
+      } else {
+        toast({ title: 'Co-Play failed', description: msg, variant: 'destructive' });
+      }
     } finally {
       setCoPlayLoading(false);
     }
