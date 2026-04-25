@@ -514,7 +514,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
         )}
 
         {/* Center: Unified Main Stage */}
-        <div className="flex-1 relative">
+        <div className="flex-1 relative min-h-0 overflow-hidden">
           <MainStage
             mode={stageMode}
             slides={slides}

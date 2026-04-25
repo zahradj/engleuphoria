@@ -67,7 +67,7 @@ export const MainStage: React.FC<MainStageProps> = ({
   const { label, Icon } = MODE_META[mode];
 
   return (
-    <div className="flex-1 flex items-stretch justify-stretch p-1 sm:p-2 relative min-h-0 min-w-0">
+    <div className="absolute inset-0 flex items-stretch justify-stretch p-1 sm:p-2 min-h-0 min-w-0">
       <div
         className="relative flex-1 w-full h-full bg-white rounded-lg shadow-xl overflow-hidden border border-border"
       >
