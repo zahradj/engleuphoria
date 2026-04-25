@@ -163,8 +163,20 @@ export const PlacementGatekeeper = ({
     return <>{children}</>;
   }
 
-  const theme = HUB_THEME[studentLevel as 'academy' | 'professional'];
+  const theme = HUB_THEME[themeKey];
   const Icon = theme.icon;
+
+  // Kids skip Demographics — we already know they're in Playground (4-9).
+  // Default age 7 keeps evaluateStudentLevel pinned to playground while still
+  // computing a meaningful CEFR band (A1/A2/B1) from the picture quiz.
+  const handleStartAssessment = () => {
+    if (isPlayground) {
+      setAge(7);
+      setPhase('test');
+    } else {
+      setPhase('demographics');
+    }
+  };
 
   return (
     <div
@@ -198,28 +210,34 @@ export const PlacementGatekeeper = ({
                 </span>
               </div>
               <h1 className="text-4xl md:text-5xl font-bold text-white text-center mb-4 leading-tight">
-                Welcome to {theme.name}, {studentName.split(' ')[0]}!
+                {isPlayground
+                  ? `Hi ${studentName.split(' ')[0]}! Let's play! 🎉`
+                  : `Welcome to ${theme.name}, ${studentName.split(' ')[0]}!`}
               </h1>
-              <p className="text-white/70 text-center text-lg mb-8 max-w-lg mx-auto">
-                Before we open your dashboard, let's find your <span className="text-white font-semibold">perfect starting point</span>.
-                A short, joyful assessment so every lesson fits you exactly.
+              <p className="text-white/80 text-center text-lg mb-8 max-w-lg mx-auto">
+                {isPlayground
+                  ? <>Tap the right pictures to show what you know. <span className="text-white font-semibold">Just 10 fun questions!</span></>
+                  : <>Before we open your dashboard, let's find your <span className="text-white font-semibold">perfect starting point</span>. A short, joyful assessment so every lesson fits you exactly.</>}
               </p>
               <div className="grid grid-cols-3 gap-3 mb-8">
-                {['~5 minutes', 'Personalized', 'One time only'].map((label) => (
+                {(isPlayground
+                  ? ['~3 minutes', '10 pictures', 'Just for fun']
+                  : ['~5 minutes', 'Personalized', 'One time only']
+                ).map((label) => (
                   <div
                     key={label}
-                    className="bg-white/5 border border-white/10 rounded-xl py-3 px-2 text-center"
+                    className="bg-white/10 border border-white/20 rounded-xl py-3 px-2 text-center"
                   >
-                    <p className="text-white/80 text-sm font-medium">{label}</p>
+                    <p className="text-white/90 text-sm font-medium">{label}</p>
                   </div>
                 ))}
               </div>
               <Button
                 size="lg"
-                onClick={() => setPhase('demographics')}
+                onClick={handleStartAssessment}
                 className={`w-full ${theme.button} text-white font-semibold text-lg h-14 rounded-xl group`}
               >
-                Start My Assessment
+                {isPlayground ? "Let's Start! 🚀" : 'Start My Assessment'}
                 <ArrowRight className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" />
               </Button>
             </motion.div>
@@ -239,7 +257,9 @@ export const PlacementGatekeeper = ({
                 </div>
                 <div>
                   <h2 className="text-white font-semibold text-sm">{theme.name} Placement</h2>
-                  <p className="text-white/50 text-xs">Find your perfect level</p>
+                  <p className="text-white/60 text-xs">
+                    {isPlayground ? 'Tap the right picture!' : 'Find your perfect level'}
+                  </p>
                 </div>
               </div>
               <div className="flex-1 overflow-hidden">
