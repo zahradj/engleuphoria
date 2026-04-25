@@ -366,6 +366,7 @@ export const StudentManagement = () => {
                   <TableHead>Hub</TableHead>
                   <TableHead>CEFR Level</TableHead>
                   <TableHead>Total Lessons</TableHead>
+                  <TableHead>Credits</TableHead>
                   <TableHead>Joined</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
