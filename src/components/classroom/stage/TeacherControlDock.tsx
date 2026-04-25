@@ -3,9 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Layout, Globe, PenTool, Pencil, Eraser, MousePointer2, Hand, Trash2, ChevronLeft, ChevronRight, Check, Unlock, Star, Timer as TimerIcon, Dice6, Smile, Sparkles, Cloud, Loader2 } from 'lucide-react';
+import { Layout, Globe, PenTool, Pencil, Eraser, MousePointer2, Hand, Trash2, ChevronLeft, ChevronRight, Check, Unlock, Star, Timer as TimerIcon, Dice6, Smile, Sparkles, Cloud, Loader2, ArrowLeft, ArrowRight, RotateCcw, Home } from 'lucide-react';
 import { StageMode } from '@/services/whiteboardService';
 import { createHyperbeamSession } from './MultiplayerWebStage';
+import { coBrowserController } from './coBrowserController';
 import { useToast } from '@/hooks/use-toast';
 
 const PEN_COLORS = ['#FF3B30', '#007AFF', '#34C759', '#FF9500', '#AF52DE', '#000000'];
@@ -74,11 +75,20 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
   const [coPlayLoading, setCoPlayLoading] = useState(false);
   const { toast } = useToast();
 
+  const isCoPlay = !!embeddedUrl && /\.hyperbeam\.com\//i.test(embeddedUrl);
+
   const submitUrl = () => {
     if (!urlDraft.trim()) return;
     let normalized = urlDraft.trim();
     if (!/^https?:\/\//i.test(normalized)) normalized = `https://${normalized}`;
-    onEmbedUrl(normalized);
+    coBrowserController.homeUrl = normalized;
+    // If a co-play session is already live, navigate inside it instead of
+    // swapping the embed URL (which would tear down the cloud browser).
+    if (isCoPlay) {
+      coBrowserController.emit('home', normalized);
+    } else {
+      onEmbedUrl(normalized);
+    }
   };
 
   const launchCoPlay = async () => {
@@ -86,6 +96,7 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
     try {
       const start = urlDraft.trim() || 'https://www.gamestolearnenglish.com/';
       const startNormalized = /^https?:\/\//i.test(start) ? start : `https://${start}`;
+      coBrowserController.homeUrl = startNormalized;
       const { embedUrl } = await createHyperbeamSession(startNormalized);
       onEmbedUrl(embedUrl);
       toast({ title: 'Co-Play stage ready', description: 'You and the student are now in the same browser.' });
@@ -130,6 +141,41 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
             >
               {coPlayLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Cloud className="h-3.5 w-3.5" />}
               Co-Play
+            </Button>
+          </div>
+        )}
+
+        {/* Co-browser navigation — Back / Forward / Reload / Home (Co-Play only) */}
+        {mode === 'web' && isCoPlay && (
+          <div className="flex items-center gap-1 pr-2 border-r border-border">
+            <Button
+              size="icon" variant="ghost" className="h-8 w-8"
+              onClick={() => coBrowserController.emit('back')}
+              title="Back"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              size="icon" variant="ghost" className="h-8 w-8"
+              onClick={() => coBrowserController.emit('forward')}
+              title="Forward"
+            >
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+            <Button
+              size="icon" variant="ghost" className="h-8 w-8"
+              onClick={() => coBrowserController.emit('reload')}
+              title="Reload"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+            <Button
+              size="icon" variant="ghost" className="h-8 w-8"
+              onClick={() => coBrowserController.emit('home')}
+              disabled={!coBrowserController.homeUrl}
+              title={coBrowserController.homeUrl ? `Home: ${coBrowserController.homeUrl}` : 'Set a Home URL by submitting a URL above'}
+            >
+              <Home className="h-4 w-4" />
             </Button>
           </div>
         )}
