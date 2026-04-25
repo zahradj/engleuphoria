@@ -60,6 +60,7 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
     reconnectAttemptsRef.current += 1;
     if (reconnectAttemptsRef.current > MAX_RECONNECT_ATTEMPTS) {
       console.error('🔄 Max reconnect attempts reached. Giving up.');
+      logRealtime('error', 'Max reconnect attempts reached — giving up', { reason });
       setConnectionStatus('disconnected');
       toast({
         title: 'Connection lost',
