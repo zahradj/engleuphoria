@@ -187,9 +187,9 @@ export const CenterStage: React.FC<CenterStageProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-white/40 relative overflow-hidden">
+    <div className="flex-1 flex flex-col bg-transparent relative overflow-hidden">
       {/* Tabs */}
-      <div className="flex items-center gap-1 px-4 pt-2 shrink-0">
+      <div className="flex items-center gap-1 px-2 pt-1 shrink-0">
         {CANVAS_TABS.map(tab => (
           <button
             key={tab.id}
