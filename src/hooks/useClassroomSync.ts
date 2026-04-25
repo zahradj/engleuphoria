@@ -380,6 +380,8 @@ export const useClassroomSync = ({
     stageMode,
     drawingEnabled,
     strokes,
+    sessionStatus: session?.sessionStatus ?? 'waiting',
+    sessionEnded: session?.sessionStatus === 'ended',
     updateSlide,
     updateTool,
     setStudentCanDraw,
