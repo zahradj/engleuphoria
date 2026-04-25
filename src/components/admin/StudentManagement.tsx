@@ -268,6 +268,8 @@ export const StudentManagement = () => {
       toast.error(err?.message || 'Could not update credits');
     }
   };
+
+  if (loading) {
     return (
       <div className="text-center text-muted-foreground">Loading student data...</div>
     );
