@@ -141,7 +141,18 @@ export class WebRTCService {
       console.log('📡 WebRTC signaling status:', status, err ? `error: ${err.message}` : '');
       if (err) {
         console.error('❌ Supabase Realtime Error (WebRTC):', err);
+        logWebRTC('error', `Signaling error: ${err.message}`, {
+          status,
+          stack: err.stack,
+          channel: `webrtc-${this.roomId}`,
+        });
         this.callbacks.onError?.(err.message);
+      } else {
+        logWebRTC(
+          status === 'SUBSCRIBED' ? 'info' : status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' ? 'error' : 'warn',
+          `Signaling status: ${status}`,
+          { channel: `webrtc-${this.roomId}` },
+        );
       }
 
       if (status === 'SUBSCRIBED') {
@@ -163,6 +174,7 @@ export class WebRTCService {
     if (this.disposed) return;
     if (this.reconnectTimer) return;
     console.warn(`📡 WebRTC signaling lost (${reason}). Reconnecting in ${SIGNALING_RECONNECT_DELAY_MS}ms…`);
+    logWebRTC('warn', `Signaling lost — reconnecting in ${SIGNALING_RECONNECT_DELAY_MS}ms`, { reason });
     this.reconnectTimer = setTimeout(async () => {
       this.reconnectTimer = null;
       if (this.disposed) return;
