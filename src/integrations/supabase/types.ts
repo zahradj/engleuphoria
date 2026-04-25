@@ -1591,6 +1591,39 @@ export type Database = {
         }
         Relationships: []
       }
+      classroom_timeline_events: {
+        Row: {
+          actor_id: string | null
+          actor_role: string | null
+          created_at: string
+          event_payload: Json | null
+          event_type: string
+          id: string
+          occurred_at: string
+          room_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_role?: string | null
+          created_at?: string
+          event_payload?: Json | null
+          event_type: string
+          id?: string
+          occurred_at?: string
+          room_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          actor_role?: string | null
+          created_at?: string
+          event_payload?: Json | null
+          event_type?: string
+          id?: string
+          occurred_at?: string
+          room_id?: string
+        }
+        Relationships: []
+      }
       communities: {
         Row: {
           banner_url: string | null
