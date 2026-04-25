@@ -3,8 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, Calendar, TrendingUp, BookOpen } from 'lucide-react';
+import { Users, Calendar, TrendingUp, BookOpen, CreditCard, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -24,6 +27,7 @@ interface Student {
   cefr_level?: string;
   student_level?: HubValue;
   total_lessons: number;
+  available_credits: number;
 }
 
 interface DailyStats {
@@ -75,6 +79,21 @@ export const StudentManagement = () => {
         (usersData || []).map((u: any) => [u.id, u])
       );
 
+      // Fetch credits for all students in one query
+      const { data: creditsData } = userIds.length
+        ? await supabase
+            .from('student_credits')
+            .select('student_id, total_credits, used_credits, expired_credits')
+            .in('student_id', userIds)
+        : { data: [] };
+
+      const creditsById = new Map(
+        (creditsData || []).map((c: any) => [
+          c.student_id,
+          Math.max(0, (c.total_credits || 0) - (c.used_credits || 0) - (c.expired_credits || 0)),
+        ])
+      );
+
       // Get lesson counts for each student
       const studentsWithLessons = await Promise.all(
         (profilesData || []).map(async (row: any) => {
@@ -92,6 +111,7 @@ export const StudentManagement = () => {
             cefr_level: row.cefr_level,
             student_level: row.student_level,
             total_lessons: count || 0,
+            available_credits: creditsById.get(row.user_id) || 0,
           };
         })
       );
@@ -209,6 +229,46 @@ export const StudentManagement = () => {
     }
   };
 
+  const handleAddCredits = async (studentId: string, amount: number) => {
+    if (!Number.isFinite(amount) || amount === 0) {
+      toast.error('Enter a non-zero amount');
+      return;
+    }
+    try {
+      const { data: existing } = await supabase
+        .from('student_credits')
+        .select('id, total_credits')
+        .eq('student_id', studentId)
+        .maybeSingle();
+
+      if (existing) {
+        const newTotal = Math.max(0, (existing.total_credits || 0) + amount);
+        const { error } = await supabase
+          .from('student_credits')
+          .update({ total_credits: newTotal })
+          .eq('id', existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('student_credits')
+          .insert({ student_id: studentId, total_credits: Math.max(0, amount) });
+        if (error) throw error;
+      }
+
+      setStudents(prev =>
+        prev.map(s =>
+          s.id === studentId
+            ? { ...s, available_credits: Math.max(0, s.available_credits + amount) }
+            : s
+        )
+      );
+      toast.success(`${amount > 0 ? 'Added' : 'Removed'} ${Math.abs(amount)} credit${Math.abs(amount) === 1 ? '' : 's'}`);
+    } catch (err: any) {
+      console.error('Failed to update credits:', err);
+      toast.error(err?.message || 'Could not update credits');
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center text-muted-foreground">Loading student data...</div>
@@ -306,6 +366,7 @@ export const StudentManagement = () => {
                   <TableHead>Hub</TableHead>
                   <TableHead>CEFR Level</TableHead>
                   <TableHead>Total Lessons</TableHead>
+                  <TableHead>Credits</TableHead>
                   <TableHead>Joined</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
@@ -351,6 +412,12 @@ export const StudentManagement = () => {
                     </TableCell>
                     <TableCell>{student.total_lessons}</TableCell>
                     <TableCell>
+                      <CreditsCell
+                        balance={student.available_credits}
+                        onAdd={(amt) => handleAddCredits(student.id, amt)}
+                      />
+                    </TableCell>
+                    <TableCell>
                       {new Date(student.created_at).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
@@ -365,6 +432,80 @@ export const StudentManagement = () => {
           </div>
         </CardContent>
       </Card>
+    </div>
+  );
+};
+
+interface CreditsCellProps {
+  balance: number;
+  onAdd: (amount: number) => Promise<void>;
+}
+
+const CreditsCell: React.FC<CreditsCellProps> = ({ balance, onAdd }) => {
+  const [open, setOpen] = useState(false);
+  const [amount, setAmount] = useState<string>('10');
+  const [submitting, setSubmitting] = useState(false);
+
+  const submit = async (value: number) => {
+    setSubmitting(true);
+    try {
+      await onAdd(value);
+      setOpen(false);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <Badge variant="outline" className="gap-1 font-medium">
+        <CreditCard className="h-3 w-3" />
+        {balance}
+      </Badge>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button size="sm" variant="ghost" className="h-7 px-2 gap-1">
+            <Plus className="h-3 w-3" />
+            Add
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-64 space-y-3" align="start">
+          <div>
+            <p className="text-sm font-medium">Grant credits</p>
+            <p className="text-xs text-muted-foreground">
+              Use a negative number to remove credits.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {[5, 10, 25].map(n => (
+              <Button
+                key={n}
+                size="sm"
+                variant="outline"
+                disabled={submitting}
+                onClick={() => submit(n)}
+              >
+                +{n}
+              </Button>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <Input
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="h-9"
+            />
+            <Button
+              size="sm"
+              disabled={submitting}
+              onClick={() => submit(Number(amount))}
+            >
+              Apply
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 };
