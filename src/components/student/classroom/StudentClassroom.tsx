@@ -82,7 +82,8 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     updateSharedNotes,
     applyRemoteStageMode,
     applyRemoteDrawingEnabled,
-    applyRemoteIframeUnlocked
+    applyRemoteIframeUnlocked,
+    sessionEnded
   } = useClassroomSync({
     roomId,
     userId: studentId,
