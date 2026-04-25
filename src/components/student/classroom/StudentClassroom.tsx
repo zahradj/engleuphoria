@@ -223,6 +223,18 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     return () => clearInterval(interval);
   }, [isZenMode]);
 
+  // Teacher ended the session → notify student and exit gracefully
+  const sessionEndedHandled = useRef(false);
+  useEffect(() => {
+    if (!sessionEnded || sessionEndedHandled.current) return;
+    sessionEndedHandled.current = true;
+    toast({
+      title: 'Class ended',
+      description: 'Your teacher has ended the session. Thanks for joining!'
+    });
+    setShowFeedbackModal(true);
+  }, [sessionEnded, toast]);
+
   const handleLeaveClass = () => {
     setShowFeedbackModal(true);
   };
