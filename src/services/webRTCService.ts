@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { logPeer, logWebRTC } from '@/lib/connectionDebugLog';
 
 interface WebRTCCallbacks {
   onRemoteStream?: (stream: MediaStream) => void;
