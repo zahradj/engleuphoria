@@ -33,10 +33,23 @@ export const MultiplayerWebStage: React.FC<MultiplayerWebStageProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const hbRef = useRef<HyperbeamEmbed | null>(null);
+  const initPromiseRef = useRef<Promise<HyperbeamEmbed | null> | null>(null);
+  const roleRef = useRef(role);
+  const adminTokenRef = useRef(adminToken);
+  const controlEnabledRef = useRef(controlEnabled);
   const [joinState, setJoinState] = useState<JoinState>('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Mount / unmount Hyperbeam when the embed URL changes
+  // Keep latest prop values accessible without re-running the mount effect
+  useEffect(() => {
+    roleRef.current = role;
+    adminTokenRef.current = adminToken;
+    controlEnabledRef.current = controlEnabled;
+  }, [role, adminToken, controlEnabled]);
+
+  // Mount / unmount Hyperbeam when the embed URL changes.
+  // Serialized via initPromiseRef so a new instance never attaches to a div
+  // that still holds the previous (or in-flight) instance.
   useEffect(() => {
     if (!embedUrl || !containerRef.current) {
       setJoinState('idle');
@@ -47,13 +60,27 @@ export const MultiplayerWebStage: React.FC<MultiplayerWebStageProps> = ({
     setJoinState('joining');
     setErrorMsg(null);
 
-    (async () => {
+    const container = containerRef.current;
+    const prev = initPromiseRef.current;
+
+    const next: Promise<HyperbeamEmbed | null> = (async () => {
+      // 1. Wait for any prior init to finish, then destroy it before reusing the div.
       try {
-        const hb = await Hyperbeam(containerRef.current!, embedUrl, {
-          // Teacher: full input. Student: gated by controlEnabled.
-          delegateKeyboard: role === 'teacher' ? true : controlEnabled,
-          disableInput: role === 'teacher' ? false : !controlEnabled,
-          adminToken: role === 'teacher' ? (adminToken ?? undefined) : undefined,
+        const prevHb = await prev;
+        if (prevHb) {
+          try { prevHb.destroy(); } catch (_) { /* noop */ }
+        }
+      } catch (_) { /* prior init failed — nothing to destroy */ }
+
+      if (cancelled || !container) return null;
+
+      // 2. Mount the new Hyperbeam instance into the (now-clean) container.
+      try {
+        const currentRole = roleRef.current;
+        const hb = await Hyperbeam(container, embedUrl, {
+          delegateKeyboard: currentRole === 'teacher' ? true : controlEnabledRef.current,
+          disableInput: currentRole === 'teacher' ? false : !controlEnabledRef.current,
+          adminToken: currentRole === 'teacher' ? (adminTokenRef.current ?? undefined) : undefined,
           timeout: 30_000,
           onConnectionStateChange: (e) => {
             if (cancelled) return;
@@ -74,28 +101,36 @@ export const MultiplayerWebStage: React.FC<MultiplayerWebStageProps> = ({
 
         if (cancelled) {
           try { hb.destroy(); } catch (_) { /* noop */ }
-          return;
+          return null;
         }
 
         hbRef.current = hb;
-        // Some HB SDK versions report 'playing' before our handler binds.
-        if (joinState === 'joining') setJoinState('connecting');
+        return hb;
       } catch (err: any) {
         console.error('[Hyperbeam] mount failed:', err);
         if (!cancelled) {
           setErrorMsg(String(err?.message ?? err));
           setJoinState('failed');
         }
+        return null;
       }
     })();
 
+    initPromiseRef.current = next;
+
     return () => {
       cancelled = true;
-      try { hbRef.current?.destroy(); } catch (_) { /* noop */ }
+      // Chain teardown onto the in-flight init so we always destroy whatever resolves.
+      const teardown = next.then((hb) => {
+        if (hb) {
+          try { hb.destroy(); } catch (_) { /* noop */ }
+        }
+        return null;
+      });
+      initPromiseRef.current = teardown;
       hbRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [embedUrl, role]);
+  }, [embedUrl]);
 
   // Toggle student input live when the teacher flips "Unlock Student Interaction"
   useEffect(() => {
