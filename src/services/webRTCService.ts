@@ -4,7 +4,13 @@ interface WebRTCCallbacks {
   onRemoteStream?: (stream: MediaStream) => void;
   onConnectionChange?: (connected: boolean) => void;
   onError?: (error: string) => void;
+  /** Fired whenever the signaling channel becomes SUBSCRIBED (initial + after reconnects). */
+  onSignalingReady?: () => void;
+  /** Fired when the signaling channel drops. */
+  onSignalingLost?: () => void;
 }
+
+const SIGNALING_RECONNECT_DELAY_MS = 3000;
 
 export class WebRTCService {
   private peerConnection: RTCPeerConnection | null = null;
@@ -15,6 +21,12 @@ export class WebRTCService {
   private userId: string = '';
   private callbacks: WebRTCCallbacks = {};
 
+  private signalingReady = false;
+  private signalingReadyPromise: Promise<void> | null = null;
+  private resolveSignalingReady: (() => void) | null = null;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private disposed = false;
+
   constructor(callbacks: WebRTCCallbacks = {}) {
     this.callbacks = callbacks;
   }
@@ -23,21 +35,19 @@ export class WebRTCService {
     this.roomId = roomId;
     this.userId = userId;
     this.localStream = localStream;
+    this.disposed = false;
 
-    // Create peer connection
     this.peerConnection = new RTCPeerConnection({
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
-      ]
+        { urls: 'stun:stun1.l.google.com:19302' },
+      ],
     });
 
-    // Add local tracks
-    localStream.getTracks().forEach(track => {
+    localStream.getTracks().forEach((track) => {
       this.peerConnection!.addTrack(track, localStream);
     });
 
-    // Handle remote stream
     this.peerConnection.ontrack = (event) => {
       console.log('🎥 Received remote track:', event.track.kind);
       if (event.streams && event.streams[0]) {
@@ -46,28 +56,65 @@ export class WebRTCService {
       }
     };
 
-    // Handle connection state
     this.peerConnection.onconnectionstatechange = () => {
       const state = this.peerConnection?.connectionState;
-      console.log('🔗 Connection state:', state);
+      console.log('🔗 Peer connection state:', state);
       this.callbacks.onConnectionChange?.(state === 'connected');
-    };
-
-    // Handle ICE candidates
-    this.peerConnection.onicecandidate = (event) => {
-      if (event.candidate) {
-        this.sendSignal('ice-candidate', { candidate: event.candidate });
+      if (state === 'failed') {
+        this.callbacks.onError?.('Peer connection failed');
       }
     };
 
-    // Set up signaling channel
+    this.peerConnection.onicecandidate = (event) => {
+      if (event.candidate) {
+        // Queue ICE candidates until signaling is ready (Supabase drops sends on un-subscribed channels)
+        void this.sendSignal('ice-candidate', { candidate: event.candidate });
+      }
+    };
+
     await this.setupSignaling();
   }
 
-  private async setupSignaling() {
-    this.channel = supabase.channel(`webrtc-${this.roomId}`);
+  /**
+   * Resolves once the signaling channel is SUBSCRIBED.
+   * Callers (teacher) MUST await this before calling createOffer().
+   */
+  waitForSignaling(): Promise<void> {
+    if (this.signalingReady) return Promise.resolve();
+    if (!this.signalingReadyPromise) {
+      this.signalingReadyPromise = new Promise<void>((resolve) => {
+        this.resolveSignalingReady = resolve;
+      });
+    }
+    return this.signalingReadyPromise;
+  }
 
-    this.channel
+  isSignalingReady(): boolean {
+    return this.signalingReady;
+  }
+
+  private resetReadyPromise() {
+    this.signalingReady = false;
+    this.signalingReadyPromise = new Promise<void>((resolve) => {
+      this.resolveSignalingReady = resolve;
+    });
+  }
+
+  private async setupSignaling() {
+    if (this.disposed) return;
+    this.resetReadyPromise();
+
+    // Tear down any prior channel before re-subscribing
+    if (this.channel) {
+      try { await this.channel.unsubscribe(); } catch {}
+      this.channel = null;
+    }
+
+    const channelName = `webrtc-${this.roomId}`;
+    console.log('📡 WebRTC: opening signaling channel', channelName);
+
+    this.channel = supabase
+      .channel(channelName)
       .on('broadcast', { event: 'offer' }, async ({ payload }: any) => {
         if (payload.from === this.userId) return;
         console.log('📩 Received offer');
@@ -81,28 +128,61 @@ export class WebRTCService {
       .on('broadcast', { event: 'ice-candidate' }, async ({ payload }: any) => {
         if (payload.from === this.userId) return;
         await this.handleIceCandidate(payload.candidate);
-      })
-      .subscribe();
+      });
 
-    console.log('✅ Signaling channel ready');
+    this.channel.subscribe((status: string, err?: Error) => {
+      console.log('📡 WebRTC signaling status:', status, err ? `error: ${err.message}` : '');
+      if (err) {
+        console.error('❌ Supabase Realtime Error (WebRTC):', err);
+        this.callbacks.onError?.(err.message);
+      }
+
+      if (status === 'SUBSCRIBED') {
+        this.signalingReady = true;
+        if (this.resolveSignalingReady) {
+          this.resolveSignalingReady();
+          this.resolveSignalingReady = null;
+        }
+        this.callbacks.onSignalingReady?.();
+      } else if (status === 'CHANNEL_ERROR' || status === 'CLOSED' || status === 'TIMED_OUT') {
+        this.signalingReady = false;
+        this.callbacks.onSignalingLost?.();
+        this.scheduleSignalingReconnect(status);
+      }
+    });
   }
 
+  private scheduleSignalingReconnect(reason: string) {
+    if (this.disposed) return;
+    if (this.reconnectTimer) return;
+    console.warn(`📡 WebRTC signaling lost (${reason}). Reconnecting in ${SIGNALING_RECONNECT_DELAY_MS}ms…`);
+    this.reconnectTimer = setTimeout(async () => {
+      this.reconnectTimer = null;
+      if (this.disposed) return;
+      await this.setupSignaling();
+    }, SIGNALING_RECONNECT_DELAY_MS);
+  }
+
+  /**
+   * Creates and sends an SDP offer. Waits for signaling readiness so the
+   * peer is guaranteed to be subscribed before we broadcast.
+   */
   async createOffer() {
     if (!this.peerConnection) return;
+    await this.waitForSignaling();
 
     const offer = await this.peerConnection.createOffer();
     await this.peerConnection.setLocalDescription(offer);
-    this.sendSignal('offer', { offer });
+    await this.sendSignal('offer', { offer });
     console.log('📤 Sent offer');
   }
 
   private async handleOffer(offer: RTCSessionDescriptionInit) {
     if (!this.peerConnection) return;
-
     await this.peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
     const answer = await this.peerConnection.createAnswer();
     await this.peerConnection.setLocalDescription(answer);
-    this.sendSignal('answer', { answer });
+    await this.sendSignal('answer', { answer });
     console.log('📤 Sent answer');
   }
 
@@ -120,12 +200,24 @@ export class WebRTCService {
     }
   }
 
-  private sendSignal(event: string, payload: any) {
+  private async sendSignal(event: string, payload: any) {
     if (!this.channel) return;
+    // Wait briefly if signaling is mid-handshake
+    if (!this.signalingReady) {
+      try {
+        await Promise.race([
+          this.waitForSignaling(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('signaling-timeout')), 5000)),
+        ]);
+      } catch {
+        console.warn(`📡 Dropping signal '${event}' — signaling not ready`);
+        return;
+      }
+    }
     this.channel.send({
       type: 'broadcast',
       event,
-      payload: { ...payload, from: this.userId }
+      payload: { ...payload, from: this.userId },
     });
   }
 
@@ -134,9 +226,16 @@ export class WebRTCService {
   }
 
   dispose() {
-    this.channel?.unsubscribe();
+    this.disposed = true;
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+    try { this.channel?.unsubscribe(); } catch {}
+    this.channel = null;
     this.peerConnection?.close();
     this.peerConnection = null;
     this.remoteStream = null;
+    this.signalingReady = false;
   }
 }
