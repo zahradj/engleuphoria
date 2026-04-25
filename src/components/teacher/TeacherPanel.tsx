@@ -61,9 +61,15 @@ export const TeacherPanel = ({
       )}
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-3 md:p-6 pb-20 md:pb-6">
-          {renderActiveTab()}
-        </main>
+        {activeTab === "classroom" ? (
+          <main className="flex-1 overflow-hidden">
+            {renderActiveTab()}
+          </main>
+        ) : (
+          <main className="flex-1 overflow-y-auto p-3 md:p-6 pb-20 md:pb-6">
+            {renderActiveTab()}
+          </main>
+        )}
       </div>
     </div>
   );
