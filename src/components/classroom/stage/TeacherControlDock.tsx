@@ -3,9 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Layout, Globe, PenTool, Pencil, Eraser, MousePointer2, Hand, Trash2, ChevronLeft, ChevronRight, Check, Unlock, Star, Timer as TimerIcon, Dice6, Smile, Sparkles, Cloud, Loader2 } from 'lucide-react';
+import { Layout, Globe, PenTool, Pencil, Eraser, MousePointer2, Hand, Trash2, ChevronLeft, ChevronRight, Check, Unlock, Star, Timer as TimerIcon, Dice6, Smile, Sparkles, Cloud, Loader2, ArrowLeft, ArrowRight, RotateCcw, Home } from 'lucide-react';
 import { StageMode } from '@/services/whiteboardService';
 import { createHyperbeamSession } from './MultiplayerWebStage';
+import { coBrowserController } from './coBrowserController';
 import { useToast } from '@/hooks/use-toast';
 
 const PEN_COLORS = ['#FF3B30', '#007AFF', '#34C759', '#FF9500', '#AF52DE', '#000000'];
