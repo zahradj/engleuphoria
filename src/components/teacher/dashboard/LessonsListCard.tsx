@@ -93,28 +93,39 @@ export const LessonsListCard: React.FC = () => {
     const loadLessons = async () => {
       try {
         const { data, error } = await supabase
-          .from('bookings')
-          .select('id, classroom_id, scheduled_at, lesson_topic, status, student_name, student_age, completed_at')
+          .from('class_bookings')
+          .select('id, classroom_id, scheduled_at, status, hub_type, notes, student_id')
           .eq('teacher_id', user.id)
           .order('scheduled_at', { ascending: true });
 
         if (error) throw error;
         if (cancelled) return;
 
+        const studentIds = Array.from(new Set((data ?? []).map((r: any) => r.student_id).filter(Boolean)));
+        let studentMap: Record<string, { name: string }> = {};
+        if (studentIds.length) {
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, full_name')
+            .in('id', studentIds);
+          studentMap = (profiles ?? []).reduce((acc: any, p: any) => {
+            acc[p.id] = { name: p.full_name || 'Student' };
+            return acc;
+          }, {});
+        }
+
         const mapped: Lesson[] = (data ?? []).map((row: any) => {
           const scheduledAt = new Date(row.scheduled_at);
           let status: Lesson['status'] = 'upcoming';
-          if (row.status === 'completed' || row.completed_at) {
-            status = row.status === 'needs_feedback' ? 'needs-feedback' : 'completed';
-          } else if (scheduledAt.getTime() < Date.now()) {
-            status = 'needs-feedback';
-          }
+          if (row.status === 'completed') status = 'completed';
+          else if (row.status === 'needs_feedback') status = 'needs-feedback';
+          else if (scheduledAt.getTime() < Date.now() - 60 * 60 * 1000) status = 'needs-feedback';
           return {
             id: row.id,
             scheduledAt,
-            title: row.lesson_topic || 'English Lesson',
-            studentName: row.student_name || 'Student',
-            studentAge: row.student_age ?? null,
+            title: row.notes || `${row.hub_type ? row.hub_type[0].toUpperCase() + row.hub_type.slice(1) + ' ' : ''}Lesson`,
+            studentName: studentMap[row.student_id]?.name || 'Student',
+            studentAge: null,
             status,
             classroomId: row.classroom_id ?? null,
           };
