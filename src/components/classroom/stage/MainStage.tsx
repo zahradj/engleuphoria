@@ -67,9 +67,9 @@ export const MainStage: React.FC<MainStageProps> = ({
   const { label, Icon } = MODE_META[mode];
 
   return (
-    <div className="flex-1 flex items-center justify-center p-6 relative">
+    <div className="flex-1 flex items-stretch justify-stretch p-1 sm:p-2 relative min-h-0 min-w-0">
       <div
-        className="relative w-full aspect-[16/9] max-h-[calc(100vh-160px)] bg-white rounded-2xl shadow-2xl overflow-hidden border border-border"
+        className="relative flex-1 w-full h-full bg-white rounded-lg shadow-xl overflow-hidden border border-border"
       >
         {/* Underlying content (slide / web / blank / native game) */}
         <StageContent
