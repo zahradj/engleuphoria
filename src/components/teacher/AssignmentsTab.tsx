@@ -243,60 +243,68 @@ export const AssignmentsTab = () => {
         </TabsContent>
 
         <TabsContent value="graded" className="space-y-4">
-          <div className="grid gap-4">
-            {gradedSubmissions.map((submission) => (
-              <Card key={submission.id} className="border-l-4 border-l-green-500">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{submission.studentName}</CardTitle>
-                    <div className="flex items-center gap-2">
-                      <Badge className={getStatusColor(submission.status)}>
-                        Graded
-                      </Badge>
-                      <Badge variant="outline" className="bg-blue-50 text-blue-700">
-                        {submission.grade}/{assignments.find(a => a.id === submission.assignmentId)?.points} pts
-                      </Badge>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <p className="text-sm text-gray-600">
-                      Assignment: {assignments.find(a => a.id === submission.assignmentId)?.title}
-                    </p>
-                    
-                    {submission.feedback && (
-                      <div className="bg-green-50 p-3 rounded border border-green-200">
-                        <Label className="text-sm font-medium text-green-800 mb-1 block">Your Feedback:</Label>
-                        <p className="text-sm text-green-700">{submission.feedback}</p>
-                      </div>
-                    )}
-                    
+          {gradedSubmissions.length === 0 ? (
+            <EmptyState
+              icon={Award}
+              title="Nothing graded yet"
+              description="Once you grade student submissions, the latest results will be listed here."
+            />
+          ) : (
+            <div className="grid gap-4">
+              {gradedSubmissions.map((submission) => (
+                <Card key={submission.id} className="border-l-4 border-l-green-500">
+                  <CardHeader>
                     <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-600">
-                        Graded: {new Date(submission.updatedAt).toLocaleDateString()}
-                      </div>
-                      
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline">
-                          <MessageCircle className="h-4 w-4 mr-1" />
-                          Message Student
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleGradeSubmission(submission)}
-                        >
-                          <Eye className="h-4 w-4 mr-1" />
-                          Review
-                        </Button>
+                      <CardTitle className="text-lg">{submission.studentName}</CardTitle>
+                      <div className="flex items-center gap-2">
+                        <Badge className={getStatusColor(submission.status)}>
+                          Graded
+                        </Badge>
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                          {submission.grade}/{assignments.find(a => a.id === submission.assignmentId)?.points} pts
+                        </Badge>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <p className="text-sm text-gray-600">
+                        Assignment: {assignments.find(a => a.id === submission.assignmentId)?.title}
+                      </p>
+
+                      {submission.feedback && (
+                        <div className="bg-green-50 p-3 rounded border border-green-200">
+                          <Label className="text-sm font-medium text-green-800 mb-1 block">Your Feedback:</Label>
+                          <p className="text-sm text-green-700">{submission.feedback}</p>
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-gray-600">
+                          Graded: {new Date(submission.updatedAt).toLocaleDateString()}
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline">
+                            <MessageCircle className="h-4 w-4 mr-1" />
+                            Message Student
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleGradeSubmission(submission)}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            Review
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 
