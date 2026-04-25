@@ -117,8 +117,19 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
               placeholder="Paste a URL…"
               className="h-8 w-56 text-xs"
             />
-            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={submitUrl} title="Load URL">
+            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={submitUrl} title="Load URL (iframe)">
               <Check className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="default"
+              className="h-8 gap-1.5 text-xs"
+              onClick={launchCoPlay}
+              disabled={coPlayLoading}
+              title="Launch a true co-play cloud browser session"
+            >
+              {coPlayLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Cloud className="h-3.5 w-3.5" />}
+              Co-Play
             </Button>
           </div>
         )}
