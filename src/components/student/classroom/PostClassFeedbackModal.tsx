@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Star, Zap, BookOpen } from 'lucide-react';
+import { Star, Zap, BookOpen, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,6 +17,7 @@ interface PostClassFeedbackModalProps {
   teacherName: string;
   teacherId: string;
   lessonId: string;
+  roomId?: string;
 }
 
 const StarRating = ({
