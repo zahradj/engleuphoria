@@ -23,54 +23,32 @@ export const StarCelebration: React.FC<StarCelebrationProps> = ({
   useEffect(() => {
     if (isVisible) {
       setShowContent(true);
-      
-      // Fire confetti — keep total fireworks under 800ms so the overlay
-      // (auto-hides at 1000ms) doesn't end with confetti still spawning.
-      const duration = 800;
-      const end = Date.now() + duration;
 
-      const colors = isMilestone 
+      // Keep all confetti firing within ~700ms so the overlay (auto-hides at 1000ms)
+      // never ends with particles still spawning. Both teacher & student see the
+      // celebration for exactly 1 second.
+      const colors = isMilestone
         ? ['#ffd700', '#ff6b6b', '#4ecdc4', '#ff9ff3', '#54a0ff', '#5f27cd', '#ff9500', '#00d2d3']
         : ['#ffd700', '#ffed4a', '#ffc107', '#fff176'];
 
       if (isMilestone) {
-        const interval = setInterval(() => {
-          if (Date.now() > end) {
-            clearInterval(interval);
-            return;
-          }
-
-          confetti({
-            particleCount: 50,
-            spread: 150,
-            origin: { x: Math.random(), y: Math.random() * 0.5 },
-            colors,
-            startVelocity: 42,
-            gravity: 0.6,
-            scalar: 1.2
-          });
-
-          confetti({
-            particleCount: 14,
-            spread: 90,
-            origin: { x: 0.5, y: 0.5 },
-            colors: ['#ffd700', '#ffed4a'],
-            shapes: ['star'],
-            scalar: 1.8
-          });
-        }, 160);
-
-        setTimeout(() => {
-          confetti({
-            particleCount: 100,
-            spread: 220,
-            origin: { y: 0.5, x: 0.5 },
-            colors,
-            startVelocity: 55,
-            scalar: 1.4
-          });
-        }, 60);
-
+        // One big burst + two side cannons — all complete inside 1s.
+        confetti({
+          particleCount: 120,
+          spread: 220,
+          origin: { y: 0.5, x: 0.5 },
+          colors,
+          startVelocity: 55,
+          scalar: 1.4,
+        });
+        confetti({
+          particleCount: 30,
+          spread: 90,
+          origin: { x: 0.5, y: 0.5 },
+          colors: ['#ffd700', '#ffed4a'],
+          shapes: ['star'],
+          scalar: 1.8,
+        });
         setTimeout(() => {
           confetti({
             particleCount: 40,
@@ -78,7 +56,7 @@ export const StarCelebration: React.FC<StarCelebrationProps> = ({
             spread: 55,
             origin: { x: 0, y: 0.7 },
             colors,
-            startVelocity: 40
+            startVelocity: 40,
           });
           confetti({
             particleCount: 40,
@@ -86,10 +64,9 @@ export const StarCelebration: React.FC<StarCelebrationProps> = ({
             spread: 55,
             origin: { x: 1, y: 0.7 },
             colors,
-            startVelocity: 40
+            startVelocity: 40,
           });
-        }, 220);
-
+        }, 200);
       } else {
         confetti({
           particleCount: 50,
@@ -97,9 +74,8 @@ export const StarCelebration: React.FC<StarCelebrationProps> = ({
           origin: { y: 0.6 },
           colors,
           startVelocity: 34,
-          scalar: 1
+          scalar: 1,
         });
-
         setTimeout(() => {
           confetti({
             particleCount: 22,
@@ -107,15 +83,16 @@ export const StarCelebration: React.FC<StarCelebrationProps> = ({
             origin: { x: 0.5, y: 0.5 },
             colors: ['#ffd700'],
             shapes: ['star'],
-            scalar: 1.3
+            scalar: 1.3,
           });
         }, 140);
       }
 
-      // Auto-hide after 1s — matches the student-side timing.
+      // Total visible time: 1 second. Then immediately fire onComplete so the
+      // parent can clear the celebration state.
       const timer = setTimeout(() => {
         setShowContent(false);
-        setTimeout(onComplete, 200);
+        onComplete();
       }, 1000);
 
       return () => clearTimeout(timer);
