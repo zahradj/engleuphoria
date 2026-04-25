@@ -73,13 +73,8 @@ export const PlacementGatekeeper = ({
   const requiresPlacement =
     studentLevel === 'academy' ||
     studentLevel === 'professional' ||
-    studentLevel === 'kids' ||
-    (studentLevel as string) === 'playground';
-  // Map both legacy 'kids' and new 'playground' to the playground theme.
-  const themeKey: ThemedHub =
-    studentLevel === 'kids' || (studentLevel as string) === 'playground'
-      ? 'playground'
-      : (studentLevel as ThemedHub);
+    studentLevel === 'playground';
+  const themeKey: ThemedHub = (studentLevel ?? 'playground') as ThemedHub;
   const isPlayground = themeKey === 'playground';
 
   // Check placement status on mount
