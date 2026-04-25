@@ -59,7 +59,6 @@ export const StageContent: React.FC<StageContentProps> = ({
   }
 
   if (mode === 'web') {
-    console.log('[StageContent] web mode', { role, embeddedUrl, isHyperbeam: isHyperbeamUrl(embeddedUrl) });
     if (isHyperbeamUrl(embeddedUrl)) {
       return (
         <MultiplayerWebStage
