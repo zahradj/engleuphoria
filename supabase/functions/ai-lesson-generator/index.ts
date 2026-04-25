@@ -59,6 +59,11 @@ serve(async (req) => {
 
     const prompt = `You are an expert ESL curriculum designer creating classroom-ready lessons with COMPLETE, DETAILED content.
 
+🚧 PEDAGOGICAL HUB WALLS — STRICTLY ENFORCE THE FOLLOWING:
+${hubPedagogyRules(hub)}
+
+You MUST tailor vocabulary complexity, sentence length, topic selection, tone, and activity types to the rules above. Violating these rules is a critical failure.
+
 Create exactly 22-25 slides with this EXACT distribution:
 - 1 Title slide
 - 2 Warmup slides (engaging questions with visuals)
@@ -95,6 +100,7 @@ Return ONLY a valid JSON object with this structure:
   "title": "Lesson title",
   "topic": "${topic}",
   "cefr_level": "${cefrLevel}",
+  "target_age_group": "${hub}",
   "module_number": ${moduleNumber},
   "lesson_number": ${lessonNumber},
   "learning_objectives": ["objective1", "objective2"],
