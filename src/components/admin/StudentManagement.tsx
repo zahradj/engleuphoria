@@ -27,6 +27,7 @@ interface Student {
   cefr_level?: string;
   student_level?: HubValue;
   total_lessons: number;
+  available_credits: number;
 }
 
 interface DailyStats {
