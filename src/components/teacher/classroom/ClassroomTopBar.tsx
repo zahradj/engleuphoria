@@ -17,6 +17,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { useSmartTimer, type TimerPhase } from '@/hooks/classroom/useSmartTimer';
+import { DeviceSelector } from '@/components/classroom/DeviceSelector';
 import logoWhite from '@/assets/logo-white.png';
 
 type HubType = 'playground' | 'academy' | 'professional';
@@ -41,6 +42,11 @@ interface ClassroomTopBarProps {
   hubType?: HubType;
   rtcConnected?: boolean;
   onReconnect?: () => void;
+  /** Live local stream — required to show device selector. */
+  localStream?: MediaStream | null;
+  /** Hot-swap helpers from useLocalMedia. */
+  onSwitchCamera?: (deviceId: string) => Promise<boolean>;
+  onSwitchMicrophone?: (deviceId: string) => Promise<boolean>;
 }
 
 export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
@@ -62,7 +68,10 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
   sessionDuration = 25,
   hubType = 'academy',
   rtcConnected = false,
-  onReconnect
+  onReconnect,
+  localStream = null,
+  onSwitchCamera,
+  onSwitchMicrophone
 }) => {
   const smartTimer = useSmartTimer(elapsedSeconds, sessionDuration);
 
@@ -212,14 +221,22 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
             {isZenMode ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
           </Button>
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="rounded-full bg-gray-100 text-gray-700"
-          onClick={onOpenSettings}
-        >
-          <Settings className="h-5 w-5" />
-        </Button>
+        {onSwitchCamera && onSwitchMicrophone ? (
+          <DeviceSelector
+            stream={localStream}
+            onSwitchCamera={onSwitchCamera}
+            onSwitchMicrophone={onSwitchMicrophone}
+          />
+        ) : (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full bg-gray-100 text-gray-700"
+            onClick={onOpenSettings}
+          >
+            <Settings className="h-5 w-5" />
+          </Button>
+        )}
         {onOpenWrapUp && (
           <Button
             variant="ghost"
