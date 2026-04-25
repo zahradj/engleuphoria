@@ -142,6 +142,17 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
         console.log('🔄 Sync channel status:', status, err ? `error: ${err.message}` : '');
         if (err) {
           console.error('❌ Supabase Realtime Error:', err);
+          logRealtime('error', `Realtime error: ${err.message}`, {
+            status,
+            stack: err.stack,
+            channel: `classroom_sync_${roomId}_${userId}`,
+          });
+        } else {
+          logRealtime(
+            status === 'SUBSCRIBED' ? 'info' : status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' ? 'error' : 'warn',
+            `Sync channel status: ${status}`,
+            { channel: `classroom_sync_${roomId}_${userId}` },
+          );
         }
 
         if (!isMountedRef.current) return;
