@@ -51,17 +51,29 @@ export const StudentManagement = () => {
       // legitimate student registrations from this admin tab.
       const { data: profilesData, error: profilesError } = await supabase
         .from('student_profiles')
-        .select(`
-          user_id,
-          cefr_level,
-          student_level,
-          created_at,
-          users!inner(id, full_name, email, created_at)
-        `)
+        .select('user_id, cefr_level, student_level, created_at')
         .order('created_at', { ascending: false })
         .limit(50);
 
       if (profilesError) throw profilesError;
+
+      const userIds = (profilesData || []).map((r: any) => r.user_id);
+
+      // Fetch user details separately — there is no PostgREST FK between
+      // public.student_profiles.user_id and public.users.id (the FK points
+      // to auth.users), so an embedded join silently fails. Merge in JS.
+      const { data: usersData, error: usersError } = userIds.length
+        ? await supabase
+            .from('users')
+            .select('id, full_name, email, created_at')
+            .in('id', userIds)
+        : { data: [], error: null };
+
+      if (usersError) throw usersError;
+
+      const usersById = new Map(
+        (usersData || []).map((u: any) => [u.id, u])
+      );
 
       // Get lesson counts for each student
       const studentsWithLessons = await Promise.all(
@@ -71,13 +83,12 @@ export const StudentManagement = () => {
             .select('*', { count: 'exact', head: true })
             .eq('student_id', row.user_id);
 
+          const u = usersById.get(row.user_id) as any;
           return {
             id: row.user_id,
-            full_name: row.users?.full_name || 'Unknown',
-            email: row.users?.email || 'Unknown',
-            // Prefer the user's signup time for "Joined" display; fall back
-            // to the profile creation time if missing.
-            created_at: row.users?.created_at || row.created_at,
+            full_name: u?.full_name || 'Unknown',
+            email: u?.email || 'Unknown',
+            created_at: u?.created_at || row.created_at,
             cefr_level: row.cefr_level,
             student_level: row.student_level,
             total_lessons: count || 0,
