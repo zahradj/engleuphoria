@@ -154,7 +154,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     })(),
     userName: teacherName,
     role: 'teacher',
-    lessonData: { title: lessonTitle, slides }
+    lessonData
   });
 
   // Save student context to session when available
