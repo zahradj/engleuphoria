@@ -102,7 +102,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   const roomName = classId;
   const webrtcRoom = `engleuphoria-${classId}`;
 
-  const slides = [
+  const slides = React.useMemo(() => ([
     { id: '1', title: 'Welcome to the Lesson' },
     { id: '2', title: 'Vocabulary: Animals' },
     { id: '3', title: 'Practice: Matching Game' },
@@ -110,7 +110,11 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     { id: '5', title: 'Speaking Practice' },
     { id: '6', title: 'Quiz Time!' },
     { id: '7', title: 'Great Job! Summary' },
-  ];
+  ]), []);
+  const lessonData = React.useMemo(
+    () => ({ title: lessonTitle, slides }),
+    [lessonTitle, slides]
+  );
 
   const {
     currentSlide,
