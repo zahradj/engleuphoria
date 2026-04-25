@@ -96,24 +96,26 @@ export const ScrollSyncedIframe: React.FC<ScrollSyncedIframeProps> = ({
     <div
       ref={wrapperRef}
       onScroll={onScroll}
-      className="absolute inset-0 overflow-y-auto overflow-x-hidden bg-white"
+      className="absolute inset-0 overflow-auto bg-white p-4"
     >
-      <iframe
-        src={getEmbedUrl(url)}
-        scrolling="no"
-        onError={() => setLoadError(true)}
-        style={{
-          width: '100%',
-          height: '3000px',
-          border: 0,
-          display: 'block',
-          // Teacher: always interactive. Student: only when teacher unlocks.
-          pointerEvents: isInteractive ? 'auto' : 'none',
-        }}
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowFullScreen
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
-      />
+      <div className="mx-auto min-h-full w-[92%] max-w-6xl overflow-hidden rounded-lg border border-border shadow-lg">
+        <iframe
+          src={getEmbedUrl(url)}
+          scrolling="no"
+          onError={() => setLoadError(true)}
+          style={{
+            width: '100%',
+            height: '2800px',
+            border: 0,
+            display: 'block',
+            // Teacher: always interactive. Student: only when teacher unlocks.
+            pointerEvents: isInteractive ? 'auto' : 'none',
+          }}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
+        />
+      </div>
     </div>
   );
 };

@@ -91,6 +91,13 @@ interface UseClassroomSyncReturn {
   applyRemoteIframeUnlocked: (unlocked: boolean) => void;
 }
 
+const deriveStageModeFromSession = (session: ClassroomSession, fallback: StageMode): StageMode => {
+  if (session.activeCanvasTab === 'web') return 'web';
+  if (session.activeCanvasTab === 'slides') return 'slide';
+  if (session.activeCanvasTab === 'whiteboard') return 'blank';
+  return session.embeddedUrl ? 'web' : fallback;
+};
+
 export const useClassroomSync = ({
   roomId,
   userId,
@@ -119,6 +126,7 @@ export const useClassroomSync = ({
         );
         if (newSession) {
           setSession(newSession);
+          setStageModeState(prev => deriveStageModeFromSession(newSession, prev));
           setIsConnected(true);
         }
       } else {
@@ -126,6 +134,7 @@ export const useClassroomSync = ({
         const existingSession = await classroomSyncService.getActiveSession(roomId);
         if (existingSession) {
           setSession(existingSession);
+          setStageModeState(prev => deriveStageModeFromSession(existingSession, prev));
           setIsConnected(true);
         }
       }
@@ -142,6 +151,7 @@ export const useClassroomSync = ({
       roomId,
       (updatedSession) => {
         setSession(updatedSession);
+        setStageModeState(prev => deriveStageModeFromSession(updatedSession, prev));
       }
     );
 
