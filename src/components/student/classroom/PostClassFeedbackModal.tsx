@@ -135,6 +135,16 @@ export const PostClassFeedbackModal: React.FC<PostClassFeedbackModalProps> = ({
           </DialogTitle>
         </DialogHeader>
 
+        {endedAt && (
+          <div className="flex items-center justify-center gap-2 rounded-lg bg-muted/60 px-3 py-2 text-sm text-muted-foreground">
+            <Clock className="w-4 h-4" />
+            <span>
+              Class ended at{' '}
+              {new Date(endedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
+        )}
+
         <div className="space-y-6 py-2">
           <StarRating
             value={teacherEnergy}
