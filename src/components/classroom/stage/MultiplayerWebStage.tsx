@@ -108,24 +108,38 @@ export const MultiplayerWebStage: React.FC<MultiplayerWebStageProps> = ({
     }
   }, [controlEnabled, role]);
 
-  // Teacher-driven navigation
+  // Teacher-driven navigation (initial / programmatic URL changes)
   useEffect(() => {
     if (!hbRef.current || role !== 'teacher' || !navigateTo) return;
-    (async () => {
+    void navigateActiveTabTo(hbRef.current, navigateTo);
+  }, [navigateTo, role]);
+
+  // Teacher-driven Back / Forward / Reload / Home from the Control Dock
+  useEffect(() => {
+    if (role !== 'teacher') return;
+    const unsub = coBrowserController.subscribe(async (cmd: CoBrowserNavCommand, payload) => {
+      const hb = hbRef.current;
+      if (!hb) return;
       try {
-        const hb = hbRef.current!;
         const tabs = await hb.tabs.query({});
-        const first = tabs?.[0];
-        if (first?.id != null) {
-          await hb.tabs.update(first.id, { url: navigateTo });
-        } else {
-          await hb.tabs.create({ url: navigateTo, active: true });
+        const tabId = tabs?.[0]?.id;
+        if (tabId == null) return;
+        if (cmd === 'back') {
+          await hb.tabs.goBack(tabId);
+        } else if (cmd === 'forward') {
+          await hb.tabs.goForward(tabId);
+        } else if (cmd === 'reload') {
+          await hb.tabs.reload(tabId);
+        } else if (cmd === 'home') {
+          const url = (typeof payload === 'string' ? payload : null) ?? coBrowserController.homeUrl;
+          if (url) await hb.tabs.update(tabId, { url });
         }
       } catch (err) {
-        console.warn('[Hyperbeam] navigation failed', err);
+        console.warn('[Hyperbeam] nav command failed', cmd, err);
       }
-    })();
-  }, [navigateTo, role]);
+    });
+    return unsub;
+  }, [role]);
 
   if (!embedUrl) {
     return (
