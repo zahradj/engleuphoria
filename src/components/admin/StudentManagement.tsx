@@ -229,7 +229,45 @@ export const StudentManagement = () => {
     }
   };
 
-  if (loading) {
+  const handleAddCredits = async (studentId: string, amount: number) => {
+    if (!Number.isFinite(amount) || amount === 0) {
+      toast.error('Enter a non-zero amount');
+      return;
+    }
+    try {
+      const { data: existing } = await supabase
+        .from('student_credits')
+        .select('id, total_credits')
+        .eq('student_id', studentId)
+        .maybeSingle();
+
+      if (existing) {
+        const newTotal = Math.max(0, (existing.total_credits || 0) + amount);
+        const { error } = await supabase
+          .from('student_credits')
+          .update({ total_credits: newTotal })
+          .eq('id', existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('student_credits')
+          .insert({ student_id: studentId, total_credits: Math.max(0, amount) });
+        if (error) throw error;
+      }
+
+      setStudents(prev =>
+        prev.map(s =>
+          s.id === studentId
+            ? { ...s, available_credits: Math.max(0, s.available_credits + amount) }
+            : s
+        )
+      );
+      toast.success(`${amount > 0 ? 'Added' : 'Removed'} ${Math.abs(amount)} credit${Math.abs(amount) === 1 ? '' : 's'}`);
+    } catch (err: any) {
+      console.error('Failed to update credits:', err);
+      toast.error(err?.message || 'Could not update credits');
+    }
+  };
     return (
       <div className="text-center text-muted-foreground">Loading student data...</div>
     );
