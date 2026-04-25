@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, PartyPopper, Sparkles, Trophy, Crown } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -19,6 +19,11 @@ export const StarCelebration: React.FC<StarCelebrationProps> = ({
   onComplete
 }) => {
   const [showContent, setShowContent] = useState(false);
+  // Hold the latest onComplete in a ref so the effect's dependency list
+  // can stay tiny — otherwise an inline arrow from the parent re-runs the
+  // effect on every render and the 1-second timer never finishes.
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
 
   useEffect(() => {
     if (isVisible) {
@@ -92,12 +97,14 @@ export const StarCelebration: React.FC<StarCelebrationProps> = ({
       // parent can clear the celebration state.
       const timer = setTimeout(() => {
         setShowContent(false);
-        onComplete();
+        onCompleteRef.current?.();
       }, 1000);
 
       return () => clearTimeout(timer);
+    } else {
+      setShowContent(false);
     }
-  }, [isVisible, isMilestone, onComplete]);
+  }, [isVisible, isMilestone]);
 
   return (
     <AnimatePresence>
