@@ -60,6 +60,11 @@ export class WebRTCService {
     this.peerConnection.onconnectionstatechange = () => {
       const state = this.peerConnection?.connectionState;
       console.log('🔗 Peer connection state:', state);
+      logPeer(
+        state === 'connected' ? 'info' : state === 'failed' ? 'error' : 'warn',
+        `Peer connection state: ${state}`,
+        { iceState: this.peerConnection?.iceConnectionState },
+      );
       this.callbacks.onConnectionChange?.(state === 'connected');
       if (state === 'failed') {
         this.callbacks.onError?.('Peer connection failed');
