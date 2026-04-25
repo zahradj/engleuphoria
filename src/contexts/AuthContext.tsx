@@ -633,12 +633,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(null);
       
       console.log('📤 Calling Supabase signOut...');
-      // Supabase sign out
-      const { error } = await supabase.auth.signOut();
-      
+      // Use 'local' scope so a missing/expired server session doesn't fail the flow.
+      // The user is logged out client-side regardless.
+      const { error } = await supabase.auth.signOut({ scope: 'local' });
+
       if (error) {
-        console.error('❌ Logout error:', error);
-        setError('Logout failed');
+        const msg = (error as any)?.message?.toLowerCase?.() || '';
+        const code = (error as any)?.code || (error as any)?.status;
+        const isAlreadyGone =
+          code === 'session_not_found' ||
+          code === 403 ||
+          msg.includes('session') && (msg.includes('not found') || msg.includes('missing') || msg.includes('expired'));
+
+        if (isAlreadyGone) {
+          console.log('ℹ️ Server session already gone — treating as logged out');
+        } else {
+          console.error('❌ Logout error:', error);
+          // Don't block redirect — still proceed to home
+        }
       } else {
         console.log('✅ Supabase signOut successful');
       }
