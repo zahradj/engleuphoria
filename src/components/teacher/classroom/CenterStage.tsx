@@ -187,9 +187,9 @@ export const CenterStage: React.FC<CenterStageProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-white/40 relative overflow-hidden">
+    <div className="flex-1 flex flex-col bg-transparent relative overflow-hidden">
       {/* Tabs */}
-      <div className="flex items-center gap-1 px-4 pt-2 shrink-0">
+      <div className="flex items-center gap-1 px-2 pt-1 shrink-0">
         {CANVAS_TABS.map(tab => (
           <button
             key={tab.id}
@@ -213,10 +213,10 @@ export const CenterStage: React.FC<CenterStageProps> = ({
       <SmartSummaryTip sessionContext={sessionContext} />
 
       {/* Canvas Content */}
-      <div className="flex-1 flex items-center justify-center p-6">
+      <div className="flex-1 flex items-center justify-center p-1 sm:p-2 min-h-0">
         {activeCanvasTab === 'slides' && (
           <>
-            <div className="relative w-full h-full max-h-full bg-white rounded-xl shadow-2xl overflow-hidden" style={{ aspectRatio: '16 / 9' }}>
+            <div className="relative w-full h-full max-h-full bg-white rounded-lg shadow-xl overflow-hidden">
               {renderSlideContent()}
               {!isQuizSlide && !isPollSlide && (
                 <CollaborativeCanvas
@@ -245,7 +245,7 @@ export const CenterStage: React.FC<CenterStageProps> = ({
         )}
 
         {activeCanvasTab === 'whiteboard' && (
-          <div className="relative w-full h-full bg-white rounded-xl shadow-2xl overflow-hidden" style={{ aspectRatio: '16 / 9' }}>
+          <div className="relative w-full h-full bg-white rounded-lg shadow-xl overflow-hidden">
             <CollaborativeCanvas
               roomId={roomId} userId={userId} userName={userName} role="teacher"
               canDraw={activeTool !== 'pointer' && activeTool !== 'laser'}
@@ -256,7 +256,7 @@ export const CenterStage: React.FC<CenterStageProps> = ({
         )}
 
         {activeCanvasTab === 'web' && (
-          <div className="relative w-full h-full bg-white rounded-xl shadow-2xl overflow-hidden" style={{ aspectRatio: '16 / 9' }}>
+          <div className="relative w-full h-full bg-white rounded-lg shadow-xl overflow-hidden">
             {embeddedUrl ? (
               <EmbeddedContentViewer
                 url={embeddedUrl}
