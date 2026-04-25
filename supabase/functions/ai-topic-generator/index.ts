@@ -84,7 +84,7 @@ For each topic, provide:
 - Estimated difficulty (1-5 scale)
 - Opening question to start the conversation
 
-Format as JSON array with objects containing: title, category, description, keywords, difficulty, opening_question`;
+Format as JSON array with objects containing: title, category, description, keywords, difficulty, opening_question, target_age_group (must equal "${hub}").`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
