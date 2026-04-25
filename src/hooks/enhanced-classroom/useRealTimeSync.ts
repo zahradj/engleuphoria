@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from "@/hooks/use-toast";
@@ -17,58 +16,102 @@ interface UseRealTimeSyncProps {
   userRole: 'teacher' | 'student';
 }
 
+type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'reconnecting';
+
+const RECONNECT_DELAY_MS = 3000;
+const MAX_RECONNECT_ATTEMPTS = 10;
+
 export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncProps) {
   const [syncState, setSyncState] = useState<SyncState>({
     whiteboardData: null,
     chatMessages: [],
     activeTab: 'whiteboard',
     participants: [],
-    currentSlide: 0
+    currentSlide: 0,
   });
 
   const [isConnected, setIsConnected] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting');
+
   const channelRef = useRef<any>(null);
-  const hasConnected = useRef(false);
+  const reconnectTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const isMountedRef = useRef(true);
+  const hasAnnouncedConnectedRef = useRef(false);
+  const connectInFlightRef = useRef(false);
   const { toast } = useToast();
 
-  const connectToSync = useCallback(async () => {
-    // Prevent multiple connections
-    if (hasConnected.current || channelRef.current) {
-      console.log('🔄 Already connected or connecting, skipping...');
+  const teardownChannel = useCallback(() => {
+    if (channelRef.current) {
+      try {
+        supabase.removeChannel(channelRef.current);
+      } catch (e) {
+        console.warn('🔄 Error removing channel:', e);
+      }
+      channelRef.current = null;
+    }
+  }, []);
+
+  const scheduleReconnect = useCallback((reason: string) => {
+    if (!isMountedRef.current) return;
+    if (reconnectTimerRef.current) return; // already scheduled
+
+    reconnectAttemptsRef.current += 1;
+    if (reconnectAttemptsRef.current > MAX_RECONNECT_ATTEMPTS) {
+      console.error('🔄 Max reconnect attempts reached. Giving up.');
+      setConnectionStatus('disconnected');
+      toast({
+        title: 'Connection lost',
+        description: 'Could not restore the live classroom connection. Please refresh.',
+        variant: 'destructive',
+      });
       return;
     }
 
+    const delay = Math.min(
+      RECONNECT_DELAY_MS * reconnectAttemptsRef.current,
+      15000,
+    );
+    console.warn(`🔄 Scheduling reconnect (attempt ${reconnectAttemptsRef.current}) in ${delay}ms — reason: ${reason}`);
+    setConnectionStatus('reconnecting');
+
+    reconnectTimerRef.current = setTimeout(() => {
+      reconnectTimerRef.current = null;
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      void connectToSync();
+    }, delay);
+  }, [toast]);
+
+  const connectToSync = useCallback(async () => {
+    if (!isMountedRef.current) return;
+    if (connectInFlightRef.current) {
+      console.log('🔄 Connect already in flight, skipping…');
+      return;
+    }
+    connectInFlightRef.current = true;
+
     try {
-      console.log('🔄 Connecting to real-time sync...', { roomId, userId, userRole });
-      
-      // Cleanup existing channel first
-      if (channelRef.current) {
-        console.log('🔄 Cleaning up existing channel...');
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
+      // Always teardown any stale channel before opening a new one
+      teardownChannel();
 
-      // Mark as connecting
-      hasConnected.current = true;
+      // Small delay to ensure the previous WebSocket fully closes
+      await new Promise((resolve) => setTimeout(resolve, 150));
 
-      // Add small delay to ensure proper cleanup
-      await new Promise(resolve => setTimeout(resolve, 200));
-
-      // Create new channel for the room with unique identifier
       const channelName = `classroom_sync_${roomId}_${userId}`;
-      console.log('🔄 Creating sync channel:', channelName);
-      
+      console.log('🔄 Opening sync channel:', channelName);
+      setConnectionStatus(reconnectAttemptsRef.current === 0 ? 'connecting' : 'reconnecting');
+
       const channel = supabase
-        .channel(channelName)
+        .channel(channelName, {
+          config: { presence: { key: userId } },
+        })
         .on('presence', { event: 'sync' }, () => {
-          const newState = channel.presenceState();
-          const participants = Object.entries(newState).map(([key, data]: [string, any]) => ({
+          const state = channel.presenceState();
+          const participants = Object.entries(state).map(([key, data]: [string, any]) => ({
             id: key,
-            ...data[0]
+            ...data[0],
           }));
-          
-          setSyncState(prev => ({ ...prev, participants }));
-          console.log('🔄 Participants synced:', participants);
+          setSyncState((prev) => ({ ...prev, participants }));
         })
         .on('presence', { event: 'join' }, ({ key, newPresences }) => {
           console.log('👋 User joined:', key, newPresences);
@@ -78,153 +121,137 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
         })
         .on('broadcast', { event: 'whiteboard_update' }, ({ payload }) => {
           if (payload.userId !== userId) {
-            setSyncState(prev => ({ ...prev, whiteboardData: payload.data }));
+            setSyncState((prev) => ({ ...prev, whiteboardData: payload.data }));
           }
         })
         .on('broadcast', { event: 'tab_change' }, ({ payload }) => {
           if (payload.userId !== userId) {
-            setSyncState(prev => ({ ...prev, activeTab: payload.tabId }));
+            setSyncState((prev) => ({ ...prev, activeTab: payload.tabId }));
           }
         })
         .on('broadcast', { event: 'slide_change' }, ({ payload }) => {
           if (payload.userId !== userId) {
-            setSyncState(prev => ({ ...prev, currentSlide: payload.slideNumber }));
+            setSyncState((prev) => ({ ...prev, currentSlide: payload.slideNumber }));
           }
         });
 
-      // Subscribe to the channel
-      channel.subscribe(async (status) => {
-        console.log('🔄 Sync channel status:', status);
-        
+      channel.subscribe(async (status, err) => {
+        console.log('🔄 Sync channel status:', status, err ? `error: ${err.message}` : '');
+        if (err) {
+          console.error('❌ Supabase Realtime Error:', err);
+        }
+
+        if (!isMountedRef.current) return;
+
         if (status === 'SUBSCRIBED') {
-          // Track user presence
           await channel.track({
             userId,
             userRole,
-            name: `${userRole === 'teacher' ? 'Teacher' : 'Student'} ${userId}`,
-            joinedAt: new Date().toISOString()
+            joinedAt: new Date().toISOString(),
           });
 
+          reconnectAttemptsRef.current = 0;
           setIsConnected(true);
-          
-          console.log('✅ Real-time sync connected');
-          toast({
-            title: "Connected",
-            description: "Real-time classroom sync is active",
-          });
-        } else if (status === 'CHANNEL_ERROR') {
+          setConnectionStatus('connected');
+
+          if (!hasAnnouncedConnectedRef.current) {
+            hasAnnouncedConnectedRef.current = true;
+            toast({ title: 'Connected', description: 'Live classroom sync is active' });
+          }
+        } else if (status === 'CHANNEL_ERROR' || status === 'CLOSED' || status === 'TIMED_OUT') {
           setIsConnected(false);
-          hasConnected.current = false;
-          console.error('❌ Channel connection failed');
+          if (connectionStatus !== 'reconnecting') setConnectionStatus('disconnected');
+          scheduleReconnect(status);
         }
       });
 
       channelRef.current = channel;
-
     } catch (error) {
       console.error('🔄 Sync connection failed:', error);
       setIsConnected(false);
-      hasConnected.current = false;
-      
-      toast({
-        title: "Connection Error",
-        description: "Failed to connect to real-time sync",
-        variant: "destructive"
-      });
+      scheduleReconnect('exception');
+    } finally {
+      connectInFlightRef.current = false;
     }
-  }, [roomId, userId, userRole, toast]);
+  }, [roomId, userId, userRole, toast, scheduleReconnect, teardownChannel, connectionStatus]);
 
   const broadcastStateChange = useCallback((event: string, payload: any) => {
     if (!channelRef.current || !isConnected) {
-      console.warn('🔄 Cannot broadcast - not connected');
+      console.warn('🔄 Cannot broadcast — not connected');
       return;
     }
-
     channelRef.current.send({
       type: 'broadcast',
       event,
-      payload: { ...payload, userId }
+      payload: { ...payload, userId },
     });
   }, [isConnected, userId]);
 
   const syncWhiteboard = useCallback((whiteboardData: any) => {
-    setSyncState(prev => ({ ...prev, whiteboardData }));
+    setSyncState((prev) => ({ ...prev, whiteboardData }));
     broadcastStateChange('whiteboard_update', { data: whiteboardData });
   }, [broadcastStateChange]);
 
   const syncActiveTab = useCallback((tabId: string) => {
-    if (userRole !== 'teacher') {
-      console.log('🔄 Only teachers can sync tab changes');
-      return;
-    }
-    
-    setSyncState(prev => ({ ...prev, activeTab: tabId }));
+    if (userRole !== 'teacher') return;
+    setSyncState((prev) => ({ ...prev, activeTab: tabId }));
     broadcastStateChange('tab_change', { tabId });
   }, [userRole, broadcastStateChange]);
 
   const syncSlideChange = useCallback((slideNumber: number) => {
-    if (userRole !== 'teacher') {
-      console.log('🔄 Only teachers can sync slide changes');
-      return;
-    }
-    
-    setSyncState(prev => ({ ...prev, currentSlide: slideNumber }));
+    if (userRole !== 'teacher') return;
+    setSyncState((prev) => ({ ...prev, currentSlide: slideNumber }));
     broadcastStateChange('slide_change', { slideNumber });
   }, [userRole, broadcastStateChange]);
 
   const addChatMessage = useCallback((message: any) => {
-    setSyncState(prev => ({
-      ...prev,
-      chatMessages: [...prev.chatMessages, message]
-    }));
+    setSyncState((prev) => ({ ...prev, chatMessages: [...prev.chatMessages, message] }));
   }, []);
 
   const disconnect = useCallback(() => {
-    console.log('🔄 Disconnecting real-time sync...');
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
-      channelRef.current = null;
+    console.log('🔄 Disconnecting real-time sync…');
+    if (reconnectTimerRef.current) {
+      clearTimeout(reconnectTimerRef.current);
+      reconnectTimerRef.current = null;
     }
+    teardownChannel();
     setIsConnected(false);
-    hasConnected.current = false;
-    console.log('🔄 Real-time sync disconnected');
-  }, []);
+    setConnectionStatus('disconnected');
+  }, [teardownChannel]);
 
-  // Auto-connect once when hook is initialized
+  // Re-subscribe when offline → online (network flap)
   useEffect(() => {
-    let mounted = true;
-    let timeoutId: NodeJS.Timeout;
-    
-    const initializeConnection = async () => {
-      if (mounted && !hasConnected.current && !channelRef.current) {
-        // Add delay to prevent immediate connection after mount
-        timeoutId = setTimeout(async () => {
-          if (mounted) {
-            await connectToSync();
-          }
-        }, 500);
-      }
+    const handleOnline = () => {
+      console.log('🌐 Network back online — forcing reconnect');
+      reconnectAttemptsRef.current = 0;
+      void connectToSync();
     };
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, [connectToSync]);
 
-    initializeConnection();
-
+  // Auto-connect once on mount
+  useEffect(() => {
+    isMountedRef.current = true;
+    const t = setTimeout(() => { void connectToSync(); }, 300);
     return () => {
-      mounted = false;
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-      disconnect();
+      isMountedRef.current = false;
+      clearTimeout(t);
+      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
+      teardownChannel();
     };
-  }, []); // Empty dependency array to run only once
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return {
     syncState,
     isConnected,
+    connectionStatus,
     connectToSync,
     disconnect,
     syncWhiteboard,
     syncActiveTab,
     syncSlideChange,
-    addChatMessage
+    addChatMessage,
   };
 }
