@@ -195,8 +195,8 @@ export const MultiplayerWebStage: React.FC<MultiplayerWebStageProps> = ({
   const showOverlay = joinState !== 'playing';
 
   return (
-    <div className="absolute inset-0 bg-muted/40 p-4">
-      <div ref={containerRef} className="mx-auto h-full w-[92%] max-w-6xl overflow-hidden rounded-lg border border-border bg-black shadow-lg" />
+    <div className="absolute inset-0 h-full w-full bg-muted/40 p-4">
+      <div ref={containerRef} id="hyperbeam-container" className="mx-auto h-full w-full max-w-6xl overflow-hidden rounded-lg border border-border bg-black shadow-lg" />
 
       {/* Live "joined as viewer" badge for the student */}
       {role === 'student' && joinState === 'playing' && (
