@@ -53,6 +53,9 @@ interface UseClassroomSyncReturn {
   drawingEnabled: boolean;
   // Whiteboard state
   strokes: WhiteboardStroke[];
+  // Session lifecycle
+  sessionStatus: string;
+  sessionEnded: boolean;
   
   // Teacher actions
   updateSlide: (index: number) => Promise<void>;
