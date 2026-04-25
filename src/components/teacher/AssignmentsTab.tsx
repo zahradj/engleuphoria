@@ -178,60 +178,68 @@ export const AssignmentsTab = () => {
         </TabsContent>
 
         <TabsContent value="pending" className="space-y-4">
-          <div className="grid gap-4">
-            {pendingSubmissions.map((submission) => (
-              <Card key={submission.id} className="border-l-4 border-l-orange-500">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{submission.studentName}</CardTitle>
-                    <Badge className={getStatusColor(submission.status)}>
-                      Needs Grading
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <p className="text-sm text-gray-600">
-                      Assignment: {assignments.find(a => a.id === submission.assignmentId)?.title}
-                    </p>
-                    
-                    <div className="bg-gray-50 p-3 rounded border">
-                      <p className="text-sm line-clamp-3">{submission.content}</p>
-                    </div>
-                    
+          {pendingSubmissions.length === 0 ? (
+            <EmptyState
+              icon={Inbox}
+              title="No submissions waiting"
+              description="When students turn in assignments, they will appear here ready for grading."
+            />
+          ) : (
+            <div className="grid gap-4">
+              {pendingSubmissions.map((submission) => (
+                <Card key={submission.id} className="border-l-4 border-l-orange-500">
+                  <CardHeader>
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          Submitted: {new Date(submission.submittedAt || submission.createdAt).toLocaleDateString()}
-                        </div>
-                        {submission.attachments.length > 0 && (
-                          <div className="flex items-center gap-1">
-                            <FileText className="h-4 w-4" />
-                            {submission.attachments.length} file(s)
-                          </div>
-                        )}
+                      <CardTitle className="text-lg">{submission.studentName}</CardTitle>
+                      <Badge className={getStatusColor(submission.status)}>
+                        Needs Grading
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <p className="text-sm text-gray-600">
+                        Assignment: {assignments.find(a => a.id === submission.assignmentId)?.title}
+                      </p>
+
+                      <div className="bg-gray-50 p-3 rounded border">
+                        <p className="text-sm line-clamp-3">{submission.content}</p>
                       </div>
-                      
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline">
-                          <Download className="h-4 w-4 mr-1" />
-                          Download
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          className="bg-indigo-500 hover:bg-indigo-600"
-                          onClick={() => handleGradeSubmission(submission)}
-                        >
-                          Grade Now
-                        </Button>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-4 w-4" />
+                            Submitted: {new Date(submission.submittedAt || submission.createdAt).toLocaleDateString()}
+                          </div>
+                          {submission.attachments.length > 0 && (
+                            <div className="flex items-center gap-1">
+                              <FileText className="h-4 w-4" />
+                              {submission.attachments.length} file(s)
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline">
+                            <Download className="h-4 w-4 mr-1" />
+                            Download
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="bg-indigo-500 hover:bg-indigo-600"
+                            onClick={() => handleGradeSubmission(submission)}
+                          >
+                            Grade Now
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="graded" className="space-y-4">
