@@ -3,6 +3,7 @@ import Hyperbeam, { type HyperbeamEmbed } from '@hyperbeam/web';
 import { Loader2, Globe, AlertTriangle, Wifi, WifiOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { coBrowserController, type CoBrowserNavCommand } from './coBrowserController';
+import { useCollapseWatcher } from '@/hooks/useCollapseWatcher';
 
 interface MultiplayerWebStageProps {
   /** Hyperbeam embed URL (broadcast via session.embeddedUrl). Pass null to show empty state. */
