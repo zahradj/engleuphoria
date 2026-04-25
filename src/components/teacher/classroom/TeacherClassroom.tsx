@@ -314,14 +314,16 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   const handleEmbed = useCallback(async (url: string) => {
     await updateSharedDisplay({ embeddedUrl: url });
+    await setStageMode('web');
     await updateCanvasTab('web');
     toast({ title: "Content Embedded", description: "External content is now visible to students", className: "bg-teal-900 border-teal-700" });
-  }, [toast, updateSharedDisplay, updateCanvasTab]);
+  }, [toast, updateSharedDisplay, updateCanvasTab, setStageMode]);
 
   const handleCloseEmbed = useCallback(async () => {
     await updateSharedDisplay({ embeddedUrl: null });
+    await setStageMode('slide');
     await updateCanvasTab('slides');
-  }, [updateSharedDisplay, updateCanvasTab]);
+  }, [updateSharedDisplay, updateCanvasTab, setStageMode]);
 
   const handlePrevSlide = useCallback(async () => { await updateSlide(Math.max(0, currentSlide - 1)); }, [currentSlide, updateSlide]);
   const handleNextSlide = useCallback(async () => { await updateSlide(Math.min(slides.length - 1, currentSlide + 1)); }, [currentSlide, slides.length, updateSlide]);
