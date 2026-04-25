@@ -428,6 +428,9 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             sessionDuration={sessionDuration}
             hubType={hubType}
             rtcConnected={rtcConnected}
+            localStream={media.stream}
+            onSwitchCamera={media.switchCamera}
+            onSwitchMicrophone={media.switchMicrophone}
             onReconnect={async () => {
               await rtcDisconnect();
               await rtcConnect();
