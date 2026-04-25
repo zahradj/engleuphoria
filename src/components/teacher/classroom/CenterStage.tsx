@@ -213,10 +213,10 @@ export const CenterStage: React.FC<CenterStageProps> = ({
       <SmartSummaryTip sessionContext={sessionContext} />
 
       {/* Canvas Content */}
-      <div className="flex-1 flex items-center justify-center p-6">
+      <div className="flex-1 flex items-center justify-center p-1 sm:p-2 min-h-0">
         {activeCanvasTab === 'slides' && (
           <>
-            <div className="relative w-full h-full max-h-full bg-white rounded-xl shadow-2xl overflow-hidden" style={{ aspectRatio: '16 / 9' }}>
+            <div className="relative w-full h-full max-h-full bg-white rounded-lg shadow-xl overflow-hidden">
               {renderSlideContent()}
               {!isQuizSlide && !isPollSlide && (
                 <CollaborativeCanvas
