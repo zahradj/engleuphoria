@@ -18,7 +18,18 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
-    const { student_id, cefr_level, interests, learning_goals, session_count = 0 } = await req.json();
+    const body = await req.json();
+    const { student_id, cefr_level, interests, learning_goals, session_count = 0 } = body;
+    const rawHub = (body.hub_type || body.hubType || body.target_age_group || '').toString().toLowerCase();
+    const hub: 'playground' | 'academy' | 'professional' =
+      rawHub === 'kids' || rawHub === 'playground' || rawHub === 'children' ? 'playground'
+      : rawHub === 'professional' || rawHub === 'success' || rawHub === 'adults' ? 'professional'
+      : 'academy';
+    const hubRules = hub === 'playground'
+      ? "PLAYGROUND (Ages 4-9): Topics MUST be about animals, colors, food, family, toys, simple actions. Vocabulary in 3-5 word sentences. Energetic, child-friendly tone."
+      : hub === 'professional'
+      ? "SUCCESS HUB (Ages 17+): Topics MUST be Business English, careers, negotiations, university prep, current affairs, advanced idioms. Professional, sophisticated tone."
+      : "ACADEMY (Ages 10-16): Topics MUST appeal to teenagers — technology, gaming, social media, travel, school, pop culture, sports. Friendly, motivating tone (never childish).";
 
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
@@ -43,7 +54,11 @@ serve(async (req) => {
 
     // Generate AI-powered topic suggestions
     const systemPrompt = `You are an English conversation topic generator for students at ${cefr_level} level.
-    
+
+🚧 PEDAGOGICAL HUB WALL — STRICTLY ENFORCE:
+${hubRules}
+
+
 Student Profile:
 - CEFR Level: ${cefr_level}
 - Interests: ${interests?.join(', ') || 'general topics'}
