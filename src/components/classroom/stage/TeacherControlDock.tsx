@@ -65,14 +65,36 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
   onClearCanvas,
   iframeUnlocked,
   onToggleIframeUnlock,
+  onGiveStar,
+  onOpenTimer,
+  onRollDice,
+  onSendSticker,
 }) => {
   const [urlDraft, setUrlDraft] = useState(embeddedUrl ?? '');
+  const [coPlayLoading, setCoPlayLoading] = useState(false);
+  const { toast } = useToast();
 
   const submitUrl = () => {
     if (!urlDraft.trim()) return;
     let normalized = urlDraft.trim();
     if (!/^https?:\/\//i.test(normalized)) normalized = `https://${normalized}`;
     onEmbedUrl(normalized);
+  };
+
+  const launchCoPlay = async () => {
+    setCoPlayLoading(true);
+    try {
+      const start = urlDraft.trim() || 'https://www.gamestolearnenglish.com/';
+      const startNormalized = /^https?:\/\//i.test(start) ? start : `https://${start}`;
+      const embed = await createHyperbeamSession(startNormalized);
+      onEmbedUrl(embed);
+      toast({ title: 'Co-Play stage ready', description: 'You and the student are now in the same browser.' });
+    } catch (err: any) {
+      console.error(err);
+      toast({ title: 'Co-Play failed', description: err?.message ?? 'Could not start cloud browser.', variant: 'destructive' });
+    } finally {
+      setCoPlayLoading(false);
+    }
   };
 
   return (
