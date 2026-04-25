@@ -119,56 +119,62 @@ export const AssignmentsTab = () => {
         </TabsList>
 
         <TabsContent value="assignments" className="space-y-4">
-          <div className="grid gap-4">
-            {assignments.map((assignment) => (
-              <Card key={assignment.id} className="hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{assignment.title}</CardTitle>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="bg-purple-50 text-purple-700">
-                        {assignment.type}
-                      </Badge>
-                      <Badge variant="secondary">
-                        {assignment.points} pts
-                      </Badge>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-gray-600 mb-3">{assignment.description}</p>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        Due: {new Date(assignment.dueDate).toLocaleDateString()}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Users className="h-4 w-4" />
-                        5 students assigned
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <CheckCircle className="h-4 w-4" />
-                        {submissions.filter(s => s.assignmentId === assignment.id).length} submitted
+          {assignments.length === 0 ? (
+            <EmptyState
+              icon={ClipboardList}
+              title="No assignments yet"
+              description="Create your first assignment to give students homework, quizzes, or projects to complete between lessons."
+              actionLabel="Create Assignment"
+              onAction={() => setIsCreateDialogOpen(true)}
+            />
+          ) : (
+            <div className="grid gap-4">
+              {assignments.map((assignment) => (
+                <Card key={assignment.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">{assignment.title}</CardTitle>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="bg-purple-50 text-purple-700">
+                          {assignment.type}
+                        </Badge>
+                        <Badge variant="secondary">
+                          {assignment.points} pts
+                        </Badge>
                       </div>
                     </div>
-                    
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline">
-                        <Eye className="h-4 w-4 mr-1" />
-                        View
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <MessageCircle className="h-4 w-4 mr-1" />
-                        Send Reminder
-                      </Button>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-600 mb-3">{assignment.description}</p>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 text-sm text-gray-600">
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          Due: {new Date(assignment.dueDate).toLocaleDateString()}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <CheckCircle className="h-4 w-4" />
+                          {submissions.filter(s => s.assignmentId === assignment.id).length} submitted
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline">
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          <MessageCircle className="h-4 w-4 mr-1" />
+                          Send Reminder
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="pending" className="space-y-4">
