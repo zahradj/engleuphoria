@@ -74,6 +74,7 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
       15000,
     );
     console.warn(`🔄 Scheduling reconnect (attempt ${reconnectAttemptsRef.current}) in ${delay}ms — reason: ${reason}`);
+    logRealtime('warn', `Scheduling reconnect in ${delay}ms`, { reason, attempt: reconnectAttemptsRef.current });
     setConnectionStatus('reconnecting');
 
     reconnectTimerRef.current = setTimeout(() => {
