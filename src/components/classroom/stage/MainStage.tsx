@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { StageMode, WhiteboardStroke, SmartWorksheet } from '@/services/whiteboardService';
 import { StageContent } from './StageContent';
 import { TransparentCanvas } from './TransparentCanvas';
+import { useCollapseWatcher } from '@/hooks/useCollapseWatcher';
 import { Layout, Globe, PenTool, Wifi, Gamepad2 } from 'lucide-react';
 
 interface Slide {
