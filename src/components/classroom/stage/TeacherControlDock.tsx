@@ -35,6 +35,12 @@ interface TeacherControlDockProps {
 
   iframeUnlocked: boolean;
   onToggleIframeUnlock: (unlocked: boolean) => void;
+
+  // Consolidated classroom tools (moved from left sidebar)
+  onGiveStar?: () => void;
+  onOpenTimer?: () => void;
+  onRollDice?: () => void;
+  onSendSticker?: (emoji: string) => void;
 }
 
 /**
