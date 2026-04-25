@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from "@/hooks/use-toast";
+import { logRealtime } from '@/lib/connectionDebugLog';
 
 interface SyncState {
   whiteboardData: any;
