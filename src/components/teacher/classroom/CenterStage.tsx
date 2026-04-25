@@ -256,7 +256,7 @@ export const CenterStage: React.FC<CenterStageProps> = ({
         )}
 
         {activeCanvasTab === 'web' && (
-          <div className="relative w-full h-full bg-white rounded-xl shadow-2xl overflow-hidden" style={{ aspectRatio: '16 / 9' }}>
+          <div className="relative w-full h-full bg-white rounded-lg shadow-xl overflow-hidden">
             {embeddedUrl ? (
               <EmbeddedContentViewer
                 url={embeddedUrl}
