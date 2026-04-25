@@ -75,11 +75,20 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
   const [coPlayLoading, setCoPlayLoading] = useState(false);
   const { toast } = useToast();
 
+  const isCoPlay = !!embeddedUrl && /\.hyperbeam\.com\//i.test(embeddedUrl);
+
   const submitUrl = () => {
     if (!urlDraft.trim()) return;
     let normalized = urlDraft.trim();
     if (!/^https?:\/\//i.test(normalized)) normalized = `https://${normalized}`;
-    onEmbedUrl(normalized);
+    coBrowserController.homeUrl = normalized;
+    // If a co-play session is already live, navigate inside it instead of
+    // swapping the embed URL (which would tear down the cloud browser).
+    if (isCoPlay) {
+      coBrowserController.emit('home', normalized);
+    } else {
+      onEmbedUrl(normalized);
+    }
   };
 
   const launchCoPlay = async () => {
@@ -87,6 +96,7 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
     try {
       const start = urlDraft.trim() || 'https://www.gamestolearnenglish.com/';
       const startNormalized = /^https?:\/\//i.test(start) ? start : `https://${start}`;
+      coBrowserController.homeUrl = startNormalized;
       const { embedUrl } = await createHyperbeamSession(startNormalized);
       onEmbedUrl(embedUrl);
       toast({ title: 'Co-Play stage ready', description: 'You and the student are now in the same browser.' });
