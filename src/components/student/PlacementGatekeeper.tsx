@@ -283,7 +283,11 @@ export const PlacementGatekeeper = ({
                       exit={{ opacity: 0, x: -30 }}
                       className="h-full"
                     >
-                      <TestPhase age={age} onComplete={handleTestComplete} />
+                      {isPlayground ? (
+                        <PlaygroundPlacementPhase onComplete={handleTestComplete} />
+                      ) : (
+                        <TestPhase age={age} onComplete={handleTestComplete} />
+                      )}
                     </motion.div>
                   )}
                   {phase === 'processing' && (
