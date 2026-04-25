@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, GraduationCap, Briefcase, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { Sparkles, GraduationCap, Briefcase, Lock, ArrowRight, Loader2, Smile } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import DemographicsPhase from '@/components/placement/DemographicsPhase';
 import TestPhase, { type TestResult } from '@/components/placement/TestPhase';
 import ProcessingPhase from '@/components/placement/ProcessingPhase';
+import PlaygroundPlacementPhase from '@/components/placement/PlaygroundPlacementPhase';
 import { usePlacementTest } from '@/hooks/usePlacementTest';
 import type { StudentLevel } from '@/hooks/useStudentLevel';
 
@@ -22,6 +23,15 @@ interface PlacementGatekeeperProps {
 }
 
 const HUB_THEME = {
+  playground: {
+    name: 'The Playground',
+    icon: Smile,
+    gradient: 'from-orange-500 via-amber-500 to-yellow-400',
+    accent: 'from-orange-400 to-amber-300',
+    accentText: 'text-amber-100',
+    button: 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600',
+    glow: 'shadow-[0_0_60px_rgba(254,106,47,0.45)]',
+  },
   academy: {
     name: 'The Academy',
     icon: GraduationCap,
@@ -42,6 +52,8 @@ const HUB_THEME = {
   },
 } as const;
 
+type ThemedHub = keyof typeof HUB_THEME;
+
 export const PlacementGatekeeper = ({
   studentLevel,
   studentName,
@@ -58,7 +70,17 @@ export const PlacementGatekeeper = ({
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [resolvedLevel, setResolvedLevel] = useState<string>('');
 
-  const requiresPlacement = studentLevel === 'academy' || studentLevel === 'professional';
+  const requiresPlacement =
+    studentLevel === 'academy' ||
+    studentLevel === 'professional' ||
+    studentLevel === 'kids' ||
+    (studentLevel as string) === 'playground';
+  // Map both legacy 'kids' and new 'playground' to the playground theme.
+  const themeKey: ThemedHub =
+    studentLevel === 'kids' || (studentLevel as string) === 'playground'
+      ? 'playground'
+      : (studentLevel as ThemedHub);
+  const isPlayground = themeKey === 'playground';
 
   // Check placement status on mount
   useEffect(() => {
