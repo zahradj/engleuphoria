@@ -418,6 +418,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
             hubType={hubType}
             rtcConnected={rtcConnected}
             onReconnect={handleReconnect}
+            studentStars={starCount}
           />
         </div>
       )}
