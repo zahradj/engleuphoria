@@ -79,6 +79,21 @@ export const StudentManagement = () => {
         (usersData || []).map((u: any) => [u.id, u])
       );
 
+      // Fetch credits for all students in one query
+      const { data: creditsData } = userIds.length
+        ? await supabase
+            .from('student_credits')
+            .select('student_id, total_credits, used_credits, expired_credits')
+            .in('student_id', userIds)
+        : { data: [] };
+
+      const creditsById = new Map(
+        (creditsData || []).map((c: any) => [
+          c.student_id,
+          Math.max(0, (c.total_credits || 0) - (c.used_credits || 0) - (c.expired_credits || 0)),
+        ])
+      );
+
       // Get lesson counts for each student
       const studentsWithLessons = await Promise.all(
         (profilesData || []).map(async (row: any) => {
@@ -96,6 +111,7 @@ export const StudentManagement = () => {
             cefr_level: row.cefr_level,
             student_level: row.student_level,
             total_lessons: count || 0,
+            available_credits: creditsById.get(row.user_id) || 0,
           };
         })
       );
