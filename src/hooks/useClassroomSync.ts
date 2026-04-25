@@ -117,15 +117,26 @@ export const useClassroomSync = ({
   const cleanupRef = useRef<(() => void) | null>(null);
   const strokeCleanupRef = useRef<(() => void) | null>(null);
 
-  // Initialize session
+  // Keep latest lessonData in a ref so it can be used at init time without
+  // forcing the init effect to re-run on every parent render. Re-initializing
+  // would call createOrUpdateSession again, resetting fields like current_slide_index
+  // back to 0 and racing with in-flight teacher updates (e.g. embedded_url).
+  const lessonDataRef = useRef(lessonData);
+  useEffect(() => { lessonDataRef.current = lessonData; }, [lessonData]);
+  const initializedRef = useRef(false);
+
+  // Initialize session — runs once per (roomId, role)
   useEffect(() => {
+    if (!roomId) return;
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
     const initSession = async () => {
-      if (role === 'teacher' && lessonData) {
-        // Teacher creates/updates session
+      if (role === 'teacher' && lessonDataRef.current) {
         const newSession = await classroomSyncService.createOrUpdateSession(
           roomId,
           userId,
-          lessonData
+          lessonDataRef.current
         );
         if (newSession) {
           setSession(newSession);
@@ -133,7 +144,6 @@ export const useClassroomSync = ({
           setIsConnected(true);
         }
       } else {
-        // Student fetches existing session
         const existingSession = await classroomSyncService.getActiveSession(roomId);
         if (existingSession) {
           setSession(existingSession);
@@ -144,7 +154,7 @@ export const useClassroomSync = ({
     };
 
     initSession();
-  }, [roomId, userId, role, lessonData]);
+  }, [roomId, userId, role]);
 
   // Subscribe to session updates
   useEffect(() => {
