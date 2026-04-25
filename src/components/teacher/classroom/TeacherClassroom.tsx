@@ -21,6 +21,7 @@ import { ZenModeOverlay } from "@/components/classroom/ZenModeOverlay";
 import { PictureInPicture } from "@/components/classroom/PictureInPicture";
 import { LessonWrapUpDialog } from "@/components/classroom/LessonWrapUpDialog";
 import { TeacherInstructionsSidebar } from "@/components/classroom/TeacherInstructionsSidebar";
+import { ConnectionDebugPanel, type ConnectionHealthStatus } from "@/components/classroom/debug/ConnectionDebugPanel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
