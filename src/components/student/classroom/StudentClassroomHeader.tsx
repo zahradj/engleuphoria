@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import englePhoriaLogo from '@/assets/englephoria-logo.png';
 import { Badge } from '@/components/ui/badge';
-import { Mic, MicOff, Video, VideoOff, LogOut, Signal, SignalMedium, SignalLow, WifiOff, Maximize2, Minimize2, RefreshCw } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, LogOut, Signal, SignalMedium, SignalLow, WifiOff, Maximize2, Minimize2, RefreshCw, Star } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useConnectionHealth } from '@/hooks/useConnectionHealth';
 
@@ -21,6 +21,7 @@ interface StudentClassroomHeaderProps {
   hubType?: HubType;
   rtcConnected?: boolean;
   onReconnect?: () => void;
+  studentStars?: number;
 }
 
 export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
@@ -35,9 +36,11 @@ export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
   onToggleZenMode,
   hubType = 'academy',
   rtcConnected = false,
-  onReconnect
+  onReconnect,
+  studentStars = 0
 }) => {
   const { quality, latencyMs, suggestion } = useConnectionHealth();
+  const earnedStars = Math.min(Math.max(studentStars, 0), 10);
 
   const SignalIcon = quality === 'good' ? Signal : quality === 'fair' ? SignalMedium : SignalLow;
   const signalColor = quality === 'good' ? 'bg-green-600' : quality === 'fair' ? 'bg-yellow-600' : 'bg-red-600';
@@ -98,6 +101,27 @@ export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
             </Tooltip>
           </TooltipProvider>
         </div>
+
+      {/* Center: Star progress */}
+      <div className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-1 bg-background/85 border border-[hsl(var(--classroom-reward)/0.45)] px-3 py-1 rounded-full shadow-[0_0_12px_hsl(var(--classroom-reward)/0.24)] lg:flex">
+        {Array.from({ length: 10 }).map((_, index) => {
+          const isEarned = index < earnedStars;
+          return (
+            <span key={index} className="relative flex h-5 w-5 items-center justify-center">
+              <Star
+                className={`h-4 w-4 transition-colors ${
+                  isEarned
+                    ? 'fill-[hsl(var(--classroom-reward))] text-[hsl(var(--classroom-reward))]'
+                    : 'fill-muted text-muted-foreground/35'
+                }`}
+              />
+              <span className={`absolute text-[8px] font-bold leading-none ${isEarned ? 'text-background' : 'text-muted-foreground'}`}>
+                {index + 1}
+              </span>
+            </span>
+          );
+        })}
+      </div>
 
       {/* Right: Controls */}
       <div className="flex items-center gap-2">
