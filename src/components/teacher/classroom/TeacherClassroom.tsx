@@ -21,6 +21,7 @@ import { ZenModeOverlay } from "@/components/classroom/ZenModeOverlay";
 import { PictureInPicture } from "@/components/classroom/PictureInPicture";
 import { LessonWrapUpDialog } from "@/components/classroom/LessonWrapUpDialog";
 import { TeacherInstructionsSidebar } from "@/components/classroom/TeacherInstructionsSidebar";
+import { ConnectionDebugPanel, type ConnectionHealthStatus } from "@/components/classroom/debug/ConnectionDebugPanel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -365,12 +366,28 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   const showDebug = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug');
 
+  const realtimeHealth: ConnectionHealthStatus =
+    channelStatus === 'SUBSCRIBED'
+      ? 'connected'
+      : channelStatus === 'CONNECTING'
+      ? 'connecting'
+      : 'disconnected';
+
   return (
     <div className={`h-screen w-full ${hubBg} text-gray-900 flex flex-col overflow-hidden relative`}>
       <div className="fixed top-3 right-3 z-[110] flex items-center gap-2 rounded-full bg-background/85 px-3 py-1.5 shadow-sm ring-1 ring-border backdrop-blur-md">
         <div className={`h-2.5 w-2.5 rounded-full ${channelStatus === 'SUBSCRIBED' ? 'bg-success animate-pulse' : 'bg-destructive'}`} />
         <span className="text-[11px] font-medium text-foreground">Realtime</span>
       </div>
+
+      {/* Teacher-only: live diagnostics for realtime + WebRTC */}
+      <ConnectionDebugPanel
+        realtimeStatus={realtimeHealth}
+        signalingReady={channelStatus === 'SUBSCRIBED'}
+        peerConnected={rtcConnected}
+        roomId={roomName}
+      />
+
       {/* Debug Room ID Label */}
       {showDebug && (
         <div className="fixed bottom-2 left-2 z-[100] bg-black/50 text-white text-[10px] font-mono px-2 py-1 rounded backdrop-blur-sm">

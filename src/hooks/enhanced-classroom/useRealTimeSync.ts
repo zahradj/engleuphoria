@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from "@/hooks/use-toast";
+import { logRealtime } from '@/lib/connectionDebugLog';
 
 interface SyncState {
   whiteboardData: any;
@@ -59,6 +60,7 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
     reconnectAttemptsRef.current += 1;
     if (reconnectAttemptsRef.current > MAX_RECONNECT_ATTEMPTS) {
       console.error('🔄 Max reconnect attempts reached. Giving up.');
+      logRealtime('error', 'Max reconnect attempts reached — giving up', { reason });
       setConnectionStatus('disconnected');
       toast({
         title: 'Connection lost',
@@ -73,6 +75,7 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
       15000,
     );
     console.warn(`🔄 Scheduling reconnect (attempt ${reconnectAttemptsRef.current}) in ${delay}ms — reason: ${reason}`);
+    logRealtime('warn', `Scheduling reconnect in ${delay}ms`, { reason, attempt: reconnectAttemptsRef.current });
     setConnectionStatus('reconnecting');
 
     reconnectTimerRef.current = setTimeout(() => {
@@ -99,6 +102,7 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
 
       const channelName = `classroom_sync_${roomId}_${userId}`;
       console.log('🔄 Opening sync channel:', channelName);
+      logRealtime('info', 'Opening sync channel', { channel: channelName, userRole });
       setConnectionStatus(reconnectAttemptsRef.current === 0 ? 'connecting' : 'reconnecting');
 
       const channel = supabase
@@ -139,6 +143,17 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
         console.log('🔄 Sync channel status:', status, err ? `error: ${err.message}` : '');
         if (err) {
           console.error('❌ Supabase Realtime Error:', err);
+          logRealtime('error', `Realtime error: ${err.message}`, {
+            status,
+            stack: err.stack,
+            channel: `classroom_sync_${roomId}_${userId}`,
+          });
+        } else {
+          logRealtime(
+            status === 'SUBSCRIBED' ? 'info' : status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' ? 'error' : 'warn',
+            `Sync channel status: ${status}`,
+            { channel: `classroom_sync_${roomId}_${userId}` },
+          );
         }
 
         if (!isMountedRef.current) return;
