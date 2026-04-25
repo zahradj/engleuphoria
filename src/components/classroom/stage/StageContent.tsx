@@ -59,6 +59,15 @@ export const StageContent: React.FC<StageContentProps> = ({
   }
 
   if (mode === 'web') {
+    if (isHyperbeamUrl(embeddedUrl)) {
+      return (
+        <MultiplayerWebStage
+          embedUrl={embeddedUrl}
+          role={role}
+          controlEnabled={iframeUnlocked}
+        />
+      );
+    }
     return (
       <ScrollSyncedIframe
         url={embeddedUrl}
