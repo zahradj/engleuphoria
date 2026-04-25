@@ -125,7 +125,7 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
   };
 
   return (
-    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[70] pointer-events-auto">
+    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[70] pointer-events-auto">
       <div className="flex items-center gap-2 bg-background/85 backdrop-blur-xl rounded-2xl px-3 py-2 shadow-2xl border border-border">
         {/* Mode switcher */}
         <div className="flex items-center gap-1 pr-2 border-r border-border">
