@@ -3,6 +3,7 @@ import Hyperbeam, { type HyperbeamEmbed } from '@hyperbeam/web';
 import { Loader2, Globe, AlertTriangle, Wifi, WifiOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { coBrowserController, type CoBrowserNavCommand } from './coBrowserController';
+import { useCollapseWatcher } from '@/hooks/useCollapseWatcher';
 
 interface MultiplayerWebStageProps {
   /** Hyperbeam embed URL (broadcast via session.embeddedUrl). Pass null to show empty state. */
@@ -46,6 +47,10 @@ export const MultiplayerWebStage: React.FC<MultiplayerWebStageProps> = ({
     adminTokenRef.current = adminToken;
     controlEnabledRef.current = controlEnabled;
   }, [role, adminToken, controlEnabled]);
+
+  // Warn if the Hyperbeam container ever collapses to 0×0 — common cause of
+  // "Hyperbeam playing but invisible" bugs.
+  useCollapseWatcher(containerRef, 'hyperbeam-container', !!embedUrl);
 
   // Mount / unmount Hyperbeam when the embed URL changes.
   // Serialized via initPromiseRef so a new instance never attaches to a div

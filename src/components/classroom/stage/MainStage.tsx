@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { StageMode, WhiteboardStroke, SmartWorksheet } from '@/services/whiteboardService';
 import { StageContent } from './StageContent';
 import { TransparentCanvas } from './TransparentCanvas';
+import { useCollapseWatcher } from '@/hooks/useCollapseWatcher';
 import { Layout, Globe, PenTool, Wifi, Gamepad2 } from 'lucide-react';
 
 interface Slide {
@@ -65,10 +66,13 @@ export const MainStage: React.FC<MainStageProps> = ({
   onAddStroke,
 }) => {
   const { label, Icon } = MODE_META[mode];
+  const stageRef = useRef<HTMLDivElement>(null);
+  useCollapseWatcher(stageRef, `main-stage[${role}/${mode}]`);
 
   return (
     <div className="absolute inset-0 h-full w-full flex items-stretch justify-stretch p-1 sm:p-2 min-h-0 min-w-0">
       <div
+        ref={stageRef}
         className="relative flex-1 w-full h-full bg-white rounded-lg shadow-xl overflow-hidden border border-border"
       >
         {/* Underlying content (slide / web / blank / native game) */}
