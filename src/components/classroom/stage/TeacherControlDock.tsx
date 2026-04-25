@@ -3,10 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Layout, Globe, PenTool, Pencil, Eraser, MousePointer2, Hand, Trash2, ChevronLeft, ChevronRight, Check, Unlock } from 'lucide-react';
+import { Layout, Globe, PenTool, Pencil, Eraser, MousePointer2, Hand, Trash2, ChevronLeft, ChevronRight, Check, Unlock, Star, Timer as TimerIcon, Dice6, Smile, Sparkles, Cloud, Loader2 } from 'lucide-react';
 import { StageMode } from '@/services/whiteboardService';
+import { createHyperbeamSession } from './MultiplayerWebStage';
+import { useToast } from '@/hooks/use-toast';
 
 const PEN_COLORS = ['#FF3B30', '#007AFF', '#34C759', '#FF9500', '#AF52DE', '#000000'];
+
+const STICKER_PACK = ['👏', '👍', '❤️', '🔥', '🎉', '🌟', '💯', '😂'];
 
 interface TeacherControlDockProps {
   mode: StageMode;
@@ -31,6 +35,12 @@ interface TeacherControlDockProps {
 
   iframeUnlocked: boolean;
   onToggleIframeUnlock: (unlocked: boolean) => void;
+
+  // Consolidated classroom tools (moved from left sidebar)
+  onGiveStar?: () => void;
+  onOpenTimer?: () => void;
+  onRollDice?: () => void;
+  onSendSticker?: (emoji: string) => void;
 }
 
 /**
@@ -55,14 +65,36 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
   onClearCanvas,
   iframeUnlocked,
   onToggleIframeUnlock,
+  onGiveStar,
+  onOpenTimer,
+  onRollDice,
+  onSendSticker,
 }) => {
   const [urlDraft, setUrlDraft] = useState(embeddedUrl ?? '');
+  const [coPlayLoading, setCoPlayLoading] = useState(false);
+  const { toast } = useToast();
 
   const submitUrl = () => {
     if (!urlDraft.trim()) return;
     let normalized = urlDraft.trim();
     if (!/^https?:\/\//i.test(normalized)) normalized = `https://${normalized}`;
     onEmbedUrl(normalized);
+  };
+
+  const launchCoPlay = async () => {
+    setCoPlayLoading(true);
+    try {
+      const start = urlDraft.trim() || 'https://www.gamestolearnenglish.com/';
+      const startNormalized = /^https?:\/\//i.test(start) ? start : `https://${start}`;
+      const embed = await createHyperbeamSession(startNormalized);
+      onEmbedUrl(embed);
+      toast({ title: 'Co-Play stage ready', description: 'You and the student are now in the same browser.' });
+    } catch (err: any) {
+      console.error(err);
+      toast({ title: 'Co-Play failed', description: err?.message ?? 'Could not start cloud browser.', variant: 'destructive' });
+    } finally {
+      setCoPlayLoading(false);
+    }
   };
 
   return (
@@ -85,8 +117,19 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
               placeholder="Paste a URL…"
               className="h-8 w-56 text-xs"
             />
-            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={submitUrl} title="Load URL">
+            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={submitUrl} title="Load URL (iframe)">
               <Check className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="default"
+              className="h-8 gap-1.5 text-xs"
+              onClick={launchCoPlay}
+              disabled={coPlayLoading}
+              title="Launch a true co-play cloud browser session"
+            >
+              {coPlayLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Cloud className="h-3.5 w-3.5" />}
+              Co-Play
             </Button>
           </div>
         )}
@@ -163,6 +206,63 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
         <Button size="icon" variant="ghost" className="h-8 w-8" onClick={onClearCanvas} title="Clear all annotations">
           <Trash2 className="h-4 w-4" />
         </Button>
+
+        {/* Consolidated Classroom Tools (Star / Timer / Dice / Reactions) */}
+        {(onGiveStar || onOpenTimer || onRollDice || onSendSticker) && (
+          <div className="pl-2 ml-1 border-l border-border">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button size="sm" variant="default" className="h-8 gap-1.5 text-xs" title="Classroom Tools">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Tools
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-3" align="end" side="top">
+                <div className="space-y-3">
+                  <div className="grid grid-cols-3 gap-2">
+                    {onGiveStar && (
+                      <Button variant="ghost" onClick={onGiveStar} className="h-16 flex flex-col items-center justify-center gap-1 bg-yellow-500 hover:bg-yellow-600 text-white">
+                        <Star className="h-5 w-5" />
+                        <span className="text-[10px] font-semibold">Give Star</span>
+                      </Button>
+                    )}
+                    {onOpenTimer && (
+                      <Button variant="ghost" onClick={onOpenTimer} className="h-16 flex flex-col items-center justify-center gap-1 bg-blue-500 hover:bg-blue-600 text-white">
+                        <TimerIcon className="h-5 w-5" />
+                        <span className="text-[10px] font-semibold">Timer</span>
+                      </Button>
+                    )}
+                    {onRollDice && (
+                      <Button variant="ghost" onClick={onRollDice} className="h-16 flex flex-col items-center justify-center gap-1 bg-purple-500 hover:bg-purple-600 text-white">
+                        <Dice6 className="h-5 w-5" />
+                        <span className="text-[10px] font-semibold">Dice</span>
+                      </Button>
+                    )}
+                  </div>
+                  {onSendSticker && (
+                    <div>
+                      <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground mb-1.5">
+                        <Smile className="h-3 w-3" /> Reactions
+                      </div>
+                      <div className="grid grid-cols-4 gap-1.5">
+                        {STICKER_PACK.map((emoji) => (
+                          <button
+                            key={emoji}
+                            onClick={() => onSendSticker(emoji)}
+                            className="h-10 w-full text-xl rounded-lg hover:bg-pink-100 active:scale-95 transition-all flex items-center justify-center"
+                            aria-label={`Send ${emoji} reaction`}
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
       </div>
     </div>
   );

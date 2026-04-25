@@ -549,6 +549,10 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             onClearCanvas={handleClearCanvas}
             iframeUnlocked={iframeUnlocked}
             onToggleIframeUnlock={setIframeUnlocked}
+            onGiveStar={handleGiveStar}
+            onOpenTimer={handleOpenTimer}
+            onRollDice={handleRollDice}
+            onSendSticker={handleSendSticker}
           />
         </div>
 

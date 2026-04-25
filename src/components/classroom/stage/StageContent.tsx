@@ -1,7 +1,11 @@
 import React from 'react';
 import { StageMode, SmartWorksheet } from '@/services/whiteboardService';
 import { ScrollSyncedIframe } from './ScrollSyncedIframe';
+import { MultiplayerWebStage } from './MultiplayerWebStage';
 import { NativeGameStage } from '@/components/classroom/native-games/NativeGameStage';
+
+const isHyperbeamUrl = (url: string | null | undefined) =>
+  !!url && /\.hyperbeam\.com\//i.test(url);
 
 interface Slide {
   id: string;
@@ -55,6 +59,15 @@ export const StageContent: React.FC<StageContentProps> = ({
   }
 
   if (mode === 'web') {
+    if (isHyperbeamUrl(embeddedUrl)) {
+      return (
+        <MultiplayerWebStage
+          embedUrl={embeddedUrl}
+          role={role}
+          controlEnabled={iframeUnlocked}
+        />
+      );
+    }
     return (
       <ScrollSyncedIframe
         url={embeddedUrl}
