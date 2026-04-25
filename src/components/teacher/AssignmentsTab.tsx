@@ -27,10 +27,14 @@ export const AssignmentsTab = () => {
 
   const loadAssignments = async () => {
     try {
-      const teacherAssignments = await assignmentService.getAssignmentsByTeacher('current-teacher-id');
-      setAssignments(teacherAssignments);
+      // Real-data hook: assignments will be loaded from Supabase
+      // (homework_assignments) once the assignment-creation flow is wired up.
+      // Empty state is shown until then; new assignments created via the dialog
+      // are kept in local state.
+      setAssignments([]);
     } catch (error) {
       console.error('Failed to load assignments:', error);
+      setAssignments([]);
     }
   };
 
