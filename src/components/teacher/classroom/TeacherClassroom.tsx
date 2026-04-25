@@ -597,7 +597,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
       {/* Lesson Wrap-Up Dialog */}
       <LessonWrapUpDialog
         open={wrapUpOpen}
-        onOpenChange={setWrapUpOpen}
+        onOpenChange={handleWrapUpChange}
         lessonId={lessonId}
         studentId={studentId}
         teacherId={user?.id}
