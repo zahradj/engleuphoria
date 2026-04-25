@@ -210,6 +210,24 @@ export const MultiplayerWebStage: React.FC<MultiplayerWebStageProps> = ({
 };
 
 /**
+ * Navigate the first/active tab in a Hyperbeam embed to a new URL,
+ * creating it if no tab exists yet.
+ */
+async function navigateActiveTabTo(hb: HyperbeamEmbed, url: string): Promise<void> {
+  try {
+    const tabs = await hb.tabs.query({});
+    const first = tabs?.[0];
+    if (first?.id != null) {
+      await hb.tabs.update(first.id, { url });
+    } else {
+      await hb.tabs.create({ url, active: true });
+    }
+  } catch (err) {
+    console.warn('[Hyperbeam] navigation failed', err);
+  }
+}
+
+/**
  * Mints a new Hyperbeam embed URL via the `hyperbeam-session` edge function.
  * Returned URL is what BOTH teacher and student mount to join the same shared
  * web instance.
