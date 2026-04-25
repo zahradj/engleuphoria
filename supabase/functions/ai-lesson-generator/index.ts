@@ -11,15 +11,51 @@ const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL');
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
+// Hub-aware pedagogy walls — strictly differentiates content by student hub.
+// Any of: 'playground' | 'academy' | 'professional' (also accepts legacy 'kids' | 'success').
+type HubType = 'playground' | 'academy' | 'professional';
+function normalizeHub(input?: string): HubType {
+  const v = (input || '').toLowerCase().trim();
+  if (v === 'kids' || v === 'playground' || v === 'children') return 'playground';
+  if (v === 'professional' || v === 'success' || v === 'adults' || v === 'adult') return 'professional';
+  return 'academy';
+}
+function hubPedagogyRules(hub: HubType): string {
+  if (hub === 'playground') {
+    return `🟠 PLAYGROUND HUB (Ages 4-9 | Phonics & Basics):
+- Use EXTREME simplicity. Sentences MUST be 3-5 words maximum.
+- Focus on phonics, basic nouns (animals, colors, food, body parts), action verbs.
+- Use TPR (Total Physical Response): "Stand up!", "Touch your nose!", "Jump!".
+- Highly visual, emoji-rich. Tone is energetic, warm, child-friendly. NO abstract concepts.
+- Activities must be visual matching, sound recognition, sing-along, drag-and-drop with pictures.
+- NEVER use grammar terminology (no "present perfect", no "auxiliary verb").`;
+  }
+  if (hub === 'professional') {
+    return `🟢 SUCCESS HUB (Ages 17+ | Business & Advanced):
+- CEFR B2-C1. Topics: Business English, university prep, negotiations, advanced idioms, public speaking.
+- Tone: professional, sophisticated, peer-to-peer adult.
+- Activities: case studies, structured debates, advanced reading comprehension, formal email writing, role-play of meetings/interviews.
+- Vocabulary: collocations, phrasal verbs, register (formal vs informal), industry terms.
+- NEVER use childish imagery, mascots, or oversimplified language.`;
+  }
+  return `🟣 ACADEMY HUB (Ages 10-16 | Grammar & Fluency):
+- CEFR A2-B1. Focus on grammar structures: past simple/continuous, present perfect, future forms, conditionals.
+- Topics MUST appeal to teenagers: technology, social media, gaming, travel, school life, pop culture, sports, music, friendships.
+- Activities: debate prompts, structured speaking exercises, reading comprehension with relatable contexts.
+- Tone: friendly, motivating, treats them as capable young learners — never childish, never patronizing.`;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { topic, cefrLevel, moduleNumber, lessonNumber, learningObjectives, customRequirements } = await req.json();
+    const body = await req.json();
+    const { topic, cefrLevel, moduleNumber, lessonNumber, learningObjectives, customRequirements } = body;
+    const hub = normalizeHub(body.hub_type || body.hubType || body.target_age_group);
 
-    console.log('Generating lesson for:', { topic, cefrLevel, moduleNumber, lessonNumber });
+    console.log('Generating lesson for:', { topic, cefrLevel, hub, moduleNumber, lessonNumber });
 
     const prompt = `You are an expert ESL curriculum designer creating classroom-ready lessons with COMPLETE, DETAILED content.
 
