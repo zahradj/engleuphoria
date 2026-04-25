@@ -63,6 +63,7 @@ export const PostClassFeedbackModal: React.FC<PostClassFeedbackModalProps> = ({
   teacherName,
   teacherId,
   lessonId,
+  roomId,
 }) => {
   const { toast } = useToast();
   const [teacherEnergy, setTeacherEnergy] = useState(0);
@@ -70,6 +71,24 @@ export const PostClassFeedbackModal: React.FC<PostClassFeedbackModalProps> = ({
   const [feelsConfident, setFeelsConfident] = useState<boolean | null>(null);
   const [suggestion, setSuggestion] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [endedAt, setEndedAt] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen || !roomId) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('classroom_timeline_events')
+        .select('occurred_at')
+        .eq('room_id', roomId)
+        .eq('event_type', 'session_ended')
+        .order('occurred_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!cancelled && data?.occurred_at) setEndedAt(data.occurred_at);
+    })();
+    return () => { cancelled = true; };
+  }, [isOpen, roomId]);
 
   const handleSubmit = async () => {
     if (teacherEnergy === 0 || materialRelevance === 0) {
