@@ -206,6 +206,63 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
         <Button size="icon" variant="ghost" className="h-8 w-8" onClick={onClearCanvas} title="Clear all annotations">
           <Trash2 className="h-4 w-4" />
         </Button>
+
+        {/* Consolidated Classroom Tools (Star / Timer / Dice / Reactions) */}
+        {(onGiveStar || onOpenTimer || onRollDice || onSendSticker) && (
+          <div className="pl-2 ml-1 border-l border-border">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button size="sm" variant="default" className="h-8 gap-1.5 text-xs" title="Classroom Tools">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Tools
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-3" align="end" side="top">
+                <div className="space-y-3">
+                  <div className="grid grid-cols-3 gap-2">
+                    {onGiveStar && (
+                      <Button variant="ghost" onClick={onGiveStar} className="h-16 flex flex-col items-center justify-center gap-1 bg-yellow-500 hover:bg-yellow-600 text-white">
+                        <Star className="h-5 w-5" />
+                        <span className="text-[10px] font-semibold">Give Star</span>
+                      </Button>
+                    )}
+                    {onOpenTimer && (
+                      <Button variant="ghost" onClick={onOpenTimer} className="h-16 flex flex-col items-center justify-center gap-1 bg-blue-500 hover:bg-blue-600 text-white">
+                        <TimerIcon className="h-5 w-5" />
+                        <span className="text-[10px] font-semibold">Timer</span>
+                      </Button>
+                    )}
+                    {onRollDice && (
+                      <Button variant="ghost" onClick={onRollDice} className="h-16 flex flex-col items-center justify-center gap-1 bg-purple-500 hover:bg-purple-600 text-white">
+                        <Dice6 className="h-5 w-5" />
+                        <span className="text-[10px] font-semibold">Dice</span>
+                      </Button>
+                    )}
+                  </div>
+                  {onSendSticker && (
+                    <div>
+                      <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground mb-1.5">
+                        <Smile className="h-3 w-3" /> Reactions
+                      </div>
+                      <div className="grid grid-cols-4 gap-1.5">
+                        {STICKER_PACK.map((emoji) => (
+                          <button
+                            key={emoji}
+                            onClick={() => onSendSticker(emoji)}
+                            className="h-10 w-full text-xl rounded-lg hover:bg-pink-100 active:scale-95 transition-all flex items-center justify-center"
+                            aria-label={`Send ${emoji} reaction`}
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
       </div>
     </div>
   );
