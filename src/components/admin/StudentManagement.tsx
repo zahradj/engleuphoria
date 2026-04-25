@@ -412,6 +412,12 @@ export const StudentManagement = () => {
                     </TableCell>
                     <TableCell>{student.total_lessons}</TableCell>
                     <TableCell>
+                      <CreditsCell
+                        balance={student.available_credits}
+                        onAdd={(amt) => handleAddCredits(student.id, amt)}
+                      />
+                    </TableCell>
+                    <TableCell>
                       {new Date(student.created_at).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
