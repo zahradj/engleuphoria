@@ -241,11 +241,21 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     return () => clearInterval(interval);
   }, [isZenMode]);
 
+  const [hasEndedClass, setHasEndedClass] = useState(false);
+
   const handleEndClass = useCallback(async () => {
     await endSession();
-    toast({ title: "Class Ended", description: "The class session has been ended." });
-    navigate('/teacher');
-  }, [navigate, toast, endSession]);
+    setHasEndedClass(true);
+    setWrapUpOpen(true);
+    toast({ title: "Class Ended", description: "Please complete the lesson feedback report." });
+  }, [toast, endSession]);
+
+  const handleWrapUpChange = useCallback((open: boolean) => {
+    setWrapUpOpen(open);
+    if (!open && hasEndedClass) {
+      navigate('/teacher');
+    }
+  }, [hasEndedClass, navigate]);
 
   useEffect(() => { media.join(); return () => { media.leave(); }; }, []);
 
@@ -587,7 +597,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
       {/* Lesson Wrap-Up Dialog */}
       <LessonWrapUpDialog
         open={wrapUpOpen}
-        onOpenChange={setWrapUpOpen}
+        onOpenChange={handleWrapUpChange}
         lessonId={lessonId}
         studentId={studentId}
         teacherId={user?.id}

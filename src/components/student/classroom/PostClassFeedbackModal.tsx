@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Star, Zap, BookOpen } from 'lucide-react';
+import { Star, Zap, BookOpen, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,6 +17,7 @@ interface PostClassFeedbackModalProps {
   teacherName: string;
   teacherId: string;
   lessonId: string;
+  roomId?: string;
 }
 
 const StarRating = ({
@@ -62,6 +63,7 @@ export const PostClassFeedbackModal: React.FC<PostClassFeedbackModalProps> = ({
   teacherName,
   teacherId,
   lessonId,
+  roomId,
 }) => {
   const { toast } = useToast();
   const [teacherEnergy, setTeacherEnergy] = useState(0);
@@ -69,6 +71,24 @@ export const PostClassFeedbackModal: React.FC<PostClassFeedbackModalProps> = ({
   const [feelsConfident, setFeelsConfident] = useState<boolean | null>(null);
   const [suggestion, setSuggestion] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [endedAt, setEndedAt] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen || !roomId) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('classroom_timeline_events')
+        .select('occurred_at')
+        .eq('room_id', roomId)
+        .eq('event_type', 'session_ended')
+        .order('occurred_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!cancelled && data?.occurred_at) setEndedAt(data.occurred_at);
+    })();
+    return () => { cancelled = true; };
+  }, [isOpen, roomId]);
 
   const handleSubmit = async () => {
     if (teacherEnergy === 0 || materialRelevance === 0) {
@@ -114,6 +134,16 @@ export const PostClassFeedbackModal: React.FC<PostClassFeedbackModalProps> = ({
             How was your session with {teacherName}?
           </DialogTitle>
         </DialogHeader>
+
+        {endedAt && (
+          <div className="flex items-center justify-center gap-2 rounded-lg bg-muted/60 px-3 py-2 text-sm text-muted-foreground">
+            <Clock className="w-4 h-4" />
+            <span>
+              Class ended at{' '}
+              {new Date(endedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
+        )}
 
         <div className="space-y-6 py-2">
           <StarRating

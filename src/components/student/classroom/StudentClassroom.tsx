@@ -500,6 +500,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
         teacherName={teacherName || (sessionContext as any)?.teacherName || 'Teacher'}
         teacherId={(sessionContext as any)?.teacherId || ''}
         lessonId={roomId}
+        roomId={roomId}
       />
     </div>
   );

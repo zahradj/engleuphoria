@@ -236,16 +236,32 @@ class ClassroomSyncService {
 
   async endSession(roomId: string): Promise<void> {
     try {
+      const endedAt = new Date().toISOString();
       const { error } = await supabase
         .from('classroom_sessions')
         .update({
           session_status: 'ended',
-          ended_at: new Date().toISOString()
+          ended_at: endedAt
         })
         .eq('room_id', roomId)
         .eq('session_status', 'active');
 
       if (error) throw error;
+
+      // Record a timeline event so students see when the teacher ended class
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        await supabase.from('classroom_timeline_events').insert({
+          room_id: roomId,
+          event_type: 'session_ended',
+          actor_id: user?.id ?? null,
+          actor_role: 'teacher',
+          occurred_at: endedAt,
+          event_payload: { reason: 'teacher_ended' }
+        });
+      } catch (timelineError) {
+        console.warn('Failed to record session_ended timeline event:', timelineError);
+      }
     } catch (error) {
       console.error('Failed to end session:', error);
       throw error;
