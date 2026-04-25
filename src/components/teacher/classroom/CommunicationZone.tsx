@@ -186,21 +186,7 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
         </div>
       </div>
 
-      {/* Interaction Tools Grid */}
-      <div className="px-3 py-2">
-        <InteractionToolsGrid
-          onGiveStar={onGiveStar}
-          onOpenTimer={onOpenTimer}
-          onRollDice={onRollDice}
-          onSendSticker={onSendSticker}
-          studentCanDraw={studentCanDraw}
-          onToggleStudentDrawing={onToggleStudentDrawing}
-          onShareScreen={onShareScreen}
-          onEmbedLink={onEmbedLink}
-          isScreenSharing={isScreenSharing}
-          onStopScreenShare={onStopScreenShare}
-        />
-      </div>
+      {/* Tools moved to bottom Control Dock — left sidebar is now strictly Video Feeds + Chat */}
 
       {/* Mini Chat Box */}
       <div className="flex-1 flex flex-col border-t border-gray-200 mt-2">
