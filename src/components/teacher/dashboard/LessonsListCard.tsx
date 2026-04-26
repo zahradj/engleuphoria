@@ -317,6 +317,14 @@ export const LessonsListCard: React.FC = () => {
         lessonId={feedbackLesson?.id ?? null}
         lessonTitle={feedbackLesson?.title}
       />
+
+      <LessonWrapUpDialog
+        open={wrapUpOpen}
+        onOpenChange={handleWrapUpChange}
+        lessonId={wrapUpLesson?.id}
+        studentId={wrapUpLesson?.studentId ?? undefined}
+        teacherId={user?.id}
+      />
     </Card>
   );
 };
