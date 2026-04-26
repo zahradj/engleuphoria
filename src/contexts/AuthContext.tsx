@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isConfigured] = useState(true); // Always configured in Lovable projects
+  const [isConfigured] = useState(true); // Always configured in Engleuphoria deployments
   const initializedRef = useRef(false);
   const signInRedirectRef = useRef(false); // Track if SIGNED_IN redirect is in progress
   const initialFetchDoneRef = useRef(false); // Track when initial auth fetch completes
