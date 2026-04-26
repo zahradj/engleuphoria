@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { EmptyState } from '@/components/ui/empty-state';
 import { FeedbackReportDialog } from '@/components/classroom/FeedbackReportDialog';
+import { LessonWrapUpDialog } from '@/components/classroom/LessonWrapUpDialog';
 
 interface Lesson {
   id: string;
@@ -19,6 +20,7 @@ interface Lesson {
   studentAge: number | null;
   status: 'upcoming' | 'completed' | 'needs-feedback';
   classroomId: string | null;
+  studentId: string | null;
 }
 
 interface LessonItemProps {
@@ -102,6 +104,8 @@ export const LessonsListCard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackLesson, setFeedbackLesson] = useState<Lesson | null>(null);
+  const [wrapUpOpen, setWrapUpOpen] = useState(false);
+  const [wrapUpLesson, setWrapUpLesson] = useState<Lesson | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -151,6 +155,7 @@ export const LessonsListCard: React.FC = () => {
             studentAge: null,
             status,
             classroomId: row.classroom_id ?? null,
+            studentId: row.student_id ?? null,
           };
         });
         setLessons(mapped);
@@ -183,9 +188,37 @@ export const LessonsListCard: React.FC = () => {
   };
 
   const handleWriteFeedback = (lesson: Lesson) => {
-    // Open the classroom which contains the wrap-up dialog
-    if (lesson.classroomId) navigate(`/classroom/${lesson.classroomId}?wrapup=1`);
-    else navigate(`/classroom/${lesson.id}?wrapup=1`);
+    // Open the wrap-up dialog directly from the dashboard
+    setWrapUpLesson(lesson);
+    setWrapUpOpen(true);
+  };
+
+  const handleWrapUpChange = (open: boolean) => {
+    setWrapUpOpen(open);
+    if (!open) {
+      // Refresh after submission so the row moves from "No Feedback" to "Past"
+      setWrapUpLesson(null);
+      // Re-fetch by toggling user dependency — simplest: reload lessons inline
+      if (user?.id) {
+        supabase
+          .from('class_bookings')
+          .select('id, status')
+          .eq('teacher_id', user.id)
+          .then(({ data }) => {
+            if (!data) return;
+            setLessons(prev =>
+              prev.map(l => {
+                const updated = data.find((d: any) => d.id === l.id);
+                if (!updated) return l;
+                let status: Lesson['status'] = l.status;
+                if (updated.status === 'completed') status = 'completed';
+                else if (updated.status === 'needs_feedback') status = 'needs-feedback';
+                return { ...l, status };
+              })
+            );
+          });
+      }
+    }
   };
 
   return (
@@ -283,6 +316,14 @@ export const LessonsListCard: React.FC = () => {
         onOpenChange={setFeedbackOpen}
         lessonId={feedbackLesson?.id ?? null}
         lessonTitle={feedbackLesson?.title}
+      />
+
+      <LessonWrapUpDialog
+        open={wrapUpOpen}
+        onOpenChange={handleWrapUpChange}
+        lessonId={wrapUpLesson?.id}
+        studentId={wrapUpLesson?.studentId ?? undefined}
+        teacherId={user?.id}
       />
     </Card>
   );
