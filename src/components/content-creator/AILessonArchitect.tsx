@@ -174,7 +174,28 @@ export const AILessonArchitect: React.FC = () => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Lesson Topic *</label>
+            <label className="text-sm font-medium text-foreground">
+              CEFR Level
+              {hub && !cefrLevel && (
+                <span className="text-xs text-muted-foreground ml-2">
+                  (default: {HUB_DEFAULT_CEFR[hub as HubType]})
+                </span>
+              )}
+            </label>
+            <Select value={cefrLevel} onValueChange={(v) => setCefrLevel(v as CEFRLevel)}>
+              <SelectTrigger className="bg-background/50">
+                <SelectValue placeholder="Auto from hub, or pick a level..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="A1">A1 — Absolute Beginner (max 5-word sentences)</SelectItem>
+                <SelectItem value="A2">A2 — Elementary (daily routines, simple past)</SelectItem>
+                <SelectItem value="B1">B1 — Intermediate (opinions, conditionals)</SelectItem>
+                <SelectItem value="B2">B2 — Upper-Intermediate (debates, abstracts)</SelectItem>
+                <SelectItem value="C1">C1 — Advanced (idioms, nuance, register)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
             <Input
               placeholder="e.g. School Supplies, Job Interview Prep..."
               value={topic}
