@@ -118,28 +118,18 @@ export function ModernRewardsPanel({
         </div>
       </div>
 
-      {/* Star Collection */}
-      <GlassCard variant="light" className="p-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Star className="w-5 h-5 text-classroom-reward fill-classroom-reward" />
-            <span className="font-medium">Stars Collected</span>
-          </div>
-          <div className="text-2xl font-bold text-classroom-reward">{starCount}</div>
-        </div>
-        <div className="mt-2 flex gap-1">
+      {/* Star Collection — frameless, no count number */}
+      <div className="px-1">
+        <div className="flex flex-wrap gap-1.5 justify-center">
           {Array.from({ length: Math.min(starCount, 10) }).map((_, i) => (
             <Star
               key={i}
-              className="w-4 h-4 text-classroom-reward fill-classroom-reward animate-scale-in"
+              className="w-7 h-7 text-classroom-reward fill-classroom-reward drop-shadow-[0_0_8px_hsl(var(--classroom-reward)/0.7)] animate-scale-in"
               style={{ animationDelay: `${i * 50}ms` }}
             />
           ))}
-          {starCount > 10 && (
-            <span className="text-xs text-muted-foreground ml-1">+{starCount - 10} more</span>
-          )}
         </div>
-        
+
         {/* Teacher Award Button */}
         {isTeacher && onAwardStar && (
           <GlassButton
@@ -151,7 +141,7 @@ export function ModernRewardsPanel({
             Award Star to Student
           </GlassButton>
         )}
-      </GlassCard>
+      </div>
 
       {/* Badges Display */}
       <div className="space-y-2">
