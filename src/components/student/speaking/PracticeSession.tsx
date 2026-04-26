@@ -4,7 +4,7 @@ import { SpeakingScenario, ConversationMessage, MessageFeedback } from '@/types/
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { speakingPracticeService } from '@/services/speakingPracticeService';
 import { supabase } from '@/integrations/supabase/client';
-const isSupabaseConfigured = () => true; // Always configured in Lovable projects
+const isSupabaseConfigured = () => true; // Always configured in Engleuphoria deployments
 import { useToast } from '@/hooks/use-toast';
 import { SessionHeader } from './components/SessionHeader';
 import { AIAvatar } from './components/AIAvatar';

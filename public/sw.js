@@ -1,8 +1,14 @@
 // Service Worker for caching and fast updates
 
-const CACHE_NAME = 'engleuphoria-v4';
+const CACHE_NAME = 'engleuphoria-v5';
 const ASSETS = [
   '/',
+  '/favicon.ico?v=5',
+  '/favicon.png?v=5',
+  '/icons/apple-touch-icon.png?v=5',
+  '/icons/icon-192.png?v=5',
+  '/icons/icon-512.png?v=5',
+  '/icons/icon-512-maskable.png?v=5',
   '/placeholder.svg',
   'https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap'
 ];
@@ -81,6 +87,17 @@ self.addEventListener('fetch', (event) => {
   }
 
   const dest = request.destination;
+  const url = new URL(request.url);
+  const isBrandIcon = url.pathname === '/favicon.ico'
+    || url.pathname === '/favicon.png'
+    || url.pathname === '/og-image.png'
+    || url.pathname.startsWith('/icons/');
+
+  if (isBrandIcon) {
+    event.respondWith(networkFirst(request));
+    return;
+  }
+
   if (['script', 'style', 'font', 'image'].includes(dest)) {
     event.respondWith(cacheFirst(request));
     return;

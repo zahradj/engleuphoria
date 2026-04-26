@@ -15,8 +15,8 @@ export const SignUpHeader = () => {
         >
           <div className="relative">
             <img 
-              src="/lovable-uploads/c9a29797-4fc4-4cb9-be41-bde9a8558663.png" 
-              alt="EnglEuphoria Logo" 
+              src="/icons/icon-192.png?v=5" 
+              alt="Engleuphoria Logo" 
               className="w-12 h-12 animate-bounce-slow"
             />
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-pulse" />

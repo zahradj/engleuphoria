@@ -20,7 +20,7 @@ export function HelloAdventuresQuickAccess() {
   const navigate = useNavigate();
 
   const handlePreview = () => {
-    window.open('https://preview--hello-a-names-adventures.lovable.app/', '_blank');
+    window.open('/media-test?roomId=hello-adventures-preview&role=teacher&lesson=hello-adventures', '_blank');
   };
 
   const handleUseNow = () => {

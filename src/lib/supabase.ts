@@ -3,7 +3,7 @@ export { supabase } from '@/integrations/supabase/client';
 
 // Helper function to check if Supabase is properly configured
 export const isSupabaseConfigured = () => {
-  return true; // Always configured in Lovable projects
+  return true; // Always configured in Engleuphoria deployments
 };
 
 // Database Types (re-exported for compatibility)
