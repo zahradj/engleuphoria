@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Image as ImageIcon, ListChecks, Pencil } from 'lucide-react';
+import { Image as ImageIcon, ListChecks, Pencil, Layers } from 'lucide-react';
 import { PPPSlide } from '../../CreatorContext';
 import { PHASE_ORDER, PHASE_STYLES, PhaseKey, normalizePhase } from './phaseTheme';
 import { cn } from '@/lib/utils';
@@ -14,6 +14,7 @@ const TYPE_ICON: Record<string, React.ElementType> = {
   text_image: ImageIcon,
   multiple_choice: ListChecks,
   drawing_prompt: Pencil,
+  flashcard: Layers,
 };
 
 export const SlideThumbnailRail: React.FC<Props> = ({ slides, activeId, onSelect }) => {
