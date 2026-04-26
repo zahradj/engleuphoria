@@ -16,6 +16,7 @@ export interface AvailabilitySlot {
   studentGradeLevel?: string;
   studentFinalCefrLevel?: string;
   hub?: 'playground' | 'academy' | 'success' | null;
+  recurringPattern?: Record<string, unknown> | null;
 }
 
 export interface TimeSlot {

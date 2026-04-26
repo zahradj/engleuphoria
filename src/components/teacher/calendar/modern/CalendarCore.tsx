@@ -16,6 +16,8 @@ interface CalendarCoreProps {
   onNavigateWeek: (direction: -1 | 1) => void;
   onGoToToday: () => void;
   onSlotClick: (date: Date, time: string) => void;
+  /** Optional: invoked when a teacher taps a booked slot tile. */
+  onBookedSlotClick?: (slot: AvailabilitySlot) => void;
 }
 
 export const CalendarCore: React.FC<CalendarCoreProps> = ({
@@ -26,6 +28,7 @@ export const CalendarCore: React.FC<CalendarCoreProps> = ({
   onNavigateWeek,
   onGoToToday,
   onSlotClick,
+  onBookedSlotClick,
 }) => {
   const timeSlots = generateTimeSlots();
   const today = useMemo(() => new Date(), []);
@@ -65,10 +68,13 @@ export const CalendarCore: React.FC<CalendarCoreProps> = ({
       const gradientClasses = getGradientByLevel(slot.studentCefrLevel);
       
       return (
-        <div
+        <button
+          type="button"
+          onClick={() => onBookedSlotClick?.(slot)}
+          aria-label={`Manage booking with ${slot.studentName ?? 'student'}`}
           className={cn(
-            'relative group h-20 rounded-xl overflow-hidden transition-all duration-500',
-            'cal-glass-card hover:scale-[1.02] cursor-pointer',
+            'relative group h-20 w-full rounded-xl overflow-hidden transition-all duration-500 text-left',
+            'cal-glass-card hover:scale-[1.02] cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/60',
             'shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgba(139,92,246,0.3)]'
           )}
         >
@@ -158,7 +164,7 @@ export const CalendarCore: React.FC<CalendarCoreProps> = ({
                  maskComposite: 'exclude',
                  padding: '2px'
                }} />
-        </div>
+        </button>
       );
     }
 

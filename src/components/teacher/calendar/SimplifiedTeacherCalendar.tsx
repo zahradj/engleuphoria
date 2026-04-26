@@ -10,7 +10,9 @@ import { useSlotActions } from "./hooks/useSlotActions";
 import { SimpleTimeGrid } from "./components/SimpleTimeGrid";
 import { QuickSlotCreator } from "./components/QuickSlotCreator";
 import { OpenSlotsDialog } from "@/components/teacher/scheduler/OpenSlotsDialog";
+import { BookedSlotManager } from "@/components/teacher/scheduler/BookedSlotManager";
 import { useTeacherHub } from "@/hooks/useTeacherHub";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SimplifiedTeacherCalendarProps {
   teacherId: string;
@@ -24,6 +26,15 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showSlotModal, setShowSlotModal] = useState(false);
   const [selectedTime, setSelectedTime] = useState<string>("");
+  const [bookedSlotInfo, setBookedSlotInfo] = useState<{
+    slotId: string;
+    studentName?: string;
+    studentShortId?: string;
+    hub: 'playground' | 'academy' | 'success' | null;
+    startTime: Date;
+    duration: number;
+    isRecurring: boolean;
+  } | null>(null);
   const hub = useTeacherHub(teacherId);
 
   // Generate time slots from 6 AM to 10 PM
@@ -78,9 +89,34 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
     return `${start} - ${end}`;
   };
 
-  const handleSlotClick = (time: string, date: Date) => {
+  const handleSlotClick = async (time: string, date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
     const existingSlot = weeklySlots[dateStr]?.find(slot => slot.time === time);
+
+    // Booked → open the cancel manager (single occurrence or whole series)
+    if (existingSlot?.studentId && existingSlot.id) {
+      const [h, m] = time.split(':').map(Number);
+      const start = new Date(date);
+      start.setHours(h, m, 0, 0);
+
+      // Look up recurring_pattern to know whether to offer "Cancel series"
+      const { data: row } = await supabase
+        .from('teacher_availability')
+        .select('recurring_pattern')
+        .eq('id', existingSlot.id)
+        .maybeSingle();
+
+      setBookedSlotInfo({
+        slotId: existingSlot.id,
+        studentName: existingSlot.studentName,
+        studentShortId: existingSlot.studentShortId,
+        hub: existingSlot.hub ?? null,
+        startTime: start,
+        duration: existingSlot.duration,
+        isRecurring: !!row?.recurring_pattern,
+      });
+      return;
+    }
 
     if (existingSlot?.isAvailable) {
       // Delete existing slot
@@ -273,6 +309,14 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
         teacherId={teacherId}
         hub={hub}
         onCreated={() => reloadSlots()}
+      />
+
+      {/* Cancel booked slot — single occurrence or whole weekly series */}
+      <BookedSlotManager
+        open={!!bookedSlotInfo}
+        onOpenChange={(o) => { if (!o) setBookedSlotInfo(null); }}
+        slot={bookedSlotInfo}
+        onCancelled={() => { setBookedSlotInfo(null); reloadSlots(); }}
       />
     </div>
   );
