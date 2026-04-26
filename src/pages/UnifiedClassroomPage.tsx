@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, ShieldOff, Bug } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { SoundSettingsLauncher } from '@/components/classroom/settings/SoundSettingsLauncher';
 
 /**
  * Unified Classroom Page
@@ -180,22 +181,28 @@ const UnifiedClassroomPage: React.FC = () => {
 
   if (classroomRole === 'teacher') {
     return (
-      <TeacherClassroom
-        classId={booking.id}
-        teacherName={displayName}
-        studentName={studentFullName}
-        studentId={booking.student_id}
-      />
+      <>
+        <TeacherClassroom
+          classId={booking.id}
+          teacherName={displayName}
+          studentName={studentFullName}
+          studentId={booking.student_id}
+        />
+        <SoundSettingsLauncher />
+      </>
     );
   }
 
   return (
-    <StudentClassroom
-      roomId={booking.id}
-      studentId={user.id}
-      studentName={displayName}
-      teacherName={teacherFullName}
-    />
+    <>
+      <StudentClassroom
+        roomId={booking.id}
+        studentId={user.id}
+        studentName={displayName}
+        teacherName={teacherFullName}
+      />
+      <SoundSettingsLauncher />
+    </>
   );
 };
 
