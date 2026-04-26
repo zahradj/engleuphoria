@@ -34,7 +34,8 @@ export type SfxKey =
   | "emoji_clap"
   | "emoji_laugh"
   | "emoji_party"
-  | "emoji_thumbsup";
+  | "emoji_thumbsup"
+  | "emoji_heart";
 
 interface SfxSpec {
   prompt: string;
@@ -45,72 +46,76 @@ interface SfxSpec {
 
 const SFX_PROMPTS: Record<SfxKey, SfxSpec> = {
   click: {
-    prompt: "Soft crisp UI button click, single short pop, clean digital, no reverb",
-    duration: 0.5, influence: 0.7, volume: 0.6,
+    prompt: "Snappy high-energy UI tap, punchy short click with a tiny bright zip, modern game UI, no reverb",
+    duration: 0.4, influence: 0.75, volume: 0.7,
   },
   star: {
-    prompt: "Bright magical star sparkle chime, short cheerful glittery ding, game reward",
-    duration: 1.0, influence: 0.6, volume: 0.9,
+    prompt: "Sparkling magical star pickup, fast bright glittery upward chime with shimmer, energetic arcade reward",
+    duration: 1.0, influence: 0.65, volume: 1.0,
   },
   badge: {
-    prompt: "Triumphant badge unlocked fanfare, short shimmering achievement chime, video game",
-    duration: 1.5, influence: 0.6, volume: 0.95,
+    prompt: "Triumphant badge unlock fanfare, punchy ascending bells with shimmer and a confident hit, short and energetic, AAA game achievement",
+    duration: 1.6, influence: 0.65, volume: 1.0,
   },
   dice: {
-    prompt: "Wooden dice rolling and tumbling on a table, short tactile clatter",
-    duration: 1.2, influence: 0.7, volume: 0.85,
+    prompt: "Energetic wooden dice shake and quick tumble across a table, crisp tactile clatter ending with a snap",
+    duration: 1.2, influence: 0.75, volume: 0.95,
   },
   timer_warning: {
-    prompt: "Gentle two-tone timer warning beep, soft and friendly, short",
-    duration: 0.8, influence: 0.7, volume: 0.7,
+    prompt: "Urgent yet friendly two-tone timer warning beep, bright and punchy, short",
+    duration: 0.8, influence: 0.75, volume: 0.85,
   },
   timer_done: {
-    prompt: "Cheerful timer completion bell ding, short positive chime",
-    duration: 1.0, influence: 0.65, volume: 0.85,
+    prompt: "Bright energetic timer completion chime, three quick ascending bells, victorious and short",
+    duration: 1.2, influence: 0.65, volume: 0.95,
   },
   reward_small: {
-    prompt: "Pleasant single coin pickup ding, short positive reward chime, game UI",
-    duration: 0.8, influence: 0.6, volume: 0.85,
+    prompt: "Bright bouncy coin pickup with a tiny sparkle tail, snappy positive arcade reward",
+    duration: 0.8, influence: 0.65, volume: 0.95,
   },
   reward_medium: {
-    prompt: "Cheerful multi-note reward jingle, ascending bells, short, kids game",
-    duration: 1.5, influence: 0.6, volume: 0.9,
+    prompt: "Energetic ascending reward jingle with bells and a happy zip, kids game level up, short and bright",
+    duration: 1.4, influence: 0.65, volume: 1.0,
   },
   reward_big: {
-    prompt: "Big celebratory reward fanfare with sparkles and bells, short triumphant burst",
+    prompt: "Big celebratory reward fanfare, brassy hit with sparkles, bells and a triumphant boom, short and powerful",
     duration: 2.0, influence: 0.6, volume: 1.0,
   },
   celebration: {
-    prompt: "Joyful kids celebration with confetti pop, cheerful chimes, short and bright",
+    prompt: "Explosive joyful kids celebration: confetti pop, party horn, sparkles and cheerful chimes, energetic and bright",
     duration: 2.5, influence: 0.6, volume: 1.0,
   },
   success: {
-    prompt: "Positive success confirmation chime, two ascending notes, clean, short",
-    duration: 0.9, influence: 0.65, volume: 0.85,
+    prompt: "Bright energetic success confirmation, three fast ascending notes with a sparkle, modern app UI",
+    duration: 0.9, influence: 0.7, volume: 0.95,
   },
   error: {
-    prompt: "Soft polite error buzz, short low gentle tone, not harsh, UI feedback",
-    duration: 0.7, influence: 0.7, volume: 0.7,
+    prompt: "Soft polite error blip, short low gentle two-tone, not harsh, modern UI feedback",
+    duration: 0.6, influence: 0.75, volume: 0.7,
   },
   emoji_clap: {
-    prompt: "Short burst of enthusiastic audience applause, clapping hands, warm and bright, no cheering",
-    duration: 1.8, influence: 0.7, volume: 0.95,
+    prompt: "Energetic burst of enthusiastic audience applause, lots of clapping hands, bright and lively, no cheering, no music",
+    duration: 1.8, influence: 0.8, volume: 1.0,
   },
   emoji_laugh: {
-    prompt: "Short cheerful group of kids laughing, light hearted giggles, warm and joyful",
-    duration: 1.8, influence: 0.7, volume: 0.95,
+    prompt: "Joyful group of kids laughing out loud together, hearty contagious giggles, warm and energetic, no music",
+    duration: 1.8, influence: 0.8, volume: 1.0,
   },
   emoji_party: {
-    prompt: "Festive party celebration with confetti pop, party horn, cheers and bells, short carnival burst",
-    duration: 2.2, influence: 0.65, volume: 1.0,
+    prompt: "Big festive party celebration: loud confetti pop, party horn blast, crowd cheers and bells, energetic carnival burst",
+    duration: 2.2, influence: 0.7, volume: 1.0,
   },
   emoji_thumbsup: {
-    prompt: "Short bubbly cartoon pop sound, single playful pop bubble, clean and crisp",
-    duration: 0.5, influence: 0.75, volume: 0.9,
+    prompt: "Snappy high-energy cartoon pop, single bright bouncy bubble pop with a tiny sparkle, punchy and crisp",
+    duration: 0.45, influence: 0.85, volume: 1.0,
+  },
+  emoji_heart: {
+    prompt: "Energetic juicy bubble pop with a sweet sparkle tail, bright punchy cartoon heart pop, lively and crisp",
+    duration: 0.6, influence: 0.85, volume: 1.0,
   },
 };
 
-const STORAGE_PREFIX = "ee_sfx_v2::"; // bumped: v1 entries had different keys
+const STORAGE_PREFIX = "ee_sfx_v3::"; // bumped: re-energized prompts + emoji_heart
 const audioPool = new Map<SfxKey, HTMLAudioElement>();
 const inflight = new Map<SfxKey, Promise<string | null>>();
 
