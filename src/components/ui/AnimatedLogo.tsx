@@ -49,7 +49,7 @@ const AnimatedLogo: React.FC<AnimatedLogoProps> = ({ size = 'md', className = ''
         {/* Logo image */}
         <img 
           src={resolvedTheme === 'dark' ? logoBlack : logoWhite} 
-          alt="EnglEuphoria Logo" 
+          alt="Engleuphoria Logo" 
           className="w-3/4 h-3/4 object-contain"
         />
       </motion.div>
