@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ContentCreatorStepper, PipelineStep } from '@/components/content-creator/ContentCreatorStepper';
 import { usePipelineProgress } from '@/hooks/usePipelineProgress';
 import { CurriculumStep, CurriculumContext } from '@/components/content-creator/CurriculumStep';
@@ -6,7 +7,7 @@ import { AdminLessonEditor } from '@/components/admin/lesson-builder';
 import LessonLibraryHub from '@/components/lesson-player/LessonLibraryHub';
 // AILessonArchitect is now integrated inside the Slide Builder (AdminLessonEditor)
 import { useAuth } from '@/contexts/AuthContext';
-import { LogOut, ArrowLeft } from 'lucide-react';
+import { LogOut, ArrowLeft, Wand2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/Logo';
 
