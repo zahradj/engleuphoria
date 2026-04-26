@@ -26,6 +26,15 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showSlotModal, setShowSlotModal] = useState(false);
   const [selectedTime, setSelectedTime] = useState<string>("");
+  const [bookedSlotInfo, setBookedSlotInfo] = useState<{
+    slotId: string;
+    studentName?: string;
+    studentShortId?: string;
+    hub: 'playground' | 'academy' | 'success' | null;
+    startTime: Date;
+    duration: number;
+    isRecurring: boolean;
+  } | null>(null);
   const hub = useTeacherHub(teacherId);
 
   // Generate time slots from 6 AM to 10 PM
