@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -114,18 +114,33 @@ const unsplashUrl = (keyword?: string) => {
 };
 
 // ─── Component ─────────────────────────────────────────────────────────
+interface BlueprintHandoff {
+  fromBlueprint?: boolean;
+  cefr_level?: CEFRLevel;
+  hub?: HubType;
+  topic?: string;
+  skill_focus?: string;
+  learning_objective?: string;
+  unit_title?: string;
+  unit_theme?: string;
+  curriculum_title?: string;
+}
+
 export const MasterPPPWizard: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const handoff = (location.state || {}) as BlueprintHandoff;
   const { user } = useAuth();
   const userRole = (user as any)?.role;
 
-  const [cefrLevel, setCefrLevel] = useState<CEFRLevel>('B1');
-  const [hub, setHub] = useState<HubType>('academy');
-  const [topic, setTopic] = useState('');
+  const [cefrLevel, setCefrLevel] = useState<CEFRLevel>(handoff.cefr_level || 'B1');
+  const [hub, setHub] = useState<HubType>(handoff.hub || 'academy');
+  const [topic, setTopic] = useState(handoff.topic || '');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [lesson, setLesson] = useState<PPPLesson | null>(null);
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
+  const autoTriggered = useRef(false);
 
   // Role guard — only admins & content creators
   if (userRole !== 'admin' && userRole !== 'content_creator') {
