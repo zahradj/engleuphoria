@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ContentCreatorStepper, PipelineStep } from '@/components/content-creator/ContentCreatorStepper';
 import { usePipelineProgress } from '@/hooks/usePipelineProgress';
 import { CurriculumStep, CurriculumContext } from '@/components/content-creator/CurriculumStep';
-import { AdminLessonEditor } from '@/components/admin/lesson-builder';
+import { SlideStudio } from '@/components/content-creator/slide-studio/SlideStudio';
 import LessonLibraryHub from '@/components/lesson-player/LessonLibraryHub';
 // AILessonArchitect is now integrated inside the Slide Builder (AdminLessonEditor)
 import { useAuth } from '@/contexts/AuthContext';
