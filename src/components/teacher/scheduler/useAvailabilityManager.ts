@@ -16,16 +16,25 @@ import { supabase } from '@/integrations/supabase/client';
 interface DbSlotRow {
   id: string;
   start_time: string;
+  end_time: string | null;
   duration: number | null;
   is_booked: boolean | null;
   is_available: boolean | null;
   student_id: string | null;
+  lesson_id: string | null;
   lesson_title: string | null;
+  hub_specialty: string | null;
+  recurring_pattern: Record<string, unknown> | null;
 }
 
 interface StudentInfo {
   name: string;
   email?: string;
+}
+
+interface LessonInfo {
+  studentId?: string;
+  title?: string;
 }
 
 const DAY_INDEX_TO_NAME: Record<number, string> = {
