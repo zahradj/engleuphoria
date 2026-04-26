@@ -1,7 +1,7 @@
 import React from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileClassroomLayout } from "./mobile/MobileClassroomLayout";
-import { ClassroomVideo } from "./ClassroomVideo";
+
 
 interface ClassroomLayoutProps {
   children?: React.ReactNode;
