@@ -314,9 +314,18 @@ const FindTeacher: React.FC = () => {
                         <div className="flex items-start gap-4">
                           <div className="relative">
                             <Avatar className={cn("h-16 w-16 border-2", style.border)}>
-                              <AvatarImage src={teacher.profile_image_url || undefined} />
+                              {teacher.profile_image_url ? (
+                                <AvatarImage
+                                  src={teacher.profile_image_url}
+                                  alt={teacher.full_name || 'Teacher'}
+                                  className="object-cover"
+                                  onError={(e) => {
+                                    console.warn('[FindTeacher] Avatar image failed to load', teacher.profile_image_url, e);
+                                  }}
+                                />
+                              ) : null}
                               <AvatarFallback className="bg-primary/10 text-primary font-bold text-lg">
-                                {teacher.full_name?.charAt(0) || 'T'}
+                                {teacher.full_name?.charAt(0)?.toUpperCase() || 'T'}
                               </AvatarFallback>
                             </Avatar>
                             {teacher.is_available && (
