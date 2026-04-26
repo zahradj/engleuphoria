@@ -62,6 +62,9 @@ export interface ActiveLessonData {
   target_vocabulary?: string;
   roadmap?: string[];
   slides: PPPSlide[];
+  // Optional handoff metadata so we can persist links to the blueprint.
+  level_id?: string;
+  unit_id?: string;
 }
 
 interface CreatorContextValue {
@@ -73,6 +76,11 @@ interface CreatorContextValue {
 
   activeLessonData: ActiveLessonData | null;
   setActiveLessonData: (l: ActiveLessonData | null) => void;
+
+  /** Patch a single slide on the active lesson and mark the studio dirty. */
+  updateSlide: (id: string, patch: Partial<PPPSlide>) => void;
+  /** Replace the whole slide deck on the active lesson. */
+  replaceSlides: (slides: PPPSlide[]) => void;
 
   /** Computed working title for the studio header. */
   workingTitle: string;
