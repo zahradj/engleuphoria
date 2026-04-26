@@ -37,7 +37,7 @@ const GLASS_CLASS_MAP: Record<HubId, string> = {
 /**
  * Safely extract a relative path from a URL that may be absolute or relative.
  * Handles cases where room_link is stored as a full URL like
- * "https://engleuphoria.lovable.app/oneonone-classroom-new?roomId=..."
+ * "https://engleuphoria.com/oneonone-classroom-new?roomId=..."
  */
 function toRelativePath(link: string): string {
   if (!link) return '';
