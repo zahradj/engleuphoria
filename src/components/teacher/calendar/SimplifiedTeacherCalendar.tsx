@@ -89,7 +89,7 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
     return `${start} - ${end}`;
   };
 
-  const handleSlotClick = (time: string, date: Date) => {
+  const handleSlotClick = async (time: string, date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
     const existingSlot = weeklySlots[dateStr]?.find(slot => slot.time === time);
 
@@ -98,6 +98,14 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
       const [h, m] = time.split(':').map(Number);
       const start = new Date(date);
       start.setHours(h, m, 0, 0);
+
+      // Look up recurring_pattern to know whether to offer "Cancel series"
+      const { data: row } = await supabase
+        .from('teacher_availability')
+        .select('recurring_pattern')
+        .eq('id', existingSlot.id)
+        .maybeSingle();
+
       setBookedSlotInfo({
         slotId: existingSlot.id,
         studentName: existingSlot.studentName,
@@ -105,10 +113,7 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
         hub: existingSlot.hub ?? null,
         startTime: start,
         duration: existingSlot.duration,
-        // SimpleTimeGrid hook doesn't carry recurring_pattern; treat as
-        // recurring whenever a series exists for that teacher at the same
-        // weekday+time. The cancel service double-checks before deleting.
-        isRecurring: !!existingSlot.lessonCode === false ? true : true,
+        isRecurring: !!row?.recurring_pattern,
       });
       return;
     }
