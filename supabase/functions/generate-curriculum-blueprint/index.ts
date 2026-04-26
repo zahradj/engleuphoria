@@ -179,24 +179,51 @@ Return ONLY the JSON object.`;
       );
     }
 
-    // Inject UUIDs and enforce skill rotation server-side
-    const units = (parsed.units || []).slice(0, safeUnits).map((u: any) => ({
-      unit_title: String(u.unit_title || "Untitled Unit"),
-      theme: String(u.theme || "General English"),
-      lessons: (u.lessons || []).slice(0, safeLessons).map((l: any, idx: number) => {
-        const expectedSkill = SKILL_ROTATION[idx % SKILL_ROTATION.length];
-        const aiSkill = String(l.skill_focus || "");
-        const skill_focus = SKILL_ROTATION.find(
-          (s) => aiSkill.toLowerCase().includes(s.toLowerCase().split("/")[0])
-        ) || expectedSkill;
+    // Normalize a skill string to one of VALID_SKILLS
+    const normalizeSkill = (raw: string): string => {
+      const v = (raw || "").toLowerCase();
+      if (v.startsWith("rev")) return "Review";
+      if (v.startsWith("gram")) return "Grammar";
+      if (v.startsWith("voc")) return "Vocabulary";
+      if (v.startsWith("speak") || v.startsWith("role")) return "Speaking";
+      if (v.includes("read") || v.includes("listen")) return "Reading/Listening";
+      return "";
+    };
+
+    // Inject UUIDs, numbering, and enforce skill rotation + Review-last rule
+    const units = (parsed.units || []).slice(0, safeUnits).map((u: any, uIdx: number) => {
+      const rawLessons = (u.lessons || []).slice(0, safeLessons);
+      const lessons = rawLessons.map((l: any, idx: number) => {
+        const isLast = idx === rawLessons.length - 1;
+        let skill_focus: string;
+        if (isLast) {
+          skill_focus = "Review"; // hard rule: last lesson is always Review
+        } else {
+          const expectedSkill = SKILL_ROTATION[idx % SKILL_ROTATION.length];
+          const aiSkill = normalizeSkill(String(l.skill_focus || ""));
+          skill_focus =
+            aiSkill && aiSkill !== "Review" && VALID_SKILLS.includes(aiSkill)
+              ? aiSkill
+              : expectedSkill;
+        }
+        const objective = String(l.objective || l.learning_objective || "");
         return {
           lesson_id: uuid(),
+          lesson_number: idx + 1,
           title: String(l.title || `Lesson ${idx + 1}`),
           skill_focus,
-          learning_objective: String(l.learning_objective || ""),
+          objective,
+          // back-compat for older consumers
+          learning_objective: objective,
         };
-      }),
-    }));
+      });
+      return {
+        unit_number: uIdx + 1,
+        unit_title: String(u.unit_title || `Unit ${uIdx + 1}`),
+        theme: String(u.theme || "General English"),
+        lessons,
+      };
+    });
 
     return new Response(
       JSON.stringify({
