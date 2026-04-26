@@ -164,7 +164,7 @@ export const CalendarCore: React.FC<CalendarCoreProps> = ({
                  maskComposite: 'exclude',
                  padding: '2px'
                }} />
-        </div>
+        </button>
       );
     }
 
