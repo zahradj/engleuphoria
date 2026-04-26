@@ -64,7 +64,7 @@ export const StudioHeader: React.FC = () => {
     setSavingDraft(true);
     const res = await persistLesson(activeLessonData, activeLessonData.slides, false);
     setSavingDraft(false);
-    if (!res.ok) {
+    if (res.ok === false) {
       toast.error(`Could not save draft: ${res.error}`);
       return;
     }
@@ -84,7 +84,7 @@ export const StudioHeader: React.FC = () => {
     setPublishing(true);
     const res = await persistLesson(activeLessonData, activeLessonData.slides, true);
     setPublishing(false);
-    if (!res.ok) {
+    if (res.ok === false) {
       toast.error(`Publish failed: ${res.error}`);
       return;
     }
