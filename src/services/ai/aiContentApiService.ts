@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-const isSupabaseConfigured = () => true; // Always configured in Lovable projects
+const isSupabaseConfigured = () => true; // Always configured in Engleuphoria deployments
 import { AIContentRequest, AIGeneratedContent } from './types';
 
 export class AIContentApiService {
