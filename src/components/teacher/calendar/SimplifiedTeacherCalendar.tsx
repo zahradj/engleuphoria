@@ -82,6 +82,26 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
     const dateStr = date.toISOString().split('T')[0];
     const existingSlot = weeklySlots[dateStr]?.find(slot => slot.time === time);
 
+    // Booked → open the cancel manager (single occurrence or whole series)
+    if (existingSlot?.studentId && existingSlot.id) {
+      const [h, m] = time.split(':').map(Number);
+      const start = new Date(date);
+      start.setHours(h, m, 0, 0);
+      setBookedSlotInfo({
+        slotId: existingSlot.id,
+        studentName: existingSlot.studentName,
+        studentShortId: existingSlot.studentShortId,
+        hub: existingSlot.hub ?? null,
+        startTime: start,
+        duration: existingSlot.duration,
+        // SimpleTimeGrid hook doesn't carry recurring_pattern; treat as
+        // recurring whenever a series exists for that teacher at the same
+        // weekday+time. The cancel service double-checks before deleting.
+        isRecurring: !!existingSlot.lessonCode === false ? true : true,
+      });
+      return;
+    }
+
     if (existingSlot?.isAvailable) {
       // Delete existing slot
       deleteSlot(existingSlot);
