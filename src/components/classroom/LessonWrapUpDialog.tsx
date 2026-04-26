@@ -233,7 +233,7 @@ export const LessonWrapUpDialog: React.FC<LessonWrapUpDialogProps> = ({
         description: showSkillScores
           ? 'Lesson closed for the student and earnings updated. Skill scores synced to dashboard.'
           : 'Lesson closed for the student and earnings updated.',
-        className: 'bg-emerald-900 border-emerald-700'
+        className: 'bg-emerald-600 text-white border-emerald-700'
       });
 
       onOpenChange(false);
