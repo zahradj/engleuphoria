@@ -9,6 +9,7 @@ import { StageMode } from '@/services/whiteboardService';
 import { createHyperbeamSession } from './MultiplayerWebStage';
 import { coBrowserController } from './coBrowserController';
 import { useToast } from '@/hooks/use-toast';
+import { audioService } from '@/services/audioService';
 
 const PEN_COLORS = ['#FF3B30', '#007AFF', '#34C759', '#FF9500', '#AF52DE', '#000000'];
 
