@@ -10,6 +10,7 @@ import { ApiKeyDialog } from "./ApiKeyDialog";
 import { Trophy, Award, History, BarChart3, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { audioService } from "@/services/audioService";
+import { soundEffectsService } from "@/services/soundEffectsService";
 
 interface RewardData {
   id: string;
