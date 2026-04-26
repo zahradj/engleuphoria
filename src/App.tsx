@@ -206,29 +206,11 @@ const App = () => {
                         </ImprovedProtectedRoute>
                       } />
 
-                      {/* Content Creator — Master PPP Wizard (full-screen, takes precedence over dashboard catch-all) */}
-                      <Route path="/content-creator/master-wizard" element={
-                        <ImprovedProtectedRoute requiredRole="content_creator">
-                          <Suspense fallback={<LoadingFallback />}>
-                            <MasterPPPWizard />
-                          </Suspense>
-                        </ImprovedProtectedRoute>
-                      } />
-
-                      {/* Content Creator — 4-Skills Blueprint Builder (full-screen) */}
-                      <Route path="/content-creator/blueprint" element={
-                        <ImprovedProtectedRoute requiredRole="content_creator">
-                          <Suspense fallback={<LoadingFallback />}>
-                            <BlueprintBuilderPage />
-                          </Suspense>
-                        </ImprovedProtectedRoute>
-                      } />
-
-                      {/* Content Creator Dashboard - Protected */}
+                      {/* Content Creator — Unified Studio Shell (full-screen workspace) */}
                       <Route path="/content-creator/*" element={
                         <ImprovedProtectedRoute requiredRole="content_creator">
                           <Suspense fallback={<LoadingFallback />}>
-                            <ContentCreatorDashboard />
+                            <CreatorStudioShell />
                           </Suspense>
                         </ImprovedProtectedRoute>
                       } />
