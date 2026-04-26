@@ -1,5 +1,5 @@
 import React from 'react';
-import { SkillFocus } from '../CreatorContext';
+import { SkillFocus } from '../../CreatorContext';
 import { cn } from '@/lib/utils';
 
 const STYLES: Record<string, { dot: string; text: string; bg: string; border: string }> = {
