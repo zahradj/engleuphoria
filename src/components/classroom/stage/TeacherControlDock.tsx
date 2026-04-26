@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { SoundButton } from '@/components/ui/sound-button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -8,6 +9,7 @@ import { StageMode } from '@/services/whiteboardService';
 import { createHyperbeamSession } from './MultiplayerWebStage';
 import { coBrowserController } from './coBrowserController';
 import { useToast } from '@/hooks/use-toast';
+import { audioService } from '@/services/audioService';
 
 const PEN_COLORS = ['#FF3B30', '#007AFF', '#34C759', '#FF9500', '#AF52DE', '#000000'];
 
@@ -283,22 +285,22 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
                 <div className="space-y-3">
                   <div className="grid grid-cols-3 gap-2">
                     {onGiveStar && (
-                      <Button variant="ghost" onClick={onGiveStar} className="h-16 flex flex-col items-center justify-center gap-1 bg-yellow-500 hover:bg-yellow-600 text-white">
+                      <SoundButton variant="ghost" soundType="star" onClick={onGiveStar} className="h-16 flex flex-col items-center justify-center gap-1 bg-yellow-500 hover:bg-yellow-600 text-white">
                         <Star className="h-5 w-5" />
                         <span className="text-[10px] font-semibold">Give Star</span>
-                      </Button>
+                      </SoundButton>
                     )}
                     {onOpenTimer && (
-                      <Button variant="ghost" onClick={onOpenTimer} className="h-16 flex flex-col items-center justify-center gap-1 bg-blue-500 hover:bg-blue-600 text-white">
+                      <SoundButton variant="ghost" soundType="timer" onClick={onOpenTimer} className="h-16 flex flex-col items-center justify-center gap-1 bg-blue-500 hover:bg-blue-600 text-white">
                         <TimerIcon className="h-5 w-5" />
                         <span className="text-[10px] font-semibold">Timer</span>
-                      </Button>
+                      </SoundButton>
                     )}
                     {onRollDice && (
-                      <Button variant="ghost" onClick={onRollDice} className="h-16 flex flex-col items-center justify-center gap-1 bg-purple-500 hover:bg-purple-600 text-white">
+                      <SoundButton variant="ghost" soundType="dice" onClick={onRollDice} className="h-16 flex flex-col items-center justify-center gap-1 bg-purple-500 hover:bg-purple-600 text-white">
                         <Dice6 className="h-5 w-5" />
                         <span className="text-[10px] font-semibold">Dice</span>
-                      </Button>
+                      </SoundButton>
                     )}
                   </div>
                   {onSendSticker && (
@@ -310,7 +312,10 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
                         {STICKER_PACK.map((emoji) => (
                           <button
                             key={emoji}
-                            onClick={() => onSendSticker(emoji)}
+                            onClick={() => {
+                              audioService.playStickerSound();
+                              onSendSticker(emoji);
+                            }}
                             className="h-10 w-full text-xl rounded-lg hover:bg-pink-100 active:scale-95 transition-all flex items-center justify-center"
                             aria-label={`Send ${emoji} reaction`}
                           >
