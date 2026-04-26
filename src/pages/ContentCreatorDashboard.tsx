@@ -120,12 +120,10 @@ const ContentCreatorDashboard: React.FC = () => {
         </Button>
       </header>
 
-      {currentStep !== 2 && (
-        <ContentCreatorStepper currentStep={currentStep} onStepChange={setCurrentStep} progress={progress} />
-      )}
+      <ContentCreatorStepper currentStep={currentStep} onStepChange={setCurrentStep} progress={progress} />
 
       {isFullBleed ? (
-        <div className="flex-1 min-h-0">{renderStepContent()}</div>
+        <div className="flex-1 min-h-0 overflow-hidden">{renderStepContent()}</div>
       ) : (
         <main className="flex-1 p-6 overflow-auto">{renderStepContent()}</main>
       )}
