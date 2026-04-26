@@ -105,6 +105,24 @@ export function SoundSettings() {
       icon: <XCircle size={14} />,
       onClick: () => audioService.playErrorSound(),
     },
+    {
+      key: "dice",
+      label: "Dice Roll",
+      icon: <Bell size={14} />,
+      onClick: () => audioService.playDiceSound(),
+    },
+    {
+      key: "timer_warn",
+      label: "Timer Warn",
+      icon: <Bell size={14} />,
+      onClick: () => audioService.playTimerWarningSound(),
+    },
+    {
+      key: "timer_done",
+      label: "Timer Done",
+      icon: <Bell size={14} />,
+      onClick: () => audioService.playTimerDoneSound(),
+    },
   ];
 
   return (

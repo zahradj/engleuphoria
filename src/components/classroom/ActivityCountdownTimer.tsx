@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Timer, Play, Pause, RotateCcw } from "lucide-react";
+import { audioService } from "@/services/audioService";
 
 interface ActivityCountdownTimerProps {
   className?: string;
@@ -14,22 +15,35 @@ export function ActivityCountdownTimer({ className = "" }: ActivityCountdownTime
   const [isSettingTime, setIsSettingTime] = useState(false);
   const [inputMinutes, setInputMinutes] = useState(5);
 
+  // Track which audio cues we've already fired this run so we don't spam them.
+  const warnedRef = useRef(false);
+  const doneRef = useRef(false);
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    
+
     if (isRunning && remainingSeconds > 0) {
       interval = setInterval(() => {
         setRemainingSeconds(prev => {
-          if (prev <= 1) {
+          const next = prev - 1;
+          // Friendly warning chime at the 10-second mark.
+          if (next === 10 && !warnedRef.current) {
+            warnedRef.current = true;
+            audioService.playTimerWarningSound();
+          }
+          if (next <= 0) {
             setIsRunning(false);
-            // Activity time finished notification could be added here
+            if (!doneRef.current) {
+              doneRef.current = true;
+              audioService.playTimerDoneSound();
+            }
             return 0;
           }
-          return prev - 1;
+          return next;
         });
       }, 1000);
     }
-    
+
     return () => clearInterval(interval);
   }, [isRunning, remainingSeconds]);
 
@@ -40,6 +54,9 @@ export function ActivityCountdownTimer({ className = "" }: ActivityCountdownTime
   };
 
   const startTimer = () => {
+    // New run — re-arm the audio cues.
+    if (remainingSeconds > 10) warnedRef.current = false;
+    doneRef.current = false;
     setIsRunning(true);
     setIsSettingTime(false);
   };
@@ -50,6 +67,8 @@ export function ActivityCountdownTimer({ className = "" }: ActivityCountdownTime
 
   const resetTimer = () => {
     setIsRunning(false);
+    warnedRef.current = false;
+    doneRef.current = false;
     setRemainingSeconds(totalSeconds);
   };
 
@@ -57,6 +76,8 @@ export function ActivityCountdownTimer({ className = "" }: ActivityCountdownTime
     const newSeconds = inputMinutes * 60;
     setTotalSeconds(newSeconds);
     setRemainingSeconds(newSeconds);
+    warnedRef.current = false;
+    doneRef.current = false;
     setIsRunning(false);
     setIsSettingTime(false);
   };

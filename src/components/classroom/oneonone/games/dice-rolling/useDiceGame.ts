@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { DiceConfig, DiceResult, DiceGameState } from "./types";
 import { diceContentSets } from "./diceContentSets";
 import { generateAIChallenge } from "./challengeGenerator";
+import { audioService } from "@/services/audioService";
 
 export function useDiceGame() {
   const { toast } = useToast();
@@ -30,7 +31,8 @@ export function useDiceGame() {
 
   const rollDice = () => {
     if (state.isRolling) return;
-    
+
+    audioService.playDiceSound();
     setState(prev => ({ ...prev, isRolling: true, aiChallenge: '' }));
     
     // Simulate rolling animation
