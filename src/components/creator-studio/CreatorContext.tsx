@@ -2,15 +2,21 @@ import React, { createContext, useContext, useMemo, useState } from 'react';
 
 export type CreatorStep = 'blueprint' | 'slide-builder' | 'library';
 
-export type CEFRLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1';
+export type CEFRLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 export type HubType = 'playground' | 'academy' | 'success';
 export type Phase = 'warm-up' | 'presentation' | 'practice' | 'production' | 'review';
 
+export type SkillFocus = 'Grammar' | 'Vocabulary' | 'Reading/Listening' | 'Speaking' | 'Review';
+
 export interface BlueprintLessonRef {
   id: string;
+  lesson_number?: number;
   title: string;
-  skill_focus?: string;
+  skill_focus?: SkillFocus | string;
+  objective?: string;
+  /** @deprecated alias of objective, kept for back-compat */
   learning_objective?: string;
+  unit_number?: number;
   unit_title?: string;
   unit_theme?: string;
 }
@@ -19,8 +25,10 @@ export interface CurriculumData {
   curriculum_title: string;
   cefr_level: CEFRLevel;
   hub: HubType;
+  theme_hint?: string;
   units: Array<{
     id: string;
+    unit_number?: number;
     unit_title: string;
     theme?: string;
     lessons: BlueprintLessonRef[];
