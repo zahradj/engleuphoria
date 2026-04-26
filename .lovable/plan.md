@@ -1,120 +1,149 @@
-## Goal
+# Phase 3: Slide Studio & PPP Generator
 
-Replace the current sprawling `AdminLessonEditor` used in Step 2 of the Content Creator Dashboard with a focused **Integrated Slide Studio** that is the natural continuation of the Blueprint flow: AI does the heavy lifting, the creator polishes in a Canva-style canvas, then publishes to the Library in one click.
+Build out the `<SlideStudio />` component so creators can auto-generate, edit, and publish a full PPP lesson into the `curriculum_lessons` library. The work spans one new edge function, several new UI components, and a wired-up publish flow that hands off to `<LibraryManager />`.
 
-## What you will see
+---
 
-### Step 2 — "Slide Studio" (new screen, replaces Slide Builder)
+## 1. Edge Function — `generate-ppp-slides`
 
-```text
-┌──────────────────────────────────────────────────────────────────────┐
-│ ← Back to Blueprint    Slide Studio          [💾 Publish to Library] │
-├──────────────────────────────────────────────────────────────────────┤
-│ ┌──────────────────────────────────────────────────────────────────┐ │
-│ │ FROM BLUEPRINT  ·  Focus: Speaking                               │ │
-│ │ Lesson: "Ordering Coffee in a Café"                              │ │
-│ │ Unit: Travel Adventures   🎯 Real-world café conversations       │ │
-│ │ 🎓 SWBAT order a drink politely using "Could I have…"            │ │
-│ │                                                                  │ │
-│ │      ┌───────────────────────────────────────┐                   │ │
-│ │      │ ✨ Auto-Generate PPP Slides with AI  │                   │ │
-│ │      └───────────────────────────────────────┘                   │ │
-│ └──────────────────────────────────────────────────────────────────┘ │
-│                                                                      │
-│ ┌─── Filmstrip ───┐  ┌──────── Slide Preview & Editor ─────────┐   │
-│ │ ▶ 1 Warm-Up     │  │                                          │   │
-│ │   2 Video Song  │  │  [HD Unsplash image, swap-able]          │   │
-│ │   3 Vocab       │  │                                          │   │
-│ │   4 Grammar     │  │  Title:  [editable]                      │   │
-│ │   5 Quiz        │  │  Body:   [editable textarea]             │   │
-│ │   6 Roleplay    │  │  Teacher tips: [editable textarea]       │   │
-│ │   7 Production  │  │  Visual keyword: [input → re-fetch img]  │   │
-│ │   8 Review      │  │  Or paste a custom image URL: [input]    │   │
-│ │ + Blank Slide   │  │                                          │   │
-│ │ + Game Slide    │  │  Interactive options: [chip editor]      │   │
-│ └─────────────────┘  └──────────────────────────────────────────┘   │
-└──────────────────────────────────────────────────────────────────────┘
+New function: `supabase/functions/generate-ppp-slides/index.ts`.
+
+- Inputs: `lesson_title`, `objective`, `skill_focus`, `cefr_level`, `hub`.
+- Uses Lovable AI Gateway (`google/gemini-3-flash-preview`) with **tool calling** for strict structured output (no JSON-in-text parsing).
+- Returns a 6-slide PPP arc honoring the project's "Scaffolded Mastery" rule (Warm-Up → Presentation → Practice → Production → Review), with the right slide_type per phase.
+
+Strict per-slide schema enforced via tool parameters:
 ```
-
-### Step 3 — "Library" (existing `LessonLibraryHub`)
-
-After publishing, the user is automatically routed here and the new lesson appears at the top with a brief "✓ Just published" highlight.
-
-## Key Behaviours
-
-1. **Blueprint context banner** — When the user lands here from "Build Slides" on the Blueprint, the banner shows lesson title, skill focus chip, unit title, theme, and learning objective. The big primary button is enabled and labelled "Auto-Generate PPP Slides with AI". When there is no Blueprint context, the banner is hidden and the button reads "Generate Master PPP Lesson" — the user enters a topic in a small inline form.
-
-2. **Auto-generation** — Clicking the button calls the existing `generate-lesson-plan` edge function with `mode: full_deck`, the resolved `hub`, `cefr_level`, `topic` (lesson title), and the `skill_focus` injected into `lessonPrompt` so the AI prioritises that strand. Slides arrive in PPP order: Warm-up → Presentation → Practice → Production → Review.
-
-3. **Filmstrip (left, ~220px)**
-   - PowerPoint-style vertical list. Each thumbnail shows phase color stripe, slide number, title, and a 64px Unsplash preview.
-   - Click selects; drag-to-reorder; right-click (or kebab) → Duplicate / Delete / Move up / Move down.
-   - Two "Add" buttons at the bottom: **+ Blank Slide** (empty editable slide) and **+ Activity Slide** (preset for a quick game/worksheet — adds a slide with `slide_type: activity` and an empty `interactive_options` array).
-
-4. **Center editor** — Renders the selected slide as a large preview with inline-editable fields:
-   - **Image area** with an "Swap image" overlay button. Two ways to change: (a) edit `visual_keyword` → automatic Unsplash re-fetch; (b) paste a direct image URL into the "Custom image URL" field, which overrides Unsplash.
-   - **Title**, **Body/Content**, **Teacher Instructions**, **Phase** (select), **Interactive options** (chip list with add/remove).
-   - All edits are kept in local component state, no autosave noise.
-
-5. **Publish to Library** (top-right, gradient emerald button)
-   - Validates: at least 1 slide and a non-empty lesson title.
-   - Saves to `curriculum_lessons` with: `title`, `description = target_goal`, `content = { structuredData: { lesson_title, target_goal, target_grammar, target_vocabulary, roadmap, slides }, hub, cefr_level, blueprint_context }`, `target_system`, `difficulty_level`, `duration_minutes`, `skills_focus`, `is_published: true`, `created_by`.
-   - Toast: "✅ Published to Library!" → router pushes Step 3, and the lesson list refreshes so the new card sits at the top.
-
-6. **No data loss safeguards** — If the user clicks Back / Step nav while the deck has unsaved AI-generated slides, prompt with a confirm dialog ("You have unsaved slides — leave anyway?").
-
-## Files to add
-
-- `src/components/content-creator/slide-studio/SlideStudio.tsx` — orchestrator (state, generate, save, navigation).
-- `src/components/content-creator/slide-studio/SlideFilmstrip.tsx` — left vertical list with reordering and add buttons.
-- `src/components/content-creator/slide-studio/SlideEditor.tsx` — center editor (image swap, fields, interactive options chip editor).
-- `src/components/content-creator/slide-studio/BlueprintContextBanner.tsx` — top banner + Generate button + manual-topic fallback.
-- `src/components/content-creator/slide-studio/types.ts` — shared `StudioSlide`, `StudioLesson`, `BlueprintHandoff` types (re-using the PPP shape from `MasterPPPWizard`).
-
-## Files to modify
-
-- `src/pages/ContentCreatorDashboard.tsx`
-  - Replace Step 2 render from `<AdminLessonEditor …/>` to `<SlideStudio onPublished={() => setCurrentStep(3)} curriculumContext={curriculumContext} />`.
-  - Keep the existing Blueprint banner and stepper untouched; remove `isFullBleed` since the Studio manages its own layout inside the dashboard frame (Step 2 will render in the standard `<main>` shell, not full-bleed).
-  - Pass the route `location.state` Blueprint handoff into `<SlideStudio>` so the banner appears even when the user lands directly on Step 2 from the Blueprint's "Build Slides" button (we keep `/content-creator/master-wizard` route for the standalone Master Wizard, but Step 2 inside the dashboard becomes the Studio).
-- `src/components/content-creator/BlueprintBuilderPage.tsx`
-  - Change `buildSlides` navigation target from `/content-creator/master-wizard` to `/content-creator` with the same `state`, then auto-jump to Step 2 via a small `useEffect` in the dashboard that reads `location.state.fromBlueprint`.
-
-## Files to retire (kept on disk, no longer wired into the dashboard)
-
-- `AdminLessonEditor` and the heavy `lesson-builder/*` editor remain in the codebase (still referenced from admin pages elsewhere). Step 2 no longer mounts them.
-- The standalone `/content-creator/master-wizard` route stays for power users — it now coexists with the integrated Studio.
-
-## Edge function
-
-No new edge function. Reuse the existing `generate-lesson-plan` (full_deck mode) with this body:
-
-```ts
 {
-  hub,                     // resolved from age group / handoff
-  cefr_level,              // from handoff or input
-  topic: lesson_title,
-  mode: 'full_deck',
-  lessonPrompt: `Skill focus: ${skill_focus}. Learning objective: ${learning_objective}. Unit theme: ${unit_theme}.`
+  phase: 'Warm-up' | 'Presentation' | 'Practice' | 'Production' | 'Review',
+  slide_type: 'text_image' | 'multiple_choice' | 'drawing_prompt',
+  title: string,
+  content: string,             // for MCQ: stringified JSON { question, options[], answer }
+  teacher_script: string,      // 2–3 high-energy sentences
+  visual_keyword: string       // 1–2 words, Unsplash-friendly
 }
 ```
+- IDs are generated client-side (`crypto.randomUUID()`) after the response so we don't trust the model with UUIDs.
+- Handles 429 / 402 with proper status codes surfaced to the toast layer.
 
-## Database
+---
 
-No schema changes. We write to the existing `curriculum_lessons` table (matches the current `MasterPPPWizard.handleSave` payload). The `is_published` flag is set to `true` on publish so the Library tab shows it immediately.
+## 2. Context updates — `CreatorContext.tsx`
 
-## Out of scope (intentionally)
+Extend `PPPSlide` so it matches the new schema without breaking existing fields:
+```
+slide_type?: 'text_image' | 'multiple_choice' | 'drawing_prompt'
+teacher_script?: string         // new (replaces teacher_instructions in UI)
+```
+Keep legacy fields as optional. Also expose helper setters:
+- `updateSlide(id, patch)` — patches one slide and flips `isDirty`.
+- `replaceSlides(slides[])` — used after generation.
 
-- Drag-and-drop visual canvas like Canva (heavy lift, not requested). The "Slide Preview & Editor" is a polished form-style editor on top of a large image preview — fast to ship, easy to use.
-- Real-time multi-user editing.
-- Re-running generation per slide (the existing single-slide regeneration in `MasterPPPWizard` can be ported later if needed).
+---
 
-## Acceptance criteria
+## 3. New components under `src/components/creator-studio/steps/slide-studio/`
 
-- Clicking "Build Slides" on a Blueprint lesson lands on Step 2 with the context banner pre-filled and the big AI button visible.
-- Clicking the AI button produces 8–10 PPP slides in the filmstrip in under ~15 seconds.
-- Selecting a filmstrip thumbnail loads it in the center editor with all fields editable.
-- "+ Blank Slide" and "+ Activity Slide" both insert a new slide that can be edited and reordered.
-- Editing `visual_keyword` swaps the Unsplash image; pasting a custom URL overrides it.
-- "Publish to Library" writes a row to `curriculum_lessons`, fires a success toast, and routes to Step 3 where the new lesson appears at the top.
-- Refreshing the page on Step 2 does not crash; without a Blueprint handoff, the user can still type a topic and generate manually.
+```
+slide-studio/
+  SlideStudio.tsx          // orchestrator (replaces current placeholder)
+  EmptyState.tsx           // big "✨ Auto-Generate PPP Slides" CTA
+  SlideThumbnailRail.tsx   // LEFT column — phase-grouped thumbnails
+  SlideCanvas.tsx          // CENTER column — WYSIWYG with Unsplash bg
+  TeacherControlsPanel.tsx // RIGHT column — script + slide_type dropdown
+  phaseTheme.ts            // shared phase color tokens
+```
+
+### `SlideStudio.tsx` (orchestrator)
+- Reads `activeLessonData` from context. If missing → friendly "Pick a lesson from the Blueprint first" panel + button to switch step.
+- Renders header strip with **Lesson Title** + **Objective** + skill badge.
+- If `slides.length === 0` → render `<EmptyState />`.
+- Else → 3-column grid `grid-cols-[260px_1fr_320px]` with the rail / canvas / controls.
+- Holds `activeSlideId` local state.
+
+### `EmptyState.tsx`
+- Massive centered card, gradient CTA "✨ Auto-Generate PPP Slides".
+- Calls `supabase.functions.invoke('generate-ppp-slides', …)` with a loading state.
+- On success → assigns UUIDs and `replaceSlides(...)`, auto-selects first slide.
+- Surfaces 402 / 429 with branded toasts per workspace rules.
+
+### `SlideThumbnailRail.tsx`
+- Scrollable list grouped by PPP phase, color-coded with `phaseTheme.ts` (Warm-Up amber, Presentation blue, Practice purple, Production emerald, Review slate).
+- Each card shows phase chip, slide number, truncated title, and a tiny `slide_type` icon.
+- Click sets active slide.
+
+### `SlideCanvas.tsx`
+- Uses `https://source.unsplash.com/1024x768/?{visual_keyword}` as background with a dark overlay for readability.
+- Inline-editable **title** (`contentEditable` styled input) and **content** (textarea) with debounced `updateSlide`.
+- For `multiple_choice`: parses `content` JSON and shows editable question + chip options (falls back gracefully if JSON malformed).
+- For `drawing_prompt`: renders a prompt card with a placeholder canvas illustration.
+- Glassmorphic card per workspace branding.
+
+### `TeacherControlsPanel.tsx`
+- Textarea bound to `teacher_script`.
+- `slide_type` dropdown (shadcn `Select`) — switching triggers a sane content reset (e.g. picking `multiple_choice` seeds a default `{question, options, answer}` JSON).
+- `visual_keyword` input (so creators can re-roll the background).
+- Read-only phase chip with note that phase is set by the blueprint.
+
+---
+
+## 4. Publish flow — `StudioHeader.tsx`
+
+Make the header context-aware:
+- When `currentStep === 'slide-builder'` and there are slides, the existing **Publish** button becomes **💾 Save & Publish to Library**.
+- Click handler:
+  1. Build payload:
+     ```
+     {
+       title: activeLessonData.lesson_title,
+       description: activeLessonData.target_goal,
+       target_system: activeLessonData.hub,        // playground | academy | success
+       difficulty_level: activeLessonData.cefr_level,
+       skills_focus: [source_lesson.skill_focus],
+       content: { slides: [...] },
+       ai_metadata: { source: 'creator-studio-ppp', generated_at, blueprint_ref },
+       is_published: true,
+       created_by: auth.user.id,
+       level_id / unit_id: from blueprint if present
+     }
+     ```
+  2. `supabase.from('curriculum_lessons').insert(payload).select().single()`.
+  3. On success → toast "Lesson published 🎉", clear `activeLessonData`, set `isDirty=false`, switch step to `library`.
+  4. On error → toast with the Postgres message; don't clear state.
+
+Save Draft (existing button) reuses the same insert with `is_published: false`.
+
+---
+
+## 5. LibraryManager — minimal touch
+
+Out of scope for the full library build, but to make the post-publish landing useful we'll add a small "Recently published" list to `LibraryManager.tsx`: query `curriculum_lessons` filtered by `created_by = auth.uid()` ordered by `updated_at desc limit 10`, with a phase-coloured strip and the lesson title. Full library UI stays for Phase 4.
+
+---
+
+## Technical details
+
+- **Schema**: `curriculum_lessons` already has `content jsonb`, `ai_metadata jsonb`, `skills_focus text[]`, `is_published bool`, `created_by uuid`, `target_system text`, `difficulty_level text` — no migration required. Slides are stored under `content.slides`.
+- **Auth**: insert relies on existing RLS for content creators (`created_by = auth.uid()`); we won't touch policies.
+- **AI**: edge function uses Lovable AI Gateway with tool-calling for structured output. Default model `google/gemini-3-flash-preview`. CORS + 402/429 handled per house standard.
+- **Unsplash** is loaded as a plain `<img>` / CSS `background-image` from `source.unsplash.com` — no key, with a neutral gradient fallback if the request fails.
+- **Branding**: glassmorphism cards, hub-specific accent colors in the canvas chrome (Playground orange / Academy purple / Success emerald) read from `activeLessonData.hub`.
+- **No mock data, no placeholder slides** — empty state until the AI runs, per project rules.
+
+---
+
+## Files
+
+**New**
+- `supabase/functions/generate-ppp-slides/index.ts`
+- `src/components/creator-studio/steps/slide-studio/SlideStudio.tsx`
+- `src/components/creator-studio/steps/slide-studio/EmptyState.tsx`
+- `src/components/creator-studio/steps/slide-studio/SlideThumbnailRail.tsx`
+- `src/components/creator-studio/steps/slide-studio/SlideCanvas.tsx`
+- `src/components/creator-studio/steps/slide-studio/TeacherControlsPanel.tsx`
+- `src/components/creator-studio/steps/slide-studio/phaseTheme.ts`
+
+**Edited**
+- `src/components/creator-studio/steps/SlideStudio.tsx` (re-export new orchestrator)
+- `src/components/creator-studio/CreatorContext.tsx` (extend `PPPSlide`, add helpers)
+- `src/components/creator-studio/StudioHeader.tsx` (wire publish/save-draft to Supabase + step switch)
+- `src/components/creator-studio/steps/LibraryManager.tsx` (recent published list)

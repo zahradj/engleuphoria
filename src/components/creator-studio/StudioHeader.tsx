@@ -1,20 +1,100 @@
-import React from 'react';
-import { Save, Rocket } from 'lucide-react';
+import React, { useState } from 'react';
+import { Save, Rocket, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useCreator } from './CreatorContext';
+import { useCreator, ActiveLessonData, PPPSlide } from './CreatorContext';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+
+async function persistLesson(
+  lesson: ActiveLessonData,
+  slides: PPPSlide[],
+  isPublished: boolean,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData.user?.id;
+  if (!userId) return { ok: false, error: 'You must be signed in to save.' };
+
+  const payload: any = {
+    title: lesson.lesson_title,
+    description: lesson.target_goal ?? null,
+    target_system: lesson.hub,
+    difficulty_level: lesson.cefr_level,
+    duration_minutes: 30,
+    content: { slides },
+    ai_metadata: {
+      source: 'creator-studio-ppp',
+      generated_at: new Date().toISOString(),
+      blueprint_ref: lesson.source_lesson ?? null,
+    },
+    is_published: isPublished,
+    created_by: userId,
+    skills_focus: lesson.source_lesson?.skill_focus ? [String(lesson.source_lesson.skill_focus)] : [],
+    language: 'en',
+    is_review: lesson.source_lesson?.skill_focus === 'Review',
+  };
+  if (lesson.level_id) payload.level_id = lesson.level_id;
+  if (lesson.unit_id) payload.unit_id = lesson.unit_id;
+
+  const { error } = await supabase.from('curriculum_lessons').insert(payload);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
 
 export const StudioHeader: React.FC = () => {
-  const { workingTitle, isDirty, currentStep } = useCreator();
+  const {
+    workingTitle,
+    isDirty,
+    currentStep,
+    activeLessonData,
+    setActiveLessonData,
+    setCurrentStep,
+    setDirty,
+  } = useCreator();
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [publishing, setPublishing] = useState(false);
 
-  const handleSaveDraft = () => {
-    // Wired in feature components later. Placeholder behaviour for the shell.
-    toast.message('Draft saved', { description: 'Auto-save hook will plug in here.' });
+  const inSlideStudio = currentStep === 'slide-builder';
+  const hasSlides = !!activeLessonData?.slides?.length;
+
+  const handleSaveDraft = async () => {
+    if (!inSlideStudio || !activeLessonData) {
+      toast.message('Open a lesson in the Slide Studio to save a draft.');
+      return;
+    }
+    setSavingDraft(true);
+    const res = await persistLesson(activeLessonData, activeLessonData.slides, false);
+    setSavingDraft(false);
+    if (res.ok === false) {
+      toast.error(`Could not save draft: ${res.error}`);
+      return;
+    }
+    setDirty(false);
+    toast.success('Draft saved');
   };
 
-  const handlePublish = () => {
-    toast.message('Publish flow', { description: 'Will be wired into the active step.' });
+  const handlePublish = async () => {
+    if (!inSlideStudio || !activeLessonData) {
+      toast.message('Open a lesson in the Slide Studio to publish.');
+      return;
+    }
+    if (!hasSlides) {
+      toast.error('Generate or add slides before publishing.');
+      return;
+    }
+    setPublishing(true);
+    const res = await persistLesson(activeLessonData, activeLessonData.slides, true);
+    setPublishing(false);
+    if (res.ok === false) {
+      toast.error(`Publish failed: ${res.error}`);
+      return;
+    }
+    toast.success('Lesson published to the Master Library 🎉');
+    setDirty(false);
+    setActiveLessonData(null);
+    setCurrentStep('library');
   };
+
+  const publishLabel = inSlideStudio ? 'Save & Publish to Library' : 'Publish';
 
   return (
     <header className="h-16 flex items-center justify-between gap-4 px-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0">
@@ -31,17 +111,24 @@ export const StudioHeader: React.FC = () => {
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
-        <Button variant="outline" size="sm" onClick={handleSaveDraft} className="gap-1.5">
-          <Save className="h-4 w-4" />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleSaveDraft}
+          disabled={savingDraft || publishing || !inSlideStudio}
+          className="gap-1.5"
+        >
+          {savingDraft ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           <span className="hidden sm:inline">Save Draft</span>
         </Button>
         <Button
           size="sm"
           onClick={handlePublish}
+          disabled={publishing || savingDraft || (inSlideStudio && !hasSlides)}
           className="gap-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white border-0 shadow-md"
         >
-          <Rocket className="h-4 w-4" />
-          <span className="hidden sm:inline">Publish</span>
+          {publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Rocket className="h-4 w-4" />}
+          <span className="hidden sm:inline">💾 {publishLabel}</span>
         </Button>
       </div>
     </header>

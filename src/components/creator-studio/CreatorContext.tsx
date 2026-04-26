@@ -35,16 +35,20 @@ export interface CurriculumData {
   }>;
 }
 
+export type SlideType = 'text_image' | 'multiple_choice' | 'drawing_prompt';
+
 export interface PPPSlide {
   id: string;
-  phase: Phase;
+  phase: Phase | string;
+  slide_type?: SlideType;
   title?: string;
   content?: string;
+  teacher_script?: string;
   visual_keyword?: string;
   custom_image_url?: string;
+  // legacy / optional
   teacher_instructions?: string;
   interactive_options?: string[];
-  slide_type?: string;
   interaction_type?: string;
 }
 
@@ -58,6 +62,9 @@ export interface ActiveLessonData {
   target_vocabulary?: string;
   roadmap?: string[];
   slides: PPPSlide[];
+  // Optional handoff metadata so we can persist links to the blueprint.
+  level_id?: string;
+  unit_id?: string;
 }
 
 interface CreatorContextValue {
@@ -69,6 +76,11 @@ interface CreatorContextValue {
 
   activeLessonData: ActiveLessonData | null;
   setActiveLessonData: (l: ActiveLessonData | null) => void;
+
+  /** Patch a single slide on the active lesson and mark the studio dirty. */
+  updateSlide: (id: string, patch: Partial<PPPSlide>) => void;
+  /** Replace the whole slide deck on the active lesson. */
+  replaceSlides: (slides: PPPSlide[]) => void;
 
   /** Computed working title for the studio header. */
   workingTitle: string;
@@ -97,6 +109,20 @@ export const CreatorProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return 'Creator Studio';
   }, [currentStep, activeLessonData, curriculumData]);
 
+  const updateSlide = (id: string, patch: Partial<PPPSlide>) => {
+    setActiveLessonData((prev) => {
+      if (!prev) return prev;
+      const slides = prev.slides.map((s) => (s.id === id ? { ...s, ...patch } : s));
+      return { ...prev, slides };
+    });
+    setDirty(true);
+  };
+
+  const replaceSlides = (slides: PPPSlide[]) => {
+    setActiveLessonData((prev) => (prev ? { ...prev, slides } : prev));
+    setDirty(true);
+  };
+
   const value: CreatorContextValue = {
     currentStep,
     setCurrentStep,
@@ -104,6 +130,8 @@ export const CreatorProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setCurriculumData,
     activeLessonData,
     setActiveLessonData,
+    updateSlide,
+    replaceSlides,
     workingTitle,
     isDirty,
     setDirty,
