@@ -9,12 +9,14 @@ async function persistLesson(
   lesson: ActiveLessonData,
   slides: PPPSlide[],
   isPublished: boolean,
-): Promise<{ ok: true } | { ok: false; error: string }> {
+): Promise<{ ok: true; lesson_id: string } | { ok: false; error: string }> {
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData.user?.id;
   if (!userId) return { ok: false, error: 'You must be signed in to save.' };
 
-  const payload: any = {
+  // Common payload used for both INSERT and UPDATE — the slides array always
+  // travels in the `content` JSONB column under `slides`.
+  const basePayload: Record<string, any> = {
     title: lesson.lesson_title,
     description: lesson.target_goal ?? null,
     target_system: lesson.hub,
@@ -27,17 +29,34 @@ async function persistLesson(
       blueprint_ref: lesson.source_lesson ?? null,
     },
     is_published: isPublished,
-    created_by: userId,
     skills_focus: lesson.source_lesson?.skill_focus ? [String(lesson.source_lesson.skill_focus)] : [],
     language: 'en',
     is_review: lesson.source_lesson?.skill_focus === 'Review',
   };
-  if (lesson.level_id) payload.level_id = lesson.level_id;
-  if (lesson.unit_id) payload.unit_id = lesson.unit_id;
+  if (lesson.level_id) basePayload.level_id = lesson.level_id;
+  if (lesson.unit_id) basePayload.unit_id = lesson.unit_id;
 
-  const { error } = await supabase.from('curriculum_lessons').insert(payload);
+  // UPDATE path — we have an existing row id from the library or a prior save.
+  if (lesson.lesson_id) {
+    const { data, error } = await supabase
+      .from('curriculum_lessons')
+      .update(basePayload)
+      .eq('id', lesson.lesson_id)
+      .select('id')
+      .maybeSingle();
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, lesson_id: data?.id ?? lesson.lesson_id };
+  }
+
+  // INSERT path — first-time save. Stamp created_by and return the new id.
+  const insertPayload = { ...basePayload, created_by: userId };
+  const { data, error } = await supabase
+    .from('curriculum_lessons')
+    .insert(insertPayload)
+    .select('id')
+    .single();
   if (error) return { ok: false, error: error.message };
-  return { ok: true };
+  return { ok: true, lesson_id: data.id };
 }
 
 export const StudioHeader: React.FC = () => {
@@ -67,6 +86,11 @@ export const StudioHeader: React.FC = () => {
     if (res.ok === false) {
       toast.error(`Could not save draft: ${res.error}`);
       return;
+    }
+    // Stamp the row id back into context so the next save UPDATEs instead of
+    // creating a duplicate row.
+    if (!activeLessonData.lesson_id) {
+      setActiveLessonData({ ...activeLessonData, lesson_id: res.lesson_id });
     }
     setDirty(false);
     toast.success('Draft saved');

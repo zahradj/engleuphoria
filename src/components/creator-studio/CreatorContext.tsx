@@ -70,6 +70,8 @@ export interface PPPSlide {
 }
 
 export interface ActiveLessonData {
+  /** Supabase curriculum_lessons.id — set when editing an existing row. */
+  lesson_id?: string;
   source_lesson?: BlueprintLessonRef;
   cefr_level: CEFRLevel;
   hub: HubType;
