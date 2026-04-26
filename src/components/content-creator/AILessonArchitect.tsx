@@ -196,6 +196,8 @@ export const AILessonArchitect: React.FC = () => {
             </Select>
           </div>
 
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Lesson Topic *</label>
             <Input
               placeholder="e.g. School Supplies, Job Interview Prep..."
               value={topic}
