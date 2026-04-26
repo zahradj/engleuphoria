@@ -153,13 +153,19 @@ Hub Colors: Primary #059669 (Emerald Green), Accent #F0FDFA (Mint).`;
     const SCHEMA_BLOCK = `Each slide MUST follow this exact schema:
 {
   "ppp_stage": "Warm-Up | Presentation | Practice | Production | Review",
+  "phase": "warm-up | presentation | practice | production | review",
   "slide_type": "title | video_song | vocabulary_image | grammar_presentation | interactive_quiz | roleplay | debate | activity | speaking_prompt | concept_check",
+  "interaction_type": "read | fill-in-the-blank | roleplay | open-question | matching | quiz",
+  "title": "A short slide title (3-6 words)",
   "headline": "The main large text shown to the student",
+  "content": "The main educational text, dialogue, or example for this slide",
   "body_text": "Secondary text, instructions, or quiz options",
   "video_url": "A real YouTube URL (https://www.youtube.com/results?search_query=...) or null",
-  "visual_search_keyword": "1-2 word keyword for auto-fetching a background image (e.g. 'yesterday_calendar')",
+  "visual_keyword": "A highly specific 1-2 word search term for an HD Unsplash photo (e.g. 'busy-airport', 'angry-customer'). Use kebab-case.",
+  "visual_search_keyword": "Same as visual_keyword (kept for backward compatibility)",
   "image_prompt": "A detailed visual prompt that perfectly matches this slide (used for AI image generation)",
   "interactive_options": ["Used when slide_type is interactive_quiz, roleplay, debate, or activity. For quiz: answer options. For roleplay: character lines. For debate: for/against arguments. For activity: step-by-step instructions."],
+  "teacher_instructions": "A clear, concise guide for the teacher on how to run this slide",
   "teacher_notes": {
     "script": "Exactly what the teacher should say out loud",
     "ccq": ["Concept Check Question 1", "Concept Check Question 2"],
@@ -198,7 +204,12 @@ RULES:
       userPrompt = `${userInjectPrompt || "Create an engaging slide for this lesson."}${prevContext}\nHub: ${hub}, CEFR: ${cefrLevel}, Topic: ${topic || "General English"}\nVariation seed: ${variationSeed} (use this to ensure your output differs from previous generations).`;
 
     } else {
-      systemPrompt = `You are the Engleuphoria Master Curriculum Architect. You are NOT a generic content generator — you are a level-aware ESL specialist who refuses to produce repetitive or off-level content.
+      systemPrompt = `You are an elite Cambridge-certified ESL curriculum designer. You are NOT a generic content generator — you are a level-aware ESL specialist who refuses to produce repetitive or off-level content.
+
+You MUST build this lesson using the strict PPP framework:
+- Presentation: introduce the grammar/vocabulary clearly with concrete examples and visuals.
+- Practice: create controlled exercises (fill-in-the-blank, matching, MCQ).
+- Production: create a free-speaking roleplay or debate scenario so the student naturally uses the target language.
 
 ${hubContext}
 
@@ -209,8 +220,10 @@ Create a world-class 8-to-10 slide ESL lesson deck strictly following the PPP (P
 Output ONLY a valid JSON object (no markdown, no code blocks) matching this schema:
 {
   "lesson_title": "A creative, engaging lesson title (NOT generic — tied directly to the requested topic)",
+  "target_goal": "A single sentence describing what the student will be able to do by the end (e.g. 'Master the present continuous to describe ongoing actions').",
   "target_grammar": "The primary grammar/structure focus",
   "target_vocabulary": "Key vocabulary items (comma-separated)",
+  "roadmap": ["Warm-up", "Presentation", "Practice", "Production", "Review"],
   "slides": [ /* array of slide objects */ ]
 }
 
@@ -372,8 +385,10 @@ ${(parsedData.slides || []).map((s: any, i: number) => {
         lessonData: parsedData,
         slides: parsedData.slides || [],
         lesson_title: parsedData.lesson_title,
+        target_goal: parsedData.target_goal,
         target_grammar: parsedData.target_grammar,
         target_vocabulary: parsedData.target_vocabulary,
+        roadmap: parsedData.roadmap || ["Warm-up", "Presentation", "Practice", "Production", "Review"],
         hub,
         cefr_level: cefrLevel,
         topic: topic?.trim(),

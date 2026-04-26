@@ -41,6 +41,7 @@ const UnifiedClassroomPage = lazy(() => import("./pages/UnifiedClassroomPage"));
 const AssessmentTaker = lazy(() => import("./components/assessment/AssessmentTaker"));
 const AssessmentResults = lazy(() => import("./components/assessment/AssessmentResults"));
 const ContentCreatorDashboard = lazy(() => import("./pages/ContentCreatorDashboard"));
+const MasterPPPWizard = lazy(() => import("./components/content-creator/MasterPPPWizard").then(m => ({ default: m.MasterPPPWizard })));
 const LessonReaderPage = lazy(() => import("./pages/student/LessonReaderPage"));
 const LessonLibraryPage = lazy(() => import("./pages/student/LessonLibraryPage"));
 const UnsubscribePage = lazy(() => import("./pages/UnsubscribePage"));
@@ -203,6 +204,15 @@ const App = () => {
                       <Route path="/super-admin/*" element={
                         <ImprovedProtectedRoute requiredRole="admin">
                           <Suspense fallback={<LoadingFallback />}><AdminDashboard /></Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
+
+                      {/* Content Creator — Master PPP Wizard (full-screen, takes precedence over dashboard catch-all) */}
+                      <Route path="/content-creator/master-wizard" element={
+                        <ImprovedProtectedRoute requiredRole="content_creator">
+                          <Suspense fallback={<LoadingFallback />}>
+                            <MasterPPPWizard />
+                          </Suspense>
                         </ImprovedProtectedRoute>
                       } />
 
