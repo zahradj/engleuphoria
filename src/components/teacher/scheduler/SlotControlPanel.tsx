@@ -228,7 +228,11 @@ export const SlotControlPanel: React.FC<SlotControlPanelProps> = ({
       <div className="space-y-2 pt-2">
         <Button onClick={onSaveSchedule} className="w-full bg-primary hover:bg-primary/90" disabled={isSaving}>
           <Save className="h-4 w-4 mr-2" />
-          {isSaving ? 'Saving...' : 'Save Schedule'}
+          {isSaving ? 'Opening...' : 'Open selected once'}
+        </Button>
+        <Button onClick={onOpenWeeklySlots} variant="outline" className="w-full" disabled={isSaving}>
+          <Calendar className="h-4 w-4 mr-2" />
+          Open selected every week
         </Button>
         <Button
           onClick={onClearSlots}
