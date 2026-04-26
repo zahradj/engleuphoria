@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
     } = body;
 
     const safeUnits = Math.max(1, Math.min(10, Number(unit_count) || 4));
-    const safeLessons = Math.max(1, Math.min(8, Number(lessons_per_unit) || 4));
+    const safeLessons = Math.max(2, Math.min(8, Number(lessons_per_unit) || 4));
     const cefrRule = CEFR_RULES[cefr_level] || CEFR_RULES.A2;
     const variationSeed = Math.random().toString(36).slice(2, 10);
 
@@ -62,25 +62,28 @@ HUB: ${hub}
 REQUIREMENTS:
 1. Every unit MUST have a single engaging central theme (e.g. "Travel Adventures", "Tech & Social Media", "Career Confidence").
 2. Within each unit, lessons MUST systematically rotate through these skill focuses in order:
-   1) Grammar & Syntax  2) Core Vocabulary  3) Reading/Listening Comprehension  4) Speaking & Roleplay
-   (If more than 4 lessons per unit, cycle through them again.)
-3. Lesson titles must be specific and engaging — NOT generic ("Grammar Lesson 1" is forbidden).
-4. Each lesson_objective must be a single concrete, observable outcome ("Students will be able to...").
-5. Themes must progress logically across units (build complexity, don't repeat).
-6. Variation seed: ${variationSeed} — use this to differ from past outputs.
+   1) Grammar  2) Vocabulary  3) Reading/Listening  4) Speaking
+   (If more than 4 non-review lessons in a unit, cycle through them again.)
+3. CRITICAL — Spaced repetition: the FINAL lesson of EVERY unit MUST have skill_focus = "Review". No exceptions.
+4. Lesson titles must be specific and engaging — NOT generic ("Grammar Lesson 1" is forbidden).
+5. Each objective must be a single concrete, observable outcome ("Students will be able to...").
+6. Themes must progress logically across units (build complexity, don't repeat).
+7. Variation seed: ${variationSeed} — use this to differ from past outputs.
 
 OUTPUT STRICT JSON ONLY (no markdown, no code fences) matching this schema EXACTLY:
 {
   "curriculum_title": "string — engaging title for the whole course",
   "units": [
     {
+      "unit_number": number,
       "unit_title": "string",
       "theme": "string — the central theme of this unit",
       "lessons": [
         {
+          "lesson_number": number,
           "title": "string — specific & engaging lesson title",
-          "skill_focus": "Grammar | Vocabulary | Reading/Listening | Speaking",
-          "learning_objective": "string — one observable outcome"
+          "skill_focus": "Grammar | Vocabulary | Reading/Listening | Speaking | Review",
+          "objective": "string — one observable outcome"
         }
       ]
     }
@@ -89,9 +92,9 @@ OUTPUT STRICT JSON ONLY (no markdown, no code fences) matching this schema EXACT
 
     const userPrompt = `Generate a curriculum with:
 - ${safeUnits} units
-- ${safeLessons} lessons per unit
-- Skill rotation: ${SKILL_ROTATION.join(" → ")}
-${theme_hint ? `- Overall theme hint: "${theme_hint}"` : ""}
+- ${safeLessons} lessons per unit (the LAST lesson of each unit MUST be a "Review")
+- Skill rotation for non-review lessons: ${SKILL_ROTATION.join(" → ")}
+${theme_hint ? `- Core theme/topic: "${theme_hint}"` : ""}
 
 Return ONLY the JSON object.`;
 
