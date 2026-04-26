@@ -20,6 +20,7 @@ import { StaffOperations } from '@/components/admin/StaffOperations';
 import { TeacherProfileReviewQueue } from '@/components/admin/TeacherProfileReviewQueue';
 import { TestCreditButton } from '@/components/admin/TestCreditButton';
 import { DesktopOnlyNotice } from '@/components/admin/DesktopOnlyNotice';
+import { AdminMobileBottomNav, type AdminMobileTab } from '@/components/admin/AdminMobileBottomNav';
 import { ScrollHeader } from '@/components/navigation/ScrollHeader';
 import { Loader2, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -138,16 +139,23 @@ const AdminDashboard = () => {
 
         <AdminHeader />
         
-        <main className="p-6">
-          <DesktopOnlyNotice toolName="The Admin Dashboard">
-            {/* Admin Quick Actions */}
-            <div className="mb-4 flex items-center gap-3">
-              <TestCreditButton />
-            </div>
-            {renderActiveTab()}
-          </DesktopOnlyNotice>
+        <main
+          className="p-4 md:p-6"
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 80px)' }}
+        >
+          {/* Admin Quick Actions */}
+          <div className="mb-4 flex items-center gap-3">
+            <TestCreditButton />
+          </div>
+          {renderActiveTab()}
         </main>
       </div>
+
+      {/* Mobile bottom navigation for the most-used admin sections */}
+      <AdminMobileBottomNav
+        activeTab={activeTab}
+        onTabChange={(tab: AdminMobileTab) => handleTabChange(tab)}
+      />
     </div>
   );
 };
