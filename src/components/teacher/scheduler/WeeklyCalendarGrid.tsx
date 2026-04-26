@@ -84,26 +84,37 @@ export const WeeklyCalendarGrid: React.FC<WeeklyCalendarGridProps> = ({
     }
 
     if (slot.status === 'booked') {
+      const hubEmoji = slot.hub === 'playground' ? '🎪' : slot.hub === 'success' ? '🏆' : '📘';
       const tooltip = [slot.studentName, slot.studentShortId, slot.studentEmail, slot.lessonTitle]
         .filter(Boolean)
         .join(' • ');
       return (
-        <div className="flex flex-col items-center justify-center px-1 w-full leading-tight" title={tooltip}>
-          <span className="text-[10px] font-semibold truncate w-full text-center">
-            {slot.studentName || 'Booked'}
-          </span>
+        <div
+          className="flex flex-col items-stretch justify-center gap-[1px] px-1 py-0.5 w-full h-full leading-tight overflow-hidden"
+          title={tooltip}
+        >
+          {/* Row 1: hub badge + student name. Badge is fixed-width so the name truncates cleanly. */}
+          <div className="flex items-center gap-1 w-full min-w-0">
+            {slot.hub && (
+              <span className="shrink-0 rounded-full bg-white/25 px-1 text-[9px] leading-none flex items-center justify-center h-3.5">
+                {hubEmoji}
+              </span>
+            )}
+            <span className="flex-1 min-w-0 text-[10px] font-semibold truncate text-left">
+              {slot.studentName || 'Booked'}
+            </span>
+          </div>
+
+          {/* Row 2: short ID — own line so it never collides with the name or badge. */}
           {slot.studentShortId && (
-            <span className="text-[9px] font-mono opacity-90 truncate w-full text-center">
-              {slot.studentShortId}
+            <span className="block text-[9px] font-mono opacity-90 truncate w-full text-left">
+              #{String(slot.studentShortId).replace(/^#/, '')}
             </span>
           )}
-          {slot.hub && (
-            <span className="mt-0.5 rounded-full bg-white/20 px-1 text-[9px] font-bold">
-              {slot.hub === 'playground' ? '🎪' : slot.hub === 'success' ? '🏆' : '📘'}
-            </span>
-          )}
+
+          {/* Row 3 (only if there is vertical room — hidden on the densest rows). */}
           {slot.lessonTitle && (
-            <span className="text-[9px] opacity-90 truncate w-full text-center leading-tight">
+            <span className="hidden sm:block text-[9px] opacity-80 truncate w-full text-left leading-tight">
               {slot.lessonTitle}
             </span>
           )}
