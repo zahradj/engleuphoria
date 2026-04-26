@@ -254,6 +254,7 @@ export const ClassScheduler: React.FC<ClassSchedulerProps> = ({
             getSlotAt={getSlotAt}
             isSlotInPast={isSlotInPast}
             onSlotClick={toggleSlot}
+            onBookedSlotClick={setBookedSlot}
             slotDuration={slotDuration}
           />
         </div>
@@ -268,11 +269,30 @@ export const ClassScheduler: React.FC<ClassSchedulerProps> = ({
             setSelectedDay={setSelectedDay}
             slotsForDay={slotsForSelectedDay}
             onSaveSchedule={handleSaveSchedule}
+            onOpenWeeklySlots={handleOpenWeeklySlots}
             onClearSlots={handleClearSlots}
             isSaving={saving || hubLoading}
           />
         </div>
       </div>
+
+      <BookedSlotManager
+        open={!!bookedSlot}
+        onOpenChange={(open) => { if (!open) setBookedSlot(null); }}
+        slot={bookedSlot ? {
+          slotId: bookedSlot.id,
+          studentName: bookedSlot.studentName,
+          studentShortId: bookedSlot.studentShortId,
+          hub: bookedSlot.hub ?? null,
+          startTime: bookedSlot.startTime ? new Date(bookedSlot.startTime) : new Date(),
+          duration: bookedSlot.duration,
+          isRecurring: !!bookedSlot.recurringPattern,
+        } : null}
+        onCancelled={() => {
+          setBookedSlot(null);
+          refresh();
+        }}
+      />
     </div>
   );
 };
