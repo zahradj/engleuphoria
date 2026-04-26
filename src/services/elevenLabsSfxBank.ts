@@ -34,7 +34,8 @@ export type SfxKey =
   | "emoji_clap"
   | "emoji_laugh"
   | "emoji_party"
-  | "emoji_thumbsup";
+  | "emoji_thumbsup"
+  | "emoji_heart";
 
 interface SfxSpec {
   prompt: string;
