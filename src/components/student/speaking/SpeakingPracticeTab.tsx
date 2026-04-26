@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { SpeakingProgress, SpeakingScenario } from '@/types/speaking';
 import { speakingPracticeService } from '@/services/speakingPracticeService';
-const isSupabaseConfigured = () => true; // Always configured in Lovable projects
+const isSupabaseConfigured = () => true; // Always configured in Engleuphoria deployments
 import { useToast } from '@/hooks/use-toast';
 import { 
   MessageCircle, 
