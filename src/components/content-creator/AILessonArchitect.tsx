@@ -11,6 +11,13 @@ import ReactMarkdown from 'react-markdown';
 import { handleAIResponse, showAIErrorToast } from '@/lib/aiErrorHandler';
 
 type HubType = 'playground' | 'academy' | 'success';
+type CEFRLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1';
+
+const HUB_DEFAULT_CEFR: Record<HubType, CEFRLevel> = {
+  playground: 'A1',
+  academy: 'B1',
+  success: 'C1',
+};
 
 interface LessonData {
   lesson_title?: string;
