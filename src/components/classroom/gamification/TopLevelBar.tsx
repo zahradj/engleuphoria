@@ -54,14 +54,9 @@ export function TopLevelBar({
   }, [isAnimating]);
 
   return (
-    <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 h-6 bg-white/20 backdrop-blur-md border border-white/20 shadow-[0_0_10px_rgba(0,255,255,0.15)] max-w-4xl w-full">
+    <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 max-w-4xl w-full pointer-events-none">
       <div className="h-full flex items-center gap-2 px-4">
-        {/* Level Badge */}
-        <Badge className="bg-gradient-to-r from-[hsl(var(--neon-purple))] to-[hsl(var(--neon-pink))] text-white px-2 py-0.5 text-xs font-bold border border-white/20">
-          Lv {level}
-        </Badge>
-        
-        {/* Segmented Progress Bar */}
+        {/* Segmented Progress Bar — frameless */}
         <div className="flex-1 flex gap-1 max-w-2xl">
           {Array.from({ length: segments }).map((_, i) => (
             <div
@@ -77,15 +72,10 @@ export function TopLevelBar({
             />
           ))}
         </div>
-        
-        {/* XP Counter */}
-        <span className="text-xs font-bold text-[hsl(var(--neon-cyan))] min-w-[70px]">
-          {normalizedXP}/{maxXP} XP
-        </span>
-        
+
         {/* Star — bare, no chip frame, no count number. Just the synced star. */}
         <Star
-          className={`w-6 h-6 fill-[hsl(var(--neon-yellow))] text-[hsl(var(--neon-yellow))] drop-shadow-[0_0_6px_hsl(var(--neon-yellow)/0.7)] ${
+          className={`w-9 h-9 fill-[hsl(var(--neon-yellow))] text-[hsl(var(--neon-yellow))] drop-shadow-[0_0_10px_hsl(var(--neon-yellow)/0.85)] ${
             isAnimating ? 'animate-scale-in' : ''
           }`}
           aria-label={`${starCount} stars earned`}
