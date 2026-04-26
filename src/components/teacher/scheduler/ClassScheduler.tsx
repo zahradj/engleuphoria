@@ -6,10 +6,13 @@ import { WeeklyCalendarGrid } from './WeeklyCalendarGrid';
 import { SlotControlPanel } from './SlotControlPanel';
 import { supabase } from '@/integrations/supabase/client';
 import { insertAvailabilitySlotsWithFallback } from '@/services/availabilityInsert';
+import { openWeeklyRecurringSelections } from '@/services/recurringSlotsService';
 import { addMinutes, setHours, setMinutes, format } from 'date-fns';
 import { useTeacherHubRole } from '@/hooks/useTeacherHubRole';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Loader2, RotateCcw } from 'lucide-react';
+import { BookedSlotManager } from './BookedSlotManager';
+import type { AvailabilitySlot } from './types';
 
 interface ClassSchedulerProps {
   teacherName: string;
@@ -25,6 +28,7 @@ export const ClassScheduler: React.FC<ClassSchedulerProps> = ({
 }) => {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
+  const [bookedSlot, setBookedSlot] = useState<AvailabilitySlot | null>(null);
 
   const { hubKind, allowedDurations, loading: hubLoading } = useTeacherHubRole(teacherId);
 
@@ -59,6 +63,12 @@ export const ClassScheduler: React.FC<ClassSchedulerProps> = ({
 
   const weekDates = getWeekDates();
   const slotsForSelectedDay = getSlotsForDay(selectedDay);
+  const selectedSlots = slots.filter((s) => s.status === 'selected');
+  const hubForSlots = resolvedHubSpecialty === 'Playground'
+    ? 'playground'
+    : resolvedHubSpecialty === 'Professional'
+      ? 'success'
+      : 'academy';
   const weekRangeLabel = useMemo(() => {
     if (weekDates.length === 0) return '';
     const first = weekDates[0].date;
