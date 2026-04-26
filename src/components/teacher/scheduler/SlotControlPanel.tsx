@@ -13,6 +13,7 @@ interface SlotControlPanelProps {
   setSelectedDay: (day: string) => void;
   slotsForDay: AvailabilitySlot[];
   onSaveSchedule: () => void;
+  onOpenWeeklySlots: () => void;
   onClearSlots: () => void;
   isSaving?: boolean;
 }
@@ -32,9 +33,11 @@ export const SlotControlPanel: React.FC<SlotControlPanelProps> = ({
   setSelectedDay,
   slotsForDay,
   onSaveSchedule,
+  onOpenWeeklySlots,
   onClearSlots,
   isSaving = false,
 }) => {
+  const selectedSlots = slotsForDay.filter((s) => s.status === 'selected');
   const openSlots = slotsForDay.filter((s) => s.status === 'open');
   const bookedSlots = slotsForDay.filter((s) => s.status === 'booked');
   const locked = allowedDurations.length === 1;
@@ -122,6 +125,26 @@ export const SlotControlPanel: React.FC<SlotControlPanelProps> = ({
           </p>
         ) : (
           <div className="space-y-2 max-h-[250px] overflow-y-auto">
+            {selectedSlots.length > 0 && (
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-primary">
+                  Selected ({selectedSlots.length})
+                </p>
+                {selectedSlots.map((slot) => (
+                  <div
+                    key={slot.id}
+                    className="flex items-center justify-between p-2 bg-primary/10 rounded-lg border border-primary/20"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-3 w-3 text-primary" />
+                      <span className="text-sm text-primary font-medium">{slot.time}</span>
+                    </div>
+                    <span className="text-xs text-primary">{slot.duration}min</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {openSlots.length > 0 && (
               <div className="space-y-1">
                 <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
