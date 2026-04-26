@@ -220,10 +220,14 @@ export const WeeklyCalendarGrid: React.FC<WeeklyCalendarGridProps> = ({
 
                 {weekDates.map(({ day, date }) => {
                   const today = isToday(date);
+                  const slot = getSlotAt(day, row.time);
                   return (
                     <button
                       key={`${day}-${row.time}`}
-                      onClick={() => onSlotClick(day, row.time)}
+                      onClick={() => {
+                        if (slot?.status === 'booked') onBookedSlotClick?.(slot);
+                        else onSlotClick(day, row.time);
+                      }}
                       className={cn(
                         'group border-l border-border/40 flex items-center justify-center rounded-[3px] m-[1px]',
                         slotDuration === 60 ? 'h-14' : row.isHour ? 'h-9' : 'h-8',
