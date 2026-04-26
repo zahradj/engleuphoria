@@ -10,10 +10,12 @@ export interface AvailabilitySlot {
   lessonTitle?: string;
   studentName?: string;
   studentId?: string;
+  studentShortId?: string;
   studentCefrLevel?: string;
   studentEmail?: string;
   studentGradeLevel?: string;
   studentFinalCefrLevel?: string;
+  hub?: 'playground' | 'academy' | 'success' | null;
 }
 
 export interface TimeSlot {

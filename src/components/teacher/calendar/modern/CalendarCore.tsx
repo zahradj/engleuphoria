@@ -80,18 +80,39 @@ export const CalendarCore: React.FC<CalendarCoreProps> = ({
           
           {/* Content */}
           <div className="relative p-2.5 space-y-0.5">
-            {/* Header with avatar */}
+            {/* Header with avatar + name + short ID + hub badge */}
             <div className="flex items-center gap-1.5">
               <div className={cn(
-                'w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-lg',
+                'w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-lg shrink-0',
                 `bg-gradient-to-br ${gradientClasses}`
               )}>
-                {avatarLetter}
+                {(slot.studentName?.charAt(0) || slot.studentEmail?.charAt(0) || 'S').toUpperCase()}
               </div>
-              <span className="text-xs font-bold text-foreground truncate flex-1">
-                {slot.studentEmail ? slot.studentEmail.split('@')[0] : 'Student'}
-              </span>
-              <Lock className="w-3 h-3 text-muted-foreground" />
+              <div className="flex flex-col min-w-0 flex-1 leading-tight">
+                <span className="text-xs font-bold text-foreground truncate">
+                  {slot.studentName
+                    || (slot.studentEmail ? slot.studentEmail.split('@')[0] : 'Student')}
+                </span>
+                {slot.studentShortId && (
+                  <span className="text-[9px] font-mono text-muted-foreground truncate">
+                    {slot.studentShortId}
+                  </span>
+                )}
+              </div>
+              {slot.hub && (
+                <span
+                  className={cn(
+                    'text-[9px] font-semibold px-1.5 py-0.5 rounded-full border shrink-0',
+                    slot.hub === 'playground' && 'bg-orange-500/15 text-orange-600 border-orange-500/40',
+                    slot.hub === 'academy' && 'bg-purple-500/15 text-purple-700 border-purple-500/40',
+                    slot.hub === 'success' && 'bg-emerald-500/15 text-emerald-700 border-emerald-500/40',
+                  )}
+                  aria-label={`Hub: ${slot.hub}`}
+                >
+                  {slot.hub === 'playground' ? '🎪' : slot.hub === 'academy' ? '📘' : '🏆'}
+                </span>
+              )}
+              <Lock className="w-3 h-3 text-muted-foreground shrink-0" />
             </div>
             
             {/* Level badges */}

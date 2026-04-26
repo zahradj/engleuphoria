@@ -3,12 +3,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronLeft, ChevronRight, Calendar, Clock, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Clock, Plus, Repeat2 } from "lucide-react";
 import { InstructionPrompt } from "@/components/shared/InstructionPrompt";
 import { useCalendarData } from "./hooks/useCalendarData";
 import { useSlotActions } from "./hooks/useSlotActions";
 import { SimpleTimeGrid } from "./components/SimpleTimeGrid";
 import { QuickSlotCreator } from "./components/QuickSlotCreator";
+import { OpenSlotsDialog } from "@/components/teacher/scheduler/OpenSlotsDialog";
+import { useTeacherHub } from "@/hooks/useTeacherHub";
 
 interface SimplifiedTeacherCalendarProps {
   teacherId: string;
@@ -18,9 +20,11 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
   const [selectedDuration, setSelectedDuration] = useState<30 | 60>(30);
   const [showQuickCreator, setShowQuickCreator] = useState(false);
+  const [showOpenSlots, setShowOpenSlots] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showSlotModal, setShowSlotModal] = useState(false);
   const [selectedTime, setSelectedTime] = useState<string>("");
+  const hub = useTeacherHub(teacherId);
 
   // Generate time slots from 6 AM to 10 PM
   const timeSlots = Array.from({ length: 32 }, (_, i) => {
@@ -156,6 +160,15 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
               </div>
 
               <Button
+                onClick={() => setShowOpenSlots(true)}
+                className="flex items-center gap-2"
+                title="Open a single slot today, or repeat slots every week"
+              >
+                <Repeat2 className="h-4 w-4" />
+                Open slots
+              </Button>
+
+              <Button
                 variant="outline"
                 onClick={() => {
                   setSelectedDate(new Date());
@@ -252,6 +265,15 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Unified Open-Slots dialog (single + weekly recurring) */}
+      <OpenSlotsDialog
+        open={showOpenSlots}
+        onOpenChange={setShowOpenSlots}
+        teacherId={teacherId}
+        hub={hub}
+        onCreated={() => reloadSlots()}
+      />
     </div>
   );
 };
