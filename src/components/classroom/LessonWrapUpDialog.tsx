@@ -233,7 +233,7 @@ export const LessonWrapUpDialog: React.FC<LessonWrapUpDialogProps> = ({
         description: showSkillScores
           ? 'Lesson closed for the student and earnings updated. Skill scores synced to dashboard.'
           : 'Lesson closed for the student and earnings updated.',
-        className: 'bg-emerald-900 border-emerald-700'
+        className: 'bg-emerald-600 text-white border-emerald-700'
       });
 
       onOpenChange(false);
@@ -253,10 +253,10 @@ export const LessonWrapUpDialog: React.FC<LessonWrapUpDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <ClipboardCheck className="w-5 h-5 text-emerald-400" />
+            <ClipboardCheck className="w-5 h-5 text-emerald-500 dark:text-emerald-400" />
             Session Report
           </DialogTitle>
         </DialogHeader>
@@ -264,7 +264,7 @@ export const LessonWrapUpDialog: React.FC<LessonWrapUpDialogProps> = ({
         <div className="space-y-5 py-2">
           {/* Words Mastered */}
           <div>
-            <p className="text-sm font-medium text-gray-300 mb-2">Words Mastered</p>
+            <p className="text-sm font-medium text-foreground mb-2">Words Mastered</p>
             <div className="flex flex-wrap gap-2">
               {vocabularyWords.map(word => (
                 <button
@@ -272,8 +272,8 @@ export const LessonWrapUpDialog: React.FC<LessonWrapUpDialogProps> = ({
                   onClick={() => toggleWord(word)}
                   className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
                     masteredWords.includes(word)
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                      ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                      : 'bg-muted text-muted-foreground hover:bg-muted/70 border border-border'
                   }`}
                 >
                   {masteredWords.includes(word) ? '✓ ' : ''}{word}
@@ -284,16 +284,16 @@ export const LessonWrapUpDialog: React.FC<LessonWrapUpDialogProps> = ({
 
           {/* Areas for Improvement */}
           <div>
-            <p className="text-sm font-medium text-gray-300 mb-2">Areas for Improvement</p>
+            <p className="text-sm font-medium text-foreground mb-2">Areas for Improvement</p>
             <div className="space-y-2">
               {IMPROVEMENT_AREAS.map(area => (
                 <label key={area} className="flex items-center gap-2 cursor-pointer">
                   <Checkbox
                     checked={areasForImprovement.includes(area)}
                     onCheckedChange={() => toggleArea(area)}
-                    className="border-gray-600 data-[state=checked]:bg-amber-600 data-[state=checked]:border-amber-600"
+                    className="data-[state=checked]:bg-amber-600 data-[state=checked]:border-amber-600"
                   />
-                  <span className="text-sm text-gray-300">{area}</span>
+                  <span className="text-sm text-foreground">{area}</span>
                 </label>
               ))}
             </div>
@@ -305,8 +305,8 @@ export const LessonWrapUpDialog: React.FC<LessonWrapUpDialogProps> = ({
               onClick={() => setShowSkillScores(!showSkillScores)}
               className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all w-full ${
                 showSkillScores
-                  ? 'bg-blue-600/20 text-blue-300 border border-blue-500/40'
-                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700 border border-gray-700'
+                  ? 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/40'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/70 border border-border'
               }`}
             >
               <BarChart3 className="w-4 h-4" />
@@ -316,15 +316,15 @@ export const LessonWrapUpDialog: React.FC<LessonWrapUpDialogProps> = ({
 
           {/* Skill Score Sliders */}
           {showSkillScores && (
-            <div className="space-y-4 p-3 rounded-lg bg-gray-800/50 border border-gray-700">
-              <p className="text-xs text-gray-400 mb-1">
+            <div className="space-y-4 p-3 rounded-lg bg-muted/40 border border-border">
+              <p className="text-xs text-muted-foreground mb-1">
                 Adjust scores (0–10) based on this session. Changes update the student's Skill Radar.
               </p>
               {SKILL_FIELDS.map(field => (
                 <div key={field.key} className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-300">{field.label}</span>
-                    <span className="text-xs font-mono text-blue-300">
+                    <span className="text-sm text-foreground">{field.label}</span>
+                    <span className="text-xs font-mono text-blue-600 dark:text-blue-300">
                       {skillScores[field.key].toFixed(1)} · {scoreToCefr(skillScores[field.key])}
                     </span>
                   </div>
@@ -343,18 +343,18 @@ export const LessonWrapUpDialog: React.FC<LessonWrapUpDialogProps> = ({
 
           {/* Quick Notes */}
           <div>
-            <p className="text-sm font-medium text-gray-300 mb-2">Quick Notes</p>
+            <p className="text-sm font-medium text-foreground mb-2">Quick Notes</p>
             <Textarea
               value={quickNotes}
               onChange={(e) => setQuickNotes(e.target.value)}
               placeholder="Any observations about the lesson..."
-              className="bg-gray-800 border-gray-700 text-sm min-h-[60px]"
+              className="text-sm min-h-[60px]"
             />
           </div>
 
           {/* Performance Rating */}
           <div>
-            <p className="text-sm font-medium text-gray-300 mb-2">Performance Rating</p>
+            <p className="text-sm font-medium text-foreground mb-2">Performance Rating</p>
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map(star => (
                 <button
@@ -363,7 +363,7 @@ export const LessonWrapUpDialog: React.FC<LessonWrapUpDialogProps> = ({
                   className="transition-transform hover:scale-110"
                 >
                   <Star
-                    className={`w-7 h-7 ${star <= rating ? 'text-amber-400 fill-amber-400' : 'text-gray-600'}`}
+                    className={`w-7 h-7 ${star <= rating ? 'text-amber-400 fill-amber-400' : 'text-muted-foreground/40'}`}
                   />
                 </button>
               ))}
@@ -373,7 +373,7 @@ export const LessonWrapUpDialog: React.FC<LessonWrapUpDialogProps> = ({
           <Button
             onClick={handleSubmit}
             disabled={submitting}
-            className="w-full bg-emerald-600 hover:bg-emerald-700"
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
           >
             {submitting ? 'Saving...' : 'Submit Session Report'}
           </Button>
