@@ -41,10 +41,6 @@ export const BlueprintEngine: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const handleGenerate = async () => {
-    if (!theme.trim()) {
-      toast.error('Please enter a core theme or topic.');
-      return;
-    }
     setError(null);
     setIsGenerating(true);
     try {
@@ -138,9 +134,9 @@ export const BlueprintEngine: React.FC = () => {
             </Select>
           </Field>
 
-          <Field label="Core Theme / Topic">
+          <Field label="Core Theme / Topic (Optional)">
             <Input
-              placeholder="e.g. Travel & Adventure, Tech & Social Media"
+              placeholder="e.g., Space Travel (Optional - leave blank for AI suggestions)"
               value={theme}
               onChange={(e) => setTheme(e.target.value)}
               maxLength={200}
@@ -179,7 +175,7 @@ export const BlueprintEngine: React.FC = () => {
         <div className="p-4 border-t border-slate-200 dark:border-slate-800">
           <Button
             onClick={handleGenerate}
-            disabled={isGenerating || !theme.trim()}
+            disabled={isGenerating || !cefrLevel || !hub}
             className="w-full h-12 text-sm font-semibold bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white border-0 shadow-md"
           >
             {isGenerating ? (
