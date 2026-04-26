@@ -160,6 +160,15 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
               </div>
 
               <Button
+                onClick={() => setShowOpenSlots(true)}
+                className="flex items-center gap-2"
+                title="Open a single slot today, or repeat slots every week"
+              >
+                <Repeat2 className="h-4 w-4" />
+                Open slots
+              </Button>
+
+              <Button
                 variant="outline"
                 onClick={() => {
                   setSelectedDate(new Date());
