@@ -57,6 +57,18 @@ export const audioService = {
   playStickerSound: () =>
     play('badge', () => soundEffectsService.playPowerUp()),
 
+  /** Per-emoji reaction sound (clap, laugh, party, thumbs-up, etc.). */
+  playEmojiSound: (emoji: string) => {
+    const map: Record<string, SfxKey> = {
+      '👏': 'emoji_clap',
+      '😂': 'emoji_laugh',
+      '🎉': 'emoji_party',
+      '👍': 'emoji_thumbsup',
+    };
+    const key = map[emoji] ?? 'badge';
+    play(key, () => soundEffectsService.playPowerUp());
+  },
+
   /** Single-star earned (top bar pop). */
   playStarSound: () =>
     play('star', () => soundEffectsService.playStarEarned()),
