@@ -54,6 +54,9 @@ export function ActivityCountdownTimer({ className = "" }: ActivityCountdownTime
   };
 
   const startTimer = () => {
+    // New run — re-arm the audio cues.
+    if (remainingSeconds > 10) warnedRef.current = false;
+    doneRef.current = false;
     setIsRunning(true);
     setIsSettingTime(false);
   };
@@ -64,6 +67,8 @@ export function ActivityCountdownTimer({ className = "" }: ActivityCountdownTime
 
   const resetTimer = () => {
     setIsRunning(false);
+    warnedRef.current = false;
+    doneRef.current = false;
     setRemainingSeconds(totalSeconds);
   };
 
@@ -71,6 +76,8 @@ export function ActivityCountdownTimer({ className = "" }: ActivityCountdownTime
     const newSeconds = inputMinutes * 60;
     setTotalSeconds(newSeconds);
     setRemainingSeconds(newSeconds);
+    warnedRef.current = false;
+    doneRef.current = false;
     setIsRunning(false);
     setIsSettingTime(false);
   };
