@@ -1,6 +1,7 @@
 import React from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileClassroomLayout } from "./mobile/MobileClassroomLayout";
+import { ClassroomVideo } from "./ClassroomVideo";
 
 interface ClassroomLayoutProps {
   children?: React.ReactNode;
@@ -9,6 +10,10 @@ interface ClassroomLayoutProps {
   isTeacherView?: boolean;
   mainContent?: React.ReactElement;
   sidebarContent?: React.ReactElement;
+  videoContent?: React.ReactElement;
+  participantsContent?: React.ReactElement;
+  classTime?: number;
+  onLeave?: () => void;
 }
 
 export const ClassroomLayout = ({
@@ -18,10 +23,14 @@ export const ClassroomLayout = ({
   isTeacherView,
   mainContent,
   sidebarContent,
+  videoContent,
+  participantsContent,
+  classTime = 0,
+  onLeave,
 }: ClassroomLayoutProps) => {
   const isMobile = useIsMobile();
 
-  // Mobile: collapse split layout into tabbed mobile shell
+  // Mobile: lesson-first layout with floating video bubble & chat sheet
   if (isMobile && mainContent && sidebarContent) {
     return (
       <MobileClassroomLayout
@@ -30,11 +39,24 @@ export const ClassroomLayout = ({
           name: studentName || "User",
           role: isTeacherView ? "teacher" : "student",
         }}
-        videoContent={<div className="h-full bg-muted flex items-center justify-center text-sm text-muted-foreground">Video</div>}
+        videoContent={
+          videoContent ?? (
+            <div className="h-full w-full bg-black flex items-center justify-center text-white/70 text-xs">
+              Connecting video…
+            </div>
+          )
+        }
         chatContent={sidebarContent}
         whiteboardContent={mainContent}
-        studentsContent={<div className="p-4 text-sm text-muted-foreground">Participants list</div>}
-        classTime={0}
+        studentsContent={
+          participantsContent ?? (
+            <div className="p-4 text-sm text-muted-foreground">
+              Participants will appear here.
+            </div>
+          )
+        }
+        classTime={classTime}
+        onLeave={onLeave}
       />
     );
   }
