@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { audioService } from "@/services/audioService";
 
 interface Badge {
   id: string;
