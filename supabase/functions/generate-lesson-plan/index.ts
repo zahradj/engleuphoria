@@ -153,13 +153,19 @@ Hub Colors: Primary #059669 (Emerald Green), Accent #F0FDFA (Mint).`;
     const SCHEMA_BLOCK = `Each slide MUST follow this exact schema:
 {
   "ppp_stage": "Warm-Up | Presentation | Practice | Production | Review",
+  "phase": "warm-up | presentation | practice | production | review",
   "slide_type": "title | video_song | vocabulary_image | grammar_presentation | interactive_quiz | roleplay | debate | activity | speaking_prompt | concept_check",
+  "interaction_type": "read | fill-in-the-blank | roleplay | open-question | matching | quiz",
+  "title": "A short slide title (3-6 words)",
   "headline": "The main large text shown to the student",
+  "content": "The main educational text, dialogue, or example for this slide",
   "body_text": "Secondary text, instructions, or quiz options",
   "video_url": "A real YouTube URL (https://www.youtube.com/results?search_query=...) or null",
-  "visual_search_keyword": "1-2 word keyword for auto-fetching a background image (e.g. 'yesterday_calendar')",
+  "visual_keyword": "A highly specific 1-2 word search term for an HD Unsplash photo (e.g. 'busy-airport', 'angry-customer'). Use kebab-case.",
+  "visual_search_keyword": "Same as visual_keyword (kept for backward compatibility)",
   "image_prompt": "A detailed visual prompt that perfectly matches this slide (used for AI image generation)",
   "interactive_options": ["Used when slide_type is interactive_quiz, roleplay, debate, or activity. For quiz: answer options. For roleplay: character lines. For debate: for/against arguments. For activity: step-by-step instructions."],
+  "teacher_instructions": "A clear, concise guide for the teacher on how to run this slide",
   "teacher_notes": {
     "script": "Exactly what the teacher should say out loud",
     "ccq": ["Concept Check Question 1", "Concept Check Question 2"],
