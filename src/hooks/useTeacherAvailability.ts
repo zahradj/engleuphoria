@@ -76,9 +76,31 @@ export const useTeacherAvailability = (teacherId: string, weekDays: Date[]) => {
         });
       }
 
+      // Resolve student full names so booked tiles show "Name + #shortID + hub badge"
+      let studentNameMap: Record<string, string> = {};
+      if (studentIds.length > 0) {
+        const { data: userRows } = await supabase
+          .from('users')
+          .select('id, full_name')
+          .in('id', studentIds);
+        (userRows || []).forEach((u: any) => {
+          if (u?.id && u?.full_name) studentNameMap[u.id] = u.full_name;
+        });
+      }
+
+      const inferHub = (raw: any): 'playground' | 'academy' | 'success' | null => {
+        const v = String(raw?.hub_specialty ?? '').toLowerCase();
+        if (v === 'playground' || v === 'academy' || v === 'success') return v;
+        if (Number(raw?.duration) === 30) return 'playground';
+        if (Number(raw?.duration) === 60) return 'academy';
+        return null;
+      };
+
       const formattedSlots: AvailabilitySlot[] = rows.map(slot => {
         const actualStudentId = slot.student_id || (slot.lesson_id ? lessonStudentMap[slot.lesson_id] : undefined);
         const studentProfile = actualStudentId ? studentProfileMap[actualStudentId] : undefined;
+        const studentName = actualStudentId ? studentNameMap[actualStudentId] : undefined;
+        const studentShortId = actualStudentId ? `#${actualStudentId.slice(0, 4).toUpperCase()}` : undefined;
 
         return {
           id: slot.id,
@@ -90,12 +112,15 @@ export const useTeacherAvailability = (teacherId: string, weekDays: Date[]) => {
           isBooked: slot.is_booked,
           lessonId: slot.lesson_id || undefined,
           lessonTitle: slot.lesson_title || undefined,
-          studentName: undefined,
+          studentName,
           studentId: actualStudentId || undefined,
+          studentShortId,
           studentCefrLevel: studentProfile?.cefr_level || undefined,
           studentEmail: actualStudentId ? `student${actualStudentId.slice(0, 4)}` : undefined,
           studentGradeLevel: studentProfile?.grade_level || undefined,
           studentFinalCefrLevel: studentProfile?.final_cefr_level || undefined,
+          hub: inferHub(slot),
+          recurringPattern: (slot as any).recurring_pattern ?? null,
         };
       });
 
