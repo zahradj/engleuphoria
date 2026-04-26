@@ -41,6 +41,7 @@ const UnifiedClassroomPage = lazy(() => import("./pages/UnifiedClassroomPage"));
 const AssessmentTaker = lazy(() => import("./components/assessment/AssessmentTaker"));
 const AssessmentResults = lazy(() => import("./components/assessment/AssessmentResults"));
 const ContentCreatorDashboard = lazy(() => import("./pages/ContentCreatorDashboard"));
+const MasterPPPWizard = lazy(() => import("./components/content-creator/MasterPPPWizard").then(m => ({ default: m.MasterPPPWizard })));
 const LessonReaderPage = lazy(() => import("./pages/student/LessonReaderPage"));
 const LessonLibraryPage = lazy(() => import("./pages/student/LessonLibraryPage"));
 const UnsubscribePage = lazy(() => import("./pages/UnsubscribePage"));
