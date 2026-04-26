@@ -9,6 +9,7 @@ interface WeeklyCalendarGridProps {
   getSlotAt: (day: string, time: string) => AvailabilitySlot | undefined;
   isSlotInPast: (day: string, time: string) => boolean;
   onSlotClick: (day: string, time: string) => void;
+  onBookedSlotClick?: (slot: AvailabilitySlot) => void;
   slotDuration: 30 | 60;
 }
 
@@ -40,6 +41,7 @@ export const WeeklyCalendarGrid: React.FC<WeeklyCalendarGridProps> = ({
   getSlotAt,
   isSlotInPast,
   onSlotClick,
+  onBookedSlotClick,
   slotDuration,
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -57,7 +59,11 @@ export const WeeklyCalendarGrid: React.FC<WeeklyCalendarGridProps> = ({
     }
 
     if (slot.status === 'booked') {
-      return 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white cursor-default shadow-md ring-1 ring-blue-400/40';
+      return 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white cursor-pointer shadow-md ring-1 ring-blue-400/40 hover:scale-[1.01] transition-all';
+    }
+
+    if (slot.status === 'selected') {
+      return 'bg-primary text-primary-foreground cursor-pointer shadow-md ring-2 ring-primary/40 transition-all';
     }
 
     return 'bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white cursor-pointer shadow-md ring-1 ring-emerald-400/40 transition-all';
@@ -78,14 +84,24 @@ export const WeeklyCalendarGrid: React.FC<WeeklyCalendarGridProps> = ({
     }
 
     if (slot.status === 'booked') {
-      const tooltip = [slot.studentName, slot.studentEmail, slot.lessonTitle]
+      const tooltip = [slot.studentName, slot.studentShortId, slot.studentEmail, slot.lessonTitle]
         .filter(Boolean)
         .join(' • ');
       return (
-        <div className="flex flex-col items-center justify-center px-1 w-full" title={tooltip}>
-          <span className="text-[10px] font-semibold truncate w-full text-center leading-tight">
+        <div className="flex flex-col items-center justify-center px-1 w-full leading-tight" title={tooltip}>
+          <span className="text-[10px] font-semibold truncate w-full text-center">
             {slot.studentName || 'Booked'}
           </span>
+          {slot.studentShortId && (
+            <span className="text-[9px] font-mono opacity-90 truncate w-full text-center">
+              {slot.studentShortId}
+            </span>
+          )}
+          {slot.hub && (
+            <span className="mt-0.5 rounded-full bg-white/20 px-1 text-[9px] font-bold">
+              {slot.hub === 'playground' ? '🎪' : slot.hub === 'success' ? '🏆' : '📘'}
+            </span>
+          )}
           {slot.lessonTitle && (
             <span className="text-[9px] opacity-90 truncate w-full text-center leading-tight">
               {slot.lessonTitle}
@@ -93,6 +109,10 @@ export const WeeklyCalendarGrid: React.FC<WeeklyCalendarGridProps> = ({
           )}
         </div>
       );
+    }
+
+    if (slot.status === 'selected') {
+      return <span className="text-[10px] font-bold">Selected</span>;
     }
 
     return <span className="text-[10px] font-bold">{slot.duration}m</span>;
