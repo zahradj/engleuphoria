@@ -16,7 +16,14 @@ const ContentCreatorDashboard: React.FC = () => {
   const [curriculumContext, setCurriculumContext] = useState<CurriculumContext | null>(null);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const progress = usePipelineProgress();
+
+  // Auto-jump to Step 2 when arriving from Blueprint "Build Slides"
+  useEffect(() => {
+    const state = (location.state || {}) as { fromBlueprint?: boolean };
+    if (state.fromBlueprint) setCurrentStep(2);
+  }, [location.state]);
 
   const goNext = () => setCurrentStep((s) => Math.min(s + 1, 3) as PipelineStep);
   const goPrev = () => setCurrentStep((s) => Math.max(s - 1, 1) as PipelineStep);
