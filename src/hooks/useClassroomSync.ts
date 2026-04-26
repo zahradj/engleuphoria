@@ -163,7 +163,17 @@ export const useClassroomSync = ({
     const unsubscribe = classroomSyncService.subscribeToSession(
       roomId,
       (updatedSession) => {
-        setSession(updatedSession);
+        // Diagnostic: surface Co-Play URL changes received from the teacher's broadcast
+        // so we can verify "One Room, One Session" in DevTools.
+        setSession(prev => {
+          if (role === 'student' && prev?.embeddedUrl !== updatedSession.embeddedUrl && updatedSession.embeddedUrl) {
+            console.log(
+              `[Co-Play] Student received embedUrl from teacher broadcast (room ${roomId}):`,
+              updatedSession.embeddedUrl,
+            );
+          }
+          return updatedSession;
+        });
         setStageModeState(prev => deriveStageModeFromSession(updatedSession, prev));
       }
     );

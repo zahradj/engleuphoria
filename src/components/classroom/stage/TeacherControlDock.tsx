@@ -97,7 +97,7 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
       const start = urlDraft.trim() || 'https://www.gamestolearnenglish.com/';
       const startNormalized = /^https?:\/\//i.test(start) ? start : `https://${start}`;
       coBrowserController.homeUrl = startNormalized;
-      const { embedUrl } = await createHyperbeamSession(startNormalized);
+      const { embedUrl } = await createHyperbeamSession(startNormalized, 'teacher');
       onEmbedUrl(embedUrl);
       toast({ title: 'Co-Play stage ready', description: 'You and the student are now in the same browser.' });
     } catch (err: any) {
