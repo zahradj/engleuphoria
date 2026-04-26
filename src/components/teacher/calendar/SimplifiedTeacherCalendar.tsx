@@ -265,6 +265,15 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Unified Open-Slots dialog (single + weekly recurring) */}
+      <OpenSlotsDialog
+        open={showOpenSlots}
+        onOpenChange={setShowOpenSlots}
+        teacherId={teacherId}
+        hub={hub}
+        onCreated={() => reloadSlots()}
+      />
     </div>
   );
 };
