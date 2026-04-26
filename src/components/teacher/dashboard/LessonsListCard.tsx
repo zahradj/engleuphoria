@@ -9,6 +9,7 @@ import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { EmptyState } from '@/components/ui/empty-state';
+import { FeedbackReportDialog } from '@/components/classroom/FeedbackReportDialog';
 
 interface Lesson {
   id: string;
@@ -24,11 +25,21 @@ interface LessonItemProps {
   lesson: Lesson;
   showEnterButton?: boolean;
   onEnter?: (lesson: Lesson) => void;
+  onOpenFeedback?: (lesson: Lesson) => void;
+  onWriteFeedback?: (lesson: Lesson) => void;
 }
 
-const LessonItem: React.FC<LessonItemProps> = ({ lesson, showEnterButton, onEnter }) => {
+const LessonItem: React.FC<LessonItemProps> = ({ lesson, showEnterButton, onEnter, onOpenFeedback, onWriteFeedback }) => {
+  const clickable = lesson.status === 'completed' || lesson.status === 'needs-feedback';
+  const handleRowClick = () => {
+    if (lesson.status === 'completed') onOpenFeedback?.(lesson);
+    else if (lesson.status === 'needs-feedback') onWriteFeedback?.(lesson);
+  };
   return (
-    <div className="flex items-center gap-4 p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
+    <div
+      className={`flex items-center gap-4 p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors ${clickable ? 'cursor-pointer' : ''}`}
+      onClick={clickable ? handleRowClick : undefined}
+    >
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
           <p className="font-medium text-foreground truncate">{lesson.title}</p>
@@ -53,21 +64,31 @@ const LessonItem: React.FC<LessonItemProps> = ({ lesson, showEnterButton, onEnte
       </div>
 
       {showEnterButton && (
-        <Button size="sm" className="gap-1 shrink-0" onClick={() => onEnter?.(lesson)}>
+        <Button size="sm" className="gap-1 shrink-0" onClick={(e) => { e.stopPropagation(); onEnter?.(lesson); }}>
           <Video className="w-4 h-4" />
           Enter
         </Button>
       )}
 
       {lesson.status === 'needs-feedback' && (
-        <Button size="sm" variant="outline" className="gap-1 shrink-0">
+        <Button
+          size="sm"
+          variant="outline"
+          className="gap-1 shrink-0"
+          onClick={(e) => { e.stopPropagation(); onWriteFeedback?.(lesson); }}
+        >
           <MessageSquare className="w-4 h-4" />
           Feedback
         </Button>
       )}
 
       {lesson.status === 'completed' && (
-        <Button size="sm" variant="ghost" className="shrink-0">
+        <Button
+          size="sm"
+          variant="ghost"
+          className="shrink-0"
+          onClick={(e) => { e.stopPropagation(); onOpenFeedback?.(lesson); }}
+        >
           <ChevronRight className="w-4 h-4" />
         </Button>
       )}
@@ -79,6 +100,8 @@ export const LessonsListCard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackLesson, setFeedbackLesson] = useState<Lesson | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -154,6 +177,17 @@ export const LessonsListCard: React.FC = () => {
     else navigate(`/classroom/${lesson.id}`);
   };
 
+  const handleOpenFeedback = (lesson: Lesson) => {
+    setFeedbackLesson(lesson);
+    setFeedbackOpen(true);
+  };
+
+  const handleWriteFeedback = (lesson: Lesson) => {
+    // Open the classroom which contains the wrap-up dialog
+    if (lesson.classroomId) navigate(`/classroom/${lesson.classroomId}?wrapup=1`);
+    else navigate(`/classroom/${lesson.id}?wrapup=1`);
+  };
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -205,7 +239,11 @@ export const LessonsListCard: React.FC = () => {
               <TabsContent value="past" className="space-y-2">
                 {pastLessons.length > 0 ? (
                   pastLessons.map(lesson => (
-                    <LessonItem key={lesson.id} lesson={lesson} />
+                    <LessonItem
+                      key={lesson.id}
+                      lesson={lesson}
+                      onOpenFeedback={handleOpenFeedback}
+                    />
                   ))
                 ) : (
                   <EmptyState
@@ -220,7 +258,11 @@ export const LessonsListCard: React.FC = () => {
               <TabsContent value="feedback" className="space-y-2">
                 {needsFeedback.length > 0 ? (
                   needsFeedback.map(lesson => (
-                    <LessonItem key={lesson.id} lesson={lesson} />
+                    <LessonItem
+                      key={lesson.id}
+                      lesson={lesson}
+                      onWriteFeedback={handleWriteFeedback}
+                    />
                   ))
                 ) : (
                   <EmptyState
@@ -235,6 +277,13 @@ export const LessonsListCard: React.FC = () => {
           )}
         </Tabs>
       </CardContent>
+
+      <FeedbackReportDialog
+        open={feedbackOpen}
+        onOpenChange={setFeedbackOpen}
+        lessonId={feedbackLesson?.id ?? null}
+        lessonTitle={feedbackLesson?.title}
+      />
     </Card>
   );
 };
