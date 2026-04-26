@@ -72,8 +72,9 @@ export const AILessonArchitect: React.FC = () => {
     setIsEditing(false);
 
     try {
+      const resolvedCefr = cefrLevel || HUB_DEFAULT_CEFR[hub as HubType];
       const { data, error } = await supabase.functions.invoke('generate-lesson-plan', {
-        body: { hub, topic, targetGrammar, targetVocabulary },
+        body: { hub, topic, targetGrammar, targetVocabulary, cefr_level: resolvedCefr },
       });
 
       if (!handleAIResponse({ data, error, onRetry: handleGenerate, context: 'Lesson Architect' })) {
