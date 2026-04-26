@@ -62,6 +62,11 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         start_url: startUrl,
+        // Performance tuning — cut bandwidth ~50% and improve EU/Africa latency.
+        region: "EU",
+        width: 1024,
+        height: 768,
+        fps: 30,
         ublock: true,
         offline_timeout: ttl,
         control_disable_default: false,
