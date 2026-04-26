@@ -168,11 +168,71 @@ export const LessonWrapUpDialog: React.FC<LessonWrapUpDialogProps> = ({
           .eq('user_id', studentId);
       }
 
+      // ───────────────────────────────────────────────────────────────────────
+      // CLOSE THE BOOKING + RECORD EARNINGS
+      // (lessonId here is actually class_bookings.id — see UnifiedClassroomPage)
+      // ───────────────────────────────────────────────────────────────────────
+      if (lessonId) {
+        // 1. Mark booking completed → student-side UI no longer treats it as live.
+        const { data: bookingRow, error: bookingErr } = await supabase
+          .from('class_bookings')
+          .update({ status: 'completed', updated_at: new Date().toISOString() })
+          .eq('id', lessonId)
+          .select('id, hub_type, price_paid, currency, student_id, teacher_id, status')
+          .maybeSingle();
+
+        if (bookingErr) console.error('Failed to close booking:', bookingErr);
+
+        // 2. Mark the live classroom session as ended (room teardown signal).
+        await supabase
+          .from('classroom_sessions')
+          .update({
+            session_status: 'ended',
+            ended_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', lessonId);
+
+        // 3. Record teacher earnings — idempotent (one payment row per booking).
+        if (bookingRow && bookingRow.teacher_id && bookingRow.student_id) {
+          const { data: existing } = await supabase
+            .from('lesson_payments')
+            .select('id')
+            .eq('lesson_id', lessonId)
+            .maybeSingle();
+
+          if (!existing) {
+            // Pull hub-specific payout amount; fall back to academy default.
+            const hub = (bookingRow.hub_type as string) || 'academy';
+            const { data: payoutRow } = await supabase
+              .from('hub_payout_settings')
+              .select('payout_amount_eur')
+              .eq('hub', hub)
+              .maybeSingle();
+
+            const teacherPayout = Number(payoutRow?.payout_amount_eur ?? 7.0);
+            const amountCharged = Number(bookingRow.price_paid ?? 0) || teacherPayout;
+            const platformProfit = Math.max(amountCharged - teacherPayout, 0);
+
+            const { error: payErr } = await supabase.from('lesson_payments').insert({
+              lesson_id: lessonId,
+              student_id: bookingRow.student_id,
+              teacher_id: bookingRow.teacher_id,
+              amount_charged: amountCharged,
+              teacher_payout: teacherPayout,
+              platform_profit: platformProfit,
+              payment_method: 'platform_credit',
+            });
+            if (payErr) console.error('Failed to insert lesson_payments:', payErr);
+          }
+        }
+      }
+
       toast({
         title: 'Session Report Saved ✓',
         description: showSkillScores
-          ? 'Feedback and skill scores have been updated on the student\'s dashboard.'
-          : 'Lesson wrap-up has been recorded and the student\'s learning path updated.',
+          ? 'Lesson closed for the student and earnings updated. Skill scores synced to dashboard.'
+          : 'Lesson closed for the student and earnings updated.',
         className: 'bg-emerald-900 border-emerald-700'
       });
 
