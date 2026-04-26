@@ -305,7 +305,7 @@ export const TeacherControlsPanel: React.FC<Props> = ({ slide, onChange }) => {
           onChange={(e) => onChange({ visual_keyword: e.target.value })}
           placeholder="e.g. autumn forest"
         />
-        <p className="text-[11px] text-slate-400">1–2 words. Updates the Unsplash background.</p>
+        <p className="text-[11px] text-slate-400">1–2 words. Used to fetch a kid-friendly background image (falls back to a colorful gradient).</p>
       </div>
     </aside>
   );
