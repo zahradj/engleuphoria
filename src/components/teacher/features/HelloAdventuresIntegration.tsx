@@ -23,7 +23,7 @@ export function HelloAdventuresIntegration() {
   const lessonDetails = {
     title: "🎵 Hello Adventures - Welcome to English",
     description: "Interactive lesson featuring songs, greetings, phonics, and fun activities perfect for young ESL learners",
-    url: "https://preview--hello-a-names-adventures.lovable.app/",
+    url: "/media-test?roomId=hello-adventures&role=teacher&lesson=hello-adventures",
     duration: "30 minutes",
     slides: 34,
     level: "A1 (Beginner)",
