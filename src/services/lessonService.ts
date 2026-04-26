@@ -109,14 +109,6 @@ export const lessonService = {
     lessonData: CreateLessonData,
     availabilitySlotId?: string
   ): Promise<ScheduledLesson> {
-    // Mark the slot as booked
-    if (availabilitySlotId) {
-      await supabase
-        .from('teacher_availability')
-        .update({ is_booked: true })
-        .eq('id', availabilitySlotId);
-    }
-
     // Create the lesson record
     const { data: lesson, error } = await supabase
       .from('lessons')
@@ -132,6 +124,19 @@ export const lessonService = {
       .single();
 
     if (error) throw error;
+
+    // Mark the slot as booked with the linked student and lesson label
+    if (availabilitySlotId) {
+      await supabase
+        .from('teacher_availability')
+        .update({
+          is_booked: true,
+          student_id: lessonData.student_id,
+          lesson_id: lesson.id,
+          lesson_title: lesson.title,
+        })
+        .eq('id', availabilitySlotId);
+    }
 
     // Also create a class_bookings record
     await supabase.from('class_bookings').insert({
