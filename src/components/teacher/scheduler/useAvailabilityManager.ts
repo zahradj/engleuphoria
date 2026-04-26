@@ -257,9 +257,9 @@ export const useAvailabilityManager = (
       setSlots((prev) => {
         const existing = prev.find((s) => s.day === day && s.time === time);
         if (existing) {
-          // Only allow removing slots that aren't booked AND haven't been
-          // persisted yet (DB-backed open slots get a non-uuidv4 id from DB).
-          if (existing.status === 'open') {
+          // Tapping a pending selected slot deselects it. Saved open slots and
+          // booked slots stay intact so teachers do not accidentally delete DB data.
+          if (existing.status === 'selected') {
             return prev.filter((s) => s.id !== existing.id);
           }
           return prev;
@@ -269,7 +269,7 @@ export const useAvailabilityManager = (
           day,
           time,
           duration: slotDuration,
-          status: 'open',
+          status: 'selected',
         };
         return [...prev, newSlot];
       });
@@ -297,7 +297,7 @@ export const useAvailabilityManager = (
     [slots]
   );
   const clearOpenSlots = useCallback(
-    () => setSlots((prev) => prev.filter((s) => s.status !== 'open')),
+    () => setSlots((prev) => prev.filter((s) => s.status !== 'selected')),
     []
   );
 
