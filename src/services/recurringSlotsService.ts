@@ -38,6 +38,16 @@ export interface OpenWeeklyRecurringInput {
   hub?: HubKind;
 }
 
+export interface OpenWeeklyRecurringSelectionsInput {
+  teacherId: string;
+  /** Exact weekday+time pairs selected on the calendar. */
+  selections: Array<{ weekday: number; time: string }>;
+  duration: 30 | 60;
+  weeksAhead?: number;
+  startFrom?: Date;
+  hub?: HubKind;
+}
+
 const DEFAULT_HORIZON_WEEKS = 12;
 
 const buildSlotRow = (
@@ -117,6 +127,43 @@ export async function openWeeklyRecurring(
           buildSlotRow(input.teacherId, start, input.duration, input.hub, recurringPattern),
         );
       }
+    }
+  }
+
+  if (rows.length === 0) return 0;
+  await insertAvailabilitySlotsWithFallback(supabase as any, rows);
+  return rows.length;
+}
+
+/** Open exact selected calendar cells every week without creating a weekday/time cross-product. */
+export async function openWeeklyRecurringSelections(
+  input: OpenWeeklyRecurringSelectionsInput,
+): Promise<number> {
+  const horizon = input.weeksAhead ?? DEFAULT_HORIZON_WEEKS;
+  const anchor = input.startFrom ? new Date(input.startFrom) : new Date();
+  anchor.setHours(0, 0, 0, 0);
+
+  const selections = input.selections
+    .map((s) => ({ weekday: s.weekday, time: s.time }))
+    .sort((a, b) => a.weekday - b.weekday || a.time.localeCompare(b.time));
+
+  const recurringPattern = {
+    type: "weekly" as const,
+    selections,
+    duration: input.duration,
+    horizon_weeks: horizon,
+    created_at: new Date().toISOString(),
+  };
+
+  const rows: ReturnType<typeof buildSlotRow>[] = [];
+  for (let w = 0; w < horizon; w++) {
+    for (const selection of selections) {
+      const dayOffset = ((selection.weekday - anchor.getDay()) + 7) % 7 + w * 7;
+      const targetDate = new Date(anchor);
+      targetDate.setDate(anchor.getDate() + dayOffset);
+      const start = setLocalTime(targetDate, selection.time);
+      if (start.getTime() <= Date.now()) continue;
+      rows.push(buildSlotRow(input.teacherId, start, input.duration, input.hub, recurringPattern));
     }
   }
 

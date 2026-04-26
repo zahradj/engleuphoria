@@ -6,10 +6,13 @@ import { WeeklyCalendarGrid } from './WeeklyCalendarGrid';
 import { SlotControlPanel } from './SlotControlPanel';
 import { supabase } from '@/integrations/supabase/client';
 import { insertAvailabilitySlotsWithFallback } from '@/services/availabilityInsert';
+import { openWeeklyRecurringSelections } from '@/services/recurringSlotsService';
 import { addMinutes, setHours, setMinutes, format } from 'date-fns';
 import { useTeacherHubRole } from '@/hooks/useTeacherHubRole';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Loader2, RotateCcw } from 'lucide-react';
+import { BookedSlotManager } from './BookedSlotManager';
+import type { AvailabilitySlot } from './types';
 
 interface ClassSchedulerProps {
   teacherName: string;
@@ -25,6 +28,7 @@ export const ClassScheduler: React.FC<ClassSchedulerProps> = ({
 }) => {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
+  const [bookedSlot, setBookedSlot] = useState<AvailabilitySlot | null>(null);
 
   const { hubKind, allowedDurations, loading: hubLoading } = useTeacherHubRole(teacherId);
 
@@ -59,6 +63,12 @@ export const ClassScheduler: React.FC<ClassSchedulerProps> = ({
 
   const weekDates = getWeekDates();
   const slotsForSelectedDay = getSlotsForDay(selectedDay);
+  const selectedSlots = slots.filter((s) => s.status === 'selected');
+  const hubForSlots = resolvedHubSpecialty === 'Playground'
+    ? 'playground'
+    : resolvedHubSpecialty === 'Professional'
+      ? 'success'
+      : 'academy';
   const weekRangeLabel = useMemo(() => {
     if (weekDates.length === 0) return '';
     const first = weekDates[0].date;
@@ -67,15 +77,10 @@ export const ClassScheduler: React.FC<ClassSchedulerProps> = ({
   }, [weekDates]);
 
   const handleSaveSchedule = async () => {
-    // Only persist NEWLY-added open slots (those without a DB id yet).
-    // DB-backed slots have non-uuid format ids? They DO use uuid; safer:
-    // we filter open slots whose start_time isn't already represented in the
-    // DB by re-checking in the helper (it already dedupes server-side).
-    const openSlots = slots.filter((s) => s.status === 'open');
-    if (openSlots.length === 0) {
+    if (selectedSlots.length === 0) {
       toast({
-        title: 'No slots to save',
-        description: 'Tap a cell on the calendar to open a free slot first.',
+        title: 'No slots selected',
+        description: 'Tap one or more empty calendar cells first.',
         variant: 'destructive',
       });
       return;
@@ -83,7 +88,7 @@ export const ClassScheduler: React.FC<ClassSchedulerProps> = ({
 
     setSaving(true);
     try {
-      const dbSlots = openSlots.map((slot) => {
+      const dbSlots = selectedSlots.map((slot) => {
         const dayData = weekDates.find((d) => d.day === slot.day);
         if (!dayData) throw new Error(`Day ${slot.day} not found`);
         const [h, m] = slot.time.split(':').map(Number);
@@ -105,8 +110,8 @@ export const ClassScheduler: React.FC<ClassSchedulerProps> = ({
       await insertAvailabilitySlotsWithFallback(supabase, dbSlots);
 
       toast({
-        title: 'Schedule Saved! ✅',
-        description: `${openSlots.length} time slot${openSlots.length > 1 ? 's are' : ' is'} now available for students to book.`,
+        title: 'Slots opened ✅',
+        description: `${selectedSlots.length} slot${selectedSlots.length > 1 ? 's are' : ' is'} now available for students to book.`,
       });
 
       window.dispatchEvent(new Event('availability-changed'));
@@ -124,11 +129,57 @@ export const ClassScheduler: React.FC<ClassSchedulerProps> = ({
     }
   };
 
+  const handleOpenWeeklySlots = async () => {
+    if (selectedSlots.length === 0) {
+      toast({
+        title: 'No slots selected',
+        description: 'Tap one or more empty calendar cells first.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const selections = selectedSlots.map((slot) => {
+        const dayData = weekDates.find((d) => d.day === slot.day);
+        if (!dayData) throw new Error(`Day ${slot.day} not found`);
+        return { weekday: dayData.date.getDay(), time: slot.time };
+      });
+
+      const created = await openWeeklyRecurringSelections({
+        teacherId,
+        selections,
+        duration: slotDuration,
+        weeksAhead: 12,
+        startFrom: weekDates[0]?.date ?? new Date(),
+        hub: hubForSlots,
+      });
+
+      toast({
+        title: 'Weekly slots opened ✅',
+        description: `Created ${created} recurring slot${created === 1 ? '' : 's'} across the next 12 weeks.`,
+      });
+
+      window.dispatchEvent(new Event('availability-changed'));
+      await refresh();
+    } catch (err: any) {
+      console.error('Error opening weekly slots:', err);
+      toast({
+        title: 'Weekly opening failed',
+        description: err.message || 'Could not open recurring availability. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleClearSlots = () => {
     clearOpenSlots();
     toast({
-      title: 'Slots Cleared',
-      description: 'Unsaved open slots have been removed from the canvas. Saved slots remain in the database.',
+      title: 'Selection cleared',
+      description: 'Selected slots were cleared. Saved slots remain in the database.',
     });
   };
 
@@ -203,6 +254,7 @@ export const ClassScheduler: React.FC<ClassSchedulerProps> = ({
             getSlotAt={getSlotAt}
             isSlotInPast={isSlotInPast}
             onSlotClick={toggleSlot}
+            onBookedSlotClick={setBookedSlot}
             slotDuration={slotDuration}
           />
         </div>
@@ -217,11 +269,30 @@ export const ClassScheduler: React.FC<ClassSchedulerProps> = ({
             setSelectedDay={setSelectedDay}
             slotsForDay={slotsForSelectedDay}
             onSaveSchedule={handleSaveSchedule}
+            onOpenWeeklySlots={handleOpenWeeklySlots}
             onClearSlots={handleClearSlots}
             isSaving={saving || hubLoading}
           />
         </div>
       </div>
+
+      <BookedSlotManager
+        open={!!bookedSlot}
+        onOpenChange={(open) => { if (!open) setBookedSlot(null); }}
+        slot={bookedSlot ? {
+          slotId: bookedSlot.id,
+          studentName: bookedSlot.studentName,
+          studentShortId: bookedSlot.studentShortId,
+          hub: bookedSlot.hub ?? null,
+          startTime: bookedSlot.startTime ? new Date(bookedSlot.startTime) : new Date(),
+          duration: bookedSlot.duration,
+          isRecurring: !!bookedSlot.recurringPattern,
+        } : null}
+        onCancelled={() => {
+          setBookedSlot(null);
+          refresh();
+        }}
+      />
     </div>
   );
 };

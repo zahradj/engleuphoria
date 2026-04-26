@@ -175,7 +175,9 @@ export const lessonPricingService = {
         .from('teacher_availability')
         .update({ 
           is_booked: true,
-          lesson_id: lesson.id
+          lesson_id: lesson.id,
+          student_id: studentId,
+          lesson_title: lesson.title
         })
         .eq('is_booked', false)
         .eq('is_available', true);
@@ -268,7 +270,9 @@ export const lessonPricingService = {
         .from('teacher_availability')
         .update({ 
           is_booked: true,
-          lesson_id: lesson.id
+          lesson_id: lesson.id,
+          student_id: studentId,
+          lesson_title: lesson.title
         })
         .eq('is_booked', false)
         .eq('is_available', true);

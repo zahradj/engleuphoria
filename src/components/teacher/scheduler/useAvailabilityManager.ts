@@ -16,16 +16,25 @@ import { supabase } from '@/integrations/supabase/client';
 interface DbSlotRow {
   id: string;
   start_time: string;
+  end_time: string | null;
   duration: number | null;
   is_booked: boolean | null;
   is_available: boolean | null;
   student_id: string | null;
+  lesson_id: string | null;
   lesson_title: string | null;
+  hub_specialty: string | null;
+  recurring_pattern: Record<string, unknown> | null;
 }
 
 interface StudentInfo {
   name: string;
   email?: string;
+}
+
+interface LessonInfo {
+  studentId?: string;
+  title?: string;
 }
 
 const DAY_INDEX_TO_NAME: Record<number, string> = {
@@ -104,7 +113,7 @@ export const useAvailabilityManager = (
 
       const { data, error } = await supabase
         .from('teacher_availability')
-        .select('id, start_time, duration, is_booked, is_available, student_id, lesson_title')
+        .select('id, start_time, end_time, duration, is_booked, is_available, student_id, lesson_id, lesson_title, hub_specialty, recurring_pattern')
         .eq('teacher_id', teacherId)
         .gte('start_time', weekStart.toISOString())
         .lte('start_time', weekEnd.toISOString())
@@ -120,9 +129,31 @@ export const useAvailabilityManager = (
 
       const rows = (data ?? []) as DbSlotRow[];
 
+      const lessonIds = Array.from(
+        new Set(rows.map((r) => r.lesson_id).filter(Boolean) as string[])
+      );
+      const lessonInfo: Record<string, LessonInfo> = {};
+
+      if (lessonIds.length > 0) {
+        const { data: lessons } = await supabase
+          .from('lessons')
+          .select('id, student_id, title')
+          .in('id', lessonIds);
+        for (const lesson of lessons ?? []) {
+          lessonInfo[(lesson as any).id] = {
+            studentId: (lesson as any).student_id,
+            title: (lesson as any).title,
+          };
+        }
+      }
+
       // Lookup student names for booked rows
       const studentIds = Array.from(
-        new Set(rows.map((r) => r.student_id).filter(Boolean) as string[])
+        new Set(
+          rows
+            .map((r) => r.student_id || (r.lesson_id ? lessonInfo[r.lesson_id]?.studentId : undefined))
+            .filter(Boolean) as string[]
+        )
       );
 
       const newInfo: Record<string, StudentInfo> = { ...studentInfoRef.current };
@@ -141,6 +172,14 @@ export const useAvailabilityManager = (
         if (!signal?.aborted) setStudentInfo(newInfo);
       }
 
+      const inferHub = (raw: string | null, duration: 30 | 60): AvailabilitySlot['hub'] => {
+        const v = String(raw ?? '').toLowerCase();
+        if (v.includes('playground')) return 'playground';
+        if (v.includes('success') || v.includes('professional')) return 'success';
+        if (v.includes('academy')) return 'academy';
+        return duration === 30 ? 'playground' : 'academy';
+      };
+
       const mapped: AvailabilitySlot[] = rows.map((r) => {
         const start = new Date(r.start_time);
         const dayName = DAY_INDEX_TO_NAME[start.getDay()] ?? DAYS[0];
@@ -148,17 +187,22 @@ export const useAvailabilityManager = (
           start.getMinutes()
         ).padStart(2, '0')}`;
         const dur: 30 | 60 = (r.duration ?? 30) >= 55 ? 60 : 30;
-        const info = r.student_id ? newInfo[r.student_id] : undefined;
+        const actualStudentId = r.student_id || (r.lesson_id ? lessonInfo[r.lesson_id]?.studentId : undefined);
+        const info = actualStudentId ? newInfo[actualStudentId] : undefined;
         return {
           id: r.id,
           day: dayName,
           time,
           duration: dur,
           status: r.is_booked ? 'booked' : 'open',
+          studentId: actualStudentId,
+          studentShortId: actualStudentId ? `#${actualStudentId.slice(0, 4).toUpperCase()}` : undefined,
           studentName: r.is_booked ? info?.name : undefined,
           studentEmail: r.is_booked ? info?.email : undefined,
-          lessonTitle: r.is_booked ? r.lesson_title || undefined : undefined,
+          lessonTitle: r.is_booked ? r.lesson_title || (r.lesson_id ? lessonInfo[r.lesson_id]?.title : undefined) : undefined,
           startTime: r.start_time,
+          hub: inferHub(r.hub_specialty, dur),
+          recurringPattern: r.recurring_pattern ?? null,
         };
       });
 
@@ -213,9 +257,9 @@ export const useAvailabilityManager = (
       setSlots((prev) => {
         const existing = prev.find((s) => s.day === day && s.time === time);
         if (existing) {
-          // Only allow removing slots that aren't booked AND haven't been
-          // persisted yet (DB-backed open slots get a non-uuidv4 id from DB).
-          if (existing.status === 'open') {
+          // Tapping a pending selected slot deselects it. Saved open slots and
+          // booked slots stay intact so teachers do not accidentally delete DB data.
+          if (existing.status === 'selected') {
             return prev.filter((s) => s.id !== existing.id);
           }
           return prev;
@@ -225,7 +269,7 @@ export const useAvailabilityManager = (
           day,
           time,
           duration: slotDuration,
-          status: 'open',
+          status: 'selected',
         };
         return [...prev, newSlot];
       });
@@ -253,7 +297,7 @@ export const useAvailabilityManager = (
     [slots]
   );
   const clearOpenSlots = useCallback(
-    () => setSlots((prev) => prev.filter((s) => s.status !== 'open')),
+    () => setSlots((prev) => prev.filter((s) => s.status !== 'selected')),
     []
   );
 

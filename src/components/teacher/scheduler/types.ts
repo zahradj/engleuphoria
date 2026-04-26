@@ -3,11 +3,15 @@ export interface AvailabilitySlot {
   day: string;
   time: string;
   duration: 30 | 60;
-  status: 'open' | 'booked' | 'past';
+  status: 'selected' | 'open' | 'booked' | 'past';
+  studentId?: string;
+  studentShortId?: string;
   studentName?: string;
   studentEmail?: string;
   lessonTitle?: string;
   startTime?: string;
+  hub?: 'playground' | 'academy' | 'success' | null;
+  recurringPattern?: Record<string, unknown> | null;
 }
 
 export interface SchedulerState {
