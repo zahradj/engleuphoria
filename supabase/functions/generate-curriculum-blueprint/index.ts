@@ -15,6 +15,7 @@ const CEFR_RULES: Record<string, string> = {
 };
 
 const SKILL_ROTATION = ["Grammar", "Vocabulary", "Reading/Listening", "Speaking"];
+const VALID_SKILLS = ["Grammar", "Vocabulary", "Reading/Listening", "Speaking", "Review"];
 
 // Tiny UUIDv4 generator (no external deps)
 function uuid(): string {
@@ -48,7 +49,7 @@ Deno.serve(async (req) => {
     } = body;
 
     const safeUnits = Math.max(1, Math.min(10, Number(unit_count) || 4));
-    const safeLessons = Math.max(1, Math.min(8, Number(lessons_per_unit) || 4));
+    const safeLessons = Math.max(2, Math.min(8, Number(lessons_per_unit) || 4));
     const cefrRule = CEFR_RULES[cefr_level] || CEFR_RULES.A2;
     const variationSeed = Math.random().toString(36).slice(2, 10);
 
@@ -61,25 +62,28 @@ HUB: ${hub}
 REQUIREMENTS:
 1. Every unit MUST have a single engaging central theme (e.g. "Travel Adventures", "Tech & Social Media", "Career Confidence").
 2. Within each unit, lessons MUST systematically rotate through these skill focuses in order:
-   1) Grammar & Syntax  2) Core Vocabulary  3) Reading/Listening Comprehension  4) Speaking & Roleplay
-   (If more than 4 lessons per unit, cycle through them again.)
-3. Lesson titles must be specific and engaging — NOT generic ("Grammar Lesson 1" is forbidden).
-4. Each lesson_objective must be a single concrete, observable outcome ("Students will be able to...").
-5. Themes must progress logically across units (build complexity, don't repeat).
-6. Variation seed: ${variationSeed} — use this to differ from past outputs.
+   1) Grammar  2) Vocabulary  3) Reading/Listening  4) Speaking
+   (If more than 4 non-review lessons in a unit, cycle through them again.)
+3. CRITICAL — Spaced repetition: the FINAL lesson of EVERY unit MUST have skill_focus = "Review". No exceptions.
+4. Lesson titles must be specific and engaging — NOT generic ("Grammar Lesson 1" is forbidden).
+5. Each objective must be a single concrete, observable outcome ("Students will be able to...").
+6. Themes must progress logically across units (build complexity, don't repeat).
+7. Variation seed: ${variationSeed} — use this to differ from past outputs.
 
 OUTPUT STRICT JSON ONLY (no markdown, no code fences) matching this schema EXACTLY:
 {
   "curriculum_title": "string — engaging title for the whole course",
   "units": [
     {
+      "unit_number": number,
       "unit_title": "string",
       "theme": "string — the central theme of this unit",
       "lessons": [
         {
+          "lesson_number": number,
           "title": "string — specific & engaging lesson title",
-          "skill_focus": "Grammar | Vocabulary | Reading/Listening | Speaking",
-          "learning_objective": "string — one observable outcome"
+          "skill_focus": "Grammar | Vocabulary | Reading/Listening | Speaking | Review",
+          "objective": "string — one observable outcome"
         }
       ]
     }
@@ -88,9 +92,9 @@ OUTPUT STRICT JSON ONLY (no markdown, no code fences) matching this schema EXACT
 
     const userPrompt = `Generate a curriculum with:
 - ${safeUnits} units
-- ${safeLessons} lessons per unit
-- Skill rotation: ${SKILL_ROTATION.join(" → ")}
-${theme_hint ? `- Overall theme hint: "${theme_hint}"` : ""}
+- ${safeLessons} lessons per unit (the LAST lesson of each unit MUST be a "Review")
+- Skill rotation for non-review lessons: ${SKILL_ROTATION.join(" → ")}
+${theme_hint ? `- Core theme/topic: "${theme_hint}"` : ""}
 
 Return ONLY the JSON object.`;
 
@@ -175,24 +179,51 @@ Return ONLY the JSON object.`;
       );
     }
 
-    // Inject UUIDs and enforce skill rotation server-side
-    const units = (parsed.units || []).slice(0, safeUnits).map((u: any) => ({
-      unit_title: String(u.unit_title || "Untitled Unit"),
-      theme: String(u.theme || "General English"),
-      lessons: (u.lessons || []).slice(0, safeLessons).map((l: any, idx: number) => {
-        const expectedSkill = SKILL_ROTATION[idx % SKILL_ROTATION.length];
-        const aiSkill = String(l.skill_focus || "");
-        const skill_focus = SKILL_ROTATION.find(
-          (s) => aiSkill.toLowerCase().includes(s.toLowerCase().split("/")[0])
-        ) || expectedSkill;
+    // Normalize a skill string to one of VALID_SKILLS
+    const normalizeSkill = (raw: string): string => {
+      const v = (raw || "").toLowerCase();
+      if (v.startsWith("rev")) return "Review";
+      if (v.startsWith("gram")) return "Grammar";
+      if (v.startsWith("voc")) return "Vocabulary";
+      if (v.startsWith("speak") || v.startsWith("role")) return "Speaking";
+      if (v.includes("read") || v.includes("listen")) return "Reading/Listening";
+      return "";
+    };
+
+    // Inject UUIDs, numbering, and enforce skill rotation + Review-last rule
+    const units = (parsed.units || []).slice(0, safeUnits).map((u: any, uIdx: number) => {
+      const rawLessons = (u.lessons || []).slice(0, safeLessons);
+      const lessons = rawLessons.map((l: any, idx: number) => {
+        const isLast = idx === rawLessons.length - 1;
+        let skill_focus: string;
+        if (isLast) {
+          skill_focus = "Review"; // hard rule: last lesson is always Review
+        } else {
+          const expectedSkill = SKILL_ROTATION[idx % SKILL_ROTATION.length];
+          const aiSkill = normalizeSkill(String(l.skill_focus || ""));
+          skill_focus =
+            aiSkill && aiSkill !== "Review" && VALID_SKILLS.includes(aiSkill)
+              ? aiSkill
+              : expectedSkill;
+        }
+        const objective = String(l.objective || l.learning_objective || "");
         return {
           lesson_id: uuid(),
+          lesson_number: idx + 1,
           title: String(l.title || `Lesson ${idx + 1}`),
           skill_focus,
-          learning_objective: String(l.learning_objective || ""),
+          objective,
+          // back-compat for older consumers
+          learning_objective: objective,
         };
-      }),
-    }));
+      });
+      return {
+        unit_number: uIdx + 1,
+        unit_title: String(u.unit_title || `Unit ${uIdx + 1}`),
+        theme: String(u.theme || "General English"),
+        lessons,
+      };
+    });
 
     return new Response(
       JSON.stringify({
