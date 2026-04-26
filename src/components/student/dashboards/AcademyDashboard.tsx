@@ -23,6 +23,7 @@ import { AILessonAgent } from '../AILessonAgent';
 import { WeeklyGoalWidget } from '../WeeklyGoalWidget';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RecommendedTeachers } from '../RecommendedTeachers';
+import { RecentLessonReports } from '../RecentLessonReports';
 import { BookMyClassModal } from '../BookMyClassModal';
 import { JoinLessonHero } from '../JoinLessonHero';
 import { HubLogo } from '../HubLogo';
@@ -308,6 +309,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
             <AILessonAgent studentLevel="academy" studentInterests={['gaming', 'social media', 'music']} cefrLevel="A2" />
 
             <MaterialsGallery track="teens" />
+            <RecentLessonReports hubId="academy" />
             <RecommendedTeachers hubLevel="academy" />
 
             {onLevelUp && (

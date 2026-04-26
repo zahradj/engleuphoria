@@ -20,6 +20,7 @@ import { AIPersonalizedLessonCard } from '../AIPersonalizedLessonCard';
 import { AILessonAgent } from '../AILessonAgent';
 import { WeeklyGoalWidget } from '../WeeklyGoalWidget';
 import { RecommendedTeachers } from '../RecommendedTeachers';
+import { RecentLessonReports } from '../RecentLessonReports';
 import { BookMyClassModal } from '../BookMyClassModal';
 import { CreditDisplay } from '../CreditDisplay';
 import { JoinLessonHero } from '../JoinLessonHero';
@@ -227,6 +228,7 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
             </div>
 
             <MaterialsGallery track="adults" />
+            <RecentLessonReports hubId="professional" />
             <RecommendedTeachers isDarkMode={isDarkMode} hubLevel="professional" />
 
             {/* Schedule Executive Briefing — GLOWING */}

@@ -11,6 +11,7 @@ import { VirtualPetWidget } from '../kids/VirtualPetWidget';
 import { AILessonAgent } from '../AILessonAgent';
 import { WeeklyGoalWidget } from '../WeeklyGoalWidget';
 import { RecommendedTeachers } from '../RecommendedTeachers';
+import { RecentLessonReports } from '../RecentLessonReports';
 import { EnterClassroomCTA } from '../kids/EnterClassroomCTA';
 import { AIPersonalizedLessonCard } from '../AIPersonalizedLessonCard';
 import { MaterialsGallery } from '../MaterialsGallery';
@@ -354,6 +355,7 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
         <WeeklyGoalWidget studentLevel="playground" />
         <AILessonAgent studentLevel="playground" studentInterests={['animals', 'games', 'cartoons']} cefrLevel="Pre-A1" />
         <MaterialsGallery track="kids" />
+        <RecentLessonReports hubId="playground" />
         <RecommendedTeachers hubLevel="playground" />
       </div>
     </div>
