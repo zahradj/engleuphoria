@@ -178,8 +178,8 @@ export const ClassScheduler: React.FC<ClassSchedulerProps> = ({
   const handleClearSlots = () => {
     clearOpenSlots();
     toast({
-      title: 'Slots Cleared',
-      description: 'Unsaved open slots have been removed from the canvas. Saved slots remain in the database.',
+      title: 'Selection cleared',
+      description: 'Selected slots were cleared. Saved slots remain in the database.',
     });
   };
 
