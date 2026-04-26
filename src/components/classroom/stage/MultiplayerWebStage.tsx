@@ -200,8 +200,25 @@ export const MultiplayerWebStage: React.FC<MultiplayerWebStageProps> = ({
   const showOverlay = joinState !== 'playing';
 
   return (
-    <div className="absolute inset-0 h-full w-full bg-muted/40 p-4">
-      <div ref={containerRef} id="hyperbeam-container" className="mx-auto h-full w-full max-w-6xl overflow-hidden rounded-lg border border-border bg-black shadow-lg" />
+    <div className="absolute inset-0 h-full w-full overflow-hidden bg-muted/40 p-4">
+      {/* Force Hyperbeam's injected <video>/<iframe>/<canvas> to fit the
+          container instead of cropping or zooming the cloud browser stream. */}
+      <style>{`
+        #hyperbeam-container > video,
+        #hyperbeam-container > iframe,
+        #hyperbeam-container > canvas {
+          width: 100% !important;
+          height: 100% !important;
+          object-fit: contain !important;
+          display: block !important;
+          background: #000 !important;
+        }
+      `}</style>
+      <div
+        ref={containerRef}
+        id="hyperbeam-container"
+        className="mx-auto h-full w-full max-w-6xl overflow-hidden rounded-lg border border-border bg-black shadow-lg"
+      />
 
       {/* Live "joined as viewer" badge for the student */}
       {role === 'student' && joinState === 'playing' && (
