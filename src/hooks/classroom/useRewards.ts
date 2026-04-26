@@ -45,6 +45,7 @@ export function useRewards() {
       if (newLevel > level) {
         setLevel(newLevel);
         setShowLevelUp(true);
+        audioService.playCelebrationSound();
         setTimeout(() => setShowLevelUp(false), 3000);
       }
 
