@@ -35,17 +35,34 @@ export interface CurriculumData {
   }>;
 }
 
-export type SlideType = 'text_image' | 'multiple_choice' | 'drawing_prompt';
+export type SlideType = 'text_image' | 'multiple_choice' | 'drawing_prompt' | 'flashcard';
+export type LayoutStyle = 'split_left' | 'split_right' | 'center_card' | 'full_background';
+
+export interface MCQData {
+  question: string;
+  options: string[];
+  correct_index: number;
+}
+export interface FlashcardData {
+  front: string;
+  back: string;
+}
+export interface DrawingData {
+  prompt: string;
+}
+export type InteractiveData = MCQData | FlashcardData | DrawingData | Record<string, unknown>;
 
 export interface PPPSlide {
   id: string;
   phase: Phase | string;
   slide_type?: SlideType;
+  layout_style?: LayoutStyle;
   title?: string;
   content?: string;
   teacher_script?: string;
   visual_keyword?: string;
   custom_image_url?: string;
+  interactive_data?: InteractiveData;
   // legacy / optional
   teacher_instructions?: string;
   interactive_options?: string[];
