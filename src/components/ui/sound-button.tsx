@@ -1,23 +1,33 @@
-
 import React from "react";
 import { Button, ButtonProps } from "@/components/ui/button";
 import { audioService } from "@/services/audioService";
 
+export type SoundButtonType =
+  | 'click'
+  | 'success'
+  | 'error'
+  | 'reward'
+  | 'star'
+  | 'badge'
+  | 'sticker'
+  | 'dice'
+  | 'timer'
+  | 'celebration';
+
 interface SoundButtonProps extends ButtonProps {
-  soundType?: 'click' | 'success' | 'error' | 'reward';
+  soundType?: SoundButtonType;
   rewardPoints?: number;
   children: React.ReactNode;
 }
 
-export function SoundButton({ 
-  soundType = 'click', 
+export function SoundButton({
+  soundType = 'click',
   rewardPoints = 10,
-  onClick, 
-  children, 
-  ...props 
+  onClick,
+  children,
+  ...props
 }: SoundButtonProps) {
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    // Play sound based on type
     switch (soundType) {
       case 'click':
         audioService.playButtonClick();
@@ -31,12 +41,25 @@ export function SoundButton({
       case 'reward':
         audioService.playRewardSound(rewardPoints);
         break;
+      case 'star':
+        audioService.playStarSound();
+        break;
+      case 'badge':
+      case 'sticker':
+        audioService.playStickerSound();
+        break;
+      case 'dice':
+        audioService.playDiceSound();
+        break;
+      case 'timer':
+        audioService.playTimerWarningSound();
+        break;
+      case 'celebration':
+        audioService.playCelebrationSound();
+        break;
     }
 
-    // Call original onClick handler
-    if (onClick) {
-      onClick(e);
-    }
+    if (onClick) onClick(e);
   };
 
   return (
