@@ -9,6 +9,7 @@ import { DeviceCheckBanner } from './DeviceCheckBanner';
 import { NextLessonCard } from './NextLessonCard';
 import { MonthlyStatsCard } from './MonthlyStatsCard';
 import { LessonsListCard } from './LessonsListCard';
+import { EarningsCard } from './EarningsCard';
 
 interface NovakidDashboardProps {
   teacherId: string;
@@ -43,6 +44,7 @@ export const NovakidDashboard: React.FC<NovakidDashboardProps> = ({ teacherId })
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 space-y-6">
+          <EarningsCard />
           <TeacherLevelCard
             currentLevel="Major"
             currentRate={3.00}
