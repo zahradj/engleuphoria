@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Star, Trophy, Zap } from "lucide-react";
+import { audioService } from "@/services/audioService";
 
 interface RewardToastProps {
   show: boolean;
