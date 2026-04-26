@@ -284,22 +284,22 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
                 <div className="space-y-3">
                   <div className="grid grid-cols-3 gap-2">
                     {onGiveStar && (
-                      <Button variant="ghost" onClick={onGiveStar} className="h-16 flex flex-col items-center justify-center gap-1 bg-yellow-500 hover:bg-yellow-600 text-white">
+                      <SoundButton variant="ghost" soundType="star" onClick={onGiveStar} className="h-16 flex flex-col items-center justify-center gap-1 bg-yellow-500 hover:bg-yellow-600 text-white">
                         <Star className="h-5 w-5" />
                         <span className="text-[10px] font-semibold">Give Star</span>
-                      </Button>
+                      </SoundButton>
                     )}
                     {onOpenTimer && (
-                      <Button variant="ghost" onClick={onOpenTimer} className="h-16 flex flex-col items-center justify-center gap-1 bg-blue-500 hover:bg-blue-600 text-white">
+                      <SoundButton variant="ghost" soundType="timer" onClick={onOpenTimer} className="h-16 flex flex-col items-center justify-center gap-1 bg-blue-500 hover:bg-blue-600 text-white">
                         <TimerIcon className="h-5 w-5" />
                         <span className="text-[10px] font-semibold">Timer</span>
-                      </Button>
+                      </SoundButton>
                     )}
                     {onRollDice && (
-                      <Button variant="ghost" onClick={onRollDice} className="h-16 flex flex-col items-center justify-center gap-1 bg-purple-500 hover:bg-purple-600 text-white">
+                      <SoundButton variant="ghost" soundType="dice" onClick={onRollDice} className="h-16 flex flex-col items-center justify-center gap-1 bg-purple-500 hover:bg-purple-600 text-white">
                         <Dice6 className="h-5 w-5" />
                         <span className="text-[10px] font-semibold">Dice</span>
-                      </Button>
+                      </SoundButton>
                     )}
                   </div>
                   {onSendSticker && (
@@ -311,7 +311,10 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
                         {STICKER_PACK.map((emoji) => (
                           <button
                             key={emoji}
-                            onClick={() => onSendSticker(emoji)}
+                            onClick={() => {
+                              audioService.playStickerSound();
+                              onSendSticker(emoji);
+                            }}
                             className="h-10 w-full text-xl rounded-lg hover:bg-pink-100 active:scale-95 transition-all flex items-center justify-center"
                             aria-label={`Send ${emoji} reaction`}
                           >
