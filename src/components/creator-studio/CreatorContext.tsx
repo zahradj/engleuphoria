@@ -109,6 +109,20 @@ export const CreatorProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return 'Creator Studio';
   }, [currentStep, activeLessonData, curriculumData]);
 
+  const updateSlide = (id: string, patch: Partial<PPPSlide>) => {
+    setActiveLessonData((prev) => {
+      if (!prev) return prev;
+      const slides = prev.slides.map((s) => (s.id === id ? { ...s, ...patch } : s));
+      return { ...prev, slides };
+    });
+    setDirty(true);
+  };
+
+  const replaceSlides = (slides: PPPSlide[]) => {
+    setActiveLessonData((prev) => (prev ? { ...prev, slides } : prev));
+    setDirty(true);
+  };
+
   const value: CreatorContextValue = {
     currentStep,
     setCurrentStep,
@@ -116,6 +130,8 @@ export const CreatorProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setCurriculumData,
     activeLessonData,
     setActiveLessonData,
+    updateSlide,
+    replaceSlides,
     workingTitle,
     isDirty,
     setDirty,
