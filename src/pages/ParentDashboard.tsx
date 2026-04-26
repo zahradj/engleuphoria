@@ -84,31 +84,60 @@ const ParentDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto py-8 px-4">
-        <div className="mb-8">
+      {/* Mobile sticky header */}
+      <header className="sticky top-0 z-30 md:hidden bg-card/90 backdrop-blur-xl border-b border-border/60 px-4 py-3">
+        <h1 className="text-lg font-bold text-foreground">Parent Portal</h1>
+        <p className="text-xs text-muted-foreground">Track progress & talk to teachers</p>
+      </header>
+
+      <div
+        className="container mx-auto py-4 md:py-8 px-3 md:px-4"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}
+      >
+        <div className="hidden md:block mb-8">
           <h1 className="text-3xl font-bold text-foreground">Parent Portal</h1>
           <p className="text-muted-foreground mt-2">
             Monitor your children's learning progress and communicate with teachers
           </p>
         </div>
 
-        <Tabs defaultValue="students" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
-            <TabsTrigger value="students" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Students</span>
+        <Tabs defaultValue="students" className="space-y-4 md:space-y-6">
+          {/* Sticky bottom-sheet style tabs on mobile, inline on desktop */}
+          <TabsList
+            className="
+              grid w-full grid-cols-4 h-14 md:h-10 gap-1
+              sticky top-[60px] md:top-auto md:relative
+              z-20 bg-card/90 backdrop-blur-xl
+              lg:w-auto lg:inline-grid
+            "
+          >
+            <TabsTrigger
+              value="students"
+              className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-2 text-[11px] md:text-sm min-h-[44px]"
+            >
+              <Users className="h-5 w-5 md:h-4 md:w-4" />
+              <span>Students</span>
             </TabsTrigger>
-            <TabsTrigger value="progress" className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              <span className="hidden sm:inline">Progress</span>
+            <TabsTrigger
+              value="progress"
+              className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-2 text-[11px] md:text-sm min-h-[44px]"
+            >
+              <TrendingUp className="h-5 w-5 md:h-4 md:w-4" />
+              <span>Progress</span>
             </TabsTrigger>
-            <TabsTrigger value="messages" className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" />
-              <span className="hidden sm:inline">Messages</span>
+            <TabsTrigger
+              value="messages"
+              className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-2 text-[11px] md:text-sm min-h-[44px]"
+            >
+              <MessageSquare className="h-5 w-5 md:h-4 md:w-4" />
+              <span>Messages</span>
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
-              <Bell className="h-4 w-4" />
-              <span className="hidden sm:inline">Notifications</span>
+            <TabsTrigger
+              value="notifications"
+              className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-2 text-[11px] md:text-sm min-h-[44px]"
+            >
+              <Bell className="h-5 w-5 md:h-4 md:w-4" />
+              <span className="truncate max-w-full">Alerts</span>
             </TabsTrigger>
           </TabsList>
 
