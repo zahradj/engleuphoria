@@ -15,6 +15,7 @@ const ContentCreatorDashboard: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<PipelineStep>(1);
   const [curriculumContext, setCurriculumContext] = useState<CurriculumContext | null>(null);
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const progress = usePipelineProgress();
 
   const goNext = () => setCurrentStep((s) => Math.min(s + 1, 3) as PipelineStep);
@@ -25,6 +26,25 @@ const ContentCreatorDashboard: React.FC = () => {
       case 1:
         return (
           <div className="space-y-8">
+            {/* Master PPP Wizard entry banner */}
+            <button
+              onClick={() => navigate('/content-creator/master-wizard')}
+              className="w-full text-left rounded-2xl border border-amber-500/40 bg-gradient-to-br from-amber-500/10 via-orange-500/10 to-amber-500/5 hover:from-amber-500/15 hover:to-orange-500/15 transition-colors p-5 flex items-center justify-between gap-4 group"
+            >
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="flex-shrink-0 h-12 w-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg">
+                  <Wand2 className="h-6 w-6 text-white" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-bold tracking-tight">Master PPP Lesson Wizard</h3>
+                  <p className="text-sm text-muted-foreground truncate">
+                    Generate a Cambridge-grade PPP lesson with roadmap, editable cards & Unsplash visuals.
+                  </p>
+                </div>
+              </div>
+              <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-amber-400 group-hover:translate-x-1 transition-all flex-shrink-0" />
+            </button>
+
             <CurriculumStep onNextStep={goNext} onCurriculumSelected={setCurriculumContext} />
           </div>
         );
