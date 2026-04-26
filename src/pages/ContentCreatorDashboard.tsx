@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ContentCreatorStepper, PipelineStep } from '@/components/content-creator/ContentCreatorStepper';
 import { usePipelineProgress } from '@/hooks/usePipelineProgress';
 import { CurriculumStep, CurriculumContext } from '@/components/content-creator/CurriculumStep';
-import { AdminLessonEditor } from '@/components/admin/lesson-builder';
+import { SlideStudio } from '@/components/content-creator/slide-studio/SlideStudio';
 import LessonLibraryHub from '@/components/lesson-player/LessonLibraryHub';
 // AILessonArchitect is now integrated inside the Slide Builder (AdminLessonEditor)
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,7 +16,14 @@ const ContentCreatorDashboard: React.FC = () => {
   const [curriculumContext, setCurriculumContext] = useState<CurriculumContext | null>(null);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const progress = usePipelineProgress();
+
+  // Auto-jump to Step 2 when arriving from Blueprint "Build Slides"
+  useEffect(() => {
+    const state = (location.state || {}) as { fromBlueprint?: boolean };
+    if (state.fromBlueprint) setCurrentStep(2);
+  }, [location.state]);
 
   const goNext = () => setCurrentStep((s) => Math.min(s + 1, 3) as PipelineStep);
   const goPrev = () => setCurrentStep((s) => Math.max(s - 1, 1) as PipelineStep);
@@ -68,7 +75,7 @@ const ContentCreatorDashboard: React.FC = () => {
           </div>
         );
       case 2:
-        return <AdminLessonEditor onFinish={goNext} onBack={goPrev} curriculumContext={curriculumContext} />;
+        return <SlideStudio onPublished={() => setCurrentStep(3)} />;
       case 3:
         return (
           <div className="space-y-6">
@@ -113,12 +120,10 @@ const ContentCreatorDashboard: React.FC = () => {
         </Button>
       </header>
 
-      {currentStep !== 2 && (
-        <ContentCreatorStepper currentStep={currentStep} onStepChange={setCurrentStep} progress={progress} />
-      )}
+      <ContentCreatorStepper currentStep={currentStep} onStepChange={setCurrentStep} progress={progress} />
 
       {isFullBleed ? (
-        <div className="flex-1 min-h-0">{renderStepContent()}</div>
+        <div className="flex-1 min-h-0 overflow-hidden">{renderStepContent()}</div>
       ) : (
         <main className="flex-1 p-6 overflow-auto">{renderStepContent()}</main>
       )}
