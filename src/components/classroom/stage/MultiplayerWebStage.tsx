@@ -198,12 +198,20 @@ export const MultiplayerWebStage: React.FC<MultiplayerWebStageProps> = ({
   }
 
   const showOverlay = joinState !== 'playing';
+  const isConnecting = joinState === 'idle' || joinState === 'joining' || joinState === 'connecting';
 
   return (
     <div className="absolute inset-0 h-full w-full overflow-hidden bg-muted/40 p-4">
-      {/* Force Hyperbeam's injected <video>/<iframe>/<canvas> to fit the
-          container instead of cropping or zooming the cloud browser stream. */}
+      {/* Force every element Hyperbeam injects (video / iframe / canvas, plus any
+          wrapper divs) to fit the container instead of cropping or zooming the
+          cloud browser stream. */}
       <style>{`
+        #hyperbeam-container,
+        #hyperbeam-container * {
+          max-width: 100% !important;
+          max-height: 100% !important;
+        }
+        #hyperbeam-container > div,
         #hyperbeam-container > video,
         #hyperbeam-container > iframe,
         #hyperbeam-container > canvas {
@@ -213,11 +221,18 @@ export const MultiplayerWebStage: React.FC<MultiplayerWebStageProps> = ({
           display: block !important;
           background: #000 !important;
         }
+        #hyperbeam-container video,
+        #hyperbeam-container canvas {
+          object-fit: contain !important;
+          width: 100% !important;
+          height: 100% !important;
+        }
       `}</style>
       <div
         ref={containerRef}
         id="hyperbeam-container"
         className="mx-auto h-full w-full max-w-6xl overflow-hidden rounded-lg border border-border bg-black shadow-lg"
+        style={{ aspectRatio: '4 / 3' }}
       />
 
       {/* Live "joined as viewer" badge for the student */}
@@ -229,35 +244,42 @@ export const MultiplayerWebStage: React.FC<MultiplayerWebStageProps> = ({
       )}
 
       {showOverlay && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/70 text-white pointer-events-none">
-          <div className="text-center space-y-3 max-w-md px-6 pointer-events-auto">
-            {joinState === 'joining' || joinState === 'connecting' ? (
-              <>
-                <Loader2 className="w-8 h-8 mx-auto animate-spin" />
-                <div>
-                  <p className="text-sm font-medium">
-                    {role === 'teacher' ? 'Joining co-play session…' : 'Joining your teacher\'s shared browser…'}
-                  </p>
-                  <p className="text-xs text-white/60 mt-1">Spinning up the cloud browser. Usually 2–4 seconds.</p>
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          {/* Glassmorphism backdrop */}
+          <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/70 backdrop-blur-md" />
+          <div className="relative text-center space-y-4 max-w-md px-6 pointer-events-auto">
+            {isConnecting ? (
+              <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.45)] px-8 py-7 flex flex-col items-center gap-4">
+                <div className="relative">
+                  <div className="absolute inset-0 rounded-full bg-cyan-400/30 blur-xl animate-pulse" />
+                  <Loader2 className="relative w-10 h-10 text-cyan-200 animate-spin" />
                 </div>
-              </>
+                <div className="space-y-1">
+                  <p className="text-base font-semibold text-white tracking-wide">Connecting to Cloud Server…</p>
+                  <p className="text-xs text-white/70">
+                    {role === 'teacher'
+                      ? 'Spinning up your shared browser. Usually 2–4 seconds.'
+                      : 'Joining your teacher\'s shared browser…'}
+                  </p>
+                </div>
+              </div>
             ) : joinState === 'reconnecting' ? (
-              <>
-                <Wifi className="w-7 h-7 mx-auto text-yellow-300 animate-pulse" />
-                <p className="text-sm font-medium">Reconnecting…</p>
-              </>
+              <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.45)] px-8 py-6 flex flex-col items-center gap-3">
+                <Wifi className="w-8 h-8 text-yellow-300 animate-pulse" />
+                <p className="text-sm font-medium text-white">Reconnecting…</p>
+              </div>
             ) : joinState === 'disconnected' ? (
-              <>
-                <WifiOff className="w-7 h-7 mx-auto text-white/70" />
-                <p className="text-sm font-medium">Disconnected from co-play session</p>
-                <p className="text-xs text-white/60">{errorMsg}</p>
-              </>
+              <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.45)] px-8 py-6 flex flex-col items-center gap-2">
+                <WifiOff className="w-8 h-8 text-white/70" />
+                <p className="text-sm font-medium text-white">Disconnected from co-play session</p>
+                {errorMsg && <p className="text-xs text-white/60">{errorMsg}</p>}
+              </div>
             ) : joinState === 'failed' ? (
-              <>
-                <AlertTriangle className="w-8 h-8 mx-auto text-red-400" />
-                <p className="text-sm font-medium">Couldn't connect to the cloud browser.</p>
-                {errorMsg && <p className="text-xs text-white/60 break-all">{errorMsg}</p>}
-              </>
+              <div className="rounded-2xl border border-red-300/25 bg-red-500/10 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.45)] px-8 py-6 flex flex-col items-center gap-2">
+                <AlertTriangle className="w-9 h-9 text-red-300" />
+                <p className="text-sm font-medium text-white">Couldn't connect to the cloud browser.</p>
+                {errorMsg && <p className="text-xs text-white/70 break-all">{errorMsg}</p>}
+              </div>
             ) : null}
           </div>
         </div>
