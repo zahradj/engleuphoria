@@ -67,6 +67,7 @@ export function useRewards() {
 
   const addStars = useCallback((count: number) => {
     setStarCount(prev => prev + count);
+    audioService.playStarSound();
   }, []);
 
   const earnBadge = useCallback((badgeId: string) => {
