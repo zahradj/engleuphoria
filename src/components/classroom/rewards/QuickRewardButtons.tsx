@@ -27,6 +27,7 @@ export function QuickRewardButtons({ onReward }: QuickRewardButtonsProps) {
               onClick={() => onReward(reward.points, reward.category)}
               className={`${reward.color} text-white text-xs py-2 px-3 flex items-center justify-center gap-1 hover:scale-105 transition-transform`}
               soundType="reward"
+              rewardPoints={reward.points}
             >
               <IconComponent size={14} />
               {reward.label}
