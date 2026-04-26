@@ -310,6 +310,14 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
         hub={hub}
         onCreated={() => reloadSlots()}
       />
+
+      {/* Cancel booked slot — single occurrence or whole weekly series */}
+      <BookedSlotManager
+        open={!!bookedSlotInfo}
+        onOpenChange={(o) => { if (!o) setBookedSlotInfo(null); }}
+        slot={bookedSlotInfo}
+        onCancelled={() => { setBookedSlotInfo(null); reloadSlots(); }}
+      />
     </div>
   );
 };
