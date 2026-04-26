@@ -35,16 +35,20 @@ export interface CurriculumData {
   }>;
 }
 
+export type SlideType = 'text_image' | 'multiple_choice' | 'drawing_prompt';
+
 export interface PPPSlide {
   id: string;
-  phase: Phase;
+  phase: Phase | string;
+  slide_type?: SlideType;
   title?: string;
   content?: string;
+  teacher_script?: string;
   visual_keyword?: string;
   custom_image_url?: string;
+  // legacy / optional
   teacher_instructions?: string;
   interactive_options?: string[];
-  slide_type?: string;
   interaction_type?: string;
 }
 
