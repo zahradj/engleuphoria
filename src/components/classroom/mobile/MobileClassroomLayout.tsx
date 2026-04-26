@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { BottomSheet } from "@/components/mobile/BottomSheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -209,25 +209,27 @@ export function MobileClassroomLayout({
         </div>
       </nav>
 
-      {/* ───────── Chat bottom sheet ───────── */}
-      <Sheet open={chatOpen} onOpenChange={setChatOpen}>
-        <SheetContent side="bottom" className="h-[80vh] p-0 flex flex-col">
-          <SheetHeader className="px-4 py-3 border-b">
-            <SheetTitle className="text-base">Chat</SheetTitle>
-          </SheetHeader>
-          <div className="flex-1 overflow-hidden">{chatContent}</div>
-        </SheetContent>
-      </Sheet>
+      {/* ───────── Chat bottom sheet (snap: peek / mid / full) ───────── */}
+      <BottomSheet
+        open={chatOpen}
+        onOpenChange={setChatOpen}
+        title="Chat"
+        snapPoints={[0.4, 0.75, 0.95]}
+        initialSnap={1}
+      >
+        <div className="h-full">{chatContent}</div>
+      </BottomSheet>
 
-      {/* ───────── Participants bottom sheet ───────── */}
-      <Sheet open={studentsOpen} onOpenChange={setStudentsOpen}>
-        <SheetContent side="bottom" className="h-[60vh] p-0 flex flex-col">
-          <SheetHeader className="px-4 py-3 border-b">
-            <SheetTitle className="text-base">Participants</SheetTitle>
-          </SheetHeader>
-          <div className="flex-1 overflow-auto">{studentsContent}</div>
-        </SheetContent>
-      </Sheet>
+      {/* ───────── Participants bottom sheet (snap: peek / expanded) ───────── */}
+      <BottomSheet
+        open={studentsOpen}
+        onOpenChange={setStudentsOpen}
+        title="Participants"
+        snapPoints={[0.35, 0.7]}
+        initialSnap={0}
+      >
+        <div className="h-full">{studentsContent}</div>
+      </BottomSheet>
     </div>
   );
 }
