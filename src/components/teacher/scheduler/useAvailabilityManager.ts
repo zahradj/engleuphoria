@@ -172,6 +172,14 @@ export const useAvailabilityManager = (
         if (!signal?.aborted) setStudentInfo(newInfo);
       }
 
+      const inferHub = (raw: string | null, duration: 30 | 60): AvailabilitySlot['hub'] => {
+        const v = String(raw ?? '').toLowerCase();
+        if (v.includes('playground')) return 'playground';
+        if (v.includes('success') || v.includes('professional')) return 'success';
+        if (v.includes('academy')) return 'academy';
+        return duration === 30 ? 'playground' : 'academy';
+      };
+
       const mapped: AvailabilitySlot[] = rows.map((r) => {
         const start = new Date(r.start_time);
         const dayName = DAY_INDEX_TO_NAME[start.getDay()] ?? DAYS[0];
@@ -179,17 +187,22 @@ export const useAvailabilityManager = (
           start.getMinutes()
         ).padStart(2, '0')}`;
         const dur: 30 | 60 = (r.duration ?? 30) >= 55 ? 60 : 30;
-        const info = r.student_id ? newInfo[r.student_id] : undefined;
+        const actualStudentId = r.student_id || (r.lesson_id ? lessonInfo[r.lesson_id]?.studentId : undefined);
+        const info = actualStudentId ? newInfo[actualStudentId] : undefined;
         return {
           id: r.id,
           day: dayName,
           time,
           duration: dur,
           status: r.is_booked ? 'booked' : 'open',
+          studentId: actualStudentId,
+          studentShortId: actualStudentId ? `#${actualStudentId.slice(0, 4).toUpperCase()}` : undefined,
           studentName: r.is_booked ? info?.name : undefined,
           studentEmail: r.is_booked ? info?.email : undefined,
-          lessonTitle: r.is_booked ? r.lesson_title || undefined : undefined,
+          lessonTitle: r.is_booked ? r.lesson_title || (r.lesson_id ? lessonInfo[r.lesson_id]?.title : undefined) : undefined,
           startTime: r.start_time,
+          hub: inferHub(r.hub_specialty, dur),
+          recurringPattern: r.recurring_pattern ?? null,
         };
       });
 
