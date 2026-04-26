@@ -87,6 +87,11 @@ export const StudioHeader: React.FC = () => {
       toast.error(`Could not save draft: ${res.error}`);
       return;
     }
+    // Stamp the row id back into context so the next save UPDATEs instead of
+    // creating a duplicate row.
+    if (!activeLessonData.lesson_id) {
+      setActiveLessonData({ ...activeLessonData, lesson_id: res.lesson_id });
+    }
     setDirty(false);
     toast.success('Draft saved');
   };
