@@ -313,7 +313,7 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
                           <button
                             key={emoji}
                             onClick={() => {
-                              audioService.playStickerSound();
+                              audioService.playEmojiSound(emoji);
                               onSendSticker(emoji);
                             }}
                             className="h-10 w-full text-xl rounded-lg hover:bg-pink-100 active:scale-95 transition-all flex items-center justify-center"
