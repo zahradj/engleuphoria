@@ -10,7 +10,9 @@ import { useSlotActions } from "./hooks/useSlotActions";
 import { SimpleTimeGrid } from "./components/SimpleTimeGrid";
 import { QuickSlotCreator } from "./components/QuickSlotCreator";
 import { OpenSlotsDialog } from "@/components/teacher/scheduler/OpenSlotsDialog";
+import { BookedSlotManager } from "@/components/teacher/scheduler/BookedSlotManager";
 import { useTeacherHub } from "@/hooks/useTeacherHub";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SimplifiedTeacherCalendarProps {
   teacherId: string;
