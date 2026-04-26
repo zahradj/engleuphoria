@@ -117,7 +117,7 @@ export const BlueprintBuilderPage: React.FC = () => {
   // Hand off to the Master PPP Wizard with lesson context
   const buildSlides = (unit: BlueprintUnit, lesson: BlueprintLesson) => {
     if (!blueprint) return;
-    navigate('/content-creator/master-wizard', {
+    navigate('/content-creator', {
       state: {
         fromBlueprint: true,
         cefr_level: blueprint.cefr_level,
