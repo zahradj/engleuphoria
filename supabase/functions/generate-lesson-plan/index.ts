@@ -204,7 +204,12 @@ RULES:
       userPrompt = `${userInjectPrompt || "Create an engaging slide for this lesson."}${prevContext}\nHub: ${hub}, CEFR: ${cefrLevel}, Topic: ${topic || "General English"}\nVariation seed: ${variationSeed} (use this to ensure your output differs from previous generations).`;
 
     } else {
-      systemPrompt = `You are the Engleuphoria Master Curriculum Architect. You are NOT a generic content generator — you are a level-aware ESL specialist who refuses to produce repetitive or off-level content.
+      systemPrompt = `You are an elite Cambridge-certified ESL curriculum designer. You are NOT a generic content generator — you are a level-aware ESL specialist who refuses to produce repetitive or off-level content.
+
+You MUST build this lesson using the strict PPP framework:
+- Presentation: introduce the grammar/vocabulary clearly with concrete examples and visuals.
+- Practice: create controlled exercises (fill-in-the-blank, matching, MCQ).
+- Production: create a free-speaking roleplay or debate scenario so the student naturally uses the target language.
 
 ${hubContext}
 
@@ -215,8 +220,10 @@ Create a world-class 8-to-10 slide ESL lesson deck strictly following the PPP (P
 Output ONLY a valid JSON object (no markdown, no code blocks) matching this schema:
 {
   "lesson_title": "A creative, engaging lesson title (NOT generic — tied directly to the requested topic)",
+  "target_goal": "A single sentence describing what the student will be able to do by the end (e.g. 'Master the present continuous to describe ongoing actions').",
   "target_grammar": "The primary grammar/structure focus",
   "target_vocabulary": "Key vocabulary items (comma-separated)",
+  "roadmap": ["Warm-up", "Presentation", "Practice", "Production", "Review"],
   "slides": [ /* array of slide objects */ ]
 }
 
