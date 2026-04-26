@@ -1,6 +1,6 @@
 // Service Worker for caching and fast updates
 
-const CACHE_NAME = 'engleuphoria-v5';
+const CACHE_NAME = 'engleuphoria-v6';
 const ASSETS = [
   '/',
   '/favicon.ico?v=5',
@@ -19,7 +19,7 @@ self.addEventListener('install', (event) => {
       .then((cache) => cache.addAll(ASSETS))
       .catch(() => {})
   );
-  // Do NOT call self.skipWaiting() here — let the client decide when to activate
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
@@ -92,14 +92,21 @@ self.addEventListener('fetch', (event) => {
     || url.pathname === '/favicon.png'
     || url.pathname === '/og-image.png'
     || url.pathname.startsWith('/icons/');
+  const isStorageImage = dest === 'image'
+    && (url.hostname.includes('supabase.co') || url.pathname.includes('/storage/v1/object/'));
 
   if (isBrandIcon) {
     event.respondWith(networkFirst(request));
     return;
   }
 
-  if (['script', 'style', 'font', 'image'].includes(dest)) {
-    event.respondWith(cacheFirst(request));
+  if (['script', 'style', 'worker'].includes(dest) || url.pathname.startsWith('/src/') || isStorageImage) {
+    event.respondWith(networkFirst(request));
+    return;
+  }
+
+  if (['font', 'image'].includes(dest)) {
+    event.respondWith(staleWhileRevalidate(request));
     return;
   }
 

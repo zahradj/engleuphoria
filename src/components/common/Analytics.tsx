@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { collectBundleMetrics, preloadCriticalResources, registerServiceWorker } from '@/utils/bundleOptimization';
+import { collectBundleMetrics, preloadCriticalResources } from '@/utils/bundleOptimization';
 
 export const Analytics: React.FC = () => {
   useEffect(() => {
@@ -8,9 +8,6 @@ export const Analytics: React.FC = () => {
     
     // Preload critical resources
     preloadCriticalResources();
-    
-    // Register service worker for caching
-    registerServiceWorker();
     
     // Basic performance tracking
     if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
