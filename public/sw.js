@@ -92,13 +92,15 @@ self.addEventListener('fetch', (event) => {
     || url.pathname === '/favicon.png'
     || url.pathname === '/og-image.png'
     || url.pathname.startsWith('/icons/');
+  const isStorageImage = dest === 'image'
+    && (url.hostname.includes('supabase.co') || url.pathname.includes('/storage/v1/object/'));
 
   if (isBrandIcon) {
     event.respondWith(networkFirst(request));
     return;
   }
 
-  if (['script', 'style', 'worker'].includes(dest) || url.pathname.startsWith('/src/')) {
+  if (['script', 'style', 'worker'].includes(dest) || url.pathname.startsWith('/src/') || isStorageImage) {
     event.respondWith(networkFirst(request));
     return;
   }
