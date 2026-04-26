@@ -31,10 +31,10 @@ const DEFAULT_FLASHCARD: FlashcardData = { front: 'apple', back: 'a round red fr
 const DEFAULT_DRAWING: DrawingData = { prompt: 'Draw your answer in your notebook and share with the class.' };
 
 const TYPE_OPTIONS: { value: SlideType; label: string; Icon: React.ElementType }[] = [
-  { value: 'text_image', label: 'Text + Image', Icon: ImageIcon },
-  { value: 'multiple_choice', label: 'Multiple Choice', Icon: ListChecks },
-  { value: 'flashcard', label: 'Flashcard', Icon: Layers },
-  { value: 'drawing_prompt', label: 'Drawing Prompt', Icon: Pencil },
+  { value: 'text_image', label: 'Story / Reading (Mascot Speech)', Icon: ImageIcon },
+  { value: 'flashcard', label: 'Flashcard Flip', Icon: Layers },
+  { value: 'drawing_prompt', label: 'Drawing Canvas', Icon: Pencil },
+  { value: 'multiple_choice', label: 'Multiple Choice Game', Icon: ListChecks },
 ];
 
 const LAYOUT_OPTIONS: { value: LayoutStyle; label: string }[] = [
