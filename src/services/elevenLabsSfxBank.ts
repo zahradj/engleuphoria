@@ -115,7 +115,7 @@ const SFX_PROMPTS: Record<SfxKey, SfxSpec> = {
   },
 };
 
-const STORAGE_PREFIX = "ee_sfx_v2::"; // bumped: v1 entries had different keys
+const STORAGE_PREFIX = "ee_sfx_v3::"; // bumped: re-energized prompts + emoji_heart
 const audioPool = new Map<SfxKey, HTMLAudioElement>();
 const inflight = new Map<SfxKey, Promise<string | null>>();
 
