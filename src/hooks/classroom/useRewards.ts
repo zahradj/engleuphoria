@@ -77,6 +77,7 @@ export function useRewards() {
           const earnedBadge = { ...badge, earnedAt: new Date(), isNew: true };
           setNewBadge(earnedBadge);
           setShowBadgeReveal(true);
+          audioService.playStickerSound();
           setTimeout(() => {
             setShowBadgeReveal(false);
             setNewBadge(null);
