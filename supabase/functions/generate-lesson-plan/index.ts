@@ -4,6 +4,62 @@ const CORS = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+// ─── CEFR Pedagogy Rules ──────────────────────────────────────────────
+// Hard pedagogical constraints injected per level. These are the "concrete walls"
+// that prevent the AI from producing generic, repetitive output.
+const CEFR_RULES: Record<string, string> = {
+  A1: `CEFR LEVEL: A1 (Absolute Beginner)
+- Sentence length: MAX 5 words.
+- Grammar: Present simple only. "I am / You are / It is". No tenses beyond present.
+- Vocabulary: Concrete, highly visual nouns (objects, animals, food, colors, numbers, family).
+- NO abstract concepts. NO idioms. NO conditionals.
+- Activities: Picture matching, Total Physical Response (TPR), chants, simple labeling.
+- Tone: Extremely warm, repetitive, playful. Treat every win as a celebration.`,
+
+  A2: `CEFR LEVEL: A2 (Elementary)
+- Sentence length: MAX 8 words.
+- Grammar: Present simple + present continuous + past simple (regular verbs) + "going to" future.
+- Vocabulary: Daily routines, hobbies, weather, shopping, directions, simple feelings.
+- Activities: Information gap, simple roleplay (ordering food, asking directions), picture description.
+- Tone: Encouraging and concrete. Always tie new language to a real-life situation.`,
+
+  B1: `CEFR LEVEL: B1 (Intermediate)
+- Sentence length: MAX 15 words.
+- Grammar: All past tenses, present perfect, first conditional, modal verbs (should, must, might).
+- Vocabulary: Travel, work, opinions, plans, experiences, technology.
+- Activities: Structured roleplays (job interview, travel scenario), opinion polls, short debates with sentence frames.
+- Tone: Conversational and curious. Encourage opinion-sharing with scaffolding.`,
+
+  B2: `CEFR LEVEL: B2 (Upper-Intermediate)
+- Sentence length: Natural — no cap, but prefer clarity.
+- Grammar: All conditionals, passive voice, reported speech, relative clauses, perfect continuous tenses.
+- Vocabulary: Abstract topics (ethics, society, environment, careers), collocations, phrasal verbs.
+- Activities: Free roleplay, structured debate (for/against), case studies, news article discussion.
+- Tone: Intellectually engaging. Challenge with nuance, idioms, and register awareness.`,
+
+  C1: `CEFR LEVEL: C1 (Advanced)
+- Sentence length: Sophisticated and varied.
+- Grammar: Inversion, cleft sentences, advanced modals, subjunctive, hedging language.
+- Vocabulary: Idioms, advanced collocations, register shifts (formal ↔ informal), academic language.
+- Activities: Open debate, presentations, negotiation, critical analysis, persuasive writing prompts.
+- Tone: Professional and sophisticated. Treat the student as an intellectual peer.`,
+};
+
+// Map hub → default CEFR level when the caller doesn't pass one explicitly.
+// Backward compatible with existing frontend calls.
+const HUB_DEFAULT_CEFR: Record<string, string> = {
+  playground: "A1",
+  academy: "B1",
+  success: "C1",
+};
+
+// Topics the AI defaults to over and over. We tell it to AVOID these unless
+// the user explicitly requested them in the topic field.
+const OVERUSED_TOPIC_BANLIST = [
+  "colors", "apples", "hello how are you", "my family", "the weather",
+  "my pet", "fruits", "animals at the zoo", "what is your name",
+];
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS });
@@ -19,7 +75,18 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { hub, topic, targetGrammar, targetVocabulary, mode, previousSlideContent, prompt: userInjectPrompt, studentAge, lessonPrompt } = body;
+    const {
+      hub,
+      topic,
+      targetGrammar,
+      targetVocabulary,
+      mode,
+      previousSlideContent,
+      prompt: userInjectPrompt,
+      studentAge,
+      lessonPrompt,
+      cefr_level: cefrLevelInput,
+    } = body;
 
     const validHubs = ["playground", "academy", "success"];
     if (!hub || !validHubs.includes(hub)) {
@@ -28,6 +95,12 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
       );
     }
+
+    // Resolve CEFR level: explicit input > hub default
+    const cefrLevel = (cefrLevelInput && CEFR_RULES[cefrLevelInput])
+      ? cefrLevelInput
+      : HUB_DEFAULT_CEFR[hub];
+    const cefrRules = CEFR_RULES[cefrLevel];
 
     const generationMode = mode || "full_deck";
     if (generationMode === "full_deck" && (!topic || typeof topic !== "string" || topic.trim().length === 0)) {
@@ -50,14 +123,14 @@ Deno.serve(async (req) => {
       case "playground":
         duration = 30;
         hubContext = `Hub: The Playground (Kids ages 4-9). Duration: EXACTLY 30 minutes.
-Tone: HIGH-ENERGY, gamified, colorful, fun characters. Use simple vocabulary, very short sentences (max 6 words), lots of repetition. Phonics focus is critical.
+Tone: HIGH-ENERGY, gamified, colorful, fun characters. Phonics focus is critical.
 Video Song Channels: Super Simple Songs, Cocomelon, Maple Leaf Learning, Pinkfong, English Singsing.
 Hub Colors: Primary #FE6A2F (Orange), Accent #FEFBDD (Yellow).`;
         break;
       case "academy":
         duration = 60;
         hubContext = `Hub: The Academy (Teens ages 12-17). Duration: EXACTLY 60 minutes.
-Tone: Grammar-focused deep learning with engaging teen-relevant contexts. Challenge critical thinking. Balance accuracy and fluency.
+Tone: Grammar-focused deep learning with engaging teen-relevant contexts (tech, hobbies, travel, social media, music). Challenge critical thinking.
 Video Channels: BBC Learning English, English with Lucy, mmmEnglish, Learn English with TV Series.
 Hub Colors: Primary #6B21A8 (Purple), Accent #F5F3FF (Lavender).`;
         break;
@@ -70,29 +143,46 @@ Hub Colors: Primary #059669 (Emerald Green), Accent #F0FDFA (Mint).`;
         break;
     }
 
+    // Anti-repetition: a random seed nudges Gemini away from the same defaults
+    // every time, and we explicitly ban overused topics.
+    const variationSeed = Math.random().toString(36).slice(2, 10);
+    const banList = OVERUSED_TOPIC_BANLIST
+      .filter(t => !topic || !topic.toLowerCase().includes(t.split(" ")[0]))
+      .join(", ");
+
     const SCHEMA_BLOCK = `Each slide MUST follow this exact schema:
 {
   "ppp_stage": "Warm-Up | Presentation | Practice | Production | Review",
-  "slide_type": "title | video_song | vocabulary_image | grammar_presentation | interactive_quiz | speaking_prompt | concept_check",
+  "slide_type": "title | video_song | vocabulary_image | grammar_presentation | interactive_quiz | roleplay | debate | activity | speaking_prompt | concept_check",
   "headline": "The main large text shown to the student",
   "body_text": "Secondary text, instructions, or quiz options",
   "video_url": "A real YouTube URL (https://www.youtube.com/results?search_query=...) or null",
   "visual_search_keyword": "1-2 word keyword for auto-fetching a background image (e.g. 'yesterday_calendar')",
+  "image_prompt": "A detailed visual prompt that perfectly matches this slide (used for AI image generation)",
+  "interactive_options": ["Used when slide_type is interactive_quiz, roleplay, debate, or activity. For quiz: answer options. For roleplay: character lines. For debate: for/against arguments. For activity: step-by-step instructions."],
   "teacher_notes": {
     "script": "Exactly what the teacher should say out loud",
     "ccq": ["Concept Check Question 1", "Concept Check Question 2"],
     "step_down": "How to simplify this slide for a struggling student",
     "step_up": "How to extend this slide for a fast finisher"
   }
-}`;
+}
+
+INTERACTIVE SLIDE ARCHETYPES (use these — do not default to plain text slides):
+- "roleplay": Two-character dialogue (e.g. customer & waiter). interactive_options lists the lines.
+- "debate": A motion + for/against arguments. Used for B1+. interactive_options lists 3-4 arguments per side.
+- "activity": A hands-on task (drag-and-drop, matching, sorting, find-the-mistake). interactive_options lists items + correct grouping.
+- "interactive_quiz": Multiple choice. interactive_options lists 3-4 answer choices, with the correct one prefixed by "✓ ".`;
 
     let systemPrompt: string;
     let userPrompt: string;
 
     if (generationMode === "single_slide") {
-      systemPrompt = `You are the Engleuphoria Master Curriculum Designer. Generate a SINGLE slide for an ESL lesson using the PPP (Presentation, Practice, Production) methodology.
+      systemPrompt = `You are the Engleuphoria Master Curriculum Architect. Generate a SINGLE slide for an ESL lesson using the PPP (Presentation, Practice, Production) methodology.
 
 ${hubContext}
+
+${cefrRules}
 
 Output ONLY a valid JSON object (not an array) matching this schema. No markdown, no code blocks.
 
@@ -101,19 +191,24 @@ ${SCHEMA_BLOCK}
 RULES:
 - For video slides, use https://www.youtube.com/results?search_query=ENCODED_TERMS format with real ESL channel terms.
 - The visual_search_keyword must be highly specific (e.g. 'happy_student', 'airport_luggage').
-- teacher_notes MUST be a nested object — never a plain string.`;
+- teacher_notes MUST be a nested object — never a plain string.
+- AVOID these overused defaults: ${banList}.`;
 
       const prevContext = previousSlideContent ? `\nContext from the previous slide: ${JSON.stringify(previousSlideContent)}` : "";
-      userPrompt = `${userInjectPrompt || "Create an engaging slide for this lesson."}${prevContext}\nHub: ${hub}, Topic: ${topic || "General English"}`;
+      userPrompt = `${userInjectPrompt || "Create an engaging slide for this lesson."}${prevContext}\nHub: ${hub}, CEFR: ${cefrLevel}, Topic: ${topic || "General English"}\nVariation seed: ${variationSeed} (use this to ensure your output differs from previous generations).`;
 
     } else {
-      systemPrompt = `You are the Engleuphoria Master Curriculum Designer. Create a world-class 8-to-10 slide ESL lesson deck strictly following the PPP (Presentation, Practice, Production) methodology with deep scaffolding.
+      systemPrompt = `You are the Engleuphoria Master Curriculum Architect. You are NOT a generic content generator — you are a level-aware ESL specialist who refuses to produce repetitive or off-level content.
 
 ${hubContext}
 
+${cefrRules}
+
+Create a world-class 8-to-10 slide ESL lesson deck strictly following the PPP (Presentation, Practice, Production) methodology with deep scaffolding.
+
 Output ONLY a valid JSON object (no markdown, no code blocks) matching this schema:
 {
-  "lesson_title": "A creative, engaging lesson title",
+  "lesson_title": "A creative, engaging lesson title (NOT generic — tied directly to the requested topic)",
   "target_grammar": "The primary grammar/structure focus",
   "target_vocabulary": "Key vocabulary items (comma-separated)",
   "slides": [ /* array of slide objects */ ]
@@ -124,20 +219,26 @@ ${SCHEMA_BLOCK}
 CRITICAL RULES:
 1. Strict PPP flow. Use ppp_stage values: Warm-Up → Presentation → Practice → Production → Review.
 2. Duration: ${duration} minutes total.
-3. Every slide MUST have BOTH a real YouTube URL (when relevant) AND a specific visual_search_keyword.
+3. Every slide MUST have BOTH a real YouTube URL (when relevant) AND a specific visual_search_keyword + image_prompt.
 4. teacher_notes is ALWAYS an object with script, ccq (array), step_down, step_up. Never a plain string.
 5. Use real famous ESL channels (BBC Learning English, English with Lucy, Super Simple Songs, etc.) for video URLs.
+6. AT LEAST 3 of the slides MUST be interactive archetypes (roleplay, debate, activity, or interactive_quiz). NO all-text decks.
+7. The lesson MUST stay strictly within the CEFR level above. Do NOT use grammar or vocabulary above the level cap.
+8. AVOID these overused default topics unless the user explicitly requested them: ${banList}.
+9. The lesson_title and slide content MUST be specific to the requested topic — never default to colors/apples/family/weather unless the user asked for it.
 
 REQUIRED SLIDE SEQUENCE:
 - Slide 1 — ppp_stage "Warm-Up", slide_type "title": lesson title + objectives.
 - Slide 2 — ppp_stage "Warm-Up", slide_type "video_song": YouTube warm-up video.
 - Slides 3-4 — ppp_stage "Presentation", slide_type "vocabulary_image" or "grammar_presentation": introduce target language with visuals + clear teacher script.
-- Slides 5-7 — ppp_stage "Practice", slide_type "interactive_quiz": controlled & semi-controlled practice. Step-Up / Step-Down REQUIRED in teacher_notes.
-- Slide 8 — ppp_stage "Production", slide_type "speaking_prompt": free production task with CCQs in teacher_notes.
+- Slides 5-7 — ppp_stage "Practice": MIX interactive_quiz + activity + (roleplay for A2+, debate for B1+). Step-Up / Step-Down REQUIRED in teacher_notes.
+- Slide 8 — ppp_stage "Production", slide_type "speaking_prompt" or "roleplay" or "debate": free production task with CCQs.
 - Slide 9 (optional) — ppp_stage "Review", slide_type "concept_check": exit ticket.`;
 
       userPrompt = `Create a complete PPP lesson deck for:
-Topic: "${topic.trim()}"${
+Topic: "${topic.trim()}"
+CEFR Level: ${cefrLevel}
+Variation seed: ${variationSeed} (use this to ensure your output differs from previous generations — vary your examples, scenarios, and characters).${
         targetGrammar ? `\nTarget Grammar/Structure: ${targetGrammar.trim()}` : ""
       }${
         targetVocabulary ? `\nTarget Vocabulary: ${targetVocabulary.trim()}` : ""
@@ -145,7 +246,7 @@ Topic: "${topic.trim()}"${
         studentAge ? `\nStudent Age/Level: ${studentAge}` : ""
       }${
         hub === "playground"
-          ? `\n\nIMPORTANT — PLAYGROUND HUB AUDIENCE: Students are 4 to 9 years old. Use ultra-simple vocabulary, very short sentences (max 6 words), lots of repetition, songs, chants, and visual cues. Avoid abstract grammar terms — teach patterns through examples and play. Tone must be warm, playful, and encouraging.`
+          ? `\n\nIMPORTANT — PLAYGROUND HUB AUDIENCE: Students are 4 to 9 years old. Use ultra-simple vocabulary, very short sentences (max 5 words per CEFR cap), lots of repetition, songs, chants, and visual cues. Avoid abstract grammar terms — teach patterns through examples and play. Tone must be warm, playful, and encouraging.`
           : ""
       }${
         lessonPrompt ? `\n\nAdditional context & instructions from the curriculum:\n${lessonPrompt.trim()}` : ""
@@ -159,7 +260,7 @@ Topic: "${topic.trim()}"${
       contents: [{ role: "user", parts: [{ text: userPrompt }] }],
       generationConfig: {
         responseMimeType: "application/json",
-        temperature: 0.7,
+        temperature: 0.85, // Higher temp = more variation, less repetition
         maxOutputTokens: 8192,
       },
     });
@@ -211,7 +312,7 @@ Topic: "${topic.trim()}"${
 
 
     const aiData = await aiResponse.json();
-    const rawText = aiData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    let rawText = aiData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     if (!rawText) {
       console.error("Empty Gemini response:", JSON.stringify(aiData));
@@ -219,6 +320,12 @@ Topic: "${topic.trim()}"${
         JSON.stringify({ error: "AI returned empty response" }),
         { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
       );
+    }
+
+    // Defensive: strip ```json fences if Gemini ignored responseMimeType
+    rawText = rawText.trim();
+    if (rawText.startsWith("```")) {
+      rawText = rawText.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
     }
 
     let parsedData;
@@ -234,7 +341,7 @@ Topic: "${topic.trim()}"${
 
     if (generationMode === "single_slide") {
       return new Response(
-        JSON.stringify({ slide: parsedData, hub, mode: "single_slide" }),
+        JSON.stringify({ slide: parsedData, hub, cefr_level: cefrLevel, mode: "single_slide" }),
         { status: 200, headers: { ...CORS, "Content-Type": "application/json" } }
       );
     }
@@ -242,6 +349,7 @@ Topic: "${topic.trim()}"${
     const lessonPlan = `# ${parsedData.lesson_title || topic.trim()}
 
 ## 📋 Target Summary
+- **CEFR Level:** ${cefrLevel}
 - **Grammar:** ${parsedData.target_grammar || 'N/A'}
 - **Vocabulary:** ${parsedData.target_vocabulary || 'N/A'}
 - **Duration:** ${duration} minutes
@@ -252,7 +360,10 @@ ${(parsedData.slides || []).map((s: any, i: number) => {
   const notesStr = typeof tn === 'object' && tn
     ? `Script: ${tn.script || ''}\nCCQs: ${(tn.ccq || []).join('; ')}\nStep-Down: ${tn.step_down || ''}\nStep-Up: ${tn.step_up || ''}`
     : (tn || '');
-  return `### Slide ${i + 1} [${s.ppp_stage || ''}]: ${s.headline}\n${s.body_text}\n\n*Teacher Notes:*\n${notesStr}`;
+  const opts = Array.isArray(s.interactive_options) && s.interactive_options.length
+    ? `\n*Interactive:* ${s.interactive_options.join(' | ')}`
+    : '';
+  return `### Slide ${i + 1} [${s.ppp_stage || ''} · ${s.slide_type || ''}]: ${s.headline}\n${s.body_text}${opts}\n\n*Teacher Notes:*\n${notesStr}`;
 }).join('\n\n')}`;
 
     return new Response(
@@ -264,6 +375,7 @@ ${(parsedData.slides || []).map((s: any, i: number) => {
         target_grammar: parsedData.target_grammar,
         target_vocabulary: parsedData.target_vocabulary,
         hub,
+        cefr_level: cefrLevel,
         topic: topic?.trim(),
         mode: "full_deck",
       }),

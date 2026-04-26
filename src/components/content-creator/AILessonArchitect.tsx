@@ -11,6 +11,13 @@ import ReactMarkdown from 'react-markdown';
 import { handleAIResponse, showAIErrorToast } from '@/lib/aiErrorHandler';
 
 type HubType = 'playground' | 'academy' | 'success';
+type CEFRLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1';
+
+const HUB_DEFAULT_CEFR: Record<HubType, CEFRLevel> = {
+  playground: 'A1',
+  academy: 'B1',
+  success: 'C1',
+};
 
 interface LessonData {
   lesson_title?: string;
@@ -36,6 +43,7 @@ export const AILessonArchitect: React.FC = () => {
   const { user } = useAuth();
   const userRole = (user as any)?.role;
   const [hub, setHub] = useState<HubType | ''>('');
+  const [cefrLevel, setCefrLevel] = useState<CEFRLevel | ''>('');
   const [topic, setTopic] = useState('');
   const [targetGrammar, setTargetGrammar] = useState('');
   const [targetVocabulary, setTargetVocabulary] = useState('');
@@ -64,8 +72,9 @@ export const AILessonArchitect: React.FC = () => {
     setIsEditing(false);
 
     try {
+      const resolvedCefr = cefrLevel || HUB_DEFAULT_CEFR[hub as HubType];
       const { data, error } = await supabase.functions.invoke('generate-lesson-plan', {
-        body: { hub, topic, targetGrammar, targetVocabulary },
+        body: { hub, topic, targetGrammar, targetVocabulary, cefr_level: resolvedCefr },
       });
 
       if (!handleAIResponse({ data, error, onRetry: handleGenerate, context: 'Lesson Architect' })) {
@@ -160,6 +169,29 @@ export const AILessonArchitect: React.FC = () => {
                     <span className="text-xs text-muted-foreground ml-2">({cfg.duration} min)</span>
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">
+              CEFR Level
+              {hub && !cefrLevel && (
+                <span className="text-xs text-muted-foreground ml-2">
+                  (default: {HUB_DEFAULT_CEFR[hub as HubType]})
+                </span>
+              )}
+            </label>
+            <Select value={cefrLevel} onValueChange={(v) => setCefrLevel(v as CEFRLevel)}>
+              <SelectTrigger className="bg-background/50">
+                <SelectValue placeholder="Auto from hub, or pick a level..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="A1">A1 — Absolute Beginner (max 5-word sentences)</SelectItem>
+                <SelectItem value="A2">A2 — Elementary (daily routines, simple past)</SelectItem>
+                <SelectItem value="B1">B1 — Intermediate (opinions, conditionals)</SelectItem>
+                <SelectItem value="B2">B2 — Upper-Intermediate (debates, abstracts)</SelectItem>
+                <SelectItem value="C1">C1 — Advanced (idioms, nuance, register)</SelectItem>
               </SelectContent>
             </Select>
           </div>

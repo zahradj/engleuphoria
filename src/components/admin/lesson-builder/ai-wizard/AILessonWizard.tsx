@@ -267,11 +267,16 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated, lessonCo
       setCurrentStep(1);
       const hubMap: Record<string, string> = { kids: 'playground', teens: 'academy', adults: 'success' };
       const hub = hubMap[formData.ageGroup] || 'playground';
+      // Map the wizard's CEFR-style level (e.g. "A1", "B2") straight through; fallback to hub default.
+      const cefrFromForm = (formData as any).level && /^(A1|A2|B1|B2|C1)$/.test((formData as any).level)
+        ? (formData as any).level
+        : undefined;
 
       setCurrentStep(2);
       const { data, error } = await supabase.functions.invoke('generate-lesson-plan', {
         body: {
           hub,
+          cefr_level: cefrFromForm,
           topic: formData.topic.trim(),
           targetGrammar: magicGrammar.trim() || undefined,
           targetVocabulary: magicVocabulary.trim() || undefined,
