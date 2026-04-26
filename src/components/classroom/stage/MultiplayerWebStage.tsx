@@ -231,8 +231,8 @@ export const MultiplayerWebStage: React.FC<MultiplayerWebStageProps> = ({
       <div
         ref={containerRef}
         id="hyperbeam-container"
-        className="mx-auto h-full w-full max-w-6xl overflow-hidden rounded-lg border border-border bg-black shadow-lg"
-        style={{ aspectRatio: '4 / 3' }}
+        className="mx-auto h-full w-full max-w-4xl overflow-hidden rounded-lg border border-border bg-black shadow-lg"
+        style={{ aspectRatio: '16 / 10' }}
       />
 
       {/* Live "joined as viewer" badge for the student */}
