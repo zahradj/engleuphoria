@@ -10,6 +10,7 @@ import { ApiKeyDialog } from "./ApiKeyDialog";
 import { Trophy, Award, History, BarChart3, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { audioService } from "@/services/audioService";
+import { soundEffectsService } from "@/services/soundEffectsService";
 
 interface RewardData {
   id: string;
@@ -45,12 +46,13 @@ export function TeacherRewardSystem({
       timestamp: new Date(),
       category
     };
-    
+
     setRewardHistory(prev => [reward, ...prev.slice(0, 4)]); // Keep last 5 rewards
-    
-    // Play enhanced sound effect
+
+    // Tactile press feedback first, then the tier-based reward stinger.
+    soundEffectsService.playPop();
     audioService.playRewardSound(points);
-    
+
     // Trigger celebration with sound and visual effects
     onAwardPoints(points, reward.reason);
   };
@@ -63,12 +65,12 @@ export function TeacherRewardSystem({
       timestamp: new Date(),
       category: "Custom"
     };
-    
+
     setRewardHistory(prev => [reward, ...prev.slice(0, 4)]);
-    
-    // Play enhanced sound effect
+
+    soundEffectsService.playPop();
     audioService.playRewardSound(points);
-    
+
     // Trigger celebration with sound and visual effects
     onAwardPoints(points, reason);
     setShowCustomDialog(false);

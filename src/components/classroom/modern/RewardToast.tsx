@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Star, Trophy, Zap } from "lucide-react";
+import { audioService } from "@/services/audioService";
 
 interface RewardToastProps {
   show: boolean;
@@ -22,6 +23,11 @@ export function RewardToast({
   useEffect(() => {
     if (show) {
       setVisible(true);
+      // Type-aware reward stinger so every toast is audibly distinct.
+      if (type === "star") audioService.playStarSound();
+      else if (type === "badge") audioService.playStickerSound();
+      else audioService.playRewardSound(xp);
+
       const timer = setTimeout(() => {
         setVisible(false);
         setTimeout(() => onComplete?.(), 300);
@@ -29,7 +35,7 @@ export function RewardToast({
 
       return () => clearTimeout(timer);
     }
-  }, [show, onComplete]);
+  }, [show, onComplete, type, xp]);
 
   if (!visible) return null;
 

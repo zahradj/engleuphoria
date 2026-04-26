@@ -48,6 +48,11 @@ export function TopLevelBar({
     setPreviousXP(currentXP);
   }, [currentXP, previousXP, xpPerSegment, normalizedXP, maxXP]);
 
+  // Pop on star burst (the scale-in animation)
+  useEffect(() => {
+    if (isAnimating) soundEffectsService.playPop();
+  }, [isAnimating]);
+
   return (
     <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 h-6 bg-white/20 backdrop-blur-md border border-white/20 shadow-[0_0_10px_rgba(0,255,255,0.15)] max-w-4xl w-full">
       <div className="h-full flex items-center gap-2 px-4">

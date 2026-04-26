@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { audioService } from "@/services/audioService";
 
 interface Badge {
   id: string;
@@ -44,6 +45,7 @@ export function useRewards() {
       if (newLevel > level) {
         setLevel(newLevel);
         setShowLevelUp(true);
+        audioService.playCelebrationSound();
         setTimeout(() => setShowLevelUp(false), 3000);
       }
 
@@ -65,6 +67,7 @@ export function useRewards() {
 
   const addStars = useCallback((count: number) => {
     setStarCount(prev => prev + count);
+    audioService.playStarSound();
   }, []);
 
   const earnBadge = useCallback((badgeId: string) => {
@@ -74,6 +77,7 @@ export function useRewards() {
           const earnedBadge = { ...badge, earnedAt: new Date(), isNew: true };
           setNewBadge(earnedBadge);
           setShowBadgeReveal(true);
+          audioService.playStickerSound();
           setTimeout(() => {
             setShowBadgeReveal(false);
             setNewBadge(null);
