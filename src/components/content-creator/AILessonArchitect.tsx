@@ -43,6 +43,7 @@ export const AILessonArchitect: React.FC = () => {
   const { user } = useAuth();
   const userRole = (user as any)?.role;
   const [hub, setHub] = useState<HubType | ''>('');
+  const [cefrLevel, setCefrLevel] = useState<CEFRLevel | ''>('');
   const [topic, setTopic] = useState('');
   const [targetGrammar, setTargetGrammar] = useState('');
   const [targetVocabulary, setTargetVocabulary] = useState('');
