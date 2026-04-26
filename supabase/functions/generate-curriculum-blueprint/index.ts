@@ -15,6 +15,7 @@ const CEFR_RULES: Record<string, string> = {
 };
 
 const SKILL_ROTATION = ["Grammar", "Vocabulary", "Reading/Listening", "Speaking"];
+const VALID_SKILLS = ["Grammar", "Vocabulary", "Reading/Listening", "Speaking", "Review"];
 
 // Tiny UUIDv4 generator (no external deps)
 function uuid(): string {
