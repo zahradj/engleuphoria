@@ -13,7 +13,7 @@ if (import.meta.env.PROD) {
 }
 
 // Clear stale caches on app start
-const CACHE_VERSION = 'v4';
+const CACHE_VERSION = 'v6';
 const lastCacheVersion = localStorage.getItem('cache_version');
 if (lastCacheVersion !== CACHE_VERSION) {
   clearAllCaches().then(() => {
@@ -36,6 +36,21 @@ if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js')
         .then((registration) => {
           console.log('SW registered: ', registration);
+          if (registration.waiting) {
+            registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+          }
+
+          registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            if (!newWorker) return;
+
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                newWorker.postMessage({ type: 'SKIP_WAITING' });
+              }
+            });
+          });
+
           // Periodically check for updates (every 60 minutes)
           setInterval(() => { registration.update?.(); }, 60 * 60 * 1000);
         })
