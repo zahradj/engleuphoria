@@ -113,7 +113,7 @@ export const useAvailabilityManager = (
 
       const { data, error } = await supabase
         .from('teacher_availability')
-        .select('id, start_time, duration, is_booked, is_available, student_id, lesson_title')
+        .select('id, start_time, end_time, duration, is_booked, is_available, student_id, lesson_id, lesson_title, hub_specialty, recurring_pattern')
         .eq('teacher_id', teacherId)
         .gte('start_time', weekStart.toISOString())
         .lte('start_time', weekEnd.toISOString())
@@ -128,6 +128,24 @@ export const useAvailabilityManager = (
       }
 
       const rows = (data ?? []) as DbSlotRow[];
+
+      const lessonIds = Array.from(
+        new Set(rows.map((r) => r.lesson_id).filter(Boolean) as string[])
+      );
+      const lessonInfo: Record<string, LessonInfo> = {};
+
+      if (lessonIds.length > 0) {
+        const { data: lessons } = await supabase
+          .from('lessons')
+          .select('id, student_id, title')
+          .in('id', lessonIds);
+        for (const lesson of lessons ?? []) {
+          lessonInfo[(lesson as any).id] = {
+            studentId: (lesson as any).student_id,
+            title: (lesson as any).title,
+          };
+        }
+      }
 
       // Lookup student names for booked rows
       const studentIds = Array.from(
