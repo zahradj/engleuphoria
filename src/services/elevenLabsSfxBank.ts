@@ -92,6 +92,22 @@ const SFX_PROMPTS: Record<SfxKey, SfxSpec> = {
     prompt: "Soft polite error buzz, short low gentle tone, not harsh, UI feedback",
     duration: 0.7, influence: 0.7, volume: 0.7,
   },
+  emoji_clap: {
+    prompt: "Short burst of enthusiastic audience applause, clapping hands, warm and bright, no cheering",
+    duration: 1.8, influence: 0.7, volume: 0.95,
+  },
+  emoji_laugh: {
+    prompt: "Short cheerful group of kids laughing, light hearted giggles, warm and joyful",
+    duration: 1.8, influence: 0.7, volume: 0.95,
+  },
+  emoji_party: {
+    prompt: "Festive party celebration with confetti pop, party horn, cheers and bells, short carnival burst",
+    duration: 2.2, influence: 0.65, volume: 1.0,
+  },
+  emoji_thumbsup: {
+    prompt: "Short bubbly cartoon pop sound, single playful pop bubble, clean and crisp",
+    duration: 0.5, influence: 0.75, volume: 0.9,
+  },
 };
 
 const STORAGE_PREFIX = "ee_sfx_v2::"; // bumped: v1 entries had different keys
