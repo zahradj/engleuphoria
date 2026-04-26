@@ -30,7 +30,11 @@ export type SfxKey =
   | "reward_big"
   | "celebration"
   | "success"
-  | "error";
+  | "error"
+  | "emoji_clap"
+  | "emoji_laugh"
+  | "emoji_party"
+  | "emoji_thumbsup";
 
 interface SfxSpec {
   prompt: string;
