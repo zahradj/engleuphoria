@@ -26,6 +26,25 @@ const ContentCreatorDashboard: React.FC = () => {
       case 1:
         return (
           <div className="space-y-8">
+            {/* 4-Skills Blueprint entry banner */}
+            <button
+              onClick={() => navigate('/content-creator/blueprint')}
+              className="w-full text-left rounded-2xl border border-sky-500/40 bg-gradient-to-br from-sky-500/10 via-blue-500/10 to-sky-500/5 hover:from-sky-500/15 hover:to-blue-500/15 transition-colors p-5 flex items-center justify-between gap-4 group"
+            >
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="flex-shrink-0 h-12 w-12 rounded-xl bg-gradient-to-br from-sky-500 to-blue-500 flex items-center justify-center shadow-lg">
+                  <Wand2 className="h-6 w-6 text-white" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-bold tracking-tight">4-Skills Curriculum Blueprint</h3>
+                  <p className="text-sm text-muted-foreground truncate">
+                    Generate a themed, 4-skills curriculum (Grammar · Vocab · Reading/Listening · Speaking) and hand off each lesson straight to the AI Slide Wizard.
+                  </p>
+                </div>
+              </div>
+              <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-sky-400 group-hover:translate-x-1 transition-all flex-shrink-0" />
+            </button>
+
             {/* Master PPP Wizard entry banner */}
             <button
               onClick={() => navigate('/content-creator/master-wizard')}
