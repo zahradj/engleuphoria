@@ -271,12 +271,30 @@ async function navigateActiveTabTo(hb: HyperbeamEmbed, url: string): Promise<voi
  * Mints a new Hyperbeam embed URL via the `hyperbeam-session` edge function.
  * Returned URL is what BOTH teacher and student mount to join the same shared
  * web instance.
+ *
+ * IMPORTANT: Only the **teacher** is allowed to mint a new VM. The student
+ * must NEVER call this — they receive the teacher's `embedUrl` via the
+ * shared classroom_sessions row (broadcast by `updateSharedDisplay`). The
+ * `callerRole` argument is a runtime guard so we cannot accidentally spin up
+ * two independent cloud browsers and break the "One Room, One Session" rule.
  */
-export async function createHyperbeamSession(startUrl?: string): Promise<{
+export async function createHyperbeamSession(
+  startUrl?: string,
+  callerRole: 'teacher' | 'student' = 'teacher',
+): Promise<{
   embedUrl: string;
   sessionId: string;
   adminToken?: string;
 }> {
+  if (callerRole !== 'teacher') {
+    throw new Error(
+      '[Co-Play] createHyperbeamSession() may only be called by the teacher. ' +
+        'Students must mount the embedUrl broadcast by the teacher (classroom_sessions.embeddedUrl).',
+    );
+  }
+
+  console.log('[Co-Play] Teacher minting a new Hyperbeam VM…', { startUrl });
+
   const { data, error } = await supabase.functions.invoke('hyperbeam-session', {
     body: { startUrl },
   });

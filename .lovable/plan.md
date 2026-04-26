@@ -1,44 +1,63 @@
-## Fix: Hyperbeam playing but invisible on the Teacher's stage
+## "One Room, One Session" — verification + safety net
 
-### Root cause
-On the **teacher** side, the Main Stage column wraps `<MainStage>` in:
-```tsx
-<div className="flex-1 relative">   {/* TeacherClassroom.tsx ~L517 — block, NOT flex */}
-  <MainStage … />
-</div>
+### Findings (the architecture is already correct)
+After tracing the Co-Play flow end-to-end, the requested architecture is **already implemented**:
+
+1. **Teacher is the sole session creator.** `createHyperbeamSession()` is called from exactly one place: `TeacherControlDock.tsx` line 100 (the teacher's "Co-Play" button). The student bundle never imports or calls it.
+2. **Teacher broadcasts the embed URL.** `TeacherControlDock` calls `onEmbedUrl(embedUrl)` → `TeacherClassroom` runs `updateSharedDisplay({ embeddedUrl: url })` → `useClassroomSync` writes to the shared `classroom_sessions` row keyed by `roomId` via `classroomSyncService.updateSession(...)`. Supabase Realtime `postgres_changes` propagates the row to the student.
+3. **Student is a pure receiver.** `StudentClassroom` reads `embeddedUrl` from the same `useClassroomSync` hook (line 474) and passes it straight into `<MainStage embeddedUrl={embeddedUrl} … />`, which forwards it to `<MultiplayerWebStage embedUrl={…} role="student" />`. Same string the teacher minted → same Hyperbeam VM.
+4. **`updateSharedDisplay` is teacher-gated** (`useClassroomSync.ts` line 327: `if (role !== 'teacher') return;`), so even a misclick from a student client cannot overwrite the shared URL.
+5. **Control / admin token.** Teacher passes `adminToken` into `MultiplayerWebStage` and sets `disableInput: false`; student gets `disableInput: !controlEnabled`, where `controlEnabled` is the teacher's "Unlock Student Interaction" toggle (`iframeUnlocked`). Already correct.
+
+So the symptom "teacher and student see different screens" cannot be caused by independent VMs from the current code path. The most likely real causes are:
+- The teacher mints a **second** VM (clicks Co-Play twice / re-launches), and the student is still mounted on the previous URL momentarily until realtime catches up.
+- Hyperbeam itself rate-limits on the second mint and the teacher silently falls back to a regular `<iframe>` (see `TeacherControlDock` line 107–116) — at that point the two sides see the same URL but it's not a synced cloud browser, so each renders the page locally.
+- Realtime didn't deliver the row update to the student tab (network blip / RLS / channel not subscribed).
+
+### Safety net (single small edit to make regressions impossible & loud)
+
+**File:** `src/components/classroom/stage/MultiplayerWebStage.tsx`
+
+Change `createHyperbeamSession` to require an explicit `callerRole` and throw if anything other than the teacher tries to mint a VM:
+
+```ts
+export async function createHyperbeamSession(
+  startUrl?: string,
+  callerRole: 'teacher' | 'student' = 'teacher',
+): Promise<{ embedUrl: string; sessionId: string; adminToken?: string }> {
+  if (callerRole !== 'teacher') {
+    throw new Error(
+      '[Co-Play] createHyperbeamSession() may only be called by the teacher. ' +
+      'Students must mount the embedUrl broadcast by the teacher.',
+    );
+  }
+  console.log('[Co-Play] Teacher minting a new Hyperbeam VM…', { startUrl });
+  // …existing supabase.functions.invoke('hyperbeam-session', …) body unchanged…
+}
 ```
-`MainStage`'s outer element is `flex-1 flex items-stretch … relative`. Because its parent is a plain block (`flex-1 relative`), the `flex-1` on `MainStage`'s root does nothing and the element collapses to its content height.
 
-- In **slide mode** the inner `<img>` has intrinsic dimensions, so the column "looks" sized correctly.
-- In **web (Hyperbeam) mode** the inner `MultiplayerWebStage` uses only `absolute inset-0`, which has no intrinsic size, so the whole stage container collapses to 0 px tall → Hyperbeam reports `playing` but renders into a 0-height div → blank white screen.
+And in `TeacherControlDock.tsx` (the only caller), pass `'teacher'` explicitly:
+```ts
+const { embedUrl } = await createHyperbeamSession(startNormalized, 'teacher');
+```
 
-The student side already wraps `<MainStage>` in a flex column (`flex-1 flex flex-col`), which is why the student sees the cloud browser correctly while the teacher does not.
+### Diagnostic logging (so the user can confirm it's working)
+Add two tiny `console.log` lines to make the broadcast/receive cycle visible in DevTools:
+1. **Teacher** — in `TeacherClassroom.handleEmbedLink` flow (`updateSharedDisplay({ embeddedUrl: url })`), log:
+   `[Co-Play] Teacher broadcasting embedUrl to room <roomId>: <url>`
+2. **Student** — in `useClassroomSync` where the session row updates with a new `embeddedUrl`, log:
+   `[Co-Play] Student received embedUrl from teacher broadcast: <url>`
 
-### Fix (2 small edits)
+If the user reports the bug again, comparing those two log lines on the two browsers immediately tells us whether (a) the teacher minted twice, (b) the broadcast didn't arrive, or (c) the student mounted before the URL synced.
 
-**1. `src/components/classroom/stage/MainStage.tsx` (line 70)**
-Change the outer wrapper from a fragile `flex-1` block to one that fills the parent in both flex and non-flex contexts:
-
-- Before: `className="flex-1 flex items-stretch justify-stretch p-1 sm:p-2 relative min-h-0 min-w-0"`
-- After: `className="absolute inset-0 flex items-stretch justify-stretch p-1 sm:p-2 min-h-0 min-w-0"`
-
-This guarantees the stage always fills its `relative` parent — matching the dimensions Hyperbeam needs.
-
-**2. `src/components/teacher/classroom/TeacherClassroom.tsx` (line 517)**
-Add a minimum height so the column itself never collapses while the SDK is initializing:
-
-- Before: `<div className="flex-1 relative">`
-- After: `<div className="flex-1 relative min-h-0 overflow-hidden">`
-
-(`min-h-0` lets the flex parent shrink below content; `overflow-hidden` clips the now-`absolute` child cleanly.)
-
-### What I am NOT changing (and why)
-- **TransparentCanvas / overlay**: already `absolute inset-0 z-50` with `pointerEvents: 'none'` whenever drawing is off OR when web mode is active for students. No white background. Not the cause.
-- **WebRTC video refs**: the gray tiles at the moment of the bug are a side-effect of the stage collapsing the column layout (CommunicationZone tiles re-flow). The `srcObject` assignment in `CommunicationZone` / RTC hook is intact (logs show "Remote stream received" + connections succeeding). No refactor needed there — the tiles will return to normal once the stage fills its column again. If they remain gray after this fix, I'll inspect the video components separately.
-- **MultiplayerWebStage internal sizing**: already `absolute inset-0` with an inner `h-full w-[92%]` container. Once its ancestor has real height, Hyperbeam renders correctly. No need to add `min-h-[500px]` (that would force scroll on small viewports and clash with the 16:9 stage aspect).
+### What I am NOT changing
+- `hyperbeam-session` edge function — already correct, it mints exactly one VM per call.
+- `useClassroomSync.updateSharedDisplay` — already teacher-gated.
+- `MultiplayerWebStage` mount logic — already serialized via `initPromiseRef` from the previous fix.
+- The `controlEnabled` / `adminToken` pass-through — already correct.
 
 ### Acceptance
-- Teacher launches Co-Play (gamestolearnenglish.com or any URL) → cloud browser is visible on the teacher's stage, same as the student's.
-- Console keeps showing `[Hyperbeam] connection state: playing`, but the iframe is now actually drawn.
-- Slide mode and Whiteboard mode continue to render exactly as before.
-- Drawing overlay remains transparent and click-through over web content.
+- Teacher pastes a URL → clicks Co-Play → console shows `Teacher minting…` then `Teacher broadcasting…`.
+- Within ~1s the student's console shows `Student received embedUrl…` with the **same** URL.
+- Both windows render the same cloud browser stream (clicks, scrolls, and typing on either side are visible to the other once "Unlock Student Interaction" is on).
+- If anything ever calls `createHyperbeamSession()` from a student context, the call now throws a clear, debuggable error instead of silently spinning up a second VM.
