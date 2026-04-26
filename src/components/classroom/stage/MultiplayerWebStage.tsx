@@ -82,11 +82,16 @@ export const MultiplayerWebStage: React.FC<MultiplayerWebStageProps> = ({
       // 2. Mount the new Hyperbeam instance into the (now-clean) container.
       try {
         const currentRole = roleRef.current;
+        const rect = container.getBoundingClientRect();
         const hb = await Hyperbeam(container, embedUrl, {
           delegateKeyboard: currentRole === 'teacher' ? true : controlEnabledRef.current,
           disableInput: currentRole === 'teacher' ? false : !controlEnabledRef.current,
           adminToken: currentRole === 'teacher' ? (adminTokenRef.current ?? undefined) : undefined,
           timeout: 30_000,
+          // Match the cloud browser viewport to the container so the stream
+          // is rendered at the right resolution instead of being scaled up.
+          width: Math.max(640, Math.round(rect.width) || 1280),
+          height: Math.max(360, Math.round(rect.height) || 720),
           onConnectionStateChange: (e) => {
             if (cancelled) return;
             console.log('[Hyperbeam] connection state:', e.state);
