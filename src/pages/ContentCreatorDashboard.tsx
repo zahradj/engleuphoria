@@ -75,7 +75,7 @@ const ContentCreatorDashboard: React.FC = () => {
           </div>
         );
       case 2:
-        return <AdminLessonEditor onFinish={goNext} onBack={goPrev} curriculumContext={curriculumContext} />;
+        return <SlideStudio onPublished={() => setCurrentStep(3)} />;
       case 3:
         return (
           <div className="space-y-6">
