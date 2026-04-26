@@ -6,7 +6,8 @@ const corsHeaders = {
 };
 
 const PHASES = ["Warm-up", "Presentation", "Practice", "Production", "Review"] as const;
-const SLIDE_TYPES = ["text_image", "multiple_choice", "drawing_prompt"] as const;
+const SLIDE_TYPES = ["text_image", "multiple_choice", "drawing_prompt", "flashcard"] as const;
+const LAYOUTS = ["split_left", "split_right", "center_card", "full_background"] as const;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -39,13 +40,18 @@ Build a 6-slide arc following the Scaffolded Mastery PPP method:
 4) Production (free output, 1 slide)
 5) Review (quick check, 1 slide)
 
-Rules:
+Hard rules:
 - Total slides MUST equal 6.
-- Use multiple_choice for at least one Practice slide; drawing_prompt fits Warm-up or Production well; text_image otherwise.
-- For multiple_choice, "content" MUST be a JSON string of {"question": string, "options": string[4], "answer": string}.
-- For text_image and drawing_prompt, "content" is short instructional text in plain English (1–3 sentences max).
+- Use a mix of slide_type. At least one Practice slide MUST be multiple_choice. Use flashcard for vocabulary input on Presentation. Use drawing_prompt for Warm-up or Production when natural. text_image otherwise.
+- Vary layout_style across the deck for visual rhythm: split_left, split_right, center_card, full_background.
+- "content" is short on-slide text in plain English (1–3 sentences max). Leave empty string when interactive_data carries the meaning (e.g. multiple_choice, flashcard).
 - "teacher_script" is 2–3 high-energy sentences for the teacher to read aloud.
 - "visual_keyword" is 1–2 vivid English words for an Unsplash image search.
+- "interactive_data" shape depends on slide_type:
+  • multiple_choice → { "question": string, "options": string[4], "correct_index": 0..3 }
+  • flashcard       → { "front": string, "back": string }
+  • drawing_prompt  → { "prompt": string }
+  • text_image      → {} (empty object)
 - Tone: supportive, professional, joyful. Globally inclusive examples. CEFR-aligned.`;
 
     const userPrompt = `Lesson title: ${lesson_title}
@@ -73,12 +79,36 @@ Generate the 6 slides now.`;
                 properties: {
                   phase: { type: "string", enum: [...PHASES] },
                   slide_type: { type: "string", enum: [...SLIDE_TYPES] },
+                  layout_style: { type: "string", enum: [...LAYOUTS] },
                   title: { type: "string" },
                   content: { type: "string" },
                   teacher_script: { type: "string" },
                   visual_keyword: { type: "string" },
+                  interactive_data: {
+                    type: "object",
+                    description:
+                      "Shape depends on slide_type. mcq: {question, options[4], correct_index}. flashcard: {front, back}. drawing_prompt: {prompt}. text_image: {}.",
+                    properties: {
+                      question: { type: "string" },
+                      options: { type: "array", items: { type: "string" } },
+                      correct_index: { type: "integer", minimum: 0, maximum: 3 },
+                      front: { type: "string" },
+                      back: { type: "string" },
+                      prompt: { type: "string" },
+                    },
+                    additionalProperties: true,
+                  },
                 },
-                required: ["phase", "slide_type", "title", "content", "teacher_script", "visual_keyword"],
+                required: [
+                  "phase",
+                  "slide_type",
+                  "layout_style",
+                  "title",
+                  "content",
+                  "teacher_script",
+                  "visual_keyword",
+                  "interactive_data",
+                ],
                 additionalProperties: false,
               },
             },
@@ -139,10 +169,12 @@ Generate the 6 slides now.`;
       id: crypto.randomUUID(),
       phase: s.phase,
       slide_type: s.slide_type,
+      layout_style: s.layout_style ?? "center_card",
       title: s.title,
       content: s.content,
       teacher_script: s.teacher_script,
       visual_keyword: s.visual_keyword,
+      interactive_data: s.interactive_data ?? {},
     }));
 
     return new Response(JSON.stringify({ slides }), {

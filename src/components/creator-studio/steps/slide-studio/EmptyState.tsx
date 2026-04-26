@@ -35,6 +35,8 @@ export const EmptyState: React.FC = () => {
       const slides: PPPSlide[] = (data?.slides ?? []).map((s: any) => ({
         ...s,
         phase: normalizePhase(s.phase),
+        layout_style: s.layout_style ?? 'full_background',
+        interactive_data: s.interactive_data ?? {},
       }));
       if (!slides.length) {
         toast.error('AI returned no slides. Please retry.');
