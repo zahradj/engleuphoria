@@ -45,6 +45,7 @@ export function QuickRewardButtons({ onReward }: QuickRewardButtonsProps) {
             onClick={() => onReward(15, "Speaking Practice")}
             className="text-xs py-1 px-2 hover:scale-105 transition-transform"
             soundType="reward"
+            rewardPoints={15}
           >
             🗣️ Speaking +15
           </SoundButton>
@@ -54,6 +55,7 @@ export function QuickRewardButtons({ onReward }: QuickRewardButtonsProps) {
             onClick={() => onReward(10, "Participation")}
             className="text-xs py-1 px-2 hover:scale-105 transition-transform"
             soundType="reward"
+            rewardPoints={10}
           >
             ✋ Participation +10
           </SoundButton>
@@ -63,6 +65,7 @@ export function QuickRewardButtons({ onReward }: QuickRewardButtonsProps) {
             onClick={() => onReward(20, "Perfect Answer")}
             className="text-xs py-1 px-2 hover:scale-105 transition-transform"
             soundType="reward"
+            rewardPoints={20}
           >
             💯 Perfect Answer +20
           </SoundButton>
