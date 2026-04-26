@@ -50,6 +50,20 @@ export interface OpenWeeklyRecurringSelectionsInput {
 
 const DEFAULT_HORIZON_WEEKS = 12;
 
+/**
+ * The DB check constraint allows only: 'Playground' | 'Academy' | 'Professional'.
+ * Map our lowercase HubKind (incl. legacy "success") to the capitalized DB value.
+ */
+const toDbHubSpecialty = (hub: HubKind | undefined): string | null => {
+  if (!hub) return null;
+  switch (hub) {
+    case "playground": return "Playground";
+    case "academy": return "Academy";
+    case "success": return "Professional";
+    default: return null;
+  }
+};
+
 const buildSlotRow = (
   teacherId: string,
   start: Date,
@@ -67,7 +81,7 @@ const buildSlotRow = (
     lesson_type: "free_slot",
     is_available: true,
     is_booked: false,
-    hub_specialty: hub ?? null,
+    hub_specialty: toDbHubSpecialty(hub),
     recurring_pattern: recurringPattern ?? null,
   };
 };
