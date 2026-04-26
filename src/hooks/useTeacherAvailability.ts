@@ -29,7 +29,9 @@ export const useTeacherAvailability = (teacherId: string, weekDays: Date[]) => {
           is_booked,
           student_id,
           lesson_id,
-          lesson_title
+          lesson_title,
+          hub_specialty,
+          recurring_pattern
         `)
         .eq('teacher_id', teacherId)
         .gte('start_time', startDate)
