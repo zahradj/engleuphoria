@@ -40,9 +40,7 @@ const StudentClassroomPage = lazy(() => import("./pages/StudentClassroomPage"));
 const UnifiedClassroomPage = lazy(() => import("./pages/UnifiedClassroomPage"));
 const AssessmentTaker = lazy(() => import("./components/assessment/AssessmentTaker"));
 const AssessmentResults = lazy(() => import("./components/assessment/AssessmentResults"));
-const ContentCreatorDashboard = lazy(() => import("./pages/ContentCreatorDashboard"));
-const MasterPPPWizard = lazy(() => import("./components/content-creator/MasterPPPWizard").then(m => ({ default: m.MasterPPPWizard })));
-const BlueprintBuilderPage = lazy(() => import("./components/content-creator/BlueprintBuilderPage").then(m => ({ default: m.BlueprintBuilderPage })));
+const CreatorStudioShell = lazy(() => import("./components/creator-studio/CreatorStudioShell"));
 const LessonReaderPage = lazy(() => import("./pages/student/LessonReaderPage"));
 const LessonLibraryPage = lazy(() => import("./pages/student/LessonLibraryPage"));
 const UnsubscribePage = lazy(() => import("./pages/UnsubscribePage"));
@@ -208,29 +206,11 @@ const App = () => {
                         </ImprovedProtectedRoute>
                       } />
 
-                      {/* Content Creator — Master PPP Wizard (full-screen, takes precedence over dashboard catch-all) */}
-                      <Route path="/content-creator/master-wizard" element={
-                        <ImprovedProtectedRoute requiredRole="content_creator">
-                          <Suspense fallback={<LoadingFallback />}>
-                            <MasterPPPWizard />
-                          </Suspense>
-                        </ImprovedProtectedRoute>
-                      } />
-
-                      {/* Content Creator — 4-Skills Blueprint Builder (full-screen) */}
-                      <Route path="/content-creator/blueprint" element={
-                        <ImprovedProtectedRoute requiredRole="content_creator">
-                          <Suspense fallback={<LoadingFallback />}>
-                            <BlueprintBuilderPage />
-                          </Suspense>
-                        </ImprovedProtectedRoute>
-                      } />
-
-                      {/* Content Creator Dashboard - Protected */}
+                      {/* Content Creator — Unified Studio Shell (full-screen workspace) */}
                       <Route path="/content-creator/*" element={
                         <ImprovedProtectedRoute requiredRole="content_creator">
                           <Suspense fallback={<LoadingFallback />}>
-                            <ContentCreatorDashboard />
+                            <CreatorStudioShell />
                           </Suspense>
                         </ImprovedProtectedRoute>
                       } />
