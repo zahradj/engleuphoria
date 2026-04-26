@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -114,18 +114,33 @@ const unsplashUrl = (keyword?: string) => {
 };
 
 // ─── Component ─────────────────────────────────────────────────────────
+interface BlueprintHandoff {
+  fromBlueprint?: boolean;
+  cefr_level?: CEFRLevel;
+  hub?: HubType;
+  topic?: string;
+  skill_focus?: string;
+  learning_objective?: string;
+  unit_title?: string;
+  unit_theme?: string;
+  curriculum_title?: string;
+}
+
 export const MasterPPPWizard: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const handoff = (location.state || {}) as BlueprintHandoff;
   const { user } = useAuth();
   const userRole = (user as any)?.role;
 
-  const [cefrLevel, setCefrLevel] = useState<CEFRLevel>('B1');
-  const [hub, setHub] = useState<HubType>('academy');
-  const [topic, setTopic] = useState('');
+  const [cefrLevel, setCefrLevel] = useState<CEFRLevel>(handoff.cefr_level || 'B1');
+  const [hub, setHub] = useState<HubType>(handoff.hub || 'academy');
+  const [topic, setTopic] = useState(handoff.topic || '');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [lesson, setLesson] = useState<PPPLesson | null>(null);
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
+  const autoTriggered = useRef(false);
 
   // Role guard — only admins & content creators
   if (userRole !== 'admin' && userRole !== 'content_creator') {
@@ -148,6 +163,21 @@ export const MasterPPPWizard: React.FC = () => {
     });
     return out;
   }, [lesson]);
+
+  // If we arrived from the Blueprint with a lesson topic, auto-trigger generation once.
+  useEffect(() => {
+    if (
+      handoff.fromBlueprint &&
+      handoff.topic &&
+      !autoTriggered.current &&
+      !lesson &&
+      !isGenerating
+    ) {
+      autoTriggered.current = true;
+      setTimeout(() => handleGenerate(), 250);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handoff.fromBlueprint, handoff.topic]);
 
   const handleGenerate = async () => {
     if (!topic.trim()) {
@@ -350,6 +380,32 @@ export const MasterPPPWizard: React.FC = () => {
 
         {/* ─── RIGHT: Roadmap + Slide Cards ─── */}
         <main className="min-w-0 space-y-6">
+          {handoff.fromBlueprint && (
+            <div className="rounded-2xl border border-sky-500/40 bg-gradient-to-br from-sky-500/10 via-blue-500/10 to-sky-500/5 backdrop-blur-xl p-5 shadow-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-sky-500/20 text-sky-300 border border-sky-500/40">
+                  From Blueprint
+                </span>
+                {handoff.skill_focus && (
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                    Focus: {handoff.skill_focus}
+                  </span>
+                )}
+              </div>
+              <h3 className="font-bold tracking-tight text-base">{handoff.topic}</h3>
+              {handoff.unit_title && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Unit: <strong className="text-foreground/80">{handoff.unit_title}</strong>
+                  {handoff.unit_theme ? ` · 🎯 ${handoff.unit_theme}` : ''}
+                </p>
+              )}
+              {handoff.learning_objective && (
+                <p className="text-xs text-muted-foreground mt-1.5 italic">
+                  🎓 {handoff.learning_objective}
+                </p>
+              )}
+            </div>
+          )}
           {!lesson && !isGenerating && (
             <div className="rounded-2xl border border-dashed border-border/60 bg-card/40 p-12 text-center">
               <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/60 mb-3" />
