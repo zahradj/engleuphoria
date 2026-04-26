@@ -149,7 +149,11 @@ export const useAvailabilityManager = (
 
       // Lookup student names for booked rows
       const studentIds = Array.from(
-        new Set(rows.map((r) => r.student_id).filter(Boolean) as string[])
+        new Set(
+          rows
+            .map((r) => r.student_id || (r.lesson_id ? lessonInfo[r.lesson_id]?.studentId : undefined))
+            .filter(Boolean) as string[]
+        )
       );
 
       const newInfo: Record<string, StudentInfo> = { ...studentInfoRef.current };
