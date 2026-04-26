@@ -100,6 +100,8 @@ export const LessonsListCard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackLesson, setFeedbackLesson] = useState<Lesson | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -175,6 +177,17 @@ export const LessonsListCard: React.FC = () => {
     else navigate(`/classroom/${lesson.id}`);
   };
 
+  const handleOpenFeedback = (lesson: Lesson) => {
+    setFeedbackLesson(lesson);
+    setFeedbackOpen(true);
+  };
+
+  const handleWriteFeedback = (lesson: Lesson) => {
+    // Open the classroom which contains the wrap-up dialog
+    if (lesson.classroomId) navigate(`/classroom/${lesson.classroomId}?wrapup=1`);
+    else navigate(`/classroom/${lesson.id}?wrapup=1`);
+  };
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -226,7 +239,11 @@ export const LessonsListCard: React.FC = () => {
               <TabsContent value="past" className="space-y-2">
                 {pastLessons.length > 0 ? (
                   pastLessons.map(lesson => (
-                    <LessonItem key={lesson.id} lesson={lesson} />
+                    <LessonItem
+                      key={lesson.id}
+                      lesson={lesson}
+                      onOpenFeedback={handleOpenFeedback}
+                    />
                   ))
                 ) : (
                   <EmptyState
@@ -241,7 +258,11 @@ export const LessonsListCard: React.FC = () => {
               <TabsContent value="feedback" className="space-y-2">
                 {needsFeedback.length > 0 ? (
                   needsFeedback.map(lesson => (
-                    <LessonItem key={lesson.id} lesson={lesson} />
+                    <LessonItem
+                      key={lesson.id}
+                      lesson={lesson}
+                      onWriteFeedback={handleWriteFeedback}
+                    />
                   ))
                 ) : (
                   <EmptyState
@@ -256,6 +277,13 @@ export const LessonsListCard: React.FC = () => {
           )}
         </Tabs>
       </CardContent>
+
+      <FeedbackReportDialog
+        open={feedbackOpen}
+        onOpenChange={setFeedbackOpen}
+        lessonId={feedbackLesson?.id ?? null}
+        lessonTitle={feedbackLesson?.title}
+      />
     </Card>
   );
 };
