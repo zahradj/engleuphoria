@@ -53,11 +53,18 @@ Deno.serve(async (req) => {
     const cefrRule = CEFR_RULES[cefr_level] || CEFR_RULES.A2;
     const variationSeed = Math.random().toString(36).slice(2, 10);
 
+    const cleanTheme = String(theme_hint || "").trim();
+    const hasTheme = cleanTheme.length > 0;
+
     const systemPrompt = `You are an elite ESL Curriculum Director. Generate a progressive, high-energy 4-skills English curriculum.
 
 CEFR LEVEL CONSTRAINT: ${cefr_level} — ${cefrRule}
 AGE GROUP: ${age_group}
 HUB: ${hub}
+
+THEME RULE:
+- If a Core Theme is provided, base the units around it and progress logically across them.
+- If the Core Theme is empty, you MUST invent a highly engaging, age-appropriate, and creative theme yourself based on the requested CEFR Level and Age Group. Pick something fresh and motivating (e.g. for kids: "Dinosaur Detectives", for teens: "Esports & Streaming Culture", for adults: "Career Power Moves"). Do not default to bland topics like "General English".
 
 REQUIREMENTS:
 1. Every unit MUST have a single engaging central theme (e.g. "Travel Adventures", "Tech & Social Media", "Career Confidence").
@@ -94,7 +101,7 @@ OUTPUT STRICT JSON ONLY (no markdown, no code fences) matching this schema EXACT
 - ${safeUnits} units
 - ${safeLessons} lessons per unit (the LAST lesson of each unit MUST be a "Review")
 - Skill rotation for non-review lessons: ${SKILL_ROTATION.join(" → ")}
-${theme_hint ? `- Core theme/topic: "${theme_hint}"` : ""}
+${hasTheme ? `- Core theme/topic: "${cleanTheme}"` : "- Core theme/topic: (none provided — invent a creative, age-appropriate one yourself)"}
 
 Return ONLY the JSON object.`;
 
