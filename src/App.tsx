@@ -206,6 +206,15 @@ const App = () => {
                         </ImprovedProtectedRoute>
                       } />
 
+                      {/* Content Creator — Master PPP Wizard (full-screen, takes precedence over dashboard catch-all) */}
+                      <Route path="/content-creator/master-wizard" element={
+                        <ImprovedProtectedRoute requiredRole="content_creator">
+                          <Suspense fallback={<LoadingFallback />}>
+                            <MasterPPPWizard />
+                          </Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
+
                       {/* Content Creator Dashboard - Protected */}
                       <Route path="/content-creator/*" element={
                         <ImprovedProtectedRoute requiredRole="content_creator">
