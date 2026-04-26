@@ -16,6 +16,8 @@ interface CalendarCoreProps {
   onNavigateWeek: (direction: -1 | 1) => void;
   onGoToToday: () => void;
   onSlotClick: (date: Date, time: string) => void;
+  /** Optional: invoked when a teacher taps a booked slot tile. */
+  onBookedSlotClick?: (slot: AvailabilitySlot) => void;
 }
 
 export const CalendarCore: React.FC<CalendarCoreProps> = ({
