@@ -42,6 +42,7 @@ const AssessmentTaker = lazy(() => import("./components/assessment/AssessmentTak
 const AssessmentResults = lazy(() => import("./components/assessment/AssessmentResults"));
 const ContentCreatorDashboard = lazy(() => import("./pages/ContentCreatorDashboard"));
 const MasterPPPWizard = lazy(() => import("./components/content-creator/MasterPPPWizard").then(m => ({ default: m.MasterPPPWizard })));
+const BlueprintBuilderPage = lazy(() => import("./components/content-creator/BlueprintBuilderPage").then(m => ({ default: m.BlueprintBuilderPage })));
 const LessonReaderPage = lazy(() => import("./pages/student/LessonReaderPage"));
 const LessonLibraryPage = lazy(() => import("./pages/student/LessonLibraryPage"));
 const UnsubscribePage = lazy(() => import("./pages/UnsubscribePage"));
@@ -212,6 +213,15 @@ const App = () => {
                         <ImprovedProtectedRoute requiredRole="content_creator">
                           <Suspense fallback={<LoadingFallback />}>
                             <MasterPPPWizard />
+                          </Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
+
+                      {/* Content Creator — 4-Skills Blueprint Builder (full-screen) */}
+                      <Route path="/content-creator/blueprint" element={
+                        <ImprovedProtectedRoute requiredRole="content_creator">
+                          <Suspense fallback={<LoadingFallback />}>
+                            <BlueprintBuilderPage />
                           </Suspense>
                         </ImprovedProtectedRoute>
                       } />
