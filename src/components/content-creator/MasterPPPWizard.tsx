@@ -164,6 +164,21 @@ export const MasterPPPWizard: React.FC = () => {
     return out;
   }, [lesson]);
 
+  // If we arrived from the Blueprint with a lesson topic, auto-trigger generation once.
+  useEffect(() => {
+    if (
+      handoff.fromBlueprint &&
+      handoff.topic &&
+      !autoTriggered.current &&
+      !lesson &&
+      !isGenerating
+    ) {
+      autoTriggered.current = true;
+      setTimeout(() => handleGenerate(), 250);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handoff.fromBlueprint, handoff.topic]);
+
   const handleGenerate = async () => {
     if (!topic.trim()) {
       toast.error('Please enter a lesson topic.');
