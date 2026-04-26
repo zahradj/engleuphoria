@@ -78,11 +78,13 @@ export function TopLevelBar({
           {normalizedXP}/{maxXP} XP
         </span>
         
-        {/* Star Count */}
-        <div className="flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-full border border-[hsl(var(--neon-yellow)/0.5)] shadow-[0_0_5px_hsl(var(--neon-yellow)/0.2)]">
-          <Star className="w-3 h-3 fill-[hsl(var(--neon-yellow))] text-[hsl(var(--neon-yellow))] drop-shadow-[0_0_2px_hsl(var(--neon-yellow)/0.5)]" />
-          <span className="text-xs font-bold text-[hsl(var(--neon-yellow))]">×{starCount}</span>
-        </div>
+        {/* Star — bare, no chip frame, no count number. Just the synced star. */}
+        <Star
+          className={`w-6 h-6 fill-[hsl(var(--neon-yellow))] text-[hsl(var(--neon-yellow))] drop-shadow-[0_0_6px_hsl(var(--neon-yellow)/0.7)] ${
+            isAnimating ? 'animate-scale-in' : ''
+          }`}
+          aria-label={`${starCount} stars earned`}
+        />
       </div>
     </div>
   );
