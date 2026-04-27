@@ -101,6 +101,18 @@ RULE 4 — INTERACTIVE_DATA SHAPES (by slide_type)
 • flashcard        → { "front": string, "back": string }
 • drawing_canvas   → { "prompt": string }                    // "Draw an apple!"
 • drag_and_drop    → { "instruction": string, "items": string[], "targets": string[], "pairs": [{"item": string, "target": string}] }
+• drag_and_match   → { "instruction": string, "pairs": [{"left_item": string, "right_item": string}] }   // EXACTLY 3 pairs (tablet visibility cap). Fast-paced vocab review.
+• fill_in_the_gaps → { "instruction": string, "sentence_parts": string[], "missing_word": string, "distractors": string[2..3] }
+                     // sentence_parts is the sentence split where the gap goes; render with "___" between parts. Example:
+                     // sentence: "The cat is on the mat." with missing_word "cat" →
+                     // sentence_parts: ["The ", " is on the mat."], missing_word: "cat", distractors: ["dog","mat"]
+                     // Use during PRACTICE phase to test sentence structure.
+
+You now have access to drag_and_match and fill_in_the_gaps.
+USAGE GUIDANCE:
+- Use fill_in_the_gaps during the "Practice" phase to test sentence structure / grammar in context.
+- Use drag_and_match as a fast-paced vocabulary review (Practice or Reward).
+Both still obey RULE 3: never repeat the same slide_type back-to-back.
 
 ═══════════════════════════════════════════════════════
 RULE 5 — MULTIMODAL MEDIA PROMPTS (generate ALL THREE for every slide)
