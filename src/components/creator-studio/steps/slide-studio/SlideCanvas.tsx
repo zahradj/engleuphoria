@@ -172,6 +172,7 @@ const MCQ_OPTION_PALETTE = [
 
 const bouncyBtn =
   'w-full rounded-2xl border-2 border-b-4 px-4 py-4 font-extrabold text-base sm:text-lg transition-all ' +
+  'min-h-[48px] min-w-[48px] touch-manipulation ' +
   'hover:-translate-y-0.5 active:translate-y-1 active:border-b-2 select-none';
 
 // ---------- interactive renderers ----------
