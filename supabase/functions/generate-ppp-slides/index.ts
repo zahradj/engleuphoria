@@ -381,6 +381,7 @@ tagged with lesson_phase. The Phase-2 reading passage MUST reuse Phase-1 vocabul
         video_generation_prompt: s.video_generation_prompt ?? "",
         target_skills,
         requires_audio,
+        hint_text: typeof s.hint_text === "string" ? s.hint_text : "",
         interactive_data: (() => {
           if (s.interactive_data && typeof s.interactive_data === "object") return s.interactive_data;
           if (typeof s.interactive_data_json === "string") {
