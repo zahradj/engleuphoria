@@ -549,6 +549,30 @@ export const CurriculumExplorerTree: React.FC<CurriculumExplorerTreeProps> = ({
         </div>
       </ScrollArea>
 
+      {/* Bulk action bar — visible when lessons are selected */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-2 p-2 border-t border-destructive/30 bg-destructive/5">
+          <Badge variant="destructive" className="text-[10px]">{selectedIds.size} selected</Badge>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 px-2 text-[11px]"
+            onClick={clearSelection}
+          >
+            <X className="h-3 w-3 mr-1" /> Clear
+          </Button>
+          <div className="flex-1" />
+          <Button
+            size="sm"
+            variant="destructive"
+            className="h-7 px-3 text-[11px] gap-1"
+            onClick={() => setDeleteTarget({ type: 'bulk', ids: Array.from(selectedIds) })}
+          >
+            <Trash2 className="h-3 w-3" /> Delete Selected
+          </Button>
+        </div>
+      )}
+
       {/* Footer Stats */}
       <div className="p-2 border-t border-border bg-card">
         <div className="flex items-center justify-between text-[10px] text-muted-foreground">
