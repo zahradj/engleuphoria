@@ -583,9 +583,12 @@ export const SlideCanvas: React.FC<Props> = ({ slide, onChange }) => {
               <SlideMedia slide={slide} />
               <TitleField slide={slide} onChange={onChange} />
               <InteractiveBlock slide={slide} mode={mode} hub={hub} />
-              <div className="flex justify-center pt-2">
-                <PlaySoundButton slide={slide} />
-              </div>
+              {/* Audio button only when slide is pedagogically audio-required (Pronunciation, Listening, Dialogue). */}
+              {slide.requires_audio && (
+                <div className="flex justify-center pt-2">
+                  <PlaySoundButton slide={slide} />
+                </div>
+              )}
               {/* Hub-specific decoration */}
               {hub === 'playground' && slide.slide_type === 'mascot_speech' && (
                 <div className="absolute bottom-4 right-4 text-5xl select-none animate-bounce" aria-hidden>
