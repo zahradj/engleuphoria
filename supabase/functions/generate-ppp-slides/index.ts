@@ -8,6 +8,15 @@ const corsHeaders = {
 };
 
 const PHASES = ["Hook", "Presentation", "Practice", "Production", "Mission"] as const;
+// 6-Step Integrated Skills Blueprint — every slide MUST be tagged with one of these.
+const LESSON_PHASES = [
+  "Vocabulary",
+  "Reading",
+  "Comprehension",
+  "Grammar",
+  "Speaking",
+  "Writing",
+] as const;
 const SLIDE_TYPES = [
   "mascot_speech",
   "multiple_choice",
