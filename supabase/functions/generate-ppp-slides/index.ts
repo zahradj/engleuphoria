@@ -7,7 +7,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const PHASES = ["Hook", "Input", "Practice", "Production", "Reward"] as const;
+const PHASES = ["Hook", "Presentation", "Practice", "Production", "Mission"] as const;
 const SLIDE_TYPES = [
   "mascot_speech",
   "multiple_choice",
@@ -20,6 +20,7 @@ const SLIDE_TYPES = [
 const MEDIA_TYPES = ["image", "video"] as const;
 const LAYOUTS = ["split_left", "split_right", "center_card", "full_background"] as const;
 const MISSION_TYPES = ["memory_match", "listen_and_choose", "word_scramble"] as const;
+const SKILLS = ["Reading", "Writing", "Listening", "Speaking", "Grammar", "Vocabulary"] as const;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
