@@ -105,13 +105,63 @@ ${hasTheme ? `- Core theme/topic: "${cleanTheme}"` : "- Core theme/topic: (none 
 
 Return ONLY the JSON object.`;
 
-    // Use Lovable AI Gateway (Gemini via gateway) — fall back to direct Gemini if needed
+    // Use Lovable AI Gateway with strict tool-calling for guaranteed-valid JSON.
+    // Tool-calling is the OpenAI-compatible equivalent of Gemini's responseSchema —
+    // the model is forced to return data matching our exact shape, eliminating
+    // the need for parse-retry loops.
     const useLovableGateway = !!Deno.env.get("LOVABLE_API_KEY");
-    let aiResponse: Response;
-    let rawText = "";
+    let parsed: any = null;
+
+    const blueprintTool = {
+      type: "function",
+      function: {
+        name: "emit_curriculum_blueprint",
+        description: "Return a structured 4-skills ESL curriculum blueprint.",
+        parameters: {
+          type: "object",
+          properties: {
+            curriculum_title: { type: "string", description: "Engaging title for the whole course." },
+            units: {
+              type: "array",
+              minItems: 1,
+              items: {
+                type: "object",
+                properties: {
+                  unit_number: { type: "integer", minimum: 1 },
+                  unit_title: { type: "string" },
+                  theme: { type: "string", description: "Central theme of this unit." },
+                  lessons: {
+                    type: "array",
+                    minItems: 2,
+                    items: {
+                      type: "object",
+                      properties: {
+                        lesson_number: { type: "integer", minimum: 1 },
+                        title: { type: "string", description: "Specific & engaging lesson title." },
+                        skill_focus: {
+                          type: "string",
+                          enum: ["Grammar", "Vocabulary", "Reading/Listening", "Speaking", "Review"],
+                        },
+                        objective: { type: "string", description: "One observable outcome." },
+                      },
+                      required: ["lesson_number", "title", "skill_focus", "objective"],
+                      additionalProperties: false,
+                    },
+                  },
+                },
+                required: ["unit_number", "unit_title", "theme", "lessons"],
+                additionalProperties: false,
+              },
+            },
+          },
+          required: ["curriculum_title", "units"],
+          additionalProperties: false,
+        },
+      },
+    };
 
     if (useLovableGateway) {
-      aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -123,7 +173,8 @@ Return ONLY the JSON object.`;
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt },
           ],
-          response_format: { type: "json_object" },
+          tools: [blueprintTool],
+          tool_choice: { type: "function", function: { name: "emit_curriculum_blueprint" } },
           temperature: 0.85,
         }),
       });
@@ -131,21 +182,46 @@ Return ONLY the JSON object.`;
       if (!aiResponse.ok) {
         const errText = await aiResponse.text();
         console.error("AI gateway error:", aiResponse.status, errText);
+        if (aiResponse.status === 429) {
+          return new Response(
+            JSON.stringify({ error: "Rate limit reached. Please wait a moment and try again." }),
+            { status: 429, headers: { ...CORS, "Content-Type": "application/json" } },
+          );
+        }
+        if (aiResponse.status === 402) {
+          return new Response(
+            JSON.stringify({ error: "AI credits exhausted. Add funds in Settings → Workspace → Usage." }),
+            { status: 402, headers: { ...CORS, "Content-Type": "application/json" } },
+          );
+        }
         return new Response(
-          JSON.stringify({
-            error: aiResponse.status === 429
-              ? "Rate limit reached. Please wait a moment and try again."
-              : "AI generation failed.",
-            details: errText,
-          }),
-          { status: 200, headers: { ...CORS, "Content-Type": "application/json" } }
+          JSON.stringify({ error: "AI generation failed.", details: errText }),
+          { status: 500, headers: { ...CORS, "Content-Type": "application/json" } },
         );
       }
+
       const j = await aiResponse.json();
-      rawText = j?.choices?.[0]?.message?.content || "";
+      const argsRaw = j?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+      if (!argsRaw) {
+        console.error("No tool call in AI response", JSON.stringify(j).slice(0, 500));
+        return new Response(
+          JSON.stringify({ error: "AI did not return a structured blueprint." }),
+          { status: 502, headers: { ...CORS, "Content-Type": "application/json" } },
+        );
+      }
+      try {
+        parsed = JSON.parse(argsRaw);
+      } catch (e) {
+        console.error("Tool-call args parse failed:", e, argsRaw.slice(0, 500));
+        return new Response(
+          JSON.stringify({ error: "AI returned malformed structured output.", raw: argsRaw.slice(0, 1000) }),
+          { status: 502, headers: { ...CORS, "Content-Type": "application/json" } },
+        );
+      }
     } else {
+      // Direct Gemini fallback — uses native responseSchema for guaranteed JSON.
       const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-      aiResponse = await fetch(geminiUrl, {
+      const aiResponse = await fetch(geminiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -153,6 +229,7 @@ Return ONLY the JSON object.`;
           contents: [{ role: "user", parts: [{ text: userPrompt }] }],
           generationConfig: {
             responseMimeType: "application/json",
+            responseSchema: blueprintTool.function.parameters,
             temperature: 0.85,
             maxOutputTokens: 4096,
           },
@@ -162,27 +239,28 @@ Return ONLY the JSON object.`;
         const errText = await aiResponse.text();
         return new Response(
           JSON.stringify({ error: "AI generation failed", details: errText }),
-          { status: 200, headers: { ...CORS, "Content-Type": "application/json" } }
+          { status: 500, headers: { ...CORS, "Content-Type": "application/json" } },
         );
       }
       const j = await aiResponse.json();
-      rawText = j?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      const rawText = (j?.candidates?.[0]?.content?.parts?.[0]?.text || "").trim();
+      try {
+        parsed = JSON.parse(rawText);
+      } catch (e) {
+        console.error("Failed to parse JSON:", e, rawText.slice(0, 500));
+        return new Response(
+          JSON.stringify({ error: "AI returned invalid JSON", raw: rawText.slice(0, 1000) }),
+          { status: 500, headers: { ...CORS, "Content-Type": "application/json" } },
+        );
+      }
     }
 
-    // Strip markdown fences defensively
-    rawText = rawText.trim();
-    if (rawText.startsWith("```")) {
-      rawText = rawText.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
-    }
-
-    let parsed: any;
-    try {
-      parsed = JSON.parse(rawText);
-    } catch (e) {
-      console.error("Failed to parse JSON:", e, rawText.slice(0, 500));
+    // Lightweight runtime validation (tool-calling already enforces shape;
+    // this guards against missing top-level keys).
+    if (!parsed || typeof parsed !== "object" || !Array.isArray(parsed.units)) {
       return new Response(
-        JSON.stringify({ error: "AI returned invalid JSON", raw: rawText.slice(0, 1000) }),
-        { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "Blueprint missing 'units' array." }),
+        { status: 502, headers: { ...CORS, "Content-Type": "application/json" } },
       );
     }
 

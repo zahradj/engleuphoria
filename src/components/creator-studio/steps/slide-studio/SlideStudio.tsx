@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useCreator } from '../../CreatorContext';
 import { EmptyState } from './EmptyState';
 import { SlideThumbnailRail } from './SlideThumbnailRail';
@@ -8,8 +8,10 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, Target, Sparkles, Loader2 } from 'lucide-react';
 import { generateSlideImage, generateSlideVoiceover } from './mediaGeneration';
 import { toast } from 'sonner';
+import { SlideErrorBoundary } from '@/components/common/SlideErrorBoundary';
+import { useSlidePrefetch, type SlideAssets } from '@/hooks/useSlidePrefetch';
 
-export const SlideStudio: React.FC = () => {
+const SlideStudioInner: React.FC = () => {
   const { activeLessonData, updateSlide, setCurrentStep } = useCreator();
   const [activeSlideId, setActiveSlideId] = useState<string | null>(null);
   const [autoGenerating, setAutoGenerating] = useState(false);
@@ -44,7 +46,24 @@ export const SlideStudio: React.FC = () => {
 
   const slides = activeLessonData.slides;
   const activeSlide = slides.find((s) => s.id === activeSlideId) ?? null;
+  const activeIndex = activeSlide ? slides.findIndex((s) => s.id === activeSlide.id) : -1;
 
+  // Build asset bundles for the prefetcher (next 2 slides preload silently).
+  const prefetchAssets: SlideAssets[] = useMemo(
+    () =>
+      slides.map((s) => ({
+        imageUrl: s.custom_image_url ?? null,
+        audioUrl: s.audio_url ?? null,
+        videoUrl: s.custom_video_url ?? null,
+      })),
+    [slides],
+  );
+  useSlidePrefetch(prefetchAssets, activeIndex, 2);
+
+  const goToNextSlide = () => {
+    if (activeIndex < 0 || activeIndex >= slides.length - 1) return;
+    setActiveSlideId(slides[activeIndex + 1].id);
+  };
   return (
     <div className="h-full flex flex-col -m-6">
       {/* Lesson header strip */}
@@ -131,7 +150,13 @@ export const SlideStudio: React.FC = () => {
           <SlideThumbnailRail slides={slides} activeId={activeSlideId} onSelect={setActiveSlideId} />
           {activeSlide ? (
             <>
-              <SlideCanvas slide={activeSlide} onChange={(patch) => updateSlide(activeSlide.id, patch)} />
+              <SlideErrorBoundary
+                resetKey={activeSlide.id}
+                label="this slide"
+                onSkip={goToNextSlide}
+              >
+                <SlideCanvas slide={activeSlide} onChange={(patch) => updateSlide(activeSlide.id, patch)} />
+              </SlideErrorBoundary>
               <TeacherControlsPanel slide={activeSlide} onChange={(patch) => updateSlide(activeSlide.id, patch)} />
             </>
           ) : (
@@ -144,3 +169,14 @@ export const SlideStudio: React.FC = () => {
     </div>
   );
 };
+
+/**
+ * Public Studio export — wraps the entire studio in a friendly Error Boundary
+ * so a single corrupt slide cannot white-screen the whole creator app.
+ */
+export const SlideStudio: React.FC = () => (
+  <SlideErrorBoundary label="the studio">
+    <SlideStudioInner />
+  </SlideErrorBoundary>
+);
+

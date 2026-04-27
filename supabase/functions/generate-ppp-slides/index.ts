@@ -203,55 +203,76 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
       },
     };
 
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        tools: [tool],
-        tool_choice: { type: "function", function: { name: "emit_director_lesson" } },
-      }),
-    });
+    // Call the AI gateway. Tool-calling guarantees structured output, but we still
+    // run a lightweight runtime validation pass and retry once if the AI somehow
+    // omits the required `slides` array.
+    async function callAI(): Promise<{ ok: true; slides: any[] } | { ok: false; status: number; detail: string }> {
+      const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          tools: [tool],
+          tool_choice: { type: "function", function: { name: "emit_director_lesson" } },
+        }),
+      });
 
-    if (!aiResp.ok) {
-      if (aiResp.status === 429) {
+      if (!aiResp.ok) {
+        return { ok: false, status: aiResp.status, detail: await aiResp.text() };
+      }
+
+      const data = await aiResp.json();
+      const argsRaw = data?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+      if (!argsRaw) {
+        return { ok: false, status: 502, detail: "No tool_call in AI response" };
+      }
+      let parsedArgs: any;
+      try {
+        parsedArgs = JSON.parse(argsRaw);
+      } catch (e) {
+        return { ok: false, status: 502, detail: `Tool args JSON parse failed: ${(e as Error).message}` };
+      }
+      // Runtime validation — guarantees the contract regardless of model drift.
+      if (!parsedArgs || !Array.isArray(parsedArgs.slides) || parsedArgs.slides.length === 0) {
+        return { ok: false, status: 502, detail: "Validation failed: missing slides[]" };
+      }
+      return { ok: true, slides: parsedArgs.slides };
+    }
+
+    let aiResult = await callAI();
+    if (!aiResult.ok && aiResult.status === 502) {
+      // One automatic retry on validation/structural failures.
+      console.warn("First AI call failed validation — retrying once.", aiResult.detail);
+      aiResult = await callAI();
+    }
+
+    if (!aiResult.ok) {
+      if (aiResult.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit reached. Please try again in a moment." }), {
           status: 429,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (aiResp.status === 402) {
+      if (aiResult.status === 402) {
         return new Response(
           JSON.stringify({ error: "AI credits exhausted. Add funds in Settings → Workspace → Usage." }),
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
-      const t = await aiResp.text();
-      console.error("AI gateway error:", aiResp.status, t);
-      return new Response(JSON.stringify({ error: "AI gateway error", detail: t }), {
-        status: 500,
+      console.error("AI gateway error:", aiResult.status, aiResult.detail);
+      return new Response(JSON.stringify({ error: "AI gateway error", detail: aiResult.detail }), {
+        status: aiResult.status >= 500 ? 502 : aiResult.status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const data = await aiResp.json();
-    const call = data?.choices?.[0]?.message?.tool_calls?.[0];
-    const argsRaw = call?.function?.arguments;
-    if (!argsRaw) {
-      console.error("No tool call in AI response", JSON.stringify(data).slice(0, 500));
-      return new Response(JSON.stringify({ error: "AI did not return slides" }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const parsed = JSON.parse(argsRaw);
+    const rawSlides: any[] = aiResult.slides;
 
     // Post-process: enforce divergent interactivity (no two same slide_type back-to-back, except Hook).
-    const rawSlides: any[] = parsed.slides ?? [];
     for (let i = 1; i < rawSlides.length; i++) {
       const prev = rawSlides[i - 1];
       const curr = rawSlides[i];
