@@ -178,6 +178,46 @@ export const LibraryManager: React.FC = () => {
     [rows, selectedIds],
   );
 
+  // Group lessons by Unit (sorted by unit_number, then lessons by sequence_order).
+  const unitGroups = useMemo<UnitGroup[]>(() => {
+    if (!rows) return [];
+    const unitById = new Map(units.map((u) => [u.id, u]));
+    const grouped = new Map<string, UnitGroup>();
+    const UNCAT_KEY = '__uncategorized__';
+
+    for (const lesson of rows) {
+      const u = lesson.unit_id ? unitById.get(lesson.unit_id) : undefined;
+      const key = u ? u.id : UNCAT_KEY;
+      if (!grouped.has(key)) {
+        grouped.set(key, {
+          unit_id: u?.id ?? null,
+          unit_number: u?.unit_number ?? null,
+          unit_title: u?.title ?? 'Uncategorized Lessons',
+          lessons: [],
+        });
+      }
+      grouped.get(key)!.lessons.push(lesson);
+    }
+
+    // Sort lessons in each unit by sequence_order (nulls last), then title.
+    grouped.forEach((g) => {
+      g.lessons.sort((a, b) => {
+        const ao = a.sequence_order ?? Number.POSITIVE_INFINITY;
+        const bo = b.sequence_order ?? Number.POSITIVE_INFINITY;
+        if (ao !== bo) return ao - bo;
+        return a.title.localeCompare(b.title);
+      });
+    });
+
+    // Sort units ascending by unit_number; uncategorized goes last.
+    return Array.from(grouped.values()).sort((a, b) => {
+      if (a.unit_number == null && b.unit_number == null) return 0;
+      if (a.unit_number == null) return 1;
+      if (b.unit_number == null) return -1;
+      return a.unit_number - b.unit_number;
+    });
+  }, [rows, units]);
+
   const performBulkDelete = async (mode: 'selected' | 'all') => {
     if (!rows) return;
     const ids = mode === 'all' ? rows.map((r) => r.id) : Array.from(selectedIds);
