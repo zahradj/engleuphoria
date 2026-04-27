@@ -276,7 +276,7 @@ export default function LessonPlayerContainer({
       </div>
 
       {/* ── Centered Content Area ── */}
-      <div className="flex-1 flex items-center justify-center px-4 py-4 overflow-auto" style={{ paddingTop: 64, paddingBottom: 88 }}>
+      <div className="flex-1 flex items-center justify-center px-4 py-4 overflow-auto" style={{ paddingTop: 124, paddingBottom: 88 }}>
         <div className={`w-full max-w-[720px] rounded-[20px] overflow-hidden relative z-20 ${skin.card}`}>
           <AnimatePresence mode="wait">
             <DynamicSlideRenderer
