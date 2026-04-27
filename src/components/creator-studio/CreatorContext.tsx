@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'sonner';
+import { persistLesson } from './persistLesson';
 
 export type CreatorStep = 'blueprint' | 'slide-builder' | 'library';
 
@@ -232,6 +234,53 @@ export const CreatorProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setActiveLessonData((prev) => (prev ? { ...prev, slides } : prev));
     setDirty(true);
   };
+
+  // ─── Debounced AUTOSAVE ──────────────────────────────────────
+  // When `activeLessonData` is dirty, save to Supabase 2s after the user stops
+  // editing. Surfaces RLS / permission errors via toast so they can never fail
+  // silently. First save assigns a `lesson_id` so subsequent saves UPDATE in
+  // place (no duplicates).
+  const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inFlight = useRef(false);
+  useEffect(() => {
+    if (!isDirty || !activeLessonData) return;
+    if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    autosaveTimer.current = setTimeout(async () => {
+      if (inFlight.current) return;
+      inFlight.current = true;
+      try {
+        const result = await persistLesson(
+          activeLessonData,
+          activeLessonData.slides,
+          false, // autosave never publishes
+        );
+        if (!result.ok) {
+          toast.error(`Autosave failed: ${result.error}`, {
+            description:
+              result.error.toLowerCase().includes('row-level') ||
+              result.error.toLowerCase().includes('permission')
+                ? 'Your account is missing the content_creator role. Ask an admin to grant it.'
+                : undefined,
+          });
+        } else {
+          if (!activeLessonData.lesson_id) {
+            // Stamp the new id so the next autosave UPDATEs instead of INSERTs
+            setActiveLessonData((prev) =>
+              prev ? { ...prev, lesson_id: result.lesson_id } : prev,
+            );
+          }
+          setDirty(false);
+        }
+      } catch (err: any) {
+        toast.error(`Autosave failed: ${err?.message || 'Unknown error'}`);
+      } finally {
+        inFlight.current = false;
+      }
+    }, 2000);
+    return () => {
+      if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    };
+  }, [isDirty, activeLessonData]);
 
   const value: CreatorContextValue = {
     currentStep,
