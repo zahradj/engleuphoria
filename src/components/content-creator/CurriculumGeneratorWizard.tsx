@@ -312,7 +312,7 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
             // ─── WIZARD MANIFEST ─────────────────────────────
             ai_wizard_manifest: lesson.aiWizardManifest || null,
           },
-          is_published: false,
+          is_published: true,
         }));
 
         const { error: lessonsError } = await supabase
@@ -324,9 +324,9 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
       }
 
       if (skippedCount > 0) {
-        toast.warning(`Saved ${savedCount} new units. Skipped ${skippedCount} units that already exist.`);
+        toast.warning(`Published ${savedCount} new units to the Master Library. Skipped ${skippedCount} units that already exist.`);
       } else {
-        toast.success(`Saved ${savedCount} units and ${generatedUnits.reduce((sum, u) => sum + (u.lessons?.length || 0), 0)} lessons to database!`);
+        toast.success(`Published ${savedCount} units and ${generatedUnits.reduce((sum, u) => sum + (u.lessons?.length || 0), 0)} lessons to the Master Library!`);
       }
       onCurriculumGenerated?.({ system: hubSystem, level: config.level, ageGroup: config.ageGroup });
     } catch (err: any) {
@@ -442,9 +442,9 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
             </div>
             <Button onClick={handleSaveToDB} disabled={isSaving}>
               {isSaving ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving...</>
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Publishing...</>
               ) : (
-                <><Save className="h-4 w-4 mr-2" />Save to Database</>
+                <><BookOpen className="h-4 w-4 mr-2" />Publish to Master Library</>
               )}
             </Button>
           </CardHeader>
