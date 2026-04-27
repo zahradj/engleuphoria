@@ -311,8 +311,184 @@ export const TeacherControlsPanel: React.FC<Props> = ({ slide, onChange }) => {
           onChange={(e) => onChange({ visual_keyword: e.target.value })}
           placeholder="e.g. autumn forest"
         />
-        <p className="text-[11px] text-slate-400">1–2 words. Used to fetch a kid-friendly background image (falls back to a colorful gradient).</p>
+        <p className="text-[11px] text-slate-400">Fallback only — used when no custom asset is uploaded.</p>
       </div>
+
+      {/* ----- Multimodal Media Lab ----- */}
+      <MediaLab slide={slide} onChange={onChange} />
     </aside>
+  );
+};
+
+// ============================================================
+// MEDIA LAB — ElevenLabs script + AI prompts + asset uploader
+// ============================================================
+
+const CopyableField: React.FC<{
+  label: string;
+  icon: React.ElementType;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  rows?: number;
+}> = ({ label, icon: Icon, value, onChange, placeholder, rows = 3 }) => {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    if (!value) return;
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      toast.error('Could not copy to clipboard.');
+    }
+  };
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+        <Label className="text-xs font-bold uppercase tracking-wider text-slate-500 inline-flex items-center gap-1.5">
+          <Icon className="h-3 w-3" /> {label}
+        </Label>
+        <button
+          type="button"
+          onClick={handleCopy}
+          disabled={!value}
+          className="text-[10px] inline-flex items-center gap-1 text-slate-500 hover:text-slate-900 disabled:opacity-40"
+        >
+          {copied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+          {copied ? 'Copied' : 'Copy'}
+        </button>
+      </div>
+      <Textarea
+        rows={rows}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="text-sm resize-none leading-relaxed"
+      />
+    </div>
+  );
+};
+
+const MediaLab: React.FC<Props> = ({ slide, onChange }) => {
+  const { activeLessonData } = useCreator();
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
+  const triggerUpload = () => fileRef.current?.click();
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-uploading the same file
+    if (!file) return;
+
+    if (file.size > 25 * 1024 * 1024) {
+      toast.error('File is too large (25 MB max).');
+      return;
+    }
+
+    try {
+      setUploading(true);
+      const lessonId = activeLessonData?.lesson_id ?? activeLessonData?.source_lesson?.id ?? 'draft';
+      const { url, kind } = await uploadSlideAsset(file, lessonId);
+      if (kind === 'video') {
+        onChange({ custom_video_url: url, custom_image_url: undefined });
+        toast.success('Video uploaded — autoplaying on the slide.');
+      } else {
+        onChange({ custom_image_url: url, custom_video_url: undefined });
+        toast.success('Image uploaded.');
+      }
+    } catch (err) {
+      console.error('Upload error:', err);
+      toast.error('Upload failed. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const clearAsset = () => onChange({ custom_image_url: undefined, custom_video_url: undefined });
+  const hasAsset = !!(slide.custom_image_url || slide.custom_video_url);
+
+  return (
+    <div className="rounded-xl border-2 border-violet-200 dark:border-violet-900/40 bg-violet-50/60 dark:bg-violet-950/20 p-3 space-y-4">
+      <div className="flex items-center gap-2">
+        <Sparkles className="h-4 w-4 text-violet-600" />
+        <span className="text-xs font-extrabold uppercase tracking-widest text-violet-700 dark:text-violet-300">
+          Multimodal Media Lab
+        </span>
+      </div>
+
+      <CopyableField
+        label="ElevenLabs Script (TTS)"
+        icon={Volume2}
+        value={slide.elevenlabs_script ?? ''}
+        onChange={(v) => onChange({ elevenlabs_script: v })}
+        placeholder='e.g. "A says ah, Apple!"'
+        rows={2}
+      />
+
+      <CopyableField
+        label="Image Prompt"
+        icon={ImageIcon}
+        value={slide.image_generation_prompt ?? ''}
+        onChange={(v) => onChange({ image_generation_prompt: v })}
+        placeholder="Detailed prompt for text-to-image (Nano Banana, Midjourney…)"
+        rows={3}
+      />
+
+      <CopyableField
+        label="Video Prompt"
+        icon={Video}
+        value={slide.video_generation_prompt ?? ''}
+        onChange={(v) => onChange({ video_generation_prompt: v })}
+        placeholder="Prompt for text-to-video (Veo, Runway…). Short looping animation."
+        rows={3}
+      />
+
+      {/* Upload zone */}
+      <div className="space-y-2">
+        <Label className="text-xs font-bold uppercase tracking-wider text-slate-500 inline-flex items-center gap-1.5">
+          <Upload className="h-3 w-3" /> Uploaded Asset
+        </Label>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm"
+          className="hidden"
+          onChange={handleFile}
+        />
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            onClick={triggerUpload}
+            disabled={uploading}
+            className="flex-1 bg-violet-600 hover:bg-violet-700 text-white font-bold"
+          >
+            {uploading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Upload className="h-4 w-4 mr-1.5" />}
+            {uploading ? 'Uploading…' : hasAsset ? 'Replace Asset' : 'Upload Asset'}
+          </Button>
+          {hasAsset && (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={clearAsset}
+              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+              aria-label="Remove uploaded asset"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+        {hasAsset && (
+          <p className="text-[11px] text-emerald-700 dark:text-emerald-400">
+            ✓ {slide.custom_video_url ? 'Video' : 'Image'} live on the slide
+          </p>
+        )}
+        <p className="text-[11px] text-slate-400 leading-relaxed">
+          Generate the image/video in your preferred AI tool using the prompts above, then upload here.
+          Videos autoplay and loop in the central quiz container.
+        </p>
+      </div>
+    </div>
   );
 };
