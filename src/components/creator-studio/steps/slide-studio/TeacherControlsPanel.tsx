@@ -7,7 +7,10 @@ import {
 import {
   PPPSlide, SlideType, LayoutStyle,
   MCQData, FlashcardData, DrawingData,
+  DragAndMatchData, DragAndMatchPair, FillInTheGapsData,
+  isGameSlideType,
 } from '../../CreatorContext';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
