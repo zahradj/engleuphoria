@@ -268,7 +268,13 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
       elevenlabs_script: s.elevenlabs_script ?? "",
       image_generation_prompt: s.image_generation_prompt ?? "",
       video_generation_prompt: s.video_generation_prompt ?? "",
-      interactive_data: s.interactive_data ?? {},
+      interactive_data: (() => {
+        if (s.interactive_data && typeof s.interactive_data === "object") return s.interactive_data;
+        if (typeof s.interactive_data_json === "string") {
+          try { return JSON.parse(s.interactive_data_json); } catch { return {}; }
+        }
+        return {};
+      })(),
     }));
 
     return new Response(JSON.stringify({ slides }), {
