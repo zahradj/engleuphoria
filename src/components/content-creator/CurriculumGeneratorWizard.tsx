@@ -312,7 +312,7 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
             // ─── WIZARD MANIFEST ─────────────────────────────
             ai_wizard_manifest: lesson.aiWizardManifest || null,
           },
-          is_published: false,
+          is_published: true,
         }));
 
         const { error: lessonsError } = await supabase
