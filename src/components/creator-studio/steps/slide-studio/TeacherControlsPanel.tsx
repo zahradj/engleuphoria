@@ -582,9 +582,26 @@ const VisualsPanel: React.FC<Props> = ({ slide, onChange }) => {
 
   const clearAsset = () => onChange({ custom_image_url: undefined, custom_video_url: undefined });
   const hasAsset = !!(slide.custom_image_url || slide.custom_video_url);
+  const isGame = isGameSlideType(slide.slide_type);
 
   return (
     <div className="space-y-4">
+      {isGame && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900/40 px-3 py-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <Label className="text-xs font-bold text-amber-900 dark:text-amber-200">
+                🎮 Full-screen game mode
+              </Label>
+              <p className="text-[11px] text-amber-700/80 dark:text-amber-300/80 mt-0.5">
+                Hero image hidden so the game fills the slide. Toggle on to force one.
+              </p>
+            </div>
+            <Switch checked={!!slide.force_hero_image}
+              onCheckedChange={(v) => onChange({ force_hero_image: v })} />
+          </div>
+        </div>
+      )}
       <PromptField
         label="Image Prompt"
         icon={ImageIcon}
