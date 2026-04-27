@@ -146,11 +146,7 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
                   elevenlabs_script: { type: "string" },
                   image_generation_prompt: { type: "string" },
                   video_generation_prompt: { type: "string" },
-                  interactive_data_json: {
-                    type: "string",
-                    description:
-                      "JSON-stringified object whose shape depends on slide_type. mascot_speech: {speech}. multiple_choice: {question, options[4], correct_index}. flashcard: {front, back}. drawing_canvas: {prompt}. drag_and_drop: {instruction, items[], targets[], pairs[]}.",
-                  },
+                  interactive_data_json: { type: "string" },
                 },
                 required: [
                   "phase",
