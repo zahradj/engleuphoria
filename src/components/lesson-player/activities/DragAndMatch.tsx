@@ -8,6 +8,8 @@ import type { HubType } from '@/components/admin/lesson-builder/ai-wizard/types'
 interface Pair {
   left_item: string;
   right_item: string;
+  left_thumbnail_url?: string;
+  right_thumbnail_url?: string;
 }
 
 interface Props {
