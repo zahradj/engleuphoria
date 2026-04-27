@@ -137,7 +137,6 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
             { role: "system", content: systemPrompt + jsonInstructions },
             { role: "user", content: userPrompt },
           ],
-          response_format: { type: "json_object" },
         }),
       });
 
