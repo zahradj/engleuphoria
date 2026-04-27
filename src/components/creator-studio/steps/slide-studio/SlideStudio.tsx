@@ -10,6 +10,8 @@ import { generateSlideImage, generateSlideVoiceover } from './mediaGeneration';
 import { toast } from 'sonner';
 import { SlideErrorBoundary } from '@/components/common/SlideErrorBoundary';
 import { useSlidePrefetch, type SlideAssets } from '@/hooks/useSlidePrefetch';
+import { useHubTheme } from '@/hooks/useHubTheme';
+import { cn } from '@/lib/utils';
 
 const SlideStudioInner: React.FC = () => {
   const { activeLessonData, updateSlide, setCurrentStep } = useCreator();
