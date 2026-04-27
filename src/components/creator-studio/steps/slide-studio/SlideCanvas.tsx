@@ -2,7 +2,9 @@ import React, { useRef, useState } from 'react';
 import { PPPSlide, MCQData, FlashcardData, DrawingData } from '../../CreatorContext';
 import { PHASE_STYLES, normalizePhase } from './phaseTheme';
 import { cn } from '@/lib/utils';
-import { Pencil, GripHorizontal, X, CheckCircle2, ImageOff } from 'lucide-react';
+import { Pencil, GripHorizontal, X, CheckCircle2, ImageOff, Volume2, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 type ViewMode = 'student' | 'teacher';
 
@@ -25,11 +27,27 @@ function imageUrlFor(slide: PPPSlide): string | null {
   return `https://loremflickr.com/600/400/${tags}`;
 }
 
-// ---------- Foreground image ----------
+// ---------- Foreground media: video preferred, then image ----------
 
-const SlideImage: React.FC<{ slide: PPPSlide }> = ({ slide }) => {
-  const url = imageUrlFor(slide);
+const SlideMedia: React.FC<{ slide: PPPSlide }> = ({ slide }) => {
   const [errored, setErrored] = useState(false);
+
+  if (slide.custom_video_url && !errored) {
+    return (
+      <video
+        key={slide.custom_video_url}
+        src={slide.custom_video_url}
+        autoPlay
+        loop
+        muted
+        playsInline
+        onError={() => setErrored(true)}
+        className="mx-auto rounded-2xl shadow-md object-cover w-full max-w-sm h-48 sm:h-56 bg-slate-100"
+      />
+    );
+  }
+
+  const url = imageUrlFor(slide);
   if (!url || errored) return null;
   return (
     <img
@@ -39,6 +57,62 @@ const SlideImage: React.FC<{ slide: PPPSlide }> = ({ slide }) => {
       className="mx-auto rounded-2xl shadow-md object-cover w-full max-w-sm h-48 sm:h-56 bg-slate-100"
       loading="lazy"
     />
+  );
+};
+
+// ---------- Play Sound button (ElevenLabs via generate-speech edge function) ----------
+
+const PlaySoundButton: React.FC<{ slide: PPPSlide }> = ({ slide }) => {
+  const [loading, setLoading] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const text = (slide.elevenlabs_script || slide.content || slide.title || '').trim();
+  if (!text) return null;
+
+  const handlePlay = async () => {
+    if (loading) return;
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.functions.invoke('generate-speech', {
+        body: { text },
+      });
+      if (error) throw error;
+
+      // The function returns binary audio/mpeg; supabase.functions.invoke gives us a Blob.
+      const blob = data instanceof Blob ? data : new Blob([data as ArrayBuffer], { type: 'audio/mpeg' });
+      const url = URL.createObjectURL(blob);
+
+      if (audioRef.current) {
+        audioRef.current.pause();
+        URL.revokeObjectURL(audioRef.current.src);
+      }
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => URL.revokeObjectURL(url);
+      await audio.play();
+    } catch (err) {
+      console.error('Play sound error:', err);
+      toast.error('Could not play audio. Check ElevenLabs API key.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handlePlay}
+      disabled={loading}
+      className={cn(
+        'inline-flex items-center gap-2 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900',
+        'px-4 py-2 text-sm font-extrabold border-2 border-b-4 border-amber-300 border-b-amber-500',
+        'transition-all hover:-translate-y-0.5 active:translate-y-1 active:border-b-2 disabled:opacity-60',
+      )}
+      title={text}
+    >
+      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Volume2 className="h-4 w-4" />}
+      Play Sound
+    </button>
   );
 };
 
