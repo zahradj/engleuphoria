@@ -10,11 +10,14 @@ import { generateSlideImage, generateSlideVoiceover } from './mediaGeneration';
 import { toast } from 'sonner';
 import { SlideErrorBoundary } from '@/components/common/SlideErrorBoundary';
 import { useSlidePrefetch, type SlideAssets } from '@/hooks/useSlidePrefetch';
+import { useHubTheme } from '@/hooks/useHubTheme';
+import { cn } from '@/lib/utils';
 
 const SlideStudioInner: React.FC = () => {
   const { activeLessonData, updateSlide, setCurrentStep } = useCreator();
   const [activeSlideId, setActiveSlideId] = useState<string | null>(null);
   const [autoGenerating, setAutoGenerating] = useState(false);
+  const { theme } = useHubTheme();
 
   // Auto-select first slide whenever the deck changes / loads.
   useEffect(() => {
@@ -65,7 +68,7 @@ const SlideStudioInner: React.FC = () => {
     setActiveSlideId(slides[activeIndex + 1].id);
   };
   return (
-    <div className="h-full flex flex-col -m-6">
+    <div className={cn('h-full flex flex-col -m-6 hub-surface', theme.themeClass, theme.font)}>
       {/* Lesson header strip */}
       <div className="px-6 py-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shrink-0">
         <div className="flex items-start justify-between gap-4 flex-wrap">

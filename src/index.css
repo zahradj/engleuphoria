@@ -780,3 +780,61 @@
     border-radius: 0.5rem;
   }
 }
+
+/* ============================================================ */
+/* Hybrid Hub Theme Engine — color tokens per Hub                */
+/* Structural classes (font, radius, shadow, button bounce)      */
+/* live in src/lib/hubTheme.ts as Tailwind utility strings.      */
+/* Use HSL so we can compose with /opacity in Tailwind.          */
+/* ============================================================ */
+.theme-playground {
+  /* Bright sky blue background, sunshine yellow primary, ink text */
+  --hub-bg: 204 100% 97%;          /* #f0f9ff */
+  --hub-primary: 43 96% 56%;        /* #fbbf24 */
+  --hub-primary-foreground: 222 47% 11%;
+  --hub-text: 222 47% 11%;          /* #0f172a */
+  --hub-muted: 215 20% 65%;
+  --hub-card: 0 0% 100%;
+  --hub-accent: 43 96% 56%;
+  --hub-border: 43 96% 56%;
+}
+
+.theme-academy {
+  /* Deep slate background, neon purple primary, light text */
+  --hub-bg: 222 47% 11%;            /* #0f172a */
+  --hub-primary: 271 91% 65%;        /* #a855f7 */
+  --hub-primary-foreground: 210 40% 98%;
+  --hub-text: 210 40% 98%;           /* #f8fafc */
+  --hub-muted: 215 16% 47%;
+  --hub-card: 217 33% 17%;
+  --hub-accent: 271 91% 65%;
+  --hub-border: 271 91% 65%;
+}
+
+.theme-success {
+  /* Crisp white background, executive navy primary, ink text */
+  --hub-bg: 210 40% 98%;             /* #f8fafc */
+  --hub-primary: 224 76% 33%;         /* #1e3a8a */
+  --hub-primary-foreground: 210 40% 98%;
+  --hub-text: 222 47% 11%;
+  --hub-muted: 215 16% 47%;
+  --hub-card: 0 0% 100%;
+  --hub-accent: 224 76% 33%;
+  --hub-border: 215 28% 88%;
+}
+
+/* Convenience surface — apply to the outermost themed container */
+.hub-surface {
+  background-color: hsl(var(--hub-bg));
+  color: hsl(var(--hub-text));
+}
+.hub-card {
+  background-color: hsl(var(--hub-card));
+  color: hsl(var(--hub-text));
+  border: 1px solid hsl(var(--hub-border) / 0.3);
+}
+.hub-primary {
+  background-color: hsl(var(--hub-primary));
+  color: hsl(var(--hub-primary-foreground));
+}
+

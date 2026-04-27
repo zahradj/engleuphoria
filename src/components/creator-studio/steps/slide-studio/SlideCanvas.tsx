@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { SafeSlideImage } from '@/components/common/SafeSlideImage';
 import { playSlideAudio } from '@/lib/playSlideAudio';
+import { useHubTheme } from '@/hooks/useHubTheme';
 
 type ViewMode = 'student' | 'teacher';
 
@@ -277,22 +278,47 @@ const DrawingBlock: React.FC<{ slide: PPPSlide }> = ({ slide }) => {
   );
 };
 
-const TextBlock: React.FC<{ slide: PPPSlide }> = ({ slide }) => {
-  if (!slide.content) {
+const TextBlock: React.FC<{ slide: PPPSlide; hub: 'playground' | 'academy' | 'success' }> = ({ slide, hub }) => {
+  const empty = !slide.content;
+  // Hub-conditional skin for instructional text:
+  //   • Playground → cartoon speech bubble + mascot
+  //   • Academy    → neon-bordered holographic card
+  //   • Success    → minimalist corporate text box
+  if (hub === 'playground') {
     return (
-      <p className={cn('text-base sm:text-lg text-slate-400 italic text-center', FONT_STACK)}>
-        Add a friendly sentence in the right panel…
-      </p>
+      <div className="relative mx-auto max-w-xl">
+        <div className="relative rounded-3xl bg-white px-6 py-5 shadow-md border-2 border-amber-200">
+          <p className={cn('text-lg sm:text-xl font-extrabold text-slate-800 text-center leading-relaxed whitespace-pre-wrap', FONT_STACK,
+            empty && 'italic font-semibold text-slate-400')}>
+            {slide.content || 'Add a friendly sentence in the right panel…'}
+          </p>
+          <div className="absolute -bottom-3 left-10 w-6 h-6 bg-white border-r-2 border-b-2 border-amber-200 rotate-45" aria-hidden />
+        </div>
+        <div className="mt-4 flex justify-end pr-4 text-4xl select-none" aria-hidden>🐧</div>
+      </div>
+    );
+  }
+  if (hub === 'academy') {
+    return (
+      <div className="relative mx-auto max-w-xl rounded-xl border border-fuchsia-400/50 bg-slate-900/60 backdrop-blur px-6 py-5 shadow-[0_0_25px_rgba(168,85,247,0.35)]">
+        <p className={cn('text-lg sm:text-xl font-semibold text-fuchsia-50 text-center leading-relaxed whitespace-pre-wrap',
+          empty && 'italic font-medium text-fuchsia-200/60')}>
+            {slide.content || 'Add a sharp instructional sentence in the right panel…'}
+        </p>
+      </div>
     );
   }
   return (
-    <p className={cn('text-lg sm:text-xl font-semibold text-slate-700 text-center leading-relaxed whitespace-pre-wrap', FONT_STACK)}>
-      {slide.content}
-    </p>
+    <div className="mx-auto max-w-xl rounded-md border border-slate-200 bg-white px-6 py-4">
+      <p className={cn('text-base sm:text-lg font-medium text-slate-800 text-center leading-relaxed whitespace-pre-wrap',
+        empty && 'italic text-slate-400')}>
+        {slide.content || 'Add a clear, professional statement in the right panel…'}
+      </p>
+    </div>
   );
 };
 
-const InteractiveBlock: React.FC<{ slide: PPPSlide; mode: ViewMode }> = ({ slide, mode }) => {
+const InteractiveBlock: React.FC<{ slide: PPPSlide; mode: ViewMode; hub: 'playground' | 'academy' | 'success' }> = ({ slide, mode, hub }) => {
   switch (slide.slide_type) {
     case 'multiple_choice':
       return <MCQBlock slide={slide} mode={mode} />;
@@ -301,7 +327,7 @@ const InteractiveBlock: React.FC<{ slide: PPPSlide; mode: ViewMode }> = ({ slide
     case 'drawing_prompt':
       return <DrawingBlock slide={slide} />;
     default:
-      return <TextBlock slide={slide} />;
+      return <TextBlock slide={slide} hub={hub} />;
   }
 };
 
@@ -386,11 +412,12 @@ export const SlideCanvas: React.FC<Props> = ({ slide, onChange }) => {
   const phaseKey = normalizePhase(slide.phase as string);
   const style = PHASE_STYLES[phaseKey];
   const [mode, setMode] = useState<ViewMode>('student');
+  const { hub, theme } = useHubTheme();
 
   const hasImage = !!(slide.custom_image_url || (slide.visual_keyword || '').trim());
 
   return (
-    <section className="flex-1 min-w-0 h-full overflow-y-auto bg-slate-50 dark:bg-slate-900 p-6">
+    <section className={cn('flex-1 min-w-0 h-full overflow-y-auto p-6 hub-surface', theme.themeClass, theme.font)}>
       <div className="max-w-5xl mx-auto">
         {/* Top bar: phase + dual-view toggle */}
         <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
@@ -428,17 +455,25 @@ export const SlideCanvas: React.FC<Props> = ({ slide, onChange }) => {
           style={{ minHeight: '70vh' }}
         >
           <div className="relative h-full w-full flex items-start sm:items-center justify-center p-6 sm:p-10 overflow-y-auto">
-            {/* Centered "Quiz App" container */}
+            {/* Centered "Quiz App" container — themed per Hub */}
             <div className={cn(
-              'w-full max-w-2xl mx-auto bg-white dark:bg-slate-950 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl p-6 sm:p-8 space-y-6',
-              FONT_STACK,
+              'w-full max-w-2xl mx-auto p-6 sm:p-8 space-y-6 hub-card',
+              theme.radius,
+              theme.cardShadow,
+              theme.font,
             )}>
               <SlideMedia slide={slide} />
               <TitleField slide={slide} onChange={onChange} />
-              <InteractiveBlock slide={slide} mode={mode} />
+              <InteractiveBlock slide={slide} mode={mode} hub={hub} />
               <div className="flex justify-center pt-2">
                 <PlaySoundButton slide={slide} />
               </div>
+              {/* Hub-specific decoration */}
+              {hub === 'playground' && slide.slide_type === 'mascot_speech' && (
+                <div className="absolute bottom-4 right-4 text-5xl select-none animate-bounce" aria-hidden>
+                  {theme.mascot}
+                </div>
+              )}
             </div>
           </div>
 
