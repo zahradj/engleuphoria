@@ -343,6 +343,7 @@ const VisualsPanel: React.FC<Props> = ({ slide, onChange }) => {
   const { activeLessonData } = useCreator();
   const lessonId = activeLessonData?.lesson_id ?? activeLessonData?.source_lesson?.id ?? 'draft';
   const [generating, setGenerating] = useState(false);
+  const [generatingVideo, setGeneratingVideo] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
