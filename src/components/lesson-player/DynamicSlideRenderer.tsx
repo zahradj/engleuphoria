@@ -128,7 +128,17 @@ export default function DynamicSlideRenderer({
   const variants = ANIMATION_VARIANTS[animKey] || ANIMATION_VARIANTS.none;
 
   const renderContent = () => {
-    // ── Skill-flag routing (highest priority) ─────────────────────
+    // ── Director PPP interactive types (highest priority) ─────────
+    // The generate-ppp-slides edge function emits slide_type = 'drag_and_match' | 'fill_in_the_gaps'.
+    const directorType = (slide as any).slide_type || (slide as any).activityType || (slide as any).type;
+    if (directorType === 'drag_and_match') {
+      return <DragAndMatch slide={slide} hub={hub} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    }
+    if (directorType === 'fill_in_the_gaps') {
+      return <FillInTheGaps slide={slide} hub={hub} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    }
+
+    // ── Skill-flag routing ────────────────────────────────────────
     // If the slide has explicit skill flags, route to the corresponding component
     if (slide.has_writing && slide.activityType === 'tactile_tracing') {
       return <TactileTracing slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
