@@ -85,7 +85,15 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
       if (curriculumContext?.ageGroup) {
         unitQuery = unitQuery.eq('age_group', curriculumContext.ageGroup);
       }
-      const { data: unitData } = await unitQuery;
+      const { data: unitData, error: unitErr } = await unitQuery;
+      if (unitErr) {
+        toast.error(`Failed to load units: ${unitErr.message}`, {
+          description: unitErr.message.toLowerCase().includes('row-level')
+            ? 'Your account lacks the content_creator role. Published units are still visible to everyone.'
+            : undefined,
+        });
+        throw unitErr;
+      }
       const fetchedUnits = (unitData || []) as CurriculumUnit[];
       setUnits(fetchedUnits);
 
@@ -95,19 +103,25 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
 
       if (fetchedUnits.length > 0) {
         const unitIds = fetchedUnits.map(u => u.id);
-        const { data: lessonData } = await supabase
+        const { data: lessonData, error: lessonErr } = await supabase
           .from('curriculum_lessons')
           .select('*')
           .in('unit_id', unitIds)
           .order('sequence_order');
+        if (lessonErr) {
+          toast.error(`Failed to load lessons: ${lessonErr.message}`);
+          throw lessonErr;
+        }
         setLessons((lessonData || []) as CurriculumLesson[]);
+      } else {
+        setLessons([]);
       }
     } catch (err) {
       console.error('Failed to fetch curriculum data:', err);
     } finally {
       setLoading(false);
     }
-  }, [curriculumContext]);
+  }, [curriculumContext, selectedUnitId]);
 
   useEffect(() => {
     fetchData();

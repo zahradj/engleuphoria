@@ -323,15 +323,26 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
         savedCount++;
       }
 
-      if (skippedCount > 0) {
-        toast.warning(`Published ${savedCount} new units to the Master Library. Skipped ${skippedCount} units that already exist.`);
+      if (savedCount === 0 && skippedCount > 0) {
+        toast.error(
+          `Nothing new was published. All ${skippedCount} units already exist for ${config.ageGroup}/${unitCefrLevel}. Open the Master Library to view them.`,
+          { duration: 8000 },
+        );
+      } else if (skippedCount > 0) {
+        toast.warning(`Published ${savedCount} new units. Skipped ${skippedCount} that already existed.`);
       } else {
         toast.success(`Published ${savedCount} units and ${generatedUnits.reduce((sum, u) => sum + (u.lessons?.length || 0), 0)} lessons to the Master Library!`);
       }
       onCurriculumGenerated?.({ system: hubSystem, level: config.level, ageGroup: config.ageGroup });
     } catch (err: any) {
       console.error('Save error:', err);
-      toast.error('Failed to save curriculum: ' + err.message);
+      const msg = err?.message || String(err);
+      toast.error(`Failed to save curriculum: ${msg}`, {
+        description: msg.toLowerCase().includes('row-level') || msg.toLowerCase().includes('permission')
+          ? 'Your account is missing the content_creator role. Ask an admin to grant it on the Users page.'
+          : undefined,
+        duration: 10000,
+      });
     } finally {
       setIsSaving(false);
     }
