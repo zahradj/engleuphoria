@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useCreator } from '../../CreatorContext';
 import { EmptyState } from './EmptyState';
 import { SlideThumbnailRail } from './SlideThumbnailRail';
@@ -8,8 +8,10 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, Target, Sparkles, Loader2 } from 'lucide-react';
 import { generateSlideImage, generateSlideVoiceover } from './mediaGeneration';
 import { toast } from 'sonner';
+import { SlideErrorBoundary } from '@/components/common/SlideErrorBoundary';
+import { useSlidePrefetch, type SlideAssets } from '@/hooks/useSlidePrefetch';
 
-export const SlideStudio: React.FC = () => {
+const SlideStudioInner: React.FC = () => {
   const { activeLessonData, updateSlide, setCurrentStep } = useCreator();
   const [activeSlideId, setActiveSlideId] = useState<string | null>(null);
   const [autoGenerating, setAutoGenerating] = useState(false);
