@@ -35,8 +35,17 @@ export interface CurriculumData {
   }>;
 }
 
-export type SlideType = 'text_image' | 'multiple_choice' | 'drawing_prompt' | 'flashcard';
+export type SlideType =
+  | 'text_image'
+  | 'multiple_choice'
+  | 'drawing_prompt'
+  | 'drawing_canvas'
+  | 'drag_and_drop'
+  | 'flashcard'
+  | 'mascot_speech';
 export type LayoutStyle = 'split_left' | 'split_right' | 'center_card' | 'full_background';
+export type MediaType = 'image' | 'video';
+export type LessonPhase = 'Hook' | 'Input' | 'Practice' | 'Production' | 'Reward';
 
 export interface MCQData {
   question: string;
