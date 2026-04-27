@@ -132,7 +132,7 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: "google/gemini-2.5-flash-lite",
           messages: [
             { role: "system", content: "Return JSON only." },
             { role: "user", content: "Return {\"slides\": [{\"title\": \"hello\"}]}" },
