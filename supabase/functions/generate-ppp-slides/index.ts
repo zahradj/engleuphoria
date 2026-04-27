@@ -14,6 +14,8 @@ const SLIDE_TYPES = [
   "drawing_canvas",
   "drag_and_drop",
   "flashcard",
+  "drag_and_match",
+  "fill_in_the_gaps",
 ] as const;
 const MEDIA_TYPES = ["image", "video"] as const;
 const LAYOUTS = ["split_left", "split_right", "center_card", "full_background"] as const;
