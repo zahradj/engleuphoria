@@ -250,15 +250,19 @@ export const CurriculumExplorerTree: React.FC<CurriculumExplorerTreeProps> = ({
     if (!deleteTarget) return;
     setIsDeleting(true);
     try {
-      if (deleteTarget.type === 'lesson') {
+      if (deleteTarget.type === 'lesson' && deleteTarget.id) {
         const { error } = await supabase.from('curriculum_lessons').delete().eq('id', deleteTarget.id);
         if (error) throw error;
         toast.success(`Lesson "${deleteTarget.name}" deleted`);
-      } else {
-        // Delete all lessons under this level first, then the level won't be deleted (it's structural)
+      } else if (deleteTarget.type === 'level' && deleteTarget.id) {
         const { error } = await supabase.from('curriculum_lessons').delete().eq('level_id', deleteTarget.id);
         if (error) throw error;
         toast.success(`All lessons in "${deleteTarget.name}" deleted`);
+      } else if (deleteTarget.type === 'bulk' && deleteTarget.ids?.length) {
+        const { error } = await supabase.from('curriculum_lessons').delete().in('id', deleteTarget.ids);
+        if (error) throw error;
+        toast.success(`${deleteTarget.ids.length} lesson(s) deleted`);
+        clearSelection();
       }
       fetchData();
     } catch (err: any) {
