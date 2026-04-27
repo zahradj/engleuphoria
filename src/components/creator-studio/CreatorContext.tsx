@@ -122,6 +122,8 @@ export type InteractiveData =
 export interface PPPSlide {
   id: string;
   phase: Phase | string;
+  /** 6-Step Blueprint tag — drives Phase Tracker + locked student progression. */
+  lesson_phase?: LessonPhase;
   slide_type?: SlideType;
   layout_style?: LayoutStyle;
   title?: string;
