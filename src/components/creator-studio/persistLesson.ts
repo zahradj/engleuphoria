@@ -25,7 +25,7 @@ export async function persistLesson(
     target_system: lesson.hub,
     difficulty_level: lesson.cefr_level,
     duration_minutes: 30,
-    content: { slides },
+    content: { slides, homework_missions: lesson.homework_missions ?? [] },
     ai_metadata: {
       source: 'creator-studio-ppp',
       generated_at: new Date().toISOString(),
