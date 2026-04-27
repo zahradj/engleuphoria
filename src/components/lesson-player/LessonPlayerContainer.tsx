@@ -10,6 +10,7 @@ import { soundEffectsService } from '@/services/soundEffectsService';
 import { triggerCelebration } from '@/services/celebration';
 import { supabase } from '@/integrations/supabase/client';
 import { X, Volume2, VolumeX, Zap, Star, ChevronLeft, ChevronRight, Focus } from 'lucide-react';
+import PhaseTracker from './PhaseTracker';
 
 /* ── Hub Skin Configuration ── */
 const HUB_SKINS = {
