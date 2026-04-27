@@ -23,7 +23,7 @@ interface Props {
  * Tap or drag a pill into the gap. On correct: snap-in animation, ding, then onCorrect()
  * (parent handles confetti + Next Slide unlock).
  */
-export default function FillInTheGaps({ slide, hub = 'academy', onCorrect, onIncorrect }: Props) {
+export default function FillInTheGaps({ slide, hub = 'academy', onCorrect, onIncorrect, onStarsAwarded }: Props) {
   const config = HUB_CONFIGS[hub] || HUB_CONFIGS.academy;
   const primary = (config as any)?.primaryColor || '#6366f1';
   const accent = (config as any)?.accentColor || '#a855f7';
