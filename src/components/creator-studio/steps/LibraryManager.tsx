@@ -125,6 +125,9 @@ export const LibraryManager: React.FC = () => {
 
   const handleEdit = (row: LessonRow) => {
     const slides: PPPSlide[] = Array.isArray(row.content?.slides) ? row.content.slides : [];
+    const homework_missions = Array.isArray(row.content?.homework_missions)
+      ? row.content.homework_missions
+      : [];
     const blueprintRef = row.ai_metadata?.blueprint_ref ?? undefined;
     const next: ActiveLessonData = {
       lesson_id: row.id,
@@ -133,6 +136,7 @@ export const LibraryManager: React.FC = () => {
       cefr_level: (row.difficulty_level as CEFRLevel) ?? 'A1',
       hub: (row.target_system as HubType) ?? 'academy',
       slides,
+      homework_missions,
       source_lesson: blueprintRef,
       level_id: row.level_id ?? undefined,
       unit_id: row.unit_id ?? undefined,

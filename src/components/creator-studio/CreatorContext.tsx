@@ -94,6 +94,31 @@ export interface PPPSlide {
   interaction_type?: string;
 }
 
+export type HomeworkMissionType = 'memory_match' | 'listen_and_choose' | 'word_scramble';
+
+export interface MemoryMatchMission {
+  id: string;
+  mission_type: 'memory_match';
+  prompt: string;
+  pairs: { term: string; match: string }[];
+}
+export interface ListenAndChooseMission {
+  id: string;
+  mission_type: 'listen_and_choose';
+  prompt: string;
+  target_word: string;
+  options: string[];
+  correct_answer: string;
+}
+export interface WordScrambleMission {
+  id: string;
+  mission_type: 'word_scramble';
+  prompt: string;
+  target_word: string;
+  scrambled: string;
+}
+export type HomeworkMission = MemoryMatchMission | ListenAndChooseMission | WordScrambleMission;
+
 export interface ActiveLessonData {
   /** Supabase curriculum_lessons.id — set when editing an existing row. */
   lesson_id?: string;
@@ -106,6 +131,8 @@ export interface ActiveLessonData {
   target_vocabulary?: string;
   roadmap?: string[];
   slides: PPPSlide[];
+  /** AI-generated 3–5 app-style mini-games that recycle the lesson vocabulary as homework. */
+  homework_missions?: HomeworkMission[];
   // Optional handoff metadata so we can persist links to the blueprint.
   level_id?: string;
   unit_id?: string;

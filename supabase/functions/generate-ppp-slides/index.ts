@@ -17,6 +17,7 @@ const SLIDE_TYPES = [
 ] as const;
 const MEDIA_TYPES = ["image", "video"] as const;
 const LAYOUTS = ["split_left", "split_right", "center_card", "full_background"] as const;
+const MISSION_TYPES = ["memory_match", "listen_and_choose", "word_scramble"] as const;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -107,6 +108,26 @@ RULE 5 — MULTIMODAL MEDIA PROMPTS (generate ALL THREE for every slide)
 • "video_generation_prompt": Prompt for a 2–4s SEAMLESSLY LOOPING animation. End with: "seamless loop, solid pastel background, no text, no camera motion." Subtle motion only.
 
 ═══════════════════════════════════════════════════════
+RULE 6 — GAMIFIED HOMEWORK MISSIONS (MANDATORY)
+═══════════════════════════════════════════════════════
+In addition to the slide deck, generate EXACTLY 3 to 5 "homework_missions" — short app-style
+mini-games (think Duolingo daily quests) that recycle the lesson's TARGET VOCABULARY for
+asynchronous practice at home. These are NOT slides; they are standalone interactive cards.
+
+Each mission MUST be one of these mission_type values, and MUST follow the exact shape:
+
+• "memory_match"      → { mission_type, prompt, pairs: [{ term: string, match: string }] }   // 3–5 pairs
+• "listen_and_choose" → { mission_type, prompt, target_word: string, options: string[3..4], correct_answer: string }
+• "word_scramble"     → { mission_type, prompt, target_word: string, scrambled: string }     // letters of target_word shuffled
+
+Rules:
+- "prompt" is a short kid-friendly instruction (e.g., "Tap the matching pair!").
+- "target_word" / "term" / "match" MUST come from words taught in the lesson's slides.
+- Vary mission_type across the set — never return 3 of the same type in a row.
+- "correct_answer" MUST be one of "options".
+- "scrambled" MUST be the same letters as "target_word" in a different order, and MUST NOT equal "target_word".
+
+═══════════════════════════════════════════════════════
 GENERAL TONE
 ═══════════════════════════════════════════════════════
 Supportive, professional, joyful. Globally inclusive. CEFR-aligned. No placeholders.
@@ -126,7 +147,8 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
       type: "function",
       function: {
         name: "emit_director_lesson",
-        description: "Return a 15-20 slide progressive lesson directed by the Master Curriculum Director.",
+        description:
+          "Return a 15-20 slide progressive lesson plus 3-5 gamified homework missions for asynchronous practice.",
         parameters: {
           type: "object",
           properties: {
@@ -165,14 +187,39 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
                 additionalProperties: false,
               },
             },
+            // 3–5 app-style mini-games for asynchronous homework. Sent to the AI as a
+            // JSON string per item to keep the schema flat and avoid Gemini's strict
+            // tool-schema validation issues with deeply-nested oneOf shapes.
+            // Each element parses to one of the shapes documented in RULE 6.
+            homework_missions: {
+              type: "array",
+              minItems: 3,
+              maxItems: 5,
+              items: {
+                type: "object",
+                properties: {
+                  mission_type: { type: "string", enum: [...MISSION_TYPES] },
+                  prompt: { type: "string" },
+                  // payload_json holds the type-specific fields (pairs / options /
+                  // correct_answer / target_word / scrambled) as a stringified JSON
+                  // object. We parse + validate it server-side below.
+                  payload_json: { type: "string" },
+                },
+                required: ["mission_type", "prompt", "payload_json"],
+                additionalProperties: false,
+              },
+            },
           },
-          required: ["slides"],
+          required: ["slides", "homework_missions"],
           additionalProperties: false,
         },
       },
     };
 
-    async function callAI(): Promise<{ ok: true; slides: any[] } | { ok: false; status: number; detail: string }> {
+    async function callAI(): Promise<
+      | { ok: true; slides: any[]; homework_missions: any[] }
+      | { ok: false; status: number; detail: string }
+    > {
       console.log("Sending payload to Gemini via Lovable AI Gateway...", { lesson_title, cefr_level, hub });
       const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
@@ -206,7 +253,8 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
       if (!parsedArgs || !Array.isArray(parsedArgs.slides) || parsedArgs.slides.length === 0) {
         return { ok: false, status: 502, detail: "Validation failed: missing slides[]" };
       }
-      return { ok: true, slides: parsedArgs.slides };
+      const homework = Array.isArray(parsedArgs.homework_missions) ? parsedArgs.homework_missions : [];
+      return { ok: true, slides: parsedArgs.slides, homework_missions: homework };
     }
 
     let aiResult = await callAI();
@@ -272,7 +320,62 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
       })(),
     }));
 
-    return new Response(JSON.stringify({ slides }), {
+    // ─── Homework missions: parse stringified payload + validate per-type shape ───
+    const rawMissions: any[] = (aiResult as any).homework_missions ?? [];
+    const homework_missions = rawMissions
+      .map((m: any) => {
+        let payload: any = {};
+        if (m?.payload_json && typeof m.payload_json === "string") {
+          try { payload = JSON.parse(m.payload_json); } catch { payload = {}; }
+        }
+        const base = {
+          id: crypto.randomUUID(),
+          mission_type: m?.mission_type,
+          prompt: m?.prompt ?? "",
+        };
+        switch (m?.mission_type) {
+          case "memory_match": {
+            const pairs = Array.isArray(payload.pairs)
+              ? payload.pairs.filter((p: any) => p?.term && p?.match)
+              : [];
+            return pairs.length >= 2 ? { ...base, pairs } : null;
+          }
+          case "listen_and_choose": {
+            const options = Array.isArray(payload.options) ? payload.options.filter((o: any) => typeof o === "string") : [];
+            const target = typeof payload.target_word === "string" ? payload.target_word : "";
+            const correct = typeof payload.correct_answer === "string" ? payload.correct_answer : target;
+            if (!target || options.length < 2 || !options.includes(correct)) return null;
+            return { ...base, target_word: target, options, correct_answer: correct };
+          }
+          case "word_scramble": {
+            const target = typeof payload.target_word === "string" ? payload.target_word : "";
+            let scrambled = typeof payload.scrambled === "string" ? payload.scrambled : "";
+            if (!target) return null;
+            // Self-heal: if scrambled is missing or equals target, shuffle locally.
+            if (!scrambled || scrambled.toLowerCase() === target.toLowerCase()) {
+              const arr = target.split("");
+              for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+              }
+              scrambled = arr.join("");
+              if (scrambled.toLowerCase() === target.toLowerCase()) scrambled = target.split("").reverse().join("");
+            }
+            return { ...base, target_word: target, scrambled };
+          }
+          default:
+            return null;
+        }
+      })
+      .filter(Boolean);
+
+    if (homework_missions.length < 3) {
+      console.warn(
+        `Director returned only ${homework_missions.length} valid homework missions (need 3-5). Returning what we have.`,
+      );
+    }
+
+    return new Response(JSON.stringify({ slides, homework_missions }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
