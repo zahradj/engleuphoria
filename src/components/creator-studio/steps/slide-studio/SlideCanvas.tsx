@@ -32,9 +32,9 @@ function imageUrlFor(slide: PPPSlide): string | null {
 // ---------- Foreground media: video preferred, then image ----------
 
 const SlideMedia: React.FC<{ slide: PPPSlide }> = ({ slide }) => {
-  const [errored, setErrored] = useState(false);
+  const [videoErrored, setVideoErrored] = useState(false);
 
-  if (slide.custom_video_url && !errored) {
+  if (slide.custom_video_url && !videoErrored) {
     return (
       <video
         key={slide.custom_video_url}
@@ -43,21 +43,27 @@ const SlideMedia: React.FC<{ slide: PPPSlide }> = ({ slide }) => {
         loop
         muted
         playsInline
-        onError={() => setErrored(true)}
+        onError={() => setVideoErrored(true)}
         className="mx-auto rounded-2xl shadow-md object-cover w-full max-w-sm h-48 sm:h-56 bg-slate-100"
       />
     );
   }
 
   const url = imageUrlFor(slide);
-  if (!url || errored) return null;
+  // Always render — SafeSlideImage shows a friendly emoji panel on error / missing URL.
+  const emoji = slide.slide_type === 'mascot_speech' ? '🐧'
+    : slide.slide_type === 'flashcard' ? '🃏'
+    : slide.slide_type === 'drawing_canvas' ? '🎨'
+    : slide.slide_type === 'drag_and_drop' ? '🧩'
+    : '✨';
   return (
-    <img
-      src={url}
+    <SafeSlideImage
+      src={url ?? undefined}
       alt={slide.visual_keyword || slide.title || 'Slide visual'}
-      onError={() => setErrored(true)}
       className="mx-auto rounded-2xl shadow-md object-cover w-full max-w-sm h-48 sm:h-56 bg-slate-100"
       loading="lazy"
+      fallbackEmoji={emoji}
+      fallbackLabel={slide.visual_keyword || undefined}
     />
   );
 };
