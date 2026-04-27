@@ -1,9 +1,8 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { PPPSlide, MCQData, FlashcardData, DrawingData } from '../../CreatorContext';
 import { PHASE_STYLES, normalizePhase } from './phaseTheme';
 import { cn } from '@/lib/utils';
 import { Pencil, GripHorizontal, X, CheckCircle2, ImageOff } from 'lucide-react';
-import { MascotSpeech } from './MascotSpeech';
 
 type ViewMode = 'student' | 'teacher';
 
@@ -14,66 +13,32 @@ interface Props {
 
 const VIEW_KEY: Record<ViewMode, string> = { student: '👁️ Student View', teacher: '🎓 Teacher View' };
 
-// Vibrant, kid-friendly fallback gradients (used when the image fails to load).
-const FALLBACK_GRADIENTS = [
-  'bg-gradient-to-br from-blue-300 via-purple-300 to-pink-300',
-  'bg-gradient-to-br from-amber-200 via-orange-300 to-rose-300',
-  'bg-gradient-to-br from-emerald-200 via-teal-300 to-sky-300',
-  'bg-gradient-to-br from-fuchsia-300 via-violet-300 to-indigo-300',
-  'bg-gradient-to-br from-yellow-200 via-lime-300 to-emerald-300',
-  'bg-gradient-to-br from-pink-300 via-rose-300 to-orange-300',
-] as const;
+// Shared font stack — clean, rounded, Duolingo-like.
+const FONT_STACK = "font-['Nunito',_'Quicksand',_'Varela_Round',_sans-serif]";
 
-function pickGradient(seed: string): string {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) | 0;
-  return FALLBACK_GRADIENTS[Math.abs(hash) % FALLBACK_GRADIENTS.length];
-}
-
-function bgUrlFor(slide: PPPSlide): string | null {
+// Foreground image URL (rendered as <img>, never as background).
+function imageUrlFor(slide: PPPSlide): string | null {
   if (slide.custom_image_url) return slide.custom_image_url;
   const kw = (slide.visual_keyword || '').trim();
   if (!kw) return null;
-  const tags = encodeURIComponent(kw.split(/\s+/).filter(Boolean).join(',') + ',kids');
-  // LoremFlickr is a stable Creative Commons image proxy, friendly for prototyping.
-  return `https://loremflickr.com/1024/768/${tags}`;
+  const tags = encodeURIComponent(kw.split(/\s+/).filter(Boolean).join(',') + ',illustration');
+  return `https://loremflickr.com/600/400/${tags}`;
 }
 
-// ---------- Background renderer with graceful fallback ----------
+// ---------- Foreground image ----------
 
-const SlideBackground: React.FC<{ slide: PPPSlide; overlay?: React.ReactNode }> = ({ slide, overlay }) => {
-  const url = useMemo(() => bgUrlFor(slide), [slide.visual_keyword, slide.custom_image_url]);
-  const gradient = useMemo(() => pickGradient(slide.id), [slide.id]);
-  const [status, setStatus] = useState<'loading' | 'ok' | 'error'>(url ? 'loading' : 'error');
-
-  useEffect(() => {
-    if (!url) {
-      setStatus('error');
-      return;
-    }
-    setStatus('loading');
-    const img = new Image();
-    img.onload = () => setStatus('ok');
-    img.onerror = () => setStatus('error');
-    img.src = url;
-    return () => {
-      img.onload = null;
-      img.onerror = null;
-    };
-  }, [url]);
-
-  const showImage = status === 'ok' && !!url;
-
+const SlideImage: React.FC<{ slide: PPPSlide }> = ({ slide }) => {
+  const url = imageUrlFor(slide);
+  const [errored, setErrored] = useState(false);
+  if (!url || errored) return null;
   return (
-    <div className={cn('absolute inset-0', !showImage && gradient)} aria-hidden>
-      {showImage && (
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${url})` }}
-        />
-      )}
-      {overlay}
-    </div>
+    <img
+      src={url}
+      alt={slide.visual_keyword || slide.title || 'Slide visual'}
+      onError={() => setErrored(true)}
+      className="mx-auto rounded-2xl shadow-md object-cover w-full max-w-sm h-48 sm:h-56 bg-slate-100"
+      loading="lazy"
+    />
   );
 };
 
@@ -96,28 +61,36 @@ function asDrawing(slide: PPPSlide): DrawingData {
   return { prompt: d.prompt ?? slide.content ?? '' };
 }
 
-// ---------- interactive renderers ----------
+// ---------- Bouncy 3D button (Duolingo-style) ----------
 
-const MCQ_OPTION_COLORS = [
-  'bg-yellow-300 hover:bg-yellow-400 text-slate-900',
-  'bg-sky-300 hover:bg-sky-400 text-slate-900',
-  'bg-pink-300 hover:bg-pink-400 text-slate-900',
-  'bg-emerald-300 hover:bg-emerald-400 text-slate-900',
-  'bg-orange-300 hover:bg-orange-400 text-slate-900',
-  'bg-violet-300 hover:bg-violet-400 text-slate-900',
+// Each option uses a flat pastel surface with a darker bottom border for depth.
+const MCQ_OPTION_PALETTE = [
+  { face: 'bg-white text-slate-800', border: 'border-slate-300', bottom: 'border-b-slate-400' },
+  { face: 'bg-sky-50 text-sky-900', border: 'border-sky-300', bottom: 'border-b-sky-500' },
+  { face: 'bg-amber-50 text-amber-900', border: 'border-amber-300', bottom: 'border-b-amber-500' },
+  { face: 'bg-emerald-50 text-emerald-900', border: 'border-emerald-300', bottom: 'border-b-emerald-500' },
+  { face: 'bg-pink-50 text-pink-900', border: 'border-pink-300', bottom: 'border-b-pink-500' },
+  { face: 'bg-violet-50 text-violet-900', border: 'border-violet-300', bottom: 'border-b-violet-500' },
 ];
+
+const bouncyBtn =
+  'w-full rounded-2xl border-2 border-b-4 px-4 py-4 font-extrabold text-base sm:text-lg transition-all ' +
+  'hover:-translate-y-0.5 active:translate-y-1 active:border-b-2 select-none';
+
+// ---------- interactive renderers ----------
 
 const MCQBlock: React.FC<{ slide: PPPSlide; mode: ViewMode }> = ({ slide, mode }) => {
   const data = asMCQ(slide);
   return (
-    <div className="space-y-4 font-['Fredoka',_'Quicksand',_sans-serif]">
+    <div className={cn('space-y-5', FONT_STACK)}>
       {data.question && (
-        <div className="inline-block rounded-2xl bg-white/95 px-5 py-3 shadow-lg border-2 border-white">
-          <p className="text-xl sm:text-2xl font-bold leading-snug text-slate-800">{data.question}</p>
-        </div>
+        <h2 className="text-xl sm:text-2xl font-extrabold text-slate-800 text-center leading-snug">
+          {data.question}
+        </h2>
       )}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {data.options.map((opt, i) => {
+          const palette = MCQ_OPTION_PALETTE[i % MCQ_OPTION_PALETTE.length];
           const isCorrect = i === data.correct_index;
           const showCorrect = mode === 'teacher' && isCorrect;
           return (
@@ -125,18 +98,22 @@ const MCQBlock: React.FC<{ slide: PPPSlide; mode: ViewMode }> = ({ slide, mode }
               key={i}
               type="button"
               className={cn(
-                'flex items-center gap-3 rounded-2xl px-4 py-3.5 font-bold text-base sm:text-lg shadow-lg border-2 border-white/80 transition-transform hover:scale-[1.03] hover:-rotate-1 active:scale-95',
-                MCQ_OPTION_COLORS[i % MCQ_OPTION_COLORS.length],
-                showCorrect && 'ring-4 ring-emerald-500 ring-offset-2 ring-offset-transparent',
+                bouncyBtn,
+                palette.face,
+                palette.border,
+                palette.bottom,
+                showCorrect && 'ring-4 ring-emerald-400 ring-offset-2',
               )}
             >
-              <span className="h-8 w-8 rounded-full bg-white/80 grid place-items-center text-sm font-extrabold text-slate-700 shrink-0">
-                {String.fromCharCode(65 + i)}
+              <span className="flex items-center gap-3">
+                <span className="h-7 w-7 rounded-lg bg-white border-2 border-current/20 grid place-items-center text-sm font-extrabold shrink-0">
+                  {String.fromCharCode(65 + i)}
+                </span>
+                <span className="flex-1 text-left">
+                  {opt || <em className="opacity-50 font-normal">empty</em>}
+                </span>
+                {showCorrect && <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />}
               </span>
-              <span className="flex-1 text-left">
-                {opt || <em className="opacity-60 font-normal">empty</em>}
-              </span>
-              {showCorrect && <CheckCircle2 className="h-5 w-5 text-emerald-700 shrink-0" />}
             </button>
           );
         })}
@@ -151,7 +128,7 @@ const FlashcardBlock: React.FC<{ slide: PPPSlide; mode: ViewMode }> = ({ slide, 
   const showBack = mode === 'teacher' ? true : flipped;
 
   return (
-    <div className="flex flex-col items-center gap-3 font-['Fredoka',_'Quicksand',_sans-serif]">
+    <div className={cn('flex flex-col items-center gap-4', FONT_STACK)}>
       <button
         type="button"
         onClick={() => setFlipped((v) => !v)}
@@ -165,38 +142,55 @@ const FlashcardBlock: React.FC<{ slide: PPPSlide; mode: ViewMode }> = ({ slide, 
             showBack && 'rotate-y-180',
           )}
         >
-          {/* Front face */}
-          <div className="absolute inset-0 backface-hidden rounded-3xl bg-gradient-to-br from-yellow-300 via-orange-300 to-pink-300 shadow-2xl border-4 border-white flex items-center justify-center p-6">
-            <span className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 text-center drop-shadow-sm">
-              {front || <em className="opacity-60 font-normal">front</em>}
+          <div className="absolute inset-0 backface-hidden rounded-3xl bg-white border-2 border-b-4 border-slate-300 border-b-slate-400 shadow-md flex items-center justify-center p-6">
+            <span className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 text-center">
+              {front || <em className="opacity-50 font-normal">front</em>}
             </span>
           </div>
-          {/* Back face */}
-          <div className="absolute inset-0 backface-hidden rotate-y-180 rounded-3xl bg-white shadow-2xl border-4 border-white flex items-center justify-center p-6">
-            <span className="text-2xl sm:text-3xl font-bold text-slate-800 text-center leading-snug">
-              {back || <em className="opacity-60 font-normal">back</em>}
+          <div className="absolute inset-0 backface-hidden rotate-y-180 rounded-3xl bg-sky-50 border-2 border-b-4 border-sky-300 border-b-sky-500 shadow-md flex items-center justify-center p-6">
+            <span className="text-2xl sm:text-3xl font-bold text-sky-900 text-center leading-snug">
+              {back || <em className="opacity-50 font-normal">back</em>}
             </span>
           </div>
         </div>
       </button>
-      <span className="text-xs uppercase tracking-widest font-bold text-white/90 drop-shadow bg-black/30 rounded-full px-3 py-1">
+      <span className="text-xs uppercase tracking-widest font-bold text-slate-500">
         {mode === 'teacher' ? 'Teacher view: showing back' : flipped ? '↻ Tap to flip back' : '✨ Tap to flip!'}
       </span>
     </div>
   );
 };
 
-const DrawingBlock: React.FC<{ slide: PPPSlide; phase?: string }> = ({ slide, phase }) => {
+const DrawingBlock: React.FC<{ slide: PPPSlide }> = ({ slide }) => {
   const { prompt } = asDrawing(slide);
   return (
-    <div className="space-y-4 max-w-2xl">
-      <MascotSpeech phase={phase} text={prompt} placeholder="Tell students what to draw…" size="md" />
-      <div className="rounded-3xl bg-white/85 border-4 border-dashed border-white p-6 sm:p-8 shadow-xl flex flex-col items-center justify-center gap-2 min-h-[160px] font-['Fredoka',_'Quicksand',_sans-serif]">
+    <div className={cn('space-y-4', FONT_STACK)}>
+      {prompt && (
+        <p className="text-lg sm:text-xl font-bold text-slate-800 text-center leading-snug">
+          {prompt}
+        </p>
+      )}
+      <div className="rounded-3xl bg-slate-50 border-2 border-dashed border-slate-300 p-6 sm:p-8 flex flex-col items-center justify-center gap-2 min-h-[180px]">
         <Pencil className="h-10 w-10 text-slate-400" />
         <p className="text-sm font-bold uppercase tracking-widest text-slate-500">Drawing Canvas</p>
         <p className="text-xs text-slate-400">Students draw their answer here</p>
       </div>
     </div>
+  );
+};
+
+const TextBlock: React.FC<{ slide: PPPSlide }> = ({ slide }) => {
+  if (!slide.content) {
+    return (
+      <p className={cn('text-base sm:text-lg text-slate-400 italic text-center', FONT_STACK)}>
+        Add a friendly sentence in the right panel…
+      </p>
+    );
+  }
+  return (
+    <p className={cn('text-lg sm:text-xl font-semibold text-slate-700 text-center leading-relaxed whitespace-pre-wrap', FONT_STACK)}>
+      {slide.content}
+    </p>
   );
 };
 
@@ -207,31 +201,17 @@ const InteractiveBlock: React.FC<{ slide: PPPSlide; mode: ViewMode }> = ({ slide
     case 'flashcard':
       return <FlashcardBlock slide={slide} mode={mode} />;
     case 'drawing_prompt':
-      return <DrawingBlock slide={slide} phase={slide.phase as string} />;
+      return <DrawingBlock slide={slide} />;
     default:
-      return (
-        <MascotSpeech
-          phase={slide.phase as string}
-          text={slide.content}
-          placeholder="Add a friendly sentence in the right panel…"
-        />
-      );
+      return <TextBlock slide={slide} />;
   }
 };
 
-// ---------- layouts ----------
+// ---------- title field ----------
 
-interface LayoutProps {
-  slide: PPPSlide;
-  onChange: (patch: Partial<PPPSlide>) => void;
-  mode: ViewMode;
-  children: React.ReactNode;
-}
-
-const TitleField: React.FC<{ slide: PPPSlide; onChange: (p: Partial<PPPSlide>) => void; light?: boolean }> = ({
+const TitleField: React.FC<{ slide: PPPSlide; onChange: (p: Partial<PPPSlide>) => void }> = ({
   slide,
   onChange,
-  light,
 }) => (
   <input
     type="text"
@@ -239,76 +219,11 @@ const TitleField: React.FC<{ slide: PPPSlide; onChange: (p: Partial<PPPSlide>) =
     onChange={(e) => onChange({ title: e.target.value })}
     placeholder="Slide title…"
     className={cn(
-      "bg-transparent text-3xl sm:text-4xl font-extrabold tracking-tight outline-none border-0 rounded-md px-1 w-full font-['Fredoka',_'Quicksand',_sans-serif]",
-      light
-        ? 'text-slate-900 placeholder:text-slate-400 focus:bg-slate-200/40'
-        : 'text-white placeholder:text-white/60 focus:bg-white/10 drop-shadow-md',
+      'bg-transparent text-2xl sm:text-3xl font-extrabold tracking-tight outline-none border-0 rounded-md px-1 w-full text-center',
+      'text-slate-900 placeholder:text-slate-400 focus:bg-slate-100',
+      FONT_STACK,
     )}
   />
-);
-
-const SplitLayout: React.FC<LayoutProps & { side: 'left' | 'right' }> = ({
-  slide,
-  onChange,
-  children,
-  side,
-}) => {
-  const ImagePane = (
-    <div className="relative">
-      <SlideBackground slide={slide} />
-    </div>
-  );
-  const ContentPane = (
-    <div className="relative bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-50 p-6 sm:p-8 flex flex-col justify-center gap-4 overflow-y-auto">
-      <TitleField slide={slide} onChange={onChange} light />
-      <div className="text-slate-700 dark:text-slate-200">{children}</div>
-    </div>
-  );
-  return (
-    <div className="absolute inset-0 grid grid-cols-2">
-      {side === 'left' ? (
-        <>
-          {ImagePane}
-          {ContentPane}
-        </>
-      ) : (
-        <>
-          {ContentPane}
-          {ImagePane}
-        </>
-      )}
-    </div>
-  );
-};
-
-const CenterCardLayout: React.FC<LayoutProps> = ({ slide, onChange, children }) => (
-  <div className="absolute inset-0">
-    <SlideBackground
-      slide={slide}
-      overlay={<div className="absolute inset-0 backdrop-blur-md bg-black/20" />}
-    />
-    <div className="absolute inset-0 flex items-center justify-center p-6 sm:p-8 overflow-y-auto">
-      <div className="max-w-3xl w-full rounded-3xl bg-white/90 dark:bg-slate-900/85 backdrop-blur-xl border-2 border-white/60 dark:border-white/10 shadow-2xl p-6 sm:p-8 text-slate-900 dark:text-slate-50">
-        <TitleField slide={slide} onChange={onChange} light />
-        <div className="mt-4 text-slate-700 dark:text-slate-200">{children}</div>
-      </div>
-    </div>
-  </div>
-);
-
-const FullBackgroundLayout: React.FC<LayoutProps> = ({ slide, onChange, children }) => (
-  <div className="absolute inset-0">
-    <SlideBackground
-      slide={slide}
-      overlay={
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
-      }
-    />
-    <div className="relative h-full w-full flex flex-col justify-end p-6 sm:p-10 text-white overflow-y-auto">
-      <TitleField slide={slide} onChange={onChange} />
-      <div className="mt-4">{children}</div>
-    </div>
-  </div>
 );
 
 // ---------- teleprompter ----------
@@ -334,7 +249,7 @@ const Teleprompter: React.FC<{ script: string; onChange: (v: string) => void }> 
 
   return (
     <div
-      className="absolute z-20 w-[320px] rounded-2xl bg-slate-950/85 backdrop-blur-xl text-white border border-white/15 shadow-2xl"
+      className="absolute z-20 w-[320px] rounded-2xl bg-slate-950/90 backdrop-blur-xl text-white border border-white/15 shadow-2xl"
       style={{ left: pos.x, top: pos.y }}
     >
       <div
@@ -373,21 +288,19 @@ export const SlideCanvas: React.FC<Props> = ({ slide, onChange }) => {
   const phaseKey = normalizePhase(slide.phase as string);
   const style = PHASE_STYLES[phaseKey];
   const [mode, setMode] = useState<ViewMode>('student');
-  const layout = slide.layout_style ?? 'full_background';
 
-  const interactive = <InteractiveBlock slide={slide} mode={mode} />;
   const hasImage = !!(slide.custom_image_url || (slide.visual_keyword || '').trim());
 
   return (
-    <section className="flex-1 min-w-0 h-full overflow-y-auto p-6">
+    <section className="flex-1 min-w-0 h-full overflow-y-auto bg-slate-50 dark:bg-slate-900 p-6">
       <div className="max-w-5xl mx-auto">
         {/* Top bar: phase + dual-view toggle */}
-        <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
+        <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
           <span className={cn('text-[11px] font-bold uppercase tracking-widest px-2 py-1 rounded', style.chip)}>
             {style.label}
           </span>
 
-          <div className="inline-flex items-center rounded-full bg-slate-200 dark:bg-slate-800 p-0.5 text-xs font-semibold">
+          <div className="inline-flex items-center rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-0.5 text-xs font-semibold shadow-sm">
             {(['student', 'teacher'] as ViewMode[]).map((v) => (
               <button
                 key={v}
@@ -396,7 +309,7 @@ export const SlideCanvas: React.FC<Props> = ({ slide, onChange }) => {
                 className={cn(
                   'px-3 py-1.5 rounded-full transition',
                   mode === v
-                    ? 'bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50 shadow'
+                    ? 'bg-slate-900 text-white shadow'
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200',
                 )}
               >
@@ -407,35 +320,26 @@ export const SlideCanvas: React.FC<Props> = ({ slide, onChange }) => {
 
           <span className="text-[11px] font-mono text-slate-400 inline-flex items-center gap-1.5">
             {!hasImage && <ImageOff className="h-3 w-3" aria-label="No visual keyword set" />}
-            {slide.slide_type ?? 'text_image'} · {layout}
+            {slide.slide_type ?? 'text_image'}
           </span>
         </div>
 
-        {/* Canvas card */}
+        {/* Workspace: clean off-white surface, app screen floats in the middle */}
         <div
-          className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-800"
-          style={{ aspectRatio: '16 / 10' }}
+          className="relative rounded-3xl overflow-hidden bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-inner"
+          style={{ minHeight: '70vh' }}
         >
-          {layout === 'split_left' && (
-            <SplitLayout side="left" slide={slide} onChange={onChange} mode={mode}>
-              {interactive}
-            </SplitLayout>
-          )}
-          {layout === 'split_right' && (
-            <SplitLayout side="right" slide={slide} onChange={onChange} mode={mode}>
-              {interactive}
-            </SplitLayout>
-          )}
-          {layout === 'center_card' && (
-            <CenterCardLayout slide={slide} onChange={onChange} mode={mode}>
-              {interactive}
-            </CenterCardLayout>
-          )}
-          {layout === 'full_background' && (
-            <FullBackgroundLayout slide={slide} onChange={onChange} mode={mode}>
-              {interactive}
-            </FullBackgroundLayout>
-          )}
+          <div className="relative h-full w-full flex items-start sm:items-center justify-center p-6 sm:p-10 overflow-y-auto">
+            {/* Centered "Quiz App" container */}
+            <div className={cn(
+              'w-full max-w-2xl mx-auto bg-white dark:bg-slate-950 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl p-6 sm:p-8 space-y-6',
+              FONT_STACK,
+            )}>
+              <SlideImage slide={slide} />
+              <TitleField slide={slide} onChange={onChange} />
+              <InteractiveBlock slide={slide} mode={mode} />
+            </div>
+          </div>
 
           {mode === 'teacher' && (
             <Teleprompter
