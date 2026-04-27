@@ -278,18 +278,43 @@ const DrawingBlock: React.FC<{ slide: PPPSlide }> = ({ slide }) => {
   );
 };
 
-const TextBlock: React.FC<{ slide: PPPSlide }> = ({ slide }) => {
-  if (!slide.content) {
+const TextBlock: React.FC<{ slide: PPPSlide; hub: 'playground' | 'academy' | 'success' }> = ({ slide, hub }) => {
+  const empty = !slide.content;
+  // Hub-conditional skin for instructional text:
+  //   • Playground → cartoon speech bubble + mascot
+  //   • Academy    → neon-bordered holographic card
+  //   • Success    → minimalist corporate text box
+  if (hub === 'playground') {
     return (
-      <p className={cn('text-base sm:text-lg text-slate-400 italic text-center', FONT_STACK)}>
-        Add a friendly sentence in the right panel…
-      </p>
+      <div className="relative mx-auto max-w-xl">
+        <div className="relative rounded-3xl bg-white px-6 py-5 shadow-md border-2 border-amber-200">
+          <p className={cn('text-lg sm:text-xl font-extrabold text-slate-800 text-center leading-relaxed whitespace-pre-wrap', FONT_STACK,
+            empty && 'italic font-semibold text-slate-400')}>
+            {slide.content || 'Add a friendly sentence in the right panel…'}
+          </p>
+          <div className="absolute -bottom-3 left-10 w-6 h-6 bg-white border-r-2 border-b-2 border-amber-200 rotate-45" aria-hidden />
+        </div>
+        <div className="mt-4 flex justify-end pr-4 text-4xl select-none" aria-hidden>🐧</div>
+      </div>
+    );
+  }
+  if (hub === 'academy') {
+    return (
+      <div className="relative mx-auto max-w-xl rounded-xl border border-fuchsia-400/50 bg-slate-900/60 backdrop-blur px-6 py-5 shadow-[0_0_25px_rgba(168,85,247,0.35)]">
+        <p className={cn('text-lg sm:text-xl font-semibold text-fuchsia-50 text-center leading-relaxed whitespace-pre-wrap',
+          empty && 'italic font-medium text-fuchsia-200/60')}>
+            {slide.content || 'Add a sharp instructional sentence in the right panel…'}
+        </p>
+      </div>
     );
   }
   return (
-    <p className={cn('text-lg sm:text-xl font-semibold text-slate-700 text-center leading-relaxed whitespace-pre-wrap', FONT_STACK)}>
-      {slide.content}
-    </p>
+    <div className="mx-auto max-w-xl rounded-md border border-slate-200 bg-white px-6 py-4">
+      <p className={cn('text-base sm:text-lg font-medium text-slate-800 text-center leading-relaxed whitespace-pre-wrap',
+        empty && 'italic text-slate-400')}>
+        {slide.content || 'Add a clear, professional statement in the right panel…'}
+      </p>
+    </div>
   );
 };
 
