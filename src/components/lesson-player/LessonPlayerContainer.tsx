@@ -254,6 +254,25 @@ export default function LessonPlayerContainer({
             {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
           </button>
         </div>
+        {/* 6-Step Phase Tracker — locked progression map */}
+        <div className="w-full max-w-[720px] mx-auto mt-2">
+          <PhaseTracker
+            slides={slides as any}
+            currentIndex={currentSlideIndex}
+            onJumpToPhase={(idx) => {
+              setCurrentSlideIndex(idx);
+              setAnswerSelected(false);
+              setFeedbackVisible(false);
+            }}
+            accentClass={
+              hub === 'playground'
+                ? 'bg-orange-500 text-white ring-orange-200'
+                : hub === 'academy'
+                ? 'bg-violet-500 text-white ring-violet-300'
+                : 'bg-emerald-600 text-white ring-emerald-200'
+            }
+          />
+        </div>
       </div>
 
       {/* ── Centered Content Area ── */}
