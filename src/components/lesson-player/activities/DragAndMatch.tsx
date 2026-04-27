@@ -30,7 +30,7 @@ interface Props {
  * On a correct match: snap animation, ding sound. When all pairs are matched, fires onCorrect()
  * (the parent then handles confetti + next-slide unlock — same pipeline as Multiple Choice).
  */
-export default function DragAndMatch({ slide, hub = 'academy', onCorrect, onIncorrect }: Props) {
+export default function DragAndMatch({ slide, hub = 'academy', onCorrect, onIncorrect, onStarsAwarded }: Props) {
   const config = HUB_CONFIGS[hub] || HUB_CONFIGS.academy;
   const primary = (config as any)?.primaryColor || '#6366f1';
   const accent = (config as any)?.accentColor || '#a855f7';
