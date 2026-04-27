@@ -125,6 +125,8 @@ export interface PPPSlide {
   /** Public URL of the generated/uploaded background music track attached to this slide. */
   background_music_url?: string;
   interactive_data?: InteractiveData;
+  /** When true, force the hero image even on full-screen game slide types. */
+  force_hero_image?: boolean;
   // legacy / optional
   teacher_instructions?: string;
   interactive_options?: string[];
