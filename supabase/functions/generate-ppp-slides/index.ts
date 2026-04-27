@@ -134,8 +134,8 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
         body: JSON.stringify({
           model: "google/gemini-2.5-flash",
           messages: [
-            { role: "system", content: systemPrompt + jsonInstructions },
-            { role: "user", content: userPrompt },
+            { role: "system", content: "Return JSON only." },
+            { role: "user", content: "Return {\"slides\": [{\"title\": \"hello\"}]}" },
           ],
         }),
       });
