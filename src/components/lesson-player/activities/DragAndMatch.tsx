@@ -65,17 +65,28 @@ export default function DragAndMatch({ slide, hub = 'academy', onCorrect, onInco
   const [selectedLeft, setSelectedLeft] = useState<string | null>(null);
   const [shake, setShake] = useState<string | null>(null);
   const firedRef = useRef(false);
+  const tracker = useStarHintTracker();
+  const hintText = (slide as any).hint_text as string | undefined;
+
+  // Reset star/hint state whenever the active slide changes.
+  useEffect(() => {
+    tracker.reset();
+    firedRef.current = false;
+    setMatched({});
+    setSelectedLeft(null);
+  }, [slide.id]);
 
   const allMatched = pairs.length > 0 && Object.keys(matched).length === pairs.length;
 
   useEffect(() => {
     if (allMatched && !firedRef.current) {
       firedRef.current = true;
+      onStarsAwarded?.(tracker.stars);
       // Slight delay so the user sees the final snap animation before the parent advances.
       const t = setTimeout(() => onCorrect(), 600);
       return () => clearTimeout(t);
     }
-  }, [allMatched, onCorrect]);
+  }, [allMatched, onCorrect, onStarsAwarded, tracker.stars]);
 
   const tryMatch = (leftItem: string, rightItem: string) => {
     if (matched[leftItem]) return;
@@ -87,6 +98,7 @@ export default function DragAndMatch({ slide, hub = 'academy', onCorrect, onInco
     } else {
       soundEffectsService.playIncorrect();
       onIncorrect?.();
+      tracker.registerWrong();
       setShake(leftItem + '|' + rightItem);
       setTimeout(() => setShake(null), 400);
     }
