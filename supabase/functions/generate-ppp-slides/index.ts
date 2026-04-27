@@ -108,6 +108,26 @@ RULE 5 — MULTIMODAL MEDIA PROMPTS (generate ALL THREE for every slide)
 • "video_generation_prompt": Prompt for a 2–4s SEAMLESSLY LOOPING animation. End with: "seamless loop, solid pastel background, no text, no camera motion." Subtle motion only.
 
 ═══════════════════════════════════════════════════════
+RULE 6 — GAMIFIED HOMEWORK MISSIONS (MANDATORY)
+═══════════════════════════════════════════════════════
+In addition to the slide deck, generate EXACTLY 3 to 5 "homework_missions" — short app-style
+mini-games (think Duolingo daily quests) that recycle the lesson's TARGET VOCABULARY for
+asynchronous practice at home. These are NOT slides; they are standalone interactive cards.
+
+Each mission MUST be one of these mission_type values, and MUST follow the exact shape:
+
+• "memory_match"      → { mission_type, prompt, pairs: [{ term: string, match: string }] }   // 3–5 pairs
+• "listen_and_choose" → { mission_type, prompt, target_word: string, options: string[3..4], correct_answer: string }
+• "word_scramble"     → { mission_type, prompt, target_word: string, scrambled: string }     // letters of target_word shuffled
+
+Rules:
+- "prompt" is a short kid-friendly instruction (e.g., "Tap the matching pair!").
+- "target_word" / "term" / "match" MUST come from words taught in the lesson's slides.
+- Vary mission_type across the set — never return 3 of the same type in a row.
+- "correct_answer" MUST be one of "options".
+- "scrambled" MUST be the same letters as "target_word" in a different order, and MUST NOT equal "target_word".
+
+═══════════════════════════════════════════════════════
 GENERAL TONE
 ═══════════════════════════════════════════════════════
 Supportive, professional, joyful. Globally inclusive. CEFR-aligned. No placeholders.
