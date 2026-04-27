@@ -66,16 +66,26 @@ export default function FillInTheGaps({ slide, hub = 'academy', onCorrect, onInc
   const [wrongFlash, setWrongFlash] = useState(false);
   const [shakeGap, setShakeGap] = useState(false);
   const firedRef = useRef(false);
+  const tracker = useStarHintTracker();
+  const hintText = (slide as any).hint_text as string | undefined;
+
+  // Reset star/hint state whenever the active slide changes.
+  useEffect(() => {
+    tracker.reset();
+    firedRef.current = false;
+    setFilled(null);
+  }, [slide.id]);
 
   const isCorrect = !!filled && filled.toLowerCase() === missingWord.toLowerCase();
 
   useEffect(() => {
     if (isCorrect && !firedRef.current) {
       firedRef.current = true;
+      onStarsAwarded?.(tracker.stars);
       const t = setTimeout(() => onCorrect(), 700);
       return () => clearTimeout(t);
     }
-  }, [isCorrect, onCorrect]);
+  }, [isCorrect, onCorrect, onStarsAwarded, tracker.stars]);
 
   const tryWord = (word: string) => {
     if (filled && filled.toLowerCase() === missingWord.toLowerCase()) return;
