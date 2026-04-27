@@ -293,7 +293,7 @@ const TextBlock: React.FC<{ slide: PPPSlide }> = ({ slide }) => {
   );
 };
 
-const InteractiveBlock: React.FC<{ slide: PPPSlide; mode: ViewMode }> = ({ slide, mode }) => {
+const InteractiveBlock: React.FC<{ slide: PPPSlide; mode: ViewMode; hub: 'playground' | 'academy' | 'success' }> = ({ slide, mode, hub }) => {
   switch (slide.slide_type) {
     case 'multiple_choice':
       return <MCQBlock slide={slide} mode={mode} />;
@@ -302,7 +302,7 @@ const InteractiveBlock: React.FC<{ slide: PPPSlide; mode: ViewMode }> = ({ slide
     case 'drawing_prompt':
       return <DrawingBlock slide={slide} />;
     default:
-      return <TextBlock slide={slide} />;
+      return <TextBlock slide={slide} hub={hub} />;
   }
 };
 
