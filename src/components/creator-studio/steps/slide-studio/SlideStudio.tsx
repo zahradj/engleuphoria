@@ -12,6 +12,7 @@ import { SlideErrorBoundary } from '@/components/common/SlideErrorBoundary';
 import { useSlidePrefetch, type SlideAssets } from '@/hooks/useSlidePrefetch';
 import { useHubTheme } from '@/hooks/useHubTheme';
 import { cn } from '@/lib/utils';
+import PhaseTracker from '@/components/lesson-player/PhaseTracker';
 
 const SlideStudioInner: React.FC = () => {
   const { activeLessonData, updateSlide, setCurrentStep } = useCreator();
