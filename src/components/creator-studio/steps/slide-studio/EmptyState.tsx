@@ -5,9 +5,10 @@ import { useCreator, PPPSlide } from '../../CreatorContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { normalizePhase } from './phaseTheme';
+import { persistLesson } from '../../persistLesson';
 
 export const EmptyState: React.FC = () => {
-  const { activeLessonData, replaceSlides, setCurrentStep } = useCreator();
+  const { activeLessonData, replaceSlides, setCurrentStep, setActiveLessonData, setDirty } = useCreator();
   const [loading, setLoading] = useState(false);
 
   if (!activeLessonData) return null;
