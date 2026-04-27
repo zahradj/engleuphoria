@@ -115,21 +115,22 @@ export default function DragAndMatch({ slide, hub = 'academy', onCorrect, onInco
   }
 
   return (
-    <div className="flex flex-col items-center gap-6 p-6 w-full max-w-3xl mx-auto">
-      <h2 className="text-2xl font-bold text-center" style={{ color: '#e2e8f0' }}>
+    <div className="flex flex-col items-center gap-6 p-6 w-full h-full max-w-4xl mx-auto">
+      <h2 className="text-2xl md:text-3xl font-bold text-center" style={{ color: '#e2e8f0' }}>
         🔗 {instruction}
       </h2>
-      <p className="text-sm" style={{ color: '#94a3b8' }}>
+      <p className="text-sm md:text-base" style={{ color: '#94a3b8' }}>
         Tap a word on the left, then tap its match on the right (or drag & drop).
       </p>
 
-      <div className="grid grid-cols-2 gap-6 w-full">
+      <div className="grid grid-cols-2 gap-6 md:gap-8 w-full">
         {/* LEFT COLUMN */}
         <div className="flex flex-col gap-4">
           {pairs.map((p) => {
             const isMatched = !!matched[p.left_item];
             const isSelected = selectedLeft === p.left_item;
             const isShaking = shake?.startsWith(p.left_item + '|');
+            const thumb = (p as any).left_thumbnail_url as string | undefined;
             return (
               <motion.button
                 key={`L-${p.left_item}`}
@@ -137,16 +138,14 @@ export default function DragAndMatch({ slide, hub = 'academy', onCorrect, onInco
                 onDragStart={(e) => handleDragStart(e as any, p.left_item)}
                 onClick={() => handleLeftTap(p.left_item)}
                 animate={
-                  isShaking
-                    ? { x: [0, -10, 10, -8, 8, 0] }
-                    : isMatched
-                    ? { scale: [1, 1.06, 1], opacity: 0.85 }
-                    : { scale: 1 }
+                  isShaking ? { x: [0, -10, 10, -8, 8, 0] }
+                  : isMatched ? { scale: [1, 1.06, 1], opacity: 0.85 }
+                  : { scale: 1 }
                 }
                 transition={{ duration: 0.35 }}
                 whileHover={!isMatched ? { scale: 1.03 } : undefined}
                 whileTap={!isMatched ? { scale: 0.97 } : undefined}
-                className="px-5 py-4 rounded-2xl text-lg font-bold text-left select-none"
+                className="px-5 py-5 md:py-6 min-h-[72px] rounded-2xl text-xl md:text-2xl font-bold flex flex-col items-center justify-center gap-2 select-none"
                 style={{
                   background: isMatched
                     ? `linear-gradient(135deg, ${primary}33, ${accent}33)`
@@ -159,8 +158,8 @@ export default function DragAndMatch({ slide, hub = 'academy', onCorrect, onInco
                   touchAction: 'manipulation',
                 }}
               >
-                {p.left_item}
-                {isMatched && <span className="ml-2">✅</span>}
+                {thumb && <img src={thumb} alt="" className="w-16 h-16 object-cover rounded-md" />}
+                <span>{p.left_item}{isMatched && <span className="ml-2">✅</span>}</span>
               </motion.button>
             );
           })}
@@ -171,6 +170,7 @@ export default function DragAndMatch({ slide, hub = 'academy', onCorrect, onInco
           {rightItems.map((right) => {
             const isUsed = Object.values(matched).includes(right);
             const isShakeTarget = shake?.endsWith('|' + right);
+            const thumb = (pairs.find((pp) => pp.right_item === right) as any)?.right_thumbnail_url as string | undefined;
             return (
               <motion.div
                 key={`R-${right}`}
@@ -178,16 +178,14 @@ export default function DragAndMatch({ slide, hub = 'academy', onCorrect, onInco
                 onDrop={(e) => handleDrop(e, right)}
                 onClick={() => handleRightTap(right)}
                 animate={
-                  isShakeTarget
-                    ? { x: [0, 10, -10, 8, -8, 0] }
-                    : isUsed
-                    ? { scale: [1, 1.06, 1] }
-                    : { scale: 1 }
+                  isShakeTarget ? { x: [0, 10, -10, 8, -8, 0] }
+                  : isUsed ? { scale: [1, 1.06, 1] }
+                  : { scale: 1 }
                 }
                 transition={{ duration: 0.35 }}
                 whileHover={!isUsed ? { scale: 1.03 } : undefined}
                 whileTap={!isUsed ? { scale: 0.97 } : undefined}
-                className="px-5 py-4 rounded-2xl text-lg font-bold text-center select-none"
+                className="px-5 py-5 md:py-6 min-h-[72px] rounded-2xl text-xl md:text-2xl font-bold flex flex-col items-center justify-center gap-2 select-none"
                 style={{
                   background: isUsed
                     ? `linear-gradient(135deg, #22c55e44, #16a34a44)`
@@ -198,7 +196,8 @@ export default function DragAndMatch({ slide, hub = 'academy', onCorrect, onInco
                   touchAction: 'manipulation',
                 }}
               >
-                {right}
+                {thumb && <img src={thumb} alt="" className="w-16 h-16 object-cover rounded-md" />}
+                <span>{right}</span>
               </motion.div>
             );
           })}
