@@ -211,7 +211,7 @@ export default function FillInTheGaps({ slide, hub = 'academy', onCorrect, onInc
             className="text-xl font-bold"
             style={{ color: '#22c55e' }}
           >
-            ✨ Perfect! +10 XP
+            ✨ Perfect! +{tracker.stars * 10} XP ({tracker.stars}/3 ⭐)
           </motion.p>
         )}
       </AnimatePresence>
