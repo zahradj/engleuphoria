@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { useHubTheme } from '@/hooks/useHubTheme';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -235,8 +236,9 @@ export const LibraryManager: React.FC = () => {
     setSelectedIds(new Set());
   };
 
+  const { theme } = useHubTheme();
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className={cn('max-w-5xl mx-auto p-6 hub-surface', theme.themeClass, theme.font, theme.radius)}>
       <div className="flex items-center gap-3 mb-6">
         <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-md">
           <Library className="h-5 w-5 text-white" />
