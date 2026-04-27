@@ -208,6 +208,8 @@ export default function DynamicSlideRenderer({
 
     // ── Cross-hub generic activities ─────────────────────────────
     if (actType === 'word_bank') return <WordBank slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    if (actType === 'drag_and_match') return <DragAndMatch slide={slide} hub={hub} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    if (actType === 'fill_in_the_gaps') return <FillInTheGaps slide={slide} hub={hub} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
 
     switch (hub) {
       case 'playground':
