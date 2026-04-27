@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils';
 import { useCreator } from '../../CreatorContext';
 import { uploadSlideAsset } from './uploadSlideAsset';
 import {
-  generateSlideImage, generateSlideVoiceover, generateSlideMusic,
+  generateSlideImage, generateSlideVoiceover, generateSlideMusic, generateSlideVideo,
 } from './mediaGeneration';
 import { toast } from 'sonner';
 
