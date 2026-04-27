@@ -54,21 +54,26 @@ export const EmptyState: React.FC = () => {
         layout_style: s.layout_style ?? 'full_background',
         interactive_data: s.interactive_data ?? {},
       }));
+      const homework_missions = Array.isArray(data?.homework_missions) ? data.homework_missions : [];
       if (!slides.length) {
         toast.error('AI returned no slides. Please retry.');
         return;
       }
       replaceSlides(slides);
-      toast.success(`Generated ${slides.length} slides ✨`);
+      const lessonWithMissions = { ...activeLessonData, slides, homework_missions };
+      setActiveLessonData(lessonWithMissions);
+      toast.success(
+        `Generated ${slides.length} slides + ${homework_missions.length} homework missions ✨`,
+      );
 
-      // 🔐 AUTO-PERSIST: write the freshly generated deck to Supabase
-      // immediately so a refresh never loses the work. Saved as a draft
-      // (is_published=false). The new lesson_id is stamped back into context
-      // so the next manual save UPDATEs in place instead of duplicating.
-      const saveRes = await persistLesson(activeLessonData, slides, false);
+      // 🔐 AUTO-PERSIST: write the freshly generated deck (slides + missions) to
+      // Supabase immediately so a refresh never loses the work. Saved as a draft
+      // (is_published=false). The new lesson_id is stamped back into context so
+      // the next manual save UPDATEs in place instead of duplicating.
+      const saveRes = await persistLesson(lessonWithMissions, slides, false);
       if (saveRes.ok === true) {
         if (!activeLessonData.lesson_id) {
-          setActiveLessonData({ ...activeLessonData, lesson_id: saveRes.lesson_id, slides });
+          setActiveLessonData({ ...lessonWithMissions, lesson_id: saveRes.lesson_id });
         }
         setDirty(false);
         toast.success('Saved to your library ☁️');
