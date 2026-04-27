@@ -27,9 +27,24 @@ export const EmptyState: React.FC = () => {
       if (error) {
         const ctx: any = (error as any).context;
         const status = ctx?.status;
+        // Try to read the actual error body returned by the edge function
+        let backendMessage = '';
+        try {
+          if (ctx?.body && typeof ctx.body.getReader === 'function') {
+            const text = await new Response(ctx.body).text();
+            const parsed = JSON.parse(text);
+            backendMessage = parsed?.error || parsed?.detail || text;
+          } else if (typeof ctx?.responseText === 'string') {
+            try { backendMessage = JSON.parse(ctx.responseText)?.error || ctx.responseText; }
+            catch { backendMessage = ctx.responseText; }
+          }
+        } catch (parseErr) {
+          console.warn('Could not parse edge function error body', parseErr);
+        }
+        console.error('generate-ppp-slides failed', { status, backendMessage, error });
         if (status === 429) toast.error('Rate limit reached. Try again in a moment.');
         else if (status === 402) toast.error('AI credits exhausted. Add funds in Workspace → Usage.');
-        else toast.error(error.message || 'Could not generate slides');
+        else toast.error(backendMessage || error.message || 'Could not generate slides');
         return;
       }
       const slides: PPPSlide[] = (data?.slides ?? []).map((s: any) => ({
