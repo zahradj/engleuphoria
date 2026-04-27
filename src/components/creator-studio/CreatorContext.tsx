@@ -255,16 +255,16 @@ export const CreatorProvider: React.FC<{ children: React.ReactNode }> = ({ child
           false, // autosave never publishes
         );
         if (!result.ok) {
-          toast.error(`Autosave failed: ${result.error}`, {
+          const msg = result.error;
+          toast.error(`Autosave failed: ${msg}`, {
             description:
-              result.error.toLowerCase().includes('row-level') ||
-              result.error.toLowerCase().includes('permission')
+              msg.toLowerCase().includes('row-level') ||
+              msg.toLowerCase().includes('permission')
                 ? 'Your account is missing the content_creator role. Ask an admin to grant it.'
                 : undefined,
           });
         } else {
           if (!activeLessonData.lesson_id) {
-            // Stamp the new id so the next autosave UPDATEs instead of INSERTs
             setActiveLessonData((prev) =>
               prev ? { ...prev, lesson_id: result.lesson_id } : prev,
             );
