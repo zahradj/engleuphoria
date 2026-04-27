@@ -366,7 +366,29 @@ const VisualsPanel: React.FC<Props> = ({ slide, onChange }) => {
     }
   };
 
-  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Generate a short looping AI clip via fal.ai (Veo 3 Fast). Takes 30–60s.
+  const handleGenerateVideo = async () => {
+    const prompt = (slide.video_generation_prompt || slide.visual_keyword || slide.title || '').trim();
+    if (!prompt) {
+      toast.error('Add a video prompt first.');
+      return;
+    }
+    const toastId = toast.loading('Generating AI video — this takes 30–60 seconds…');
+    try {
+      setGeneratingVideo(true);
+      const { url } = await generateSlideVideo(prompt, lessonId, slide.id);
+      onChange({ custom_video_url: url, custom_image_url: undefined });
+      toast.success('AI video generated and attached.', { id: toastId });
+    } catch (err) {
+      console.error('Video generation error:', err);
+      toast.error(
+        (err as Error).message || 'Video generation failed. Please try again or upload manually.',
+        { id: toastId },
+      );
+    } finally {
+      setGeneratingVideo(false);
+    }
+  };
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
