@@ -17,6 +17,7 @@ const SLIDE_TYPES = [
 ] as const;
 const MEDIA_TYPES = ["image", "video"] as const;
 const LAYOUTS = ["split_left", "split_right", "center_card", "full_background"] as const;
+const MISSION_TYPES = ["memory_match", "listen_and_choose", "word_scramble"] as const;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
