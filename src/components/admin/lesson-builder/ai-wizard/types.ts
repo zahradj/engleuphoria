@@ -24,7 +24,9 @@ export type ActivityType =
   // Practice Layer — Grammar
   | 'grammar_blocks' | 'article_picker' | 'sentence_transform'
   // Four-Skill Activities
-  | 'sound_spotting' | 'tactile_tracing' | 'letter_hunt' | 'sound_trigger';
+  | 'sound_spotting' | 'tactile_tracing' | 'letter_hunt' | 'sound_trigger'
+  // Director-generated interactive types (PPP)
+  | 'drag_and_match' | 'fill_in_the_gaps';
 
 export type SlideLayout = 'split' | 'centered' | 'bento';
 
