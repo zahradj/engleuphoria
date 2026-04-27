@@ -50,12 +50,21 @@ const SlideMedia: React.FC<{ slide: PPPSlide }> = ({ slide }) => {
     );
   }
 
+  // Full-screen game mode: hide hero image entirely unless the teacher explicitly
+  // uploaded one or toggled `force_hero_image`. This frees vertical space for the game.
+  const isGame = isGameSlideType(slide.slide_type);
+  if (isGame && !slide.custom_image_url && !slide.force_hero_image) {
+    return null;
+  }
+
   const url = imageUrlFor(slide);
   // Always render — SafeSlideImage shows a friendly emoji panel on error / missing URL.
   const emoji = slide.slide_type === 'mascot_speech' ? '🐧'
     : slide.slide_type === 'flashcard' ? '🃏'
     : slide.slide_type === 'drawing_canvas' ? '🎨'
     : slide.slide_type === 'drag_and_drop' ? '🧩'
+    : slide.slide_type === 'drag_and_match' ? '🔗'
+    : slide.slide_type === 'fill_in_the_gaps' ? '✍️'
     : '✨';
   return (
     <SafeSlideImage
