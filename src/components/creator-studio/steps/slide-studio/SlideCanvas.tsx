@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { SafeSlideImage } from '@/components/common/SafeSlideImage';
 import { playSlideAudio } from '@/lib/playSlideAudio';
 import { useHubTheme } from '@/hooks/useHubTheme';
+import { shouldShowAudioButton } from '@/components/lesson-player/audioGate';
 
 type ViewMode = 'student' | 'teacher';
 
