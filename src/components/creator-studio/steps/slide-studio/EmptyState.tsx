@@ -66,7 +66,7 @@ export const EmptyState: React.FC = () => {
       // (is_published=false). The new lesson_id is stamped back into context
       // so the next manual save UPDATEs in place instead of duplicating.
       const saveRes = await persistLesson(activeLessonData, slides, false);
-      if (saveRes.ok) {
+      if (saveRes.ok === true) {
         if (!activeLessonData.lesson_id) {
           setActiveLessonData({ ...activeLessonData, lesson_id: saveRes.lesson_id, slides });
         }
