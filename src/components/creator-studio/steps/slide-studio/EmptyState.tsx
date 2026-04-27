@@ -5,9 +5,10 @@ import { useCreator, PPPSlide } from '../../CreatorContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { normalizePhase } from './phaseTheme';
+import { persistLesson } from '../../persistLesson';
 
 export const EmptyState: React.FC = () => {
-  const { activeLessonData, replaceSlides, setCurrentStep } = useCreator();
+  const { activeLessonData, replaceSlides, setCurrentStep, setActiveLessonData, setDirty } = useCreator();
   const [loading, setLoading] = useState(false);
 
   if (!activeLessonData) return null;
@@ -59,6 +60,22 @@ export const EmptyState: React.FC = () => {
       }
       replaceSlides(slides);
       toast.success(`Generated ${slides.length} slides ✨`);
+
+      // 🔐 AUTO-PERSIST: write the freshly generated deck to Supabase
+      // immediately so a refresh never loses the work. Saved as a draft
+      // (is_published=false). The new lesson_id is stamped back into context
+      // so the next manual save UPDATEs in place instead of duplicating.
+      const saveRes = await persistLesson(activeLessonData, slides, false);
+      if (saveRes.ok === true) {
+        if (!activeLessonData.lesson_id) {
+          setActiveLessonData({ ...activeLessonData, lesson_id: saveRes.lesson_id, slides });
+        }
+        setDirty(false);
+        toast.success('Saved to your library ☁️');
+      } else {
+        console.error('Auto-save after generation failed:', saveRes.error);
+        toast.error(`Generated, but auto-save failed: ${saveRes.error}`);
+      }
     } catch (e: any) {
       console.error(e);
       toast.error(e?.message || 'Generation failed');
