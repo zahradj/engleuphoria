@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { PPPSlide, MCQData, FlashcardData, DrawingData } from '../../CreatorContext';
+import { PPPSlide, MCQData, FlashcardData, DrawingData, DragAndMatchData, FillInTheGapsData, isGameSlideType } from '../../CreatorContext';
 import { PHASE_STYLES, normalizePhase } from './phaseTheme';
 import { cn } from '@/lib/utils';
 import { Pencil, GripHorizontal, X, CheckCircle2, ImageOff, Volume2, Loader2 } from 'lucide-react';
