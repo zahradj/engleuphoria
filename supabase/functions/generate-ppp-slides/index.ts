@@ -122,21 +122,68 @@ Hub: ${hub}
 
 Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
 
-    // Use JSON mode (response_format) instead of tool-calling — Google AI Studio
-    // rejects complex tool schemas via the OpenAI-compatible endpoint, but reliably
-    // honors response_format: json_object when the prompt requests strict JSON.
-    const jsonInstructions = `\n\n══════════════════════════════════════════\nOUTPUT FORMAT — STRICT JSON ONLY\n══════════════════════════════════════════\nReturn a single JSON object — no markdown fences, no commentary.\nShape:\n{\n  "slides": [\n    {\n      "phase": "Hook" | "Input" | "Practice" | "Production" | "Reward",\n      "slide_type": "mascot_speech" | "multiple_choice" | "drawing_canvas" | "drag_and_drop" | "flashcard",\n      "media_type": "image" | "video",\n      "layout_style": "split_left" | "split_right" | "center_card" | "full_background",\n      "title": string,\n      "content": string,\n      "teacher_script": string,\n      "visual_keyword": string,\n      "elevenlabs_script": string,\n      "image_generation_prompt": string,\n      "video_generation_prompt": string,\n      "interactive_data": object\n    }\n  ]\n}\nEvery slide MUST contain every field. interactive_data shape depends on slide_type as defined in RULE 4.`;
+    const tool = {
+      type: "function",
+      function: {
+        name: "emit_director_lesson",
+        description: "Return a 15-20 slide progressive lesson directed by the Master Curriculum Director.",
+        parameters: {
+          type: "object",
+          properties: {
+            slides: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  phase: { type: "string", enum: [...PHASES] },
+                  slide_type: { type: "string", enum: [...SLIDE_TYPES] },
+                  media_type: { type: "string", enum: [...MEDIA_TYPES] },
+                  layout_style: { type: "string", enum: [...LAYOUTS] },
+                  title: { type: "string" },
+                  content: { type: "string" },
+                  teacher_script: { type: "string" },
+                  visual_keyword: { type: "string" },
+                  elevenlabs_script: { type: "string" },
+                  image_generation_prompt: { type: "string" },
+                  video_generation_prompt: { type: "string" },
+                  interactive_data_json: { type: "string" },
+                },
+                required: [
+                  "phase",
+                  "slide_type",
+                  "media_type",
+                  "layout_style",
+                  "title",
+                  "content",
+                  "teacher_script",
+                  "visual_keyword",
+                  "elevenlabs_script",
+                  "image_generation_prompt",
+                  "video_generation_prompt",
+                  "interactive_data_json",
+                ],
+                additionalProperties: false,
+              },
+            },
+          },
+          required: ["slides"],
+          additionalProperties: false,
+        },
+      },
+    };
 
     async function callAI(): Promise<{ ok: true; slides: any[] } | { ok: false; status: number; detail: string }> {
       const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "openai/gpt-5-mini",
+          model: "google/gemini-2.5-flash",
           messages: [
-            { role: "system", content: "Return JSON only." },
-            { role: "user", content: "Return {\"slides\": [{\"title\": \"hello\"}]}" },
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
           ],
+          tools: [tool],
+          tool_choice: { type: "function", function: { name: "emit_director_lesson" } },
         }),
       });
 
@@ -145,17 +192,15 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
       }
 
       const data = await aiResp.json();
-      const text = data?.choices?.[0]?.message?.content;
-      if (!text || typeof text !== "string") {
-        return { ok: false, status: 502, detail: "No content in AI response" };
+      const argsRaw = data?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+      if (!argsRaw) {
+        return { ok: false, status: 502, detail: "No tool_call in AI response" };
       }
-      // Strip stray markdown fences just in case.
-      const cleaned = text.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
       let parsedArgs: any;
       try {
-        parsedArgs = JSON.parse(cleaned);
+        parsedArgs = JSON.parse(argsRaw);
       } catch (e) {
-        return { ok: false, status: 502, detail: `JSON parse failed: ${(e as Error).message}` };
+        return { ok: false, status: 502, detail: `Tool args JSON parse failed: ${(e as Error).message}` };
       }
       if (!parsedArgs || !Array.isArray(parsedArgs.slides) || parsedArgs.slides.length === 0) {
         return { ok: false, status: 502, detail: "Validation failed: missing slides[]" };
