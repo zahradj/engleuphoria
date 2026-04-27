@@ -146,11 +146,14 @@ export default function FillInTheGaps({ slide, hub = 'academy', onCorrect, onInc
             : { scale: 1 }
           }
           transition={{ duration: 0.4 }}
-          className="inline-flex items-center justify-center px-8 py-4 rounded-2xl min-w-[180px] min-h-[72px]"
+          className={[
+            'inline-flex items-center justify-center px-8 py-4 rounded-2xl min-w-[180px] min-h-[72px]',
+            shakeGap && 'wrong-shake',
+            tracker.showTargetHighlight && !isCorrect && 'hint-target-pulse',
+          ].filter(Boolean).join(' ')}
           style={{
             background: isCorrect
               ? `linear-gradient(135deg, #22c55e, #16a34a)`
-              : wrongFlash ? '#7f1d1d'
               : '#1e1b4b',
             border: `3px dashed ${isCorrect ? '#22c55e' : primary + 'aa'}`,
             color: isCorrect ? '#fff' : '#fbbf24',
