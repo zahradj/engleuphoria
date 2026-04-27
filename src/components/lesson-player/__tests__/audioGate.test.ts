@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, it, expect } from 'vitest';
 import { shouldShowAudioButton } from '../audioGate';
 import type { SlideType } from '@/components/creator-studio/CreatorContext';
