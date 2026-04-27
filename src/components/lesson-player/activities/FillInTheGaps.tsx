@@ -13,6 +13,8 @@ interface Props {
   hub?: HubType;
   onCorrect: () => void;
   onIncorrect?: () => void;
+  /** Called when the slide is solved, carrying the final star count (1-3). */
+  onStarsAwarded?: (stars: number) => void;
 }
 
 /**
