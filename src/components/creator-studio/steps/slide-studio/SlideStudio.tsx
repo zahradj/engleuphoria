@@ -5,11 +5,14 @@ import { SlideThumbnailRail } from './SlideThumbnailRail';
 import { SlideCanvas } from './SlideCanvas';
 import { TeacherControlsPanel } from './TeacherControlsPanel';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Target } from 'lucide-react';
+import { ArrowRight, Target, Sparkles, Loader2 } from 'lucide-react';
+import { generateSlideImage, generateSlideVoiceover } from './mediaGeneration';
+import { toast } from 'sonner';
 
 export const SlideStudio: React.FC = () => {
   const { activeLessonData, updateSlide, setCurrentStep } = useCreator();
   const [activeSlideId, setActiveSlideId] = useState<string | null>(null);
+  const [autoGenerating, setAutoGenerating] = useState(false);
 
   // Auto-select first slide whenever the deck changes / loads.
   useEffect(() => {
@@ -70,8 +73,49 @@ export const SlideStudio: React.FC = () => {
             )}
           </div>
           {!!slides.length && (
-            <div className="text-xs text-slate-400 font-mono shrink-0">
-              {slides.length} slide{slides.length === 1 ? '' : 's'}
+            <div className="flex items-center gap-3 shrink-0">
+              <span className="text-xs text-slate-400 font-mono">
+                {slides.length} slide{slides.length === 1 ? '' : 's'}
+              </span>
+              <Button
+                onClick={async () => {
+                  if (!activeSlide || autoGenerating) return;
+                  const lessonId = activeLessonData.lesson_id ?? activeLessonData.source_lesson?.id ?? 'draft';
+                  const imagePrompt = (activeSlide.image_generation_prompt || activeSlide.visual_keyword || activeSlide.title || '').trim();
+                  const voiceText = (activeSlide.elevenlabs_script || activeSlide.content || activeSlide.title || '').trim();
+                  if (!imagePrompt && !voiceText) {
+                    toast.error('Add an image prompt or voiceover script first.');
+                    return;
+                  }
+                  setAutoGenerating(true);
+                  toast.message('✨ Auto-generating media…', { description: 'Image + voiceover in parallel.' });
+                  const tasks: Promise<unknown>[] = [];
+                  if (imagePrompt) {
+                    tasks.push(
+                      generateSlideImage(imagePrompt, lessonId, activeSlide.id)
+                        .then(({ url }) => updateSlide(activeSlide.id, { custom_image_url: url, custom_video_url: undefined }))
+                        .catch((e) => toast.error(`Image: ${(e as Error).message}`)),
+                    );
+                  }
+                  if (voiceText) {
+                    tasks.push(
+                      generateSlideVoiceover(voiceText, lessonId, activeSlide.id)
+                        .then(({ url }) => updateSlide(activeSlide.id, { audio_url: url }))
+                        .catch((e) => toast.error(`Voice: ${(e as Error).message}`)),
+                    );
+                  }
+                  await Promise.all(tasks);
+                  setAutoGenerating(false);
+                  toast.success('All media ready ✨');
+                }}
+                disabled={autoGenerating || !activeSlide}
+                className="bg-gradient-to-r from-violet-600 via-fuchsia-500 to-amber-400 text-white font-extrabold shadow-lg shadow-fuchsia-500/30 hover:shadow-fuchsia-500/50 transition-shadow border-0"
+              >
+                {autoGenerating
+                  ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                  : <Sparkles className="h-4 w-4 mr-1.5" />}
+                ✨ Auto-Generate All Media
+              </Button>
             </div>
           )}
         </div>

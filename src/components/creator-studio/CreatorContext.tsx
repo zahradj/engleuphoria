@@ -70,6 +70,12 @@ export interface PPPSlide {
   image_generation_prompt?: string;
   /** AI-engineered prompt the user can copy into a text-to-video tool. */
   video_generation_prompt?: string;
+  /** Prompt for AI background music (ElevenLabs Music / Lyria). */
+  music_generation_prompt?: string;
+  /** Public URL of the generated/uploaded voiceover MP3 attached to this slide. */
+  audio_url?: string;
+  /** Public URL of the generated/uploaded background music track attached to this slide. */
+  background_music_url?: string;
   interactive_data?: InteractiveData;
   // legacy / optional
   teacher_instructions?: string;
