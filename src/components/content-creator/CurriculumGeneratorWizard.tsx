@@ -324,9 +324,9 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
       }
 
       if (skippedCount > 0) {
-        toast.warning(`Saved ${savedCount} new units. Skipped ${skippedCount} units that already exist.`);
+        toast.warning(`Published ${savedCount} new units to the Master Library. Skipped ${skippedCount} units that already exist.`);
       } else {
-        toast.success(`Saved ${savedCount} units and ${generatedUnits.reduce((sum, u) => sum + (u.lessons?.length || 0), 0)} lessons to database!`);
+        toast.success(`Published ${savedCount} units and ${generatedUnits.reduce((sum, u) => sum + (u.lessons?.length || 0), 0)} lessons to the Master Library!`);
       }
       onCurriculumGenerated?.({ system: hubSystem, level: config.level, ageGroup: config.ageGroup });
     } catch (err: any) {
