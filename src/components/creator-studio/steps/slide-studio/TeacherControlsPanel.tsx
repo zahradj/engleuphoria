@@ -445,7 +445,14 @@ export const TeacherControlsPanel: React.FC<Props> = ({ slide, onChange }) => {
             <div className="space-y-1.5">
               <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Slide Type</Label>
               <Select value={slide.slide_type ?? 'text_image'} onValueChange={(v) => handleTypeChange(v as SlideType)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder={slide.slide_type ?? 'text_image'}>
+                    {(() => {
+                      const opt = TYPE_OPTIONS.find((o) => o.value === slide.slide_type);
+                      return opt ? opt.label : (slide.slide_type ?? 'text_image');
+                    })()}
+                  </SelectValue>
+                </SelectTrigger>
                 <SelectContent>
                   {TYPE_OPTIONS.map(({ value, label, Icon }) => (
                     <SelectItem key={value} value={value}>
