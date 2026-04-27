@@ -196,6 +196,7 @@ tagged with lesson_phase. The Phase-2 reading passage MUST reuse Phase-1 vocabul
                 type: "object",
                 properties: {
                   phase: { type: "string", enum: [...PHASES] },
+                  lesson_phase: { type: "string", enum: [...LESSON_PHASES] },
                   slide_type: { type: "string", enum: [...SLIDE_TYPES] },
                   media_type: { type: "string", enum: [...MEDIA_TYPES] },
                   layout_style: { type: "string", enum: [...LAYOUTS] },
@@ -216,6 +217,7 @@ tagged with lesson_phase. The Phase-2 reading passage MUST reuse Phase-1 vocabul
                 },
                 required: [
                   "phase",
+                  "lesson_phase",
                   "slide_type",
                   "media_type",
                   "layout_style",
