@@ -17,8 +17,10 @@ import {
 } from '@/components/ui/alert-dialog';
 import {
   ChevronRight, ChevronDown, Gamepad2, GraduationCap, Briefcase,
-  CheckCircle2, AlertCircle, Trophy, Loader2, Sparkles, Circle, Trash2,
+  CheckCircle2, AlertCircle, Trophy, Loader2, Sparkles, Circle, Trash2, X,
 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
 
 export type HubKey = 'playground' | 'academy' | 'professional';
 export type LessonStatus = 'draft' | 'generating' | 'ready';
