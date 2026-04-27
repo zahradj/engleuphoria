@@ -320,7 +320,62 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
       })(),
     }));
 
-    return new Response(JSON.stringify({ slides }), {
+    // ─── Homework missions: parse stringified payload + validate per-type shape ───
+    const rawMissions: any[] = (aiResult as any).homework_missions ?? [];
+    const homework_missions = rawMissions
+      .map((m: any) => {
+        let payload: any = {};
+        if (m?.payload_json && typeof m.payload_json === "string") {
+          try { payload = JSON.parse(m.payload_json); } catch { payload = {}; }
+        }
+        const base = {
+          id: crypto.randomUUID(),
+          mission_type: m?.mission_type,
+          prompt: m?.prompt ?? "",
+        };
+        switch (m?.mission_type) {
+          case "memory_match": {
+            const pairs = Array.isArray(payload.pairs)
+              ? payload.pairs.filter((p: any) => p?.term && p?.match)
+              : [];
+            return pairs.length >= 2 ? { ...base, pairs } : null;
+          }
+          case "listen_and_choose": {
+            const options = Array.isArray(payload.options) ? payload.options.filter((o: any) => typeof o === "string") : [];
+            const target = typeof payload.target_word === "string" ? payload.target_word : "";
+            const correct = typeof payload.correct_answer === "string" ? payload.correct_answer : target;
+            if (!target || options.length < 2 || !options.includes(correct)) return null;
+            return { ...base, target_word: target, options, correct_answer: correct };
+          }
+          case "word_scramble": {
+            const target = typeof payload.target_word === "string" ? payload.target_word : "";
+            let scrambled = typeof payload.scrambled === "string" ? payload.scrambled : "";
+            if (!target) return null;
+            // Self-heal: if scrambled is missing or equals target, shuffle locally.
+            if (!scrambled || scrambled.toLowerCase() === target.toLowerCase()) {
+              const arr = target.split("");
+              for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+              }
+              scrambled = arr.join("");
+              if (scrambled.toLowerCase() === target.toLowerCase()) scrambled = target.split("").reverse().join("");
+            }
+            return { ...base, target_word: target, scrambled };
+          }
+          default:
+            return null;
+        }
+      })
+      .filter(Boolean);
+
+    if (homework_missions.length < 3) {
+      console.warn(
+        `Director returned only ${homework_missions.length} valid homework missions (need 3-5). Returning what we have.`,
+      );
+    }
+
+    return new Response(JSON.stringify({ slides, homework_missions }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
