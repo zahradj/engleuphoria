@@ -4,6 +4,9 @@ import { GeneratedSlide } from '@/components/admin/lesson-builder/ai-wizard/type
 import { soundEffectsService } from '@/services/soundEffectsService';
 import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConfig';
 import type { HubType } from '@/components/admin/lesson-builder/ai-wizard/types';
+import StarMeter from '../StarMeter';
+import HintBubble from '../HintBubble';
+import { useStarHintTracker } from '@/hooks/useStarHintTracker';
 
 interface Pair {
   left_item: string;
@@ -17,6 +20,8 @@ interface Props {
   hub?: HubType;
   onCorrect: () => void;
   onIncorrect?: () => void;
+  /** Called when all pairs are matched, carrying the final star count (1-3). */
+  onStarsAwarded?: (stars: number) => void;
 }
 
 /**
@@ -25,7 +30,7 @@ interface Props {
  * On a correct match: snap animation, ding sound. When all pairs are matched, fires onCorrect()
  * (the parent then handles confetti + next-slide unlock — same pipeline as Multiple Choice).
  */
-export default function DragAndMatch({ slide, hub = 'academy', onCorrect, onIncorrect }: Props) {
+export default function DragAndMatch({ slide, hub = 'academy', onCorrect, onIncorrect, onStarsAwarded }: Props) {
   const config = HUB_CONFIGS[hub] || HUB_CONFIGS.academy;
   const primary = (config as any)?.primaryColor || '#6366f1';
   const accent = (config as any)?.accentColor || '#a855f7';
@@ -60,17 +65,28 @@ export default function DragAndMatch({ slide, hub = 'academy', onCorrect, onInco
   const [selectedLeft, setSelectedLeft] = useState<string | null>(null);
   const [shake, setShake] = useState<string | null>(null);
   const firedRef = useRef(false);
+  const tracker = useStarHintTracker();
+  const hintText = (slide as any).hint_text as string | undefined;
+
+  // Reset star/hint state whenever the active slide changes.
+  useEffect(() => {
+    tracker.reset();
+    firedRef.current = false;
+    setMatched({});
+    setSelectedLeft(null);
+  }, [slide.id]);
 
   const allMatched = pairs.length > 0 && Object.keys(matched).length === pairs.length;
 
   useEffect(() => {
     if (allMatched && !firedRef.current) {
       firedRef.current = true;
+      onStarsAwarded?.(tracker.stars);
       // Slight delay so the user sees the final snap animation before the parent advances.
       const t = setTimeout(() => onCorrect(), 600);
       return () => clearTimeout(t);
     }
-  }, [allMatched, onCorrect]);
+  }, [allMatched, onCorrect, onStarsAwarded, tracker.stars]);
 
   const tryMatch = (leftItem: string, rightItem: string) => {
     if (matched[leftItem]) return;
@@ -82,6 +98,7 @@ export default function DragAndMatch({ slide, hub = 'academy', onCorrect, onInco
     } else {
       soundEffectsService.playIncorrect();
       onIncorrect?.();
+      tracker.registerWrong();
       setShake(leftItem + '|' + rightItem);
       setTimeout(() => setShake(null), 400);
     }
@@ -120,6 +137,8 @@ export default function DragAndMatch({ slide, hub = 'academy', onCorrect, onInco
 
   return (
     <div className="flex flex-col items-center gap-6 p-6 w-full h-full max-w-4xl mx-auto">
+      <StarMeter stars={tracker.stars} />
+      <HintBubble visible={tracker.showHint && !allMatched} text={hintText} />
       <h2 className="text-2xl md:text-3xl font-bold text-center" style={{ color: '#e2e8f0' }}>
         🔗 {instruction}
       </h2>

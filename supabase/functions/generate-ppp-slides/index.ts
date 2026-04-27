@@ -143,6 +143,11 @@ RULE 6 — INTERACTIVE_DATA SHAPES (by slide_type)
                      // EXACTLY 3 pairs.
 • fill_in_the_gaps → { "instruction": string, "sentence_parts": string[], "missing_word": string, "distractors": string[2..3] }
 
+For EVERY interactive slide (multiple_choice, drag_and_match, fill_in_the_gaps, drag_and_drop) you
+MUST also include a top-level "hint_text": short kid-friendly hint (≤ 90 chars) revealed after the
+student's first wrong answer. Never spoil the answer outright — guide them. Example for a past
+tense gap: "Past tense often ends in -ed."
+
 ═══════════════════════════════════════════════════════
 RULE 7 — MULTIMODAL MEDIA PROMPTS
 ═══════════════════════════════════════════════════════
@@ -208,6 +213,7 @@ tagged with lesson_phase. The Phase-2 reading passage MUST reuse Phase-1 vocabul
                   image_generation_prompt: { type: "string" },
                   video_generation_prompt: { type: "string" },
                   interactive_data_json: { type: "string" },
+                  hint_text: { type: "string" },
                   target_skills: {
                     type: "array",
                     minItems: 1,
@@ -375,6 +381,7 @@ tagged with lesson_phase. The Phase-2 reading passage MUST reuse Phase-1 vocabul
         video_generation_prompt: s.video_generation_prompt ?? "",
         target_skills,
         requires_audio,
+        hint_text: typeof s.hint_text === "string" ? s.hint_text : "",
         interactive_data: (() => {
           if (s.interactive_data && typeof s.interactive_data === "object") return s.interactive_data;
           if (typeof s.interactive_data_json === "string") {

@@ -4,12 +4,17 @@ import { GeneratedSlide } from '@/components/admin/lesson-builder/ai-wizard/type
 import { soundEffectsService } from '@/services/soundEffectsService';
 import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConfig';
 import type { HubType } from '@/components/admin/lesson-builder/ai-wizard/types';
+import StarMeter from '../StarMeter';
+import HintBubble from '../HintBubble';
+import { useStarHintTracker } from '@/hooks/useStarHintTracker';
 
 interface Props {
   slide: GeneratedSlide;
   hub?: HubType;
   onCorrect: () => void;
   onIncorrect?: () => void;
+  /** Called when the slide is solved, carrying the final star count (1-3). */
+  onStarsAwarded?: (stars: number) => void;
 }
 
 /**
@@ -18,7 +23,7 @@ interface Props {
  * Tap or drag a pill into the gap. On correct: snap-in animation, ding, then onCorrect()
  * (parent handles confetti + Next Slide unlock).
  */
-export default function FillInTheGaps({ slide, hub = 'academy', onCorrect, onIncorrect }: Props) {
+export default function FillInTheGaps({ slide, hub = 'academy', onCorrect, onIncorrect, onStarsAwarded }: Props) {
   const config = HUB_CONFIGS[hub] || HUB_CONFIGS.academy;
   const primary = (config as any)?.primaryColor || '#6366f1';
   const accent = (config as any)?.accentColor || '#a855f7';
@@ -61,16 +66,26 @@ export default function FillInTheGaps({ slide, hub = 'academy', onCorrect, onInc
   const [wrongFlash, setWrongFlash] = useState(false);
   const [shakeGap, setShakeGap] = useState(false);
   const firedRef = useRef(false);
+  const tracker = useStarHintTracker();
+  const hintText = (slide as any).hint_text as string | undefined;
+
+  // Reset star/hint state whenever the active slide changes.
+  useEffect(() => {
+    tracker.reset();
+    firedRef.current = false;
+    setFilled(null);
+  }, [slide.id]);
 
   const isCorrect = !!filled && filled.toLowerCase() === missingWord.toLowerCase();
 
   useEffect(() => {
     if (isCorrect && !firedRef.current) {
       firedRef.current = true;
+      onStarsAwarded?.(tracker.stars);
       const t = setTimeout(() => onCorrect(), 700);
       return () => clearTimeout(t);
     }
-  }, [isCorrect, onCorrect]);
+  }, [isCorrect, onCorrect, onStarsAwarded, tracker.stars]);
 
   const tryWord = (word: string) => {
     if (filled && filled.toLowerCase() === missingWord.toLowerCase()) return;
@@ -80,6 +95,7 @@ export default function FillInTheGaps({ slide, hub = 'academy', onCorrect, onInc
     } else {
       soundEffectsService.playIncorrect();
       onIncorrect?.();
+      tracker.registerWrong();
       setWrongFlash(true);
       setShakeGap(true);
       setTimeout(() => setWrongFlash(false), 500);
@@ -108,7 +124,9 @@ export default function FillInTheGaps({ slide, hub = 'academy', onCorrect, onInc
   const pillUsed = (word: string) => isCorrect && word.toLowerCase() === missingWord.toLowerCase();
 
   return (
-    <div className="flex flex-col items-center gap-8 p-6 w-full h-full max-w-4xl mx-auto">
+    <div className="flex flex-col items-center gap-6 p-6 w-full h-full max-w-4xl mx-auto">
+      <StarMeter stars={tracker.stars} />
+      <HintBubble visible={tracker.showHint && !isCorrect} text={hintText} />
       <h2 className="text-2xl md:text-3xl font-bold text-center" style={{ color: '#e2e8f0' }}>
         ✍️ {instruction}
       </h2>
@@ -128,11 +146,14 @@ export default function FillInTheGaps({ slide, hub = 'academy', onCorrect, onInc
             : { scale: 1 }
           }
           transition={{ duration: 0.4 }}
-          className="inline-flex items-center justify-center px-8 py-4 rounded-2xl min-w-[180px] min-h-[72px]"
+          className={[
+            'inline-flex items-center justify-center px-8 py-4 rounded-2xl min-w-[180px] min-h-[72px]',
+            shakeGap && 'wrong-shake',
+            tracker.showTargetHighlight && !isCorrect && 'hint-target-pulse',
+          ].filter(Boolean).join(' ')}
           style={{
             background: isCorrect
               ? `linear-gradient(135deg, #22c55e, #16a34a)`
-              : wrongFlash ? '#7f1d1d'
               : '#1e1b4b',
             border: `3px dashed ${isCorrect ? '#22c55e' : primary + 'aa'}`,
             color: isCorrect ? '#fff' : '#fbbf24',
@@ -190,7 +211,7 @@ export default function FillInTheGaps({ slide, hub = 'academy', onCorrect, onInc
             className="text-xl font-bold"
             style={{ color: '#22c55e' }}
           >
-            ✨ Perfect! +10 XP
+            ✨ Perfect! +{tracker.stars * 10} XP ({tracker.stars}/3 ⭐)
           </motion.p>
         )}
       </AnimatePresence>
