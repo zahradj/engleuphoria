@@ -399,6 +399,21 @@ tagged with lesson_phase. The Phase-2 reading passage MUST reuse Phase-1 vocabul
       );
     }
 
+    // 6-Step Blueprint validation: all 6 lesson_phases must appear, in non-decreasing order.
+    const phasesPresent = new Set(slides.map((s) => s.lesson_phase));
+    const missing = LESSON_PHASES.filter((p) => !phasesPresent.has(p));
+    if (missing.length) {
+      console.warn(`Blueprint violation: missing lesson_phase(s): ${missing.join(", ")}`);
+    }
+    const phaseOrderIndex = (p: string) => LESSON_PHASES.indexOf(p as any);
+    for (let i = 1; i < slides.length; i++) {
+      if (phaseOrderIndex(slides[i].lesson_phase) < phaseOrderIndex(slides[i - 1].lesson_phase)) {
+        console.warn(
+          `Blueprint order violation at slide ${i + 1}: ${slides[i].lesson_phase} after ${slides[i - 1].lesson_phase}.`,
+        );
+      }
+    }
+
     // ─── Homework missions: parse stringified payload + validate per-type shape ───
     const rawMissions: any[] = (aiResult as any).homework_missions ?? [];
     const homework_missions = rawMissions
