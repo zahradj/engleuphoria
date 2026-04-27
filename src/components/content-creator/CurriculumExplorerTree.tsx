@@ -456,6 +456,7 @@ export const CurriculumExplorerTree: React.FC<CurriculumExplorerTreeProps> = ({
                           const isSelected = selectedLessonId === lesson.id;
                           const isGenerating = status === 'generating';
 
+                          const isChecked = selectedIds.has(lesson.id);
                           return (
                             <div
                               key={lesson.id}
@@ -463,9 +464,20 @@ export const CurriculumExplorerTree: React.FC<CurriculumExplorerTreeProps> = ({
                                 'flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all duration-150 group',
                                 isSelected
                                   ? 'bg-primary/10 border border-primary/25 shadow-sm'
-                                  : 'hover:bg-muted/50 border border-transparent'
+                                  : isChecked
+                                    ? 'bg-destructive/5 border border-destructive/20'
+                                    : 'hover:bg-muted/50 border border-transparent'
                               )}
                             >
+                              {/* Multi-select checkbox */}
+                              <Checkbox
+                                checked={isChecked}
+                                onCheckedChange={() => toggleSelected(lesson.id)}
+                                onClick={(e) => e.stopPropagation()}
+                                className="h-3.5 w-3.5 shrink-0"
+                                aria-label={`Select ${lesson.title}`}
+                              />
+
                               {/* Status icon */}
                               <StatusIcon className={cn(
                                 'h-3 w-3 shrink-0',
