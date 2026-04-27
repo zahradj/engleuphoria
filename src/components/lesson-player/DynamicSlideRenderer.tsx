@@ -42,6 +42,7 @@ import SlideHook from './slides/SlideHook';
 import SlideVocabulary from './slides/SlideVocabulary';
 import SlideConcept from './slides/SlideConcept';
 import SlideSummary from './slides/SlideSummary';
+import SlideReadingSplit from './SlideReadingSplit';
 
 const ANIMATION_VARIANTS: Record<string, Variants> = {
   bounce: {
