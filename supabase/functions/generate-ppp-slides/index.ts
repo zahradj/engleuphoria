@@ -356,9 +356,13 @@ tagged with lesson_phase. The Phase-2 reading passage MUST reuse Phase-1 vocabul
       const requires_audio = typeof s.requires_audio === "boolean"
         ? s.requires_audio
         : target_skills.some((k) => k === "Listening" || k === "Speaking");
+      const lesson_phase = (LESSON_PHASES as readonly string[]).includes(s.lesson_phase)
+        ? s.lesson_phase
+        : "Vocabulary";
       return {
         id: crypto.randomUUID(),
         phase: s.phase,
+        lesson_phase,
         slide_type: s.slide_type,
         media_type: s.media_type ?? "image",
         layout_style: s.layout_style ?? "center_card",
