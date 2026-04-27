@@ -439,13 +439,14 @@ const VisualsPanel: React.FC<Props> = ({ slide, onChange }) => {
         placeholder="Short looping animation prompt (Veo / Runway)."
         rows={3}
       />
-      <Button type="button" disabled
-        className="w-full bg-slate-200 text-slate-500 cursor-not-allowed font-bold">
-        <Video className="h-4 w-4 mr-1.5" />
-        🎬 Generate Video — Coming soon
+      <Button type="button" onClick={handleGenerateVideo}
+        disabled={generatingVideo || !(slide.video_generation_prompt || '').trim()}
+        className="w-full bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold">
+        {generatingVideo ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Video className="h-4 w-4 mr-1.5" />}
+        {generatingVideo ? 'Generating video… (30–60s)' : '🎬 Generate Video (AI)'}
       </Button>
       <p className="text-[11px] text-slate-400 leading-relaxed -mt-2">
-        Veo isn't publicly accessible yet. Generate the clip in your preferred tool and upload below.
+        Powered by Google Veo 3 Fast. The clip auto-uploads and replaces the slide visual on completion.
       </p>
 
       <div className="h-px bg-slate-200 dark:bg-slate-800" />
