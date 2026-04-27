@@ -487,6 +487,10 @@ export const TeacherControlsPanel: React.FC<Props> = ({ slide, onChange }) => {
               <FlashcardEditor slide={slide} onChange={onChange} />
             ) : slide.slide_type === 'drawing_prompt' ? (
               <DrawingEditor slide={slide} onChange={onChange} />
+            ) : slide.slide_type === 'drag_and_match' ? (
+              <DragAndMatchEditor slide={slide} onChange={onChange} />
+            ) : slide.slide_type === 'fill_in_the_gaps' ? (
+              <FillInTheGapsEditor slide={slide} onChange={onChange} />
             ) : (
               <TextImageEditor slide={slide} onChange={onChange} />
             )}
