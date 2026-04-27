@@ -72,7 +72,7 @@ const SlideMedia: React.FC<{ slide: PPPSlide }> = ({ slide }) => {
 
 const PlaySoundButton: React.FC<{ slide: PPPSlide }> = ({ slide }) => {
   const [loading, setLoading] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const stopRef = useRef<(() => void) | null>(null);
 
   const text = (slide.elevenlabs_script || slide.content || slide.title || '').trim();
   const hasSavedAudio = !!slide.audio_url;
@@ -80,33 +80,39 @@ const PlaySoundButton: React.FC<{ slide: PPPSlide }> = ({ slide }) => {
 
   const handlePlay = async () => {
     if (loading) return;
+    // Stop any currently-playing channel first.
+    stopRef.current?.();
+
+    // Fast path — pre-generated audio with built-in TTS fallback.
+    if (hasSavedAudio) {
+      stopRef.current = playSlideAudio({
+        audioUrl: slide.audio_url,
+        text,
+        onError: () => toast.error('Audio failed — using browser voice instead.'),
+      });
+      return;
+    }
+
+    // Otherwise call the edge function for fresh ElevenLabs audio.
+    setLoading(true);
     try {
-      // Prefer the pre-generated audio when available — instant, no API call.
-      if (hasSavedAudio) {
-        if (audioRef.current) audioRef.current.pause();
-        const audio = new Audio(slide.audio_url!);
-        audioRef.current = audio;
-        await audio.play();
-        return;
-      }
-      setLoading(true);
       const { data, error } = await supabase.functions.invoke('generate-speech', {
         body: { text },
       });
       if (error) throw error;
       const blob = data instanceof Blob ? data : new Blob([data as ArrayBuffer], { type: 'audio/mpeg' });
       const url = URL.createObjectURL(blob);
-      if (audioRef.current) {
-        audioRef.current.pause();
-        URL.revokeObjectURL(audioRef.current.src);
-      }
-      const audio = new Audio(url);
-      audioRef.current = audio;
-      audio.onended = () => URL.revokeObjectURL(url);
-      await audio.play();
+      stopRef.current = playSlideAudio({
+        audioUrl: url,
+        text,
+        onEnd: () => URL.revokeObjectURL(url),
+        onError: () => toast.error('Audio failed — using browser voice instead.'),
+      });
     } catch (err) {
       console.error('Play sound error:', err);
-      toast.error('Could not play audio. Check ElevenLabs API key.');
+      // Final fallback: browser speech synthesis so the lesson never stalls.
+      stopRef.current = playSlideAudio({ text });
+      toast.message('Using browser voice (no API key).');
     } finally {
       setLoading(false);
     }
@@ -116,10 +122,13 @@ const PlaySoundButton: React.FC<{ slide: PPPSlide }> = ({ slide }) => {
     <button
       type="button"
       onClick={handlePlay}
+      onTouchStart={(e) => e.currentTarget.classList.add('translate-y-1')}
+      onTouchEnd={(e) => e.currentTarget.classList.remove('translate-y-1')}
       disabled={loading}
       className={cn(
-        'inline-flex items-center gap-2 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900',
+        'inline-flex items-center justify-center gap-2 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900',
         'px-4 py-2 text-sm font-extrabold border-2 border-b-4 border-amber-300 border-b-amber-500',
+        'min-h-[48px] min-w-[48px]',
         'transition-all hover:-translate-y-0.5 active:translate-y-1 active:border-b-2 disabled:opacity-60',
       )}
       title={text || 'Play voiceover'}
