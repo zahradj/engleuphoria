@@ -143,6 +143,11 @@ RULE 6 — INTERACTIVE_DATA SHAPES (by slide_type)
                      // EXACTLY 3 pairs.
 • fill_in_the_gaps → { "instruction": string, "sentence_parts": string[], "missing_word": string, "distractors": string[2..3] }
 
+For EVERY interactive slide (multiple_choice, drag_and_match, fill_in_the_gaps, drag_and_drop) you
+MUST also include a top-level "hint_text": short kid-friendly hint (≤ 90 chars) revealed after the
+student's first wrong answer. Never spoil the answer outright — guide them. Example for a past
+tense gap: "Past tense often ends in -ed."
+
 ═══════════════════════════════════════════════════════
 RULE 7 — MULTIMODAL MEDIA PROMPTS
 ═══════════════════════════════════════════════════════
