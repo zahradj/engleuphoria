@@ -17,8 +17,10 @@ import {
 } from '@/components/ui/alert-dialog';
 import {
   ChevronRight, ChevronDown, Gamepad2, GraduationCap, Briefcase,
-  CheckCircle2, AlertCircle, Trophy, Loader2, Sparkles, Circle, Trash2,
+  CheckCircle2, AlertCircle, Trophy, Loader2, Sparkles, Circle, Trash2, X,
 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
 
 export type HubKey = 'playground' | 'academy' | 'professional';
 export type LessonStatus = 'draft' | 'generating' | 'ready';
@@ -154,8 +156,30 @@ export const CurriculumExplorerTree: React.FC<CurriculumExplorerTreeProps> = ({
   const [accessories, setAccessories] = useState<Accessory[]>([]);
   const [expandedLevels, setExpandedLevels] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [deleteTarget, setDeleteTarget] = useState<{ type: 'lesson' | 'level'; id: string; name: string; lessonCount?: number } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ type: 'lesson' | 'level' | 'bulk'; id?: string; name?: string; lessonCount?: number; ids?: string[] } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectLevel = (levelLessons: ExplorerLesson[]) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      const allSelected = levelLessons.every((l) => next.has(l.id));
+      if (allSelected) levelLessons.forEach((l) => next.delete(l.id));
+      else levelLessons.forEach((l) => next.add(l.id));
+      return next;
+    });
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -226,15 +250,19 @@ export const CurriculumExplorerTree: React.FC<CurriculumExplorerTreeProps> = ({
     if (!deleteTarget) return;
     setIsDeleting(true);
     try {
-      if (deleteTarget.type === 'lesson') {
+      if (deleteTarget.type === 'lesson' && deleteTarget.id) {
         const { error } = await supabase.from('curriculum_lessons').delete().eq('id', deleteTarget.id);
         if (error) throw error;
         toast.success(`Lesson "${deleteTarget.name}" deleted`);
-      } else {
-        // Delete all lessons under this level first, then the level won't be deleted (it's structural)
+      } else if (deleteTarget.type === 'level' && deleteTarget.id) {
         const { error } = await supabase.from('curriculum_lessons').delete().eq('level_id', deleteTarget.id);
         if (error) throw error;
         toast.success(`All lessons in "${deleteTarget.name}" deleted`);
+      } else if (deleteTarget.type === 'bulk' && deleteTarget.ids?.length) {
+        const { error } = await supabase.from('curriculum_lessons').delete().in('id', deleteTarget.ids);
+        if (error) throw error;
+        toast.success(`${deleteTarget.ids.length} lesson(s) deleted`);
+        clearSelection();
       }
       fetchData();
     } catch (err: any) {
@@ -428,6 +456,7 @@ export const CurriculumExplorerTree: React.FC<CurriculumExplorerTreeProps> = ({
                           const isSelected = selectedLessonId === lesson.id;
                           const isGenerating = status === 'generating';
 
+                          const isChecked = selectedIds.has(lesson.id);
                           return (
                             <div
                               key={lesson.id}
@@ -435,9 +464,20 @@ export const CurriculumExplorerTree: React.FC<CurriculumExplorerTreeProps> = ({
                                 'flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all duration-150 group',
                                 isSelected
                                   ? 'bg-primary/10 border border-primary/25 shadow-sm'
-                                  : 'hover:bg-muted/50 border border-transparent'
+                                  : isChecked
+                                    ? 'bg-destructive/5 border border-destructive/20'
+                                    : 'hover:bg-muted/50 border border-transparent'
                               )}
                             >
+                              {/* Multi-select checkbox */}
+                              <Checkbox
+                                checked={isChecked}
+                                onCheckedChange={() => toggleSelected(lesson.id)}
+                                onClick={(e) => e.stopPropagation()}
+                                className="h-3.5 w-3.5 shrink-0"
+                                aria-label={`Select ${lesson.title}`}
+                              />
+
                               {/* Status icon */}
                               <StatusIcon className={cn(
                                 'h-3 w-3 shrink-0',
@@ -509,6 +549,30 @@ export const CurriculumExplorerTree: React.FC<CurriculumExplorerTreeProps> = ({
         </div>
       </ScrollArea>
 
+      {/* Bulk action bar — visible when lessons are selected */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-2 p-2 border-t border-destructive/30 bg-destructive/5">
+          <Badge variant="destructive" className="text-[10px]">{selectedIds.size} selected</Badge>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 px-2 text-[11px]"
+            onClick={clearSelection}
+          >
+            <X className="h-3 w-3 mr-1" /> Clear
+          </Button>
+          <div className="flex-1" />
+          <Button
+            size="sm"
+            variant="destructive"
+            className="h-7 px-3 text-[11px] gap-1"
+            onClick={() => setDeleteTarget({ type: 'bulk', ids: Array.from(selectedIds) })}
+          >
+            <Trash2 className="h-3 w-3" /> Delete Selected
+          </Button>
+        </div>
+      )}
+
       {/* Footer Stats */}
       <div className="p-2 border-t border-border bg-card">
         <div className="flex items-center justify-between text-[10px] text-muted-foreground">
@@ -524,12 +588,18 @@ export const CurriculumExplorerTree: React.FC<CurriculumExplorerTreeProps> = ({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {deleteTarget?.type === 'lesson' ? 'Delete Lesson' : 'Delete All Lessons in Level'}
+              {deleteTarget?.type === 'lesson'
+                ? 'Delete Lesson'
+                : deleteTarget?.type === 'bulk'
+                  ? `Delete ${deleteTarget?.ids?.length ?? 0} Selected Lessons`
+                  : 'Delete All Lessons in Level'}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {deleteTarget?.type === 'lesson'
                 ? `Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`
-                : `Are you sure you want to delete all ${deleteTarget?.lessonCount} lessons in "${deleteTarget?.name}"? This action cannot be undone.`}
+                : deleteTarget?.type === 'bulk'
+                  ? `Are you sure you want to delete the ${deleteTarget?.ids?.length} selected lesson(s)? This action cannot be undone.`
+                  : `Are you sure you want to delete all ${deleteTarget?.lessonCount} lessons in "${deleteTarget?.name}"? This action cannot be undone.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
