@@ -72,7 +72,31 @@ export interface FlashcardData {
 export interface DrawingData {
   prompt: string;
 }
-export type InteractiveData = MCQData | FlashcardData | DrawingData | Record<string, unknown>;
+export interface DragAndMatchPair {
+  left_item: string;
+  left_thumbnail_keyword?: string;
+  left_thumbnail_url?: string;
+  right_item: string;
+  right_thumbnail_keyword?: string;
+  right_thumbnail_url?: string;
+}
+export interface DragAndMatchData {
+  instruction: string;
+  pairs: DragAndMatchPair[];
+}
+export interface FillInTheGapsData {
+  instruction: string;
+  sentence_parts: [string, string];
+  missing_word: string;
+  distractors: string[];
+}
+export type InteractiveData =
+  | MCQData
+  | FlashcardData
+  | DrawingData
+  | DragAndMatchData
+  | FillInTheGapsData
+  | Record<string, unknown>;
 
 export interface PPPSlide {
   id: string;
