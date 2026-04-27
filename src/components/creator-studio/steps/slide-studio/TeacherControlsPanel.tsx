@@ -38,12 +38,28 @@ const DEFAULT_MCQ: MCQData = {
 };
 const DEFAULT_FLASHCARD: FlashcardData = { front: 'apple', back: 'a round red fruit' };
 const DEFAULT_DRAWING: DrawingData = { prompt: 'Draw your answer in your notebook and share with the class.' };
+const DEFAULT_DRAG_MATCH: DragAndMatchData = {
+  instruction: 'Drag each word to its match!',
+  pairs: [
+    { left_item: '', right_item: '' },
+    { left_item: '', right_item: '' },
+    { left_item: '', right_item: '' },
+  ],
+};
+const DEFAULT_FILL_GAPS: FillInTheGapsData = {
+  instruction: 'Fill in the gap!',
+  sentence_parts: ['The cat is on the ', '.'],
+  missing_word: 'mat',
+  distractors: ['hat', 'rat'],
+};
 
 const TYPE_OPTIONS: { value: SlideType; label: string; Icon: React.ElementType }[] = [
   { value: 'text_image', label: 'Story / Reading (Mascot Speech)', Icon: ImageIcon },
   { value: 'flashcard', label: 'Flashcard Flip', Icon: Layers },
   { value: 'drawing_prompt', label: 'Drawing Canvas', Icon: Pencil },
   { value: 'multiple_choice', label: 'Multiple Choice Game', Icon: ListChecks },
+  { value: 'drag_and_match', label: 'Drag & Match Game', Icon: Layers },
+  { value: 'fill_in_the_gaps', label: 'Fill in the Gaps', Icon: Type },
 ];
 
 const LAYOUT_OPTIONS: { value: LayoutStyle; label: string }[] = [
