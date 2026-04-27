@@ -409,9 +409,12 @@ export const SlideCanvas: React.FC<Props> = ({ slide, onChange }) => {
               'w-full max-w-2xl mx-auto bg-white dark:bg-slate-950 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl p-6 sm:p-8 space-y-6',
               FONT_STACK,
             )}>
-              <SlideImage slide={slide} />
+              <SlideMedia slide={slide} />
               <TitleField slide={slide} onChange={onChange} />
               <InteractiveBlock slide={slide} mode={mode} />
+              <div className="flex justify-center pt-2">
+                <PlaySoundButton slide={slide} />
+              </div>
             </div>
           </div>
 
