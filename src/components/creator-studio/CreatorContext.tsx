@@ -127,6 +127,10 @@ export interface PPPSlide {
   /** Public URL of the generated/uploaded background music track attached to this slide. */
   background_music_url?: string;
   interactive_data?: InteractiveData;
+  /** Skills exercised by this slide (Reading/Writing/Listening/Speaking/Grammar/Vocabulary). */
+  target_skills?: string[];
+  /** True only when audio is pedagogically essential (pronunciation, listening, dialogue, songs). */
+  requires_audio?: boolean;
   /** When true, force the hero image even on full-screen game slide types. */
   force_hero_image?: boolean;
   // legacy / optional

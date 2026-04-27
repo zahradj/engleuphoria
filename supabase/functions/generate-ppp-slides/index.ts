@@ -7,7 +7,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const PHASES = ["Hook", "Input", "Practice", "Production", "Reward"] as const;
+const PHASES = ["Hook", "Presentation", "Practice", "Production", "Mission"] as const;
 const SLIDE_TYPES = [
   "mascot_speech",
   "multiple_choice",
@@ -20,6 +20,7 @@ const SLIDE_TYPES = [
 const MEDIA_TYPES = ["image", "video"] as const;
 const LAYOUTS = ["split_left", "split_right", "center_card", "full_background"] as const;
 const MISSION_TYPES = ["memory_match", "listen_and_choose", "word_scramble"] as const;
+const SKILLS = ["Reading", "Writing", "Listening", "Speaking", "Grammar", "Vocabulary"] as const;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -44,114 +45,108 @@ Deno.serve(async (req) => {
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
 
-    const systemPrompt = `You are the MASTER CURRICULUM DIRECTOR for Engleuphoria — an elite ESL platform for kids and teens.
-You are simultaneously: (1) a CEFR-aligned pedagogy expert, (2) a Multimodal Media Director, and (3) a gamification designer.
-You are designing ONE 30-minute classroom-ready lesson as a 15–20 slide deck. Total slide count MUST be between 15 and 20 inclusive.
+    const systemPrompt = `You are the EXPERT CURRICULUM DESIGNER for Engleuphoria — an elite ESL platform.
+You are simultaneously: (1) a CEFR-aligned pedagogy expert, (2) a Multimodal Media Director, and (3) a gamification architect.
+You are designing ONE classroom-ready 1-HOUR (≈60 minute) interactive session as a 20–25 slide deck.
+Total slide count MUST be between 20 and 25 inclusive — never fewer than 20. A short deck is a FAILED deck.
 
 ═══════════════════════════════════════════════════════
-RULE 1 — THE PROGRESSIVE & SYSTEMATIC 30-MIN ARC (MANDATORY)
+RULE 1 — THE PROFESSIONAL 1-HOUR PPP ARC (MANDATORY)
 ═══════════════════════════════════════════════════════
-The deck MUST follow this exact 5-phase progressive arc, in order, with these slide counts:
+The deck MUST follow this exact 5-phase progressive arc, in order:
 
-• Phase 1 — HOOK (Slides 1–2, exactly 2 slides):
-  High-energy welcome. media_type MUST be "video" for at least one. Upbeat audio. slide_type = "mascot_speech".
-• Phase 2 — INPUT (Slides 3–6, exactly 4 slides):
-  Introduce new vocabulary/structures. Use "mascot_speech" + "flashcard". Clean static "image" media. The mascot models the word; the flashcard shows it.
-• Phase 3 — PRACTICE (Slides 7–12, exactly 6 slides):
-  Fast-paced active recall. Use "multiple_choice" and "flashcard". Mostly "image" media; "video" allowed for action verbs.
-• Phase 4 — PRODUCTION (Slides 13–17, exactly 5 slides):
-  Creative divergent output. Use "drawing_canvas" and "drag_and_drop". The student CREATES — they don't just click.
-• Phase 5 — REWARD (Slides 18–20, exactly 3 slides):
-  Massive review game (one final multiple_choice OR drag_and_drop) + a celebration. The final slide MUST be a "mascot_speech" with media_type "video" (celebration animation).
+• Phase 1 — HOOK / Real-Life Context (2–3 slides):
+  Introduce the topic through a real-world artifact (a chat message, travel ticket, short dialogue, photo caption).
+  Focus skills: Reading + Listening. slide_type "mascot_speech" or "flashcard".
+• Phase 2 — PRESENTATION / Rules & Vocabulary (4–5 slides):
+  Teach the core grammar rules and vocabulary clearly with high-quality visual examples.
+  slide_type "mascot_speech" + "flashcard". Clean static "image" media.
+• Phase 3 — CONTROLLED PRACTICE / Gamified (6–8 slides):
+  Fast-paced active recall. MUST use a mix of "drag_and_match", "fill_in_the_gaps", and "multiple_choice".
+  Focus skills: Grammar + Vocabulary.
+• Phase 4 — FREER PRACTICE / Skill Blending (4–5 slides):
+  Multi-skill blended tasks. e.g. read a short paragraph then answer comprehension; listen and reorder; write a caption.
+  Use "multiple_choice", "fill_in_the_gaps", "drag_and_drop", "drawing_canvas".
+• Phase 5 — FINAL MISSION / Production (2–3 slides):
+  Real-world output task: the student WRITES a sentence or SOLVES a scenario based on what they learned
+  (e.g., "Reply to this hotel email", "Write a 1-sentence message to your friend").
+  Focus skills: Writing + Speaking. Use "drawing_canvas" (for handwriting/typing) or "drag_and_drop".
 
-Total: 2 + 4 + 6 + 5 + 3 = 20 slides. You may compress Practice or Production by 1 slide each if pedagogically justified, but never below 15 total.
-
-═══════════════════════════════════════════════════════
-RULE 2 — SMART MEDIA ROUTING (MANDATORY for every slide)
-═══════════════════════════════════════════════════════
-You are the Media Director. For EVERY slide, choose the absolute best media_type for the visual_keyword:
-
-• Rule A — USE "image" when:
-  - Teaching a static Noun (apple, chair, mountain)
-  - Teaching an Adjective describing a static quality (red, tall, soft)
-  - Generating a background for a Drag-and-Drop, Drawing Canvas, or Flashcard game
-  - Any slide where motion would distract from the learning target
-
-• Rule B — USE "video" when:
-  - Teaching an Action / Verb (running, jumping, eating, swimming)
-  - Teaching an Emotion (happy, surprised, scared) — facial micro-animation matters
-  - Creating a Brain Break / Dance Break / Celebration slide
-  - The Hook slides (energy is the goal)
-
-If unsure, default to "image" — but never miss a verb or emotion.
+Phase totals must sum to 20–25. Distribution example: 3 + 5 + 7 + 5 + 3 = 23.
 
 ═══════════════════════════════════════════════════════
-RULE 3 — DIVERGENT INTERACTIVITY (STRICTLY ENFORCED)
+RULE 2 — SKILL TAGGING (MANDATORY for every slide)
+═══════════════════════════════════════════════════════
+Every slide MUST include a non-empty "target_skills" array drawn from:
+["Reading", "Writing", "Listening", "Speaking", "Grammar", "Vocabulary"].
+Across the FULL deck, AT LEAST 3 of the four CORE skills (Reading, Writing, Listening, Speaking) MUST appear.
+A lesson that only drills Vocabulary + Grammar is a FAILED deck. Blend skills.
+
+═══════════════════════════════════════════════════════
+RULE 3 — AUDIO GATING (MANDATORY for every slide)
+═══════════════════════════════════════════════════════
+Every slide MUST include a boolean "requires_audio".
+Set "requires_audio": true ONLY when audio is pedagogically essential:
+  • Pronunciation modelling
+  • Listening comprehension
+  • Dialogue / conversation slides
+  • Songs, chants, mascot greetings in the Hook
+Set "requires_audio": false for pure grammar explanations, silent reading, drag-and-match vocab review,
+fill-in-the-gaps grammar slides, and writing/production slides. Most Practice and Production slides
+should be FALSE. Do not over-trigger audio — silence is a feature.
+
+═══════════════════════════════════════════════════════
+RULE 4 — SMART MEDIA ROUTING
+═══════════════════════════════════════════════════════
+For EVERY slide pick the best media_type for the visual_keyword:
+• "image" — static nouns, adjectives, backgrounds for games, anything where motion would distract.
+• "video" — action verbs, emotions, brain-breaks, hook energy.
+If unsure, default to "image". Never miss a verb or emotion.
+
+═══════════════════════════════════════════════════════
+RULE 5 — DIVERGENT INTERACTIVITY (STRICTLY ENFORCED)
 ═══════════════════════════════════════════════════════
 You are FORBIDDEN from placing two slides of the SAME slide_type back-to-back.
-The student must constantly switch physical action: Look → Listen → Click → Drag → Draw → Speak → Celebrate.
-After every "multiple_choice", the next slide MUST be a different type. Same for "drawing_canvas", "drag_and_drop", and "flashcard".
-Two consecutive "mascot_speech" slides are allowed ONLY in the Hook phase (slides 1–2).
+Constantly switch the student's physical action: Read → Listen → Click → Drag → Type → Speak.
+Two consecutive "mascot_speech" slides allowed ONLY in the Hook phase.
 
 ═══════════════════════════════════════════════════════
-RULE 4 — INTERACTIVE_DATA SHAPES (by slide_type)
+RULE 6 — INTERACTIVE_DATA SHAPES (by slide_type)
 ═══════════════════════════════════════════════════════
-• mascot_speech    → { "speech": string }                    // what the mascot says aloud
+• mascot_speech    → { "speech": string }
 • multiple_choice  → { "question": string, "options": string[4], "correct_index": 0..3 }
 • flashcard        → { "front": string, "back": string }
-• drawing_canvas   → { "prompt": string }                    // "Draw an apple!"
+• drawing_canvas   → { "prompt": string }
 • drag_and_drop    → { "instruction": string, "items": string[], "targets": string[], "pairs": [{"item": string, "target": string}] }
 • drag_and_match   → { "instruction": string, "pairs": [{"left_item": string, "right_item": string, "left_thumbnail_keyword"?: string, "right_thumbnail_keyword"?: string}] }
-                     // EXACTLY 3 pairs (tablet visibility cap). Fast-paced vocab review.
-                     // For vocab/object pairs (e.g. word → translation, word → category), ALWAYS provide
-                     // *_thumbnail_keyword (1-3 words, concrete noun) so the system can auto-generate a
-                     // small picture above each draggable pill. Example: { "left_item": "Apple",
-                     // "right_item": "Manzana", "left_thumbnail_keyword": "red apple",
-                     // "right_thumbnail_keyword": "red apple" }. Skip thumbnails only for abstract concepts.
+                     // EXACTLY 3 pairs. Provide *_thumbnail_keyword (concrete noun, 1–3 words) for vocab pairs.
 • fill_in_the_gaps → { "instruction": string, "sentence_parts": string[], "missing_word": string, "distractors": string[2..3] }
-                     // sentence_parts is the sentence split where the gap goes; render with "___" between parts. Example:
-                     // sentence: "The cat is on the mat." with missing_word "cat" →
-                     // sentence_parts: ["The ", " is on the mat."], missing_word: "cat", distractors: ["dog","mat"]
-                     // Use during PRACTICE phase to test sentence structure.
-
-You now have access to drag_and_match and fill_in_the_gaps.
-USAGE GUIDANCE:
-- Use fill_in_the_gaps during the "Practice" phase to test sentence structure / grammar in context.
-- Use drag_and_match as a fast-paced vocabulary review (Practice or Reward). Always include
-  thumbnail keywords for concrete-noun pairs so each pill gets a small auto-generated picture.
-Both still obey RULE 3: never repeat the same slide_type back-to-back.
 
 ═══════════════════════════════════════════════════════
-RULE 5 — MULTIMODAL MEDIA PROMPTS (generate ALL THREE for every slide)
+RULE 7 — MULTIMODAL MEDIA PROMPTS (always generate all three)
 ═══════════════════════════════════════════════════════
-• "elevenlabs_script": Exact phonetic, kid-friendly TTS string. Under 120 chars. High energy.
-• "image_generation_prompt": Highly detailed prompt for text-to-image. Always end with: "Vibrant 3D cartoon illustration, flat solid pastel background, UI game asset, no text, kid-friendly, joyful."
-• "video_generation_prompt": Prompt for a 2–4s SEAMLESSLY LOOPING animation. End with: "seamless loop, solid pastel background, no text, no camera motion." Subtle motion only.
+• "elevenlabs_script": Phonetic, kid-friendly TTS string under 120 chars.
+• "image_generation_prompt": Detailed text-to-image prompt; end with "Vibrant flat illustration, solid pastel background, UI asset, no text, kid-friendly."
+• "video_generation_prompt": 2–4s seamlessly looping motion; end with "seamless loop, solid pastel background, no text, no camera motion."
 
 ═══════════════════════════════════════════════════════
-RULE 6 — GAMIFIED HOMEWORK MISSIONS (MANDATORY)
+RULE 8 — GAMIFIED HOMEWORK MISSIONS (MANDATORY)
 ═══════════════════════════════════════════════════════
-In addition to the slide deck, generate EXACTLY 3 to 5 "homework_missions" — short app-style
-mini-games (think Duolingo daily quests) that recycle the lesson's TARGET VOCABULARY for
-asynchronous practice at home. These are NOT slides; they are standalone interactive cards.
+Generate EXACTLY 3 to 5 "homework_missions" — short app-style mini-games (Duolingo-style daily quests)
+that recycle the lesson's TARGET VOCABULARY for asynchronous home practice.
 
-Each mission MUST be one of these mission_type values, and MUST follow the exact shape:
+Each mission MUST be one of:
+• "memory_match"      → { mission_type, prompt, pairs: [{ term, match }] }   // 3–5 pairs
+• "listen_and_choose" → { mission_type, prompt, target_word, options: string[3..4], correct_answer }
+• "word_scramble"     → { mission_type, prompt, target_word, scrambled }
 
-• "memory_match"      → { mission_type, prompt, pairs: [{ term: string, match: string }] }   // 3–5 pairs
-• "listen_and_choose" → { mission_type, prompt, target_word: string, options: string[3..4], correct_answer: string }
-• "word_scramble"     → { mission_type, prompt, target_word: string, scrambled: string }     // letters of target_word shuffled
-
-Rules:
-- "prompt" is a short kid-friendly instruction (e.g., "Tap the matching pair!").
-- "target_word" / "term" / "match" MUST come from words taught in the lesson's slides.
-- Vary mission_type across the set — never return 3 of the same type in a row.
-- "correct_answer" MUST be one of "options".
-- "scrambled" MUST be the same letters as "target_word" in a different order, and MUST NOT equal "target_word".
+Rules: prompt is a short kid-friendly instruction. Vary mission_type. correct_answer ∈ options.
+scrambled ≠ target_word (same letters, different order).
 
 ═══════════════════════════════════════════════════════
 GENERAL TONE
 ═══════════════════════════════════════════════════════
-Supportive, professional, joyful. Globally inclusive. CEFR-aligned. No placeholders.
+Supportive, professional, joyful. Globally inclusive. CEFR-aligned. No placeholders, no mock content.
 "content" = short on-slide text (1–3 sentences max), or empty if interactive_data carries the meaning.
 "teacher_script" = 2–3 high-energy sentences for the teacher to read aloud.
 Vary layout_style across the deck for visual rhythm.`;
@@ -162,19 +157,24 @@ Skill focus: ${skill_focus}
 CEFR level: ${cefr_level}
 Hub: ${hub}
 
-Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
+Generate the dense 20–25 slide 1-hour PPP lesson now. Respect EVERY rule above:
+the 5-phase arc, ≥20 slides, target_skills on every slide (≥3 of Reading/Writing/Listening/Speaking
+across the deck), requires_audio set true ONLY when audio is pedagogically essential,
+and 3–5 homework missions.`;
 
     const tool = {
       type: "function",
       function: {
         name: "emit_director_lesson",
         description:
-          "Return a 15-20 slide progressive lesson plus 3-5 gamified homework missions for asynchronous practice.",
+          "Return a 20–25 slide 1-hour PPP lesson with target_skills + requires_audio per slide, plus 3–5 gamified homework missions.",
         parameters: {
           type: "object",
           properties: {
             slides: {
               type: "array",
+              minItems: 20,
+              maxItems: 25,
               items: {
                 type: "object",
                 properties: {
@@ -190,6 +190,12 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
                   image_generation_prompt: { type: "string" },
                   video_generation_prompt: { type: "string" },
                   interactive_data_json: { type: "string" },
+                  target_skills: {
+                    type: "array",
+                    minItems: 1,
+                    items: { type: "string", enum: [...SKILLS] },
+                  },
+                  requires_audio: { type: "boolean" },
                 },
                 required: [
                   "phase",
@@ -204,6 +210,8 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
                   "image_generation_prompt",
                   "video_generation_prompt",
                   "interactive_data_json",
+                  "target_skills",
+                  "requires_audio",
                 ],
                 additionalProperties: false,
               },
@@ -319,27 +327,54 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
       }
     }
 
-    const slides = rawSlides.map((s: any) => ({
-      id: crypto.randomUUID(),
-      phase: s.phase,
-      slide_type: s.slide_type,
-      media_type: s.media_type ?? "image",
-      layout_style: s.layout_style ?? "center_card",
-      title: s.title,
-      content: s.content,
-      teacher_script: s.teacher_script,
-      visual_keyword: s.visual_keyword,
-      elevenlabs_script: s.elevenlabs_script ?? "",
-      image_generation_prompt: s.image_generation_prompt ?? "",
-      video_generation_prompt: s.video_generation_prompt ?? "",
-      interactive_data: (() => {
-        if (s.interactive_data && typeof s.interactive_data === "object") return s.interactive_data;
-        if (typeof s.interactive_data_json === "string") {
-          try { return JSON.parse(s.interactive_data_json); } catch { return {}; }
-        }
-        return {};
-      })(),
-    }));
+    const CORE_SKILLS = new Set(["Reading", "Writing", "Listening", "Speaking"]);
+    const slides = rawSlides.map((s: any) => {
+      const rawSkills: string[] = Array.isArray(s.target_skills)
+        ? s.target_skills.filter((x: any) => typeof x === "string")
+        : [];
+      const target_skills = rawSkills.length > 0 ? rawSkills : ["Vocabulary"];
+      // Audio gate: trust the AI's boolean; if missing, infer conservatively (only true for Listening/Speaking).
+      const requires_audio = typeof s.requires_audio === "boolean"
+        ? s.requires_audio
+        : target_skills.some((k) => k === "Listening" || k === "Speaking");
+      return {
+        id: crypto.randomUUID(),
+        phase: s.phase,
+        slide_type: s.slide_type,
+        media_type: s.media_type ?? "image",
+        layout_style: s.layout_style ?? "center_card",
+        title: s.title,
+        content: s.content,
+        teacher_script: s.teacher_script,
+        visual_keyword: s.visual_keyword,
+        elevenlabs_script: s.elevenlabs_script ?? "",
+        image_generation_prompt: s.image_generation_prompt ?? "",
+        video_generation_prompt: s.video_generation_prompt ?? "",
+        target_skills,
+        requires_audio,
+        interactive_data: (() => {
+          if (s.interactive_data && typeof s.interactive_data === "object") return s.interactive_data;
+          if (typeof s.interactive_data_json === "string") {
+            try { return JSON.parse(s.interactive_data_json); } catch { return {}; }
+          }
+          return {};
+        })(),
+      };
+    });
+
+    // Deck-level validation: at least 3 distinct CORE skills used, and ≥20 slides.
+    const coreSkillsUsed = new Set<string>();
+    for (const s of slides) {
+      for (const k of s.target_skills) if (CORE_SKILLS.has(k)) coreSkillsUsed.add(k);
+    }
+    if (slides.length < 20) {
+      console.warn(`Density violation: deck has ${slides.length} slides (<20). 1-hour target missed.`);
+    }
+    if (coreSkillsUsed.size < 3) {
+      console.warn(
+        `Skill-blend violation: only ${coreSkillsUsed.size} of 4 core skills covered (${[...coreSkillsUsed].join(", ")}). Need ≥3.`,
+      );
+    }
 
     // ─── Homework missions: parse stringified payload + validate per-type shape ───
     const rawMissions: any[] = (aiResult as any).homework_missions ?? [];
