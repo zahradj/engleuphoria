@@ -63,6 +63,7 @@ const HUB_TINT: Record<string, string> = {
 export const LibraryManager: React.FC = () => {
   const { setActiveLessonData, setCurrentStep, setDirty } = useCreator();
   const [rows, setRows] = useState<LessonRow[] | null>(null);
+  const [units, setUnits] = useState<UnitRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
