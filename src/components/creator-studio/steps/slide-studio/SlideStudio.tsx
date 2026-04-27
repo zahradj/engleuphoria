@@ -46,7 +46,24 @@ const SlideStudioInner: React.FC = () => {
 
   const slides = activeLessonData.slides;
   const activeSlide = slides.find((s) => s.id === activeSlideId) ?? null;
+  const activeIndex = activeSlide ? slides.findIndex((s) => s.id === activeSlide.id) : -1;
 
+  // Build asset bundles for the prefetcher (next 2 slides preload silently).
+  const prefetchAssets: SlideAssets[] = useMemo(
+    () =>
+      slides.map((s) => ({
+        imageUrl: s.custom_image_url ?? null,
+        audioUrl: s.audio_url ?? null,
+        videoUrl: s.custom_video_url ?? null,
+      })),
+    [slides],
+  );
+  useSlidePrefetch(prefetchAssets, activeIndex, 2);
+
+  const goToNextSlide = () => {
+    if (activeIndex < 0 || activeIndex >= slides.length - 1) return;
+    setActiveSlideId(slides[activeIndex + 1].id);
+  };
   return (
     <div className="h-full flex flex-col -m-6">
       {/* Lesson header strip */}
