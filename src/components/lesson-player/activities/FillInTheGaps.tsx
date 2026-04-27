@@ -95,6 +95,7 @@ export default function FillInTheGaps({ slide, hub = 'academy', onCorrect, onInc
     } else {
       soundEffectsService.playIncorrect();
       onIncorrect?.();
+      tracker.registerWrong();
       setWrongFlash(true);
       setShakeGap(true);
       setTimeout(() => setWrongFlash(false), 500);
