@@ -67,21 +67,27 @@ const PlaySoundButton: React.FC<{ slide: PPPSlide }> = ({ slide }) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const text = (slide.elevenlabs_script || slide.content || slide.title || '').trim();
-  if (!text) return null;
+  const hasSavedAudio = !!slide.audio_url;
+  if (!text && !hasSavedAudio) return null;
 
   const handlePlay = async () => {
     if (loading) return;
     try {
+      // Prefer the pre-generated audio when available — instant, no API call.
+      if (hasSavedAudio) {
+        if (audioRef.current) audioRef.current.pause();
+        const audio = new Audio(slide.audio_url!);
+        audioRef.current = audio;
+        await audio.play();
+        return;
+      }
       setLoading(true);
       const { data, error } = await supabase.functions.invoke('generate-speech', {
         body: { text },
       });
       if (error) throw error;
-
-      // The function returns binary audio/mpeg; supabase.functions.invoke gives us a Blob.
       const blob = data instanceof Blob ? data : new Blob([data as ArrayBuffer], { type: 'audio/mpeg' });
       const url = URL.createObjectURL(blob);
-
       if (audioRef.current) {
         audioRef.current.pause();
         URL.revokeObjectURL(audioRef.current.src);
@@ -108,10 +114,10 @@ const PlaySoundButton: React.FC<{ slide: PPPSlide }> = ({ slide }) => {
         'px-4 py-2 text-sm font-extrabold border-2 border-b-4 border-amber-300 border-b-amber-500',
         'transition-all hover:-translate-y-0.5 active:translate-y-1 active:border-b-2 disabled:opacity-60',
       )}
-      title={text}
+      title={text || 'Play voiceover'}
     >
       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Volume2 className="h-4 w-4" />}
-      Play Sound
+      {hasSavedAudio ? 'Play Voiceover' : 'Play Sound'}
     </button>
   );
 };
