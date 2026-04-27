@@ -17,6 +17,7 @@ const SlideStudioInner: React.FC = () => {
   const { activeLessonData, updateSlide, setCurrentStep } = useCreator();
   const [activeSlideId, setActiveSlideId] = useState<string | null>(null);
   const [autoGenerating, setAutoGenerating] = useState(false);
+  const { theme } = useHubTheme();
 
   // Auto-select first slide whenever the deck changes / loads.
   useEffect(() => {
