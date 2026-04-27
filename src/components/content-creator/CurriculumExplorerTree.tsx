@@ -588,12 +588,18 @@ export const CurriculumExplorerTree: React.FC<CurriculumExplorerTreeProps> = ({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {deleteTarget?.type === 'lesson' ? 'Delete Lesson' : 'Delete All Lessons in Level'}
+              {deleteTarget?.type === 'lesson'
+                ? 'Delete Lesson'
+                : deleteTarget?.type === 'bulk'
+                  ? `Delete ${deleteTarget?.ids?.length ?? 0} Selected Lessons`
+                  : 'Delete All Lessons in Level'}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {deleteTarget?.type === 'lesson'
                 ? `Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`
-                : `Are you sure you want to delete all ${deleteTarget?.lessonCount} lessons in "${deleteTarget?.name}"? This action cannot be undone.`}
+                : deleteTarget?.type === 'bulk'
+                  ? `Are you sure you want to delete the ${deleteTarget?.ids?.length} selected lesson(s)? This action cannot be undone.`
+                  : `Are you sure you want to delete all ${deleteTarget?.lessonCount} lessons in "${deleteTarget?.name}"? This action cannot be undone.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
