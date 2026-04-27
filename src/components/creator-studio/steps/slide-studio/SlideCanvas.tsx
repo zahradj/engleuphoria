@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { PPPSlide, MCQData, FlashcardData, DrawingData } from '../../CreatorContext';
+import { PPPSlide, MCQData, FlashcardData, DrawingData, DragAndMatchData, FillInTheGapsData, isGameSlideType } from '../../CreatorContext';
 import { PHASE_STYLES, normalizePhase } from './phaseTheme';
 import { cn } from '@/lib/utils';
 import { Pencil, GripHorizontal, X, CheckCircle2, ImageOff, Volume2, Loader2 } from 'lucide-react';
@@ -50,12 +50,21 @@ const SlideMedia: React.FC<{ slide: PPPSlide }> = ({ slide }) => {
     );
   }
 
+  // Full-screen game mode: hide hero image entirely unless the teacher explicitly
+  // uploaded one or toggled `force_hero_image`. This frees vertical space for the game.
+  const isGame = isGameSlideType(slide.slide_type);
+  if (isGame && !slide.custom_image_url && !slide.force_hero_image) {
+    return null;
+  }
+
   const url = imageUrlFor(slide);
   // Always render — SafeSlideImage shows a friendly emoji panel on error / missing URL.
   const emoji = slide.slide_type === 'mascot_speech' ? '🐧'
     : slide.slide_type === 'flashcard' ? '🃏'
     : slide.slide_type === 'drawing_canvas' ? '🎨'
     : slide.slide_type === 'drag_and_drop' ? '🧩'
+    : slide.slide_type === 'drag_and_match' ? '🔗'
+    : slide.slide_type === 'fill_in_the_gaps' ? '✍️'
     : '✨';
   return (
     <SafeSlideImage
@@ -318,6 +327,111 @@ const TextBlock: React.FC<{ slide: PPPSlide; hub: 'playground' | 'academy' | 'su
   );
 };
 
+const DragMatchPreview: React.FC<{ slide: PPPSlide; mode: ViewMode }> = ({ slide, mode }) => {
+  const d = (slide.interactive_data ?? {}) as Partial<DragAndMatchData>;
+  const instruction = d.instruction || 'Drag each word to its match!';
+  const pairs = Array.isArray(d.pairs) ? d.pairs.slice(0, 3) : [];
+
+  if (pairs.length === 0) {
+    return (
+      <div className={cn('rounded-2xl border-2 border-dashed border-amber-300 bg-amber-50 p-6 text-center', FONT_STACK)}>
+        <p className="text-sm font-bold text-amber-900">⚠️ Interactive data missing</p>
+        <p className="text-xs text-amber-700 mt-1">Add at least one pair in the right panel, or click "Regenerate slide".</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={cn('space-y-4', FONT_STACK)}>
+      <h2 className="text-lg sm:text-xl font-extrabold text-slate-800 text-center leading-snug">
+        🔗 {instruction}
+      </h2>
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 max-w-2xl mx-auto">
+        <div className="flex flex-col gap-3">
+          {pairs.map((p, i) => (
+            <div key={`L-${i}`} className={cn(bouncyBtn,
+              'bg-white text-slate-800 border-slate-300 border-b-slate-400 flex items-center justify-center gap-2 cursor-grab')}>
+              {p.left_thumbnail_url && (
+                <img src={p.left_thumbnail_url} alt="" className="w-10 h-10 rounded-md object-cover" />
+              )}
+              <span className="flex-1 text-center">{p.left_item || <em className="opacity-50 font-normal">empty</em>}</span>
+            </div>
+          ))}
+        </div>
+        <div className="flex flex-col gap-3">
+          {pairs.map((p, i) => {
+            const highlight = mode === 'teacher';
+            return (
+              <div key={`R-${i}`} className={cn(bouncyBtn,
+                'bg-sky-50 text-sky-900 border-sky-300 border-b-sky-500 flex items-center justify-center gap-2 border-dashed',
+                highlight && 'ring-2 ring-emerald-400 ring-offset-1')}>
+                {p.right_thumbnail_url && (
+                  <img src={p.right_thumbnail_url} alt="" className="w-10 h-10 rounded-md object-cover" />
+                )}
+                <span className="flex-1 text-center">{p.right_item || <em className="opacity-50 font-normal">empty</em>}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      {mode === 'teacher' && (
+        <p className="text-[11px] text-center text-emerald-700 font-bold uppercase tracking-widest">
+          Teacher view — right column shows the matching answers
+        </p>
+      )}
+    </div>
+  );
+};
+
+const FillGapsPreview: React.FC<{ slide: PPPSlide; mode: ViewMode }> = ({ slide, mode }) => {
+  const d = (slide.interactive_data ?? {}) as Partial<FillInTheGapsData>;
+  const instruction = d.instruction || 'Fill in the gap!';
+  const parts = Array.isArray(d.sentence_parts) ? d.sentence_parts : ['', ''];
+  const missing = d.missing_word || '';
+  const distractors = Array.isArray(d.distractors) ? d.distractors.filter(Boolean) : [];
+
+  if (!missing) {
+    return (
+      <div className={cn('rounded-2xl border-2 border-dashed border-amber-300 bg-amber-50 p-6 text-center', FONT_STACK)}>
+        <p className="text-sm font-bold text-amber-900">⚠️ Interactive data missing</p>
+        <p className="text-xs text-amber-700 mt-1">Set the correct word + sentence parts in the right panel.</p>
+      </div>
+    );
+  }
+
+  const choices = [missing, ...distractors];
+
+  return (
+    <div className={cn('space-y-5', FONT_STACK)}>
+      <h2 className="text-lg sm:text-xl font-extrabold text-slate-800 text-center leading-snug">
+        ✍️ {instruction}
+      </h2>
+      <div className="text-2xl sm:text-3xl font-extrabold flex items-center justify-center gap-2 flex-wrap text-slate-800 leading-relaxed text-center">
+        <span>{parts[0]}</span>
+        <span className={cn('inline-flex items-center justify-center px-5 py-2 rounded-2xl border-2 border-dashed min-w-[120px] min-h-[52px]',
+          mode === 'teacher' ? 'border-emerald-400 bg-emerald-50 text-emerald-700' : 'border-amber-400 bg-amber-50 text-amber-700')}>
+          {mode === 'teacher' ? missing : '___'}
+        </span>
+        <span>{parts[1] || ''}</span>
+      </div>
+      <div className="flex flex-wrap justify-center gap-3">
+        {choices.map((w, i) => {
+          const isCorrect = w === missing;
+          return (
+            <span key={`${w}-${i}`} className={cn(
+              'px-5 py-2.5 rounded-full text-base sm:text-lg font-extrabold border-2 border-b-4',
+              'bg-white text-slate-800 border-slate-300 border-b-slate-400',
+              mode === 'teacher' && isCorrect && 'ring-2 ring-emerald-400 ring-offset-1',
+            )}>
+              {w}
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 const InteractiveBlock: React.FC<{ slide: PPPSlide; mode: ViewMode; hub: 'playground' | 'academy' | 'success' }> = ({ slide, mode, hub }) => {
   switch (slide.slide_type) {
     case 'multiple_choice':
@@ -326,6 +440,10 @@ const InteractiveBlock: React.FC<{ slide: PPPSlide; mode: ViewMode; hub: 'playgr
       return <FlashcardBlock slide={slide} mode={mode} />;
     case 'drawing_prompt':
       return <DrawingBlock slide={slide} />;
+    case 'drag_and_match':
+      return <DragMatchPreview slide={slide} mode={mode} />;
+    case 'fill_in_the_gaps':
+      return <FillGapsPreview slide={slide} mode={mode} />;
     default:
       return <TextBlock slide={slide} hub={hub} />;
   }

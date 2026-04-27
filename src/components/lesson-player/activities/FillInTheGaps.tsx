@@ -108,14 +108,14 @@ export default function FillInTheGaps({ slide, hub = 'academy', onCorrect, onInc
   const pillUsed = (word: string) => isCorrect && word.toLowerCase() === missingWord.toLowerCase();
 
   return (
-    <div className="flex flex-col items-center gap-8 p-6 w-full max-w-3xl mx-auto">
-      <h2 className="text-2xl font-bold text-center" style={{ color: '#e2e8f0' }}>
+    <div className="flex flex-col items-center gap-8 p-6 w-full h-full max-w-4xl mx-auto">
+      <h2 className="text-2xl md:text-3xl font-bold text-center" style={{ color: '#e2e8f0' }}>
         ✍️ {instruction}
       </h2>
 
       {/* SENTENCE WITH DROP ZONE */}
       <div
-        className="text-3xl md:text-4xl font-bold flex items-center gap-3 flex-wrap justify-center leading-relaxed text-center"
+        className="text-3xl md:text-5xl font-bold flex items-center gap-3 flex-wrap justify-center leading-relaxed text-center"
         style={{ color: '#f1f5f9' }}
       >
         <span>{sentenceParts[0]}</span>
@@ -123,19 +123,16 @@ export default function FillInTheGaps({ slide, hub = 'academy', onCorrect, onInc
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}
           animate={
-            shakeGap
-              ? { x: [0, -10, 10, -8, 8, 0] }
-              : isCorrect
-              ? { scale: [1, 1.15, 1] }
-              : { scale: 1 }
+            shakeGap ? { x: [0, -10, 10, -8, 8, 0] }
+            : isCorrect ? { scale: [1, 1.15, 1] }
+            : { scale: 1 }
           }
           transition={{ duration: 0.4 }}
-          className="inline-flex items-center justify-center px-6 py-3 rounded-2xl min-w-[140px] min-h-[60px]"
+          className="inline-flex items-center justify-center px-8 py-4 rounded-2xl min-w-[180px] min-h-[72px]"
           style={{
             background: isCorrect
               ? `linear-gradient(135deg, #22c55e, #16a34a)`
-              : wrongFlash
-              ? '#7f1d1d'
+              : wrongFlash ? '#7f1d1d'
               : '#1e1b4b',
             border: `3px dashed ${isCorrect ? '#22c55e' : primary + 'aa'}`,
             color: isCorrect ? '#fff' : '#fbbf24',

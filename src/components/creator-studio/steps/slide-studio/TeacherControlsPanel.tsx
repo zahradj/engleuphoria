@@ -7,7 +7,10 @@ import {
 import {
   PPPSlide, SlideType, LayoutStyle,
   MCQData, FlashcardData, DrawingData,
+  DragAndMatchData, DragAndMatchPair, FillInTheGapsData,
+  isGameSlideType,
 } from '../../CreatorContext';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -35,12 +38,28 @@ const DEFAULT_MCQ: MCQData = {
 };
 const DEFAULT_FLASHCARD: FlashcardData = { front: 'apple', back: 'a round red fruit' };
 const DEFAULT_DRAWING: DrawingData = { prompt: 'Draw your answer in your notebook and share with the class.' };
+const DEFAULT_DRAG_MATCH: DragAndMatchData = {
+  instruction: 'Drag each word to its match!',
+  pairs: [
+    { left_item: '', right_item: '' },
+    { left_item: '', right_item: '' },
+    { left_item: '', right_item: '' },
+  ],
+};
+const DEFAULT_FILL_GAPS: FillInTheGapsData = {
+  instruction: 'Fill in the gap!',
+  sentence_parts: ['The cat is on the ', '.'],
+  missing_word: 'mat',
+  distractors: ['hat', 'rat'],
+};
 
 const TYPE_OPTIONS: { value: SlideType; label: string; Icon: React.ElementType }[] = [
   { value: 'text_image', label: 'Story / Reading (Mascot Speech)', Icon: ImageIcon },
   { value: 'flashcard', label: 'Flashcard Flip', Icon: Layers },
   { value: 'drawing_prompt', label: 'Drawing Canvas', Icon: Pencil },
   { value: 'multiple_choice', label: 'Multiple Choice Game', Icon: ListChecks },
+  { value: 'drag_and_match', label: 'Drag & Match Game', Icon: Layers },
+  { value: 'fill_in_the_gaps', label: 'Fill in the Gaps', Icon: Type },
 ];
 
 const LAYOUT_OPTIONS: { value: LayoutStyle; label: string }[] = [
@@ -163,6 +182,168 @@ const FlashcardEditor: React.FC<Props> = ({ slide, onChange }) => {
   );
 };
 
+const DragAndMatchEditor: React.FC<Props> = ({ slide, onChange }) => {
+  const data = (slide.interactive_data ?? {}) as Partial<DragAndMatchData>;
+  const instruction = data.instruction ?? '';
+  const pairs: DragAndMatchPair[] = Array.isArray(data.pairs) && data.pairs.length
+    ? data.pairs.map((p) => ({
+        left_item: p.left_item ?? '',
+        left_thumbnail_keyword: p.left_thumbnail_keyword ?? '',
+        left_thumbnail_url: p.left_thumbnail_url,
+        right_item: p.right_item ?? '',
+        right_thumbnail_keyword: p.right_thumbnail_keyword ?? '',
+        right_thumbnail_url: p.right_thumbnail_url,
+      }))
+    : [{ left_item: '', right_item: '' }];
+
+  const update = (patch: Partial<DragAndMatchData>) =>
+    onChange({ interactive_data: { instruction, pairs, ...patch } });
+  const setPair = (i: number, patch: Partial<DragAndMatchPair>) => {
+    const next = pairs.map((p, idx) => (idx === i ? { ...p, ...patch } : p));
+    update({ pairs: next });
+  };
+  const addPair = () => {
+    if (pairs.length >= 3) return;
+    update({ pairs: [...pairs, { left_item: '', right_item: '' }] });
+  };
+  const removePair = (i: number) => {
+    if (pairs.length <= 1) return;
+    update({ pairs: pairs.filter((_, idx) => idx !== i) });
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="space-y-1.5">
+        <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Instruction</Label>
+        <Input value={instruction} onChange={(e) => update({ instruction: e.target.value })}
+          placeholder='e.g. "Match the word to the picture!"' />
+      </div>
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+            Pairs ({pairs.length}/3)
+          </Label>
+          <Button type="button" size="sm" variant="ghost" onClick={addPair}
+            disabled={pairs.length >= 3} className="h-7 px-2 text-xs">
+            <Plus className="h-3 w-3 mr-1" /> Add pair
+          </Button>
+        </div>
+        <ul className="space-y-2">
+          {pairs.map((p, i) => (
+            <li key={i} className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-2 space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono text-slate-400 w-5">#{i + 1}</span>
+                {p.left_thumbnail_url && (
+                  <img src={p.left_thumbnail_url} alt="" className="h-7 w-7 rounded object-cover border border-slate-200" />
+                )}
+                <Input value={p.left_item} onChange={(e) => setPair(i, { left_item: e.target.value })}
+                  placeholder="Left item" className="h-8 text-sm" />
+                <span className="text-slate-400 text-sm">↔</span>
+                {p.right_thumbnail_url && (
+                  <img src={p.right_thumbnail_url} alt="" className="h-7 w-7 rounded object-cover border border-slate-200" />
+                )}
+                <Input value={p.right_item} onChange={(e) => setPair(i, { right_item: e.target.value })}
+                  placeholder="Right item" className="h-8 text-sm" />
+                <Button type="button" size="sm" variant="ghost" onClick={() => removePair(i)}
+                  disabled={pairs.length <= 1}
+                  className="h-7 w-7 p-0 text-slate-400 hover:text-red-500" aria-label="Remove pair">
+                  <Minus className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Input value={p.left_thumbnail_keyword ?? ''}
+                  onChange={(e) => setPair(i, { left_thumbnail_keyword: e.target.value })}
+                  placeholder="Left thumbnail keyword (optional)"
+                  className="h-7 text-[11px]" />
+                <Input value={p.right_thumbnail_keyword ?? ''}
+                  onChange={(e) => setPair(i, { right_thumbnail_keyword: e.target.value })}
+                  placeholder="Right thumbnail keyword (optional)"
+                  className="h-7 text-[11px]" />
+              </div>
+            </li>
+          ))}
+        </ul>
+        <p className="text-[11px] text-slate-400">Tablet-friendly cap: 3 pairs max. Add a thumbnail keyword to attach a small icon to that card.</p>
+      </div>
+    </div>
+  );
+};
+
+const FillInTheGapsEditor: React.FC<Props> = ({ slide, onChange }) => {
+  const data = (slide.interactive_data ?? {}) as Partial<FillInTheGapsData>;
+  const instruction = data.instruction ?? '';
+  const parts: [string, string] = Array.isArray(data.sentence_parts) && data.sentence_parts.length === 2
+    ? [data.sentence_parts[0] ?? '', data.sentence_parts[1] ?? '']
+    : ['', ''];
+  const missing = data.missing_word ?? '';
+  const distractors: string[] = Array.isArray(data.distractors)
+    ? data.distractors.filter((x) => typeof x === 'string')
+    : ['', ''];
+
+  const update = (patch: Partial<FillInTheGapsData>) =>
+    onChange({ interactive_data: { instruction, sentence_parts: parts, missing_word: missing, distractors, ...patch } });
+  const setDistractor = (i: number, value: string) => {
+    const next = [...distractors];
+    next[i] = value;
+    update({ distractors: next });
+  };
+  const addDistractor = () => {
+    if (distractors.length >= 3) return;
+    update({ distractors: [...distractors, ''] });
+  };
+  const removeDistractor = (i: number) => {
+    if (distractors.length <= 1) return;
+    update({ distractors: distractors.filter((_, idx) => idx !== i) });
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="space-y-1.5">
+        <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Instruction</Label>
+        <Input value={instruction} onChange={(e) => update({ instruction: e.target.value })}
+          placeholder='e.g. "Fill in the gap!"' />
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Sentence (with the gap)</Label>
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+          <Input value={parts[0]} onChange={(e) => update({ sentence_parts: [e.target.value, parts[1]] })}
+            placeholder="Before the gap…" className="h-9 text-sm" />
+          <span className="text-amber-500 font-bold tracking-widest">___</span>
+          <Input value={parts[1]} onChange={(e) => update({ sentence_parts: [parts[0], e.target.value] })}
+            placeholder="…after the gap" className="h-9 text-sm" />
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-xs font-bold uppercase tracking-wider text-emerald-600">Correct word</Label>
+        <Input value={missing} onChange={(e) => update({ missing_word: e.target.value })}
+          placeholder="The word that fills the gap" className="h-9 text-sm border-emerald-300 bg-emerald-50/50" />
+      </div>
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Distractors ({distractors.length}/3)</Label>
+          <Button type="button" size="sm" variant="ghost" onClick={addDistractor}
+            disabled={distractors.length >= 3} className="h-7 px-2 text-xs">
+            <Plus className="h-3 w-3 mr-1" /> Add
+          </Button>
+        </div>
+        <ul className="space-y-1.5">
+          {distractors.map((d, i) => (
+            <li key={i} className="flex items-center gap-2">
+              <Input value={d} onChange={(e) => setDistractor(i, e.target.value)}
+                placeholder={`Distractor ${i + 1}`} className="h-8 text-sm" />
+              <Button type="button" size="sm" variant="ghost" onClick={() => removeDistractor(i)}
+                disabled={distractors.length <= 1}
+                className="h-7 w-7 p-0 text-slate-400 hover:text-red-500" aria-label="Remove distractor">
+                <Minus className="h-3.5 w-3.5" />
+              </Button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+};
+
 const DrawingEditor: React.FC<Props> = ({ slide, onChange }) => {
   const data = (slide.interactive_data ?? {}) as Partial<DrawingData>;
   const prompt = data.prompt ?? slide.content ?? '';
@@ -227,6 +408,10 @@ export const TeacherControlsPanel: React.FC<Props> = ({ slide, onChange }) => {
     else if (next === 'flashcard') onChange({ slide_type: next, interactive_data: { ...DEFAULT_FLASHCARD } });
     else if (next === 'drawing_prompt')
       onChange({ slide_type: next, interactive_data: { ...DEFAULT_DRAWING }, content: DEFAULT_DRAWING.prompt });
+    else if (next === 'drag_and_match')
+      onChange({ slide_type: next, interactive_data: { ...DEFAULT_DRAG_MATCH, pairs: DEFAULT_DRAG_MATCH.pairs.map((p) => ({ ...p })) } });
+    else if (next === 'fill_in_the_gaps')
+      onChange({ slide_type: next, interactive_data: { ...DEFAULT_FILL_GAPS, sentence_parts: [...DEFAULT_FILL_GAPS.sentence_parts] as [string, string], distractors: [...DEFAULT_FILL_GAPS.distractors] } });
     else onChange({ slide_type: next, interactive_data: {} });
   };
 
@@ -260,7 +445,14 @@ export const TeacherControlsPanel: React.FC<Props> = ({ slide, onChange }) => {
             <div className="space-y-1.5">
               <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Slide Type</Label>
               <Select value={slide.slide_type ?? 'text_image'} onValueChange={(v) => handleTypeChange(v as SlideType)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder={slide.slide_type ?? 'text_image'}>
+                    {(() => {
+                      const opt = TYPE_OPTIONS.find((o) => o.value === slide.slide_type);
+                      return opt ? opt.label : (slide.slide_type ?? 'text_image');
+                    })()}
+                  </SelectValue>
+                </SelectTrigger>
                 <SelectContent>
                   {TYPE_OPTIONS.map(({ value, label, Icon }) => (
                     <SelectItem key={value} value={value}>
@@ -295,6 +487,10 @@ export const TeacherControlsPanel: React.FC<Props> = ({ slide, onChange }) => {
               <FlashcardEditor slide={slide} onChange={onChange} />
             ) : slide.slide_type === 'drawing_prompt' ? (
               <DrawingEditor slide={slide} onChange={onChange} />
+            ) : slide.slide_type === 'drag_and_match' ? (
+              <DragAndMatchEditor slide={slide} onChange={onChange} />
+            ) : slide.slide_type === 'fill_in_the_gaps' ? (
+              <FillInTheGapsEditor slide={slide} onChange={onChange} />
             ) : (
               <TextImageEditor slide={slide} onChange={onChange} />
             )}
@@ -386,9 +582,26 @@ const VisualsPanel: React.FC<Props> = ({ slide, onChange }) => {
 
   const clearAsset = () => onChange({ custom_image_url: undefined, custom_video_url: undefined });
   const hasAsset = !!(slide.custom_image_url || slide.custom_video_url);
+  const isGame = isGameSlideType(slide.slide_type);
 
   return (
     <div className="space-y-4">
+      {isGame && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900/40 px-3 py-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <Label className="text-xs font-bold text-amber-900 dark:text-amber-200">
+                🎮 Full-screen game mode
+              </Label>
+              <p className="text-[11px] text-amber-700/80 dark:text-amber-300/80 mt-0.5">
+                Hero image hidden so the game fills the slide. Toggle on to force one.
+              </p>
+            </div>
+            <Switch checked={!!slide.force_hero_image}
+              onCheckedChange={(v) => onChange({ force_hero_image: v })} />
+          </div>
+        </div>
+      )}
       <PromptField
         label="Image Prompt"
         icon={ImageIcon}

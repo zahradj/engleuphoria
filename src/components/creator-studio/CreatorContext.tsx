@@ -42,7 +42,20 @@ export type SlideType =
   | 'drawing_canvas'
   | 'drag_and_drop'
   | 'flashcard'
-  | 'mascot_speech';
+  | 'mascot_speech'
+  | 'drag_and_match'
+  | 'fill_in_the_gaps';
+
+/** Slide types that are "full-screen interactive games" — hero image is hidden by default. */
+export const GAME_SLIDE_TYPES: SlideType[] = [
+  'drag_and_match',
+  'fill_in_the_gaps',
+  'drag_and_drop',
+  'drawing_canvas',
+  'drawing_prompt',
+];
+export const isGameSlideType = (t?: string): boolean =>
+  !!t && (GAME_SLIDE_TYPES as string[]).includes(t);
 export type LayoutStyle = 'split_left' | 'split_right' | 'center_card' | 'full_background';
 export type MediaType = 'image' | 'video';
 export type LessonPhase = 'Hook' | 'Input' | 'Practice' | 'Production' | 'Reward';
@@ -59,7 +72,31 @@ export interface FlashcardData {
 export interface DrawingData {
   prompt: string;
 }
-export type InteractiveData = MCQData | FlashcardData | DrawingData | Record<string, unknown>;
+export interface DragAndMatchPair {
+  left_item: string;
+  left_thumbnail_keyword?: string;
+  left_thumbnail_url?: string;
+  right_item: string;
+  right_thumbnail_keyword?: string;
+  right_thumbnail_url?: string;
+}
+export interface DragAndMatchData {
+  instruction: string;
+  pairs: DragAndMatchPair[];
+}
+export interface FillInTheGapsData {
+  instruction: string;
+  sentence_parts: [string, string];
+  missing_word: string;
+  distractors: string[];
+}
+export type InteractiveData =
+  | MCQData
+  | FlashcardData
+  | DrawingData
+  | DragAndMatchData
+  | FillInTheGapsData
+  | Record<string, unknown>;
 
 export interface PPPSlide {
   id: string;
@@ -88,6 +125,8 @@ export interface PPPSlide {
   /** Public URL of the generated/uploaded background music track attached to this slide. */
   background_music_url?: string;
   interactive_data?: InteractiveData;
+  /** When true, force the hero image even on full-screen game slide types. */
+  force_hero_image?: boolean;
   // legacy / optional
   teacher_instructions?: string;
   interactive_options?: string[];
