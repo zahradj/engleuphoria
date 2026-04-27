@@ -173,6 +173,7 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
     };
 
     async function callAI(): Promise<{ ok: true; slides: any[] } | { ok: false; status: number; detail: string }> {
+      console.log("Sending payload to Gemini via Lovable AI Gateway...", { lesson_title, cefr_level, hub });
       const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
@@ -275,8 +276,9 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
-    console.error("generate-ppp-slides error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+    const err = e instanceof Error ? e : new Error(String(e));
+    console.error("generate-ppp-slides error:", err.message, err.stack);
+    return new Response(JSON.stringify({ error: err.message, stack: err.stack }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
