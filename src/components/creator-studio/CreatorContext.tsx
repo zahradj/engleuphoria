@@ -152,6 +152,8 @@ export interface PPPSlide {
   target_skills?: string[];
   /** True only when audio is pedagogically essential (pronunciation, listening, dialogue, songs). */
   requires_audio?: boolean;
+  /** Short kid-friendly hint shown after the 1st wrong answer in interactive games. */
+  hint_text?: string;
   /** When true, force the hero image even on full-screen game slide types. */
   force_hero_image?: boolean;
   // legacy / optional
