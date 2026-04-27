@@ -142,37 +142,14 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
                   title: { type: "string" },
                   content: { type: "string" },
                   teacher_script: { type: "string" },
-                  visual_keyword: { type: "string", description: "1-3 vivid English words describing the visual." },
-                  elevenlabs_script: { type: "string", description: "Short kid-friendly TTS line (<=120 chars)." },
-                  image_generation_prompt: { type: "string", description: "Detailed prompt for text-to-image models." },
-                  video_generation_prompt: { type: "string", description: "Prompt for a short seamless looping clip." },
-                  interactive_data: {
-                    type: "object",
+                  visual_keyword: { type: "string" },
+                  elevenlabs_script: { type: "string" },
+                  image_generation_prompt: { type: "string" },
+                  video_generation_prompt: { type: "string" },
+                  interactive_data_json: {
+                    type: "string",
                     description:
-                      "Shape depends on slide_type. mascot_speech: {speech}. multiple_choice: {question, options[4], correct_index}. flashcard: {front, back}. drawing_canvas: {prompt}. drag_and_drop: {instruction, items[], targets[], pairs[]}.",
-                    properties: {
-                      speech: { type: "string" },
-                      question: { type: "string" },
-                      options: { type: "array", items: { type: "string" } },
-                      correct_index: { type: "integer" },
-                      front: { type: "string" },
-                      back: { type: "string" },
-                      prompt: { type: "string" },
-                      instruction: { type: "string" },
-                      items: { type: "array", items: { type: "string" } },
-                      targets: { type: "array", items: { type: "string" } },
-                      pairs: {
-                        type: "array",
-                        items: {
-                          type: "object",
-                          properties: {
-                            item: { type: "string" },
-                            target: { type: "string" },
-                          },
-                          required: ["item", "target"],
-                        },
-                      },
-                    },
+                      "JSON-stringified object whose shape depends on slide_type. mascot_speech: {speech}. multiple_choice: {question, options[4], correct_index}. flashcard: {front, back}. drawing_canvas: {prompt}. drag_and_drop: {instruction, items[], targets[], pairs[]}.",
                   },
                 },
                 required: [
@@ -187,7 +164,7 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
                   "elevenlabs_script",
                   "image_generation_prompt",
                   "video_generation_prompt",
-                  "interactive_data",
+                  "interactive_data_json",
                 ],
               },
             },
