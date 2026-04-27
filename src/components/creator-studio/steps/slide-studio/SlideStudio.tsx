@@ -142,6 +142,15 @@ const SlideStudioInner: React.FC = () => {
             </div>
           )}
         </div>
+        {!!slides.length && (
+          <div className="mt-3">
+            <PhaseTracker
+              slides={slides as any}
+              currentIndex={Math.max(0, activeIndex)}
+              onJumpToPhase={(idx) => setActiveSlideId(slides[idx]?.id ?? null)}
+            />
+          </div>
+        )}
       </div>
 
       {/* Body */}
