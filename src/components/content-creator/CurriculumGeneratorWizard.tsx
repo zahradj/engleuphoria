@@ -442,9 +442,9 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
             </div>
             <Button onClick={handleSaveToDB} disabled={isSaving}>
               {isSaving ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving...</>
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Publishing...</>
               ) : (
-                <><Save className="h-4 w-4 mr-2" />Save to Database</>
+                <><BookOpen className="h-4 w-4 mr-2" />Publish to Master Library</>
               )}
             </Button>
           </CardHeader>
