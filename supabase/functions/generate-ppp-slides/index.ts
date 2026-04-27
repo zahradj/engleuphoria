@@ -147,7 +147,8 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
       type: "function",
       function: {
         name: "emit_director_lesson",
-        description: "Return a 15-20 slide progressive lesson directed by the Master Curriculum Director.",
+        description:
+          "Return a 15-20 slide progressive lesson plus 3-5 gamified homework missions for asynchronous practice.",
         parameters: {
           type: "object",
           properties: {
@@ -186,14 +187,39 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
                 additionalProperties: false,
               },
             },
+            // 3–5 app-style mini-games for asynchronous homework. Sent to the AI as a
+            // JSON string per item to keep the schema flat and avoid Gemini's strict
+            // tool-schema validation issues with deeply-nested oneOf shapes.
+            // Each element parses to one of the shapes documented in RULE 6.
+            homework_missions: {
+              type: "array",
+              minItems: 3,
+              maxItems: 5,
+              items: {
+                type: "object",
+                properties: {
+                  mission_type: { type: "string", enum: [...MISSION_TYPES] },
+                  prompt: { type: "string" },
+                  // payload_json holds the type-specific fields (pairs / options /
+                  // correct_answer / target_word / scrambled) as a stringified JSON
+                  // object. We parse + validate it server-side below.
+                  payload_json: { type: "string" },
+                },
+                required: ["mission_type", "prompt", "payload_json"],
+                additionalProperties: false,
+              },
+            },
           },
-          required: ["slides"],
+          required: ["slides", "homework_missions"],
           additionalProperties: false,
         },
       },
     };
 
-    async function callAI(): Promise<{ ok: true; slides: any[] } | { ok: false; status: number; detail: string }> {
+    async function callAI(): Promise<
+      | { ok: true; slides: any[]; homework_missions: any[] }
+      | { ok: false; status: number; detail: string }
+    > {
       console.log("Sending payload to Gemini via Lovable AI Gateway...", { lesson_title, cefr_level, hub });
       const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
