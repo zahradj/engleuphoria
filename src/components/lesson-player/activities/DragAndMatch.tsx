@@ -39,7 +39,9 @@ export default function DragAndMatch({ slide, hub = 'academy', onCorrect, onInco
       .map((p) => ({
         left_item: p.left_item ?? p.left,
         right_item: p.right_item ?? p.right,
-      }));
+        left_thumbnail_url: p.left_thumbnail_url,
+        right_thumbnail_url: p.right_thumbnail_url,
+      })) as Pair[];
   }, [slide.id]);
 
   // Shuffle right column once so the order doesn't telegraph the answer.
