@@ -59,26 +59,6 @@ MULTIMODAL MEDIA PROMPTS — generate ALL THREE for every slide:
 - "video_generation_prompt": A prompt for text-to-video models describing a SHORT seamless looping animation (2–4 seconds). End with: "seamless loop, solid pastel background, no text, no camera motion." Keep motion subtle (a wagging tail, a bouncing fruit, a smiling sun).
 
 Tone: supportive, professional, joyful. Globally inclusive. CEFR-aligned.`;
-Build a 6-slide arc following the Scaffolded Mastery PPP method:
-1) Warm-up (hook, 1 slide)
-2) Presentation (input, 1–2 slides)
-3) Practice (controlled, 1–2 slides)
-4) Production (free output, 1 slide)
-5) Review (quick check, 1 slide)
-
-Hard rules:
-- Total slides MUST equal 6.
-- Use a mix of slide_type. At least one Practice slide MUST be multiple_choice. Use flashcard for vocabulary input on Presentation. Use drawing_prompt for Warm-up or Production when natural. text_image otherwise.
-- Vary layout_style across the deck for visual rhythm: split_left, split_right, center_card, full_background.
-- "content" is short on-slide text in plain English (1–3 sentences max). Leave empty string when interactive_data carries the meaning (e.g. multiple_choice, flashcard).
-- "teacher_script" is 2–3 high-energy sentences for the teacher to read aloud.
-- "visual_keyword" is 1–2 vivid English words for an Unsplash image search.
-- "interactive_data" shape depends on slide_type:
-  • multiple_choice → { "question": string, "options": string[4], "correct_index": 0..3 }
-  • flashcard       → { "front": string, "back": string }
-  • drawing_prompt  → { "prompt": string }
-  • text_image      → {} (empty object)
-- Tone: supportive, professional, joyful. Globally inclusive examples. CEFR-aligned.`;
 
     const userPrompt = `Lesson title: ${lesson_title}
 Objective: ${objective ?? "(not provided)"}
