@@ -35,8 +35,17 @@ export interface CurriculumData {
   }>;
 }
 
-export type SlideType = 'text_image' | 'multiple_choice' | 'drawing_prompt' | 'flashcard';
+export type SlideType =
+  | 'text_image'
+  | 'multiple_choice'
+  | 'drawing_prompt'
+  | 'drawing_canvas'
+  | 'drag_and_drop'
+  | 'flashcard'
+  | 'mascot_speech';
 export type LayoutStyle = 'split_left' | 'split_right' | 'center_card' | 'full_background';
+export type MediaType = 'image' | 'video';
+export type LessonPhase = 'Hook' | 'Input' | 'Practice' | 'Production' | 'Reward';
 
 export interface MCQData {
   question: string;
@@ -61,6 +70,8 @@ export interface PPPSlide {
   content?: string;
   teacher_script?: string;
   visual_keyword?: string;
+  /** Director's choice: 'image' for static nouns/backgrounds, 'video' for verbs/emotions/brain-breaks. */
+  media_type?: MediaType;
   custom_image_url?: string;
   /** Public URL of an uploaded looping video clip (preferred over image when present). */
   custom_video_url?: string;
