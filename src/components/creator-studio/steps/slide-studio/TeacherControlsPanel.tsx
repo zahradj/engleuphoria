@@ -1,5 +1,8 @@
-import React from 'react';
-import { Mic, Type, ListChecks, Pencil, ImageIcon, Layers, LayoutTemplate, Plus, Minus } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import {
+  Mic, Type, ListChecks, Pencil, ImageIcon, Layers, LayoutTemplate, Plus, Minus,
+  Volume2, Sparkles, Video, Upload, Copy, Check, Loader2, Trash2,
+} from 'lucide-react';
 import {
   PPPSlide,
   SlideType,
@@ -15,6 +18,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { PHASE_STYLES, normalizePhase } from './phaseTheme';
 import { cn } from '@/lib/utils';
+import { useCreator } from '../../CreatorContext';
+import { uploadSlideAsset } from './uploadSlideAsset';
+import { toast } from 'sonner';
 
 interface Props {
   slide: PPPSlide;
