@@ -1,63 +1,9 @@
 import React, { useState } from 'react';
 import { Save, Rocket, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useCreator, ActiveLessonData, PPPSlide } from './CreatorContext';
+import { useCreator } from './CreatorContext';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
-
-async function persistLesson(
-  lesson: ActiveLessonData,
-  slides: PPPSlide[],
-  isPublished: boolean,
-): Promise<{ ok: true; lesson_id: string } | { ok: false; error: string }> {
-  const { data: userData } = await supabase.auth.getUser();
-  const userId = userData.user?.id;
-  if (!userId) return { ok: false, error: 'You must be signed in to save.' };
-
-  // Common payload used for both INSERT and UPDATE — the slides array always
-  // travels in the `content` JSONB column under `slides`.
-  const basePayload: Record<string, any> = {
-    title: lesson.lesson_title,
-    description: lesson.target_goal ?? null,
-    target_system: lesson.hub,
-    difficulty_level: lesson.cefr_level,
-    duration_minutes: 30,
-    content: { slides },
-    ai_metadata: {
-      source: 'creator-studio-ppp',
-      generated_at: new Date().toISOString(),
-      blueprint_ref: lesson.source_lesson ?? null,
-    },
-    is_published: isPublished,
-    skills_focus: lesson.source_lesson?.skill_focus ? [String(lesson.source_lesson.skill_focus)] : [],
-    language: 'en',
-    is_review: lesson.source_lesson?.skill_focus === 'Review',
-  };
-  if (lesson.level_id) basePayload.level_id = lesson.level_id;
-  if (lesson.unit_id) basePayload.unit_id = lesson.unit_id;
-
-  // UPDATE path — we have an existing row id from the library or a prior save.
-  if (lesson.lesson_id) {
-    const { data, error } = await supabase
-      .from('curriculum_lessons')
-      .update(basePayload)
-      .eq('id', lesson.lesson_id)
-      .select('id')
-      .maybeSingle();
-    if (error) return { ok: false, error: error.message };
-    return { ok: true, lesson_id: data?.id ?? lesson.lesson_id };
-  }
-
-  // INSERT path — first-time save. Stamp created_by and return the new id.
-  const insertPayload = { ...basePayload, created_by: userId };
-  const { data, error } = await supabase
-    .from('curriculum_lessons')
-    .insert(insertPayload)
-    .select('id')
-    .single();
-  if (error) return { ok: false, error: error.message };
-  return { ok: true, lesson_id: data.id };
-}
+import { persistLesson } from './persistLesson';
 
 export const StudioHeader: React.FC = () => {
   const {
