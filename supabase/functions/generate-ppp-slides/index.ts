@@ -253,7 +253,8 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
       if (!parsedArgs || !Array.isArray(parsedArgs.slides) || parsedArgs.slides.length === 0) {
         return { ok: false, status: 502, detail: "Validation failed: missing slides[]" };
       }
-      return { ok: true, slides: parsedArgs.slides };
+      const homework = Array.isArray(parsedArgs.homework_missions) ? parsedArgs.homework_missions : [];
+      return { ok: true, slides: parsedArgs.slides, homework_missions: homework };
     }
 
     let aiResult = await callAI();
