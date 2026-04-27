@@ -34,6 +34,9 @@ import SoundSpotting from './activities/SoundSpotting';
 import TactileTracing from './activities/TactileTracing';
 import LetterHunt from './activities/LetterHunt';
 import SoundTrigger from './activities/SoundTrigger';
+// Director PPP interactive types
+import DragAndMatch from './activities/DragAndMatch';
+import FillInTheGaps from './activities/FillInTheGaps';
 // Slide types
 import SlideHook from './slides/SlideHook';
 import SlideVocabulary from './slides/SlideVocabulary';
