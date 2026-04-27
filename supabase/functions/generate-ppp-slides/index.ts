@@ -208,6 +208,7 @@ tagged with lesson_phase. The Phase-2 reading passage MUST reuse Phase-1 vocabul
                   image_generation_prompt: { type: "string" },
                   video_generation_prompt: { type: "string" },
                   interactive_data_json: { type: "string" },
+                  hint_text: { type: "string" },
                   target_skills: {
                     type: "array",
                     minItems: 1,
