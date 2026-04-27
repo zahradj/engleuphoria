@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils';
 import { useCreator } from '../../CreatorContext';
 import { uploadSlideAsset } from './uploadSlideAsset';
 import {
-  generateSlideImage, generateSlideVoiceover, generateSlideMusic, generateSlideVideo,
+  generateSlideImage, generateSlideVoiceover, generateSlideMusic,
 } from './mediaGeneration';
 import { toast } from 'sonner';
 
@@ -343,7 +343,6 @@ const VisualsPanel: React.FC<Props> = ({ slide, onChange }) => {
   const { activeLessonData } = useCreator();
   const lessonId = activeLessonData?.lesson_id ?? activeLessonData?.source_lesson?.id ?? 'draft';
   const [generating, setGenerating] = useState(false);
-  const [generatingVideo, setGeneratingVideo] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -363,30 +362,6 @@ const VisualsPanel: React.FC<Props> = ({ slide, onChange }) => {
       toast.error((err as Error).message || 'Image generation failed.');
     } finally {
       setGenerating(false);
-    }
-  };
-
-  // Generate a short looping AI clip via fal.ai (Veo 3 Fast). Takes 30–60s.
-  const handleGenerateVideo = async () => {
-    const prompt = (slide.video_generation_prompt || slide.visual_keyword || slide.title || '').trim();
-    if (!prompt) {
-      toast.error('Add a video prompt first.');
-      return;
-    }
-    const toastId = toast.loading('Generating AI video — this takes 30–60 seconds…');
-    try {
-      setGeneratingVideo(true);
-      const { url } = await generateSlideVideo(prompt, lessonId, slide.id);
-      onChange({ custom_video_url: url, custom_image_url: undefined });
-      toast.success('AI video generated and attached.', { id: toastId });
-    } catch (err) {
-      console.error('Video generation error:', err);
-      toast.error(
-        (err as Error).message || 'Video generation failed. Please try again or upload manually.',
-        { id: toastId },
-      );
-    } finally {
-      setGeneratingVideo(false);
     }
   };
 
@@ -439,14 +414,13 @@ const VisualsPanel: React.FC<Props> = ({ slide, onChange }) => {
         placeholder="Short looping animation prompt (Veo / Runway)."
         rows={3}
       />
-      <Button type="button" onClick={handleGenerateVideo}
-        disabled={generatingVideo || !(slide.video_generation_prompt || '').trim()}
-        className="w-full bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold">
-        {generatingVideo ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Video className="h-4 w-4 mr-1.5" />}
-        {generatingVideo ? 'Generating video… (30–60s)' : '🎬 Generate Video (AI)'}
+      <Button type="button" disabled
+        className="w-full bg-slate-200 text-slate-500 cursor-not-allowed font-bold">
+        <Video className="h-4 w-4 mr-1.5" />
+        🎬 Generate Video — Coming soon
       </Button>
       <p className="text-[11px] text-slate-400 leading-relaxed -mt-2">
-        Powered by Google Veo 3 Fast. The clip auto-uploads and replaces the slide visual on completion.
+        Veo isn't publicly accessible yet. Generate the clip in your preferred tool and upload below.
       </p>
 
       <div className="h-px bg-slate-200 dark:bg-slate-800" />

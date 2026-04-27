@@ -46,9 +46,3 @@ export const generateSlideMusic = (
   slideId: string,
   durationSeconds = 30,
 ) => invokeJson('generate-slide-music', { prompt, lessonId, slideId, durationSeconds });
-
-export const generateSlideVideo = (
-  prompt: string,
-  lessonId: string,
-  slideId: string,
-) => invokeJson('generate-slide-video', { prompt, lessonId, slideId });
