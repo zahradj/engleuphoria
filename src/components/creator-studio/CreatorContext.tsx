@@ -254,7 +254,7 @@ export const CreatorProvider: React.FC<{ children: React.ReactNode }> = ({ child
           activeLessonData.slides,
           false, // autosave never publishes
         );
-        if (!result.ok) {
+        if (result.ok === false) {
           const msg = result.error;
           toast.error(`Autosave failed: ${msg}`, {
             description:
