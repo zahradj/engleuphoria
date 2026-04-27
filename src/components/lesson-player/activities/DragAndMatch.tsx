@@ -137,6 +137,8 @@ export default function DragAndMatch({ slide, hub = 'academy', onCorrect, onInco
 
   return (
     <div className="flex flex-col items-center gap-6 p-6 w-full h-full max-w-4xl mx-auto">
+      <StarMeter stars={tracker.stars} />
+      <HintBubble visible={tracker.showHint && !allMatched} text={hintText} />
       <h2 className="text-2xl md:text-3xl font-bold text-center" style={{ color: '#e2e8f0' }}>
         🔗 {instruction}
       </h2>
