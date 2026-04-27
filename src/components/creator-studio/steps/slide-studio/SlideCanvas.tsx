@@ -584,7 +584,7 @@ export const SlideCanvas: React.FC<Props> = ({ slide, onChange }) => {
               <TitleField slide={slide} onChange={onChange} />
               <InteractiveBlock slide={slide} mode={mode} hub={hub} />
               {/* Audio button only when slide is pedagogically audio-required (Pronunciation, Listening, Dialogue). */}
-              {slide.requires_audio && (
+              {shouldShowAudioButton(slide) && (
                 <div className="flex justify-center pt-2">
                   <PlaySoundButton slide={slide} />
                 </div>
