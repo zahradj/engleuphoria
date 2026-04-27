@@ -374,91 +374,157 @@ export const LibraryManager: React.FC = () => {
           <p className="text-sm text-slate-500">No lessons yet. Build one in the Blueprint, then the Slide Studio.</p>
         </div>
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {rows.map((row) => {
-            const slideCount = Array.isArray(row.content?.slides) ? row.content.slides.length : 0;
-            const tint = HUB_TINT[row.target_system] ?? HUB_TINT.academy;
-            const isBusy = busyId === row.id;
-            const isChecked = selectedIds.has(row.id);
+        <div className="space-y-8">
+          {unitGroups.map((group) => {
+            const isUncat = group.unit_number == null;
             return (
-              <li
-                key={row.id}
-                className={cn(
-                  'group relative rounded-2xl border bg-white dark:bg-slate-900 p-4 shadow-sm hover:shadow-lg transition-all',
-                  isChecked
-                    ? 'border-red-400 dark:border-red-500/60 ring-2 ring-red-200 dark:ring-red-900/40'
-                    : 'border-slate-200 dark:border-slate-800',
-                )}
-              >
-                {/* Selection checkbox — top-left, always visible */}
-                <div className="absolute top-3 left-3">
-                  <Checkbox
-                    checked={isChecked}
-                    onCheckedChange={() => toggleSelected(row.id)}
-                    aria-label={`Select ${row.title}`}
-                  />
-                </div>
-
-                {/* Hover action toolbar */}
-                <div className="absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleDelete(row)}
-                    disabled={isBusy}
-                    className="h-7 w-7 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30"
-                    aria-label="Delete lesson"
-                    title="Delete lesson"
-                  >
-                    {isBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
-                  </Button>
-                </div>
-
-                <div className="pl-7">
-                  <div
-                    className={cn(
-                      'inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded bg-gradient-to-r',
-                      tint,
-                    )}
-                  >
-                    {row.target_system} · {row.difficulty_level}
-                  </div>
-                  <h3 className="mt-2 text-base font-bold text-slate-900 dark:text-slate-50 line-clamp-2 pr-8">
-                    {row.title}
-                  </h3>
-                  {row.description && (
-                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
-                      {row.description}
-                    </p>
+              <section key={group.unit_id ?? '__uncat__'} className="space-y-3">
+                {/* Unit Header — full-width banner */}
+                <div
+                  className={cn(
+                    'flex items-center gap-3 px-4 py-3 rounded-xl shadow-sm',
+                    isUncat
+                      ? 'bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800/60 dark:to-slate-900/60 border border-dashed border-slate-300 dark:border-slate-700'
+                      : 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white',
                   )}
-                  <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400">
-                    <span>
-                      {slideCount} slide{slideCount === 1 ? '' : 's'}
-                    </span>
-                    {row.is_published ? (
-                      <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
-                        <CheckCircle2 className="h-3.5 w-3.5" /> Published
-                      </span>
-                    ) : (
-                      <Badge variant="outline" className="text-[10px] text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-700">
-                        Draft
-                      </Badge>
-                    )}
+                >
+                  {!isUncat && (
+                    <div className="h-9 w-9 shrink-0 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center font-extrabold text-base">
+                      {group.unit_number}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className={cn(
+                        'text-[10px] font-bold uppercase tracking-[0.2em]',
+                        isUncat ? 'text-slate-500 dark:text-slate-400' : 'text-white/80',
+                      )}
+                    >
+                      {isUncat ? 'Extra Activities' : `Unit ${group.unit_number}`}
+                    </p>
+                    <h3
+                      className={cn(
+                        'text-base sm:text-lg font-extrabold tracking-tight truncate',
+                        isUncat ? 'text-slate-700 dark:text-slate-200' : 'text-white',
+                      )}
+                    >
+                      {group.unit_title}
+                    </h3>
                   </div>
-
-                  <Button
-                    size="sm"
-                    onClick={() => handleEdit(row)}
-                    className="mt-3 w-full gap-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white border-0"
+                  <Badge
+                    variant="secondary"
+                    className={cn(
+                      'shrink-0 text-[11px] font-semibold',
+                      isUncat
+                        ? 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                        : 'bg-white/20 text-white border-0 backdrop-blur-sm',
+                    )}
                   >
-                    <Pencil className="h-3.5 w-3.5" />
-                    Edit Slides
-                  </Button>
+                    {group.lessons.length} lesson{group.lessons.length === 1 ? '' : 's'}
+                  </Badge>
                 </div>
-              </li>
+
+                {/* Lesson cards within this unit */}
+                <ul className="grid gap-3 sm:grid-cols-2">
+                  {group.lessons.map((row) => {
+                    const slideCount = Array.isArray(row.content?.slides) ? row.content.slides.length : 0;
+                    const tint = HUB_TINT[row.target_system] ?? HUB_TINT.academy;
+                    const isBusy = busyId === row.id;
+                    const isChecked = selectedIds.has(row.id);
+                    const lessonNumber = row.sequence_order;
+                    return (
+                      <li
+                        key={row.id}
+                        className={cn(
+                          'group relative rounded-2xl border bg-white dark:bg-slate-900 p-4 shadow-sm hover:shadow-lg transition-all',
+                          isChecked
+                            ? 'border-red-400 dark:border-red-500/60 ring-2 ring-red-200 dark:ring-red-900/40'
+                            : 'border-slate-200 dark:border-slate-800',
+                        )}
+                      >
+                        {/* Selection checkbox — top-left, always visible */}
+                        <div className="absolute top-3 left-3">
+                          <Checkbox
+                            checked={isChecked}
+                            onCheckedChange={() => toggleSelected(row.id)}
+                            aria-label={`Select ${row.title}`}
+                          />
+                        </div>
+
+                        {/* Hover action toolbar */}
+                        <div className="absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDelete(row)}
+                            disabled={isBusy}
+                            className="h-7 w-7 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30"
+                            aria-label="Delete lesson"
+                            title="Delete lesson"
+                          >
+                            {isBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                          </Button>
+                        </div>
+
+                        <div className="pl-7">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {lessonNumber != null && (
+                              <Badge
+                                variant="secondary"
+                                className="text-[10px] font-bold tracking-wider bg-violet-100 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300 border-0"
+                              >
+                                Lesson {lessonNumber}
+                              </Badge>
+                            )}
+                            <div
+                              className={cn(
+                                'inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded bg-gradient-to-r',
+                                tint,
+                              )}
+                            >
+                              {row.target_system} · {row.difficulty_level}
+                            </div>
+                          </div>
+                          <h4 className="mt-2 text-base font-bold text-slate-900 dark:text-slate-50 line-clamp-2 pr-8">
+                            {row.title}
+                          </h4>
+                          {row.description && (
+                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
+                              {row.description}
+                            </p>
+                          )}
+                          <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400">
+                            <span>
+                              {slideCount} slide{slideCount === 1 ? '' : 's'}
+                            </span>
+                            {row.is_published ? (
+                              <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
+                                <CheckCircle2 className="h-3.5 w-3.5" /> Published
+                              </span>
+                            ) : (
+                              <Badge variant="outline" className="text-[10px] text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-700">
+                                Draft
+                              </Badge>
+                            )}
+                          </div>
+
+                          <Button
+                            size="sm"
+                            onClick={() => handleEdit(row)}
+                            className="mt-3 w-full gap-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white border-0"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                            Edit Slides
+                          </Button>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
             );
           })}
-        </ul>
+        </div>
       )}
     </div>
   );
