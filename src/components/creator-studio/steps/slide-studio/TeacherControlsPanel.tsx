@@ -182,6 +182,168 @@ const FlashcardEditor: React.FC<Props> = ({ slide, onChange }) => {
   );
 };
 
+const DragAndMatchEditor: React.FC<Props> = ({ slide, onChange }) => {
+  const data = (slide.interactive_data ?? {}) as Partial<DragAndMatchData>;
+  const instruction = data.instruction ?? '';
+  const pairs: DragAndMatchPair[] = Array.isArray(data.pairs) && data.pairs.length
+    ? data.pairs.map((p) => ({
+        left_item: p.left_item ?? '',
+        left_thumbnail_keyword: p.left_thumbnail_keyword ?? '',
+        left_thumbnail_url: p.left_thumbnail_url,
+        right_item: p.right_item ?? '',
+        right_thumbnail_keyword: p.right_thumbnail_keyword ?? '',
+        right_thumbnail_url: p.right_thumbnail_url,
+      }))
+    : [{ left_item: '', right_item: '' }];
+
+  const update = (patch: Partial<DragAndMatchData>) =>
+    onChange({ interactive_data: { instruction, pairs, ...patch } });
+  const setPair = (i: number, patch: Partial<DragAndMatchPair>) => {
+    const next = pairs.map((p, idx) => (idx === i ? { ...p, ...patch } : p));
+    update({ pairs: next });
+  };
+  const addPair = () => {
+    if (pairs.length >= 3) return;
+    update({ pairs: [...pairs, { left_item: '', right_item: '' }] });
+  };
+  const removePair = (i: number) => {
+    if (pairs.length <= 1) return;
+    update({ pairs: pairs.filter((_, idx) => idx !== i) });
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="space-y-1.5">
+        <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Instruction</Label>
+        <Input value={instruction} onChange={(e) => update({ instruction: e.target.value })}
+          placeholder='e.g. "Match the word to the picture!"' />
+      </div>
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+            Pairs ({pairs.length}/3)
+          </Label>
+          <Button type="button" size="sm" variant="ghost" onClick={addPair}
+            disabled={pairs.length >= 3} className="h-7 px-2 text-xs">
+            <Plus className="h-3 w-3 mr-1" /> Add pair
+          </Button>
+        </div>
+        <ul className="space-y-2">
+          {pairs.map((p, i) => (
+            <li key={i} className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-2 space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono text-slate-400 w-5">#{i + 1}</span>
+                {p.left_thumbnail_url && (
+                  <img src={p.left_thumbnail_url} alt="" className="h-7 w-7 rounded object-cover border border-slate-200" />
+                )}
+                <Input value={p.left_item} onChange={(e) => setPair(i, { left_item: e.target.value })}
+                  placeholder="Left item" className="h-8 text-sm" />
+                <span className="text-slate-400 text-sm">↔</span>
+                {p.right_thumbnail_url && (
+                  <img src={p.right_thumbnail_url} alt="" className="h-7 w-7 rounded object-cover border border-slate-200" />
+                )}
+                <Input value={p.right_item} onChange={(e) => setPair(i, { right_item: e.target.value })}
+                  placeholder="Right item" className="h-8 text-sm" />
+                <Button type="button" size="sm" variant="ghost" onClick={() => removePair(i)}
+                  disabled={pairs.length <= 1}
+                  className="h-7 w-7 p-0 text-slate-400 hover:text-red-500" aria-label="Remove pair">
+                  <Minus className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Input value={p.left_thumbnail_keyword ?? ''}
+                  onChange={(e) => setPair(i, { left_thumbnail_keyword: e.target.value })}
+                  placeholder="Left thumbnail keyword (optional)"
+                  className="h-7 text-[11px]" />
+                <Input value={p.right_thumbnail_keyword ?? ''}
+                  onChange={(e) => setPair(i, { right_thumbnail_keyword: e.target.value })}
+                  placeholder="Right thumbnail keyword (optional)"
+                  className="h-7 text-[11px]" />
+              </div>
+            </li>
+          ))}
+        </ul>
+        <p className="text-[11px] text-slate-400">Tablet-friendly cap: 3 pairs max. Add a thumbnail keyword to attach a small icon to that card.</p>
+      </div>
+    </div>
+  );
+};
+
+const FillInTheGapsEditor: React.FC<Props> = ({ slide, onChange }) => {
+  const data = (slide.interactive_data ?? {}) as Partial<FillInTheGapsData>;
+  const instruction = data.instruction ?? '';
+  const parts: [string, string] = Array.isArray(data.sentence_parts) && data.sentence_parts.length === 2
+    ? [data.sentence_parts[0] ?? '', data.sentence_parts[1] ?? '']
+    : ['', ''];
+  const missing = data.missing_word ?? '';
+  const distractors: string[] = Array.isArray(data.distractors)
+    ? data.distractors.filter((x) => typeof x === 'string')
+    : ['', ''];
+
+  const update = (patch: Partial<FillInTheGapsData>) =>
+    onChange({ interactive_data: { instruction, sentence_parts: parts, missing_word: missing, distractors, ...patch } });
+  const setDistractor = (i: number, value: string) => {
+    const next = [...distractors];
+    next[i] = value;
+    update({ distractors: next });
+  };
+  const addDistractor = () => {
+    if (distractors.length >= 3) return;
+    update({ distractors: [...distractors, ''] });
+  };
+  const removeDistractor = (i: number) => {
+    if (distractors.length <= 1) return;
+    update({ distractors: distractors.filter((_, idx) => idx !== i) });
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="space-y-1.5">
+        <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Instruction</Label>
+        <Input value={instruction} onChange={(e) => update({ instruction: e.target.value })}
+          placeholder='e.g. "Fill in the gap!"' />
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Sentence (with the gap)</Label>
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+          <Input value={parts[0]} onChange={(e) => update({ sentence_parts: [e.target.value, parts[1]] })}
+            placeholder="Before the gap…" className="h-9 text-sm" />
+          <span className="text-amber-500 font-bold tracking-widest">___</span>
+          <Input value={parts[1]} onChange={(e) => update({ sentence_parts: [parts[0], e.target.value] })}
+            placeholder="…after the gap" className="h-9 text-sm" />
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-xs font-bold uppercase tracking-wider text-emerald-600">Correct word</Label>
+        <Input value={missing} onChange={(e) => update({ missing_word: e.target.value })}
+          placeholder="The word that fills the gap" className="h-9 text-sm border-emerald-300 bg-emerald-50/50" />
+      </div>
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Distractors ({distractors.length}/3)</Label>
+          <Button type="button" size="sm" variant="ghost" onClick={addDistractor}
+            disabled={distractors.length >= 3} className="h-7 px-2 text-xs">
+            <Plus className="h-3 w-3 mr-1" /> Add
+          </Button>
+        </div>
+        <ul className="space-y-1.5">
+          {distractors.map((d, i) => (
+            <li key={i} className="flex items-center gap-2">
+              <Input value={d} onChange={(e) => setDistractor(i, e.target.value)}
+                placeholder={`Distractor ${i + 1}`} className="h-8 text-sm" />
+              <Button type="button" size="sm" variant="ghost" onClick={() => removeDistractor(i)}
+                disabled={distractors.length <= 1}
+                className="h-7 w-7 p-0 text-slate-400 hover:text-red-500" aria-label="Remove distractor">
+                <Minus className="h-3.5 w-3.5" />
+              </Button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+};
+
 const DrawingEditor: React.FC<Props> = ({ slide, onChange }) => {
   const data = (slide.interactive_data ?? {}) as Partial<DrawingData>;
   const prompt = data.prompt ?? slide.content ?? '';
