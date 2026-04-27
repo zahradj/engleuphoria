@@ -146,3 +146,9 @@ project_id = "dcoxpyzoqjvmuuygvlme"
     verify_jwt = false
   [functions.generate-lesson-plan]
     verify_jwt = false
+  [functions.generate-slide-image]
+    verify_jwt = true
+  [functions.generate-slide-voiceover]
+    verify_jwt = true
+  [functions.generate-slide-music]
+    verify_jwt = true
