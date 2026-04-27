@@ -37,7 +37,21 @@ interface LessonRow {
   ai_metadata: any;
   level_id: string | null;
   unit_id: string | null;
+  sequence_order: number | null;
   skills_focus: string[] | null;
+}
+
+interface UnitRow {
+  id: string;
+  unit_number: number;
+  title: string;
+}
+
+interface UnitGroup {
+  unit_id: string | null;
+  unit_number: number | null; // null = uncategorized
+  unit_title: string;
+  lessons: LessonRow[];
 }
 
 const HUB_TINT: Record<string, string> = {
