@@ -166,7 +166,7 @@ export default function FillInTheGaps({ slide, hub = 'academy', onCorrect, onInc
               }
               whileHover={!isCorrect ? { scale: 1.08 } : undefined}
               whileTap={!isCorrect ? { scale: 0.94 } : undefined}
-              className="px-7 py-3 rounded-full text-xl font-bold select-none shadow-lg"
+              className="px-8 py-4 rounded-full text-2xl md:text-3xl font-bold select-none shadow-lg min-h-[64px] min-w-[100px]"
               style={{
                 background: `linear-gradient(135deg, ${primary}, ${accent})`,
                 color: '#fff',

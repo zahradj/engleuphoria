@@ -101,7 +101,13 @@ RULE 4 — INTERACTIVE_DATA SHAPES (by slide_type)
 • flashcard        → { "front": string, "back": string }
 • drawing_canvas   → { "prompt": string }                    // "Draw an apple!"
 • drag_and_drop    → { "instruction": string, "items": string[], "targets": string[], "pairs": [{"item": string, "target": string}] }
-• drag_and_match   → { "instruction": string, "pairs": [{"left_item": string, "right_item": string}] }   // EXACTLY 3 pairs (tablet visibility cap). Fast-paced vocab review.
+• drag_and_match   → { "instruction": string, "pairs": [{"left_item": string, "right_item": string, "left_thumbnail_keyword"?: string, "right_thumbnail_keyword"?: string}] }
+                     // EXACTLY 3 pairs (tablet visibility cap). Fast-paced vocab review.
+                     // For vocab/object pairs (e.g. word → translation, word → category), ALWAYS provide
+                     // *_thumbnail_keyword (1-3 words, concrete noun) so the system can auto-generate a
+                     // small picture above each draggable pill. Example: { "left_item": "Apple",
+                     // "right_item": "Manzana", "left_thumbnail_keyword": "red apple",
+                     // "right_thumbnail_keyword": "red apple" }. Skip thumbnails only for abstract concepts.
 • fill_in_the_gaps → { "instruction": string, "sentence_parts": string[], "missing_word": string, "distractors": string[2..3] }
                      // sentence_parts is the sentence split where the gap goes; render with "___" between parts. Example:
                      // sentence: "The cat is on the mat." with missing_word "cat" →
@@ -111,7 +117,8 @@ RULE 4 — INTERACTIVE_DATA SHAPES (by slide_type)
 You now have access to drag_and_match and fill_in_the_gaps.
 USAGE GUIDANCE:
 - Use fill_in_the_gaps during the "Practice" phase to test sentence structure / grammar in context.
-- Use drag_and_match as a fast-paced vocabulary review (Practice or Reward).
+- Use drag_and_match as a fast-paced vocabulary review (Practice or Reward). Always include
+  thumbnail keywords for concrete-noun pairs so each pill gets a small auto-generated picture.
 Both still obey RULE 3: never repeat the same slide_type back-to-back.
 
 ═══════════════════════════════════════════════════════
