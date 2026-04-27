@@ -156,8 +156,30 @@ export const CurriculumExplorerTree: React.FC<CurriculumExplorerTreeProps> = ({
   const [accessories, setAccessories] = useState<Accessory[]>([]);
   const [expandedLevels, setExpandedLevels] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [deleteTarget, setDeleteTarget] = useState<{ type: 'lesson' | 'level'; id: string; name: string; lessonCount?: number } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ type: 'lesson' | 'level' | 'bulk'; id?: string; name?: string; lessonCount?: number; ids?: string[] } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectLevel = (levelLessons: ExplorerLesson[]) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      const allSelected = levelLessons.every((l) => next.has(l.id));
+      if (allSelected) levelLessons.forEach((l) => next.delete(l.id));
+      else levelLessons.forEach((l) => next.add(l.id));
+      return next;
+    });
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
 
   const fetchData = useCallback(async () => {
     setLoading(true);
