@@ -79,19 +79,41 @@ export const LibraryManager: React.FC = () => {
       setLoading(false);
       return;
     }
-    const { data, error } = await supabase
+    const lessonsRes = await supabase
       .from('curriculum_lessons')
       .select(
-        'id, title, description, target_system, difficulty_level, is_published, updated_at, content, ai_metadata, level_id, unit_id, skills_focus',
+        'id, title, description, target_system, difficulty_level, is_published, updated_at, content, ai_metadata, level_id, unit_id, sequence_order, skills_focus',
       )
       .eq('created_by', uid)
       .order('updated_at', { ascending: false })
-      .limit(50);
-    if (error) {
-      console.error('library fetch error', error);
-      toast.error(`Could not load library: ${error.message}`);
+      .limit(200);
+
+    if (lessonsRes.error) {
+      console.error('library fetch error', lessonsRes.error);
+      toast.error(`Could not load library: ${lessonsRes.error.message}`);
     }
-    setRows(data ?? []);
+
+    const lessons = (lessonsRes.data ?? []) as LessonRow[];
+
+    // Fetch the units those lessons reference (so we get unit_number + title).
+    const unitIds = Array.from(
+      new Set(lessons.map((l) => l.unit_id).filter((x): x is string => !!x)),
+    );
+    let unitRows: UnitRow[] = [];
+    if (unitIds.length > 0) {
+      const unitsRes = await supabase
+        .from('curriculum_units')
+        .select('id, unit_number, title')
+        .in('id', unitIds);
+      if (unitsRes.error) {
+        console.error('units fetch error', unitsRes.error);
+      } else {
+        unitRows = (unitsRes.data ?? []) as UnitRow[];
+      }
+    }
+
+    setRows(lessons);
+    setUnits(unitRows);
     setSelectedIds(new Set());
     setLoading(false);
   }, []);
