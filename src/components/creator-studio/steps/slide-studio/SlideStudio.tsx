@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 export const SlideStudio: React.FC = () => {
   const { activeLessonData, updateSlide, setCurrentStep } = useCreator();
   const [activeSlideId, setActiveSlideId] = useState<string | null>(null);
+  const [autoGenerating, setAutoGenerating] = useState(false);
 
   // Auto-select first slide whenever the deck changes / loads.
   useEffect(() => {
