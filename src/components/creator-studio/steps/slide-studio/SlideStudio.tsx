@@ -5,7 +5,9 @@ import { SlideThumbnailRail } from './SlideThumbnailRail';
 import { SlideCanvas } from './SlideCanvas';
 import { TeacherControlsPanel } from './TeacherControlsPanel';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Target } from 'lucide-react';
+import { ArrowRight, Target, Sparkles, Loader2 } from 'lucide-react';
+import { generateSlideImage, generateSlideVoiceover } from './mediaGeneration';
+import { toast } from 'sonner';
 
 export const SlideStudio: React.FC = () => {
   const { activeLessonData, updateSlide, setCurrentStep } = useCreator();
