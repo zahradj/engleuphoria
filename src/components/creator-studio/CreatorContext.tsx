@@ -62,6 +62,14 @@ export interface PPPSlide {
   teacher_script?: string;
   visual_keyword?: string;
   custom_image_url?: string;
+  /** Public URL of an uploaded looping video clip (preferred over image when present). */
+  custom_video_url?: string;
+  /** Phonetic kid-friendly TTS string sent to ElevenLabs. */
+  elevenlabs_script?: string;
+  /** AI-engineered prompt the user can copy into a text-to-image tool. */
+  image_generation_prompt?: string;
+  /** AI-engineered prompt the user can copy into a text-to-video tool. */
+  video_generation_prompt?: string;
   interactive_data?: InteractiveData;
   // legacy / optional
   teacher_instructions?: string;
