@@ -20,6 +20,8 @@ interface Props {
   hub?: HubType;
   onCorrect: () => void;
   onIncorrect?: () => void;
+  /** Called when all pairs are matched, carrying the final star count (1-3). */
+  onStarsAwarded?: (stars: number) => void;
 }
 
 /**
