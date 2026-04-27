@@ -173,6 +173,7 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
     };
 
     async function callAI(): Promise<{ ok: true; slides: any[] } | { ok: false; status: number; detail: string }> {
+      console.log("Sending payload to Gemini via Lovable AI Gateway...", { lesson_title, cefr_level, hub });
       const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
