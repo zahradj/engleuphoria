@@ -327,27 +327,54 @@ and 3–5 homework missions.`;
       }
     }
 
-    const slides = rawSlides.map((s: any) => ({
-      id: crypto.randomUUID(),
-      phase: s.phase,
-      slide_type: s.slide_type,
-      media_type: s.media_type ?? "image",
-      layout_style: s.layout_style ?? "center_card",
-      title: s.title,
-      content: s.content,
-      teacher_script: s.teacher_script,
-      visual_keyword: s.visual_keyword,
-      elevenlabs_script: s.elevenlabs_script ?? "",
-      image_generation_prompt: s.image_generation_prompt ?? "",
-      video_generation_prompt: s.video_generation_prompt ?? "",
-      interactive_data: (() => {
-        if (s.interactive_data && typeof s.interactive_data === "object") return s.interactive_data;
-        if (typeof s.interactive_data_json === "string") {
-          try { return JSON.parse(s.interactive_data_json); } catch { return {}; }
-        }
-        return {};
-      })(),
-    }));
+    const CORE_SKILLS = new Set(["Reading", "Writing", "Listening", "Speaking"]);
+    const slides = rawSlides.map((s: any) => {
+      const rawSkills: string[] = Array.isArray(s.target_skills)
+        ? s.target_skills.filter((x: any) => typeof x === "string")
+        : [];
+      const target_skills = rawSkills.length > 0 ? rawSkills : ["Vocabulary"];
+      // Audio gate: trust the AI's boolean; if missing, infer conservatively (only true for Listening/Speaking).
+      const requires_audio = typeof s.requires_audio === "boolean"
+        ? s.requires_audio
+        : target_skills.some((k) => k === "Listening" || k === "Speaking");
+      return {
+        id: crypto.randomUUID(),
+        phase: s.phase,
+        slide_type: s.slide_type,
+        media_type: s.media_type ?? "image",
+        layout_style: s.layout_style ?? "center_card",
+        title: s.title,
+        content: s.content,
+        teacher_script: s.teacher_script,
+        visual_keyword: s.visual_keyword,
+        elevenlabs_script: s.elevenlabs_script ?? "",
+        image_generation_prompt: s.image_generation_prompt ?? "",
+        video_generation_prompt: s.video_generation_prompt ?? "",
+        target_skills,
+        requires_audio,
+        interactive_data: (() => {
+          if (s.interactive_data && typeof s.interactive_data === "object") return s.interactive_data;
+          if (typeof s.interactive_data_json === "string") {
+            try { return JSON.parse(s.interactive_data_json); } catch { return {}; }
+          }
+          return {};
+        })(),
+      };
+    });
+
+    // Deck-level validation: at least 3 distinct CORE skills used, and ≥20 slides.
+    const coreSkillsUsed = new Set<string>();
+    for (const s of slides) {
+      for (const k of s.target_skills) if (CORE_SKILLS.has(k)) coreSkillsUsed.add(k);
+    }
+    if (slides.length < 20) {
+      console.warn(`Density violation: deck has ${slides.length} slides (<20). 1-hour target missed.`);
+    }
+    if (coreSkillsUsed.size < 3) {
+      console.warn(
+        `Skill-blend violation: only ${coreSkillsUsed.size} of 4 core skills covered (${[...coreSkillsUsed].join(", ")}). Need ≥3.`,
+      );
+    }
 
     // ─── Homework missions: parse stringified payload + validate per-type shape ───
     const rawMissions: any[] = (aiResult as any).homework_missions ?? [];
