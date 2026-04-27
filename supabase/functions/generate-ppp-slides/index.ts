@@ -157,19 +157,24 @@ Skill focus: ${skill_focus}
 CEFR level: ${cefr_level}
 Hub: ${hub}
 
-Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
+Generate the dense 20–25 slide 1-hour PPP lesson now. Respect EVERY rule above:
+the 5-phase arc, ≥20 slides, target_skills on every slide (≥3 of Reading/Writing/Listening/Speaking
+across the deck), requires_audio set true ONLY when audio is pedagogically essential,
+and 3–5 homework missions.`;
 
     const tool = {
       type: "function",
       function: {
         name: "emit_director_lesson",
         description:
-          "Return a 15-20 slide progressive lesson plus 3-5 gamified homework missions for asynchronous practice.",
+          "Return a 20–25 slide 1-hour PPP lesson with target_skills + requires_audio per slide, plus 3–5 gamified homework missions.",
         parameters: {
           type: "object",
           properties: {
             slides: {
               type: "array",
+              minItems: 20,
+              maxItems: 25,
               items: {
                 type: "object",
                 properties: {
@@ -185,6 +190,12 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
                   image_generation_prompt: { type: "string" },
                   video_generation_prompt: { type: "string" },
                   interactive_data_json: { type: "string" },
+                  target_skills: {
+                    type: "array",
+                    minItems: 1,
+                    items: { type: "string", enum: [...SKILLS] },
+                  },
+                  requires_audio: { type: "boolean" },
                 },
                 required: [
                   "phase",
@@ -199,6 +210,8 @@ Generate the 15–20 slide progressive lesson now. Respect every rule above.`;
                   "image_generation_prompt",
                   "video_generation_prompt",
                   "interactive_data_json",
+                  "target_skills",
+                  "requires_audio",
                 ],
                 additionalProperties: false,
               },
