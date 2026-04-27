@@ -70,6 +70,8 @@ export interface PPPSlide {
   content?: string;
   teacher_script?: string;
   visual_keyword?: string;
+  /** Director's choice: 'image' for static nouns/backgrounds, 'video' for verbs/emotions/brain-breaks. */
+  media_type?: MediaType;
   custom_image_url?: string;
   /** Public URL of an uploaded looping video clip (preferred over image when present). */
   custom_video_url?: string;
