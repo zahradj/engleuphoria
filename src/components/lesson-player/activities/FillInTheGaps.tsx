@@ -1,0 +1,202 @@
+import React, { useMemo, useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { GeneratedSlide } from '@/components/admin/lesson-builder/ai-wizard/types';
+import { soundEffectsService } from '@/services/soundEffectsService';
+import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConfig';
+import type { HubType } from '@/components/admin/lesson-builder/ai-wizard/types';
+
+interface Props {
+  slide: GeneratedSlide;
+  hub?: HubType;
+  onCorrect: () => void;
+  onIncorrect?: () => void;
+}
+
+/**
+ * Fill in the Gaps — sentence with a Drop Zone + bouncy pill word options.
+ * Reads from slide.interactive_data: { sentence_parts, missing_word, distractors }.
+ * Tap or drag a pill into the gap. On correct: snap-in animation, ding, then onCorrect()
+ * (parent handles confetti + Next Slide unlock).
+ */
+export default function FillInTheGaps({ slide, hub = 'academy', onCorrect, onIncorrect }: Props) {
+  const config = HUB_CONFIGS[hub] || HUB_CONFIGS.academy;
+  const primary = (config as any)?.primaryColor || '#6366f1';
+  const accent = (config as any)?.accentColor || '#a855f7';
+
+  const data: any = (slide as any).interactive_data || (slide as any).content || {};
+  const instruction: string = data.instruction || 'Fill in the gap!';
+  const missingWord: string = data.missing_word || data.correctAnswer || data.blankWord || '';
+  const sentenceParts: string[] = useMemo(() => {
+    if (Array.isArray(data.sentence_parts) && data.sentence_parts.length > 0) {
+      return data.sentence_parts;
+    }
+    // Fallback: split data.sentence on the missing word.
+    const sentence: string = data.sentence || '';
+    if (sentence && missingWord) {
+      const re = new RegExp(`\\b${missingWord}\\b`, 'i');
+      const idx = sentence.search(re);
+      if (idx >= 0) {
+        return [sentence.slice(0, idx), sentence.slice(idx + missingWord.length)];
+      }
+    }
+    return [sentence || '___ ', ''];
+  }, [slide.id]);
+
+  const distractors: string[] = useMemo(() => {
+    const d = Array.isArray(data.distractors) ? data.distractors : [];
+    return d.filter((x: any) => typeof x === 'string' && x.length > 0).slice(0, 3);
+  }, [slide.id]);
+
+  // Shuffle the answer pool once.
+  const choices: string[] = useMemo(() => {
+    const arr = [missingWord, ...distractors].filter(Boolean);
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }, [missingWord, distractors]);
+
+  const [filled, setFilled] = useState<string | null>(null);
+  const [wrongFlash, setWrongFlash] = useState(false);
+  const [shakeGap, setShakeGap] = useState(false);
+  const firedRef = useRef(false);
+
+  const isCorrect = !!filled && filled.toLowerCase() === missingWord.toLowerCase();
+
+  useEffect(() => {
+    if (isCorrect && !firedRef.current) {
+      firedRef.current = true;
+      const t = setTimeout(() => onCorrect(), 700);
+      return () => clearTimeout(t);
+    }
+  }, [isCorrect, onCorrect]);
+
+  const tryWord = (word: string) => {
+    if (filled && filled.toLowerCase() === missingWord.toLowerCase()) return;
+    if (word.toLowerCase() === missingWord.toLowerCase()) {
+      soundEffectsService.playCorrect();
+      setFilled(word);
+    } else {
+      soundEffectsService.playIncorrect();
+      onIncorrect?.();
+      setWrongFlash(true);
+      setShakeGap(true);
+      setTimeout(() => setWrongFlash(false), 500);
+      setTimeout(() => setShakeGap(false), 500);
+    }
+  };
+
+  // HTML5 drag for desktop; tap works for touch.
+  const handleDragStart = (e: React.DragEvent, word: string) => {
+    e.dataTransfer.setData('text/plain', word);
+  };
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const word = e.dataTransfer.getData('text/plain');
+    if (word) tryWord(word);
+  };
+
+  if (!missingWord) {
+    return (
+      <div className="p-8 text-center" style={{ color: '#cbd5e1' }}>
+        Missing word data unavailable for this slide.
+      </div>
+    );
+  }
+
+  const pillUsed = (word: string) => isCorrect && word.toLowerCase() === missingWord.toLowerCase();
+
+  return (
+    <div className="flex flex-col items-center gap-8 p-6 w-full max-w-3xl mx-auto">
+      <h2 className="text-2xl font-bold text-center" style={{ color: '#e2e8f0' }}>
+        ✍️ {instruction}
+      </h2>
+
+      {/* SENTENCE WITH DROP ZONE */}
+      <div
+        className="text-3xl md:text-4xl font-bold flex items-center gap-3 flex-wrap justify-center leading-relaxed text-center"
+        style={{ color: '#f1f5f9' }}
+      >
+        <span>{sentenceParts[0]}</span>
+        <motion.div
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={handleDrop}
+          animate={
+            shakeGap
+              ? { x: [0, -10, 10, -8, 8, 0] }
+              : isCorrect
+              ? { scale: [1, 1.15, 1] }
+              : { scale: 1 }
+          }
+          transition={{ duration: 0.4 }}
+          className="inline-flex items-center justify-center px-6 py-3 rounded-2xl min-w-[140px] min-h-[60px]"
+          style={{
+            background: isCorrect
+              ? `linear-gradient(135deg, #22c55e, #16a34a)`
+              : wrongFlash
+              ? '#7f1d1d'
+              : '#1e1b4b',
+            border: `3px dashed ${isCorrect ? '#22c55e' : primary + 'aa'}`,
+            color: isCorrect ? '#fff' : '#fbbf24',
+          }}
+        >
+          {filled && isCorrect ? filled : '___'}
+        </motion.div>
+        <span>{sentenceParts[1] || ''}</span>
+      </div>
+
+      {/* WORD PILLS */}
+      <div className="flex flex-wrap justify-center gap-4 mt-4">
+        {choices.map((word) => {
+          const used = pillUsed(word);
+          return (
+            <motion.button
+              key={word}
+              draggable={!used}
+              onDragStart={(e) => handleDragStart(e as any, word)}
+              onClick={() => tryWord(word)}
+              disabled={isCorrect}
+              animate={
+                used
+                  ? { scale: 0.85, opacity: 0.4, y: 0 }
+                  : { y: [0, -4, 0], scale: 1, opacity: 1 }
+              }
+              transition={
+                used
+                  ? { duration: 0.3 }
+                  : { y: { repeat: Infinity, duration: 1.6, ease: 'easeInOut' } }
+              }
+              whileHover={!isCorrect ? { scale: 1.08 } : undefined}
+              whileTap={!isCorrect ? { scale: 0.94 } : undefined}
+              className="px-7 py-3 rounded-full text-xl font-bold select-none shadow-lg"
+              style={{
+                background: `linear-gradient(135deg, ${primary}, ${accent})`,
+                color: '#fff',
+                border: '2px solid rgba(255,255,255,0.25)',
+                cursor: isCorrect ? 'default' : 'grab',
+                touchAction: 'manipulation',
+              }}
+            >
+              {word}
+            </motion.button>
+          );
+        })}
+      </div>
+
+      <AnimatePresence>
+        {isCorrect && (
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="text-xl font-bold"
+            style={{ color: '#22c55e' }}
+          >
+            ✨ Perfect! +10 XP
+          </motion.p>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
