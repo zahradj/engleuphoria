@@ -408,6 +408,10 @@ export const TeacherControlsPanel: React.FC<Props> = ({ slide, onChange }) => {
     else if (next === 'flashcard') onChange({ slide_type: next, interactive_data: { ...DEFAULT_FLASHCARD } });
     else if (next === 'drawing_prompt')
       onChange({ slide_type: next, interactive_data: { ...DEFAULT_DRAWING }, content: DEFAULT_DRAWING.prompt });
+    else if (next === 'drag_and_match')
+      onChange({ slide_type: next, interactive_data: { ...DEFAULT_DRAG_MATCH, pairs: DEFAULT_DRAG_MATCH.pairs.map((p) => ({ ...p })) } });
+    else if (next === 'fill_in_the_gaps')
+      onChange({ slide_type: next, interactive_data: { ...DEFAULT_FILL_GAPS, sentence_parts: [...DEFAULT_FILL_GAPS.sentence_parts] as [string, string], distractors: [...DEFAULT_FILL_GAPS.distractors] } });
     else onChange({ slide_type: next, interactive_data: {} });
   };
 
