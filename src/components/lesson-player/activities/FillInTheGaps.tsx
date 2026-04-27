@@ -4,6 +4,9 @@ import { GeneratedSlide } from '@/components/admin/lesson-builder/ai-wizard/type
 import { soundEffectsService } from '@/services/soundEffectsService';
 import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConfig';
 import type { HubType } from '@/components/admin/lesson-builder/ai-wizard/types';
+import StarMeter from '../StarMeter';
+import HintBubble from '../HintBubble';
+import { useStarHintTracker } from '@/hooks/useStarHintTracker';
 
 interface Props {
   slide: GeneratedSlide;
