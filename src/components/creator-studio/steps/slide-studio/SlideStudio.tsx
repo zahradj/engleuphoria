@@ -150,7 +150,13 @@ const SlideStudioInner: React.FC = () => {
           <SlideThumbnailRail slides={slides} activeId={activeSlideId} onSelect={setActiveSlideId} />
           {activeSlide ? (
             <>
-              <SlideCanvas slide={activeSlide} onChange={(patch) => updateSlide(activeSlide.id, patch)} />
+              <SlideErrorBoundary
+                resetKey={activeSlide.id}
+                label="this slide"
+                onSkip={goToNextSlide}
+              >
+                <SlideCanvas slide={activeSlide} onChange={(patch) => updateSlide(activeSlide.id, patch)} />
+              </SlideErrorBoundary>
               <TeacherControlsPanel slide={activeSlide} onChange={(patch) => updateSlide(activeSlide.id, patch)} />
             </>
           ) : (
@@ -163,3 +169,14 @@ const SlideStudioInner: React.FC = () => {
     </div>
   );
 };
+
+/**
+ * Public Studio export — wraps the entire studio in a friendly Error Boundary
+ * so a single corrupt slide cannot white-screen the whole creator app.
+ */
+export const SlideStudio: React.FC = () => (
+  <SlideErrorBoundary label="the studio">
+    <SlideStudioInner />
+  </SlideErrorBoundary>
+);
+
