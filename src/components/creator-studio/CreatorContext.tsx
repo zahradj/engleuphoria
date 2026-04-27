@@ -60,7 +60,26 @@ export const isGameSlideType = (t?: string): boolean =>
   !!t && (GAME_SLIDE_TYPES as string[]).includes(t);
 export type LayoutStyle = 'split_left' | 'split_right' | 'center_card' | 'full_background';
 export type MediaType = 'image' | 'video';
-export type LessonPhase = 'Hook' | 'Input' | 'Practice' | 'Production' | 'Reward';
+/**
+ * 6-Step Integrated Skills Blueprint phases. Every slide MUST be tagged with
+ * one of these so the Phase Tracker UI can lock student progression.
+ */
+export type LessonPhase =
+  | 'Vocabulary'
+  | 'Reading'
+  | 'Comprehension'
+  | 'Grammar'
+  | 'Speaking'
+  | 'Writing';
+
+export const LESSON_PHASE_ORDER: LessonPhase[] = [
+  'Vocabulary',
+  'Reading',
+  'Comprehension',
+  'Grammar',
+  'Speaking',
+  'Writing',
+];
 
 export interface MCQData {
   question: string;
@@ -103,6 +122,8 @@ export type InteractiveData =
 export interface PPPSlide {
   id: string;
   phase: Phase | string;
+  /** 6-Step Blueprint tag — drives Phase Tracker + locked student progression. */
+  lesson_phase?: LessonPhase;
   slide_type?: SlideType;
   layout_style?: LayoutStyle;
   title?: string;

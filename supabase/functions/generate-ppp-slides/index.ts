@@ -8,6 +8,15 @@ const corsHeaders = {
 };
 
 const PHASES = ["Hook", "Presentation", "Practice", "Production", "Mission"] as const;
+// 6-Step Integrated Skills Blueprint — every slide MUST be tagged with one of these.
+const LESSON_PHASES = [
+  "Vocabulary",
+  "Reading",
+  "Comprehension",
+  "Grammar",
+  "Speaking",
+  "Writing",
+] as const;
 const SLIDE_TYPES = [
   "mascot_speech",
   "multiple_choice",
@@ -46,33 +55,53 @@ Deno.serve(async (req) => {
     if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
 
     const systemPrompt = `You are the EXPERT CURRICULUM DESIGNER for Engleuphoria — an elite ESL platform.
-You are simultaneously: (1) a CEFR-aligned pedagogy expert, (2) a Multimodal Media Director, and (3) a gamification architect.
-You are designing ONE classroom-ready 1-HOUR (≈60 minute) interactive session as a 20–25 slide deck.
-Total slide count MUST be between 20 and 25 inclusive — never fewer than 20. A short deck is a FAILED deck.
+You design ONE classroom-ready 1-HOUR (≈60 minute) deeply COHESIVE interactive lesson as a 20–25 slide deck.
+Total slide count MUST be between 20 and 25 inclusive — never fewer than 20.
+
+You think like a chess master 5 moves ahead. The vocabulary you teach in Phase 1 MUST appear in
+the reading passage in Phase 2. The grammar rule you extract in Phase 4 MUST be required in
+Phase 5 speaking and Phase 6 writing prompts. Every slide is part of one woven story.
 
 ═══════════════════════════════════════════════════════
-RULE 1 — THE PROFESSIONAL 1-HOUR PPP ARC (MANDATORY)
+RULE 1 — THE 6-STEP INTEGRATED SKILLS BLUEPRINT (STRICT ORDER, MANDATORY)
 ═══════════════════════════════════════════════════════
-The deck MUST follow this exact 5-phase progressive arc, in order:
+The deck MUST follow this EXACT 6-phase sequence, in order. Every slide MUST be tagged with
+"lesson_phase" matching one of: "Vocabulary" | "Reading" | "Comprehension" | "Grammar" | "Speaking" | "Writing".
 
-• Phase 1 — HOOK / Real-Life Context (2–3 slides):
-  Introduce the topic through a real-world artifact (a chat message, travel ticket, short dialogue, photo caption).
-  Focus skills: Reading + Listening. slide_type "mascot_speech" or "flashcard".
-• Phase 2 — PRESENTATION / Rules & Vocabulary (4–5 slides):
-  Teach the core grammar rules and vocabulary clearly with high-quality visual examples.
-  slide_type "mascot_speech" + "flashcard". Clean static "image" media.
-• Phase 3 — CONTROLLED PRACTICE / Gamified (6–8 slides):
-  Fast-paced active recall. MUST use a mix of "drag_and_match", "fill_in_the_gaps", and "multiple_choice".
-  Focus skills: Grammar + Vocabulary.
-• Phase 4 — FREER PRACTICE / Skill Blending (4–5 slides):
-  Multi-skill blended tasks. e.g. read a short paragraph then answer comprehension; listen and reorder; write a caption.
-  Use "multiple_choice", "fill_in_the_gaps", "drag_and_drop", "drawing_canvas".
-• Phase 5 — FINAL MISSION / Production (2–3 slides):
-  Real-world output task: the student WRITES a sentence or SOLVES a scenario based on what they learned
-  (e.g., "Reply to this hotel email", "Write a 1-sentence message to your friend").
-  Focus skills: Writing + Speaking. Use "drawing_canvas" (for handwriting/typing) or "drag_and_drop".
+• Phase 1 — VOCABULARY INTRO  (3–4 slides, lesson_phase = "Vocabulary")
+  Introduce 5–8 target words (the TARGET LEXICON). Each must include a clear definition + an example sentence.
+  End the phase with at least ONE quick check: a "drag_and_match" or "multiple_choice" slide to verify recognition.
+  slide_type mix: "flashcard", "mascot_speech", "drag_and_match", "multiple_choice".
 
-Phase totals must sum to 20–25. Distribution example: 3 + 5 + 7 + 5 + 3 = 23.
+• Phase 2 — CONTEXTUAL READING  (1–3 slides, lesson_phase = "Reading")
+  A reading passage (article, story, dialogue, email, message thread) that NATURALLY incorporates the
+  Phase 1 TARGET LEXICON. Every Phase-1 vocabulary word MUST appear at least once in the reading.
+  IMPORTANT: If the total reading text exceeds 100 words, split it across MULTIPLE consecutive
+  Reading slides (e.g., paragraph-by-paragraph). Never put a wall of text on a single slide.
+  Wrap every TARGET LEXICON word in the reading text with **double asterisks** (markdown bold)
+  so the renderer can highlight them for the student. Example: "She **ordered** a coffee."
+  slide_type: "mascot_speech" or "flashcard". layout_style should be "split_left" for reading slides.
+
+• Phase 3 — COMPREHENSION CHECK  (3–4 slides, lesson_phase = "Comprehension")
+  Gamified questions that test understanding of the Phase 2 reading.
+  Use a mix of "fill_in_the_gaps" and "multiple_choice". No two same slide_type back-to-back.
+
+• Phase 4 — GRAMMAR FOCUS  (4–5 slides, lesson_phase = "Grammar")
+  Extract ONE grammar rule actually used in the Phase 2 reading. First explain the rule clearly
+  (mascot_speech / flashcard). Then drill with controlled practice: "drag_and_match" (matching tense
+  forms), "fill_in_the_gaps" (rule application), or "multiple_choice".
+
+• Phase 5 — SPEAKING / DISCUSSION  (2–3 slides, lesson_phase = "Speaking")
+  Open-ended speaking prompts or roleplay scenarios that REQUIRE the student to use BOTH the
+  Phase-1 target lexicon AND the Phase-4 grammar rule. set requires_audio = true on these slides.
+  slide_type: "mascot_speech" (with prompt in interactive_data) or "drawing_canvas".
+
+• Phase 6 — WRITING & HOMEWORK MISSIONS  (2–3 slides, lesson_phase = "Writing")
+  Final production. The student WRITES (drawing_canvas or fill_in_the_gaps with longer answers)
+  using the target lexicon + grammar in a real-world scenario (reply to an email, write a caption,
+  send a message). The 3–5 homework_missions reinforce the same TARGET LEXICON.
+
+Phase totals MUST sum to 20–25. Distribution example: 4 + 2 + 4 + 5 + 3 + 3 = 21.
 
 ═══════════════════════════════════════════════════════
 RULE 2 — SKILL TAGGING (MANDATORY for every slide)
@@ -80,35 +109,27 @@ RULE 2 — SKILL TAGGING (MANDATORY for every slide)
 Every slide MUST include a non-empty "target_skills" array drawn from:
 ["Reading", "Writing", "Listening", "Speaking", "Grammar", "Vocabulary"].
 Across the FULL deck, AT LEAST 3 of the four CORE skills (Reading, Writing, Listening, Speaking) MUST appear.
-A lesson that only drills Vocabulary + Grammar is a FAILED deck. Blend skills.
 
 ═══════════════════════════════════════════════════════
 RULE 3 — AUDIO GATING (MANDATORY for every slide)
 ═══════════════════════════════════════════════════════
 Every slide MUST include a boolean "requires_audio".
-Set "requires_audio": true ONLY when audio is pedagogically essential:
-  • Pronunciation modelling
-  • Listening comprehension
-  • Dialogue / conversation slides
-  • Songs, chants, mascot greetings in the Hook
-Set "requires_audio": false for pure grammar explanations, silent reading, drag-and-match vocab review,
-fill-in-the-gaps grammar slides, and writing/production slides. Most Practice and Production slides
-should be FALSE. Do not over-trigger audio — silence is a feature.
+true ONLY for: pronunciation modelling, listening comprehension, dialogue, songs, and Phase-5 Speaking prompts.
+false for: silent reading, drag-and-match, fill-in-the-gaps, grammar explanation, writing.
 
 ═══════════════════════════════════════════════════════
 RULE 4 — SMART MEDIA ROUTING
 ═══════════════════════════════════════════════════════
 For EVERY slide pick the best media_type for the visual_keyword:
-• "image" — static nouns, adjectives, backgrounds for games, anything where motion would distract.
+• "image" — static nouns, adjectives, reading-supportive scene art, backgrounds for games.
 • "video" — action verbs, emotions, brain-breaks, hook energy.
-If unsure, default to "image". Never miss a verb or emotion.
+If unsure, default to "image".
 
 ═══════════════════════════════════════════════════════
-RULE 5 — DIVERGENT INTERACTIVITY (STRICTLY ENFORCED)
+RULE 5 — DIVERGENT INTERACTIVITY
 ═══════════════════════════════════════════════════════
-You are FORBIDDEN from placing two slides of the SAME slide_type back-to-back.
-Constantly switch the student's physical action: Read → Listen → Click → Drag → Type → Speak.
-Two consecutive "mascot_speech" slides allowed ONLY in the Hook phase.
+You are FORBIDDEN from placing two slides of the SAME slide_type back-to-back, EXCEPT consecutive
+"mascot_speech" slides inside the Reading phase (multi-slide passages) or the Vocabulary phase (intros).
 
 ═══════════════════════════════════════════════════════
 RULE 6 — INTERACTIVE_DATA SHAPES (by slide_type)
@@ -119,11 +140,11 @@ RULE 6 — INTERACTIVE_DATA SHAPES (by slide_type)
 • drawing_canvas   → { "prompt": string }
 • drag_and_drop    → { "instruction": string, "items": string[], "targets": string[], "pairs": [{"item": string, "target": string}] }
 • drag_and_match   → { "instruction": string, "pairs": [{"left_item": string, "right_item": string, "left_thumbnail_keyword"?: string, "right_thumbnail_keyword"?: string}] }
-                     // EXACTLY 3 pairs. Provide *_thumbnail_keyword (concrete noun, 1–3 words) for vocab pairs.
+                     // EXACTLY 3 pairs.
 • fill_in_the_gaps → { "instruction": string, "sentence_parts": string[], "missing_word": string, "distractors": string[2..3] }
 
 ═══════════════════════════════════════════════════════
-RULE 7 — MULTIMODAL MEDIA PROMPTS (always generate all three)
+RULE 7 — MULTIMODAL MEDIA PROMPTS
 ═══════════════════════════════════════════════════════
 • "elevenlabs_script": Phonetic, kid-friendly TTS string under 120 chars.
 • "image_generation_prompt": Detailed text-to-image prompt; end with "Vibrant flat illustration, solid pastel background, UI asset, no text, kid-friendly."
@@ -132,24 +153,20 @@ RULE 7 — MULTIMODAL MEDIA PROMPTS (always generate all three)
 ═══════════════════════════════════════════════════════
 RULE 8 — GAMIFIED HOMEWORK MISSIONS (MANDATORY)
 ═══════════════════════════════════════════════════════
-Generate EXACTLY 3 to 5 "homework_missions" — short app-style mini-games (Duolingo-style daily quests)
-that recycle the lesson's TARGET VOCABULARY for asynchronous home practice.
-
+Generate EXACTLY 3 to 5 "homework_missions" that recycle the Phase-1 TARGET LEXICON.
 Each mission MUST be one of:
 • "memory_match"      → { mission_type, prompt, pairs: [{ term, match }] }   // 3–5 pairs
 • "listen_and_choose" → { mission_type, prompt, target_word, options: string[3..4], correct_answer }
 • "word_scramble"     → { mission_type, prompt, target_word, scrambled }
-
-Rules: prompt is a short kid-friendly instruction. Vary mission_type. correct_answer ∈ options.
-scrambled ≠ target_word (same letters, different order).
+Vary mission_type. correct_answer ∈ options. scrambled ≠ target_word.
 
 ═══════════════════════════════════════════════════════
 GENERAL TONE
 ═══════════════════════════════════════════════════════
-Supportive, professional, joyful. Globally inclusive. CEFR-aligned. No placeholders, no mock content.
-"content" = short on-slide text (1–3 sentences max), or empty if interactive_data carries the meaning.
-"teacher_script" = 2–3 high-energy sentences for the teacher to read aloud.
-Vary layout_style across the deck for visual rhythm.`;
+Supportive, professional, joyful. CEFR-aligned. No placeholders.
+"content" = short on-slide text (1–3 sentences max). For Reading slides, "content" carries the
+passage paragraph (with **bold** target words).
+"teacher_script" = 2–3 high-energy sentences for the teacher to read aloud.`;
 
     const userPrompt = `Lesson title: ${lesson_title}
 Objective: ${objective ?? "(not provided)"}
@@ -157,10 +174,10 @@ Skill focus: ${skill_focus}
 CEFR level: ${cefr_level}
 Hub: ${hub}
 
-Generate the dense 20–25 slide 1-hour PPP lesson now. Respect EVERY rule above:
-the 5-phase arc, ≥20 slides, target_skills on every slide (≥3 of Reading/Writing/Listening/Speaking
-across the deck), requires_audio set true ONLY when audio is pedagogically essential,
-and 3–5 homework missions.`;
+Generate the dense 20–25 slide 1-hour lesson NOW following the 6-Step Integrated Skills Blueprint
+EXACTLY (Vocabulary → Reading → Comprehension → Grammar → Speaking → Writing). Every slide MUST be
+tagged with lesson_phase. The Phase-2 reading passage MUST reuse Phase-1 vocabulary (wrapped in
+**bold**), and Phase 5 + 6 MUST require both the lexicon and the Phase-4 grammar rule.`;
 
     const tool = {
       type: "function",
@@ -179,6 +196,7 @@ and 3–5 homework missions.`;
                 type: "object",
                 properties: {
                   phase: { type: "string", enum: [...PHASES] },
+                  lesson_phase: { type: "string", enum: [...LESSON_PHASES] },
                   slide_type: { type: "string", enum: [...SLIDE_TYPES] },
                   media_type: { type: "string", enum: [...MEDIA_TYPES] },
                   layout_style: { type: "string", enum: [...LAYOUTS] },
@@ -199,6 +217,7 @@ and 3–5 homework missions.`;
                 },
                 required: [
                   "phase",
+                  "lesson_phase",
                   "slide_type",
                   "media_type",
                   "layout_style",
@@ -337,9 +356,13 @@ and 3–5 homework missions.`;
       const requires_audio = typeof s.requires_audio === "boolean"
         ? s.requires_audio
         : target_skills.some((k) => k === "Listening" || k === "Speaking");
+      const lesson_phase = (LESSON_PHASES as readonly string[]).includes(s.lesson_phase)
+        ? s.lesson_phase
+        : "Vocabulary";
       return {
         id: crypto.randomUUID(),
         phase: s.phase,
+        lesson_phase,
         slide_type: s.slide_type,
         media_type: s.media_type ?? "image",
         layout_style: s.layout_style ?? "center_card",
@@ -374,6 +397,21 @@ and 3–5 homework missions.`;
       console.warn(
         `Skill-blend violation: only ${coreSkillsUsed.size} of 4 core skills covered (${[...coreSkillsUsed].join(", ")}). Need ≥3.`,
       );
+    }
+
+    // 6-Step Blueprint validation: all 6 lesson_phases must appear, in non-decreasing order.
+    const phasesPresent = new Set(slides.map((s) => s.lesson_phase));
+    const missing = LESSON_PHASES.filter((p) => !phasesPresent.has(p));
+    if (missing.length) {
+      console.warn(`Blueprint violation: missing lesson_phase(s): ${missing.join(", ")}`);
+    }
+    const phaseOrderIndex = (p: string) => LESSON_PHASES.indexOf(p as any);
+    for (let i = 1; i < slides.length; i++) {
+      if (phaseOrderIndex(slides[i].lesson_phase) < phaseOrderIndex(slides[i - 1].lesson_phase)) {
+        console.warn(
+          `Blueprint order violation at slide ${i + 1}: ${slides[i].lesson_phase} after ${slides[i - 1].lesson_phase}.`,
+        );
+      }
     }
 
     // ─── Homework missions: parse stringified payload + validate per-type shape ───

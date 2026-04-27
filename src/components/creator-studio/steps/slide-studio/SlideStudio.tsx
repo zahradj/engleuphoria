@@ -12,6 +12,7 @@ import { SlideErrorBoundary } from '@/components/common/SlideErrorBoundary';
 import { useSlidePrefetch, type SlideAssets } from '@/hooks/useSlidePrefetch';
 import { useHubTheme } from '@/hooks/useHubTheme';
 import { cn } from '@/lib/utils';
+import PhaseTracker from '@/components/lesson-player/PhaseTracker';
 
 const SlideStudioInner: React.FC = () => {
   const { activeLessonData, updateSlide, setCurrentStep } = useCreator();
@@ -141,6 +142,15 @@ const SlideStudioInner: React.FC = () => {
             </div>
           )}
         </div>
+        {!!slides.length && (
+          <div className="mt-3">
+            <PhaseTracker
+              slides={slides as any}
+              currentIndex={Math.max(0, activeIndex)}
+              onJumpToPhase={(idx) => setActiveSlideId(slides[idx]?.id ?? null)}
+            />
+          </div>
+        )}
       </div>
 
       {/* Body */}

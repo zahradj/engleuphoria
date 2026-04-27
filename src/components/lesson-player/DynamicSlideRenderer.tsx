@@ -42,6 +42,7 @@ import SlideHook from './slides/SlideHook';
 import SlideVocabulary from './slides/SlideVocabulary';
 import SlideConcept from './slides/SlideConcept';
 import SlideSummary from './slides/SlideSummary';
+import SlideReadingSplit from './SlideReadingSplit';
 
 const ANIMATION_VARIANTS: Record<string, Variants> = {
   bounce: {
@@ -128,6 +129,14 @@ export default function DynamicSlideRenderer({
   const variants = ANIMATION_VARIANTS[animKey] || ANIMATION_VARIANTS.none;
 
   const renderContent = () => {
+    // ── 6-Step Blueprint: Reading phase always uses split-screen layout ──
+    // The AI guarantees passages > 100 words are split across multiple Reading
+    // slides, and wraps target vocab in **bold** markdown for highlighting.
+    const lessonPhase = (slide as any).lesson_phase as string | undefined;
+    if (lessonPhase === 'Reading') {
+      return <SlideReadingSplit slide={slide as any} />;
+    }
+
     // ── Director PPP interactive types (highest priority) ─────────
     // The generate-ppp-slides edge function emits slide_type = 'drag_and_match' | 'fill_in_the_gaps'.
     const directorType = (slide as any).slide_type || (slide as any).activityType || (slide as any).type;
