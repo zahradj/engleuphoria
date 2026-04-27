@@ -42,7 +42,20 @@ export type SlideType =
   | 'drawing_canvas'
   | 'drag_and_drop'
   | 'flashcard'
-  | 'mascot_speech';
+  | 'mascot_speech'
+  | 'drag_and_match'
+  | 'fill_in_the_gaps';
+
+/** Slide types that are "full-screen interactive games" — hero image is hidden by default. */
+export const GAME_SLIDE_TYPES: SlideType[] = [
+  'drag_and_match',
+  'fill_in_the_gaps',
+  'drag_and_drop',
+  'drawing_canvas',
+  'drawing_prompt',
+];
+export const isGameSlideType = (t?: string): boolean =>
+  !!t && (GAME_SLIDE_TYPES as string[]).includes(t);
 export type LayoutStyle = 'split_left' | 'split_right' | 'center_card' | 'full_background';
 export type MediaType = 'image' | 'video';
 export type LessonPhase = 'Hook' | 'Input' | 'Practice' | 'Production' | 'Reward';
