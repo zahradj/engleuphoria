@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Loader2, ArrowLeft } from 'lucide-react';
+import { Sparkles, Loader2, ArrowLeft, Link2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useCreator, PPPSlide } from '../../CreatorContext';
@@ -46,6 +46,10 @@ function toastEdgeError(status: number | undefined, message: string, fallback: s
 export const EmptyState: React.FC = () => {
   const { activeLessonData, replaceSlides, setCurrentStep, setActiveLessonData, setDirty } = useCreator();
   const [topic, setTopic] = useState('');
+  const [sourceUrl, setSourceUrl] = useState('');
+  const [fetchingSource, setFetchingSource] = useState(false);
+  const [sourceText, setSourceText] = useState<string>('');
+  const [sourceTitle, setSourceTitle] = useState<string>('');
   const [draftingBlueprint, setDraftingBlueprint] = useState(false);
   const [generatingDeck, setGeneratingDeck] = useState(false);
   const [blueprint, setBlueprint] = useState<LessonBlueprint | null>(null);
@@ -54,21 +58,75 @@ export const EmptyState: React.FC = () => {
 
   const targetAudience = `${activeLessonData.cefr_level} ${activeLessonData.hub} learner`;
 
+  const fetchSource = async () => {
+    const url = sourceUrl.trim();
+    if (!url) return null;
+    if (!/^https?:\/\//i.test(url)) {
+      toast.error('Please enter a valid URL starting with http(s)://');
+      return null;
+    }
+    setFetchingSource(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('fetch-web-source', {
+        body: { url },
+      });
+      if (error) {
+        const { status, message } = await readEdgeError(error);
+        console.error('fetch-web-source failed', { status, message });
+        toast.error(message || 'Could not read this website. Please try pasting the text manually.');
+        return null;
+      }
+      const text: string = data?.text ?? '';
+      const title: string = data?.title ?? '';
+      if (!text) {
+        toast.error('Could not read this website. Please try pasting the text manually.');
+        return null;
+      }
+      setSourceText(text);
+      setSourceTitle(title);
+      toast.success(`Loaded source: ${title || url}`);
+      return { text, title };
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || 'Could not read this website. Please try pasting the text manually.');
+      return null;
+    } finally {
+      setFetchingSource(false);
+    }
+  };
+
+  const clearSource = () => {
+    setSourceUrl('');
+    setSourceText('');
+    setSourceTitle('');
+  };
+
   const draftBlueprint = async (overrideTopic?: string) => {
     const useTopic = (overrideTopic ?? topic).trim() || activeLessonData.lesson_title;
-    if (!useTopic) {
-      toast.error('Enter a topic to draft the blueprint.');
+    if (!useTopic && !sourceText && !sourceUrl.trim()) {
+      toast.error('Enter a topic or paste a source URL.');
       return;
     }
+
+    // If a URL was pasted but not yet fetched, fetch it now.
+    let material = sourceText;
+    if (!material && sourceUrl.trim()) {
+      const fetched = await fetchSource();
+      if (!fetched) return;
+      material = fetched.text;
+    }
+
     setDraftingBlueprint(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-blueprint', {
         body: {
-          topic: useTopic,
+          topic: useTopic || sourceTitle || 'Source-grounded lesson',
           target_audience: targetAudience,
           cefr_level: activeLessonData.cefr_level,
           hub: activeLessonData.hub,
           skill_focus: activeLessonData.source_lesson?.skill_focus ?? 'Mixed Skills',
+          source_material: material || '',
+          source_url: sourceUrl.trim() || '',
         },
       });
       if (error) {
@@ -83,7 +141,11 @@ export const EmptyState: React.FC = () => {
         return;
       }
       setBlueprint(bp);
-      toast.success('Blueprint drafted ✨ Review and edit, then approve.');
+      toast.success(
+        material
+          ? 'Blueprint drafted from your source ✨ Review and edit, then approve.'
+          : 'Blueprint drafted ✨ Review and edit, then approve.',
+      );
     } catch (e: any) {
       console.error(e);
       toast.error(e?.message || 'Blueprint generation failed');
@@ -203,6 +265,55 @@ export const EmptyState: React.FC = () => {
           className="mt-6 h-12 text-base"
           disabled={draftingBlueprint}
         />
+
+        {/* Optional source URL — NotebookLM-style source-grounded mode */}
+        <div className="mt-4 text-left">
+          <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+            <Link2 className="h-3.5 w-3.5" />
+            Paste an Article / Source URL (optional)
+          </label>
+          <div className="mt-1.5 flex gap-2">
+            <Input
+              value={sourceUrl}
+              onChange={(e) => setSourceUrl(e.target.value)}
+              placeholder="https://example.com/article"
+              className="h-11 text-sm"
+              disabled={fetchingSource || draftingBlueprint}
+              type="url"
+            />
+            {sourceText ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={clearSource}
+                disabled={fetchingSource || draftingBlueprint}
+                className="h-11 px-3 shrink-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={fetchSource}
+                disabled={!sourceUrl.trim() || fetchingSource || draftingBlueprint}
+                className="h-11 px-3 shrink-0"
+              >
+                {fetchingSource ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Read'}
+              </Button>
+            )}
+          </div>
+          {fetchingSource && (
+            <p className="mt-1.5 text-xs text-slate-500 italic">Reading the internet…</p>
+          )}
+          {sourceText && !fetchingSource && (
+            <p className="mt-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+              ✓ Source loaded{sourceTitle ? ` — “${sourceTitle}”` : ''} ({sourceText.length.toLocaleString()} chars). The blueprint will be grounded on this text.
+            </p>
+          )}
+        </div>
 
         <Button
           size="lg"

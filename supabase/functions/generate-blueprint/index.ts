@@ -18,6 +18,8 @@ Deno.serve(async (req) => {
       cefr_level = "A2",
       hub = "academy",
       skill_focus = "Mixed Skills",
+      source_material = "",
+      source_url = "",
     } = body || {};
 
     if (!topic || typeof topic !== "string") {
@@ -53,14 +55,24 @@ Hard rules:
   three new words and three Past Simple verbs."
 • lesson_title: short, vivid, classroom-ready (≤ 60 chars).
 
-CEFR-align everything to ${cefr_level}. Tone: warm, professional, joyful. No placeholders.`;
+CEFR-align everything to ${cefr_level}. Tone: warm, professional, joyful. No placeholders.
+
+${source_material ? `IMPORTANT — SOURCE-GROUNDED MODE:
+A teacher has provided source material from the web${source_url ? ` (${source_url})` : ""}.
+You MUST base the target_vocabulary, target_grammar_rule, and reading_passage_summary
+ENTIRELY on this source text. Do NOT invent outside concepts. Pull vocabulary directly
+from the source. Identify a grammar rule that genuinely appears in the source. The
+reading passage summary should describe a faithful adaptation of this source for
+${cefr_level} learners.` : ""}`;
+
+    const trimmedSource = String(source_material || "").slice(0, 10000);
 
     const userPrompt = `Topic: ${topic}
 Target audience: ${target_audience}
 CEFR level: ${cefr_level}
 Hub: ${hub}
 Skill focus: ${skill_focus}
-
+${trimmedSource ? `\nSOURCE MATERIAL (ground truth — base the blueprint on this):\n"""\n${trimmedSource}\n"""\n` : ""}
 Draft the lesson blueprint now.`;
 
     // Tool-calling for guaranteed structured output. The schema is small
