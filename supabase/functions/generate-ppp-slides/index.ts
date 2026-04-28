@@ -259,8 +259,14 @@ Return ONLY the JSON object.`;
       if (!raw || typeof raw !== "string") {
         return { ok: false, status: 502, detail: "No content in AI response" };
       }
-      // Strip accidental code fences if the model adds them.
-      const cleaned = raw.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
+      // Extract the largest {...} block — handles code fences and any
+      // leading/trailing prose the model might emit.
+      let cleaned = raw.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
+      const firstBrace = cleaned.indexOf("{");
+      const lastBrace = cleaned.lastIndexOf("}");
+      if (firstBrace !== -1 && lastBrace > firstBrace) {
+        cleaned = cleaned.slice(firstBrace, lastBrace + 1);
+      }
       let parsedArgs: any;
       try {
         parsedArgs = JSON.parse(cleaned);
