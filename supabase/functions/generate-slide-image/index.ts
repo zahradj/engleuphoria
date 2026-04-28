@@ -45,7 +45,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: MODEL,
-        messages: [{ role: "user", content: prompt }],
+        messages: [{ role: "user", content: styledPrompt }],
         modalities: ["image", "text"],
       }),
     });
