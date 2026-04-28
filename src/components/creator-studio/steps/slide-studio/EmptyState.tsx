@@ -1,8 +1,24 @@
 import React, { useState } from 'react';
-import { Sparkles, Loader2, ArrowLeft, Link2, X } from 'lucide-react';
+import { Sparkles, Loader2, ArrowLeft, Link2, X, Baby, GraduationCap, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useCreator, PPPSlide } from '../../CreatorContext';
+import { useCreator, PPPSlide, HubType } from '../../CreatorContext';
+import type { TargetHub } from './blueprintTypes';
+
+const HUB_TO_TARGET: Record<HubType, TargetHub> = {
+  playground: 'Playground',
+  academy: 'Academy',
+  success: 'Success',
+};
+
+const HUB_OPTIONS: Array<{ value: HubType; label: string; sub: string; Icon: any; classes: string }> = [
+  { value: 'playground', label: 'Playground', sub: 'Kids · COPPA-safe', Icon: Baby,
+    classes: 'data-[active=true]:from-orange-400 data-[active=true]:to-yellow-300 data-[active=true]:text-orange-950 data-[active=true]:border-orange-400' },
+  { value: 'academy', label: 'Academy', sub: 'Teens · PG-13', Icon: GraduationCap,
+    classes: 'data-[active=true]:from-violet-500 data-[active=true]:to-fuchsia-400 data-[active=true]:text-white data-[active=true]:border-violet-500' },
+  { value: 'success', label: 'Success', sub: 'Pros · Adult', Icon: Briefcase,
+    classes: 'data-[active=true]:from-emerald-500 data-[active=true]:to-teal-400 data-[active=true]:text-white data-[active=true]:border-emerald-500' },
+];
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { normalizePhase } from './phaseTheme';
