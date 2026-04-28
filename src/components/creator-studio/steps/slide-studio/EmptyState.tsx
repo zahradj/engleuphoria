@@ -1,8 +1,24 @@
 import React, { useState } from 'react';
-import { Sparkles, Loader2, ArrowLeft, Link2, X } from 'lucide-react';
+import { Sparkles, Loader2, ArrowLeft, Link2, X, Baby, GraduationCap, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useCreator, PPPSlide } from '../../CreatorContext';
+import { useCreator, PPPSlide, HubType } from '../../CreatorContext';
+import type { TargetHub } from './blueprintTypes';
+
+const HUB_TO_TARGET: Record<HubType, TargetHub> = {
+  playground: 'Playground',
+  academy: 'Academy',
+  success: 'Success',
+};
+
+const HUB_OPTIONS: Array<{ value: HubType; label: string; sub: string; Icon: any; classes: string }> = [
+  { value: 'playground', label: 'Playground', sub: 'Kids · COPPA-safe', Icon: Baby,
+    classes: 'data-[active=true]:from-orange-400 data-[active=true]:to-yellow-300 data-[active=true]:text-orange-950 data-[active=true]:border-orange-400' },
+  { value: 'academy', label: 'Academy', sub: 'Teens · PG-13', Icon: GraduationCap,
+    classes: 'data-[active=true]:from-violet-500 data-[active=true]:to-fuchsia-400 data-[active=true]:text-white data-[active=true]:border-violet-500' },
+  { value: 'success', label: 'Success', sub: 'Pros · Adult', Icon: Briefcase,
+    classes: 'data-[active=true]:from-emerald-500 data-[active=true]:to-teal-400 data-[active=true]:text-white data-[active=true]:border-emerald-500' },
+];
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { normalizePhase } from './phaseTheme';
@@ -56,7 +72,14 @@ export const EmptyState: React.FC = () => {
 
   if (!activeLessonData) return null;
 
-  const targetAudience = `${activeLessonData.cefr_level} ${activeLessonData.hub} learner`;
+  const currentHub: HubType = activeLessonData.hub;
+  const targetHub: TargetHub = HUB_TO_TARGET[currentHub] ?? 'Academy';
+  const targetAudience = `${activeLessonData.cefr_level} ${targetHub} learner`;
+
+  const setHub = (h: HubType) => {
+    setActiveLessonData({ ...activeLessonData, hub: h });
+    setDirty(true);
+  };
 
   const fetchSource = async () => {
     const url = sourceUrl.trim();
@@ -123,8 +146,8 @@ export const EmptyState: React.FC = () => {
           topic: useTopic || sourceTitle || 'Source-grounded lesson',
           target_audience: targetAudience,
           cefr_level: activeLessonData.cefr_level,
-          hub: activeLessonData.hub,
-          target_hub: activeLessonData.hub, // hub-aware routing
+          hub: currentHub,
+          target_hub: targetHub, // hub-aware routing (TitleCase)
           skill_focus: activeLessonData.source_lesson?.skill_focus ?? 'Mixed Skills',
           source_material: material || '',
           source_url: sourceUrl.trim() || '',
@@ -165,8 +188,8 @@ export const EmptyState: React.FC = () => {
           objective: activeLessonData.target_goal,
           skill_focus: activeLessonData.source_lesson?.skill_focus ?? 'Vocabulary',
           cefr_level: activeLessonData.cefr_level,
-          hub: activeLessonData.hub,
-          target_hub: blueprint.target_hub ?? activeLessonData.hub,
+          hub: currentHub,
+          target_hub: blueprint.target_hub ?? targetHub,
           blueprint, // ← Blueprint-First payload (incl. phases + framework)
         },
       });
@@ -253,6 +276,32 @@ export const EmptyState: React.FC = () => {
             {activeLessonData.cefr_level} · {activeLessonData.source_lesson?.skill_focus ?? 'Mixed Skills'}
           </span>.
         </p>
+
+        {/* Hub selector — drives safety, CEFR window, prompt vocabulary */}
+        <div className="mt-6 text-left">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 text-center">
+            Target audience
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {HUB_OPTIONS.map(({ value, label, sub, Icon, classes }) => {
+              const active = currentHub === value;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  data-active={active}
+                  onClick={() => setHub(value)}
+                  disabled={draftingBlueprint}
+                  className={`group relative rounded-2xl border-2 p-3 text-center transition-all bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border-slate-200 dark:border-slate-700 hover:border-slate-400 ${classes}`}
+                >
+                  <Icon className="h-5 w-5 mx-auto mb-1" />
+                  <div className="text-xs font-extrabold leading-tight">{label}</div>
+                  <div className="text-[10px] opacity-75 leading-tight">{sub}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         <Input
           value={topic}
