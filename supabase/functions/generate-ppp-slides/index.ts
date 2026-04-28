@@ -199,7 +199,11 @@ GENERAL TONE
 Supportive, professional, joyful. CEFR-aligned. No placeholders.
 "content" = short on-slide text (1–3 sentences max). For Reading slides, "content" carries the
 passage paragraph (with **bold** target words).
-"teacher_script" = 2–3 high-energy sentences for the teacher to read aloud.`;
+"teacher_script" = 2–3 high-energy sentences for the teacher to read aloud.
+
+${hubBlock}
+
+${dynamicPhaseBlock ? dynamicPhaseBlock + "\n\nThe DYNAMIC PHASE SEQUENCE above OVERRIDES the default 6-step order in RULE 1 — follow the dynamic order instead, but keep all other RULE 1 phase requirements (vocab counts, reading word coverage, grammar drilling, etc.)." : ""}`;
 
     // ── BLUEPRINT GROUND-TRUTH BLOCK (only when caller supplied a blueprint) ──
     let blueprintBlock = "";
