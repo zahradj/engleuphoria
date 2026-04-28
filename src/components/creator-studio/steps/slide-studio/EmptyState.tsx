@@ -58,21 +58,75 @@ export const EmptyState: React.FC = () => {
 
   const targetAudience = `${activeLessonData.cefr_level} ${activeLessonData.hub} learner`;
 
+  const fetchSource = async () => {
+    const url = sourceUrl.trim();
+    if (!url) return null;
+    if (!/^https?:\/\//i.test(url)) {
+      toast.error('Please enter a valid URL starting with http(s)://');
+      return null;
+    }
+    setFetchingSource(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('fetch-web-source', {
+        body: { url },
+      });
+      if (error) {
+        const { status, message } = await readEdgeError(error);
+        console.error('fetch-web-source failed', { status, message });
+        toast.error(message || 'Could not read this website. Please try pasting the text manually.');
+        return null;
+      }
+      const text: string = data?.text ?? '';
+      const title: string = data?.title ?? '';
+      if (!text) {
+        toast.error('Could not read this website. Please try pasting the text manually.');
+        return null;
+      }
+      setSourceText(text);
+      setSourceTitle(title);
+      toast.success(`Loaded source: ${title || url}`);
+      return { text, title };
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || 'Could not read this website. Please try pasting the text manually.');
+      return null;
+    } finally {
+      setFetchingSource(false);
+    }
+  };
+
+  const clearSource = () => {
+    setSourceUrl('');
+    setSourceText('');
+    setSourceTitle('');
+  };
+
   const draftBlueprint = async (overrideTopic?: string) => {
     const useTopic = (overrideTopic ?? topic).trim() || activeLessonData.lesson_title;
-    if (!useTopic) {
-      toast.error('Enter a topic to draft the blueprint.');
+    if (!useTopic && !sourceText && !sourceUrl.trim()) {
+      toast.error('Enter a topic or paste a source URL.');
       return;
     }
+
+    // If a URL was pasted but not yet fetched, fetch it now.
+    let material = sourceText;
+    if (!material && sourceUrl.trim()) {
+      const fetched = await fetchSource();
+      if (!fetched) return;
+      material = fetched.text;
+    }
+
     setDraftingBlueprint(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-blueprint', {
         body: {
-          topic: useTopic,
+          topic: useTopic || sourceTitle || 'Source-grounded lesson',
           target_audience: targetAudience,
           cefr_level: activeLessonData.cefr_level,
           hub: activeLessonData.hub,
           skill_focus: activeLessonData.source_lesson?.skill_focus ?? 'Mixed Skills',
+          source_material: material || '',
+          source_url: sourceUrl.trim() || '',
         },
       });
       if (error) {
@@ -87,7 +141,11 @@ export const EmptyState: React.FC = () => {
         return;
       }
       setBlueprint(bp);
-      toast.success('Blueprint drafted ✨ Review and edit, then approve.');
+      toast.success(
+        material
+          ? 'Blueprint drafted from your source ✨ Review and edit, then approve.'
+          : 'Blueprint drafted ✨ Review and edit, then approve.',
+      );
     } catch (e: any) {
       console.error(e);
       toast.error(e?.message || 'Blueprint generation failed');
