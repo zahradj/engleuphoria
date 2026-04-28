@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 import { HubType } from '@/components/admin/lesson-builder/ai-wizard/types';
 import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConfig';
 import PipMascot from './PipMascot';
-import { Trophy, Clock, Target, ArrowRight, Zap, Star, Award } from 'lucide-react';
+import { ConfettiEffect } from '@/components/gamification/ConfettiEffect';
+import { Trophy, Clock, Target, ArrowRight, Zap, Star, Award, Loader2, Check } from 'lucide-react';
 
 interface LessonRewardPageProps {
   hub: HubType;
@@ -11,6 +13,7 @@ interface LessonRewardPageProps {
   correctCount: number;
   totalQuestions: number;
   timeSpentSeconds: number;
+  onClaim?: () => Promise<void> | void;
   onExit: () => void;
 }
 
@@ -54,7 +57,7 @@ function AccuracyRing({ percentage, color, size = 100 }: { percentage: number; c
 }
 
 export default function LessonRewardPage({
-  hub, xpEarned, correctCount, totalQuestions, timeSpentSeconds, onExit,
+  hub, xpEarned, correctCount, totalQuestions, timeSpentSeconds, onClaim, onExit,
 }: LessonRewardPageProps) {
   const config = HUB_CONFIGS[hub];
   const animatedXp = useCountUp(xpEarned, 1500, 500);
@@ -62,6 +65,29 @@ export default function LessonRewardPage({
   const animatedAccuracy = useCountUp(accuracy, 1200, 800);
   const minutes = Math.floor(timeSpentSeconds / 60);
   const seconds = timeSpentSeconds % 60;
+
+  const [claimState, setClaimState] = useState<'idle' | 'saving' | 'claimed'>('idle');
+  const [showConfetti, setShowConfetti] = useState(true);
+
+  const handleClaim = async () => {
+    if (claimState === 'saving') return;
+    if (claimState === 'claimed') {
+      onExit();
+      return;
+    }
+    setClaimState('saving');
+    try {
+      await onClaim?.();
+      setClaimState('claimed');
+      setShowConfetti(false);
+      // Re-trigger a quick burst on successful claim
+      requestAnimationFrame(() => setShowConfetti(true));
+      toast.success('Rewards claimed! Progress saved 🎉');
+    } catch (err: any) {
+      setClaimState('idle');
+      toast.error(err?.message || 'Could not save progress. Please try again.');
+    }
+  };
 
   const hubStyles = {
     playground: {
@@ -100,6 +126,7 @@ export default function LessonRewardPage({
 
   return (
     <div className={`flex flex-col items-center justify-center min-h-[100dvh] px-4 ${style.bg}`}>
+      <ConfettiEffect trigger={showConfetti} />
       <div className="w-full max-w-[500px] flex flex-col items-center gap-6">
 
         {/* Hero */}
@@ -159,19 +186,21 @@ export default function LessonRewardPage({
           </div>
         </motion.div>
 
-        {/* CTA */}
+        {/* CTA — Claim Rewards (saves to Supabase) → Back to Dashboard */}
         <motion.button
-          onClick={onExit}
-          className={`w-full py-4 rounded-2xl font-bold text-lg text-white tracking-wide uppercase ${style.buttonBg}`}
+          onClick={handleClaim}
+          disabled={claimState === 'saving'}
+          className={`w-full py-4 rounded-2xl font-bold text-lg text-white tracking-wide uppercase ${style.buttonBg} disabled:opacity-80`}
           style={{ boxShadow: style.buttonShadow }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1 }}
-          whileTap={{ scale: 0.97 }}
+          whileTap={{ scale: claimState === 'saving' ? 1 : 0.97 }}
         >
           <span className="flex items-center justify-center gap-2">
-            Back to Dashboard
-            <ArrowRight size={20} />
+            {claimState === 'saving' && (<><Loader2 size={20} className="animate-spin" /> Saving…</>)}
+            {claimState === 'idle' && (<>Claim Rewards <Trophy size={20} /></>)}
+            {claimState === 'claimed' && (<><Check size={20} /> Back to Dashboard <ArrowRight size={20} /></>)}
           </span>
         </motion.button>
       </div>

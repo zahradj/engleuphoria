@@ -9,6 +9,7 @@ import PipMascot from './PipMascot';
 import { soundEffectsService } from '@/services/soundEffectsService';
 import { triggerCelebration } from '@/services/celebration';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { X, Volume2, VolumeX, Zap, Star, ChevronLeft, ChevronRight, Focus } from 'lucide-react';
 import PhaseTracker from './PhaseTracker';
 
@@ -144,25 +145,40 @@ export default function LessonPlayerContainer({
     }
   }, [currentSlideIndex, totalSlides, muted]);
 
-  const completeLesson = useCallback(async () => {
+  const completeLesson = useCallback(() => {
     setCompleted(true);
     if (!muted) soundEffectsService.playCelebration();
     onComplete?.(lessonScore);
+  }, [lessonScore, onComplete, muted]);
 
-    if (studentId && lessonId) {
-      try {
-        await supabase.from('student_progress').upsert({
-          student_id: studentId,
-          lesson_id: lessonId,
-          score: lessonScore,
-          completed: true,
-          completed_at: new Date().toISOString(),
-        } as any);
-      } catch (err) {
-        console.warn('Could not persist lesson score:', err);
-      }
+  const claimRewards = useCallback(async () => {
+    // Persist completion to Supabase. Throws on failure so reward page can toast it.
+    if (!studentId || !lessonId) {
+      // No persistence target — treat as success (e.g. preview / unauthenticated demo)
+      return;
     }
-  }, [lessonScore, studentId, lessonId, onComplete, muted]);
+    // student_lesson_progress.lesson_id is uuid — bail gracefully on non-uuid ids
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(lessonId);
+    if (!isUuid) return;
+
+    const timeSpent = Math.round((Date.now() - startTimeRef.current) / 1000);
+    const { error } = await supabase.from('student_lesson_progress').upsert(
+      {
+        user_id: studentId,
+        lesson_id: lessonId,
+        status: 'completed',
+        score: lessonScore,
+        time_spent_seconds: timeSpent,
+        completed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      } as any,
+      { onConflict: 'user_id,lesson_id' } as any
+    );
+    if (error) {
+      console.error('claimRewards save failed:', error);
+      throw new Error(error.message || 'Failed to save progress');
+    }
+  }, [studentId, lessonId, lessonScore]);
 
   const toggleMute = () => {
     const next = !muted;
@@ -180,6 +196,7 @@ export default function LessonPlayerContainer({
         correctCount={correctCount}
         totalQuestions={totalQuestions}
         timeSpentSeconds={timeSpent}
+        onClaim={claimRewards}
         onExit={onExit || (() => {})}
       />
     );
