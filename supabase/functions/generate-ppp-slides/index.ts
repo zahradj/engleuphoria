@@ -488,6 +488,28 @@ Return ONLY the JSON object.`;
       );
     }
 
+    // ── Blueprint coverage validation: every approved word must appear in a Phase-1 slide ──
+    if (blueprint && Array.isArray(blueprint.target_vocabulary)) {
+      const phase1Text = slides
+        .filter((s: any) => s.lesson_phase === "Vocabulary")
+        .map((s: any) => `${s.title ?? ""} ${s.content ?? ""} ${s.teacher_script ?? ""} ${JSON.stringify(s.interactive_data ?? {})}`)
+        .join(" ")
+        .toLowerCase();
+      const missing: string[] = blueprint.target_vocabulary
+        .map((v: any) => (typeof v?.word === "string" ? v.word.trim() : ""))
+        .filter((w: string) => w && !phase1Text.includes(w.toLowerCase()));
+      if (missing.length > 0) {
+        console.warn("Blueprint vocabulary coverage gap:", missing);
+        return new Response(
+          JSON.stringify({
+            error: `Generated lesson skipped these target words in Phase 1: ${missing.join(", ")}. Please regenerate.`,
+            missing,
+          }),
+          { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+    }
+
     return new Response(JSON.stringify({ slides, homework_missions }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
