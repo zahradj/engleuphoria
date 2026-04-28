@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, X, Sparkles, Loader2, BookOpen, GraduationCap, Target, RefreshCw, ArrowLeft } from 'lucide-react';
-import type { LessonBlueprint } from './blueprintTypes';
-import { isBlueprintReady } from './blueprintTypes';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, X, Sparkles, Loader2, BookOpen, GraduationCap, Target, RefreshCw, ArrowLeft, Brain } from 'lucide-react';
+import type { LessonBlueprint, PedagogicalFramework } from './blueprintTypes';
+import { isBlueprintReady, FRAMEWORK_DEFAULTS, FRAMEWORK_LABELS, FRAMEWORK_BLURBS } from './blueprintTypes';
 
 interface BlueprintReviewProps {
   blueprint: LessonBlueprint;
