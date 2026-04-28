@@ -184,78 +184,49 @@ EXACTLY (Vocabulary → Reading → Comprehension → Grammar → Speaking → W
 tagged with lesson_phase. The Phase-2 reading passage MUST reuse Phase-1 vocabulary (wrapped in
 **bold**), and Phase 5 + 6 MUST require both the lexicon and the Phase-4 grammar rule.`;
 
-    const tool = {
-      type: "function",
-      function: {
-        name: "emit_director_lesson",
-        description:
-          "Return a 20–25 slide 1-hour PPP lesson with target_skills + requires_audio per slide, plus 3–5 gamified homework missions.",
-        // NOTE: Gemini's structured-output validator rejects schemas with too many
-        // "states" (combinatorial enum × array-bound complexity). We intentionally keep
-        // this schema FLAT — plain strings (no enums) and no min/max on arrays. The
-        // allowed values + counts are enforced via the system prompt and validated
-        // server-side after parsing.
-        parameters: {
-          type: "object",
-          properties: {
-            slides: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  phase: { type: "string" },
-                  lesson_phase: { type: "string" },
-                  slide_type: { type: "string" },
-                  media_type: { type: "string" },
-                  layout_style: { type: "string" },
-                  title: { type: "string" },
-                  content: { type: "string" },
-                  teacher_script: { type: "string" },
-                  visual_keyword: { type: "string" },
-                  elevenlabs_script: { type: "string" },
-                  image_generation_prompt: { type: "string" },
-                  video_generation_prompt: { type: "string" },
-                  interactive_data_json: { type: "string" },
-                  hint_text: { type: "string" },
-                  target_skills: {
-                    type: "array",
-                    items: { type: "string" },
-                  },
-                  requires_audio: { type: "boolean" },
-                },
-                required: [
-                  "phase",
-                  "lesson_phase",
-                  "slide_type",
-                  "media_type",
-                  "layout_style",
-                  "title",
-                  "content",
-                  "teacher_script",
-                  "visual_keyword",
-                  "interactive_data_json",
-                  "target_skills",
-                  "requires_audio",
-                ],
-              },
-            },
-            homework_missions: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  mission_type: { type: "string" },
-                  prompt: { type: "string" },
-                  payload_json: { type: "string" },
-                },
-                required: ["mission_type", "prompt", "payload_json"],
-              },
-            },
-          },
-          required: ["slides", "homework_missions"],
-        },
-      },
-    };
+    // JSON-mode contract appended to the system prompt. We avoid Gemini's
+    // tool-calling structured-output validator entirely (it caps schema
+    // "states" and rejects our 16-field × 20-25 item shape). Instead we
+    // ask for a single JSON object and validate server-side.
+    const jsonContract = `
+
+═══════════════════════════════════════════════════════
+OUTPUT FORMAT (STRICT)
+═══════════════════════════════════════════════════════
+Respond with a SINGLE valid JSON object — no prose, no markdown, no code fences.
+Top-level shape:
+{
+  "slides": [ /* 20–25 slide objects */ ],
+  "homework_missions": [ /* 3–5 mission objects */ ]
+}
+
+Each slide object MUST have these keys:
+  "phase": "Hook" | "Presentation" | "Practice" | "Production" | "Mission",
+  "lesson_phase": "Vocabulary" | "Reading" | "Comprehension" | "Grammar" | "Speaking" | "Writing",
+  "slide_type": "mascot_speech" | "multiple_choice" | "drawing_canvas" | "drag_and_drop" | "flashcard" | "drag_and_match" | "fill_in_the_gaps",
+  "media_type": "image" | "video",
+  "layout_style": "split_left" | "split_right" | "center_card" | "full_background",
+  "title": string,
+  "content": string,
+  "teacher_script": string,
+  "visual_keyword": string,
+  "elevenlabs_script": string,
+  "image_generation_prompt": string,
+  "video_generation_prompt": string,
+  "interactive_data": object,  // shape per RULE 6 (NOT stringified)
+  "hint_text": string,         // required for interactive slides
+  "target_skills": string[],   // ≥1 of Reading/Writing/Listening/Speaking/Grammar/Vocabulary
+  "requires_audio": boolean
+
+Each homework mission object MUST have:
+  "mission_type": "memory_match" | "listen_and_choose" | "word_scramble",
+  "prompt": string,
+  // PLUS the type-specific keys directly on the object:
+  // memory_match → "pairs": [{"term":string,"match":string}]   (3–5 pairs)
+  // listen_and_choose → "target_word":string, "options":string[3..4], "correct_answer":string
+  // word_scramble → "target_word":string, "scrambled":string
+
+Return ONLY the JSON object.`;
 
     async function callAI(): Promise<
       | { ok: true; slides: any[]; homework_missions: any[] }
@@ -268,11 +239,10 @@ tagged with lesson_phase. The Phase-2 reading passage MUST reuse Phase-1 vocabul
         body: JSON.stringify({
           model: "google/gemini-2.5-flash",
           messages: [
-            { role: "system", content: systemPrompt },
+            { role: "system", content: systemPrompt + jsonContract },
             { role: "user", content: userPrompt },
           ],
-          tools: [tool],
-          tool_choice: { type: "function", function: { name: "emit_director_lesson" } },
+          response_format: { type: "json_object" },
         }),
       });
 
@@ -281,15 +251,17 @@ tagged with lesson_phase. The Phase-2 reading passage MUST reuse Phase-1 vocabul
       }
 
       const data = await aiResp.json();
-      const argsRaw = data?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
-      if (!argsRaw) {
-        return { ok: false, status: 502, detail: "No tool_call in AI response" };
+      const raw = data?.choices?.[0]?.message?.content;
+      if (!raw || typeof raw !== "string") {
+        return { ok: false, status: 502, detail: "No content in AI response" };
       }
+      // Strip accidental code fences if the model adds them.
+      const cleaned = raw.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
       let parsedArgs: any;
       try {
-        parsedArgs = JSON.parse(argsRaw);
+        parsedArgs = JSON.parse(cleaned);
       } catch (e) {
-        return { ok: false, status: 502, detail: `Tool args JSON parse failed: ${(e as Error).message}` };
+        return { ok: false, status: 502, detail: `JSON parse failed: ${(e as Error).message}` };
       }
       if (!parsedArgs || !Array.isArray(parsedArgs.slides) || parsedArgs.slides.length === 0) {
         return { ok: false, status: 502, detail: "Validation failed: missing slides[]" };
