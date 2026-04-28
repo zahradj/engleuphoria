@@ -1,6 +1,21 @@
 // Generate a structured Lesson Blueprint via Lovable AI Gateway.
 // Step 1 of the Blueprint-First architecture: the teacher reviews and edits
 // this plan BEFORE the full 20+ slide deck is produced by generate-ppp-slides.
+//
+// Hub-aware: Playground / Academy / Success drives source rules, safety
+// bouncer, pedagogy and CEFR window. Also asks the AI to pick ONE of three
+// pedagogical frameworks (Discovery / TaskBased / Immersion) and emit the
+// resulting `phases` array that the slide generator will follow verbatim.
+import {
+  buildBlueprintHubBlock,
+  FRAMEWORK_DEFAULTS,
+  isFramework,
+  isPhase,
+  normalizeHub,
+  type LessonPhase,
+  type PedagogicalFramework,
+} from "../_shared/hubProfiles.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -17,6 +32,7 @@ Deno.serve(async (req) => {
       target_audience,
       cefr_level = "A2",
       hub = "academy",
+      target_hub, // ← preferred new field
       skill_focus = "Mixed Skills",
       source_material = "",
       source_url = "",
@@ -38,6 +54,9 @@ Deno.serve(async (req) => {
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
 
+    const resolvedHub = normalizeHub(target_hub ?? hub);
+    const hubBlock = buildBlueprintHubBlock(resolvedHub, cefr_level);
+
     const systemPrompt = `You are an EXPERT ESL CURRICULUM PLANNER for Engleuphoria.
 Your job is to draft a COHESIVE 1-hour lesson BLUEPRINT — the structured plan that a teacher
 will review and edit BEFORE the full 20-slide deck is generated.
@@ -51,32 +70,43 @@ Hard rules:
 • reading_passage_summary: 2–4 sentences describing the Phase-2 passage (genre, scenario, characters)
   WITHOUT writing the passage itself. The passage will reuse every target_vocabulary word.
 • final_speaking_mission: ONE concrete production task (≤ 30 words) that requires both the lexicon
-  AND the grammar rule. Example: "Tell your partner about the last trip you took, using at least
-  three new words and three Past Simple verbs."
+  AND the grammar rule.
 • lesson_title: short, vivid, classroom-ready (≤ 60 chars).
+• pedagogical_framework: pick exactly ONE of "Discovery" | "TaskBased" | "Immersion" — see guide below.
+• framework_rationale: 1 sentence (≤ 30 words) explaining why THIS framework fits THIS topic + hub.
+• phases: ordered array of lesson phases the slide generator will follow. Use the framework's
+  default order (see guide) but you may swap the last 1–2 phases if it improves cohesion.
 
-CEFR-align everything to ${cefr_level}. Tone: warm, professional, joyful. No placeholders.
+CEFR-align everything to ${cefr_level}, clamped to the hub window above. Tone: warm, professional,
+joyful (or hub-appropriate — see hub block). No placeholders.
 
-${source_material ? `IMPORTANT — SOURCE-GROUNDED MODE:
+${hubBlock}
+
+${
+      source_material
+        ? `IMPORTANT — SOURCE-GROUNDED MODE:
 A teacher has provided source material from the web${source_url ? ` (${source_url})` : ""}.
 You MUST base the target_vocabulary, target_grammar_rule, and reading_passage_summary
 ENTIRELY on this source text. Do NOT invent outside concepts. Pull vocabulary directly
 from the source. Identify a grammar rule that genuinely appears in the source. The
 reading passage summary should describe a faithful adaptation of this source for
-${cefr_level} learners.` : ""}`;
+${cefr_level} learners.
+
+If the source material violates the SAFETY rules above, REJECT it: return a blueprint whose
+lesson_title starts with "REJECTED:" and explain in framework_rationale why it failed safety.`
+        : ""
+    }`;
 
     const trimmedSource = String(source_material || "").slice(0, 10000);
 
     const userPrompt = `Topic: ${topic}
 Target audience: ${target_audience}
 CEFR level: ${cefr_level}
-Hub: ${hub}
+Hub: ${resolvedHub}
 Skill focus: ${skill_focus}
 ${trimmedSource ? `\nSOURCE MATERIAL (ground truth — base the blueprint on this):\n"""\n${trimmedSource}\n"""\n` : ""}
-Draft the lesson blueprint now.`;
+Draft the lesson blueprint now. Pick the best pedagogical framework and emit its phase order.`;
 
-    // Tool-calling for guaranteed structured output. The schema is small
-    // enough to stay well under Gemini's response-schema complexity ceiling.
     const tool = {
       type: "function",
       function: {
@@ -105,6 +135,20 @@ Draft the lesson blueprint now.`;
             grammar_explanation: { type: "string" },
             reading_passage_summary: { type: "string" },
             final_speaking_mission: { type: "string" },
+            pedagogical_framework: {
+              type: "string",
+              enum: ["Discovery", "TaskBased", "Immersion"],
+            },
+            framework_rationale: { type: "string" },
+            phases: {
+              type: "array",
+              minItems: 4,
+              maxItems: 6,
+              items: {
+                type: "string",
+                enum: ["Vocabulary", "Reading", "Comprehension", "Grammar", "Speaking", "Writing"],
+              },
+            },
           },
           required: [
             "lesson_title",
@@ -113,6 +157,9 @@ Draft the lesson blueprint now.`;
             "grammar_explanation",
             "reading_passage_summary",
             "final_speaking_mission",
+            "pedagogical_framework",
+            "framework_rationale",
+            "phases",
           ],
           additionalProperties: false,
         },
@@ -175,7 +222,37 @@ Draft the lesson blueprint now.`;
       );
     }
 
-    // Defensive sanity checks before returning.
+    // Self-heal: enforce framework + phases sanity, fall back to defaults when invalid.
+    const framework: PedagogicalFramework = isFramework(blueprint.pedagogical_framework)
+      ? blueprint.pedagogical_framework
+      : (resolvedHub === "Playground" ? "Immersion" : resolvedHub === "Success" ? "TaskBased" : "Discovery");
+
+    let phases: LessonPhase[] = Array.isArray(blueprint.phases)
+      ? blueprint.phases.filter(isPhase)
+      : [];
+    // De-duplicate while preserving order.
+    phases = Array.from(new Set(phases));
+    if (phases.length < 4) phases = FRAMEWORK_DEFAULTS[framework];
+
+    blueprint.target_hub = resolvedHub;
+    blueprint.pedagogical_framework = framework;
+    blueprint.phases = phases;
+    if (typeof blueprint.framework_rationale !== "string" || !blueprint.framework_rationale.trim()) {
+      blueprint.framework_rationale = `Default framework for the ${resolvedHub} hub.`;
+    }
+
+    // Detect a model-side safety rejection.
+    if (typeof blueprint.lesson_title === "string" && blueprint.lesson_title.startsWith("REJECTED:")) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "This source material did not pass our safety check for the selected hub. Please try a different topic or source.",
+          rejection_reason: blueprint.framework_rationale,
+        }),
+        { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     if (
       !blueprint.lesson_title ||
       !Array.isArray(blueprint.target_vocabulary) ||
