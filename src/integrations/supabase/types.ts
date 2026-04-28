@@ -7276,74 +7276,48 @@ export type Database = {
       }
       student_mastery: {
         Row: {
-          created_at: string | null
-          grammar_score: number | null
+          created_at: string
+          hub: string
           id: string
-          last_assessed_at: string | null
-          listening_score: number | null
-          phonics_score: number | null
-          reading_score: number | null
-          scaffold_level: Database["public"]["Enums"]["scaffold_level"] | null
-          speaking_score: number | null
-          student_id: string
-          teacher_override_notes: string | null
-          teacher_override_scaffold:
-            | Database["public"]["Enums"]["scaffold_level"]
-            | null
-          unit_id: string
-          updated_at: string | null
-          vocab_score: number | null
-          writing_score: number | null
+          item_key: string
+          item_type: string
+          last_tested: string | null
+          mastery_score: number
+          next_review_at: string
+          times_correct: number
+          times_incorrect: number
+          updated_at: string
+          user_id: string
         }
         Insert: {
-          created_at?: string | null
-          grammar_score?: number | null
+          created_at?: string
+          hub?: string
           id?: string
-          last_assessed_at?: string | null
-          listening_score?: number | null
-          phonics_score?: number | null
-          reading_score?: number | null
-          scaffold_level?: Database["public"]["Enums"]["scaffold_level"] | null
-          speaking_score?: number | null
-          student_id: string
-          teacher_override_notes?: string | null
-          teacher_override_scaffold?:
-            | Database["public"]["Enums"]["scaffold_level"]
-            | null
-          unit_id: string
-          updated_at?: string | null
-          vocab_score?: number | null
-          writing_score?: number | null
+          item_key: string
+          item_type?: string
+          last_tested?: string | null
+          mastery_score?: number
+          next_review_at?: string
+          times_correct?: number
+          times_incorrect?: number
+          updated_at?: string
+          user_id: string
         }
         Update: {
-          created_at?: string | null
-          grammar_score?: number | null
+          created_at?: string
+          hub?: string
           id?: string
-          last_assessed_at?: string | null
-          listening_score?: number | null
-          phonics_score?: number | null
-          reading_score?: number | null
-          scaffold_level?: Database["public"]["Enums"]["scaffold_level"] | null
-          speaking_score?: number | null
-          student_id?: string
-          teacher_override_notes?: string | null
-          teacher_override_scaffold?:
-            | Database["public"]["Enums"]["scaffold_level"]
-            | null
-          unit_id?: string
-          updated_at?: string | null
-          vocab_score?: number | null
-          writing_score?: number | null
+          item_key?: string
+          item_type?: string
+          last_tested?: string | null
+          mastery_score?: number
+          next_review_at?: string
+          times_correct?: number
+          times_incorrect?: number
+          updated_at?: string
+          user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "student_mastery_unit_id_fkey"
-            columns: ["unit_id"]
-            isOneToOne: false
-            referencedRelation: "curriculum_units"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       student_package_purchases: {
         Row: {
@@ -9547,6 +9521,16 @@ export type Database = {
         }[]
       }
       get_current_user_role: { Args: never; Returns: string }
+      get_due_review_items: {
+        Args: { p_hub?: string; p_limit?: number; p_user_id: string }
+        Returns: {
+          hub: string
+          item_key: string
+          item_type: string
+          mastery_score: number
+          next_review_at: string
+        }[]
+      }
       get_global_skill_averages: {
         Args: never
         Returns: {
