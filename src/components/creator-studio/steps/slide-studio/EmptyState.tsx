@@ -277,6 +277,32 @@ export const EmptyState: React.FC = () => {
           </span>.
         </p>
 
+        {/* Hub selector — drives safety, CEFR window, prompt vocabulary */}
+        <div className="mt-6 text-left">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 text-center">
+            Target audience
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {HUB_OPTIONS.map(({ value, label, sub, Icon, classes }) => {
+              const active = currentHub === value;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  data-active={active}
+                  onClick={() => setHub(value)}
+                  disabled={draftingBlueprint}
+                  className={`group relative rounded-2xl border-2 p-3 text-center transition-all bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border-slate-200 dark:border-slate-700 hover:border-slate-400 ${classes}`}
+                >
+                  <Icon className="h-5 w-5 mx-auto mb-1" />
+                  <div className="text-xs font-extrabold leading-tight">{label}</div>
+                  <div className="text-[10px] opacity-75 leading-tight">{sub}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <Input
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
