@@ -206,6 +206,24 @@ on EXACTLY ONE slide whose lesson_phase matches video_strategy.target_phase, and
 video_strategy.youtube_query verbatim into that slide's youtube_query. Add a short text prompt
 for active listening into that slide's "content" (e.g. "Watch how she apologises. Which word does she use?").
 
+═══════════════════════════════════════════════════════
+RULE 8 — GAMIFIED HOMEWORK MISSIONS (MANDATORY)
+═══════════════════════════════════════════════════════
+Generate EXACTLY 3 to 5 "homework_missions" that recycle the Phase-1 TARGET LEXICON.
+Each mission MUST be one of:
+• "memory_match"      → { mission_type, prompt, pairs: [{ term, match }] }   // 3–5 pairs
+• "listen_and_choose" → { mission_type, prompt, target_word, options: string[3..4], correct_answer }
+• "word_scramble"     → { mission_type, prompt, target_word, scrambled }
+Vary mission_type. correct_answer ∈ options. scrambled ≠ target_word.
+
+═══════════════════════════════════════════════════════
+GENERAL TONE
+═══════════════════════════════════════════════════════
+Supportive, professional, joyful. CEFR-aligned. No placeholders.
+"content" = short on-slide text (1–3 sentences max). For Reading slides, "content" carries the
+passage paragraph (with **bold** target words).
+"teacher_script" = 2–3 high-energy sentences for the teacher to read aloud.
+
 ${hubBlock}
 
 ${dynamicPhaseBlock ? dynamicPhaseBlock + "\n\nThe DYNAMIC PHASE SEQUENCE above OVERRIDES the default 6-step order in RULE 1 — follow the dynamic order instead, but keep all other RULE 1 phase requirements (vocab counts, reading word coverage, grammar drilling, etc.)." : ""}`;
