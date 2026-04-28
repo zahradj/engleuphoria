@@ -18,13 +18,16 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { prompt, lessonId, slideId } = await req.json();
+    const { prompt, lessonId, slideId, hub } = await req.json();
     if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
       return new Response(JSON.stringify({ error: "Prompt is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    // Apply the AI Art Director's house-style suffix for the target hub.
+    const artHub = normalizeArtHub(hub);
+    const styledPrompt = applyHubStyle(prompt, artHub);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
