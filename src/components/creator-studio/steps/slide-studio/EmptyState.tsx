@@ -46,6 +46,10 @@ function toastEdgeError(status: number | undefined, message: string, fallback: s
 export const EmptyState: React.FC = () => {
   const { activeLessonData, replaceSlides, setCurrentStep, setActiveLessonData, setDirty } = useCreator();
   const [topic, setTopic] = useState('');
+  const [sourceUrl, setSourceUrl] = useState('');
+  const [fetchingSource, setFetchingSource] = useState(false);
+  const [sourceText, setSourceText] = useState<string>('');
+  const [sourceTitle, setSourceTitle] = useState<string>('');
   const [draftingBlueprint, setDraftingBlueprint] = useState(false);
   const [generatingDeck, setGeneratingDeck] = useState(false);
   const [blueprint, setBlueprint] = useState<LessonBlueprint | null>(null);
