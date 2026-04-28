@@ -184,108 +184,69 @@ EXACTLY (Vocabulary → Reading → Comprehension → Grammar → Speaking → W
 tagged with lesson_phase. The Phase-2 reading passage MUST reuse Phase-1 vocabulary (wrapped in
 **bold**), and Phase 5 + 6 MUST require both the lexicon and the Phase-4 grammar rule.`;
 
-    const tool = {
-      type: "function",
-      function: {
-        name: "emit_director_lesson",
-        description:
-          "Return a 20–25 slide 1-hour PPP lesson with target_skills + requires_audio per slide, plus 3–5 gamified homework missions.",
-        parameters: {
-          type: "object",
-          properties: {
-            slides: {
-              type: "array",
-              minItems: 20,
-              maxItems: 25,
-              items: {
-                type: "object",
-                properties: {
-                  phase: { type: "string", enum: [...PHASES] },
-                  lesson_phase: { type: "string", enum: [...LESSON_PHASES] },
-                  slide_type: { type: "string", enum: [...SLIDE_TYPES] },
-                  media_type: { type: "string", enum: [...MEDIA_TYPES] },
-                  layout_style: { type: "string", enum: [...LAYOUTS] },
-                  title: { type: "string" },
-                  content: { type: "string" },
-                  teacher_script: { type: "string" },
-                  visual_keyword: { type: "string" },
-                  elevenlabs_script: { type: "string" },
-                  image_generation_prompt: { type: "string" },
-                  video_generation_prompt: { type: "string" },
-                  interactive_data_json: { type: "string" },
-                  hint_text: { type: "string" },
-                  target_skills: {
-                    type: "array",
-                    minItems: 1,
-                    items: { type: "string", enum: [...SKILLS] },
-                  },
-                  requires_audio: { type: "boolean" },
-                },
-                required: [
-                  "phase",
-                  "lesson_phase",
-                  "slide_type",
-                  "media_type",
-                  "layout_style",
-                  "title",
-                  "content",
-                  "teacher_script",
-                  "visual_keyword",
-                  "elevenlabs_script",
-                  "image_generation_prompt",
-                  "video_generation_prompt",
-                  "interactive_data_json",
-                  "target_skills",
-                  "requires_audio",
-                ],
-                additionalProperties: false,
-              },
-            },
-            // 3–5 app-style mini-games for asynchronous homework. Sent to the AI as a
-            // JSON string per item to keep the schema flat and avoid Gemini's strict
-            // tool-schema validation issues with deeply-nested oneOf shapes.
-            // Each element parses to one of the shapes documented in RULE 6.
-            homework_missions: {
-              type: "array",
-              minItems: 3,
-              maxItems: 5,
-              items: {
-                type: "object",
-                properties: {
-                  mission_type: { type: "string", enum: [...MISSION_TYPES] },
-                  prompt: { type: "string" },
-                  // payload_json holds the type-specific fields (pairs / options /
-                  // correct_answer / target_word / scrambled) as a stringified JSON
-                  // object. We parse + validate it server-side below.
-                  payload_json: { type: "string" },
-                },
-                required: ["mission_type", "prompt", "payload_json"],
-                additionalProperties: false,
-              },
-            },
-          },
-          required: ["slides", "homework_missions"],
-          additionalProperties: false,
-        },
-      },
-    };
+    // JSON-mode contract appended to the system prompt. We avoid Gemini's
+    // tool-calling structured-output validator entirely (it caps schema
+    // "states" and rejects our 16-field × 20-25 item shape). Instead we
+    // ask for a single JSON object and validate server-side.
+    const jsonContract = `
+
+═══════════════════════════════════════════════════════
+OUTPUT FORMAT (STRICT)
+═══════════════════════════════════════════════════════
+Respond with a SINGLE valid JSON object — no prose, no markdown, no code fences.
+Top-level shape:
+{
+  "slides": [ /* 20–25 slide objects */ ],
+  "homework_missions": [ /* 3–5 mission objects */ ]
+}
+
+Each slide object MUST have these keys:
+  "phase": "Hook" | "Presentation" | "Practice" | "Production" | "Mission",
+  "lesson_phase": "Vocabulary" | "Reading" | "Comprehension" | "Grammar" | "Speaking" | "Writing",
+  "slide_type": "mascot_speech" | "multiple_choice" | "drawing_canvas" | "drag_and_drop" | "flashcard" | "drag_and_match" | "fill_in_the_gaps",
+  "media_type": "image" | "video",
+  "layout_style": "split_left" | "split_right" | "center_card" | "full_background",
+  "title": string,
+  "content": string,
+  "teacher_script": string,
+  "visual_keyword": string,
+  "elevenlabs_script": string,
+  "image_generation_prompt": string,
+  "video_generation_prompt": string,
+  "interactive_data": object,  // shape per RULE 6 (NOT stringified)
+  "hint_text": string,         // required for interactive slides
+  "target_skills": string[],   // ≥1 of Reading/Writing/Listening/Speaking/Grammar/Vocabulary
+  "requires_audio": boolean
+
+Each homework mission object MUST have:
+  "mission_type": "memory_match" | "listen_and_choose" | "word_scramble",
+  "prompt": string,
+  // PLUS the type-specific keys directly on the object:
+  // memory_match → "pairs": [{"term":string,"match":string}]   (3–5 pairs)
+  // listen_and_choose → "target_word":string, "options":string[3..4], "correct_answer":string
+  // word_scramble → "target_word":string, "scrambled":string
+
+Return ONLY the JSON object.`;
 
     async function callAI(): Promise<
       | { ok: true; slides: any[]; homework_missions: any[] }
       | { ok: false; status: number; detail: string }
     > {
       console.log("Sending payload to Gemini via Lovable AI Gateway...", { lesson_title, cefr_level, hub });
+      // NOTE: We deliberately omit `response_format` and `tools`. The Lovable
+      // gateway converts both into a Gemini responseSchema that exceeds the
+      // provider's "schema states" limit for our 16-field × 20–25 item shape.
+      // The prompt itself instructs Gemini to emit a single JSON object; we
+      // strip any code fences and parse defensively below.
       const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           model: "google/gemini-2.5-flash",
           messages: [
-            { role: "system", content: systemPrompt },
+            { role: "system", content: systemPrompt + jsonContract },
             { role: "user", content: userPrompt },
           ],
-          tools: [tool],
-          tool_choice: { type: "function", function: { name: "emit_director_lesson" } },
         }),
       });
 
@@ -294,15 +255,23 @@ tagged with lesson_phase. The Phase-2 reading passage MUST reuse Phase-1 vocabul
       }
 
       const data = await aiResp.json();
-      const argsRaw = data?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
-      if (!argsRaw) {
-        return { ok: false, status: 502, detail: "No tool_call in AI response" };
+      const raw = data?.choices?.[0]?.message?.content;
+      if (!raw || typeof raw !== "string") {
+        return { ok: false, status: 502, detail: "No content in AI response" };
+      }
+      // Extract the largest {...} block — handles code fences and any
+      // leading/trailing prose the model might emit.
+      let cleaned = raw.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
+      const firstBrace = cleaned.indexOf("{");
+      const lastBrace = cleaned.lastIndexOf("}");
+      if (firstBrace !== -1 && lastBrace > firstBrace) {
+        cleaned = cleaned.slice(firstBrace, lastBrace + 1);
       }
       let parsedArgs: any;
       try {
-        parsedArgs = JSON.parse(argsRaw);
+        parsedArgs = JSON.parse(cleaned);
       } catch (e) {
-        return { ok: false, status: 502, detail: `Tool args JSON parse failed: ${(e as Error).message}` };
+        return { ok: false, status: 502, detail: `JSON parse failed: ${(e as Error).message}` };
       }
       if (!parsedArgs || !Array.isArray(parsedArgs.slides) || parsedArgs.slides.length === 0) {
         return { ok: false, status: 502, detail: "Validation failed: missing slides[]" };
@@ -425,9 +394,11 @@ tagged with lesson_phase. The Phase-2 reading passage MUST reuse Phase-1 vocabul
     const rawMissions: any[] = (aiResult as any).homework_missions ?? [];
     const homework_missions = rawMissions
       .map((m: any) => {
-        let payload: any = {};
+        // Prefer direct keys on the mission (new JSON-mode shape).
+        // Fall back to legacy payload_json string if the model returns it.
+        let payload: any = m ?? {};
         if (m?.payload_json && typeof m.payload_json === "string") {
-          try { payload = JSON.parse(m.payload_json); } catch { payload = {}; }
+          try { payload = { ...payload, ...JSON.parse(m.payload_json) }; } catch { /* keep payload */ }
         }
         const base = {
           id: crypto.randomUUID(),
