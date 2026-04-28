@@ -126,6 +126,7 @@ export default function LessonRewardPage({
 
   return (
     <div className={`flex flex-col items-center justify-center min-h-[100dvh] px-4 ${style.bg}`}>
+      <ConfettiEffect trigger={showConfetti} />
       <div className="w-full max-w-[500px] flex flex-col items-center gap-6">
 
         {/* Hero */}
