@@ -116,6 +116,20 @@ Hard rules:
 • framework_rationale: 1 sentence (≤ 30 words) explaining why THIS framework fits THIS topic + hub.
 • phases: ordered array of lesson phases the slide generator will follow. Use the framework's
   default order (see guide) but you may swap the last 1–2 phases if it improves cohesion.
+• video_strategy: pick ONE moment in the lesson where a real YouTube video is the BEST teaching
+  tool. Write a highly specific youtube_query that will resolve to a real, safe, hub-appropriate
+  clip. Choose target_phase using these rules:
+    – If pedagogical_framework = "TaskBased": target_phase MUST be the FIRST phase
+      (the hook / impossible task — show real-world execution).
+    – If pedagogical_framework = "Discovery": target_phase MUST be a MIDDLE phase
+      (Reading or Comprehension — students hunt for the rule in the video).
+    – If pedagogical_framework = "Immersion": target_phase MUST be the phase IMMEDIATELY
+      AFTER "Vocabulary" (the core immersive story).
+  Examples by hub:
+    – Playground: "animated cartoon counting apples for kids"
+    – Academy:    "short street interview asking for directions in London"
+    – Success:    "Steve Jobs negotiation skills short clip"
+  rationale: 1 sentence (≤ 25 words) explaining why this clip serves the lesson.
 
 CEFR-align everything to ${cefr_level}, clamped to the hub window above. Tone: warm, professional,
 joyful (or hub-appropriate — see hub block). No placeholders.
@@ -189,6 +203,23 @@ Draft the lesson blueprint now. Pick the best pedagogical framework and emit its
                 enum: ["Vocabulary", "Reading", "Comprehension", "Grammar", "Speaking", "Writing"],
               },
             },
+            video_strategy: {
+              type: "object",
+              description:
+                "AI-curated YouTube video plan. youtube_query MUST be a highly specific search " +
+                "string the YouTube Data API can resolve to a real-world clip. target_phase MUST " +
+                "be one of the phases in the phases[] array.",
+              properties: {
+                youtube_query: { type: "string" },
+                target_phase: {
+                  type: "string",
+                  enum: ["Vocabulary", "Reading", "Comprehension", "Grammar", "Speaking", "Writing"],
+                },
+                rationale: { type: "string" },
+              },
+              required: ["youtube_query", "target_phase"],
+              additionalProperties: false,
+            },
           },
           required: [
             "lesson_title",
@@ -200,6 +231,7 @@ Draft the lesson blueprint now. Pick the best pedagogical framework and emit its
             "pedagogical_framework",
             "framework_rationale",
             "phases",
+            "video_strategy",
           ],
           additionalProperties: false,
         },
@@ -280,6 +312,24 @@ Draft the lesson blueprint now. Pick the best pedagogical framework and emit its
     if (typeof blueprint.framework_rationale !== "string" || !blueprint.framework_rationale.trim()) {
       blueprint.framework_rationale = `Default framework for the ${resolvedHub} hub.`;
     }
+
+    // Self-heal video_strategy: must be an object with a real youtube_query and a phase
+    // that exists in phases[]. If invalid, build a sensible default from the framework.
+    const vs = blueprint.video_strategy;
+    const phaseSet = new Set(phases);
+    const defaultPhaseForFramework: LessonPhase =
+      framework === "TaskBased" ? phases[0]
+        : framework === "Discovery" ? (phases[Math.floor(phases.length / 2)] ?? phases[1] ?? phases[0])
+        : (phases.find((p, i) => i > 0 && (phases[i - 1] === "Vocabulary")) ?? phases[1] ?? phases[0]);
+    const validQuery = vs && typeof vs.youtube_query === "string" && vs.youtube_query.trim().length > 3;
+    const validPhase = vs && typeof vs.target_phase === "string" && phaseSet.has(vs.target_phase as LessonPhase);
+    blueprint.video_strategy = {
+      youtube_query: validQuery
+        ? String(vs.youtube_query).trim()
+        : `${blueprint.lesson_title || topic} short video for ${resolvedHub.toLowerCase()} learners`,
+      target_phase: validPhase ? vs.target_phase : defaultPhaseForFramework,
+      rationale: typeof vs?.rationale === "string" ? vs.rationale : `Authentic ${resolvedHub} listening input.`,
+    };
 
     // Detect a model-side safety rejection.
     if (typeof blueprint.lesson_title === "string" && blueprint.lesson_title.startsWith("REJECTED:")) {

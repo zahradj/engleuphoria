@@ -177,11 +177,34 @@ student's first wrong answer. Never spoil the answer outright — guide them. Ex
 tense gap: "Past tense often ends in -ed."
 
 ═══════════════════════════════════════════════════════
-RULE 7 — MULTIMODAL MEDIA PROMPTS
+RULE 7 — MULTIMODAL MEDIA PROMPTS (THE AI ART DIRECTOR)
 ═══════════════════════════════════════════════════════
-• "elevenlabs_script": Phonetic, kid-friendly TTS string under 120 chars.
-• "image_generation_prompt": Detailed text-to-image prompt; end with "Vibrant flat illustration, solid pastel background, UI asset, no text, kid-friendly."
-• "video_generation_prompt": 2–4s seamlessly looping motion; end with "seamless loop, solid pastel background, no text, no camera motion."
+For every slide that has a visual (vocab presentation, hero image, drag_and_match thumbnails,
+flashcards, etc.) you MUST emit a HIGHLY DESCRIPTIVE "image_generation_prompt" — never a generic
+prompt. Describe the SPECIFIC concept, character, action, environment, mood, and composition
+in 25+ words. Do NOT include the visual style — the platform appends a hub-specific style suffix
+automatically. Examples:
+  • Word "Bear" (Playground): "A friendly fluffy brown bear character sitting upright in a colourful
+    sun-dappled forest clearing, holding a small red apple, smiling, soft natural light, centred composition."
+  • Word "Negotiation" (Success): "Two professionals across a polished walnut table mid-conversation,
+    one taking notes, warm window light, modern glass office, eye-level shot, shallow depth."
+Other media fields:
+  • "elevenlabs_script": Phonetic, kid-friendly TTS string under 120 chars.
+  • "video_generation_prompt": 2–4s seamlessly looping motion; end with "seamless loop, solid pastel background, no text, no camera motion."
+
+═══════════════════════════════════════════════════════
+RULE 7B — AUTONOMOUS YOUTUBE CONTEXT ENGINE
+═══════════════════════════════════════════════════════
+For EVERY slide also emit:
+  • "requires_video": boolean — true ONLY when a real YouTube clip would teach better than a still image
+    (typical: hook scenes, real-world dialogues, listening comprehension, cultural context).
+  • "youtube_query": string — when requires_video is true, write a HIGHLY SPECIFIC search query
+    (≤ 90 chars). Otherwise pass an empty string.
+Distribution rule: at most 2 slides in the entire deck may have requires_video = true. Default false.
+If the APPROVED BLUEPRINT below contains a video_strategy block, you MUST set requires_video = true
+on EXACTLY ONE slide whose lesson_phase matches video_strategy.target_phase, and copy
+video_strategy.youtube_query verbatim into that slide's youtube_query. Add a short text prompt
+for active listening into that slide's "content" (e.g. "Watch how she apologises. Which word does she use?").
 
 ═══════════════════════════════════════════════════════
 RULE 8 — GAMIFIED HOMEWORK MISSIONS (MANDATORY)
@@ -239,6 +262,17 @@ READING DIRECTION (Phase 2 passage MUST follow this summary — same genre, scen
 
 FINAL MISSION (Phase 5/6 production MUST end with this exact task):
   ${blueprint.final_speaking_mission ?? ""}
+${
+  blueprint.video_strategy && blueprint.video_strategy.youtube_query
+    ? `
+VIDEO STRATEGY (mandatory — you MUST insert ONE slide implementing this):
+  • youtube_query : "${blueprint.video_strategy.youtube_query}"
+  • target_phase  : "${blueprint.video_strategy.target_phase}"
+  ${blueprint.video_strategy.rationale ? `• rationale : ${blueprint.video_strategy.rationale}` : ""}
+On EXACTLY ONE slide whose lesson_phase = "${blueprint.video_strategy.target_phase}", set
+requires_video = true and youtube_query verbatim. Add an active-listening question into "content".`
+    : ""
+}
 `;
     }
 
@@ -286,7 +320,9 @@ Each slide object MUST have these keys:
   "interactive_data": object,  // shape per RULE 6 (NOT stringified)
   "hint_text": string,         // required for interactive slides
   "target_skills": string[],   // ≥1 of Reading/Writing/Listening/Speaking/Grammar/Vocabulary
-  "requires_audio": boolean
+  "requires_audio": boolean,
+  "requires_video": boolean,   // true ONLY when a real YouTube clip teaches better than an image
+  "youtube_query": string      // empty string when requires_video is false
 
 Each homework mission object MUST have:
   "mission_type": "memory_match" | "listen_and_choose" | "word_scramble",
@@ -420,6 +456,8 @@ Return ONLY the JSON object.`;
         video_generation_prompt: s.video_generation_prompt ?? "",
         target_skills,
         requires_audio,
+        requires_video: typeof s.requires_video === "boolean" ? s.requires_video : false,
+        youtube_query: typeof s.youtube_query === "string" ? s.youtube_query.trim() : "",
         hint_text: typeof s.hint_text === "string" ? s.hint_text : "",
         interactive_data: (() => {
           if (s.interactive_data && typeof s.interactive_data === "object") return s.interactive_data;
@@ -457,6 +495,25 @@ Return ONLY the JSON object.`;
         console.warn(
           `Blueprint order violation at slide ${i + 1}: ${slides[i].lesson_phase} after ${slides[i - 1].lesson_phase}.`,
         );
+      }
+    }
+
+    // ─── Self-heal video_strategy: ensure ONE slide carries the blueprint's youtube_query ───
+    if (blueprint?.video_strategy?.youtube_query && blueprint?.video_strategy?.target_phase) {
+      const targetPhase = blueprint.video_strategy.target_phase;
+      const alreadyHas = slides.some((s: any) => s.requires_video && s.youtube_query);
+      if (!alreadyHas) {
+        const idx = slides.findIndex((s: any) => s.lesson_phase === targetPhase);
+        const finalIdx = idx >= 0 ? idx : 0;
+        slides[finalIdx].requires_video = true;
+        slides[finalIdx].youtube_query = blueprint.video_strategy.youtube_query;
+        if (!/(watch|listen|notice)/i.test(slides[finalIdx].content || "")) {
+          slides[finalIdx].content =
+            `${slides[finalIdx].content || ""}\n\n👀 Watch the video. ${
+              blueprint.video_strategy.rationale || "What new word do you hear?"
+            }`.trim();
+        }
+        console.log(`[video] Healed slide ${finalIdx + 1} with youtube_query="${blueprint.video_strategy.youtube_query}"`);
       }
     }
 
