@@ -273,7 +273,7 @@ Return ONLY the JSON object.`;
       | { ok: true; slides: any[]; homework_missions: any[] }
       | { ok: false; status: number; detail: string }
     > {
-      console.log("Sending payload to Gemini via Lovable AI Gateway...", { lesson_title, cefr_level, hub });
+      console.log("Sending payload to Gemini via Lovable AI Gateway...", { lesson_title: effectiveTitle, cefr_level, hub, hasBlueprint: !!blueprint });
       // NOTE: We deliberately omit `response_format` and `tools`. The Lovable
       // gateway converts both into a Gemini responseSchema that exceeds the
       // provider's "schema states" limit for our 16-field × 20–25 item shape.
