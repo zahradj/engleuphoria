@@ -1,6 +1,17 @@
 // Generate a 15-20 slide progressive lesson via Lovable AI Gateway with strict tool-calling.
 // The AI acts as a Master Curriculum Director: routes media (image vs video),
 // enforces a 5-phase progressive arc, and forces divergent interactivity.
+//
+// Hub-aware (Playground / Academy / Success) and framework-aware (the blueprint's
+// `phases[]` array dictates lesson_phase order, not a hardcoded sequence).
+import {
+  buildPhaseSequenceBlock,
+  buildSlideHubBlock,
+  isPhase,
+  normalizeHub,
+  type LessonPhase,
+} from "../_shared/hubProfiles.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -42,6 +53,7 @@ Deno.serve(async (req) => {
       skill_focus = "Vocabulary",
       cefr_level = "A1",
       hub = "academy",
+      target_hub, // ← preferred new field; falls back to `hub`
       blueprint, // ← Approved Blueprint (optional). When present, treated as ground truth.
     } = body || {};
 
@@ -56,6 +68,19 @@ Deno.serve(async (req) => {
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
+
+    const resolvedHub = normalizeHub(target_hub ?? blueprint?.target_hub ?? hub);
+    const hubBlock = buildSlideHubBlock(resolvedHub, cefr_level);
+
+    // Phase sequence — driven by the blueprint when present, else fall back to the
+    // legacy 6-step Integrated Skills order.
+    const blueprintPhases: LessonPhase[] = Array.isArray(blueprint?.phases)
+      ? blueprint!.phases.filter(isPhase)
+      : [];
+    const usingDynamicPhases = blueprintPhases.length >= 4;
+    const dynamicPhaseBlock = usingDynamicPhases
+      ? buildPhaseSequenceBlock(blueprintPhases, blueprint?.pedagogical_framework)
+      : "";
 
     const systemPrompt = `You are the EXPERT CURRICULUM DESIGNER for Engleuphoria — an elite ESL platform.
 You design ONE classroom-ready 1-HOUR (≈60 minute) deeply COHESIVE interactive lesson as a 20–25 slide deck.
@@ -174,7 +199,11 @@ GENERAL TONE
 Supportive, professional, joyful. CEFR-aligned. No placeholders.
 "content" = short on-slide text (1–3 sentences max). For Reading slides, "content" carries the
 passage paragraph (with **bold** target words).
-"teacher_script" = 2–3 high-energy sentences for the teacher to read aloud.`;
+"teacher_script" = 2–3 high-energy sentences for the teacher to read aloud.
+
+${hubBlock}
+
+${dynamicPhaseBlock ? dynamicPhaseBlock + "\n\nThe DYNAMIC PHASE SEQUENCE above OVERRIDES the default 6-step order in RULE 1 — follow the dynamic order instead, but keep all other RULE 1 phase requirements (vocab counts, reading word coverage, grammar drilling, etc.)." : ""}`;
 
     // ── BLUEPRINT GROUND-TRUTH BLOCK (only when caller supplied a blueprint) ──
     let blueprintBlock = "";
