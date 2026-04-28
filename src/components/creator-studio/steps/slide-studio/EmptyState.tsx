@@ -146,8 +146,8 @@ export const EmptyState: React.FC = () => {
           topic: useTopic || sourceTitle || 'Source-grounded lesson',
           target_audience: targetAudience,
           cefr_level: activeLessonData.cefr_level,
-          hub: activeLessonData.hub,
-          target_hub: activeLessonData.hub, // hub-aware routing
+          hub: currentHub,
+          target_hub: targetHub, // hub-aware routing (TitleCase)
           skill_focus: activeLessonData.source_lesson?.skill_focus ?? 'Mixed Skills',
           source_material: material || '',
           source_url: sourceUrl.trim() || '',
