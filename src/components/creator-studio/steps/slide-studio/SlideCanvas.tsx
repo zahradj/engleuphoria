@@ -36,6 +36,25 @@ function imageUrlFor(slide: PPPSlide): string | null {
 const SlideMedia: React.FC<{ slide: PPPSlide }> = ({ slide }) => {
   const [videoErrored, setVideoErrored] = useState(false);
 
+  // 1) AI-Director YouTube embed wins (real-world clip).
+  if (slide.youtube_video_id) {
+    const src = slide.youtube_embed_url
+      || `https://www.youtube-nocookie.com/embed/${slide.youtube_video_id}?rel=0&modestbranding=1`;
+    return (
+      <div className="mx-auto rounded-2xl overflow-hidden shadow-md w-full max-w-sm aspect-video bg-black">
+        <iframe
+          key={slide.youtube_video_id}
+          src={src}
+          title={slide.youtube_title || slide.title || 'Lesson video'}
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          className="w-full h-full border-0"
+        />
+      </div>
+    );
+  }
+
   if (slide.custom_video_url && !videoErrored) {
     return (
       <video
