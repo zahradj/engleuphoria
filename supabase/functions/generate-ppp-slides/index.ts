@@ -1,6 +1,17 @@
 // Generate a 15-20 slide progressive lesson via Lovable AI Gateway with strict tool-calling.
 // The AI acts as a Master Curriculum Director: routes media (image vs video),
 // enforces a 5-phase progressive arc, and forces divergent interactivity.
+//
+// Hub-aware (Playground / Academy / Success) and framework-aware (the blueprint's
+// `phases[]` array dictates lesson_phase order, not a hardcoded sequence).
+import {
+  buildPhaseSequenceBlock,
+  buildSlideHubBlock,
+  isPhase,
+  normalizeHub,
+  type LessonPhase,
+} from "../_shared/hubProfiles.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
