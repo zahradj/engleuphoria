@@ -7,6 +7,7 @@ import type { HubType } from '@/components/admin/lesson-builder/ai-wizard/types'
 import StarMeter from '../StarMeter';
 import HintBubble from '../HintBubble';
 import { useStarHintTracker } from '@/hooks/useStarHintTracker';
+import { reportSrsForCurrentUser } from '@/lib/srs';
 
 interface Props {
   slide: GeneratedSlide;
