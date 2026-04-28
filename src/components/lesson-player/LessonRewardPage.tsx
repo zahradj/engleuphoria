@@ -186,19 +186,21 @@ export default function LessonRewardPage({
           </div>
         </motion.div>
 
-        {/* CTA */}
+        {/* CTA — Claim Rewards (saves to Supabase) → Back to Dashboard */}
         <motion.button
-          onClick={onExit}
-          className={`w-full py-4 rounded-2xl font-bold text-lg text-white tracking-wide uppercase ${style.buttonBg}`}
+          onClick={handleClaim}
+          disabled={claimState === 'saving'}
+          className={`w-full py-4 rounded-2xl font-bold text-lg text-white tracking-wide uppercase ${style.buttonBg} disabled:opacity-80`}
           style={{ boxShadow: style.buttonShadow }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1 }}
-          whileTap={{ scale: 0.97 }}
+          whileTap={{ scale: claimState === 'saving' ? 1 : 0.97 }}
         >
           <span className="flex items-center justify-center gap-2">
-            Back to Dashboard
-            <ArrowRight size={20} />
+            {claimState === 'saving' && (<><Loader2 size={20} className="animate-spin" /> Saving…</>)}
+            {claimState === 'idle' && (<>Claim Rewards <Trophy size={20} /></>)}
+            {claimState === 'claimed' && (<><Check size={20} /> Back to Dashboard <ArrowRight size={20} /></>)}
           </span>
         </motion.button>
       </div>
