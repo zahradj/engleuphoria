@@ -313,6 +313,24 @@ Draft the lesson blueprint now. Pick the best pedagogical framework and emit its
       blueprint.framework_rationale = `Default framework for the ${resolvedHub} hub.`;
     }
 
+    // Self-heal video_strategy: must be an object with a real youtube_query and a phase
+    // that exists in phases[]. If invalid, build a sensible default from the framework.
+    const vs = blueprint.video_strategy;
+    const phaseSet = new Set(phases);
+    const defaultPhaseForFramework: LessonPhase =
+      framework === "TaskBased" ? phases[0]
+        : framework === "Discovery" ? (phases[Math.floor(phases.length / 2)] ?? phases[1] ?? phases[0])
+        : (phases.find((p, i) => i > 0 && (phases[i - 1] === "Vocabulary")) ?? phases[1] ?? phases[0]);
+    const validQuery = vs && typeof vs.youtube_query === "string" && vs.youtube_query.trim().length > 3;
+    const validPhase = vs && typeof vs.target_phase === "string" && phaseSet.has(vs.target_phase as LessonPhase);
+    blueprint.video_strategy = {
+      youtube_query: validQuery
+        ? String(vs.youtube_query).trim()
+        : `${blueprint.lesson_title || topic} short video for ${resolvedHub.toLowerCase()} learners`,
+      target_phase: validPhase ? vs.target_phase : defaultPhaseForFramework,
+      rationale: typeof vs?.rationale === "string" ? vs.rationale : `Authentic ${resolvedHub} listening input.`,
+    };
+
     // Detect a model-side safety rejection.
     if (typeof blueprint.lesson_title === "string" && blueprint.lesson_title.startsWith("REJECTED:")) {
       return new Response(
