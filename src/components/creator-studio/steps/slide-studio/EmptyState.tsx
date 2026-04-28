@@ -1,51 +1,115 @@
 import React, { useState } from 'react';
 import { Sparkles, Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useCreator, PPPSlide } from '../../CreatorContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { normalizePhase } from './phaseTheme';
 import { persistLesson } from '../../persistLesson';
+import { BlueprintReview } from './BlueprintReview';
+import type { LessonBlueprint } from './blueprintTypes';
+
+/** Read the JSON `error` field from a Supabase Functions invoke error. */
+async function readEdgeError(err: unknown): Promise<{ status?: number; message: string }> {
+  const ctx: any = (err as any)?.context;
+  const status = ctx?.status as number | undefined;
+  let message = (err as Error)?.message || 'Request failed';
+  try {
+    if (ctx?.body && typeof ctx.body.getReader === 'function') {
+      const text = await new Response(ctx.body).text();
+      try {
+        const parsed = JSON.parse(text);
+        message = parsed?.error || parsed?.detail || text || message;
+      } catch {
+        message = text || message;
+      }
+    } else if (typeof ctx?.responseText === 'string') {
+      try {
+        message = JSON.parse(ctx.responseText)?.error || ctx.responseText;
+      } catch {
+        message = ctx.responseText;
+      }
+    }
+  } catch (parseErr) {
+    console.warn('Could not parse edge function error body', parseErr);
+  }
+  return { status, message };
+}
+
+function toastEdgeError(status: number | undefined, message: string, fallback: string) {
+  if (status === 429) toast.error('Rate limit reached. Try again in a moment.');
+  else if (status === 402) toast.error('AI credits exhausted. Add funds in Workspace → Usage.');
+  else toast.error(message || fallback);
+}
 
 export const EmptyState: React.FC = () => {
   const { activeLessonData, replaceSlides, setCurrentStep, setActiveLessonData, setDirty } = useCreator();
-  const [loading, setLoading] = useState(false);
+  const [topic, setTopic] = useState('');
+  const [draftingBlueprint, setDraftingBlueprint] = useState(false);
+  const [generatingDeck, setGeneratingDeck] = useState(false);
+  const [blueprint, setBlueprint] = useState<LessonBlueprint | null>(null);
 
   if (!activeLessonData) return null;
 
-  const handleGenerate = async () => {
-    setLoading(true);
+  const targetAudience = `${activeLessonData.cefr_level} ${activeLessonData.hub} learner`;
+
+  const draftBlueprint = async (overrideTopic?: string) => {
+    const useTopic = (overrideTopic ?? topic).trim() || activeLessonData.lesson_title;
+    if (!useTopic) {
+      toast.error('Enter a topic to draft the blueprint.');
+      return;
+    }
+    setDraftingBlueprint(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-blueprint', {
+        body: {
+          topic: useTopic,
+          target_audience: targetAudience,
+          cefr_level: activeLessonData.cefr_level,
+          hub: activeLessonData.hub,
+          skill_focus: activeLessonData.source_lesson?.skill_focus ?? 'Mixed Skills',
+        },
+      });
+      if (error) {
+        const { status, message } = await readEdgeError(error);
+        console.error('generate-blueprint failed', { status, message });
+        toastEdgeError(status, message, 'Could not draft the blueprint');
+        return;
+      }
+      const bp: LessonBlueprint | undefined = data?.blueprint;
+      if (!bp) {
+        toast.error('No blueprint returned. Please retry.');
+        return;
+      }
+      setBlueprint(bp);
+      toast.success('Blueprint drafted ✨ Review and edit, then approve.');
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || 'Blueprint generation failed');
+    } finally {
+      setDraftingBlueprint(false);
+    }
+  };
+
+  const approveAndGenerate = async () => {
+    if (!blueprint) return;
+    setGeneratingDeck(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-ppp-slides', {
         body: {
-          lesson_title: activeLessonData.lesson_title,
+          lesson_title: blueprint.lesson_title || activeLessonData.lesson_title,
           objective: activeLessonData.target_goal,
           skill_focus: activeLessonData.source_lesson?.skill_focus ?? 'Vocabulary',
           cefr_level: activeLessonData.cefr_level,
           hub: activeLessonData.hub,
+          blueprint, // ← Blueprint-First payload
         },
       });
       if (error) {
-        const ctx: any = (error as any).context;
-        const status = ctx?.status;
-        // Try to read the actual error body returned by the edge function
-        let backendMessage = '';
-        try {
-          if (ctx?.body && typeof ctx.body.getReader === 'function') {
-            const text = await new Response(ctx.body).text();
-            const parsed = JSON.parse(text);
-            backendMessage = parsed?.error || parsed?.detail || text;
-          } else if (typeof ctx?.responseText === 'string') {
-            try { backendMessage = JSON.parse(ctx.responseText)?.error || ctx.responseText; }
-            catch { backendMessage = ctx.responseText; }
-          }
-        } catch (parseErr) {
-          console.warn('Could not parse edge function error body', parseErr);
-        }
-        console.error('generate-ppp-slides failed', { status, backendMessage, error });
-        if (status === 429) toast.error('Rate limit reached. Try again in a moment.');
-        else if (status === 402) toast.error('AI credits exhausted. Add funds in Workspace → Usage.');
-        else toast.error(backendMessage || error.message || 'Could not generate slides');
+        const { status, message } = await readEdgeError(error);
+        console.error('generate-ppp-slides failed', { status, message });
+        toastEdgeError(status, message, 'Could not generate slides');
         return;
       }
       const slides: PPPSlide[] = (data?.slides ?? []).map((s: any) => ({
@@ -60,16 +124,16 @@ export const EmptyState: React.FC = () => {
         return;
       }
       replaceSlides(slides);
-      const lessonWithMissions = { ...activeLessonData, slides, homework_missions };
+      const lessonWithMissions = {
+        ...activeLessonData,
+        lesson_title: blueprint.lesson_title || activeLessonData.lesson_title,
+        slides,
+        homework_missions,
+      };
       setActiveLessonData(lessonWithMissions);
-      toast.success(
-        `Generated ${slides.length} slides + ${homework_missions.length} homework missions ✨`,
-      );
+      toast.success(`Generated ${slides.length} slides + ${homework_missions.length} homework missions ✨`);
 
-      // 🔐 AUTO-PERSIST: write the freshly generated deck (slides + missions) to
-      // Supabase immediately so a refresh never loses the work. Saved as a draft
-      // (is_published=false). The new lesson_id is stamped back into context so
-      // the next manual save UPDATEs in place instead of duplicating.
+      // Auto-persist (same as before)
       const saveRes = await persistLesson(lessonWithMissions, slides, false);
       if (saveRes.ok === true) {
         if (!activeLessonData.lesson_id) {
@@ -85,41 +149,76 @@ export const EmptyState: React.FC = () => {
       console.error(e);
       toast.error(e?.message || 'Generation failed');
     } finally {
-      setLoading(false);
+      setGeneratingDeck(false);
     }
   };
 
+  // ── Step 2: Blueprint Review ──
+  if (blueprint) {
+    return (
+      <BlueprintReview
+        blueprint={blueprint}
+        onChange={setBlueprint}
+        onApprove={approveAndGenerate}
+        onRegenerate={() => draftBlueprint()}
+        onBack={() => setBlueprint(null)}
+        approving={generatingDeck}
+        regenerating={draftingBlueprint}
+      />
+    );
+  }
+
+  // ── Step 1: Draft Blueprint ──
   return (
     <div className="h-full flex items-center justify-center p-6">
       <div className="max-w-xl w-full text-center p-10 rounded-3xl bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-slate-800 shadow-xl">
         <div className="mx-auto h-16 w-16 rounded-2xl bg-gradient-to-br from-amber-400 via-orange-500 to-pink-500 flex items-center justify-center shadow-lg mb-5">
           <Sparkles className="h-8 w-8 text-white" />
         </div>
-        <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
-          Let the AI build your PPP arc
+        <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400">
+          Step 1 of 2 · Draft Blueprint
+        </div>
+        <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
+          What's this lesson about?
         </h2>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-md mx-auto">
-          Six classroom-ready slides — Warm-up, Presentation, Practice, Production, Review — tailored to{' '}
+          Describe the topic. The AI will draft a structured plan — vocabulary, grammar rule,
+          reading direction, final mission — that you can review and edit before any slides are built.
+          Tailored for{' '}
           <span className="font-semibold text-slate-700 dark:text-slate-200">
             {activeLessonData.cefr_level} · {activeLessonData.source_lesson?.skill_focus ?? 'Mixed Skills'}
           </span>.
         </p>
 
+        <Input
+          value={topic}
+          onChange={(e) => setTopic(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !draftingBlueprint) {
+              e.preventDefault();
+              draftBlueprint();
+            }
+          }}
+          placeholder={`Topic — e.g. "${activeLessonData.lesson_title || 'A trip to remember'}"`}
+          className="mt-6 h-12 text-base"
+          disabled={draftingBlueprint}
+        />
+
         <Button
           size="lg"
-          onClick={handleGenerate}
-          disabled={loading}
-          className="mt-6 h-14 px-8 text-base font-bold gap-2 bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 hover:opacity-95 text-white border-0 shadow-lg"
+          onClick={() => draftBlueprint()}
+          disabled={draftingBlueprint}
+          className="mt-3 h-14 w-full text-base font-bold gap-2 bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 hover:opacity-95 text-white border-0 shadow-lg"
         >
-          {loading ? (
+          {draftingBlueprint ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
-              Generating PPP slides…
+              Drafting blueprint…
             </>
           ) : (
             <>
               <Sparkles className="h-5 w-5" />
-              ✨ Auto-Generate PPP Slides
+              Draft Lesson Blueprint
             </>
           )}
         </Button>

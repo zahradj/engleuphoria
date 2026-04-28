@@ -42,9 +42,12 @@ Deno.serve(async (req) => {
       skill_focus = "Vocabulary",
       cefr_level = "A1",
       hub = "academy",
+      blueprint, // ← Approved Blueprint (optional). When present, treated as ground truth.
     } = body || {};
 
-    if (!lesson_title) {
+    // Allow the title to fall back to blueprint.lesson_title when caller omits it.
+    const effectiveTitle: string | undefined = lesson_title || blueprint?.lesson_title;
+    if (!effectiveTitle) {
       return new Response(JSON.stringify({ error: "lesson_title is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -173,16 +176,54 @@ Supportive, professional, joyful. CEFR-aligned. No placeholders.
 passage paragraph (with **bold** target words).
 "teacher_script" = 2–3 high-energy sentences for the teacher to read aloud.`;
 
-    const userPrompt = `Lesson title: ${lesson_title}
+    // ── BLUEPRINT GROUND-TRUTH BLOCK (only when caller supplied a blueprint) ──
+    let blueprintBlock = "";
+    if (blueprint && typeof blueprint === "object") {
+      const vocabList = Array.isArray(blueprint.target_vocabulary)
+        ? blueprint.target_vocabulary
+            .filter((v: any) => v && typeof v.word === "string" && v.word.trim())
+            .map((v: any) => {
+              const def = v.definition ? ` — ${v.definition}` : "";
+              const ex = v.example ? `  e.g. "${v.example}"` : "";
+              return `  • ${v.word}${def}${ex}`;
+            })
+            .join("\n")
+        : "";
+      blueprintBlock = `
+
+═══════════════════════════════════════════════════════
+APPROVED BLUEPRINT — TREAT AS GROUND TRUTH
+═══════════════════════════════════════════════════════
+The teacher has reviewed and approved this plan. You MUST NOT invent additional vocabulary
+words or substitute the grammar rule with a different one.
+
+TARGET LEXICON (Phase 1 must teach EXACTLY these words, in this order — every word must
+also appear at least once, wrapped in **bold**, inside the Phase-2 reading passage):
+${vocabList}
+
+TARGET GRAMMAR RULE (Phase 4 must teach this and ONLY this):
+  "${blueprint.target_grammar_rule ?? ""}"
+${blueprint.grammar_explanation ? `Teacher rationale: ${blueprint.grammar_explanation}` : ""}
+
+READING DIRECTION (Phase 2 passage MUST follow this summary — same genre, scenario, characters):
+  ${blueprint.reading_passage_summary ?? ""}
+
+FINAL MISSION (Phase 5/6 production MUST end with this exact task):
+  ${blueprint.final_speaking_mission ?? ""}
+`;
+    }
+
+    const userPrompt = `Lesson title: ${effectiveTitle}
 Objective: ${objective ?? "(not provided)"}
 Skill focus: ${skill_focus}
 CEFR level: ${cefr_level}
 Hub: ${hub}
-
+${blueprintBlock}
 Generate the dense 20–25 slide 1-hour lesson NOW following the 6-Step Integrated Skills Blueprint
 EXACTLY (Vocabulary → Reading → Comprehension → Grammar → Speaking → Writing). Every slide MUST be
 tagged with lesson_phase. The Phase-2 reading passage MUST reuse Phase-1 vocabulary (wrapped in
 **bold**), and Phase 5 + 6 MUST require both the lexicon and the Phase-4 grammar rule.`;
+
 
     // JSON-mode contract appended to the system prompt. We avoid Gemini's
     // tool-calling structured-output validator entirely (it caps schema
@@ -232,7 +273,7 @@ Return ONLY the JSON object.`;
       | { ok: true; slides: any[]; homework_missions: any[] }
       | { ok: false; status: number; detail: string }
     > {
-      console.log("Sending payload to Gemini via Lovable AI Gateway...", { lesson_title, cefr_level, hub });
+      console.log("Sending payload to Gemini via Lovable AI Gateway...", { lesson_title: effectiveTitle, cefr_level, hub, hasBlueprint: !!blueprint });
       // NOTE: We deliberately omit `response_format` and `tools`. The Lovable
       // gateway converts both into a Gemini responseSchema that exceeds the
       // provider's "schema states" limit for our 16-field × 20–25 item shape.
@@ -445,6 +486,28 @@ Return ONLY the JSON object.`;
       console.warn(
         `Director returned only ${homework_missions.length} valid homework missions (need 3-5). Returning what we have.`,
       );
+    }
+
+    // ── Blueprint coverage validation: every approved word must appear in a Phase-1 slide ──
+    if (blueprint && Array.isArray(blueprint.target_vocabulary)) {
+      const phase1Text = slides
+        .filter((s: any) => s.lesson_phase === "Vocabulary")
+        .map((s: any) => `${s.title ?? ""} ${s.content ?? ""} ${s.teacher_script ?? ""} ${JSON.stringify(s.interactive_data ?? {})}`)
+        .join(" ")
+        .toLowerCase();
+      const missing: string[] = blueprint.target_vocabulary
+        .map((v: any) => (typeof v?.word === "string" ? v.word.trim() : ""))
+        .filter((w: string) => w && !phase1Text.includes(w.toLowerCase()));
+      if (missing.length > 0) {
+        console.warn("Blueprint vocabulary coverage gap:", missing);
+        return new Response(
+          JSON.stringify({
+            error: `Generated lesson skipped these target words in Phase 1: ${missing.join(", ")}. Please regenerate.`,
+            missing,
+          }),
+          { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
     }
 
     return new Response(JSON.stringify({ slides, homework_missions }), {
