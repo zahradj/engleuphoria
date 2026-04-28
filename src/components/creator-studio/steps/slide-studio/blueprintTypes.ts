@@ -48,6 +48,15 @@ export const FRAMEWORK_BLURBS: Record<PedagogicalFramework, string> = {
     'Best for young learners and beginners. Visual vocabulary first, then story, comprehension and guided production.',
 };
 
+export interface BlueprintVideoStrategy {
+  /** Highly specific YouTube search query the AI wants to embed. */
+  youtube_query: string;
+  /** Phase (must be one of `phases[]`) where the video slide must be inserted. */
+  target_phase: LessonPhase;
+  /** Optional rationale shown in the BlueprintReview UI. */
+  rationale?: string;
+}
+
 export interface LessonBlueprint {
   lesson_title: string;
   target_vocabulary: BlueprintVocabItem[];
@@ -63,6 +72,8 @@ export interface LessonBlueprint {
   framework_rationale?: string;
   /** Ordered phase sequence the slide generator MUST follow. */
   phases?: LessonPhase[];
+  /** AI-curated YouTube clip plan (query + which phase to insert it in). */
+  video_strategy?: BlueprintVideoStrategy;
 }
 
 export const isBlueprintReady = (b: LessonBlueprint | null): b is LessonBlueprint => {
