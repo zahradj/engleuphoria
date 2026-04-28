@@ -57,7 +57,7 @@ function AccuracyRing({ percentage, color, size = 100 }: { percentage: number; c
 }
 
 export default function LessonRewardPage({
-  hub, xpEarned, correctCount, totalQuestions, timeSpentSeconds, onExit,
+  hub, xpEarned, correctCount, totalQuestions, timeSpentSeconds, onClaim, onExit,
 }: LessonRewardPageProps) {
   const config = HUB_CONFIGS[hub];
   const animatedXp = useCountUp(xpEarned, 1500, 500);
@@ -65,6 +65,29 @@ export default function LessonRewardPage({
   const animatedAccuracy = useCountUp(accuracy, 1200, 800);
   const minutes = Math.floor(timeSpentSeconds / 60);
   const seconds = timeSpentSeconds % 60;
+
+  const [claimState, setClaimState] = useState<'idle' | 'saving' | 'claimed'>('idle');
+  const [showConfetti, setShowConfetti] = useState(true);
+
+  const handleClaim = async () => {
+    if (claimState === 'saving') return;
+    if (claimState === 'claimed') {
+      onExit();
+      return;
+    }
+    setClaimState('saving');
+    try {
+      await onClaim?.();
+      setClaimState('claimed');
+      setShowConfetti(false);
+      // Re-trigger a quick burst on successful claim
+      requestAnimationFrame(() => setShowConfetti(true));
+      toast.success('Rewards claimed! Progress saved 🎉');
+    } catch (err: any) {
+      setClaimState('idle');
+      toast.error(err?.message || 'Could not save progress. Please try again.');
+    }
+  };
 
   const hubStyles = {
     playground: {
