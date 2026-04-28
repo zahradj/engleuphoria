@@ -77,7 +77,75 @@ export const BlueprintReview: React.FC<BlueprintReviewProps> = ({
           </Button>
         </div>
 
-        {/* Lesson title */}
+        {/* Pedagogical Framework — AI choice + manual override */}
+        {blueprint.pedagogical_framework && (
+          <Card
+            title="Pedagogical Framework"
+            icon={<Brain className="h-4 w-4" />}
+            subtitle="Drives the slide order. The AI picked this for your topic — override if you prefer."
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="text-xs uppercase tracking-wider text-violet-600 dark:text-violet-400 font-bold">
+                  AI selected
+                </div>
+                <div className="text-base font-extrabold text-slate-900 dark:text-slate-50 mt-0.5">
+                  {FRAMEWORK_LABELS[blueprint.pedagogical_framework]}
+                </div>
+                {blueprint.framework_rationale && (
+                  <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-400 italic">
+                    “{blueprint.framework_rationale}”
+                  </p>
+                )}
+                <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
+                  {FRAMEWORK_BLURBS[blueprint.pedagogical_framework]}
+                </p>
+              </div>
+              <div className="shrink-0 w-44">
+                <Select
+                  value={blueprint.pedagogical_framework}
+                  onValueChange={(v) => {
+                    const fw = v as PedagogicalFramework;
+                    onChange({
+                      ...blueprint,
+                      pedagogical_framework: fw,
+                      phases: FRAMEWORK_DEFAULTS[fw],
+                    });
+                  }}
+                >
+                  <SelectTrigger className="h-10">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(FRAMEWORK_LABELS) as PedagogicalFramework[]).map((fw) => (
+                      <SelectItem key={fw} value={fw}>
+                        {FRAMEWORK_LABELS[fw]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {blueprint.phases && blueprint.phases.length > 0 && (
+              <div className="mt-4 flex flex-wrap items-center gap-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Slide order:
+                </span>
+                {blueprint.phases.map((p, i) => (
+                  <React.Fragment key={`${p}-${i}`}>
+                    <span className="px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-[10px] font-bold">
+                      {i + 1}. {p}
+                    </span>
+                    {i < blueprint.phases!.length - 1 && (
+                      <span className="text-slate-300 dark:text-slate-700">→</span>
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+            )}
+          </Card>
+        )}
+
         <Card title="Lesson title" icon={<BookOpen className="h-4 w-4" />}>
           <Input
             value={blueprint.lesson_title}
