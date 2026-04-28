@@ -498,6 +498,25 @@ Return ONLY the JSON object.`;
       }
     }
 
+    // ─── Self-heal video_strategy: ensure ONE slide carries the blueprint's youtube_query ───
+    if (blueprint?.video_strategy?.youtube_query && blueprint?.video_strategy?.target_phase) {
+      const targetPhase = blueprint.video_strategy.target_phase;
+      const alreadyHas = slides.some((s: any) => s.requires_video && s.youtube_query);
+      if (!alreadyHas) {
+        const idx = slides.findIndex((s: any) => s.lesson_phase === targetPhase);
+        const finalIdx = idx >= 0 ? idx : 0;
+        slides[finalIdx].requires_video = true;
+        slides[finalIdx].youtube_query = blueprint.video_strategy.youtube_query;
+        if (!/(watch|listen|notice)/i.test(slides[finalIdx].content || "")) {
+          slides[finalIdx].content =
+            `${slides[finalIdx].content || ""}\n\n👀 Watch the video. ${
+              blueprint.video_strategy.rationale || "What new word do you hear?"
+            }`.trim();
+        }
+        console.log(`[video] Healed slide ${finalIdx + 1} with youtube_query="${blueprint.video_strategy.youtube_query}"`);
+      }
+    }
+
     // ─── Homework missions: parse stringified payload + validate per-type shape ───
     const rawMissions: any[] = (aiResult as any).homework_missions ?? [];
     const homework_missions = rawMissions
