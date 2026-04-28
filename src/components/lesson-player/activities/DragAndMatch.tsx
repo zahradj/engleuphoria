@@ -83,11 +83,19 @@ export default function DragAndMatch({ slide, hub = 'academy', onCorrect, onInco
     if (allMatched && !firedRef.current) {
       firedRef.current = true;
       onStarsAwarded?.(tracker.stars);
+      // SRS: report mastery progress for every paired word.
+      const items = pairs.map((p) => p.left_item).filter(Boolean);
+      reportSrsForCurrentUser({
+        hub,
+        items,
+        stars: Math.max(1, Math.min(3, tracker.stars)) as 1 | 2 | 3,
+        item_type: 'vocabulary',
+      }).catch(() => {});
       // Slight delay so the user sees the final snap animation before the parent advances.
       const t = setTimeout(() => onCorrect(), 600);
       return () => clearTimeout(t);
     }
-  }, [allMatched, onCorrect, onStarsAwarded, tracker.stars]);
+  }, [allMatched, onCorrect, onStarsAwarded, tracker.stars, pairs, hub]);
 
   const tryMatch = (leftItem: string, rightItem: string) => {
     if (matched[leftItem]) return;
