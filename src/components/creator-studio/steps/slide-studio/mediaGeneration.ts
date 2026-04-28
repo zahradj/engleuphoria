@@ -32,7 +32,8 @@ export const generateSlideImage = (
   prompt: string,
   lessonId: string,
   slideId: string,
-) => invokeJson('generate-slide-image', { prompt, lessonId, slideId });
+  hub?: string,
+) => invokeJson('generate-slide-image', { prompt, lessonId, slideId, hub });
 
 export const generateSlideVoiceover = (
   text: string,
