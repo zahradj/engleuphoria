@@ -102,36 +102,51 @@ const SlideStudioInner: React.FC = () => {
               </span>
               <Button
                 onClick={async () => {
-                  if (!activeSlide || autoGenerating) return;
+                  if (autoGenerating || !slides.length) return;
                   const lessonId = activeLessonData.lesson_id ?? activeLessonData.source_lesson?.id ?? 'draft';
-                  const imagePrompt = (activeSlide.image_generation_prompt || activeSlide.visual_keyword || activeSlide.title || '').trim();
-                  const voiceText = (activeSlide.elevenlabs_script || activeSlide.content || activeSlide.title || '').trim();
-                  if (!imagePrompt && !voiceText) {
-                    toast.error('Add an image prompt or voiceover script first.');
-                    return;
-                  }
+                  const hub = activeLessonData.hub ?? 'Academy';
                   setAutoGenerating(true);
-                  toast.message('✨ Auto-generating media…', { description: 'Image + voiceover in parallel.' });
-                  const tasks: Promise<unknown>[] = [];
-                  if (imagePrompt) {
-                    tasks.push(
-                      generateSlideImage(imagePrompt, lessonId, activeSlide.id)
-                        .then(({ url }) => updateSlide(activeSlide.id, { custom_image_url: url, custom_video_url: undefined }))
-                        .catch((e) => toast.error(`Image: ${(e as Error).message}`)),
-                    );
+                  toast.message('🎨 AI Art Director is composing the deck…', {
+                    description: `Generating images & fetching videos for ${slides.length} slides.`,
+                  });
+                  try {
+                    const { results, summary } = await generateAllMedia(lessonId, hub, slides, false);
+                    // Apply each per-slide patch.
+                    for (const r of results) {
+                      if (r.error || r.skipped) continue;
+                      const patch: Record<string, unknown> = {};
+                      if (r.custom_image_url) {
+                        patch.custom_image_url = r.custom_image_url;
+                        patch.custom_video_url = undefined;
+                        patch.youtube_video_id = undefined;
+                      }
+                      if (r.youtube_video_id) {
+                        patch.youtube_video_id = r.youtube_video_id;
+                        patch.youtube_embed_url = r.youtube_embed_url;
+                        patch.youtube_title = r.youtube_title;
+                        patch.youtube_thumbnail = r.youtube_thumbnail;
+                        patch.custom_image_url = undefined;
+                        patch.custom_video_url = undefined;
+                      }
+                      if (Object.keys(patch).length) updateSlide(r.slideId, patch);
+                    }
+                    if (summary.errors > 0) {
+                      toast.warning(
+                        `Done with ${summary.errors} issue${summary.errors === 1 ? '' : 's'}`,
+                        { description: `🖼️ ${summary.images} images · 🎬 ${summary.videos} videos · ⏭️ ${summary.skipped} skipped.` },
+                      );
+                    } else {
+                      toast.success('Deck media ready ✨', {
+                        description: `🖼️ ${summary.images} images · 🎬 ${summary.videos} videos · ⏭️ ${summary.skipped} skipped.`,
+                      });
+                    }
+                  } catch (e) {
+                    toast.error(`Auto-generate failed: ${(e as Error).message}`);
+                  } finally {
+                    setAutoGenerating(false);
                   }
-                  if (voiceText) {
-                    tasks.push(
-                      generateSlideVoiceover(voiceText, lessonId, activeSlide.id)
-                        .then(({ url }) => updateSlide(activeSlide.id, { audio_url: url }))
-                        .catch((e) => toast.error(`Voice: ${(e as Error).message}`)),
-                    );
-                  }
-                  await Promise.all(tasks);
-                  setAutoGenerating(false);
-                  toast.success('All media ready ✨');
                 }}
-                disabled={autoGenerating || !activeSlide}
+                disabled={autoGenerating || !slides.length}
                 className="bg-gradient-to-r from-violet-600 via-fuchsia-500 to-amber-400 text-white font-extrabold shadow-lg shadow-fuchsia-500/30 hover:shadow-fuchsia-500/50 transition-shadow border-0"
               >
                 {autoGenerating
