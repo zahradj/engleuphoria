@@ -188,8 +188,8 @@ export const EmptyState: React.FC = () => {
           objective: activeLessonData.target_goal,
           skill_focus: activeLessonData.source_lesson?.skill_focus ?? 'Vocabulary',
           cefr_level: activeLessonData.cefr_level,
-          hub: activeLessonData.hub,
-          target_hub: blueprint.target_hub ?? activeLessonData.hub,
+          hub: currentHub,
+          target_hub: blueprint.target_hub ?? targetHub,
           blueprint, // ← Blueprint-First payload (incl. phases + framework)
         },
       });
