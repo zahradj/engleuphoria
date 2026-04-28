@@ -190,21 +190,24 @@ tagged with lesson_phase. The Phase-2 reading passage MUST reuse Phase-1 vocabul
         name: "emit_director_lesson",
         description:
           "Return a 20–25 slide 1-hour PPP lesson with target_skills + requires_audio per slide, plus 3–5 gamified homework missions.",
+        // NOTE: Gemini's structured-output validator rejects schemas with too many
+        // "states" (combinatorial enum × array-bound complexity). We intentionally keep
+        // this schema FLAT — plain strings (no enums) and no min/max on arrays. The
+        // allowed values + counts are enforced via the system prompt and validated
+        // server-side after parsing.
         parameters: {
           type: "object",
           properties: {
             slides: {
               type: "array",
-              minItems: 20,
-              maxItems: 25,
               items: {
                 type: "object",
                 properties: {
-                  phase: { type: "string", enum: [...PHASES] },
-                  lesson_phase: { type: "string", enum: [...LESSON_PHASES] },
-                  slide_type: { type: "string", enum: [...SLIDE_TYPES] },
-                  media_type: { type: "string", enum: [...MEDIA_TYPES] },
-                  layout_style: { type: "string", enum: [...LAYOUTS] },
+                  phase: { type: "string" },
+                  lesson_phase: { type: "string" },
+                  slide_type: { type: "string" },
+                  media_type: { type: "string" },
+                  layout_style: { type: "string" },
                   title: { type: "string" },
                   content: { type: "string" },
                   teacher_script: { type: "string" },
@@ -216,8 +219,7 @@ tagged with lesson_phase. The Phase-2 reading passage MUST reuse Phase-1 vocabul
                   hint_text: { type: "string" },
                   target_skills: {
                     type: "array",
-                    minItems: 1,
-                    items: { type: "string", enum: [...SKILLS] },
+                    items: { type: "string" },
                   },
                   requires_audio: { type: "boolean" },
                 },
@@ -231,41 +233,26 @@ tagged with lesson_phase. The Phase-2 reading passage MUST reuse Phase-1 vocabul
                   "content",
                   "teacher_script",
                   "visual_keyword",
-                  "elevenlabs_script",
-                  "image_generation_prompt",
-                  "video_generation_prompt",
                   "interactive_data_json",
                   "target_skills",
                   "requires_audio",
                 ],
-                additionalProperties: false,
               },
             },
-            // 3–5 app-style mini-games for asynchronous homework. Sent to the AI as a
-            // JSON string per item to keep the schema flat and avoid Gemini's strict
-            // tool-schema validation issues with deeply-nested oneOf shapes.
-            // Each element parses to one of the shapes documented in RULE 6.
             homework_missions: {
               type: "array",
-              minItems: 3,
-              maxItems: 5,
               items: {
                 type: "object",
                 properties: {
-                  mission_type: { type: "string", enum: [...MISSION_TYPES] },
+                  mission_type: { type: "string" },
                   prompt: { type: "string" },
-                  // payload_json holds the type-specific fields (pairs / options /
-                  // correct_answer / target_word / scrambled) as a stringified JSON
-                  // object. We parse + validate it server-side below.
                   payload_json: { type: "string" },
                 },
                 required: ["mission_type", "prompt", "payload_json"],
-                additionalProperties: false,
               },
             },
           },
           required: ["slides", "homework_missions"],
-          additionalProperties: false,
         },
       },
     };
