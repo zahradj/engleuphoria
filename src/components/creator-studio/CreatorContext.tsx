@@ -156,6 +156,15 @@ export interface PPPSlide {
   hint_text?: string;
   /** When true, force the hero image even on full-screen game slide types. */
   force_hero_image?: boolean;
+  /** AI-Director: this slide should embed a real-world YouTube video (verbs / cultural moments). */
+  requires_video?: boolean;
+  /** Search query the YouTube fetcher will use when `requires_video` is true. */
+  youtube_query?: string;
+  /** Cached YouTube videoId after fetch. */
+  youtube_video_id?: string;
+  youtube_embed_url?: string;
+  youtube_title?: string;
+  youtube_thumbnail?: string;
   // legacy / optional
   teacher_instructions?: string;
   interactive_options?: string[];
