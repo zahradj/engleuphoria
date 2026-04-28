@@ -1,116 +1,83 @@
-## Goal
+# Blueprint-First Generation Architecture
 
-The AI now emits `drag_and_match` and `fill_in_the_gaps` slides, and the **student lesson player** already renders them (via `DynamicSlideRenderer`). But three problems remain:
+Replace the current single-shot generation in the Slide Studio's `EmptyState` with a 2-step flow: **Plan → Review → Build**. The teacher always sees and edits the lesson plan before any of the 20+ slides are produced.
 
-1. **Creator Studio editor is blind to the new types** — `SlideType` enum, `TYPE_OPTIONS`, `SlideCanvas` switch and `TeacherControlsPanel` editor list don't include them, so the right sidebar shows blank "Slide Type"/"Layout" and the canvas falls through to a plain text/image preview.
-2. **A giant hero image is forced on every slide**, squishing interactive games on tablets.
-3. **No per-item thumbnails** — drag/match cards can't show small icons next to words.
+## 1. New edge function: `generate-blueprint`
 
-This plan fixes all three in one pass.
+Path: `supabase/functions/generate-blueprint/index.ts`. Public CORS, no JWT required (matches `generate-ppp-slides`).
 
----
-
-## 1. Teach the Studio about the new slide types
-
-**`src/components/creator-studio/CreatorContext.tsx`**
-- Extend `SlideType` union with `'drag_and_match' | 'fill_in_the_gaps'`.
-- Add interfaces:
-  - `DragAndMatchPair { left_item: string; left_thumbnail_keyword?: string; left_thumbnail_url?: string; right_item: string; right_thumbnail_keyword?: string; right_thumbnail_url?: string; }`
-  - `DragAndMatchData { instruction: string; pairs: DragAndMatchPair[]; }`
-  - `FillInTheGapsData { instruction: string; sentence_parts: [string, string]; missing_word: string; distractors: string[]; }`
-- Add to `InteractiveData` union.
-
-**`src/components/creator-studio/steps/slide-studio/TeacherControlsPanel.tsx`**
-- Add `DEFAULT_DRAG_MATCH` (3 pairs of empty strings) and `DEFAULT_FILL_GAPS`.
-- Add to `TYPE_OPTIONS`:
-  - `{ value: 'drag_and_match', label: 'Drag & Match Game', Icon: Layers }`
-  - `{ value: 'fill_in_the_gaps', label: 'Fill in the Gaps', Icon: Type }`
-- Extend `handleTypeChange` with branches that seed the new defaults.
-- Build two new editor sub-components:
-  - `DragAndMatchEditor` — instruction textarea + 3 rows of `(left_item, left_thumbnail_keyword, right_item, right_thumbnail_keyword)` inputs, plus add/remove pair (cap 3). Show small thumbnail circles when a `*_thumbnail_url` is already present.
-  - `FillInTheGapsEditor` — instruction textarea + sentence_parts[0]/[1] inputs + missing_word input + distractors list (2–3 items).
-- Wire into the type-aware editor switch (line ~292).
-- **Robustness**: `<Select value={...}>` already shows the raw string when not in the list, but to also render a label gracefully, fall back to `slide.slide_type ?? 'text_image'` and let the unknown string render as the SelectValue text.
-
-**`src/components/creator-studio/steps/slide-studio/SlideCanvas.tsx`**
-- Add cases to `InteractiveBlock` switch (line 322):
-  - `'drag_and_match'` → new `DragMatchPreview` component (read-only canvas preview rendering the two columns of pills with thumbnails).
-  - `'fill_in_the_gaps'` → new `FillGapsPreview` component (sentence with `___` and pill row).
-- Both preview components reuse the existing bouncy-pill styling for consistency with student view.
-- In Teacher View (`mode === 'teacher'`), highlight the correct `right_item` / `missing_word` with a green ring (matches MCQ pattern).
-
----
-
-## 2. Conditional layout — drop the hero image for full-screen games
-
-**`SlideCanvas.tsx` — `SlideMedia` component (line 35)**
-- Treat `slide_type ∈ {'drag_and_match','fill_in_the_gaps','drag_and_drop','drawing_canvas'}` as **game types**.
-- For game types, render `<SafeSlideImage>` ONLY if `slide.custom_image_url` is explicitly set (teacher override). Otherwise return `null` — no hero image, the game expands to fill the card.
-- Update the hint text in the type-aware editor to say "Image hidden for this layout — toggle override in Visuals tab to force one."
-
-**`TeacherControlsPanel.tsx` — Visuals tab**
-- Add a small `Switch` labeled "Show hero image for this game" (default off for game types). Wired to a new `slide.force_hero_image?: boolean` flag (added to `PPPSlide`).
-- When the slide is a game type AND `force_hero_image` is false AND `custom_image_url` is empty, show a muted message: "🎮 Full-screen game mode — no hero image."
-
-**Lesson player** (`DragAndMatch.tsx`, `FillInTheGaps.tsx`)
-- Already render in their own container; bump tap-target sizing for tablet:
-  - DragAndMatch buttons: `text-lg` → `text-xl md:text-2xl`, `py-4` → `py-5 md:py-6`, `min-h-[64px]`.
-  - FillInTheGaps pills: `text-xl` → `text-2xl md:text-3xl`, `min-h-[64px]`, drop zone `min-w-[180px] min-h-[72px]`.
-- Wrap the whole game in `w-full h-full` flex container so it fills the slide card when no hero image is present.
-
----
-
-## 3. Item-level thumbnails for `drag_and_match`
-
-**Edge function `supabase/functions/generate-ppp-slides/index.ts`**
-- The schema currently flattens `interactive_data` to `interactive_data_json` (string). Keep that — no schema change needed, the AI is free to include `left_thumbnail_keyword` / `right_thumbnail_keyword` inside the JSON.
-- Update RULE 4 doc string for `drag_and_match`:
+- **Input** (JSON body):
+  - `topic` (string, required)
+  - `target_audience` (string, required) — e.g. `"A2 Adult Professional"`
+  - Optional context passthrough: `cefr_level`, `hub`, `skill_focus` (used to flavor the prompt)
+- **Model**: `google/gemini-3-flash-preview` via Lovable AI Gateway, using **tool-calling** for structured output (avoids the JSON-schema complexity issue we hit before).
+- **Tool schema** → enforced response shape:
+  ```json
+  {
+    "lesson_title": "string",
+    "target_vocabulary": [
+      { "word": "string", "definition": "string", "example": "string" }
+    ],            // 5–8 items
+    "target_grammar_rule": "string",          // one focused rule, e.g. "Past Simple regular verbs"
+    "grammar_explanation": "string",          // 1–2 sentence teacher-facing rationale
+    "reading_passage_summary": "string",      // 2–4 sentences describing the Phase-2 text
+    "final_speaking_mission": "string"        // the Phase-5 production task
+  }
   ```
-  drag_and_match → {
-    "instruction": string,
-    "pairs": [{
-      "left_item": string,
-      "left_thumbnail_keyword": string | null,   // optional 1-3 word icon prompt
-      "right_item": string,
-      "right_thumbnail_keyword": string | null
-    }]
-  }  // EXACTLY 3 pairs.
-  ```
-- Add a one-line system rule: *"For drag_and_match where one column is a word and the other is a picture/icon target, fill the matching column's `*_thumbnail_keyword` with a simple 1–3 word icon prompt (e.g. 'red apple icon'). Leave both null for word-to-word matches."*
+- **Errors**: surface `429` and `402` from the gateway with friendly messages; everything else returns `{ error }` with a 500.
 
-**Auto-generate media flow**
-- Locate the existing batch image generator (`batch-generate-lesson-images`). After running per-slide image generation, walk `slide.interactive_data.pairs` and for any pair with `left_thumbnail_keyword`/`right_thumbnail_keyword` but no `*_thumbnail_url`, call `ai-image-generation` (Gemini nano-banana) with that keyword, upload to the existing `lesson-slides` bucket, and write the public URL back to the pair.
-- Implementation lives in a small helper inside `batch-generate-lesson-images/index.ts` so it runs in the same orchestration step the user already triggers.
+## 2. Blueprint Review UI
 
-**Renderer `DragAndMatch.tsx`**
-- For each pair, if `left_thumbnail_url` is present, render a `<img class="w-16 h-16 object-cover rounded-md mb-2 mx-auto">` above the `left_item` text inside the pill. Same for right column.
-- Pills auto-grow vertically when a thumbnail is present.
+New component: `src/components/creator-studio/steps/slide-studio/BlueprintReview.tsx`.
 
-**Editor (`DragAndMatchEditor`)**
-- Show each row's thumbnail as a small avatar circle. Clicking it opens a tiny inline menu: "Generate from keyword" (calls `generateSlideImage` with the keyword and writes back `*_thumbnail_url`) or "Upload" (reuses `uploadSlideAsset`).
+Mounted from `EmptyState.tsx` — replaces today's "✨ Auto-Generate PPP Slides" single button with the new 2-step flow:
 
----
+```text
+EmptyState
+  ├─ Step A:  topic input → [Draft Lesson Blueprint]   (calls generate-blueprint)
+  └─ Step B:  <BlueprintReview/> editable card
+              ├─ Vocabulary chips     (add / edit / delete, 3–10 enforced)
+              ├─ Grammar rule         (single-line input + multi-line rationale)
+              ├─ Reading summary      (textarea)
+              ├─ Final mission        (textarea)
+              ├─ [Regenerate Blueprint]   (re-call generate-blueprint)
+              └─ [Approve & Generate 1-Hour Lesson]   (primary CTA)
+```
 
-## 4. Fallback safety in the renderer
+Behavior:
+- The blueprint draft is held in local component state (no DB round-trip yet) so edits feel instant.
+- The "Approve" button is disabled until vocabulary has ≥3 words and grammar rule + reading summary are non-empty.
+- On Approve, call `generate-ppp-slides` with the existing payload **plus** a new `blueprint` field, then run today's persist + toast logic unchanged.
 
-`DragAndMatch.tsx` and `FillInTheGaps.tsx` already show "No matching pairs available" / "Missing word data unavailable" when data is malformed. Upgrade these messages in the editor canvas preview only to read:
-> ⚠️ Interactive data missing. Click "Regenerate slide" or fill the fields in the right panel.
+## 3. Upgrade `generate-ppp-slides`
 
----
+Add an optional `blueprint` field to the request body. When present, the system prompt is augmented with:
 
-## Files touched
+```text
+APPROVED BLUEPRINT — TREAT AS GROUND TRUTH:
+- TARGET LEXICON (Phase 1 must teach exactly these words, in this order): [...]
+- TARGET GRAMMAR RULE (Phase 4 must explicitly teach this and only this): "..."
+- READING DIRECTION (Phase 2 passage must follow this summary): "..."
+- FINAL MISSION (Phase 5/6 production must end with this task): "..."
+You MUST NOT invent additional vocabulary words or substitute the grammar rule.
+```
 
-- `src/components/creator-studio/CreatorContext.tsx` — extend `SlideType`, add new data interfaces, add `force_hero_image` field.
-- `src/components/creator-studio/steps/slide-studio/TeacherControlsPanel.tsx` — new editors, type options, hero-image toggle.
-- `src/components/creator-studio/steps/slide-studio/SlideCanvas.tsx` — `InteractiveBlock` cases, conditional `SlideMedia`, two new preview components.
-- `src/components/lesson-player/activities/DragAndMatch.tsx` — larger tap targets, thumbnail rendering.
-- `src/components/lesson-player/activities/FillInTheGaps.tsx` — larger tap targets, full-width layout.
-- `supabase/functions/generate-ppp-slides/index.ts` — RULE 4 doc update for thumbnails (no schema change).
-- `supabase/functions/batch-generate-lesson-images/index.ts` — generate per-pair thumbnails when keywords exist.
+Validation safeguard: after the model responds, verify that every `blueprint.target_vocabulary[*].word` appears in at least one Phase 1 slide; if not, return a 422 so the UI can prompt the teacher to retry. Lesson title falls back to `blueprint.lesson_title` when not provided by the caller.
 
-No DB migration needed — `interactive_data` is already a `jsonb` column.
+When `blueprint` is omitted, behavior is unchanged (full backward compatibility for the bulk generators in `useBulkLessonGenerator`, `useMultiUnitBulkGenerator`, etc.).
 
-## Out of scope
+## Technical details
 
-- Replacing HTML5 DnD with `dnd-kit` (current implementation is touch-friendly via tap-to-match; can revisit if testing shows issues).
-- Adding thumbnails to `fill_in_the_gaps` (the game shape doesn't pedagogically need them — pills are short single words).
+- **Files created**
+  - `supabase/functions/generate-blueprint/index.ts`
+  - `src/components/creator-studio/steps/slide-studio/BlueprintReview.tsx`
+  - `src/components/creator-studio/steps/slide-studio/blueprintTypes.ts` (shared `LessonBlueprint` type used by EmptyState + BlueprintReview)
+- **Files edited**
+  - `src/components/creator-studio/steps/slide-studio/EmptyState.tsx` — split into "draft blueprint" and "approved → generate" phases; pass `blueprint` to the existing `generate-ppp-slides` invoke call.
+  - `supabase/functions/generate-ppp-slides/index.ts` — accept `blueprint`, inject the ground-truth section into the system prompt, post-validate vocabulary coverage.
+- **AI Gateway**: both functions use the existing `LOVABLE_API_KEY` secret. No new secrets required.
+- **Error UX**: same parsing pattern already in `EmptyState` (read `ctx.body` → JSON → toast) is reused for both calls; 429/402 mapped to friendly toasts.
+- **No DB migration**: the blueprint lives only in component state until the user approves; the final lesson is persisted via the existing `persistLesson` flow.
+- **No breaking changes** to bulk generators — they keep calling `generate-ppp-slides` without a `blueprint` and get today's behavior.
+
+After approval, please confirm and I'll implement.
