@@ -110,7 +110,7 @@ const SlideStudioInner: React.FC = () => {
                     description: `Generating images & fetching videos for ${slides.length} slides.`,
                   });
                   try {
-                    const { results, summary } = await generateAllMedia(lessonId, hub, slides, false);
+                    const { results, summary } = await generateAllMedia(lessonId, hub, slides as unknown as Array<Record<string, unknown>>, false);
                     // Apply each per-slide patch.
                     for (const r of results) {
                       if (r.error || r.skipped) continue;
