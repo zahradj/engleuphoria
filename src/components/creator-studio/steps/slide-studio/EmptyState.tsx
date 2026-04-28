@@ -72,7 +72,14 @@ export const EmptyState: React.FC = () => {
 
   if (!activeLessonData) return null;
 
-  const targetAudience = `${activeLessonData.cefr_level} ${activeLessonData.hub} learner`;
+  const currentHub: HubType = activeLessonData.hub;
+  const targetHub: TargetHub = HUB_TO_TARGET[currentHub] ?? 'Academy';
+  const targetAudience = `${activeLessonData.cefr_level} ${targetHub} learner`;
+
+  const setHub = (h: HubType) => {
+    setActiveLessonData({ ...activeLessonData, hub: h });
+    setDirty(true);
+  };
 
   const fetchSource = async () => {
     const url = sourceUrl.trim();
