@@ -456,6 +456,8 @@ Return ONLY the JSON object.`;
         video_generation_prompt: s.video_generation_prompt ?? "",
         target_skills,
         requires_audio,
+        requires_video: typeof s.requires_video === "boolean" ? s.requires_video : false,
+        youtube_query: typeof s.youtube_query === "string" ? s.youtube_query.trim() : "",
         hint_text: typeof s.hint_text === "string" ? s.hint_text : "",
         interactive_data: (() => {
           if (s.interactive_data && typeof s.interactive_data === "object") return s.interactive_data;
