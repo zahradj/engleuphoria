@@ -262,6 +262,17 @@ READING DIRECTION (Phase 2 passage MUST follow this summary — same genre, scen
 
 FINAL MISSION (Phase 5/6 production MUST end with this exact task):
   ${blueprint.final_speaking_mission ?? ""}
+${
+  blueprint.video_strategy && blueprint.video_strategy.youtube_query
+    ? `
+VIDEO STRATEGY (mandatory — you MUST insert ONE slide implementing this):
+  • youtube_query : "${blueprint.video_strategy.youtube_query}"
+  • target_phase  : "${blueprint.video_strategy.target_phase}"
+  ${blueprint.video_strategy.rationale ? `• rationale : ${blueprint.video_strategy.rationale}` : ""}
+On EXACTLY ONE slide whose lesson_phase = "${blueprint.video_strategy.target_phase}", set
+requires_video = true and youtube_query verbatim. Add an active-listening question into "content".`
+    : ""
+}
 `;
     }
 
@@ -309,7 +320,9 @@ Each slide object MUST have these keys:
   "interactive_data": object,  // shape per RULE 6 (NOT stringified)
   "hint_text": string,         // required for interactive slides
   "target_skills": string[],   // ≥1 of Reading/Writing/Listening/Speaking/Grammar/Vocabulary
-  "requires_audio": boolean
+  "requires_audio": boolean,
+  "requires_video": boolean,   // true ONLY when a real YouTube clip teaches better than an image
+  "youtube_query": string      // empty string when requires_video is false
 
 Each homework mission object MUST have:
   "mission_type": "memory_match" | "listen_and_choose" | "word_scramble",
