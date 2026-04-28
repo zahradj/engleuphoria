@@ -9,6 +9,7 @@ import PipMascot from './PipMascot';
 import { soundEffectsService } from '@/services/soundEffectsService';
 import { triggerCelebration } from '@/services/celebration';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { X, Volume2, VolumeX, Zap, Star, ChevronLeft, ChevronRight, Focus } from 'lucide-react';
 import PhaseTracker from './PhaseTracker';
 
