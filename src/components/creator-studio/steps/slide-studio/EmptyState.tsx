@@ -266,6 +266,55 @@ export const EmptyState: React.FC = () => {
           disabled={draftingBlueprint}
         />
 
+        {/* Optional source URL — NotebookLM-style source-grounded mode */}
+        <div className="mt-4 text-left">
+          <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+            <Link2 className="h-3.5 w-3.5" />
+            Paste an Article / Source URL (optional)
+          </label>
+          <div className="mt-1.5 flex gap-2">
+            <Input
+              value={sourceUrl}
+              onChange={(e) => setSourceUrl(e.target.value)}
+              placeholder="https://example.com/article"
+              className="h-11 text-sm"
+              disabled={fetchingSource || draftingBlueprint}
+              type="url"
+            />
+            {sourceText ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={clearSource}
+                disabled={fetchingSource || draftingBlueprint}
+                className="h-11 px-3 shrink-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={fetchSource}
+                disabled={!sourceUrl.trim() || fetchingSource || draftingBlueprint}
+                className="h-11 px-3 shrink-0"
+              >
+                {fetchingSource ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Read'}
+              </Button>
+            )}
+          </div>
+          {fetchingSource && (
+            <p className="mt-1.5 text-xs text-slate-500 italic">Reading the internet…</p>
+          )}
+          {sourceText && !fetchingSource && (
+            <p className="mt-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+              ✓ Source loaded{sourceTitle ? ` — “${sourceTitle}”` : ''} ({sourceText.length.toLocaleString()} chars). The blueprint will be grounded on this text.
+            </p>
+          )}
+        </div>
+
         <Button
           size="lg"
           onClick={() => draftBlueprint()}
