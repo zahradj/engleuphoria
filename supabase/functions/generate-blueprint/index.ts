@@ -18,6 +18,8 @@ Deno.serve(async (req) => {
       cefr_level = "A2",
       hub = "academy",
       skill_focus = "Mixed Skills",
+      source_material = "",
+      source_url = "",
     } = body || {};
 
     if (!topic || typeof topic !== "string") {
