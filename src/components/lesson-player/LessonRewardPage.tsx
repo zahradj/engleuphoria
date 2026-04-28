@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 import { HubType } from '@/components/admin/lesson-builder/ai-wizard/types';
 import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConfig';
 import PipMascot from './PipMascot';
-import { Trophy, Clock, Target, ArrowRight, Zap, Star, Award } from 'lucide-react';
+import { ConfettiEffect } from '@/components/gamification/ConfettiEffect';
+import { Trophy, Clock, Target, ArrowRight, Zap, Star, Award, Loader2, Check } from 'lucide-react';
 
 interface LessonRewardPageProps {
   hub: HubType;
@@ -11,6 +13,7 @@ interface LessonRewardPageProps {
   correctCount: number;
   totalQuestions: number;
   timeSpentSeconds: number;
+  onClaim?: () => Promise<void> | void;
   onExit: () => void;
 }
 
