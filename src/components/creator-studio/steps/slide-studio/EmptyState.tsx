@@ -124,6 +124,7 @@ export const EmptyState: React.FC = () => {
           target_audience: targetAudience,
           cefr_level: activeLessonData.cefr_level,
           hub: activeLessonData.hub,
+          target_hub: activeLessonData.hub, // hub-aware routing
           skill_focus: activeLessonData.source_lesson?.skill_focus ?? 'Mixed Skills',
           source_material: material || '',
           source_url: sourceUrl.trim() || '',
