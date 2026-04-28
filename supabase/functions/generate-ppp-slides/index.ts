@@ -177,29 +177,34 @@ student's first wrong answer. Never spoil the answer outright — guide them. Ex
 tense gap: "Past tense often ends in -ed."
 
 ═══════════════════════════════════════════════════════
-RULE 7 — MULTIMODAL MEDIA PROMPTS
+RULE 7 — MULTIMODAL MEDIA PROMPTS (THE AI ART DIRECTOR)
 ═══════════════════════════════════════════════════════
-• "elevenlabs_script": Phonetic, kid-friendly TTS string under 120 chars.
-• "image_generation_prompt": Detailed text-to-image prompt; end with "Vibrant flat illustration, solid pastel background, UI asset, no text, kid-friendly."
-• "video_generation_prompt": 2–4s seamlessly looping motion; end with "seamless loop, solid pastel background, no text, no camera motion."
+For every slide that has a visual (vocab presentation, hero image, drag_and_match thumbnails,
+flashcards, etc.) you MUST emit a HIGHLY DESCRIPTIVE "image_generation_prompt" — never a generic
+prompt. Describe the SPECIFIC concept, character, action, environment, mood, and composition
+in 25+ words. Do NOT include the visual style — the platform appends a hub-specific style suffix
+automatically. Examples:
+  • Word "Bear" (Playground): "A friendly fluffy brown bear character sitting upright in a colourful
+    sun-dappled forest clearing, holding a small red apple, smiling, soft natural light, centred composition."
+  • Word "Negotiation" (Success): "Two professionals across a polished walnut table mid-conversation,
+    one taking notes, warm window light, modern glass office, eye-level shot, shallow depth."
+Other media fields:
+  • "elevenlabs_script": Phonetic, kid-friendly TTS string under 120 chars.
+  • "video_generation_prompt": 2–4s seamlessly looping motion; end with "seamless loop, solid pastel background, no text, no camera motion."
 
 ═══════════════════════════════════════════════════════
-RULE 8 — GAMIFIED HOMEWORK MISSIONS (MANDATORY)
+RULE 7B — AUTONOMOUS YOUTUBE CONTEXT ENGINE
 ═══════════════════════════════════════════════════════
-Generate EXACTLY 3 to 5 "homework_missions" that recycle the Phase-1 TARGET LEXICON.
-Each mission MUST be one of:
-• "memory_match"      → { mission_type, prompt, pairs: [{ term, match }] }   // 3–5 pairs
-• "listen_and_choose" → { mission_type, prompt, target_word, options: string[3..4], correct_answer }
-• "word_scramble"     → { mission_type, prompt, target_word, scrambled }
-Vary mission_type. correct_answer ∈ options. scrambled ≠ target_word.
-
-═══════════════════════════════════════════════════════
-GENERAL TONE
-═══════════════════════════════════════════════════════
-Supportive, professional, joyful. CEFR-aligned. No placeholders.
-"content" = short on-slide text (1–3 sentences max). For Reading slides, "content" carries the
-passage paragraph (with **bold** target words).
-"teacher_script" = 2–3 high-energy sentences for the teacher to read aloud.
+For EVERY slide also emit:
+  • "requires_video": boolean — true ONLY when a real YouTube clip would teach better than a still image
+    (typical: hook scenes, real-world dialogues, listening comprehension, cultural context).
+  • "youtube_query": string — when requires_video is true, write a HIGHLY SPECIFIC search query
+    (≤ 90 chars). Otherwise pass an empty string.
+Distribution rule: at most 2 slides in the entire deck may have requires_video = true. Default false.
+If the APPROVED BLUEPRINT below contains a video_strategy block, you MUST set requires_video = true
+on EXACTLY ONE slide whose lesson_phase matches video_strategy.target_phase, and copy
+video_strategy.youtube_query verbatim into that slide's youtube_query. Add a short text prompt
+for active listening into that slide's "content" (e.g. "Watch how she apologises. Which word does she use?").
 
 ${hubBlock}
 
