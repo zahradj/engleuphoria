@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Loader2, ArrowLeft } from 'lucide-react';
+import { Sparkles, Loader2, ArrowLeft, Link2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useCreator, PPPSlide } from '../../CreatorContext';
