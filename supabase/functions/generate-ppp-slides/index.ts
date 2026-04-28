@@ -42,9 +42,12 @@ Deno.serve(async (req) => {
       skill_focus = "Vocabulary",
       cefr_level = "A1",
       hub = "academy",
+      blueprint, // ← Approved Blueprint (optional). When present, treated as ground truth.
     } = body || {};
 
-    if (!lesson_title) {
+    // Allow the title to fall back to blueprint.lesson_title when caller omits it.
+    const effectiveTitle: string | undefined = lesson_title || blueprint?.lesson_title;
+    if (!effectiveTitle) {
       return new Response(JSON.stringify({ error: "lesson_title is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
