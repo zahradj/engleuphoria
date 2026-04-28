@@ -135,7 +135,7 @@ ${cefr_level} learners.
 If the source material violates the SAFETY rules above, REJECT it: return a blueprint whose
 lesson_title starts with "REJECTED:" and explain in framework_rationale why it failed safety.`
         : ""
-    }`;
+    }${srsBlock}`;
 
     const trimmedSource = String(source_material || "").slice(0, 10000);
 
