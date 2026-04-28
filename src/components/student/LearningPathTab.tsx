@@ -254,6 +254,9 @@ export const LearningPathTab = () => {
         </div>
       </div>
 
+      {/* Long-term memory widget — Spaced Repetition System */}
+      <MemoryBank />
+
       {/* Overall Progress */}
       <Card>
         <CardHeader>
