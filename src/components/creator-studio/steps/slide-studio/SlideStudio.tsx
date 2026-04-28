@@ -6,7 +6,7 @@ import { SlideCanvas } from './SlideCanvas';
 import { TeacherControlsPanel } from './TeacherControlsPanel';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Target, Sparkles, Loader2 } from 'lucide-react';
-import { generateSlideImage, generateSlideVoiceover } from './mediaGeneration';
+import { generateSlideImage, generateSlideVoiceover, generateAllMedia } from './mediaGeneration';
 import { toast } from 'sonner';
 import { SlideErrorBoundary } from '@/components/common/SlideErrorBoundary';
 import { useSlidePrefetch, type SlideAssets } from '@/hooks/useSlidePrefetch';
