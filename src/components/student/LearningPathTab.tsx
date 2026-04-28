@@ -23,6 +23,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProgress, useProgressStats } from '@/hooks/useProgress';
 import { LessonPlayer } from './LessonPlayer';
+import { MemoryBank } from './MemoryBank';
 import { CanvasLessonPlayer } from './CanvasLessonPlayer';
 import { ProgressOverview } from './ProgressOverview';
 
