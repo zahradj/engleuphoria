@@ -19,11 +19,24 @@ export async function persistLesson(
   const userId = userData.user?.id;
   if (!userId) return { ok: false, error: 'You must be signed in to save.' };
 
+  // Map CEFR (A1..C2) → allowed difficulty_level enum (beginner|intermediate|advanced).
+  const cefrToDifficulty = (cefr?: string | null): 'beginner' | 'intermediate' | 'advanced' => {
+    const v = String(cefr ?? '').trim().toUpperCase();
+    if (v === 'A1' || v === 'A2') return 'beginner';
+    if (v === 'B1' || v === 'B2') return 'intermediate';
+    if (v === 'C1' || v === 'C2') return 'advanced';
+    const lower = v.toLowerCase();
+    if (lower === 'beginner' || lower === 'intermediate' || lower === 'advanced') {
+      return lower as 'beginner' | 'intermediate' | 'advanced';
+    }
+    return 'beginner';
+  };
+
   const basePayload: Record<string, any> = {
     title: lesson.lesson_title,
     description: lesson.target_goal ?? null,
     target_system: lesson.hub,
-    difficulty_level: lesson.cefr_level,
+    difficulty_level: cefrToDifficulty(lesson.cefr_level),
     duration_minutes: 30,
     content: { slides, homework_missions: lesson.homework_missions ?? [] },
     ai_metadata: {
