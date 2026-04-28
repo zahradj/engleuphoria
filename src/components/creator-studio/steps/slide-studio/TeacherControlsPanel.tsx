@@ -550,7 +550,7 @@ const VisualsPanel: React.FC<Props> = ({ slide, onChange }) => {
     }
     try {
       setGenerating(true);
-      const { url } = await generateSlideImage(prompt, lessonId, slide.id);
+      const { url } = await generateSlideImage(prompt, lessonId, slide.id, activeLessonData?.hub);
       onChange({ custom_image_url: url, custom_video_url: undefined });
       toast.success('AI image generated and attached.');
     } catch (err) {
