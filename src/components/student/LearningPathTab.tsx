@@ -23,6 +23,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProgress, useProgressStats } from '@/hooks/useProgress';
 import { LessonPlayer } from './LessonPlayer';
+import { MemoryBank } from './MemoryBank';
 import { CanvasLessonPlayer } from './CanvasLessonPlayer';
 import { ProgressOverview } from './ProgressOverview';
 
@@ -252,6 +253,9 @@ export const LearningPathTab = () => {
           <div className="text-sm text-muted-foreground">Total Earned</div>
         </div>
       </div>
+
+      {/* Long-term memory widget — Spaced Repetition System */}
+      <MemoryBank />
 
       {/* Overall Progress */}
       <Card>

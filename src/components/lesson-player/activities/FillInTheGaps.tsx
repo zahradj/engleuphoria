@@ -7,6 +7,7 @@ import type { HubType } from '@/components/admin/lesson-builder/ai-wizard/types'
 import StarMeter from '../StarMeter';
 import HintBubble from '../HintBubble';
 import { useStarHintTracker } from '@/hooks/useStarHintTracker';
+import { reportSrsForCurrentUser } from '@/lib/srs';
 
 interface Props {
   slide: GeneratedSlide;
@@ -82,10 +83,19 @@ export default function FillInTheGaps({ slide, hub = 'academy', onCorrect, onInc
     if (isCorrect && !firedRef.current) {
       firedRef.current = true;
       onStarsAwarded?.(tracker.stars);
+      // SRS: report mastery progress for the missing word.
+      if (missingWord) {
+        reportSrsForCurrentUser({
+          hub,
+          items: [missingWord],
+          stars: Math.max(1, Math.min(3, tracker.stars)) as 1 | 2 | 3,
+          item_type: 'vocabulary',
+        }).catch(() => {});
+      }
       const t = setTimeout(() => onCorrect(), 700);
       return () => clearTimeout(t);
     }
-  }, [isCorrect, onCorrect, onStarsAwarded, tracker.stars]);
+  }, [isCorrect, onCorrect, onStarsAwarded, tracker.stars, missingWord, hub]);
 
   const tryWord = (word: string) => {
     if (filled && filled.toLowerCase() === missingWord.toLowerCase()) return;

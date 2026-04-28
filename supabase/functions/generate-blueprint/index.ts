@@ -36,6 +36,7 @@ Deno.serve(async (req) => {
       skill_focus = "Mixed Skills",
       source_material = "",
       source_url = "",
+      student_user_id = "", // ← NEW: enables SRS-aware blueprint generation
     } = body || {};
 
     if (!topic || typeof topic !== "string") {
@@ -56,6 +57,45 @@ Deno.serve(async (req) => {
 
     const resolvedHub = normalizeHub(target_hub ?? hub);
     const hubBlock = buildBlueprintHubBlock(resolvedHub, cefr_level);
+
+    // ── SRS: fetch up to 5 items the student must review (silent on failure) ──
+    let mandatoryReviewItems: Array<{ item_key: string; item_type: string; mastery_score: number }> = [];
+    if (student_user_id && typeof student_user_id === "string") {
+      try {
+        const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+        const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+        if (SUPABASE_URL && SERVICE_KEY) {
+          const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_due_review_items`, {
+            method: "POST",
+            headers: {
+              apikey: SERVICE_KEY,
+              Authorization: `Bearer ${SERVICE_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ p_user_id: student_user_id, p_hub: resolvedHub, p_limit: 5 }),
+          });
+          if (r.ok) {
+            const rows = await r.json();
+            if (Array.isArray(rows)) mandatoryReviewItems = rows;
+          } else {
+            console.warn("[SRS] get_due_review_items failed", r.status);
+          }
+        }
+      } catch (e) {
+        console.warn("[SRS] lookup error", e);
+      }
+    }
+
+    const srsBlock = mandatoryReviewItems.length
+      ? `\n\nMANDATORY REVIEW ITEMS (Spaced Repetition):
+The student previously struggled with these ${mandatoryReviewItems.length} items.
+You MUST seamlessly weave AT LEAST 3 of them into the new reading_passage_summary
+and re-introduce them in target_vocabulary if they are vocabulary type — even though
+today's topic is different. They must feel like natural parts of the story/context.
+
+${mandatoryReviewItems.map((i) => `• "${i.item_key}" (${i.item_type}, mastery ${i.mastery_score}/100)`).join("\n")}`
+      : "";
+
 
     const systemPrompt = `You are an EXPERT ESL CURRICULUM PLANNER for Engleuphoria.
 Your job is to draft a COHESIVE 1-hour lesson BLUEPRINT — the structured plan that a teacher
@@ -95,7 +135,7 @@ ${cefr_level} learners.
 If the source material violates the SAFETY rules above, REJECT it: return a blueprint whose
 lesson_title starts with "REJECTED:" and explain in framework_rationale why it failed safety.`
         : ""
-    }`;
+    }${srsBlock}`;
 
     const trimmedSource = String(source_material || "").slice(0, 10000);
 
