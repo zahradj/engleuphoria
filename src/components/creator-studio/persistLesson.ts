@@ -37,7 +37,6 @@ export async function persistLesson(
     description: lesson.target_goal ?? null,
     target_system: lesson.hub,
     difficulty_level: cefrToDifficulty(lesson.cefr_level),
-    cefr_level: lesson.cefr_level ?? null,
     duration_minutes: 30,
     content: { slides, homework_missions: lesson.homework_missions ?? [] },
     ai_metadata: {
