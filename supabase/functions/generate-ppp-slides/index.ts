@@ -384,9 +384,11 @@ Return ONLY the JSON object.`;
     const rawMissions: any[] = (aiResult as any).homework_missions ?? [];
     const homework_missions = rawMissions
       .map((m: any) => {
-        let payload: any = {};
+        // Prefer direct keys on the mission (new JSON-mode shape).
+        // Fall back to legacy payload_json string if the model returns it.
+        let payload: any = m ?? {};
         if (m?.payload_json && typeof m.payload_json === "string") {
-          try { payload = JSON.parse(m.payload_json); } catch { payload = {}; }
+          try { payload = { ...payload, ...JSON.parse(m.payload_json) }; } catch { /* keep payload */ }
         }
         const base = {
           id: crypto.randomUUID(),
