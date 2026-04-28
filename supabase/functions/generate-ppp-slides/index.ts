@@ -53,6 +53,7 @@ Deno.serve(async (req) => {
       skill_focus = "Vocabulary",
       cefr_level = "A1",
       hub = "academy",
+      target_hub, // ← preferred new field; falls back to `hub`
       blueprint, // ← Approved Blueprint (optional). When present, treated as ground truth.
     } = body || {};
 
@@ -67,6 +68,19 @@ Deno.serve(async (req) => {
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
+
+    const resolvedHub = normalizeHub(target_hub ?? blueprint?.target_hub ?? hub);
+    const hubBlock = buildSlideHubBlock(resolvedHub, cefr_level);
+
+    // Phase sequence — driven by the blueprint when present, else fall back to the
+    // legacy 6-step Integrated Skills order.
+    const blueprintPhases: LessonPhase[] = Array.isArray(blueprint?.phases)
+      ? blueprint!.phases.filter(isPhase)
+      : [];
+    const usingDynamicPhases = blueprintPhases.length >= 4;
+    const dynamicPhaseBlock = usingDynamicPhases
+      ? buildPhaseSequenceBlock(blueprintPhases, blueprint?.pedagogical_framework)
+      : "";
 
     const systemPrompt = `You are the EXPERT CURRICULUM DESIGNER for Engleuphoria — an elite ESL platform.
 You design ONE classroom-ready 1-HOUR (≈60 minute) deeply COHESIVE interactive lesson as a 20–25 slide deck.
