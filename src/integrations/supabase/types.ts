@@ -5234,6 +5234,60 @@ export type Database = {
           },
         ]
       }
+      mistake_repository: {
+        Row: {
+          attempted_content: string | null
+          attempts_count: number
+          context: string | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          mistake_type: string
+          resolved: boolean
+          resolved_at: string | null
+          severity: string
+          source_lesson_id: string | null
+          source_slide_id: string | null
+          target_content: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempted_content?: string | null
+          attempts_count?: number
+          context?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          mistake_type: string
+          resolved?: boolean
+          resolved_at?: string | null
+          severity?: string
+          source_lesson_id?: string | null
+          source_slide_id?: string | null
+          target_content: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempted_content?: string | null
+          attempts_count?: number
+          context?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          mistake_type?: string
+          resolved?: boolean
+          resolved_at?: string | null
+          severity?: string
+          source_lesson_id?: string | null
+          source_slide_id?: string | null
+          target_content?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ml_predictions: {
         Row: {
           confidence_score: number | null
@@ -6766,6 +6820,60 @@ export type Database = {
           session_type?: string
           student_id?: string
           xp_earned?: number
+        }
+        Relationships: []
+      }
+      speech_attempts: {
+        Row: {
+          accuracy_score: number | null
+          created_at: string
+          feedback: string | null
+          fluency_score: number | null
+          hub: string
+          id: string
+          lesson_id: string | null
+          overall_score: number
+          pronunciation_score: number | null
+          slide_id: string | null
+          target_sentence: string
+          tier: string
+          transcript: string | null
+          user_id: string
+          word_breakdown: Json | null
+        }
+        Insert: {
+          accuracy_score?: number | null
+          created_at?: string
+          feedback?: string | null
+          fluency_score?: number | null
+          hub?: string
+          id?: string
+          lesson_id?: string | null
+          overall_score: number
+          pronunciation_score?: number | null
+          slide_id?: string | null
+          target_sentence: string
+          tier: string
+          transcript?: string | null
+          user_id: string
+          word_breakdown?: Json | null
+        }
+        Update: {
+          accuracy_score?: number | null
+          created_at?: string
+          feedback?: string | null
+          fluency_score?: number | null
+          hub?: string
+          id?: string
+          lesson_id?: string | null
+          overall_score?: number
+          pronunciation_score?: number | null
+          slide_id?: string | null
+          target_sentence?: string
+          tier?: string
+          transcript?: string | null
+          user_id?: string
+          word_breakdown?: Json | null
         }
         Relationships: []
       }
