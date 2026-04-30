@@ -122,6 +122,8 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   const {
     currentSlide,
+    lessonSlides: syncedLessonSlides,
+    lessonTitle: syncedLessonTitle,
     studentCanDraw,
     isConnected,
     strokes,
@@ -344,7 +346,10 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   }, [updateSharedDisplay, updateCanvasTab, setStageMode]);
 
   const handlePrevSlide = useCallback(async () => { await updateSlide(Math.max(0, currentSlide - 1)); }, [currentSlide, updateSlide]);
-  const handleNextSlide = useCallback(async () => { await updateSlide(Math.min(slides.length - 1, currentSlide + 1)); }, [currentSlide, slides.length, updateSlide]);
+  const displayedSlides = syncedLessonSlides.length > 0 ? syncedLessonSlides : slides;
+  const activeLessonTitle = syncedLessonTitle || lessonTitle;
+
+  const handleNextSlide = useCallback(async () => { await updateSlide(Math.min(displayedSlides.length - 1, currentSlide + 1)); }, [currentSlide, displayedSlides.length, updateSlide]);
   const handleSlideSelect = useCallback(async (index: number) => { await updateSlide(index); }, [updateSlide]);
 
   const handleToolChange = useCallback(async (tool: string) => {
@@ -448,7 +453,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
       {!isZenMode && (
         <div style={topBarIdle.style} onMouseMove={topBarIdle.onMouseMove} onMouseEnter={topBarIdle.onMouseEnter}>
           <ClassroomTopBar
-            lessonTitle={lessonTitle}
+            lessonTitle={activeLessonTitle}
             roomName={roomName}
             participantCount={participantCount}
             isMuted={media.isMuted}
@@ -521,7 +526,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
         <div className="flex-1 relative min-h-0 overflow-hidden">
           <MainStage
             mode={stageMode}
-            slides={slides}
+            slides={displayedSlides}
             currentSlideIndex={currentSlide}
             embeddedUrl={embeddedUrl}
             drawingEnabled={drawingEnabled}
@@ -563,7 +568,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             activeColor={activeColor}
             onColorChange={setActiveColor}
             currentSlideIndex={currentSlide}
-            totalSlides={slides.length}
+            totalSlides={displayedSlides.length}
             onPrevSlide={handlePrevSlide}
             onNextSlide={handleNextSlide}
             onClearCanvas={handleClearCanvas}
@@ -662,12 +667,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
         onClose={() => setIsLibraryOpen(false)}
         onSelectLesson={async (selectedSlides, title) => {
           setIsLibraryOpen(false);
-          // Inject the lesson: update slides and switch to slide mode
-          const newSlides = selectedSlides.map((s, i) => ({
-            id: String(i + 1),
-            title: s.title || `Slide ${i + 1}`,
-          }));
-          // Override the current lesson by updating the slide index to 0
+          await updateSharedDisplay({ lessonSlides: selectedSlides, lessonTitle: title, embeddedUrl: null });
           await updateSlide(0);
           await setStageMode('slide');
           await updateCanvasTab('slides');
