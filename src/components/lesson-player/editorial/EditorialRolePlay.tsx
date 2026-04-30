@@ -137,6 +137,11 @@ export default function EditorialRolePlay({ slide, onCorrect }: EditorialRolePla
         </div>
       )}
 
+      {/* Waveform placeholder */}
+      <div className="w-full h-12 bg-slate-100 rounded-lg flex items-center justify-center text-xs text-slate-400">
+        Audio Intonation Waveform (Pending)
+      </div>
+
       {/* Voice Recorder */}
       <div className={`rounded-xl border-2 p-6 transition-all ${
         submitted
