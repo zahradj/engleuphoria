@@ -87,12 +87,6 @@ export const lessonService = {
       packagePurchaseId,
       availabilitySlotId
     );
-
-    console.log('✅ Lesson created with payment/credit handling:', {
-      lesson_id: result.lesson.id,
-      payment_processed: !!result.payment
-    });
-
     // Send teacher booking notification email (non-blocking)
     supabase.functions.invoke('notify-teacher-booking', {
       body: { record: result.lesson }

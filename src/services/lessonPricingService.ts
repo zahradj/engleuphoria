@@ -93,14 +93,6 @@ export const lessonPricingService = {
   ): Promise<{ lesson: any; payment?: LessonPayment }> {
     // Coerce to number to handle any type mismatches
     const durationNum = Number(duration);
-    
-    console.log('🔍 Duration validation:', { 
-      original: duration, 
-      type: typeof duration, 
-      coerced: durationNum,
-      typeAfter: typeof durationNum
-    });
-    
     // Validate duration (updated to 30/60 minutes)
     const allowedDurations = [30, 60];
     if (!allowedDurations.includes(durationNum)) {
@@ -233,13 +225,6 @@ export const lessonPricingService = {
           package_purchase_id: packagePurchaseId,
           lesson_id: lesson.id
         }]);
-
-      console.log('✅ Package credit deducted and lesson created:', {
-        lessonId: lesson.id,
-        duration: durationMinutes,
-        creditsRemaining: packageData.lessons_remaining - 1
-      });
-
       return { lesson };
     } else {
       // Individual lesson payment
@@ -328,13 +313,6 @@ export const lessonPricingService = {
         .single();
 
       if (paymentError) throw paymentError;
-
-      console.log('✅ Individual lesson payment processed:', {
-        lessonId: lesson.id,
-        duration: durationMinutes,
-        amount: pricing.studentPrice
-      });
-
       return { lesson, payment };
     }
   },

@@ -14,10 +14,6 @@ export const Analytics: React.FC = () => {
       const observer = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
           if (entry.entryType === 'navigation') {
-            console.log('Performance metrics:', {
-              loadTime: entry.duration,
-              type: entry.entryType
-            });
           }
         }
       });

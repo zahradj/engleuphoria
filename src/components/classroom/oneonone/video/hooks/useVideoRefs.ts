@@ -7,14 +7,6 @@ export function useVideoRefs(media: any, isTeacher: boolean) {
   const studentVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    console.log("🎥 useVideoRefs effect triggered:", {
-      hasStream: !!media.stream,
-      isConnected: media.isConnected,
-      isCameraOff: media.isCameraOff,
-      isTeacher,
-      streamActive: media.stream?.active
-    });
-
     // Clear streams if no media stream or not connected
     if (!media.stream || !media.isConnected) {
       if (teacherVideoRef.current) {

@@ -49,14 +49,6 @@ export function UnifiedClassroomProvider({ children }: { children: React.ReactNo
             name,
             role
           });
-          
-          console.log('🏫 Classroom user initialized from URL params:', {
-            id: userId,
-            name,
-            role,
-            roomId
-          });
-          
           setIsLoading(false);
           return;
         }
@@ -95,14 +87,6 @@ export function UnifiedClassroomProvider({ children }: { children: React.ReactNo
           setError('User authentication required to access classroom.');
           return;
         }
-
-        console.log('🏫 Classroom user initialized:', {
-          id: userId || user?.id || currentUser.id,
-          name: name || user?.user_metadata?.full_name || currentUser.name,
-          role: role,
-          roomId
-        });
-
       } catch (error) {
         console.error('Failed to initialize classroom user:', error);
         setError('Failed to initialize classroom. Please refresh and try again.');
