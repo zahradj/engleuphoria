@@ -655,6 +655,29 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Library Drawer for live lesson injection */}
+      <LibraryDrawer
+        open={isLibraryOpen}
+        onClose={() => setIsLibraryOpen(false)}
+        onSelectLesson={async (selectedSlides, title) => {
+          setIsLibraryOpen(false);
+          // Inject the lesson: update slides and switch to slide mode
+          const newSlides = selectedSlides.map((s, i) => ({
+            id: String(i + 1),
+            title: s.title || `Slide ${i + 1}`,
+          }));
+          // Override the current lesson by updating the slide index to 0
+          await updateSlide(0);
+          await setStageMode('slide');
+          await updateCanvasTab('slides');
+          toast({
+            title: "📚 Lesson Loaded!",
+            description: `"${title}" is now on screen.`,
+            className: "bg-indigo-900 border-indigo-700",
+          });
+        }}
+      />
     </div>
   );
 };
