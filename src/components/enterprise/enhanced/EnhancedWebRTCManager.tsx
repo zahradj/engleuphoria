@@ -289,6 +289,12 @@ export const useEnhancedWebRTC = (roomId: string, userId: string) => {
       localStream.getTracks().forEach(track => track.stop());
     }
 
+    // Remove Realtime signaling channel
+    if (signalingChannelRef.current) {
+      supabase.removeChannel(signalingChannelRef.current);
+      signalingChannelRef.current = null;
+    }
+
     setIsConnected(false);
     setLocalStream(null);
     setParticipants([]);
