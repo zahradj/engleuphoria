@@ -4,7 +4,7 @@ import { SoundButton } from '@/components/ui/sound-button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Layout, Globe, PenTool, Pencil, Eraser, MousePointer2, Hand, Trash2, ChevronLeft, ChevronRight, Check, Unlock, Star, Timer as TimerIcon, Dice6, Smile, Sparkles, Cloud, Loader2, ArrowLeft, ArrowRight, RotateCcw, Home } from 'lucide-react';
+import { Layout, Globe, PenTool, Pencil, Eraser, MousePointer2, Hand, Trash2, ChevronLeft, ChevronRight, Check, Unlock, Star, Timer as TimerIcon, Dice6, Smile, Sparkles, Cloud, Loader2, ArrowLeft, ArrowRight, RotateCcw, Home, BookOpen } from 'lucide-react';
 import { StageMode } from '@/services/whiteboardService';
 import { createHyperbeamSession } from './MultiplayerWebStage';
 import { coBrowserController } from './coBrowserController';
@@ -44,6 +44,7 @@ interface TeacherControlDockProps {
   onOpenTimer?: () => void;
   onRollDice?: () => void;
   onSendSticker?: (emoji: string) => void;
+  onOpenLibrary?: () => void;
 }
 
 /**
@@ -72,6 +73,7 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
   onOpenTimer,
   onRollDice,
   onSendSticker,
+  onOpenLibrary,
 }) => {
   const [urlDraft, setUrlDraft] = useState(embeddedUrl ?? '');
   const [coPlayLoading, setCoPlayLoading] = useState(false);
@@ -328,6 +330,16 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
                 </div>
               </PopoverContent>
             </Popover>
+          </div>
+        )}
+
+        {/* Library quick-load */}
+        {onOpenLibrary && (
+          <div className="pl-2 ml-1 border-l border-border">
+            <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs" onClick={onOpenLibrary} title="Open Lesson Library">
+              <BookOpen className="h-3.5 w-3.5" />
+              Library
+            </Button>
           </div>
         )}
       </div>

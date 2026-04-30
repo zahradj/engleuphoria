@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AnimatePresence } from "framer-motion";
 import { Wand2 } from "lucide-react";
+import LibraryDrawer from "@/components/lesson-player/LibraryDrawer";
 import { useIdleOpacity } from "@/hooks/useIdleOpacity";
 import { useClassroomTimer } from "@/hooks/classroom/useClassroomTimer";
 import { useSmartTimer } from "@/hooks/classroom/useSmartTimer";
@@ -84,6 +85,9 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   // Teacher instructions sidebar
   const [instructionsSidebarOpen, setInstructionsSidebarOpen] = useState(false);
+
+  // Library drawer for live lesson injection
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 
   // Smart timer for Professional Buffer
   const sessionDuration: 25 | 55 = 25; // TODO: derive from booking data
@@ -569,6 +573,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             onOpenTimer={handleOpenTimer}
             onRollDice={handleRollDice}
             onSendSticker={handleSendSticker}
+            onOpenLibrary={() => setIsLibraryOpen(true)}
           />
         </div>
 
@@ -650,6 +655,29 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Library Drawer for live lesson injection */}
+      <LibraryDrawer
+        open={isLibraryOpen}
+        onClose={() => setIsLibraryOpen(false)}
+        onSelectLesson={async (selectedSlides, title) => {
+          setIsLibraryOpen(false);
+          // Inject the lesson: update slides and switch to slide mode
+          const newSlides = selectedSlides.map((s, i) => ({
+            id: String(i + 1),
+            title: s.title || `Slide ${i + 1}`,
+          }));
+          // Override the current lesson by updating the slide index to 0
+          await updateSlide(0);
+          await setStageMode('slide');
+          await updateCanvasTab('slides');
+          toast({
+            title: "📚 Lesson Loaded!",
+            description: `"${title}" is now on screen.`,
+            className: "bg-indigo-900 border-indigo-700",
+          });
+        }}
+      />
     </div>
   );
 };
