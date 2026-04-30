@@ -92,6 +92,8 @@ export const MainStage: React.FC<MainStageProps> = ({
           role={role}
           iframeUnlocked={iframeUnlocked}
           worksheet={worksheet}
+          rawSlides={rawSlides}
+          hubType={hubType}
         />
 
         {/* Universal annotation overlay — always mounted, on top */}
