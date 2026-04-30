@@ -243,6 +243,37 @@ export default function LessonPlayerContainer({
   return (
     <div className={`flex flex-col h-full min-h-[100dvh] ${skin.shell}`} style={{ position: 'relative' }}>
 
+      {/* Resume prompt — shown once if a saved bookmark exists */}
+      <AlertDialog open={!!resumePrompt}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Welcome back! 👋</AlertDialogTitle>
+            <AlertDialogDescription>
+              We saved your progress. Resume from Slide {(resumePrompt?.slide ?? 0) + 1} or start over?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                clearLessonBookmark(lessonId);
+                setCurrentSlideIndex(0);
+                setResumePrompt(null);
+              }}
+            >
+              Start Over
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (resumePrompt) setCurrentSlideIndex(resumePrompt.slide);
+                setResumePrompt(null);
+              }}
+            >
+              Resume from Slide {(resumePrompt?.slide ?? 0) + 1}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Spotlight overlay */}
       {spotlightActive && (
         <div
