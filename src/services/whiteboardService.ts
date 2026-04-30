@@ -154,7 +154,8 @@ class WhiteboardService {
     const chatListeners = new Set<ChatListener>();
     const worksheetListeners = new Set<WorksheetLoadListener>();
     const gameStateListeners = new Set<GameStateListener>();
-    const statusListeners = new Set<(status: string) => void>();
+    const slideCompletionListeners = new Set<SlideCompletionListener>();
+    const statusListeners = new Set<(status: string) => void();
 
     const channel = supabase
       .channel(channelName, { config: { broadcast: { self: false } } })
