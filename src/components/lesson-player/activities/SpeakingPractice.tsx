@@ -4,6 +4,10 @@ import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { VoiceRecorder, type SpeechEvaluation } from '../VoiceRecorder';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+
+/** Threshold of revert-tier attempts on the same lesson that triggers adaptive reinforcement. */
+const REINFORCEMENT_THRESHOLD = 3;
 
 interface SpeakingPracticeProps {
   targetSentence: string;
@@ -13,6 +17,13 @@ interface SpeakingPracticeProps {
   slideId?: string;
   minPassingTier?: 'gold' | 'soft';   // default 'soft' (>= 50)
   onComplete?: (result: SpeechEvaluation) => void;
+  /**
+   * Fires when the student has accumulated REINFORCEMENT_THRESHOLD or more
+   * unresolved `revert` attempts on this lesson — the parent player should
+   * branch into the Reinforcement Lesson Generator (needs unitId, which the
+   * activity doesn't have).
+   */
+  onNeedsReinforcement?: (info: { revertCount: number; lessonId: string }) => void;
 }
 
 /**
@@ -29,9 +40,11 @@ export const SpeakingPractice = ({
   slideId,
   minPassingTier = 'soft',
   onComplete,
+  onNeedsReinforcement,
 }: SpeakingPracticeProps) => {
   const [bestResult, setBestResult] = useState<SpeechEvaluation | null>(null);
   const [attempts, setAttempts] = useState(0);
+  const [reinforcementFired, setReinforcementFired] = useState(false);
 
   const tierRank = (t: SpeechEvaluation['tier']) =>
     t === 'gold' ? 2 : t === 'soft' ? 1 : 0;
