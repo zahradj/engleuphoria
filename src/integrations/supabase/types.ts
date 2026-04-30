@@ -9340,6 +9340,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_stats: {
+        Row: {
+          created_at: string
+          current_streak: number
+          id: string
+          last_active_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_active_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_active_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_subscriptions: {
         Row: {
           classes_used_this_month: number
@@ -9949,6 +9976,17 @@ export type Database = {
         Args: { teacher_uuid: string }
         Returns: undefined
       }
+      upsert_mastery: {
+        Args: {
+          p_hub?: string
+          p_item_key: string
+          p_item_type?: string
+          p_passed?: boolean
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      upsert_streak: { Args: { p_user_id: string }; Returns: Json }
       validate_security_config: {
         Args: never
         Returns: {
