@@ -152,7 +152,7 @@ function SlideMediaPane({ slide }: { slide: GeneratedSlide }) {
 }
 
 interface LessonPlayerContainerProps {
-  slides: GeneratedSlide[];
+
   hub: HubType;
   lessonTitle: string;
   lessonId?: string;
@@ -199,10 +199,10 @@ export default function LessonPlayerContainer({
     if (resumeChecked.current) return;
     resumeChecked.current = true;
     const bookmark = readLessonBookmark(lessonId);
-    if (bookmark && bookmark.slide_index > 0 && bookmark.slide_index < slides.length - 1) {
+    if (bookmark && bookmark.slide_index > 0 && bookmark.slide_index < activeSlides.length - 1) {
       setResumePrompt({ slide: bookmark.slide_index, stars: bookmark.stars_remaining });
     }
-  }, [lessonId, slides.length]);
+  }, [lessonId, activeSlides.length]);
 
   // Auto-save bookmark on every slide change
   useLessonAutoSave({
@@ -210,7 +210,7 @@ export default function LessonPlayerContainer({
     studentId,
     slideIndex: currentSlideIndex,
     starsRemaining,
-    totalSlides: slides.length,
+    totalSlides: activeSlides.length,
     completed,
   });
 
@@ -220,16 +220,16 @@ export default function LessonPlayerContainer({
 
   const config = HUB_CONFIGS[hub];
   const skin = HUB_SKINS[hub];
-  const totalSlides = slides.length;
-  const currentSlide = slides[currentSlideIndex];
+  const totalSlides = activeSlides.length;
+  const currentSlide = activeSlides[currentSlideIndex];
   const progress = ((currentSlideIndex + 1) / totalSlides) * 100;
 
   const isActivitySlide = currentSlide?.slideType === 'activity' || !!currentSlide?.activityType;
 
   useEffect(() => {
-    const qCount = slides.filter(s => s.slideType === 'activity' || !!s.activityType).length;
+    const qCount = activeSlides.filter(s => s.slideType === 'activity' || !!s.activityType).length;
     setTotalQuestions(qCount);
-  }, [slides]);
+  }, [activeSlides]);
 
   useEffect(() => {
     if (completed) triggerCelebration(hub);
@@ -442,7 +442,7 @@ export default function LessonPlayerContainer({
         {/* 6-Step Phase Tracker — locked progression map */}
         <div className="w-full max-w-5xl mx-auto mt-2">
           <PhaseTracker
-            slides={slides as any}
+            slides={activeSlides as any}
             currentIndex={currentSlideIndex}
             onJumpToPhase={(idx) => {
               setCurrentSlideIndex(idx);
