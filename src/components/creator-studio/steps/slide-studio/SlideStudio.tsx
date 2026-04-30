@@ -13,7 +13,7 @@ import { useHubTheme } from '@/hooks/useHubTheme';
 import { cn } from '@/lib/utils';
 import PhaseTracker from '@/components/lesson-player/PhaseTracker';
 import { PHASE_STYLES, normalizePhase } from './phaseTheme';
-import { PPPSlide } from '../../CreatorContext';
+
 
 const TYPE_ICON: Record<string, React.ElementType> = {
   text_image: ImageIcon,
