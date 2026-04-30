@@ -199,9 +199,16 @@ export default function EditorialSortingGame({ slide, onCorrect, onIncorrect }: 
                 : `${score}/${items.length} correct — try again!`}
             </div>
             {score < items.length && (
-              <Button variant="outline" onClick={handleReset} className="gap-1.5">
-                <RotateCcw className="w-4 h-4" /> Reset
-              </Button>
+              <div className="flex items-center gap-2">
+                <WhyWrongButton
+                  questionText="Sort words into categories"
+                  correctAnswer={items.filter(it => !results[it.word]).map(it => `${it.word} → ${it.correct_category}`).join(', ')}
+                  userAnswer={items.filter(it => !results[it.word]).map(it => `${it.word} → ${placements[it.word] || '(none)'}`).join(', ')}
+                />
+                <Button variant="outline" onClick={handleReset} className="gap-1.5">
+                  <RotateCcw className="w-4 h-4" /> Reset
+                </Button>
+              </div>
             )}
           </>
         )}
