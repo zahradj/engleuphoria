@@ -238,58 +238,72 @@ Draft the lesson blueprint now. Pick the best pedagogical framework and emit its
       },
     } as const;
 
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        tools: [tool],
-        tool_choice: { type: "function", function: { name: "emit_blueprint" } },
-      }),
-    });
-
-    if (!aiResp.ok) {
-      const detail = await aiResp.text();
-      if (aiResp.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit reached. Please try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
-      }
-      if (aiResp.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Add funds in Settings → Workspace → Usage." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
-      }
-      console.error("Blueprint AI gateway error:", aiResp.status, detail);
-      return new Response(JSON.stringify({ error: "AI gateway error", detail }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // ─── Self-Healing JSON Wrapper ───
+    // Up to 3 attempts. On JSON-parse failure or missing tool_call, append a
+    // corrective instruction and retry. After 3 fails, return graceful UI error.
+    const callGemini = async (extraInstruction: string) => {
+      return await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: systemPrompt + (extraInstruction ? `\n\n${extraInstruction}` : "") },
+            { role: "user", content: userPrompt },
+          ],
+          tools: [tool],
+          tool_choice: { type: "function", function: { name: "emit_blueprint" } },
+        }),
       });
+    };
+
+    const HEAL_INSTRUCTION =
+      "CRITICAL: Your last output contained invalid JSON. Ensure all quotes are escaped and brackets are closed.";
+
+    let blueprint: any = null;
+    let lastErrorDetail = "";
+
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const aiResp = await callGemini(attempt === 0 ? "" : HEAL_INSTRUCTION);
+
+      if (!aiResp.ok) {
+        const detail = await aiResp.text();
+        if (aiResp.status === 429) {
+          return new Response(
+            JSON.stringify({ error: "Rate limit reached. Please try again in a moment." }),
+            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+        if (aiResp.status === 402) {
+          return new Response(
+            JSON.stringify({ error: "AI credits exhausted. Add funds in Settings → Workspace → Usage." }),
+            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+        lastErrorDetail = `gateway ${aiResp.status}: ${detail}`;
+        console.error(`[blueprint attempt ${attempt + 1}] gateway error`, aiResp.status);
+        continue;
+      }
+
+      try {
+        const data = await aiResp.json();
+        const toolCall = data?.choices?.[0]?.message?.tool_calls?.[0];
+        const argsRaw = toolCall?.function?.arguments;
+        if (!argsRaw) throw new Error("No tool_call in response");
+        blueprint = typeof argsRaw === "string" ? JSON.parse(argsRaw) : argsRaw;
+        break; // success
+      } catch (e) {
+        lastErrorDetail = (e as Error).message;
+        console.warn(`[blueprint attempt ${attempt + 1}] JSON parse failed:`, lastErrorDetail);
+      }
     }
 
-    const data = await aiResp.json();
-    const toolCall = data?.choices?.[0]?.message?.tool_calls?.[0];
-    const argsRaw = toolCall?.function?.arguments;
-    if (!argsRaw) {
-      console.error("No tool_call in blueprint response:", JSON.stringify(data).slice(0, 500));
-      return new Response(JSON.stringify({ error: "AI did not return a structured blueprint." }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    let blueprint: any;
-    try {
-      blueprint = typeof argsRaw === "string" ? JSON.parse(argsRaw) : argsRaw;
-    } catch (e) {
+    if (!blueprint) {
       return new Response(
-        JSON.stringify({ error: `Could not parse blueprint JSON: ${(e as Error).message}` }),
+        JSON.stringify({
+          error: "The AI encountered a formatting error. Please try generating again.",
+          detail: lastErrorDetail,
+        }),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
