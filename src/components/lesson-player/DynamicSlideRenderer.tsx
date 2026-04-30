@@ -138,6 +138,24 @@ export default function DynamicSlideRenderer({
       return <SlideReadingSplit slide={slide as any} />;
     }
 
+    // ── 6-Step Blueprint: Speaking phase uses VoiceRecorder grading ──
+    if (lessonPhase === 'Speaking' && (slide as any).requires_audio) {
+      const target = (slide as any).interactive_data?.speech?.target_sentence
+        || (slide as any).content
+        || (slide as any).title
+        || '';
+      return (
+        <SpeakingPractice
+          targetSentence={target}
+          hub={hub === 'professional' ? 'success' : hub as any}
+          context={(slide as any).teacher_script}
+          lessonId={(slide as any).lesson_id}
+          slideId={slide.id}
+          onComplete={() => onCorrectAnswer()}
+        />
+      );
+    }
+
     // ── Director PPP interactive types (highest priority) ─────────
     // The generate-ppp-slides edge function emits slide_type = 'drag_and_match' | 'fill_in_the_gaps'.
     const directorType = (slide as any).slide_type || (slide as any).activityType || (slide as any).type;
