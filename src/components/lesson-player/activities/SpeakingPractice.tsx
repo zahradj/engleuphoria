@@ -96,9 +96,29 @@ export const SpeakingPractice = ({
             hub,
           },
         });
+
+        // 3. Adaptive trigger: if 3+ unresolved revert attempts on this lesson,
+        //    surface reinforcement to the parent player (idempotent per mount).
+        if (lessonId && !reinforcementFired) {
+          const { count } = await supabase
+            .from('mistake_repository')
+            .select('id', { count: 'exact', head: true })
+            .eq('user_id', uid)
+            .eq('source_lesson_id', lessonId)
+            .eq('mistake_type', 'speaking_pronunciation')
+            .eq('resolved', false);
+
+          if ((count ?? 0) >= REINFORCEMENT_THRESHOLD) {
+            setReinforcementFired(true);
+            toast.warning('Let\'s slow down — generating a quick reinforcement lesson.', {
+              description: `${count} repeated stumbles detected on this lesson.`,
+            });
+            onNeedsReinforcement?.({ revertCount: count ?? 0, lessonId });
+          }
+        }
       }
     },
-    [hub, lessonId, slideId, targetSentence]
+    [hub, lessonId, slideId, targetSentence, reinforcementFired, onNeedsReinforcement]
   );
 
   const handleResult = (r: SpeechEvaluation) => {
