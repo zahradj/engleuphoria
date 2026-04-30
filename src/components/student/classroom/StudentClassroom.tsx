@@ -52,6 +52,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
   const sidebarIdle = useIdleOpacity({ idleTimeout: 4000, idleOpacity: 0.3 });
 
   const {
+    session,
     currentSlide,
     activeTool,
     studentCanDraw,
@@ -90,6 +91,18 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     userName: studentName,
     role: 'student'
   });
+
+  // Slide completion reporting — broadcast to teacher when student finishes an interactive activity
+  const handleSlideCompletion = useCallback((slideIndex: number, slideId: string, accuracy?: number, timeSpent?: number) => {
+    whiteboardService.sendSlideCompletion(roomId, {
+      slideIndex,
+      slideId,
+      accuracy,
+      timeSpent,
+      senderId: studentId,
+      senderName: studentName,
+    });
+  }, [roomId, studentId, studentName]);
 
   const webrtcRoom = `engleuphoria-${roomId}`;
   const [channelStatus, setChannelStatus] = useState<'CONNECTING' | 'SUBSCRIBED' | 'CLOSED' | 'CHANNEL_ERROR' | 'TIMED_OUT'>('CONNECTING');
