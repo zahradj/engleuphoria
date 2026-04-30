@@ -1,22 +1,20 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { X, Search, BookOpen } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GeneratedSlide } from '@/components/admin/lesson-builder/ai-wizard/types';
+import {
+  extractClassroomSlides,
+  getLibraryLessons,
+  getLessonById,
+  toLibraryLessonCard,
+  type ClassroomSlide,
+  type LibraryLessonCard,
+} from '@/services/lessonLibraryService';
 
-interface LessonCard {
-  id: string;
-  title: string;
-  topic: string | null;
-  hub: string;
-  description: string | null;
-  slide_count: number;
-}
 
 interface LibraryDrawerProps {
   open: boolean;
   onClose: () => void;
-  onSelectLesson: (slides: GeneratedSlide[], title: string) => void;
+  onSelectLesson: (slides: ClassroomSlide[], title: string) => void;
 }
 
 const HUB_BADGE_COLORS: Record<string, string> = {
@@ -25,18 +23,8 @@ const HUB_BADGE_COLORS: Record<string, string> = {
   professional: 'bg-emerald-100 text-emerald-700 border-emerald-200',
 };
 
-/** Derive hub from age_range text, matching TeacherLessonLibrary logic */
-function deriveHub(ageRange: string | null): string {
-  if (!ageRange) return 'academy';
-  const lower = ageRange.toLowerCase();
-  if (lower.includes('kid') || lower.includes('playground') || /\b[5-9]\b/.test(lower)) return 'playground';
-  if (lower.includes('teen') || lower.includes('academy') || /\b1[0-4]\b/.test(lower)) return 'academy';
-  return 'professional';
-}
-
-
 export default function LibraryDrawer({ open, onClose, onSelectLesson }: LibraryDrawerProps) {
-  const [lessons, setLessons] = useState<LessonCard[]>([]);
+  const [lessons, setLessons] = useState<LibraryLessonCard[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [loadingLessonId, setLoadingLessonId] = useState<string | null>(null);
@@ -44,26 +32,13 @@ export default function LibraryDrawer({ open, onClose, onSelectLesson }: Library
   useEffect(() => {
     if (!open) return;
     setLoading(true);
-    supabase
-      .from('ai_lessons')
-      .select('id, title, topic, age_range, script')
-      .order('created_at', { ascending: false })
-      .then(({ data, error }) => {
-        if (error) {
-          console.warn('LibraryDrawer fetch error:', error);
-          setLessons([]);
-        } else {
-          setLessons(
-            (data || []).map((l: any) => ({
-              id: l.id,
-              title: l.title || l.topic || 'Untitled Lesson',
-              topic: l.topic,
-              hub: deriveHub(l.age_range),
-              description: l.topic,
-              slide_count: Array.isArray(l.script) ? l.script.length : 0,
-            }))
-          );
-        }
+    getLibraryLessons()
+      .then((data) => setLessons(data.map(toLibraryLessonCard)))
+      .catch((error) => {
+        console.warn('LibraryDrawer fetch error:', error);
+        setLessons([]);
+      })
+      .finally(() => {
         setLoading(false);
       });
   }, [open]);
@@ -82,18 +57,15 @@ export default function LibraryDrawer({ open, onClose, onSelectLesson }: Library
   const handleSelect = async (lessonId: string) => {
 
     setLoadingLessonId(lessonId);
-    const { data, error } = await supabase
-      .from('ai_lessons')
-      .select('script, title')
-      .eq('id', lessonId)
-      .single();
-
-    if (error || !data?.script) {
+    try {
+      const lesson = await getLessonById(lessonId);
+      const slides = extractClassroomSlides(lesson);
+      onSelectLesson(slides, lesson.title || 'Lesson');
+    } catch (error) {
       console.error('Failed to load lesson slides:', error);
       setLoadingLessonId(null);
       return;
     }
-    onSelectLesson(data.script as GeneratedSlide[], data.title || 'Lesson');
     setLoadingLessonId(null);
   };
 
