@@ -451,6 +451,27 @@ class WhiteboardService {
     return () => this.release(roomId, () => room.gameStateListeners.delete(onState));
   }
 
+  /** Student broadcasts that they completed an interactive slide activity. */
+  async sendSlideCompletion(
+    roomId: string,
+    payload: Omit<SlideCompletionPayload, 'timestamp'>
+  ): Promise<void> {
+    const room = this.getRoom(roomId);
+    await room.ready;
+    await room.channel.send({
+      type: 'broadcast',
+      event: 'slide_completion',
+      payload: { ...payload, timestamp: Date.now() } satisfies SlideCompletionPayload,
+    });
+  }
+
+  subscribeToSlideCompletion(roomId: string, onComplete: SlideCompletionListener): () => void {
+    const room = this.getRoom(roomId);
+    room.slideCompletionListeners.add(onComplete);
+    room.refCount += 1;
+    return () => this.release(roomId, () => room.slideCompletionListeners.delete(onComplete));
+  }
+
   subscribeToStatus(roomId: string, onStatus: (status: string) => void): () => void {
     const room = this.getRoom(roomId);
     room.statusListeners.add(onStatus);
