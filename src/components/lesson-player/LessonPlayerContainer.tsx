@@ -162,14 +162,21 @@ interface LessonPlayerContainerProps {
 }
 
 export default function LessonPlayerContainer({
-  slides,
+  slides: initialSlides,
   hub,
-  lessonTitle,
+  lessonTitle: initialTitle,
   lessonId,
   studentId,
   onComplete,
   onExit,
 }: LessonPlayerContainerProps) {
+  const [activeSlides, setActiveSlides] = useState(initialSlides);
+  const [activeLessonTitle, setActiveLessonTitle] = useState(initialTitle);
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+
+  // Keep in sync if parent changes props
+  useEffect(() => { setActiveSlides(initialSlides); }, [initialSlides]);
+  useEffect(() => { setActiveLessonTitle(initialTitle); }, [initialTitle]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [lessonScore, setLessonScore] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
