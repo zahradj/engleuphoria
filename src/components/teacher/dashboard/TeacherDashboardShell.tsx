@@ -55,6 +55,8 @@ export const TeacherDashboardShell = ({
           return <NovakidDashboard teacherId={teacherId} />;
         case 'schedule':
           return <ClassScheduler teacherName={teacherName} teacherId={teacherId} />;
+        case 'library':
+          return <TeacherLessonLibrary />;
         case 'analytics':
           return <StudentLearningAnalytics teacherId={teacherId} />;
         case 'account':
