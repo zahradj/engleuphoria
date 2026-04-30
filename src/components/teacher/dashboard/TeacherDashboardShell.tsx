@@ -16,7 +16,7 @@ import { ThemeModeToggle } from '@/components/ui/ThemeModeToggle';
 import { WelcomeSuccessModal } from './WelcomeSuccessModal';
 import { MobileTeacherBottomNav } from './MobileTeacherBottomNav';
 
-type TabType = 'dashboard' | 'schedule' | 'analytics' | 'methodology' | 'account' | 'teacher-hub' | 'help';
+type TabType = 'dashboard' | 'schedule' | 'library' | 'analytics' | 'methodology' | 'account' | 'teacher-hub' | 'help';
 
 interface TeacherDashboardShellProps {
   teacherName: string;
