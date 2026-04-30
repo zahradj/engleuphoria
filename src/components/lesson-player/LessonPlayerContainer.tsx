@@ -155,7 +155,7 @@ export default function LessonPlayerContainer({
     setFeedbackVisible(true);
     if (!muted) soundEffectsService.playCorrect();
     // SRS: track mastery for the current slide's item
-    const itemKey = currentSlide?.content?.targetWord || currentSlide?.content?.title || currentSlide?.title;
+    const itemKey = currentSlide?.content?.word || currentSlide?.content?.title || currentSlide?.title;
     if (itemKey) trackMastery(itemKey, true, 'vocabulary', hub);
   }, [muted, currentSlide, trackMastery, hub]);
 
@@ -167,7 +167,7 @@ export default function LessonPlayerContainer({
     setFeedbackVisible(true);
     if (!muted) soundEffectsService.playIncorrect();
     // SRS: track mastery failure
-    const itemKey = currentSlide?.content?.targetWord || currentSlide?.content?.title || currentSlide?.title;
+    const itemKey = currentSlide?.content?.word || currentSlide?.content?.title || currentSlide?.title;
     if (itemKey) trackMastery(itemKey, false, 'vocabulary', hub);
   }, [muted, currentSlide, trackMastery, hub]);
 
