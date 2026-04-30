@@ -67,6 +67,8 @@ export const MainStage: React.FC<MainStageProps> = ({
   role,
   iframeUnlocked = false,
   worksheet = null,
+  rawSlides,
+  hubType = 'academy',
   onAddStroke,
 }) => {
   const { label, Icon } = MODE_META[mode];
