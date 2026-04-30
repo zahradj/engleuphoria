@@ -1,7 +1,7 @@
 import React from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Bell } from "lucide-react";
+import { Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HubLogo } from "@/components/student/HubLogo";
 import { ThemeModeToggle } from "@/components/ui/ThemeModeToggle";
@@ -9,6 +9,7 @@ import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { useStudentLevel } from "@/hooks/useStudentLevel";
 import { useThemeMode } from "@/hooks/useThemeMode";
 import { useAuth } from "@/contexts/AuthContext";
+import { useStreak } from "@/hooks/useStreak";
 
 interface MinimalStudentHeaderProps {
   studentName: string;
@@ -82,6 +83,7 @@ export const MinimalStudentHeader: React.FC<MinimalStudentHeaderProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          <StreakBadge isDark={isDark} />
           {user && <NotificationBell />}
           <ThemeModeToggle className={`${isDark ? 'text-white/60 hover:text-white hover:bg-white/10' : 'text-muted-foreground hover:text-foreground hover:bg-black/5'}`} />
         </div>
