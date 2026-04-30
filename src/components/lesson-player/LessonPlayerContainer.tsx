@@ -317,6 +317,18 @@ export default function LessonPlayerContainer({
     }
   }, [studentId, lessonId, lessonScore]);
 
+  const handleLibraryInject = (newSlides: GeneratedSlide[], title: string) => {
+    setActiveSlides(newSlides);
+    setActiveLessonTitle(title);
+    setCurrentSlideIndex(0);
+    setAnswerSelected(false);
+    setFeedbackVisible(false);
+    setCompleted(false);
+    setLessonScore(0);
+    setCorrectCount(0);
+    setIsLibraryOpen(false);
+  };
+
   const toggleMute = () => {
     const next = !muted;
     setMuted(next);
