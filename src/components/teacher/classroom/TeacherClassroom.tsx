@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AnimatePresence } from "framer-motion";
 import { Wand2 } from "lucide-react";
+import LibraryDrawer from "@/components/lesson-player/LibraryDrawer";
 import { useIdleOpacity } from "@/hooks/useIdleOpacity";
 import { useClassroomTimer } from "@/hooks/classroom/useClassroomTimer";
 import { useSmartTimer } from "@/hooks/classroom/useSmartTimer";
