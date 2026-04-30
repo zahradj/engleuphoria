@@ -7742,6 +7742,39 @@ export type Database = {
           },
         ]
       }
+      student_sessions: {
+        Row: {
+          completed: boolean
+          created_at: string
+          id: string
+          lesson_id: string
+          slide_index: number
+          stars_remaining: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          lesson_id: string
+          slide_index?: number
+          stars_remaining?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          lesson_id?: string
+          slide_index?: number
+          stars_remaining?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       student_skills: {
         Row: {
           cefr_equivalent: string | null
@@ -9250,6 +9283,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_credits: {
+        Row: {
+          created_at: string
+          last_refill_at: string
+          lesson_credits: number
+          lesson_credits_monthly_refill: number
+          updated_at: string
+          user_id: string
+          voice_energy: number
+          voice_energy_monthly_refill: number
+        }
+        Insert: {
+          created_at?: string
+          last_refill_at?: string
+          lesson_credits?: number
+          lesson_credits_monthly_refill?: number
+          updated_at?: string
+          user_id: string
+          voice_energy?: number
+          voice_energy_monthly_refill?: number
+        }
+        Update: {
+          created_at?: string
+          last_refill_at?: string
+          lesson_credits?: number
+          lesson_credits_monthly_refill?: number
+          updated_at?: string
+          user_id?: string
+          voice_energy?: number
+          voice_energy_monthly_refill?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           assigned_at: string
@@ -9565,6 +9631,20 @@ export type Database = {
       cleanup_stale_classroom_sessions: { Args: never; Returns: number }
       complete_referral: { Args: { friend_uuid: string }; Returns: undefined }
       consume_credit: { Args: { p_student_id: string }; Returns: boolean }
+      consume_lesson_credit: {
+        Args: { p_user_id: string }
+        Returns: {
+          remaining: number
+          success: boolean
+        }[]
+      }
+      consume_voice_energy: {
+        Args: { p_user_id: string }
+        Returns: {
+          remaining: number
+          success: boolean
+        }[]
+      }
       create_admin_notification: {
         Args: {
           p_message: string
