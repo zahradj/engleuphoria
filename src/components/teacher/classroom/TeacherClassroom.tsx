@@ -26,7 +26,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AnimatePresence } from "framer-motion";
-import { Wand2 } from "lucide-react";
+import { Wand2, RefreshCw } from "lucide-react";
 import LibraryDrawer from "@/components/lesson-player/LibraryDrawer";
 import { useIdleOpacity } from "@/hooks/useIdleOpacity";
 import { useClassroomTimer } from "@/hooks/classroom/useClassroomTimer";
