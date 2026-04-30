@@ -152,7 +152,7 @@ function SlideMediaPane({ slide }: { slide: GeneratedSlide }) {
 }
 
 interface LessonPlayerContainerProps {
-
+  slides: GeneratedSlide[];
   hub: HubType;
   lessonTitle: string;
   lessonId?: string;
