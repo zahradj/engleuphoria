@@ -52,12 +52,47 @@ serve(async (req) => {
       });
     }
 
+    const userId = userData.user.id;
+
     const { audioBase64, mimeType = 'audio/webm', targetSentence, hub = 'academy', context } = await req.json();
 
     if (!audioBase64 || !targetSentence) {
       return new Response(JSON.stringify({ error: 'audioBase64 and targetSentence are required' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    // ─── Cost Control: Voice Energy Gate ───
+    // Atomically deduct 1 voice energy. If empty, block with friendly message.
+    try {
+      const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+      if (SERVICE_KEY) {
+        const credResp = await fetch(`${Deno.env.get('SUPABASE_URL')}/rest/v1/rpc/consume_voice_energy`, {
+          method: 'POST',
+          headers: {
+            apikey: SERVICE_KEY,
+            Authorization: `Bearer ${SERVICE_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ p_user_id: userId }),
+        });
+        if (credResp.ok) {
+          const rows = await credResp.json();
+          const row = Array.isArray(rows) ? rows[0] : rows;
+          if (row && row.success === false) {
+            return new Response(
+              JSON.stringify({
+                error: 'INSUFFICIENT_VOICE_ENERGY',
+                message: 'You are out of Voice Energy. Wait for refill or upgrade your plan.',
+                remaining: row.remaining ?? 0,
+              }),
+              { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+            );
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[voice-energy] gate error (allowing through)', e);
     }
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
