@@ -69,6 +69,8 @@ interface UseClassroomSyncReturn {
   
   // Shared display update (teacher only)
   updateSharedDisplay: (updates: {
+    lessonSlides?: Array<{ id: string; title: string; imageUrl?: string; content?: string }>;
+    lessonTitle?: string;
     embeddedUrl?: string | null;
     isScreenSharing?: boolean;
     starCount?: number;
@@ -321,6 +323,8 @@ export const useClassroomSync = ({
   }, [roomId]);
 
   const updateSharedDisplay = useCallback(async (updates: {
+    lessonSlides?: Array<{ id: string; title: string; imageUrl?: string; content?: string }>;
+    lessonTitle?: string;
     embeddedUrl?: string | null;
     isScreenSharing?: boolean;
     starCount?: number;
