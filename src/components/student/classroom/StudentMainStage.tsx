@@ -81,6 +81,7 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
   drawingEnabled,
   iframeUnlocked = false,
   onAddStroke,
+  onSlideComplete,
 }) => {
   const currentSlide = slides[currentSlideIndex];
   const isQuizSlide = currentSlide?.type === 'quiz';
