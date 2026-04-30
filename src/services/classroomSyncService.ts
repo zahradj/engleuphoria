@@ -389,7 +389,8 @@ class ClassroomSyncService {
       diceValue: data.dice_value || null,
       sharedNotes: data.shared_notes || '',
       sessionContext: data.session_context || {},
-      activeCanvasTab: data.active_canvas_tab || 'slides'
+      activeCanvasTab: data.active_canvas_tab || 'slides',
+      force_refresh_timestamp: data.force_refresh_timestamp || 0
     };
   }
 
