@@ -3,6 +3,7 @@ import { X, Search, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   extractClassroomSlides,
+  getLibraryLessonSlides,
   getLibraryLessons,
   getLessonById,
   toLibraryLessonCard,
@@ -14,7 +15,8 @@ import {
 interface LibraryDrawerProps {
   open: boolean;
   onClose: () => void;
-  onSelectLesson: (slides: ClassroomSlide[], title: string) => void;
+  onSelectLesson: (slides: any[], title: string) => void;
+  slideFormat?: 'classroom' | 'raw';
 }
 
 const HUB_BADGE_COLORS: Record<string, string> = {
@@ -23,7 +25,7 @@ const HUB_BADGE_COLORS: Record<string, string> = {
   professional: 'bg-emerald-100 text-emerald-700 border-emerald-200',
 };
 
-export default function LibraryDrawer({ open, onClose, onSelectLesson }: LibraryDrawerProps) {
+export default function LibraryDrawer({ open, onClose, onSelectLesson, slideFormat = 'classroom' }: LibraryDrawerProps) {
   const [lessons, setLessons] = useState<LibraryLessonCard[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -49,7 +51,8 @@ export default function LibraryDrawer({ open, onClose, onSelectLesson }: Library
     return lessons.filter(
       (l) =>
         l.title.toLowerCase().includes(q) ||
-        (l.topic && l.topic.toLowerCase().includes(q)) ||
+        l.difficulty_level.toLowerCase().includes(q) ||
+        l.hub.toLowerCase().includes(q) ||
         (l.description && l.description.toLowerCase().includes(q))
     );
   }, [lessons, searchQuery]);
@@ -59,7 +62,9 @@ export default function LibraryDrawer({ open, onClose, onSelectLesson }: Library
     setLoadingLessonId(lessonId);
     try {
       const lesson = await getLessonById(lessonId);
-      const slides = extractClassroomSlides(lesson);
+      const slides = slideFormat === 'raw'
+        ? getLibraryLessonSlides(lesson)
+        : extractClassroomSlides(lesson);
       onSelectLesson(slides, lesson.title || 'Lesson');
     } catch (error) {
       console.error('Failed to load lesson slides:', error);
