@@ -57,6 +57,18 @@ export interface GameStatePayload {
   timestamp: number;
 }
 
+export interface SlideCompletionPayload {
+  slideIndex: number;
+  slideId: string;
+  /** Accuracy percentage 0-100 if applicable */
+  accuracy?: number;
+  /** Time spent on the slide in seconds */
+  timeSpent?: number;
+  senderId: string;
+  senderName: string;
+  timestamp: number;
+}
+
 export type RewardType = 'star' | 'sticker';
 export interface RewardPayload {
   rewardType: RewardType;
