@@ -9,7 +9,7 @@ import { Loader2, Send, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface AssignLessonModalProps {
-  lesson: { id: string; title: string | null; topic: string };
+  lesson: { id: string; title: string | null; description?: string | null };
   onClose: () => void;
 }
 
@@ -55,7 +55,7 @@ export const AssignLessonModal: React.FC<AssignLessonModalProps> = ({ lesson, on
       setSuccess(true);
       toast({
         title: 'Lesson assigned!',
-        description: `"${lesson.title || lesson.topic}" has been sent to the student.`,
+        description: `"${lesson.title || 'Untitled Lesson'}" has been sent to the student.`,
       });
 
       setTimeout(onClose, 1500);
@@ -85,7 +85,7 @@ export const AssignLessonModal: React.FC<AssignLessonModalProps> = ({ lesson, on
         ) : (
           <div className="space-y-4 pt-2">
             <p className="text-sm text-muted-foreground">
-              Assign <strong>"{lesson.title || lesson.topic}"</strong> to a student.
+              Assign <strong>"{lesson.title || 'Untitled Lesson'}"</strong> to a student.
             </p>
 
             <div className="space-y-2">
