@@ -12,7 +12,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useMasteryTracker } from '@/hooks/useMasteryTracker';
 import { useStreak } from '@/hooks/useStreak';
-import { X, Volume2, VolumeX, Zap, Star, ChevronLeft, ChevronRight, Focus } from 'lucide-react';
+import { X, Volume2, VolumeX, Zap, Star, ChevronLeft, ChevronRight, Focus, BookOpen } from 'lucide-react';
+import LibraryDrawer from './LibraryDrawer';
 import PhaseTracker from './PhaseTracker';
 import { useLessonAutoSave, readLessonBookmark, clearLessonBookmark } from '@/hooks/useLessonAutoSave';
 import {
