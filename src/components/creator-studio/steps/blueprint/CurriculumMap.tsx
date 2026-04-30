@@ -15,6 +15,8 @@ interface Props {
 
 export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
   const { setActiveLessonData, setCurrentStep } = useCreator();
+  const navigate = useNavigate();
+  const [saving, setSaving] = useState(false);
 
   const handleBuildSlides = (lesson: BlueprintLessonRef) => {
     if (!data) return;
