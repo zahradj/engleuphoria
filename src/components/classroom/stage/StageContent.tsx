@@ -3,6 +3,8 @@ import { StageMode, SmartWorksheet } from '@/services/whiteboardService';
 import { ScrollSyncedIframe } from './ScrollSyncedIframe';
 import { MultiplayerWebStage } from './MultiplayerWebStage';
 import { NativeGameStage } from '@/components/classroom/native-games/NativeGameStage';
+import DynamicSlideRenderer from '@/components/lesson-player/DynamicSlideRenderer';
+import type { GeneratedSlide, HubType } from '@/components/admin/lesson-builder/ai-wizard/types';
 
 const isHyperbeamUrl = (url: string | null | undefined) =>
   !!url && /\.hyperbeam\.com\//i.test(url);
@@ -22,15 +24,16 @@ interface StageContentProps {
   roomId: string;
   userId: string;
   role: 'teacher' | 'student';
-  /** When true and mode === 'web', the student can interact with the iframe directly. */
   iframeUnlocked?: boolean;
-  /** Active Smart Worksheet for native game modes. */
   worksheet?: SmartWorksheet | null;
+  /** Raw GeneratedSlide data for premium rendering (parallel to slides array). */
+  rawSlides?: any[];
+  hubType?: HubType;
 }
 
 /**
  * Renders whatever the teacher has put on the Main Stage:
- * - 'slide' → current lesson slide
+ * - 'slide' → current lesson slide (premium renderer when raw data available)
  * - 'web'   → co-browsing iframe
  * - 'blank' → empty whiteboard surface
  * - 'native_game_*' → fully-synced AI-generated mini-game
@@ -45,6 +48,8 @@ export const StageContent: React.FC<StageContentProps> = ({
   role,
   iframeUnlocked = false,
   worksheet = null,
+  rawSlides,
+  hubType = 'academy',
 }) => {
   if (mode.startsWith('native_game_')) {
     return (
@@ -83,7 +88,26 @@ export const StageContent: React.FC<StageContentProps> = ({
     return <div className="absolute inset-0 bg-white" />;
   }
 
-  // 'slide' — render current slide
+  // 'slide' — try premium renderer first if raw slide data is available
+  const rawSlide = rawSlides?.[currentSlideIndex] as GeneratedSlide | undefined;
+
+  if (rawSlide && (rawSlide.slideType || rawSlide.activityType || rawSlide.type)) {
+    return (
+      <div className="absolute inset-0 bg-white flex items-center justify-center overflow-auto p-2">
+        <div className="w-full h-full flex items-center justify-center">
+          <DynamicSlideRenderer
+            slide={rawSlide}
+            hub={hubType}
+            onCorrectAnswer={() => {}}
+            onIncorrectAnswer={() => {}}
+            onComplete={() => {}}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback: basic title/image rendering
   const slide = slides[currentSlideIndex];
   return (
     <div className="absolute inset-0 bg-white flex items-center justify-center overflow-hidden">

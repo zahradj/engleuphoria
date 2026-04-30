@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { StageMode, WhiteboardStroke, SmartWorksheet } from '@/services/whiteboardService';
+import type { HubType } from '@/components/admin/lesson-builder/ai-wizard/types';
 import { StageContent } from './StageContent';
 import { TransparentCanvas } from './TransparentCanvas';
 import { useCollapseWatcher } from '@/hooks/useCollapseWatcher';
@@ -30,6 +31,9 @@ interface MainStageProps {
   iframeUnlocked?: boolean;
   /** Active Smart Worksheet for native game modes. */
   worksheet?: SmartWorksheet | null;
+  /** Raw GeneratedSlide data for premium rendering. */
+  rawSlides?: any[];
+  hubType?: HubType;
   onAddStroke: (stroke: Omit<WhiteboardStroke, 'id' | 'roomId' | 'timestamp'>) => void;
 }
 
@@ -63,6 +67,8 @@ export const MainStage: React.FC<MainStageProps> = ({
   role,
   iframeUnlocked = false,
   worksheet = null,
+  rawSlides,
+  hubType = 'academy',
   onAddStroke,
 }) => {
   const { label, Icon } = MODE_META[mode];
@@ -86,6 +92,8 @@ export const MainStage: React.FC<MainStageProps> = ({
           role={role}
           iframeUnlocked={iframeUnlocked}
           worksheet={worksheet}
+          rawSlides={rawSlides}
+          hubType={hubType}
         />
 
         {/* Universal annotation overlay — always mounted, on top */}
