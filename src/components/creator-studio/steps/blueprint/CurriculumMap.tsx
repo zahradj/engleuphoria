@@ -33,6 +33,21 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
     toast.success(`Opening Slide Studio for "${lesson.title}"…`);
   };
 
+  const handleSaveBlueprint = async () => {
+    if (!data) return;
+    setSaving(true);
+    try {
+      const result = await persistBlueprintAsDrafts(data);
+      toast.success(`🎉 Blueprint saved! ${result.totalCount} draft lessons created.`);
+      navigate('/content-creator');
+    } catch (err: any) {
+      console.error('Blueprint save error:', err);
+      toast.error(err?.message || 'Failed to save blueprint.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading && !data) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
