@@ -465,6 +465,9 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
       <div className="fixed top-3 right-3 z-[110] flex items-center gap-2 rounded-full bg-background/85 px-3 py-1.5 shadow-sm ring-1 ring-border backdrop-blur-md">
         <div className={`h-2.5 w-2.5 rounded-full ${channelStatus === 'SUBSCRIBED' ? 'bg-success animate-pulse' : 'bg-destructive'}`} />
         <span className="text-[11px] font-medium text-foreground">Realtime</span>
+        <Button variant="destructive" size="sm" className="ml-2 h-6 text-[10px] px-2" onClick={handleForceSync}>
+          <RefreshCw className="w-3 h-3 mr-1" /> Force Sync
+        </Button>
       </div>
 
       {/* Teacher-only: live diagnostics for realtime + WebRTC */}
