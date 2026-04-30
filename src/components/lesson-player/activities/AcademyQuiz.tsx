@@ -16,6 +16,16 @@ export default function AcademyQuiz({ slide, onCorrect, onIncorrect }: Props) {
     isCorrect: o === slide.content?.correctAnswer || i === 0,
   })) || [];
 
+  if (!options || options.length === 0) {
+    return (
+      <div className="p-8 text-center flex flex-col items-center justify-center h-full">
+        <h2 className="text-2xl font-bold mb-4 text-foreground">{slide.title || 'Quiz'}</h2>
+        {(slide as any).description && <p className="text-muted-foreground text-lg max-w-xl">{(slide as any).description}</p>}
+        <p className="mt-8 text-sm text-amber-600 italic">Interactive data missing for this activity.</p>
+      </div>
+    );
+  }
+
   const [selected, setSelected] = useState<number | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [result, setResult] = useState<'correct' | 'incorrect' | null>(null);
