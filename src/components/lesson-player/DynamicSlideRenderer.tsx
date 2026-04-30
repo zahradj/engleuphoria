@@ -316,6 +316,23 @@ export default function DynamicSlideRenderer({
     if (directorType === 'role_play') {
       return <EditorialRolePlay slide={slide} onCorrect={onCorrectAnswer} />;
     }
+    // ── New Context-Aware Sequencing types ──────────────────────
+    if (directorType === 'audio_listening') {
+      return <EditorialAudioListening slide={slide} onCorrect={onCorrectAnswer} />;
+    }
+    if (directorType === 'true_false') {
+      return <EditorialTrueFalse slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    }
+    if (directorType === 'sentence_builder') {
+      return <EditorialSentenceBuilder slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    }
+    // Aliases: reading_quiz maps to quiz_mcq, match_words/image_match map to sorting_game
+    if (directorType === 'reading_quiz' || directorType === 'listening_comprehension') {
+      return <EditorialQuizMCQ slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    }
+    if (directorType === 'match_words' || directorType === 'image_match') {
+      return <EditorialSortingGame slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    }
     if (directorType === 'drag_and_match') {
       return <DragAndMatch slide={slide} hub={hub} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
     }
