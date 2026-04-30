@@ -88,6 +88,8 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   // Library drawer for live lesson injection
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+  // Raw GeneratedSlide[] for premium rendering in the stage
+  const [rawSlides, setRawSlides] = useState<any[]>([]);
 
   // Smart timer for Professional Buffer
   const sessionDuration: 25 | 55 = 25; // TODO: derive from booking data
