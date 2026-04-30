@@ -4,7 +4,7 @@ import { EmptyState } from './EmptyState';
 import { SlideCanvas } from './SlideCanvas';
 import { TeacherControlsPanel } from './TeacherControlsPanel';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Target, Sparkles, Loader2, Image as ImageIcon, ListChecks, Pencil, Layers } from 'lucide-react';
+import { ArrowRight, Loader2, Image as ImageIcon, ListChecks, Pencil, Layers } from 'lucide-react';
 import { generateAllMedia } from './mediaGeneration';
 import { toast } from 'sonner';
 import { SlideErrorBoundary } from '@/components/common/SlideErrorBoundary';
