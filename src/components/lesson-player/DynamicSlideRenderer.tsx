@@ -275,17 +275,28 @@ export default function DynamicSlideRenderer({
     // The generate-ppp-slides edge function emits slide_type = 'drag_and_match' | 'fill_in_the_gaps'.
     const directorType = (slide as any).slide_type || (slide as any).activityType || (slide as any).type;
     if (directorType === 'hero_media') {
-      return <LiveHeroMediaSlide slide={slide} />;
+      return <EditorialHeroMedia slide={slide} />;
     }
     if (directorType === 'vocab_list') {
-      return <LiveVocabularyGrid slide={slide} hub={hub} />;
+      return <EditorialVocabList slide={slide} />;
     }
     if (directorType === 'grammar_explanation') {
-      return <LiveGrammarExplanation slide={slide} hub={hub} />;
+      return <EditorialGrammar slide={slide} />;
+    }
+    if (directorType === 'sorting_game') {
+      return <EditorialSortingGame slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    }
+    if (directorType === 'fill_in_blanks') {
+      return <EditorialFillBlanks slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
     }
     if (directorType === 'match_halves') {
-      const matchSlide = { ...slide, slide_type: 'drag_and_match', activityType: 'drag_and_match', interactive_data: { ...getSlidePayload(slide), pairs: normalizePairs(slide) } };
-      return <DragAndMatch slide={matchSlide as GeneratedSlide} hub={hub} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+      return <EditorialMatchHalves slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    }
+    if (directorType === 'quiz_mcq') {
+      return <EditorialQuizMCQ slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    }
+    if (directorType === 'role_play') {
+      return <EditorialRolePlay slide={slide} onCorrect={onCorrectAnswer} />;
     }
     if (directorType === 'drag_and_match') {
       return <DragAndMatch slide={slide} hub={hub} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
