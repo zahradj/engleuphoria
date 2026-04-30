@@ -78,7 +78,7 @@ export const TeacherLessonLibrary: React.FC = () => {
         <div>
           <h2 className="text-2xl font-bold text-foreground">📚 My Lesson Library</h2>
           <p className="text-muted-foreground text-sm mt-1">
-            {lessons?.length || 0} lessons created
+            {displayLessons.length} lessons available
           </p>
         </div>
         <div className="relative w-full sm:w-72">
