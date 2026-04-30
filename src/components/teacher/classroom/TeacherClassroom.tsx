@@ -32,7 +32,7 @@ import { useIdleOpacity } from "@/hooks/useIdleOpacity";
 import { useClassroomTimer } from "@/hooks/classroom/useClassroomTimer";
 import { useSmartTimer } from "@/hooks/classroom/useSmartTimer";
 import { whiteboardService, type SmartWorksheet, type NativeGameType, type StageMode } from "@/services/whiteboardService";
-import { supabase } from "@/lib/supabase";
+
 
 type HubType = 'playground' | 'academy' | 'professional';
 

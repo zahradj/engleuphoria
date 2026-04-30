@@ -17,7 +17,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Timer, Dice6 } from 'lucide-react';
 import { useIdleOpacity } from '@/hooks/useIdleOpacity';
 import { whiteboardService } from '@/services/whiteboardService';
-import { supabase } from '@/lib/supabase';
+
 
 type HubType = 'playground' | 'academy' | 'professional';
 
