@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { ArrowDownUp, Check, X, RotateCcw, GripVertical } from 'lucide-react';
+import WhyWrongButton from './WhyWrongButton';
 import { Button } from '@/components/ui/button';
 
 interface SortingItem {
