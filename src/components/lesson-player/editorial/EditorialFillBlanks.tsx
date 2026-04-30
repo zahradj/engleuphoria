@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { PenLine, Check, X, RotateCcw, Lightbulb } from 'lucide-react';
+import WhyWrongButton from './WhyWrongButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
