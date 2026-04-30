@@ -63,6 +63,8 @@ export const CollaborativeWhiteboard = ({
   const [history, setHistory] = useState<DrawingElement[][]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const { toast } = useToast();
+  const drawingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const cursorChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const colors = ['#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500'];
 
@@ -78,10 +80,10 @@ export const CollaborativeWhiteboard = ({
     canvas.height = canvas.offsetHeight;
 
     // Set up real-time collaboration
-    setupRealtimeCollaboration();
+    const cleanupSubs = setupRealtimeCollaboration();
     
     return () => {
-      // Cleanup subscriptions
+      cleanupSubs?.();
     };
   }, [roomId]);
 
