@@ -255,7 +255,7 @@ export default function DynamicSlideRenderer({
     }
     if (directorType === 'match_halves') {
       const matchSlide = { ...slide, slide_type: 'drag_and_match', activityType: 'drag_and_match', interactive_data: { ...getSlidePayload(slide), pairs: normalizePairs(slide) } };
-      return <DragAndMatch slide={matchSlide} hub={hub} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+      return <DragAndMatch slide={matchSlide as GeneratedSlide} hub={hub} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
     }
     if (directorType === 'drag_and_match') {
       return <DragAndMatch slide={slide} hub={hub} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
