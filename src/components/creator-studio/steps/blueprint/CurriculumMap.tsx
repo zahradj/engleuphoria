@@ -1,10 +1,12 @@
-import React from 'react';
-import { Loader2, BookOpen, Palette, Target } from 'lucide-react';
+import React, { useState } from 'react';
+import { Loader2, BookOpen, Palette, Target, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useCreator, CurriculumData, BlueprintLessonRef } from '../../CreatorContext';
 import { SkillBadge } from './SkillBadge';
+import { persistBlueprintAsDrafts } from '../../persistBlueprint';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 interface Props {
   data: CurriculumData | null;
