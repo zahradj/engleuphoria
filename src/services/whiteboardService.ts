@@ -213,6 +213,9 @@ class WhiteboardService {
       })
       .on('broadcast', { event: 'game_state' }, (payload) => {
         gameStateListeners.forEach((cb) => cb(payload.payload as GameStatePayload));
+      })
+      .on('broadcast', { event: 'slide_completion' }, (payload) => {
+        slideCompletionListeners.forEach((cb) => cb(payload.payload as SlideCompletionPayload));
       });
 
     const ready = new Promise<void>((resolve) => {
