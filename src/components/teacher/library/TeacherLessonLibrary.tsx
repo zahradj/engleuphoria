@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,43 +8,25 @@ import { Input } from '@/components/ui/input';
 import { Pencil, Eye, Rocket, Search, BookOpen, Loader2 } from 'lucide-react';
 import { AssignLessonModal } from './AssignLessonModal';
 import { useNavigate } from 'react-router-dom';
+import { getLibraryLessons, toLibraryLessonCard, type LibraryLessonCard } from '@/services/lessonLibraryService';
 
-interface AiLesson {
-  id: string;
-  title: string | null;
-  topic: string;
-  level: string;
-  age_range: string | null;
-  status: string | null;
-  created_at: string;
-  script: any;
-}
-
-const hubFromAgeRange = (ageRange: string | null): { label: string; color: string } => {
-  if (!ageRange) return { label: 'General', color: 'bg-muted text-muted-foreground' };
-  const lower = ageRange.toLowerCase();
-  if (lower.includes('kid') || lower.includes('5') || lower.includes('6') || lower.includes('7') || lower.includes('8') || lower.includes('9') || lower.includes('playground'))
-    return { label: 'Playground', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' };
-  if (lower.includes('teen') || lower.includes('10') || lower.includes('11') || lower.includes('12') || lower.includes('13') || lower.includes('14') || lower.includes('academy'))
-    return { label: 'Academy', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' };
-  return { label: 'Success Hub', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' };
+const HUB_META: Record<LibraryLessonCard['hub'], { label: string; color: string }> = {
+  playground: { label: 'Playground', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' },
+  academy: { label: 'Academy', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' },
+  professional: { label: 'Success Hub', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' },
 };
 
 export const TeacherLessonLibrary: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
-  const [assignLesson, setAssignLesson] = useState<AiLesson | null>(null);
+  const [assignLesson, setAssignLesson] = useState<LibraryLessonCard | null>(null);
 
   const { data: lessons, isLoading } = useQuery({
-    queryKey: ['teacher-lessons-all'],
+    queryKey: ['teacher-master-library-lessons'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('ai_lessons')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return (data && data.length > 0 ? data : null) as AiLesson[] | null;
+      const data = await getLibraryLessons();
+      return data.map(toLibraryLessonCard);
     },
     enabled: !!user?.id,
   });
@@ -53,7 +34,9 @@ export const TeacherLessonLibrary: React.FC = () => {
   const displayLessons = lessons || [];
 
   const filtered = displayLessons.filter(l =>
-    (l.title || l.topic).toLowerCase().includes(search.toLowerCase())
+    [l.title, l.description, l.difficulty_level, l.hub]
+      .filter(Boolean)
+      .some(value => String(value).toLowerCase().includes(search.toLowerCase()))
   );
 
   if (isLoading) {
@@ -90,14 +73,13 @@ export const TeacherLessonLibrary: React.FC = () => {
         <Card className="p-12 text-center">
           <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <p className="text-muted-foreground">
-            {search ? 'No lessons match your search.' : 'No lessons yet. Create one in the Content Creator Studio!'}
+            {search ? 'No lessons match your search.' : 'No published master lessons yet. Publish a lesson in the Content Creator Studio.'}
           </p>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map(lesson => {
-            const hub = hubFromAgeRange(lesson.age_range);
-            const slideCount = Array.isArray(lesson.script) ? lesson.script.length : 0;
+            const hub = HUB_META[lesson.hub];
 
             return (
               <Card
