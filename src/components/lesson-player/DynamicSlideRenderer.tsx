@@ -59,6 +59,15 @@ import SoundTrigger from './activities/SoundTrigger';
 // Director PPP interactive types
 import DragAndMatch from './activities/DragAndMatch';
 import FillInTheGaps from './activities/FillInTheGaps';
+// Editorial Canvas components (Premium wide layout)
+import EditorialHeroMedia from './editorial/EditorialHeroMedia';
+import EditorialVocabList from './editorial/EditorialVocabList';
+import EditorialGrammar from './editorial/EditorialGrammar';
+import EditorialSortingGame from './editorial/EditorialSortingGame';
+import EditorialFillBlanks from './editorial/EditorialFillBlanks';
+import EditorialMatchHalves from './editorial/EditorialMatchHalves';
+import EditorialQuizMCQ from './editorial/EditorialQuizMCQ';
+import EditorialRolePlay from './editorial/EditorialRolePlay';
 // Slide types
 import SlideHook from './slides/SlideHook';
 import SlideVocabulary from './slides/SlideVocabulary';
