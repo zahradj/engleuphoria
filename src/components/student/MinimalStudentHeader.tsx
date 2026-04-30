@@ -1,7 +1,7 @@
 import React from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Bell } from "lucide-react";
+import { Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HubLogo } from "@/components/student/HubLogo";
 import { ThemeModeToggle } from "@/components/ui/ThemeModeToggle";
@@ -9,6 +9,20 @@ import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { useStudentLevel } from "@/hooks/useStudentLevel";
 import { useThemeMode } from "@/hooks/useThemeMode";
 import { useAuth } from "@/contexts/AuthContext";
+import { useStreak } from "@/hooks/useStreak";
+
+const StreakBadge: React.FC<{ isDark: boolean }> = ({ isDark }) => {
+  const { streak, loading } = useStreak();
+  if (loading || streak < 1) return null;
+  return (
+    <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-colors ${
+      isDark ? 'bg-orange-900/30 text-orange-300' : 'bg-orange-100 text-orange-600'
+    }`}>
+      <Flame className="h-3.5 w-3.5" />
+      {streak}
+    </div>
+  );
+};
 
 interface MinimalStudentHeaderProps {
   studentName: string;
@@ -82,6 +96,7 @@ export const MinimalStudentHeader: React.FC<MinimalStudentHeaderProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          <StreakBadge isDark={isDark} />
           {user && <NotificationBell />}
           <ThemeModeToggle className={`${isDark ? 'text-white/60 hover:text-white hover:bg-white/10' : 'text-muted-foreground hover:text-foreground hover:bg-black/5'}`} />
         </div>

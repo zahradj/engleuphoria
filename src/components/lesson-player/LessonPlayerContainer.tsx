@@ -10,6 +10,8 @@ import { soundEffectsService } from '@/services/soundEffectsService';
 import { triggerCelebration } from '@/services/celebration';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useMasteryTracker } from '@/hooks/useMasteryTracker';
+import { useStreak } from '@/hooks/useStreak';
 import { X, Volume2, VolumeX, Zap, Star, ChevronLeft, ChevronRight, Focus } from 'lucide-react';
 import PhaseTracker from './PhaseTracker';
 import { useLessonAutoSave, readLessonBookmark, clearLessonBookmark } from '@/hooks/useLessonAutoSave';
@@ -95,6 +97,8 @@ export default function LessonPlayerContainer({
   const [answerSelected, setAnswerSelected] = useState(false);
   const [spotlightActive, setSpotlightActive] = useState(false);
   const startTimeRef = useRef(Date.now());
+  const { trackMastery } = useMasteryTracker();
+  const { bumpStreak } = useStreak();
 
   // Stars remaining (used by the resume bookmark — defaults to 3 hearts/lives)
   const [starsRemaining] = useState(3);
@@ -150,7 +154,10 @@ export default function LessonPlayerContainer({
     setFeedbackSolution('');
     setFeedbackVisible(true);
     if (!muted) soundEffectsService.playCorrect();
-  }, [muted]);
+    // SRS: track mastery for the current slide's item
+    const itemKey = currentSlide?.content?.word || currentSlide?.content?.title || currentSlide?.title;
+    if (itemKey) trackMastery(itemKey, true, 'vocabulary', hub);
+  }, [muted, currentSlide, trackMastery, hub]);
 
   const handleIncorrectAnswer = useCallback(() => {
     setAnswerSelected(true);
@@ -159,7 +166,10 @@ export default function LessonPlayerContainer({
     setFeedbackSolution(answer);
     setFeedbackVisible(true);
     if (!muted) soundEffectsService.playIncorrect();
-  }, [muted, currentSlide]);
+    // SRS: track mastery failure
+    const itemKey = currentSlide?.content?.word || currentSlide?.content?.title || currentSlide?.title;
+    if (itemKey) trackMastery(itemKey, false, 'vocabulary', hub);
+  }, [muted, currentSlide, trackMastery, hub]);
 
   const handlePrevSlide = useCallback(() => {
     if (currentSlideIndex > 0) {
@@ -186,7 +196,8 @@ export default function LessonPlayerContainer({
     clearLessonBookmark(lessonId); // remove resume bookmark — lesson is done
     if (!muted) soundEffectsService.playCelebration();
     onComplete?.(lessonScore);
-  }, [lessonScore, onComplete, muted, lessonId]);
+    bumpStreak(); // Update daily streak
+  }, [lessonScore, onComplete, muted, lessonId, bumpStreak]);
 
   const claimRewards = useCallback(async () => {
     // Persist completion to Supabase. Throws on failure so reward page can toast it.
