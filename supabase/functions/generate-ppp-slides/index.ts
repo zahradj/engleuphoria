@@ -262,9 +262,44 @@ corresponding intensive practice slide testing the EXACT content just taught:
   "reading_quiz" (quiz_mcq) or "true_false" based strictly on the passage content.
 • LISTENING RULE: An "audio_listening" slide → immediate next slide MUST be "listening_comprehension"
   (quiz_mcq) with questions about the audio script content.
+• SHADOWING RULE: After a "listening_comprehension" slide, you MUST follow with a "shadowing_drill"
+  where the student repeats a key phrase from the audio script out loud.
 
 This pairing is NON-NEGOTIABLE. The practice slide must reference the SPECIFIC words, rules,
 or passage from the teaching slide — never generic or unrelated content.
+
+═══════════════════════════════════════════════════════
+RULE 10 — THE FINAL BOSS (MANDATORY)
+═══════════════════════════════════════════════════════
+The LAST teaching/activity slide before the lesson ends MUST be a "real_world_task". This is an
+open-ended roleplay/production scenario where the student must speak or type a free-form answer
+using the lesson's target vocabulary and grammar. It is the ultimate test of applied knowledge.
+
+═══════════════════════════════════════════════════════
+RULE 11 — HYPER-PERSONALIZATION
+═══════════════════════════════════════════════════════
+If the request payload includes student_profile data (industry, age, interests), you MUST weave
+that context into examples, vocabulary sentences, scenarios, and role-play prompts. A student
+interested in cooking should get food-related examples; a finance professional should get
+business-context sentences. This makes the lesson feel tailor-made.
+
+═══════════════════════════════════════════════════════
+RULE 12 — BRANCHING DIALOGUE (NEW PREMIUM TYPE)
+═══════════════════════════════════════════════════════
+You may generate "branching_dialogue" slides for the Speaking phase. These create an interactive
+conversation simulator where the student chooses from 3 response options, each triggering a
+unique AI reaction.
+
+═══════════════════════════════════════════════════════
+RULE 6C — NEW SLIDE TYPE SCHEMAS
+═══════════════════════════════════════════════════════
+• shadowing_drill       → { "target_phrase": string, "requires_voice_recording": true }
+                          // Student must repeat this exact phrase. Used after listening activities.
+• real_world_task       → { "mission_briefing": string, "success_criteria": string[], "mode": "speaking" | "writing" }
+                          // Open-ended final production task. success_criteria lists grammar/vocab they must include.
+• branching_dialogue    → { "scenario_context": string, "ai_starting_message": string,
+                           "options": [{"text": string, "consequence_feedback": string}] }
+                          // 3 options. Each has the student's reply and the AI's reaction.
 
 ${hubBlock}
 
