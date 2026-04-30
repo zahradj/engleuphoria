@@ -286,7 +286,7 @@ export default function LessonPlayerContainer({
 
       {/* ── Fixed Top Bar ── */}
       <div className={`fixed top-0 left-0 right-0 z-30 px-4 py-2.5 ${skin.header}`}>
-        <div className="w-full max-w-[720px] mx-auto flex items-center gap-3">
+        <div className="w-full max-w-5xl mx-auto flex items-center gap-3">
           <button
             onClick={onExit}
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/10 transition-colors shrink-0"
@@ -340,7 +340,7 @@ export default function LessonPlayerContainer({
           </button>
         </div>
         {/* 6-Step Phase Tracker — locked progression map */}
-        <div className="w-full max-w-[720px] mx-auto mt-2">
+        <div className="w-full max-w-5xl mx-auto mt-2">
           <PhaseTracker
             slides={slides as any}
             currentIndex={currentSlideIndex}
@@ -362,7 +362,7 @@ export default function LessonPlayerContainer({
 
       {/* ── Centered Content Area ── */}
       <div className="flex-1 flex items-center justify-center px-4 py-4 overflow-auto" style={{ paddingTop: 124, paddingBottom: 88 }}>
-        <div className={`w-full max-w-[720px] rounded-[20px] overflow-hidden relative z-20 ${skin.card}`}>
+        <div className={`w-full max-w-5xl rounded-[20px] overflow-hidden relative z-20 ${skin.card}`}>
           <AnimatePresence mode="wait">
             <DynamicSlideRenderer
               key={currentSlide.id}
@@ -387,7 +387,7 @@ export default function LessonPlayerContainer({
       {/* ── Fixed Bottom Footer ── */}
       {!feedbackVisible && (
         <div className={`fixed bottom-0 left-0 right-0 z-20 px-4 py-3 ${skin.footer}`}>
-          <div className="w-full max-w-[720px] mx-auto flex items-center justify-between gap-3">
+          <div className="w-full max-w-5xl mx-auto flex items-center justify-between gap-3">
             {/* Back Button */}
             <button
               onClick={handlePrevSlide}
