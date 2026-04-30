@@ -28,6 +28,7 @@ import { BookMyClassModal } from '../BookMyClassModal';
 import { JoinLessonHero } from '../JoinLessonHero';
 import { HubLogo } from '../HubLogo';
 import { cn } from '@/lib/utils';
+import { DashboardVoiceGym } from '../DashboardVoiceGym';
 
 interface AcademyDashboardProps {
   studentName?: string;
@@ -224,6 +225,11 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
             {/* Record Clip */}
             <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.28 }}>
               <RecordClipWidget />
+            </motion.div>
+
+            {/* Daily Voice Gym */}
+            <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.32 }}>
+              <DashboardVoiceGym hub="academy" />
             </motion.div>
           </div>
 
