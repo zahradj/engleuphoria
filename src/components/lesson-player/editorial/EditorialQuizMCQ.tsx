@@ -142,9 +142,16 @@ export default function EditorialQuizMCQ({ slide, onCorrect, onIncorrect }: Edit
             )}
           </div>
           {!isCorrect && (
-            <Button variant="ghost" size="sm" onClick={handleRetry} className="flex-shrink-0">
-              <RotateCcw className="w-4 h-4 mr-1" /> Retry
-            </Button>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <WhyWrongButton
+                questionText={question}
+                correctAnswer={options[correctIndex]}
+                userAnswer={selected !== null ? options[selected] : ''}
+              />
+              <Button variant="ghost" size="sm" onClick={handleRetry} className="flex-shrink-0">
+                <RotateCcw className="w-4 h-4 mr-1" /> Retry
+              </Button>
+            </div>
           )}
         </div>
       )}
