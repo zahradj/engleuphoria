@@ -41,7 +41,7 @@ const SlideMedia: React.FC<{ slide: PPPSlide }> = ({ slide }) => {
     const src = slide.youtube_embed_url
       || `https://www.youtube-nocookie.com/embed/${slide.youtube_video_id}?rel=0&modestbranding=1`;
     return (
-      <div className="mx-auto rounded-2xl overflow-hidden shadow-md w-full max-w-sm aspect-video bg-black">
+      <div className="mx-auto rounded-2xl overflow-hidden shadow-md w-full aspect-video bg-black">
         <iframe
           key={slide.youtube_video_id}
           src={src}
