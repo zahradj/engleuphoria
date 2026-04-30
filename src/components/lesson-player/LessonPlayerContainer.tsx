@@ -183,9 +183,10 @@ export default function LessonPlayerContainer({
 
   const completeLesson = useCallback(() => {
     setCompleted(true);
+    clearLessonBookmark(lessonId); // remove resume bookmark — lesson is done
     if (!muted) soundEffectsService.playCelebration();
     onComplete?.(lessonScore);
-  }, [lessonScore, onComplete, muted]);
+  }, [lessonScore, onComplete, muted, lessonId]);
 
   const claimRewards = useCallback(async () => {
     // Persist completion to Supabase. Throws on failure so reward page can toast it.
