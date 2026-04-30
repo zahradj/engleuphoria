@@ -221,6 +221,10 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
         duration: 3000,
       });
     });
+    const unsubSlideSync = whiteboardService.subscribeToSlideSync(roomName, (payload) => {
+      if (payload.senderId === teacherUserId || typeof payload.index !== 'number') return;
+      setCurrentSlideIndex(payload.index);
+    });
 
     return () => {
       unsubStage();
@@ -228,8 +232,9 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
       unsubReward();
       unsubStatus();
       unsubSlideComplete();
+      unsubSlideSync();
     };
-  }, [roomName, teacherUserId, applyRemoteStageMode, applyRemoteDrawingEnabled]);
+  }, [roomName, teacherUserId, applyRemoteStageMode, applyRemoteDrawingEnabled, setCurrentSlideIndex]);
 
   // Screen share hook
   const {
