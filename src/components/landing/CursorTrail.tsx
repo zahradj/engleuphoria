@@ -13,24 +13,15 @@ interface Particle {
 
 const MAX_PARTICLES = 120;
 
-/** Read HSL CSS variables from :root and convert to usable HSL strings. */
+/** Playground yellow-orange palette for cursor trail particles. */
 function getBrandColors(): string[] {
-  const vars = ["--primary", "--secondary", "--accent", "--ring", "--chart-1", "--chart-2"];
-  const style = getComputedStyle(document.documentElement);
-  const colors: string[] = [];
-
-  for (const v of vars) {
-    const raw = style.getPropertyValue(v).trim();
-    if (raw) {
-      colors.push(`hsl(${raw})`);
-    }
-  }
-
-  // Fallback if no CSS vars resolved
-  if (colors.length === 0) {
-    return ["hsl(280 60% 65%)", "hsl(24 95% 54%)", "hsl(217 91% 60%)", "hsl(190 95% 53%)"];
-  }
-  return colors;
+  return [
+    "#FE6A2F", // Playground primary orange
+    "#F59E0B", // Amber
+    "#FBBF24", // Yellow-400
+    "#F97316", // Orange-500
+    "#FDBA74", // Orange-300 (softer glow)
+  ];
 }
 
 export function CursorTrail() {
