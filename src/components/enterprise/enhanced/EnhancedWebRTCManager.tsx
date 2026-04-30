@@ -34,7 +34,17 @@ export const useEnhancedWebRTC = (roomId: string, userId: string) => {
   
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const peerConnectionsRef = useRef<Map<string, RTCPeerConnection>>(new Map());
+  const signalingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const { toast } = useToast();
+
+  // Lazily get or create the signaling channel — single channel per room
+  const getSignalingChannel = useCallback(() => {
+    if (!signalingChannelRef.current) {
+      signalingChannelRef.current = supabase.channel(`webrtc_${roomId}`);
+      signalingChannelRef.current.subscribe();
+    }
+    return signalingChannelRef.current;
+  }, [roomId]);
 
   // ICE servers configuration with TURN/STUN
   const iceServers = [
