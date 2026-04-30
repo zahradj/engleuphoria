@@ -54,6 +54,14 @@ async function readEdgeError(err: unknown): Promise<{ status?: number; message: 
 }
 
 function toastEdgeError(status: number | undefined, message: string, fallback: string) {
+  if (status === 402 && /lesson credit/i.test(message)) {
+    toast.error('Out of Lesson Credits', {
+      description: 'Upgrade your plan to keep generating lessons.',
+      action: { label: 'Upgrade Plan', onClick: () => { window.location.href = '/billing'; } },
+      duration: 8000,
+    });
+    return;
+  }
   if (status === 429) toast.error('Rate limit reached. Try again in a moment.');
   else if (status === 402) toast.error('AI credits exhausted. Add funds in Workspace → Usage.');
   else toast.error(message || fallback);
