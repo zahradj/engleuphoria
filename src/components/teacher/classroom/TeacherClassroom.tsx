@@ -32,6 +32,7 @@ import { useIdleOpacity } from "@/hooks/useIdleOpacity";
 import { useClassroomTimer } from "@/hooks/classroom/useClassroomTimer";
 import { useSmartTimer } from "@/hooks/classroom/useSmartTimer";
 import { whiteboardService, type SmartWorksheet, type NativeGameType, type StageMode } from "@/services/whiteboardService";
+import { supabase } from "@/lib/supabase";
 
 type HubType = 'playground' | 'academy' | 'professional';
 
@@ -107,6 +108,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   // Use classId directly as roomName so both teacher and student join the same room
   const roomName = classId;
   const webrtcRoom = `engleuphoria-${classId}`;
+  const slideSyncChannelRef = React.useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const slides = React.useMemo(() => ([
     { id: '1', title: 'Welcome to the Lesson' },
@@ -221,20 +223,32 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
         duration: 3000,
       });
     });
-    const unsubSlideSync = whiteboardService.subscribeToSlideSync(roomName, (payload) => {
-      if (payload.senderId === teacherUserId || typeof payload.index !== 'number') return;
-      setCurrentSlideIndex(payload.index);
-    });
-
     return () => {
       unsubStage();
       unsubDrawing();
       unsubReward();
       unsubStatus();
       unsubSlideComplete();
-      unsubSlideSync();
     };
   }, [roomName, teacherUserId, applyRemoteStageMode, applyRemoteDrawingEnabled, setCurrentSlideIndex]);
+
+  useEffect(() => {
+    if (!roomName) return;
+
+    const channel = supabase.channel(`classroom_${roomName}`);
+    slideSyncChannelRef.current = channel;
+
+    channel.on('broadcast', { event: 'SYNC_SLIDE' }, (response) => {
+      console.log('Received sync event:', response.payload);
+      if (response.payload?.senderId === teacherUserId || typeof response.payload?.index !== 'number') return;
+      setCurrentSlideIndex(response.payload.index);
+    }).subscribe();
+
+    return () => {
+      slideSyncChannelRef.current = null;
+      supabase.removeChannel(channel);
+    };
+  }, [roomName, teacherUserId, setCurrentSlideIndex]);
 
   // Screen share hook
   const {
@@ -371,7 +385,11 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   const broadcastSlideIndex = useCallback(async (index: number) => {
     setCurrentSlideIndex(index);
-    await whiteboardService.sendSlideSync(roomName, { index, senderId: teacherUserId });
+    await slideSyncChannelRef.current?.send({
+      type: 'broadcast',
+      event: 'SYNC_SLIDE',
+      payload: { index, senderId: teacherUserId }
+    });
   }, [roomName, setCurrentSlideIndex, teacherUserId]);
 
   const handlePrevSlide = useCallback(async () => {
