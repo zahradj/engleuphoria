@@ -498,6 +498,7 @@ class WhiteboardService {
       room.chatListeners.size === 0 &&
       room.worksheetListeners.size === 0 &&
       room.gameStateListeners.size === 0 &&
+      room.slideCompletionListeners.size === 0 &&
       room.statusListeners.size === 0
     ) {
       supabase.removeChannel(room.channel);
