@@ -120,9 +120,14 @@ export const CollaborativeWhiteboard = ({
       })
       .subscribe();
 
+    drawingChannelRef.current = drawingChannel;
+    cursorChannelRef.current = cursorChannel;
+
     return () => {
       supabase.removeChannel(drawingChannel);
       supabase.removeChannel(cursorChannel);
+      drawingChannelRef.current = null;
+      cursorChannelRef.current = null;
     };
   };
 
