@@ -353,16 +353,31 @@ requires_video = true and youtube_query verbatim. Add an active-listening questi
 `;
     }
 
+    // Build personalization context if student profile is available
+    let personalizationBlock = "";
+    if (student_profile && typeof student_profile === "object") {
+      const parts: string[] = [];
+      if (student_profile.industry) parts.push(`Industry: ${student_profile.industry}`);
+      if (student_profile.age) parts.push(`Age: ${student_profile.age}`);
+      if (Array.isArray(student_profile.interests) && student_profile.interests.length > 0) {
+        parts.push(`Interests: ${student_profile.interests.join(", ")}`);
+      }
+      if (parts.length > 0) {
+        personalizationBlock = `\n\nSTUDENT PROFILE (use for hyper-personalization — weave into examples, scenarios, vocabulary sentences):\n${parts.join("\n")}`;
+      }
+    }
+
     const userPrompt = `Lesson title: ${effectiveTitle}
 Objective: ${objective ?? "(not provided)"}
 Skill focus: ${skill_focus}
 CEFR level: ${cefr_level}
 Hub: ${hub}
-${blueprintBlock}
+${blueprintBlock}${personalizationBlock}
 Generate the dense 20–25 slide 1-hour lesson NOW following the 6-Step Integrated Skills Blueprint
 EXACTLY (Vocabulary → Reading → Comprehension → Grammar → Speaking → Writing). Every slide MUST be
 tagged with lesson_phase. The Phase-2 reading passage MUST reuse Phase-1 vocabulary (wrapped in
-**bold**), and Phase 5 + 6 MUST require both the lexicon and the Phase-4 grammar rule.`;
+**bold**), and Phase 5 + 6 MUST require both the lexicon and the Phase-4 grammar rule.
+The FINAL activity slide MUST be a "real_world_task" (The Final Boss).`;
 
 
     // JSON-mode contract appended to the system prompt. We avoid Gemini's
