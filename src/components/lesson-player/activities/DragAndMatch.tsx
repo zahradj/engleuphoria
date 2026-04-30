@@ -52,6 +52,16 @@ export default function DragAndMatch({ slide, hub = 'academy', onCorrect, onInco
       })) as Pair[];
   }, [slide.id]);
 
+  if (pairs.length === 0) {
+    return (
+      <div className="p-8 text-center flex flex-col items-center justify-center h-full">
+        <h2 className="text-2xl font-bold mb-4 text-foreground">{slide.title || 'Match Activity'}</h2>
+        {(slide as any).description && <p className="text-muted-foreground text-lg max-w-xl">{(slide as any).description}</p>}
+        <p className="mt-8 text-sm text-amber-600 italic">Interactive data missing for this activity.</p>
+      </div>
+    );
+  }
+
   // Shuffle right column once so the order doesn't telegraph the answer.
   const rightItems: string[] = useMemo(() => {
     const arr = pairs.map((p) => p.right_item);
