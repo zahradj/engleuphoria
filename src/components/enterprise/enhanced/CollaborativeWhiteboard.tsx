@@ -248,7 +248,7 @@ export const CollaborativeWhiteboard = ({
     const y = e.clientY - rect.top;
 
     // Update cursor position for other users
-    const cursorChannel = supabase.channel(`cursors_${roomId}`);
+    const cursorCh = cursorChannelRef.current;
     cursorChannel.track({
       userId,
       userName,
