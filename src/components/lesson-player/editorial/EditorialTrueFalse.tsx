@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { CheckCircle2, XCircle, RotateCcw, ListChecks } from 'lucide-react';
+import WhyWrongButton from './WhyWrongButton';
 import { Button } from '@/components/ui/button';
 
 interface TFStatement {
