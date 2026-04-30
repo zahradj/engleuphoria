@@ -109,6 +109,7 @@ type RewardListener = (payload: RewardPayload) => void;
 type ToolActionListener = (payload: ToolActionPayload) => void;
 type ChatListener = (payload: ChatBroadcastPayload) => void;
 type WorksheetLoadListener = (payload: WorksheetLoadPayload) => void;
+type SlideCompletionListener = (payload: SlideCompletionPayload) => void;
 type GameStateListener = (payload: GameStatePayload) => void;
 
 interface RoomChannel {
