@@ -31,6 +31,9 @@ interface MainStageProps {
   iframeUnlocked?: boolean;
   /** Active Smart Worksheet for native game modes. */
   worksheet?: SmartWorksheet | null;
+  /** Raw GeneratedSlide data for premium rendering. */
+  rawSlides?: any[];
+  hubType?: HubType;
   onAddStroke: (stroke: Omit<WhiteboardStroke, 'id' | 'roomId' | 'timestamp'>) => void;
 }
 
