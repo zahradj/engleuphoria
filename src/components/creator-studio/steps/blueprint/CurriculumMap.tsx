@@ -158,6 +158,20 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
             </AccordionItem>
           ))}
         </Accordion>
+
+        {/* Save Blueprint Button */}
+        <Button
+          size="lg"
+          onClick={handleSaveBlueprint}
+          disabled={saving}
+          className="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 text-white shadow-md"
+        >
+          {saving ? (
+            <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Saving…</>
+          ) : (
+            <><Save className="w-5 h-5 mr-2" /> Save Entire Blueprint to Library</>
+          )}
+        </Button>
       </div>
     </>
   );
