@@ -32,10 +32,19 @@ export async function persistLesson(
     return 'beginner';
   };
 
+  // DB CHECK constraint: target_system ∈ ('kids' | 'teen' | 'adult').
+  // Map studio hubs (playground/academy/success) → allowed values.
+  const hubToTargetSystem = (hub: string): 'kids' | 'teen' | 'adult' => {
+    const h = (hub || '').toLowerCase();
+    if (h === 'playground' || h === 'kids') return 'kids';
+    if (h === 'academy' || h === 'teen' || h === 'teens') return 'teen';
+    return 'adult'; // success / professional / adults
+  };
+
   const basePayload: Record<string, any> = {
     title: lesson.lesson_title,
     description: lesson.target_goal ?? null,
-    target_system: lesson.hub,
+    target_system: hubToTargetSystem(lesson.hub),
     difficulty_level: cefrToDifficulty(lesson.cefr_level),
     duration_minutes: 30,
     content: { slides, homework_missions: lesson.homework_missions ?? [] },
