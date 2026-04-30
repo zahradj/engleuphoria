@@ -68,6 +68,9 @@ import EditorialFillBlanks from './editorial/EditorialFillBlanks';
 import EditorialMatchHalves from './editorial/EditorialMatchHalves';
 import EditorialQuizMCQ from './editorial/EditorialQuizMCQ';
 import EditorialRolePlay from './editorial/EditorialRolePlay';
+import FrontPageSlide from './editorial/FrontPageSlide';
+import CelebrationSlide from './editorial/CelebrationSlide';
+import VideoSlide from './editorial/VideoSlide';
 // Slide types
 import SlideHook from './slides/SlideHook';
 import SlideVocabulary from './slides/SlideVocabulary';
