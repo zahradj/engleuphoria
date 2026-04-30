@@ -176,8 +176,8 @@ export const RealTimeCollaboration = ({ roomId }: { roomId: string }) => {
       .subscribe();
 
     return () => {
-      chatChannel.unsubscribe();
-      presenceChannel.unsubscribe();
+      supabase.removeChannel(chatChannel);
+      supabase.removeChannel(presenceChannel);
     };
   };
 
