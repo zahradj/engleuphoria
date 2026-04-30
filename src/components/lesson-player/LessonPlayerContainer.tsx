@@ -447,6 +447,15 @@ export default function LessonPlayerContainer({
             <Focus size={16} />
           </button>
 
+          {/* Library Book icon */}
+          <button
+            onClick={() => setIsLibraryOpen(true)}
+            className="opacity-50 hover:opacity-100 shrink-0 transition-opacity"
+            title="Lesson Library"
+          >
+            <BookOpen size={16} />
+          </button>
+
           <button onClick={toggleMute} className="opacity-50 hover:opacity-100 shrink-0">
             {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
           </button>
