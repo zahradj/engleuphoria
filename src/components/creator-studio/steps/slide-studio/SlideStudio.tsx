@@ -101,7 +101,6 @@ const SlideStudioInner: React.FC = () => {
     );
   }
 
-  const slides = activeLessonData.slides;
   const activeSlide = slides.find((s) => s.id === activeSlideId) ?? null;
   const activeIndex = activeSlide ? slides.findIndex((s) => s.id === activeSlide.id) : -1;
 
