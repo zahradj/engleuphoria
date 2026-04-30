@@ -277,6 +277,18 @@ export default function DynamicSlideRenderer({
     // ── Director PPP interactive types (highest priority) ─────────
     // The generate-ppp-slides edge function emits slide_type = 'drag_and_match' | 'fill_in_the_gaps'.
     const directorType = (slide as any).slide_type || (slide as any).activityType || (slide as any).type;
+
+    // ── Bookend slides ────────────────────────────────────────────
+    if (directorType === 'front_page') {
+      return <FrontPageSlide lessonTitle={(slide as any).title || ''} topic={(slide as any).topic} level={(slide as any).level} hub={hub} coverImageUrl={(slide as any).coverImageUrl || (slide as any).imageUrl} />;
+    }
+    if (directorType === 'celebration') {
+      return <CelebrationSlide lessonTitle={(slide as any).title || ''} topic={(slide as any).topic} hub={hub} onFinish={onComplete} />;
+    }
+    if (directorType === 'video_page') {
+      return <VideoSlide slide={slide} />;
+    }
+
     if (directorType === 'hero_media') {
       return <EditorialHeroMedia slide={slide} />;
     }
