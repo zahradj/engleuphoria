@@ -19,7 +19,7 @@ interface UseClassroomSyncReturn {
   currentSlide: number;
   activeTool: string;
   studentCanDraw: boolean;
-  lessonSlides: Array<{ id: string; title: string; imageUrl?: string; type?: string; quizQuestion?: string; quizOptions?: Array<{ id: string; text: string; isCorrect: boolean }>; pollQuestion?: string; pollOptions?: Array<{ id: string; text: string }> }>;
+  lessonSlides: Array<{ id: string; title: string; imageUrl?: string; content?: string; type?: string; quizQuestion?: string; quizOptions?: Array<{ id: string; text: string; isCorrect: boolean }>; pollQuestion?: string; pollOptions?: Array<{ id: string; text: string }> }>;
   lessonTitle: string;
   isConnected: boolean;
   
