@@ -38,20 +38,28 @@ export const TeacherLessonLibrary: React.FC = () => {
   const [assignLesson, setAssignLesson] = useState<AiLesson | null>(null);
 
   const { data: lessons, isLoading } = useQuery({
-    queryKey: ['teacher-lessons', user?.id],
+    queryKey: ['teacher-lessons-all'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('ai_lessons')
         .select('*')
-        .eq('user_id', user!.id)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data as AiLesson[];
+      return (data && data.length > 0 ? data : null) as AiLesson[] | null;
     },
     enabled: !!user?.id,
   });
 
-  const filtered = (lessons || []).filter(l =>
+  const DUMMY_LESSONS: AiLesson[] = [
+    { id: 'dummy-1', title: 'Present Simple Mastery', topic: 'Grammar', level: 'A2', age_range: 'academy', status: 'published', created_at: new Date().toISOString(), script: [{},{},{},{},{},{}] },
+    { id: 'dummy-2', title: 'Business Negotiations', topic: 'Speaking', level: 'B2', age_range: 'professional', status: 'published', created_at: new Date().toISOString(), script: [{},{},{},{},{},{},{},{}] },
+    { id: 'dummy-3', title: 'Animal Friends', topic: 'Vocabulary', level: 'Pre-A1', age_range: 'playground', status: 'published', created_at: new Date().toISOString(), script: [{},{},{},{},{}] },
+    { id: 'dummy-4', title: 'Past Tense Adventures', topic: 'Grammar', level: 'B1', age_range: 'academy', status: 'published', created_at: new Date().toISOString(), script: [{},{},{},{},{},{},{}] },
+  ];
+
+  const displayLessons = lessons || DUMMY_LESSONS;
+
+  const filtered = displayLessons.filter(l =>
     (l.title || l.topic).toLowerCase().includes(search.toLowerCase())
   );
 
@@ -70,7 +78,7 @@ export const TeacherLessonLibrary: React.FC = () => {
         <div>
           <h2 className="text-2xl font-bold text-foreground">📚 My Lesson Library</h2>
           <p className="text-muted-foreground text-sm mt-1">
-            {lessons?.length || 0} lessons created
+            {displayLessons.length} lessons available
           </p>
         </div>
         <div className="relative w-full sm:w-72">
