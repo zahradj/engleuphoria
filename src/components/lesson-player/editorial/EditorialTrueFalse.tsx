@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { CheckCircle2, XCircle, RotateCcw, ListChecks } from 'lucide-react';
+import WhyWrongButton from './WhyWrongButton';
 import { Button } from '@/components/ui/button';
 
 interface TFStatement {
@@ -129,9 +130,16 @@ export default function EditorialTrueFalse({ slide, onCorrect, onIncorrect }: Ed
                 </button>
 
                 {checked && !results[i] && (
-                  <span className="text-xs text-red-500 ml-2">
-                    Answer: <strong>{stmt.is_true ? 'True' : 'False'}</strong>
-                  </span>
+                  <div className="flex items-center gap-2 ml-2">
+                    <span className="text-xs text-red-500">
+                      Answer: <strong>{stmt.is_true ? 'True' : 'False'}</strong>
+                    </span>
+                    <WhyWrongButton
+                      questionText={stmt.text}
+                      correctAnswer={stmt.is_true ? 'True' : 'False'}
+                      userAnswer={answers[i] === true ? 'True' : 'False'}
+                    />
+                  </div>
                 )}
                 {checked && results[i] && (
                   <CheckCircle2 className="w-4 h-4 text-emerald-500 ml-2" />

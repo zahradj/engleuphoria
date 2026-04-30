@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { PenLine, Check, X, RotateCcw, Lightbulb } from 'lucide-react';
+import WhyWrongButton from './WhyWrongButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -134,10 +135,17 @@ export default function EditorialFillBlanks({ slide, onCorrect, onIncorrect }: E
 
               {/* Feedback per sentence */}
               {checked && !results[i] && (
-                <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                  <X className="w-3.5 h-3.5" />
-                  Correct answer: <strong className="ml-1">{sentence.correct_answer}</strong>
-                </p>
+                <div>
+                  <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                    <X className="w-3.5 h-3.5" />
+                    Correct answer: <strong className="ml-1">{sentence.correct_answer}</strong>
+                  </p>
+                  <WhyWrongButton
+                    questionText={sentence.text_with_blank}
+                    correctAnswer={sentence.correct_answer}
+                    userAnswer={answers[i]}
+                  />
+                </div>
               )}
               {checked && results[i] && (
                 <p className="mt-2 text-sm text-emerald-600 flex items-center gap-1">

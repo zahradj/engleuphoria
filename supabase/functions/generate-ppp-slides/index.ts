@@ -55,6 +55,7 @@ Deno.serve(async (req) => {
       hub = "academy",
       target_hub, // ← preferred new field; falls back to `hub`
       blueprint, // ← Approved Blueprint (optional). When present, treated as ground truth.
+      student_profile, // ← Hyper-personalization: { industry, age, interests[] }
     } = body || {};
 
     // Allow the title to fall back to blueprint.lesson_title when caller omits it.
@@ -261,9 +262,44 @@ corresponding intensive practice slide testing the EXACT content just taught:
   "reading_quiz" (quiz_mcq) or "true_false" based strictly on the passage content.
 • LISTENING RULE: An "audio_listening" slide → immediate next slide MUST be "listening_comprehension"
   (quiz_mcq) with questions about the audio script content.
+• SHADOWING RULE: After a "listening_comprehension" slide, you MUST follow with a "shadowing_drill"
+  where the student repeats a key phrase from the audio script out loud.
 
 This pairing is NON-NEGOTIABLE. The practice slide must reference the SPECIFIC words, rules,
 or passage from the teaching slide — never generic or unrelated content.
+
+═══════════════════════════════════════════════════════
+RULE 10 — THE FINAL BOSS (MANDATORY)
+═══════════════════════════════════════════════════════
+The LAST teaching/activity slide before the lesson ends MUST be a "real_world_task". This is an
+open-ended roleplay/production scenario where the student must speak or type a free-form answer
+using the lesson's target vocabulary and grammar. It is the ultimate test of applied knowledge.
+
+═══════════════════════════════════════════════════════
+RULE 11 — HYPER-PERSONALIZATION
+═══════════════════════════════════════════════════════
+If the request payload includes student_profile data (industry, age, interests), you MUST weave
+that context into examples, vocabulary sentences, scenarios, and role-play prompts. A student
+interested in cooking should get food-related examples; a finance professional should get
+business-context sentences. This makes the lesson feel tailor-made.
+
+═══════════════════════════════════════════════════════
+RULE 12 — BRANCHING DIALOGUE (NEW PREMIUM TYPE)
+═══════════════════════════════════════════════════════
+You may generate "branching_dialogue" slides for the Speaking phase. These create an interactive
+conversation simulator where the student chooses from 3 response options, each triggering a
+unique AI reaction.
+
+═══════════════════════════════════════════════════════
+RULE 6C — NEW SLIDE TYPE SCHEMAS
+═══════════════════════════════════════════════════════
+• shadowing_drill       → { "target_phrase": string, "requires_voice_recording": true }
+                          // Student must repeat this exact phrase. Used after listening activities.
+• real_world_task       → { "mission_briefing": string, "success_criteria": string[], "mode": "speaking" | "writing" }
+                          // Open-ended final production task. success_criteria lists grammar/vocab they must include.
+• branching_dialogue    → { "scenario_context": string, "ai_starting_message": string,
+                           "options": [{"text": string, "consequence_feedback": string}] }
+                          // 3 options. Each has the student's reply and the AI's reaction.
 
 ${hubBlock}
 
@@ -317,16 +353,31 @@ requires_video = true and youtube_query verbatim. Add an active-listening questi
 `;
     }
 
+    // Build personalization context if student profile is available
+    let personalizationBlock = "";
+    if (student_profile && typeof student_profile === "object") {
+      const parts: string[] = [];
+      if (student_profile.industry) parts.push(`Industry: ${student_profile.industry}`);
+      if (student_profile.age) parts.push(`Age: ${student_profile.age}`);
+      if (Array.isArray(student_profile.interests) && student_profile.interests.length > 0) {
+        parts.push(`Interests: ${student_profile.interests.join(", ")}`);
+      }
+      if (parts.length > 0) {
+        personalizationBlock = `\n\nSTUDENT PROFILE (use for hyper-personalization — weave into examples, scenarios, vocabulary sentences):\n${parts.join("\n")}`;
+      }
+    }
+
     const userPrompt = `Lesson title: ${effectiveTitle}
 Objective: ${objective ?? "(not provided)"}
 Skill focus: ${skill_focus}
 CEFR level: ${cefr_level}
 Hub: ${hub}
-${blueprintBlock}
+${blueprintBlock}${personalizationBlock}
 Generate the dense 20–25 slide 1-hour lesson NOW following the 6-Step Integrated Skills Blueprint
 EXACTLY (Vocabulary → Reading → Comprehension → Grammar → Speaking → Writing). Every slide MUST be
 tagged with lesson_phase. The Phase-2 reading passage MUST reuse Phase-1 vocabulary (wrapped in
-**bold**), and Phase 5 + 6 MUST require both the lexicon and the Phase-4 grammar rule.`;
+**bold**), and Phase 5 + 6 MUST require both the lexicon and the Phase-4 grammar rule.
+The FINAL activity slide MUST be a "real_world_task" (The Final Boss).`;
 
 
     // JSON-mode contract appended to the system prompt. We avoid Gemini's
@@ -348,7 +399,7 @@ Top-level shape:
 Each slide object MUST have these keys:
   "phase": "Hook" | "Presentation" | "Practice" | "Production" | "Mission",
   "lesson_phase": "Vocabulary" | "Reading" | "Comprehension" | "Grammar" | "Speaking" | "Writing",
-  "slide_type": "mascot_speech" | "multiple_choice" | "drawing_canvas" | "drag_and_drop" | "flashcard" | "drag_and_match" | "fill_in_the_gaps" | "hero_media" | "vocab_list" | "grammar_explanation" | "sorting_game" | "fill_in_blanks" | "match_halves" | "quiz_mcq" | "role_play",
+  "slide_type": "mascot_speech" | "multiple_choice" | "drawing_canvas" | "drag_and_drop" | "flashcard" | "drag_and_match" | "fill_in_the_gaps" | "hero_media" | "vocab_list" | "grammar_explanation" | "sorting_game" | "fill_in_blanks" | "match_halves" | "quiz_mcq" | "role_play" | "audio_listening" | "true_false" | "sentence_builder" | "reading_quiz" | "listening_comprehension" | "match_words" | "image_match" | "shadowing_drill" | "real_world_task" | "branching_dialogue",
   "media_type": "image" | "video",
   "layout_style": "split_left" | "split_right" | "center_card" | "full_background",
   "title": string,
