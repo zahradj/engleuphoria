@@ -32,6 +32,7 @@ import { useIdleOpacity } from "@/hooks/useIdleOpacity";
 import { useClassroomTimer } from "@/hooks/classroom/useClassroomTimer";
 import { useSmartTimer } from "@/hooks/classroom/useSmartTimer";
 import { whiteboardService, type SmartWorksheet, type NativeGameType, type StageMode } from "@/services/whiteboardService";
+import { supabase } from "@/lib/supabase";
 
 type HubType = 'playground' | 'academy' | 'professional';
 
@@ -107,6 +108,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   // Use classId directly as roomName so both teacher and student join the same room
   const roomName = classId;
   const webrtcRoom = `engleuphoria-${classId}`;
+  const slideSyncChannelRef = React.useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const slides = React.useMemo(() => ([
     { id: '1', title: 'Welcome to the Lesson' },
@@ -136,6 +138,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     stageMode,
     drawingEnabled,
     iframeUnlocked,
+    setCurrentSlideIndex,
     setIframeUnlocked,
     updateSlide,
     updateTool,
@@ -220,7 +223,6 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
         duration: 3000,
       });
     });
-
     return () => {
       unsubStage();
       unsubDrawing();
@@ -228,7 +230,25 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
       unsubStatus();
       unsubSlideComplete();
     };
-  }, [roomName, teacherUserId, applyRemoteStageMode, applyRemoteDrawingEnabled]);
+  }, [roomName, teacherUserId, applyRemoteStageMode, applyRemoteDrawingEnabled, setCurrentSlideIndex]);
+
+  useEffect(() => {
+    if (!roomName) return;
+
+    const channel = supabase.channel(`classroom_${roomName}`);
+    slideSyncChannelRef.current = channel;
+
+    channel.on('broadcast', { event: 'SYNC_SLIDE' }, (response) => {
+      console.log('Received sync event:', response.payload);
+      if (response.payload?.senderId === teacherUserId || typeof response.payload?.index !== 'number') return;
+      setCurrentSlideIndex(response.payload.index);
+    }).subscribe();
+
+    return () => {
+      slideSyncChannelRef.current = null;
+      supabase.removeChannel(channel);
+    };
+  }, [roomName, teacherUserId, setCurrentSlideIndex]);
 
   // Screen share hook
   const {
@@ -363,12 +383,32 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     await updateCanvasTab('slides');
   }, [updateSharedDisplay, updateCanvasTab, setStageMode]);
 
-  const handlePrevSlide = useCallback(async () => { await updateSlide(Math.max(0, currentSlide - 1)); }, [currentSlide, updateSlide]);
+  const broadcastSlideIndex = useCallback(async (index: number) => {
+    setCurrentSlideIndex(index);
+    await slideSyncChannelRef.current?.send({
+      type: 'broadcast',
+      event: 'SYNC_SLIDE',
+      payload: { index, senderId: teacherUserId }
+    });
+  }, [roomName, setCurrentSlideIndex, teacherUserId]);
+
+  const handlePrevSlide = useCallback(async () => {
+    const newIndex = Math.max(0, currentSlide - 1);
+    await broadcastSlideIndex(newIndex);
+    await updateSlide(newIndex);
+  }, [broadcastSlideIndex, currentSlide, updateSlide]);
   const displayedSlides = syncedLessonSlides.length > 0 ? syncedLessonSlides : slides;
   const activeLessonTitle = syncedLessonTitle || lessonTitle;
 
-  const handleNextSlide = useCallback(async () => { await updateSlide(Math.min(displayedSlides.length - 1, currentSlide + 1)); }, [currentSlide, displayedSlides.length, updateSlide]);
-  const handleSlideSelect = useCallback(async (index: number) => { await updateSlide(index); }, [updateSlide]);
+  const handleNextSlide = useCallback(async () => {
+    const newIndex = Math.min(displayedSlides.length - 1, currentSlide + 1);
+    await broadcastSlideIndex(newIndex);
+    await updateSlide(newIndex);
+  }, [broadcastSlideIndex, currentSlide, displayedSlides.length, updateSlide]);
+  const handleSlideSelect = useCallback(async (index: number) => {
+    await broadcastSlideIndex(index);
+    await updateSlide(index);
+  }, [broadcastSlideIndex, updateSlide]);
 
   const handleToolChange = useCallback(async (tool: string) => {
     setActiveTool(tool);
@@ -697,6 +737,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
           setRawSlides(liveSlides);
           await updateSharedDisplay({ lessonSlides: liveSlides, lessonTitle: title, embeddedUrl: null });
           await updateSlide(0);
+          await broadcastSlideIndex(0);
           await setStageMode('slide');
           await updateCanvasTab('slides');
           toast({

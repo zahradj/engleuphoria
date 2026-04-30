@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Timer, Dice6 } from 'lucide-react';
 import { useIdleOpacity } from '@/hooks/useIdleOpacity';
 import { whiteboardService } from '@/services/whiteboardService';
+import { supabase } from '@/lib/supabase';
 
 type HubType = 'playground' | 'academy' | 'professional';
 
@@ -80,6 +81,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     stageMode,
     drawingEnabled,
     iframeUnlocked,
+    setCurrentSlideIndex,
     updateSharedNotes,
     applyRemoteStageMode,
     applyRemoteDrawingEnabled,
@@ -152,7 +154,6 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
         setChannelStatus(status as 'CONNECTING' | 'SUBSCRIBED' | 'CLOSED' | 'CHANNEL_ERROR' | 'TIMED_OUT');
       }
     });
-
     return () => {
       unsubStage();
       unsubDrawing();
@@ -161,7 +162,23 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
       unsubTool();
       unsubStatus();
     };
-  }, [roomId, studentId, applyRemoteStageMode, applyRemoteDrawingEnabled, applyRemoteIframeUnlocked, toast]);
+  }, [roomId, studentId, applyRemoteStageMode, applyRemoteDrawingEnabled, applyRemoteIframeUnlocked, setCurrentSlideIndex, toast]);
+
+  useEffect(() => {
+    if (!roomId) return;
+
+    const channel = supabase.channel(`classroom_${roomId}`);
+
+    channel.on('broadcast', { event: 'SYNC_SLIDE' }, (response) => {
+      console.log('Received sync event:', response.payload);
+      if (typeof response.payload?.index !== 'number') return;
+      setCurrentSlideIndex(response.payload.index);
+    }).subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [roomId, setCurrentSlideIndex]);
 
   // Auto-join local media after mount (post-PreFlightCheck)
   useEffect(() => { media.join(); return () => { media.leave(); }; }, []);

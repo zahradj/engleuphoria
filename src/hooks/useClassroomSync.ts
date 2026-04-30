@@ -29,6 +29,7 @@ interface UseClassroomSyncReturn {
   // Session state
   session: ClassroomSession | null;
   currentSlide: number;
+  setCurrentSlideIndex: (index: number) => void;
   activeTool: string;
   studentCanDraw: boolean;
   lessonSlides: SyncedLessonSlide[];
@@ -123,6 +124,7 @@ export const useClassroomSync = ({
   lessonData
 }: UseClassroomSyncOptions): UseClassroomSyncReturn => {
   const [session, setSession] = useState<ClassroomSession | null>(null);
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [strokes, setStrokes] = useState<WhiteboardStroke[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [stageMode, setStageModeState] = useState<StageMode>('slide');
@@ -154,6 +156,7 @@ export const useClassroomSync = ({
         );
         if (newSession) {
           setSession(newSession);
+          setCurrentSlideIndex(newSession.currentSlideIndex ?? 0);
           setStageModeState(prev => deriveStageModeFromSession(newSession, prev));
           setIsConnected(true);
         }
@@ -161,6 +164,7 @@ export const useClassroomSync = ({
         const existingSession = await classroomSyncService.getActiveSession(roomId);
         if (existingSession) {
           setSession(existingSession);
+          setCurrentSlideIndex(existingSession.currentSlideIndex ?? 0);
           setStageModeState(prev => deriveStageModeFromSession(existingSession, prev));
           setIsConnected(true);
         }
@@ -177,13 +181,8 @@ export const useClassroomSync = ({
     const unsubscribe = classroomSyncService.subscribeToSession(
       roomId,
       (updatedSession) => {
-        // Diagnostic: surface Co-Play URL changes received from the teacher's broadcast
-        // so we can verify "One Room, One Session" in DevTools.
-        setSession(prev => {
-          if (role === 'student' && prev?.embeddedUrl !== updatedSession.embeddedUrl && updatedSession.embeddedUrl) {
-          }
-          return updatedSession;
-        });
+        setSession(updatedSession);
+        setCurrentSlideIndex(updatedSession.currentSlideIndex ?? 0);
         setStageModeState(prev => deriveStageModeFromSession(updatedSession, prev));
       }
     );
@@ -266,6 +265,7 @@ export const useClassroomSync = ({
   // Teacher actions
   const updateSlide = useCallback(async (index: number) => {
     if (role !== 'teacher') return;
+    setCurrentSlideIndex(index);
     try {
       await classroomSyncService.updateSession(roomId, { currentSlideIndex: index });
       setSession(prev => prev ? { ...prev, currentSlideIndex: index } : null);
@@ -385,7 +385,8 @@ export const useClassroomSync = ({
 
   return {
     session,
-    currentSlide: session?.currentSlideIndex ?? 0,
+    currentSlide: currentSlideIndex,
+    setCurrentSlideIndex,
     activeTool: session?.activeTool ?? 'pointer',
     studentCanDraw: session?.studentCanDraw ?? false,
     lessonSlides: session?.lessonSlides ?? [],
