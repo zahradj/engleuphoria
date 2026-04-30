@@ -51,9 +51,10 @@ export default function LibraryDrawer({ open, onClose, onSelectLesson }: Library
       .then(({ data, error }) => {
         if (error) {
           console.warn('LibraryDrawer fetch error:', error);
-        }
-        setLessons(
-            data.map((l: any) => ({
+          setLessons([]);
+        } else {
+          setLessons(
+            (data || []).map((l: any) => ({
               id: l.id,
               title: l.title || l.topic || 'Untitled Lesson',
               topic: l.topic,
