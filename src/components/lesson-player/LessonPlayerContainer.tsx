@@ -559,6 +559,13 @@ export default function LessonPlayerContainer({
           </div>
         </div>
       )}
+
+      {/* Library Drawer */}
+      <LibraryDrawer
+        open={isLibraryOpen}
+        onClose={() => setIsLibraryOpen(false)}
+        onSelectLesson={handleLibraryInject}
+      />
     </div>
   );
 }
