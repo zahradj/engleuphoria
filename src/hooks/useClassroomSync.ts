@@ -9,9 +9,21 @@ interface UseClassroomSyncOptions {
   role: 'teacher' | 'student';
   lessonData?: {
     title: string;
-    slides: Array<{ id: string; title: string; imageUrl?: string }>;
+    slides: Array<Record<string, any> & { id: string; title: string; imageUrl?: string; content?: any }>;
   };
 }
+
+type SyncedLessonSlide = Record<string, any> & {
+  id: string;
+  title: string;
+  imageUrl?: string;
+  content?: any;
+  type?: string;
+  quizQuestion?: string;
+  quizOptions?: Array<{ id: string; text: string; isCorrect: boolean }>;
+  pollQuestion?: string;
+  pollOptions?: Array<{ id: string; text: string }>;
+};
 
 interface UseClassroomSyncReturn {
   // Session state
@@ -19,7 +31,7 @@ interface UseClassroomSyncReturn {
   currentSlide: number;
   activeTool: string;
   studentCanDraw: boolean;
-  lessonSlides: Array<{ id: string; title: string; imageUrl?: string; content?: string; type?: string; quizQuestion?: string; quizOptions?: Array<{ id: string; text: string; isCorrect: boolean }>; pollQuestion?: string; pollOptions?: Array<{ id: string; text: string }> }>;
+  lessonSlides: SyncedLessonSlide[];
   lessonTitle: string;
   isConnected: boolean;
   
@@ -69,7 +81,7 @@ interface UseClassroomSyncReturn {
   
   // Shared display update (teacher only)
   updateSharedDisplay: (updates: {
-    lessonSlides?: Array<{ id: string; title: string; imageUrl?: string; content?: string }>;
+    lessonSlides?: SyncedLessonSlide[];
     lessonTitle?: string;
     embeddedUrl?: string | null;
     isScreenSharing?: boolean;
@@ -323,7 +335,7 @@ export const useClassroomSync = ({
   }, [roomId]);
 
   const updateSharedDisplay = useCallback(async (updates: {
-    lessonSlides?: Array<{ id: string; title: string; imageUrl?: string; content?: string }>;
+    lessonSlides?: SyncedLessonSlide[];
     lessonTitle?: string;
     embeddedUrl?: string | null;
     isScreenSharing?: boolean;

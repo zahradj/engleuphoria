@@ -110,6 +110,91 @@ const ANIMATION_VARIANTS: Record<string, Variants> = {
   },
 };
 
+const getSlidePayload = (slide: any) => slide?.interactive_data || slide?.content || {};
+
+const getSlideText = (slide: any) => {
+  const payload = getSlidePayload(slide);
+  return typeof slide?.content === 'string'
+    ? slide.content
+    : payload.prompt || payload.text || payload.body || payload.description || slide?.teacher_script || '';
+};
+
+const getSlideMediaUrl = (slide: any) =>
+  slide?.imageUrl || slide?.image_url || slide?.generated_image_url || slide?.custom_image_url || slide?.media_url || slide?.youtube_thumbnail;
+
+const normalizePairs = (slide: any) => {
+  const payload = getSlidePayload(slide);
+  const rawPairs = payload.pairs || payload.matches || payload.items || slide?.pairs || [];
+  return Array.isArray(rawPairs)
+    ? rawPairs.map((pair: any) => ({
+        left_item: pair.left_item || pair.left || pair.term || pair.word || pair.prompt || '',
+        right_item: pair.right_item || pair.right || pair.match || pair.definition || pair.answer || '',
+        left_thumbnail_url: pair.left_thumbnail_url || pair.leftImageUrl,
+        right_thumbnail_url: pair.right_thumbnail_url || pair.rightImageUrl,
+      })).filter((pair: any) => pair.left_item && pair.right_item)
+    : [];
+};
+
+function LiveHeroMediaSlide({ slide }: { slide: any }) {
+  const mediaUrl = getSlideMediaUrl(slide);
+  const text = getSlideText(slide);
+  return (
+    <div className="w-full h-full min-h-[520px] grid gap-6 content-center p-6 text-center text-foreground">
+      {mediaUrl && <img src={mediaUrl} alt={slide.title || 'Lesson visual'} className="mx-auto max-h-[320px] w-full max-w-3xl rounded-lg object-contain" loading="lazy" />}
+      <div className="mx-auto max-w-3xl space-y-3">
+        <h1 className="text-3xl md:text-5xl font-bold leading-tight">{slide.title}</h1>
+        {text && <p className="text-lg md:text-xl leading-relaxed text-muted-foreground whitespace-pre-line">{text}</p>}
+      </div>
+    </div>
+  );
+}
+
+function LiveVocabularyGrid({ slide, hub }: { slide: any; hub: HubType }) {
+  const config = HUB_CONFIGS[hub];
+  const payload = getSlidePayload(slide);
+  const words = payload.words || payload.vocabulary || payload.vocab_list || payload.items || [];
+  const entries = Array.isArray(words) ? words : [];
+  return (
+    <div className="w-full min-h-[520px] p-6 flex flex-col justify-center gap-6 text-foreground">
+      <h2 className="text-3xl md:text-4xl font-bold text-center" style={{ color: config.colorPalette.primary }}>{slide.title || 'Vocabulary'}</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-5xl mx-auto">
+        {entries.map((entry: any, index: number) => {
+          const item = typeof entry === 'string' ? { word: entry } : entry;
+          const imageUrl = item.imageUrl || item.image_url || item.thumbnail_url;
+          return (
+            <div key={`${item.word || item.term || index}`} className="rounded-lg border border-border bg-card p-4 text-card-foreground">
+              {imageUrl && <img src={imageUrl} alt={item.word || item.term || 'Vocabulary image'} className="mb-3 h-32 w-full rounded-md object-cover" loading="lazy" />}
+              <h3 className="text-xl font-bold">{item.word || item.term || item.title}</h3>
+              {(item.definition || item.meaning) && <p className="mt-1 text-sm text-muted-foreground">{item.definition || item.meaning}</p>}
+              {item.sentence && <p className="mt-3 text-sm italic text-foreground/80">“{item.sentence}”</p>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function LiveGrammarExplanation({ slide, hub }: { slide: any; hub: HubType }) {
+  const config = HUB_CONFIGS[hub];
+  const payload = getSlidePayload(slide);
+  const examples = payload.examples || payload.sample_sentences || [];
+  return (
+    <div className="w-full min-h-[520px] p-8 flex items-center justify-center text-foreground">
+      <article className="w-full max-w-4xl space-y-6">
+        <h2 className="text-3xl md:text-5xl font-bold leading-tight" style={{ color: config.colorPalette.primary }}>{slide.title || 'Grammar Focus'}</h2>
+        {(payload.rule || payload.pattern) && <div className="rounded-lg border border-border bg-muted p-5 text-2xl font-bold">{payload.rule || payload.pattern}</div>}
+        {(payload.explanation || getSlideText(slide)) && <p className="text-lg md:text-xl leading-relaxed text-muted-foreground whitespace-pre-line">{payload.explanation || getSlideText(slide)}</p>}
+        {Array.isArray(examples) && examples.length > 0 && (
+          <div className="grid gap-3">
+            {examples.map((example: any, index: number) => <div key={index} className="rounded-md border border-border bg-card p-4 text-lg">{typeof example === 'string' ? example : example.text || example.sentence}</div>)}
+          </div>
+        )}
+      </article>
+    </div>
+  );
+}
+
 interface DynamicSlideRendererProps {
   slide: GeneratedSlide;
   hub: HubType;
@@ -159,6 +244,19 @@ export default function DynamicSlideRenderer({
     // ── Director PPP interactive types (highest priority) ─────────
     // The generate-ppp-slides edge function emits slide_type = 'drag_and_match' | 'fill_in_the_gaps'.
     const directorType = (slide as any).slide_type || (slide as any).activityType || (slide as any).type;
+    if (directorType === 'hero_media') {
+      return <LiveHeroMediaSlide slide={slide} />;
+    }
+    if (directorType === 'vocab_list') {
+      return <LiveVocabularyGrid slide={slide} hub={hub} />;
+    }
+    if (directorType === 'grammar_explanation') {
+      return <LiveGrammarExplanation slide={slide} hub={hub} />;
+    }
+    if (directorType === 'match_halves') {
+      const matchSlide = { ...slide, slide_type: 'drag_and_match', activityType: 'drag_and_match', interactive_data: { ...getSlidePayload(slide), pairs: normalizePairs(slide) } };
+      return <DragAndMatch slide={matchSlide as GeneratedSlide} hub={hub} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    }
     if (directorType === 'drag_and_match') {
       return <DragAndMatch slide={slide} hub={hub} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
     }
@@ -270,7 +368,7 @@ export default function DynamicSlideRenderer({
       animate={{ x: 0, opacity: 1, scale: 1 }}
       exit={{ x: -60, opacity: 0, scale: 0.98 }}
       transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-      className="w-full flex items-center justify-center"
+      className="w-full h-full flex items-center justify-center"
     >
       {renderContent()}
     </motion.div>

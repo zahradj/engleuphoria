@@ -28,6 +28,8 @@ import { useIdleOpacity } from '@/hooks/useIdleOpacity';
 import { TargetWordsOverlay } from '@/components/classroom/TargetWordsOverlay';
 import { SmartSummaryTip } from '@/components/classroom/SmartSummaryTip';
 import { EmbeddedContentViewer } from './EmbeddedContentViewer';
+import DynamicSlideRenderer from '@/components/lesson-player/DynamicSlideRenderer';
+import type { GeneratedSlide } from '@/components/admin/lesson-builder/ai-wizard/types';
 import {
   Popover,
   PopoverContent,
@@ -39,8 +41,8 @@ interface PollOption { id: string; text: string; }
 
 interface Slide {
   id: string;
-  title: string;
-  content?: React.ReactNode;
+  title?: string;
+  content?: any;
   imageUrl?: string;
   type?: string;
   quizQuestion?: string;
@@ -48,6 +50,21 @@ interface Slide {
   pollQuestion?: string;
   pollOptions?: PollOption[];
 }
+
+const toPremiumSlide = (slide: Slide | undefined, index: number): GeneratedSlide | null => {
+  if (!slide) return null;
+  return {
+    ...slide,
+    id: String(slide.id ?? index + 1),
+    order: index + 1,
+    title: String(slide.title || `Slide ${index + 1}`),
+    slideType: (slide as any).slideType || ((slide as any).activityType ? 'activity' : 'hook'),
+    type: (slide as any).type || (slide as any).activityType || 'title',
+    content: typeof slide.content === 'string' ? { prompt: slide.content } : slide.content,
+    teacherNotes: (slide as any).teacherNotes || (slide as any).teacher_script || '',
+    keywords: Array.isArray((slide as any).keywords) ? (slide as any).keywords : [],
+  } as GeneratedSlide;
+};
 
 interface CenterStageProps {
   slides: Slide[];
@@ -171,17 +188,17 @@ export const CenterStage: React.FC<CenterStageProps> = ({
         />
       );
     }
-    if (currentSlide?.imageUrl) {
-      return <img src={currentSlide.imageUrl} alt={currentSlide.title} className="w-full h-full object-contain" />;
-    }
+    const premiumSlide = toPremiumSlide(currentSlide, currentSlideIndex);
+    if (!premiumSlide) return <div className="w-full h-full bg-white" />;
     return (
-      <div className="w-full h-full flex items-center justify-center">
-        <div className="text-center p-8">
-          <h2 className="text-3xl font-bold text-gray-800 mb-4">
-            {currentSlide?.title || 'Slide ' + (currentSlideIndex + 1)}
-          </h2>
-          {currentSlide?.content && <div className="text-gray-600 text-lg">{currentSlide.content}</div>}
-        </div>
+      <div className="w-full h-full overflow-y-auto flex items-center justify-center">
+        <DynamicSlideRenderer
+          slide={premiumSlide}
+          hub="academy"
+          onCorrectAnswer={() => {}}
+          onIncorrectAnswer={() => {}}
+          onComplete={() => {}}
+        />
       </div>
     );
   };

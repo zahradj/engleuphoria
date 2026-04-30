@@ -5,6 +5,8 @@ import { StudentQuizView } from './StudentQuizView';
 import { StudentPollView } from './StudentPollView';
 import { WhiteboardStroke } from '@/services/whiteboardService';
 import { Eye, PenLine } from 'lucide-react';
+import DynamicSlideRenderer from '@/components/lesson-player/DynamicSlideRenderer';
+import type { GeneratedSlide } from '@/components/admin/lesson-builder/ai-wizard/types';
 
 interface QuizOption {
   id: string;
@@ -19,8 +21,8 @@ interface PollOption {
 
 interface Slide {
   id: string;
-  title: string;
-  content?: React.ReactNode;
+  title?: string;
+  content?: any;
   imageUrl?: string;
   type?: string;
   quizQuestion?: string;
@@ -28,6 +30,21 @@ interface Slide {
   pollQuestion?: string;
   pollOptions?: PollOption[];
 }
+
+const toPremiumSlide = (slide: Slide | undefined, index: number): GeneratedSlide | null => {
+  if (!slide) return null;
+  return {
+    ...slide,
+    id: String(slide.id ?? index + 1),
+    order: index + 1,
+    title: String(slide.title || `Slide ${index + 1}`),
+    slideType: (slide as any).slideType || ((slide as any).activityType ? 'activity' : 'hook'),
+    type: (slide as any).type || (slide as any).activityType || 'title',
+    content: typeof slide.content === 'string' ? { prompt: slide.content } : slide.content,
+    teacherNotes: (slide as any).teacherNotes || (slide as any).teacher_script || '',
+    keywords: Array.isArray((slide as any).keywords) ? (slide as any).keywords : [],
+  } as GeneratedSlide;
+};
 
 interface StudentCenterStageProps {
   slides: Slide[];
@@ -70,6 +87,7 @@ export const StudentCenterStage: React.FC<StudentCenterStageProps> = ({
   const currentSlide = slides[currentSlideIndex];
   const isQuizSlide = currentSlide?.type === 'quiz';
   const isPollSlide = currentSlide?.type === 'poll';
+  const premiumSlide = toPremiumSlide(currentSlide, currentSlideIndex);
 
   return (
     <div className="flex-1 flex flex-col bg-gray-950 relative overflow-hidden">
@@ -124,25 +142,18 @@ export const StudentCenterStage: React.FC<StudentCenterStageProps> = ({
               pollActive={pollActive}
               pollShowResults={pollShowResults}
             />
-          ) : currentSlide?.imageUrl ? (
-            <img 
-              src={currentSlide.imageUrl} 
-              alt={currentSlide.title}
-              className="w-full h-full object-contain"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <div className="text-center p-8">
-                <h2 className="text-3xl font-bold text-gray-800 mb-4">
-                  {currentSlide?.title || 'Slide ' + (currentSlideIndex + 1)}
-                </h2>
-                {currentSlide?.content && (
-                  <div className="text-gray-600 text-lg">
-                    {currentSlide.content}
-                  </div>
-                )}
-              </div>
+          ) : premiumSlide ? (
+            <div className="w-full h-full overflow-y-auto flex items-center justify-center">
+              <DynamicSlideRenderer
+                slide={premiumSlide}
+                hub="academy"
+                onCorrectAnswer={() => {}}
+                onIncorrectAnswer={() => {}}
+                onComplete={() => {}}
+              />
             </div>
+          ) : (
+            <div className="w-full h-full bg-white" />
           )}
 
           {/* Collaborative Canvas Overlay (not for quiz or poll slides) */}
