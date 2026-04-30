@@ -164,21 +164,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     };
   }, [roomId, studentId, applyRemoteStageMode, applyRemoteDrawingEnabled, applyRemoteIframeUnlocked, setCurrentSlideIndex, toast]);
 
-  useEffect(() => {
-    if (!roomId) return;
-
-    const channel = supabase.channel(`classroom_${roomId}`);
-
-    channel.on('broadcast', { event: 'SYNC_SLIDE' }, (response) => {
-      console.log('Received sync event:', response.payload);
-      if (typeof response.payload?.index !== 'number') return;
-      setCurrentSlideIndex(response.payload.index);
-    }).subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [roomId, setCurrentSlideIndex]);
+  // Slide sync is now fully handled by postgres_changes in useClassroomSync — no broadcast needed.
 
   // Auto-join local media after mount (post-PreFlightCheck)
   useEffect(() => { media.join(); return () => { media.leave(); }; }, []);
