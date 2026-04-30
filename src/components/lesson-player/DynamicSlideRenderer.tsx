@@ -1,4 +1,5 @@
 import React from 'react';
+import SpeakingPractice from './activities/SpeakingPractice';
 import { motion, Variants } from 'framer-motion';
 import { HubType, AnimationType, GeneratedSlide } from '@/components/admin/lesson-builder/ai-wizard/types';
 import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConfig';
@@ -135,6 +136,24 @@ export default function DynamicSlideRenderer({
     const lessonPhase = (slide as any).lesson_phase as string | undefined;
     if (lessonPhase === 'Reading') {
       return <SlideReadingSplit slide={slide as any} />;
+    }
+
+    // ── 6-Step Blueprint: Speaking phase uses VoiceRecorder grading ──
+    if (lessonPhase === 'Speaking' && (slide as any).requires_audio) {
+      const target = (slide as any).interactive_data?.speech?.target_sentence
+        || (slide as any).content
+        || (slide as any).title
+        || '';
+      return (
+        <SpeakingPractice
+          targetSentence={target}
+          hub={hub === 'professional' ? 'success' : hub as any}
+          context={(slide as any).teacher_script}
+          lessonId={(slide as any).lesson_id}
+          slideId={slide.id}
+          onComplete={() => onCorrectAnswer()}
+        />
+      );
     }
 
     // ── Director PPP interactive types (highest priority) ─────────
