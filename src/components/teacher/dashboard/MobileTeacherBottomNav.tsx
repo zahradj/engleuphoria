@@ -15,7 +15,7 @@ import {
   Menu,
 } from 'lucide-react';
 
-type TabType = 'dashboard' | 'schedule' | 'analytics' | 'methodology' | 'account' | 'teacher-hub' | 'help';
+type TabType = 'dashboard' | 'schedule' | 'library' | 'analytics' | 'methodology' | 'account' | 'teacher-hub' | 'help';
 
 interface MobileTeacherBottomNavProps {
   activeTab: TabType;
