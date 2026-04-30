@@ -244,6 +244,19 @@ export default function DynamicSlideRenderer({
     // ── Director PPP interactive types (highest priority) ─────────
     // The generate-ppp-slides edge function emits slide_type = 'drag_and_match' | 'fill_in_the_gaps'.
     const directorType = (slide as any).slide_type || (slide as any).activityType || (slide as any).type;
+    if (directorType === 'hero_media') {
+      return <LiveHeroMediaSlide slide={slide} />;
+    }
+    if (directorType === 'vocab_list') {
+      return <LiveVocabularyGrid slide={slide} hub={hub} />;
+    }
+    if (directorType === 'grammar_explanation') {
+      return <LiveGrammarExplanation slide={slide} hub={hub} />;
+    }
+    if (directorType === 'match_halves') {
+      const matchSlide = { ...slide, slide_type: 'drag_and_match', activityType: 'drag_and_match', interactive_data: { ...getSlidePayload(slide), pairs: normalizePairs(slide) } };
+      return <DragAndMatch slide={matchSlide} hub={hub} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    }
     if (directorType === 'drag_and_match') {
       return <DragAndMatch slide={slide} hub={hub} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
     }
