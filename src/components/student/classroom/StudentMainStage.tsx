@@ -16,8 +16,8 @@ interface PollOption { id: string; text: string; }
 
 interface Slide {
   id: string;
-  title: string;
-  content?: React.ReactNode;
+  title?: string;
+  content?: any;
   imageUrl?: string;
   type?: string;
   quizQuestion?: string;
