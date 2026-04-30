@@ -241,6 +241,7 @@ class WhiteboardService {
       chatListeners,
       worksheetListeners,
       gameStateListeners,
+      slideCompletionListeners,
       refCount: 0,
     };
     this.rooms.set(channelName, room);
