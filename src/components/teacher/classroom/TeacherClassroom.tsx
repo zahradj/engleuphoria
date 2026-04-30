@@ -125,6 +125,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   );
 
   const {
+    session,
     currentSlide,
     lessonSlides: syncedLessonSlides,
     lessonTitle: syncedLessonTitle,
