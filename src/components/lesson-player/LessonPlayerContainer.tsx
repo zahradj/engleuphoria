@@ -241,7 +241,7 @@ export default function LessonPlayerContainer({
 
   /* ──────────── App-Shell — wider max-w ──────────── */
   return (
-    <div className={`flex flex-col h-full min-h-[100dvh] ${skin.shell}`} style={{ position: 'relative' }}>
+    <div className={`h-screen overflow-hidden flex flex-col items-center justify-center ${skin.shell}`} style={{ position: 'relative' }}>
 
       {/* Resume prompt — shown once if a saved bookmark exists */}
       <AlertDialog open={!!resumePrompt}>
