@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 
-type TabType = 'dashboard' | 'schedule' | 'analytics' | 'methodology' | 'account' | 'teacher-hub' | 'help';
+type TabType = 'dashboard' | 'schedule' | 'library' | 'analytics' | 'methodology' | 'account' | 'teacher-hub' | 'help';
 
 interface TeacherTopNavProps {
   teacherName: string;
@@ -35,6 +35,7 @@ interface TeacherTopNavProps {
 const navItems: { id: TabType; label: string; icon: React.ElementType }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'schedule', label: 'Schedule', icon: Calendar },
+  { id: 'library', label: 'Library', icon: BookOpen },
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   { id: 'methodology', label: 'Methodology', icon: BookOpen },
   { id: 'account', label: 'Account', icon: User },
