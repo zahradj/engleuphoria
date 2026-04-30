@@ -376,20 +376,20 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   const handlePrevSlide = useCallback(async () => {
     const newIndex = Math.max(0, currentSlide - 1);
-    await updateSlide(newIndex);
     await broadcastSlideIndex(newIndex);
+    await updateSlide(newIndex);
   }, [broadcastSlideIndex, currentSlide, updateSlide]);
   const displayedSlides = syncedLessonSlides.length > 0 ? syncedLessonSlides : slides;
   const activeLessonTitle = syncedLessonTitle || lessonTitle;
 
   const handleNextSlide = useCallback(async () => {
     const newIndex = Math.min(displayedSlides.length - 1, currentSlide + 1);
-    await updateSlide(newIndex);
     await broadcastSlideIndex(newIndex);
+    await updateSlide(newIndex);
   }, [broadcastSlideIndex, currentSlide, displayedSlides.length, updateSlide]);
   const handleSlideSelect = useCallback(async (index: number) => {
-    await updateSlide(index);
     await broadcastSlideIndex(index);
+    await updateSlide(index);
   }, [broadcastSlideIndex, updateSlide]);
 
   const handleToolChange = useCallback(async (tool: string) => {
