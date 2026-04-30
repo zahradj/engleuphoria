@@ -9,7 +9,6 @@ import { toast } from 'sonner';
 import { useCreator, CEFRLevel, HubType, CurriculumData } from '../CreatorContext';
 import { CurriculumMap } from './blueprint/CurriculumMap';
 import { persistBlueprintAsDrafts } from '../persistBlueprint';
-import { CurriculumMap } from './blueprint/CurriculumMap';
 
 const HUB_LABEL: Record<HubType, string> = {
   playground: 'Playground (Kids 4–9)',
