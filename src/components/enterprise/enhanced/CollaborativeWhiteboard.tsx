@@ -280,7 +280,7 @@ export const CollaborativeWhiteboard = ({
     drawElement(element);
 
     // Broadcast to other users
-    supabase.channel(`whiteboard_${roomId}`).send({
+    drawingChannelRef.current?.send({
       type: 'broadcast',
       event: 'drawing',
       payload: element
