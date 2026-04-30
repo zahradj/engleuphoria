@@ -1,4 +1,5 @@
 import React from 'react';
+import SpeakingPractice from './activities/SpeakingPractice';
 import { motion, Variants } from 'framer-motion';
 import { HubType, AnimationType, GeneratedSlide } from '@/components/admin/lesson-builder/ai-wizard/types';
 import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConfig';
