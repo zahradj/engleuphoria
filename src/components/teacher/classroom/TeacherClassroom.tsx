@@ -712,7 +712,6 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
           setRawSlides(liveSlides);
           await updateSharedDisplay({ lessonSlides: liveSlides, lessonTitle: title, embeddedUrl: null });
           await updateSlide(0);
-          await broadcastSlideIndex(0);
           await setStageMode('slide');
           await updateCanvasTab('slides');
           toast({
