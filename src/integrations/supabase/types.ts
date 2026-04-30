@@ -7060,7 +7060,7 @@ export type Database = {
             foreignKeyName: "student_assignments_lesson_id_fkey"
             columns: ["lesson_id"]
             isOneToOne: false
-            referencedRelation: "ai_lessons"
+            referencedRelation: "curriculum_lessons"
             referencedColumns: ["id"]
           },
         ]

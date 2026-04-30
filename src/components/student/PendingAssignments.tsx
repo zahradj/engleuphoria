@@ -17,7 +17,7 @@ export const PendingAssignments: React.FC = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('student_assignments')
-        .select('id, lesson_id, assigned_at, ai_lessons(id, title, topic, level)')
+        .select('id, lesson_id, assigned_at, curriculum_lessons(id, title, description, target_system, difficulty_level)')
         .eq('student_id', user!.id)
         .eq('status', 'pending')
         .order('assigned_at', { ascending: false });
