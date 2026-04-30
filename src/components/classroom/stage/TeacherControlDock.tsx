@@ -73,6 +73,7 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
   onOpenTimer,
   onRollDice,
   onSendSticker,
+  onOpenLibrary,
 }) => {
   const [urlDraft, setUrlDraft] = useState(embeddedUrl ?? '');
   const [coPlayLoading, setCoPlayLoading] = useState(false);
