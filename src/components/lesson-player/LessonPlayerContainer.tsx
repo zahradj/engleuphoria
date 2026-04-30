@@ -78,7 +78,9 @@ function slideHasMedia(slide: GeneratedSlide): boolean {
     slide.content?.imageUrl ||
     s.video_url ||
     s.youtube_url ||
+    s.youtube_video_id ||
     s.media_url ||
+    s.requires_video ||
     (slide.mediaType && (slide.mediaType as string) !== 'none')
   );
 }
@@ -86,20 +88,38 @@ function slideHasMedia(slide: GeneratedSlide): boolean {
 /** Left pane: renders the visual anchor (image or video) */
 function SlideMediaPane({ slide }: { slide: GeneratedSlide }) {
   const s = slide as any;
-  const videoUrl = s.video_url || s.youtube_url || s.media_url;
-  const imageUrl = slide.imageUrl || slide.content?.imageUrl;
 
+  // 1. Direct youtube_video_id (highest priority)
+  const ytVideoId = s.youtube_video_id;
+  if (ytVideoId) {
+    return (
+      <div className="w-full aspect-video rounded-xl overflow-hidden shadow-lg">
+        <iframe
+          className="w-full h-full"
+          src={`https://www.youtube.com/embed/${ytVideoId}`}
+          title="YouTube video player"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
+    );
+  }
+
+  // 2. Full video URL (youtube or other)
+  const videoUrl = s.video_url || s.youtube_url || s.media_url;
   if (videoUrl) {
-    const ytId = videoUrl.match(/(?:youtu\.be\/|v=)([^&?#]+)/)?.[1];
+    const ytId = videoUrl.match(/(?:youtu\.be\/|v=|\/embed\/)([^&?#/]+)/)?.[1];
     if (ytId) {
       return (
-        <div className="w-full aspect-video rounded-2xl overflow-hidden">
+        <div className="w-full aspect-video rounded-xl overflow-hidden shadow-lg">
           <iframe
-            src={`https://www.youtube-nocookie.com/embed/${ytId}`}
             className="w-full h-full"
+            src={`https://www.youtube.com/embed/${ytId}`}
+            title="YouTube video player"
+            frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
-            title="Lesson video"
           />
         </div>
       );
@@ -109,6 +129,8 @@ function SlideMediaPane({ slide }: { slide: GeneratedSlide }) {
     );
   }
 
+  // 3. Image
+  const imageUrl = slide.imageUrl || slide.content?.imageUrl;
   if (imageUrl) {
     return (
       <img
@@ -119,6 +141,7 @@ function SlideMediaPane({ slide }: { slide: GeneratedSlide }) {
     );
   }
 
+  // 4. Fallback placeholder
   return (
     <div className="flex flex-col items-center justify-center text-center gap-3 opacity-60">
       <span className="text-6xl">📚</span>
