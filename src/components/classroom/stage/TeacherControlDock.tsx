@@ -44,6 +44,7 @@ interface TeacherControlDockProps {
   onOpenTimer?: () => void;
   onRollDice?: () => void;
   onSendSticker?: (emoji: string) => void;
+  onOpenLibrary?: () => void;
 }
 
 /**
