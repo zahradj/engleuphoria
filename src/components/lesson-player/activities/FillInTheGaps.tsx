@@ -32,6 +32,17 @@ export default function FillInTheGaps({ slide, hub = 'academy', onCorrect, onInc
   const data: any = (slide as any).interactive_data || (slide as any).content || {};
   const instruction: string = data.instruction || 'Fill in the gap!';
   const missingWord: string = data.missing_word || data.correctAnswer || data.blankWord || '';
+
+  if (!missingWord && !data.sentence && !Array.isArray(data.sentence_parts)) {
+    return (
+      <div className="p-8 text-center flex flex-col items-center justify-center h-full">
+        <h2 className="text-2xl font-bold mb-4 text-foreground">{slide.title || 'Fill in the Gaps'}</h2>
+        {(slide as any).description && <p className="text-muted-foreground text-lg max-w-xl">{(slide as any).description}</p>}
+        <p className="mt-8 text-sm text-amber-600 italic">Interactive data missing for this activity.</p>
+      </div>
+    );
+  }
+
   const sentenceParts: string[] = useMemo(() => {
     if (Array.isArray(data.sentence_parts) && data.sentence_parts.length > 0) {
       return data.sentence_parts;
