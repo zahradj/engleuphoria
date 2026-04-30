@@ -371,14 +371,20 @@ export default function LessonPlayerContainer({
         </div>
       </div>
 
-      {/* ── Centered Fluid App-Card ── */}
+      {/* ── Centered Fluid App-Card — Horizontal Split on Desktop ── */}
       <div className="flex-1 flex items-center justify-center px-4 w-full" style={{ paddingTop: 124, paddingBottom: 88 }}>
         <div
-          className={`w-full max-w-5xl rounded-3xl flex flex-col relative z-20 ${skin.card}`}
-          style={{ minHeight: '70vh', maxHeight: '85vh' }}
+          className={`w-full max-w-6xl h-[85vh] rounded-3xl flex flex-col md:flex-row relative z-20 overflow-hidden ${skin.card}`}
         >
-          {/* Scrollable content area — header/footer stay locked */}
-          <div className="flex-1 overflow-y-auto p-6">
+          {/* Left Pane — Media & Visual Anchor */}
+          {slideHasMedia(currentSlide) && (
+            <div className="w-full md:w-1/2 h-[40vh] md:h-full bg-slate-50 dark:bg-slate-900/40 flex items-center justify-center p-6 border-b md:border-b-0 md:border-r border-slate-100 dark:border-slate-800 shrink-0">
+              <SlideMediaPane slide={currentSlide} />
+            </div>
+          )}
+
+          {/* Right Pane — Interactive & Text Content */}
+          <div className={`w-full ${slideHasMedia(currentSlide) ? 'md:w-1/2' : ''} h-[45vh] md:h-full overflow-y-auto p-8 md:p-12 flex flex-col`}>
             <AnimatePresence mode="wait">
               <DynamicSlideRenderer
                 key={currentSlide.id}
