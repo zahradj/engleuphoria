@@ -181,8 +181,18 @@ You may ALSO use these premium slide_type values. The frontend has dedicated wid
 • sorting_game           → { "categories": string[2..3], "items": [{"word": string, "correct_category": string}] }
 • fill_in_blanks         → { "sentences": [{"text_with_blank": string, "hint": string, "correct_answer": string}] }
 • match_halves           → { "pairs": [{"left_part": string, "right_part": string}] }  // Frontend shuffles right parts
-• quiz_mcq               → { "question": string, "options": string[4], "correct_index": 0..3 }
+• quiz_mcq               → { "question": string, "options": string[4], "correct_index": 0..3, "explanation"?: string }
 • role_play              → { "scenario_text": string, "tips": string[], "key_phrases": string[], "requires_voice_recording": true }
+• audio_listening        → { "audio_script": string, "description": string }
+                           // audio_script = exact text for ElevenLabs TTS. The frontend shows a placeholder player + script.
+• true_false             → { "statements": [{"text": string, "is_true": boolean}] }
+                           // 3-6 statements the student marks True or False.
+• sentence_builder       → { "target_sentence": string, "scrambled_words": string[] }
+                           // Student drags scrambled words into the correct order.
+• reading_quiz           → Same schema as quiz_mcq. Use for comprehension questions after a reading passage.
+• listening_comprehension → Same schema as quiz_mcq. Use for comprehension questions after an audio_listening slide.
+• match_words            → Same schema as sorting_game. Use to test vocab by sorting words into meaning categories.
+• image_match            → Same schema as sorting_game. Use to match words to visual categories.
 
 For EVERY interactive slide (multiple_choice, drag_and_match, fill_in_the_gaps, drag_and_drop) you
 MUST also include a top-level "hint_text": short kid-friendly hint (≤ 90 chars) revealed after the
@@ -236,6 +246,24 @@ Supportive, professional, joyful. CEFR-aligned. No placeholders.
 "content" = short on-slide text (1–3 sentences max). For Reading slides, "content" carries the
 passage paragraph (with **bold** target words).
 "teacher_script" = 2–3 high-energy sentences for the teacher to read aloud.
+
+═══════════════════════════════════════════════════════
+RULE 9 — CONTEXT-AWARE ACTIVITY SEQUENCING (MANDATORY)
+═══════════════════════════════════════════════════════
+NEVER generate random activities. Every teaching slide MUST be immediately followed by its
+corresponding intensive practice slide testing the EXACT content just taught:
+
+• VOCABULARY RULE: A "vocab_list" slide → immediate next slide MUST be "match_words" or "image_match"
+  testing those exact words (same categories derived from the vocab definitions).
+• GRAMMAR RULE: A "grammar_explanation" slide → immediate next slide MUST be "fill_in_blanks" or
+  "sentence_builder" testing that exact grammar rule with sentences that require applying it.
+• READING RULE: A reading passage (mascot_speech in Reading phase) → immediate next slide MUST be
+  "reading_quiz" (quiz_mcq) or "true_false" based strictly on the passage content.
+• LISTENING RULE: An "audio_listening" slide → immediate next slide MUST be "listening_comprehension"
+  (quiz_mcq) with questions about the audio script content.
+
+This pairing is NON-NEGOTIABLE. The practice slide must reference the SPECIFIC words, rules,
+or passage from the teaching slide — never generic or unrelated content.
 
 ${hubBlock}
 
