@@ -16,10 +16,6 @@ import { ThemeModeToggle } from '@/components/ui/ThemeModeToggle';
 import { WelcomeSuccessModal } from './WelcomeSuccessModal';
 import { MobileTeacherBottomNav } from './MobileTeacherBottomNav';
 import { TeacherLessonLibrary } from '@/components/teacher/library/TeacherLessonLibrary';
-import { FloatingHelpButton } from '@/components/support/FloatingHelpButton';
-import { ThemeModeToggle } from '@/components/ui/ThemeModeToggle';
-import { WelcomeSuccessModal } from './WelcomeSuccessModal';
-import { MobileTeacherBottomNav } from './MobileTeacherBottomNav';
 
 type TabType = 'dashboard' | 'schedule' | 'library' | 'analytics' | 'methodology' | 'account' | 'teacher-hub' | 'help';
 
