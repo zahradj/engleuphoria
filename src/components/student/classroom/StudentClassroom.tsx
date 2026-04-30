@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PostClassFeedbackModal } from './PostClassFeedbackModal';
 import { useToast } from '@/hooks/use-toast';
@@ -52,6 +52,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
   const sidebarIdle = useIdleOpacity({ idleTimeout: 4000, idleOpacity: 0.3 });
 
   const {
+    session,
     currentSlide,
     activeTool,
     studentCanDraw,
@@ -90,6 +91,18 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     userName: studentName,
     role: 'student'
   });
+
+  // Slide completion reporting — broadcast to teacher when student finishes an interactive activity
+  const handleSlideCompletion = useCallback((slideIndex: number, slideId: string, accuracy?: number, timeSpent?: number) => {
+    whiteboardService.sendSlideCompletion(roomId, {
+      slideIndex,
+      slideId,
+      accuracy,
+      timeSpent,
+      senderId: studentId,
+      senderName: studentName,
+    });
+  }, [roomId, studentId, studentName]);
 
   const webrtcRoom = `engleuphoria-${roomId}`;
   const [channelStatus, setChannelStatus] = useState<'CONNECTING' | 'SUBSCRIBED' | 'CLOSED' | 'CHANNEL_ERROR' | 'TIMED_OUT'>('CONNECTING');
@@ -466,6 +479,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
           roomId={roomId}
           userId={studentId}
           userName={studentName}
+          sessionId={session?.id}
           quizActive={quizActive}
           quizLocked={quizLocked}
           quizRevealAnswer={quizRevealAnswer}
@@ -479,6 +493,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
           drawingEnabled={drawingEnabled}
           iframeUnlocked={iframeUnlocked}
           onAddStroke={addStroke}
+          onSlideComplete={handleSlideCompletion}
         />
       </div>
 

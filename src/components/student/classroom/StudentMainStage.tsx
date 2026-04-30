@@ -51,6 +51,7 @@ interface StudentMainStageProps {
   drawingEnabled: boolean;
   iframeUnlocked?: boolean;
   onAddStroke: (stroke: Omit<WhiteboardStroke, 'id' | 'roomId' | 'timestamp'>) => void;
+  onSlideComplete?: (slideIndex: number, slideId: string, accuracy?: number, timeSpent?: number) => void;
 }
 
 /**
@@ -80,6 +81,7 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
   drawingEnabled,
   iframeUnlocked = false,
   onAddStroke,
+  onSlideComplete,
 }) => {
   const currentSlide = slides[currentSlideIndex];
   const isQuizSlide = currentSlide?.type === 'quiz';

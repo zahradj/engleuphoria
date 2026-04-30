@@ -57,6 +57,18 @@ export interface GameStatePayload {
   timestamp: number;
 }
 
+export interface SlideCompletionPayload {
+  slideIndex: number;
+  slideId: string;
+  /** Accuracy percentage 0-100 if applicable */
+  accuracy?: number;
+  /** Time spent on the slide in seconds */
+  timeSpent?: number;
+  senderId: string;
+  senderName: string;
+  timestamp: number;
+}
+
 export type RewardType = 'star' | 'sticker';
 export interface RewardPayload {
   rewardType: RewardType;
@@ -97,6 +109,7 @@ type RewardListener = (payload: RewardPayload) => void;
 type ToolActionListener = (payload: ToolActionPayload) => void;
 type ChatListener = (payload: ChatBroadcastPayload) => void;
 type WorksheetLoadListener = (payload: WorksheetLoadPayload) => void;
+type SlideCompletionListener = (payload: SlideCompletionPayload) => void;
 type GameStateListener = (payload: GameStatePayload) => void;
 
 interface RoomChannel {
@@ -114,6 +127,7 @@ interface RoomChannel {
   chatListeners: Set<ChatListener>;
   worksheetListeners: Set<WorksheetLoadListener>;
   gameStateListeners: Set<GameStateListener>;
+  slideCompletionListeners: Set<SlideCompletionListener>;
   refCount: number;
 }
 
@@ -140,6 +154,7 @@ class WhiteboardService {
     const chatListeners = new Set<ChatListener>();
     const worksheetListeners = new Set<WorksheetLoadListener>();
     const gameStateListeners = new Set<GameStateListener>();
+    const slideCompletionListeners = new Set<SlideCompletionListener>();
     const statusListeners = new Set<(status: string) => void>();
 
     const channel = supabase
@@ -198,6 +213,9 @@ class WhiteboardService {
       })
       .on('broadcast', { event: 'game_state' }, (payload) => {
         gameStateListeners.forEach((cb) => cb(payload.payload as GameStatePayload));
+      })
+      .on('broadcast', { event: 'slide_completion' }, (payload) => {
+        slideCompletionListeners.forEach((cb) => cb(payload.payload as SlideCompletionPayload));
       });
 
     const ready = new Promise<void>((resolve) => {
@@ -223,6 +241,7 @@ class WhiteboardService {
       chatListeners,
       worksheetListeners,
       gameStateListeners,
+      slideCompletionListeners,
       refCount: 0,
     };
     this.rooms.set(channelName, room);
@@ -432,6 +451,27 @@ class WhiteboardService {
     return () => this.release(roomId, () => room.gameStateListeners.delete(onState));
   }
 
+  /** Student broadcasts that they completed an interactive slide activity. */
+  async sendSlideCompletion(
+    roomId: string,
+    payload: Omit<SlideCompletionPayload, 'timestamp'>
+  ): Promise<void> {
+    const room = this.getRoom(roomId);
+    await room.ready;
+    await room.channel.send({
+      type: 'broadcast',
+      event: 'slide_completion',
+      payload: { ...payload, timestamp: Date.now() } satisfies SlideCompletionPayload,
+    });
+  }
+
+  subscribeToSlideCompletion(roomId: string, onComplete: SlideCompletionListener): () => void {
+    const room = this.getRoom(roomId);
+    room.slideCompletionListeners.add(onComplete);
+    room.refCount += 1;
+    return () => this.release(roomId, () => room.slideCompletionListeners.delete(onComplete));
+  }
+
   subscribeToStatus(roomId: string, onStatus: (status: string) => void): () => void {
     const room = this.getRoom(roomId);
     room.statusListeners.add(onStatus);
@@ -458,6 +498,7 @@ class WhiteboardService {
       room.chatListeners.size === 0 &&
       room.worksheetListeners.size === 0 &&
       room.gameStateListeners.size === 0 &&
+      room.slideCompletionListeners.size === 0 &&
       room.statusListeners.size === 0
     ) {
       supabase.removeChannel(room.channel);
