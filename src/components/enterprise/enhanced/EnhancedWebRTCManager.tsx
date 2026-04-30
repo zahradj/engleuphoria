@@ -117,7 +117,7 @@ export const useEnhancedWebRTC = (roomId: string, userId: string) => {
     peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
         // Send ICE candidate via Supabase signaling
-        supabase.channel(`webrtc_${roomId}`).send({
+        getSignalingChannel().send({
           type: 'broadcast',
           event: 'ice-candidate',
           payload: {
@@ -236,7 +236,7 @@ export const useEnhancedWebRTC = (roomId: string, userId: string) => {
     await peerConnection.setLocalDescription(answer);
 
     // Send answer via Supabase signaling
-    supabase.channel(`webrtc_${roomId}`).send({
+    getSignalingChannel().send({
       type: 'broadcast',
       event: 'answer',
       payload: {
@@ -268,7 +268,7 @@ export const useEnhancedWebRTC = (roomId: string, userId: string) => {
     await peerConnection.setLocalDescription(offer);
 
     // Send offer via Supabase signaling
-    supabase.channel(`webrtc_${roomId}`).send({
+    getSignalingChannel().send({
       type: 'broadcast',
       event: 'offer',
       payload: {
