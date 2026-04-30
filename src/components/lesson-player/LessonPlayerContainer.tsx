@@ -12,7 +12,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useMasteryTracker } from '@/hooks/useMasteryTracker';
 import { useStreak } from '@/hooks/useStreak';
-import { X, Volume2, VolumeX, Zap, Star, ChevronLeft, ChevronRight, Focus } from 'lucide-react';
+import { X, Volume2, VolumeX, Zap, Star, ChevronLeft, ChevronRight, Focus, BookOpen } from 'lucide-react';
+import LibraryDrawer from './LibraryDrawer';
 import PhaseTracker from './PhaseTracker';
 import { useLessonAutoSave, readLessonBookmark, clearLessonBookmark } from '@/hooks/useLessonAutoSave';
 import {
@@ -161,14 +162,21 @@ interface LessonPlayerContainerProps {
 }
 
 export default function LessonPlayerContainer({
-  slides,
+  slides: initialSlides,
   hub,
-  lessonTitle,
+  lessonTitle: initialTitle,
   lessonId,
   studentId,
   onComplete,
   onExit,
 }: LessonPlayerContainerProps) {
+  const [activeSlides, setActiveSlides] = useState(initialSlides);
+  const [activeLessonTitle, setActiveLessonTitle] = useState(initialTitle);
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+
+  // Keep in sync if parent changes props
+  useEffect(() => { setActiveSlides(initialSlides); }, [initialSlides]);
+  useEffect(() => { setActiveLessonTitle(initialTitle); }, [initialTitle]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [lessonScore, setLessonScore] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
@@ -191,10 +199,10 @@ export default function LessonPlayerContainer({
     if (resumeChecked.current) return;
     resumeChecked.current = true;
     const bookmark = readLessonBookmark(lessonId);
-    if (bookmark && bookmark.slide_index > 0 && bookmark.slide_index < slides.length - 1) {
+    if (bookmark && bookmark.slide_index > 0 && bookmark.slide_index < activeSlides.length - 1) {
       setResumePrompt({ slide: bookmark.slide_index, stars: bookmark.stars_remaining });
     }
-  }, [lessonId, slides.length]);
+  }, [lessonId, activeSlides.length]);
 
   // Auto-save bookmark on every slide change
   useLessonAutoSave({
@@ -202,7 +210,7 @@ export default function LessonPlayerContainer({
     studentId,
     slideIndex: currentSlideIndex,
     starsRemaining,
-    totalSlides: slides.length,
+    totalSlides: activeSlides.length,
     completed,
   });
 
@@ -212,16 +220,16 @@ export default function LessonPlayerContainer({
 
   const config = HUB_CONFIGS[hub];
   const skin = HUB_SKINS[hub];
-  const totalSlides = slides.length;
-  const currentSlide = slides[currentSlideIndex];
+  const totalSlides = activeSlides.length;
+  const currentSlide = activeSlides[currentSlideIndex];
   const progress = ((currentSlideIndex + 1) / totalSlides) * 100;
 
   const isActivitySlide = currentSlide?.slideType === 'activity' || !!currentSlide?.activityType;
 
   useEffect(() => {
-    const qCount = slides.filter(s => s.slideType === 'activity' || !!s.activityType).length;
+    const qCount = activeSlides.filter(s => s.slideType === 'activity' || !!s.activityType).length;
     setTotalQuestions(qCount);
-  }, [slides]);
+  }, [activeSlides]);
 
   useEffect(() => {
     if (completed) triggerCelebration(hub);
@@ -308,6 +316,18 @@ export default function LessonPlayerContainer({
       throw new Error(error.message || 'Failed to save progress');
     }
   }, [studentId, lessonId, lessonScore]);
+
+  const handleLibraryInject = (newSlides: GeneratedSlide[], title: string) => {
+    setActiveSlides(newSlides);
+    setActiveLessonTitle(title);
+    setCurrentSlideIndex(0);
+    setAnswerSelected(false);
+    setFeedbackVisible(false);
+    setCompleted(false);
+    setLessonScore(0);
+    setCorrectCount(0);
+    setIsLibraryOpen(false);
+  };
 
   const toggleMute = () => {
     const next = !muted;
@@ -427,6 +447,15 @@ export default function LessonPlayerContainer({
             <Focus size={16} />
           </button>
 
+          {/* Library Book icon */}
+          <button
+            onClick={() => setIsLibraryOpen(true)}
+            className="opacity-50 hover:opacity-100 shrink-0 transition-opacity"
+            title="Lesson Library"
+          >
+            <BookOpen size={16} />
+          </button>
+
           <button onClick={toggleMute} className="opacity-50 hover:opacity-100 shrink-0">
             {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
           </button>
@@ -434,7 +463,7 @@ export default function LessonPlayerContainer({
         {/* 6-Step Phase Tracker — locked progression map */}
         <div className="w-full max-w-5xl mx-auto mt-2">
           <PhaseTracker
-            slides={slides as any}
+            slides={activeSlides as any}
             currentIndex={currentSlideIndex}
             onJumpToPhase={(idx) => {
               setCurrentSlideIndex(idx);
@@ -530,6 +559,13 @@ export default function LessonPlayerContainer({
           </div>
         </div>
       )}
+
+      {/* Library Drawer */}
+      <LibraryDrawer
+        open={isLibraryOpen}
+        onClose={() => setIsLibraryOpen(false)}
+        onSelectLesson={handleLibraryInject}
+      />
     </div>
   );
 }
