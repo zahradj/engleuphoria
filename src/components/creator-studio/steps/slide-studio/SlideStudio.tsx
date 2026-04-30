@@ -146,14 +146,12 @@ const SlideStudioInner: React.FC = () => {
               <span className="text-xs text-slate-400 font-mono">
                 {slides.length} slide{slides.length === 1 ? '' : 's'}
               </span>
-              <Button
-                onClick={handleAutoGenerate}
-                disabled={autoGenerating || !slides.length}
-                className="bg-gradient-to-r from-violet-600 via-fuchsia-500 to-amber-400 text-white font-extrabold shadow-lg shadow-fuchsia-500/30 hover:shadow-fuchsia-500/50 transition-shadow border-0"
-              >
-                {autoGenerating ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Sparkles className="h-4 w-4 mr-1.5" />}
-                ✨ Auto-Generate All Media
-              </Button>
+              {autoGenerating && (
+                <div className="flex items-center gap-1.5 text-xs text-fuchsia-500 font-semibold animate-pulse">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  🎨 AI is painting…
+                </div>
+              )}
             </div>
           )}
         </div>
