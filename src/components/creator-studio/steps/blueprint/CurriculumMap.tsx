@@ -1,10 +1,12 @@
-import React from 'react';
-import { Loader2, BookOpen, Palette, Target } from 'lucide-react';
+import React, { useState } from 'react';
+import { Loader2, BookOpen, Palette, Target, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useCreator, CurriculumData, BlueprintLessonRef } from '../../CreatorContext';
 import { SkillBadge } from './SkillBadge';
+import { persistBlueprintAsDrafts } from '../../persistBlueprint';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 interface Props {
   data: CurriculumData | null;
@@ -13,6 +15,8 @@ interface Props {
 
 export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
   const { setActiveLessonData, setCurrentStep } = useCreator();
+  const navigate = useNavigate();
+  const [saving, setSaving] = useState(false);
 
   const handleBuildSlides = (lesson: BlueprintLessonRef) => {
     if (!data) return;
@@ -27,6 +31,21 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
     });
     setCurrentStep('slide-builder');
     toast.success(`Opening Slide Studio for "${lesson.title}"…`);
+  };
+
+  const handleSaveBlueprint = async () => {
+    if (!data) return;
+    setSaving(true);
+    try {
+      const result = await persistBlueprintAsDrafts(data);
+      toast.success(`🎉 Blueprint saved! ${result.totalCount} draft lessons created.`);
+      navigate('/content-creator');
+    } catch (err: any) {
+      console.error('Blueprint save error:', err);
+      toast.error(err?.message || 'Failed to save blueprint.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading && !data) {
@@ -139,6 +158,20 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
             </AccordionItem>
           ))}
         </Accordion>
+
+        {/* Save Blueprint Button */}
+        <Button
+          size="lg"
+          onClick={handleSaveBlueprint}
+          disabled={saving}
+          className="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 text-white shadow-md"
+        >
+          {saving ? (
+            <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Saving…</>
+          ) : (
+            <><Save className="w-5 h-5 mr-2" /> Save Entire Blueprint to Library</>
+          )}
+        </Button>
       </div>
     </>
   );
