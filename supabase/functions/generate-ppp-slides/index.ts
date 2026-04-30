@@ -171,6 +171,19 @@ RULE 6 — INTERACTIVE_DATA SHAPES (by slide_type)
                      // EXACTLY 3 pairs.
 • fill_in_the_gaps → { "instruction": string, "sentence_parts": string[], "missing_word": string, "distractors": string[2..3] }
 
+═══════════════════════════════════════════════════════
+RULE 6B — PREMIUM EDITORIAL SLIDE TYPES (OPTIONAL — USE FOR RICHER UX)
+═══════════════════════════════════════════════════════
+You may ALSO use these premium slide_type values. The frontend has dedicated wide-format components for each:
+• hero_media             → { "description": string, "requires_video": boolean, "youtube_query"?: string, "image_prompt_detailed"?: string }
+• vocab_list             → { "words": string[], "examples": string[] }
+• grammar_explanation    → { "rule_text": string, "common_signals": string, "examples": string[] }
+• sorting_game           → { "categories": string[2..3], "items": [{"word": string, "correct_category": string}] }
+• fill_in_blanks         → { "sentences": [{"text_with_blank": string, "hint": string, "correct_answer": string}] }
+• match_halves           → { "pairs": [{"left_part": string, "right_part": string}] }  // Frontend shuffles right parts
+• quiz_mcq               → { "question": string, "options": string[4], "correct_index": 0..3 }
+• role_play              → { "scenario_text": string, "tips": string[], "key_phrases": string[], "requires_voice_recording": true }
+
 For EVERY interactive slide (multiple_choice, drag_and_match, fill_in_the_gaps, drag_and_drop) you
 MUST also include a top-level "hint_text": short kid-friendly hint (≤ 90 chars) revealed after the
 student's first wrong answer. Never spoil the answer outright — guide them. Example for a past
@@ -307,7 +320,7 @@ Top-level shape:
 Each slide object MUST have these keys:
   "phase": "Hook" | "Presentation" | "Practice" | "Production" | "Mission",
   "lesson_phase": "Vocabulary" | "Reading" | "Comprehension" | "Grammar" | "Speaking" | "Writing",
-  "slide_type": "mascot_speech" | "multiple_choice" | "drawing_canvas" | "drag_and_drop" | "flashcard" | "drag_and_match" | "fill_in_the_gaps",
+  "slide_type": "mascot_speech" | "multiple_choice" | "drawing_canvas" | "drag_and_drop" | "flashcard" | "drag_and_match" | "fill_in_the_gaps" | "hero_media" | "vocab_list" | "grammar_explanation" | "sorting_game" | "fill_in_blanks" | "match_halves" | "quiz_mcq" | "role_play",
   "media_type": "image" | "video",
   "layout_style": "split_left" | "split_right" | "center_card" | "full_background",
   "title": string,
