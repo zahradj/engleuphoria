@@ -51,6 +51,7 @@ interface StudentMainStageProps {
   drawingEnabled: boolean;
   iframeUnlocked?: boolean;
   onAddStroke: (stroke: Omit<WhiteboardStroke, 'id' | 'roomId' | 'timestamp'>) => void;
+  onSlideComplete?: (slideIndex: number, slideId: string, accuracy?: number, timeSpent?: number) => void;
 }
 
 /**
