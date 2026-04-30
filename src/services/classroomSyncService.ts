@@ -28,6 +28,7 @@ export interface ClassroomSession {
   diceValue: number | null;
   // Phase 7: Shared notes & context
   sharedNotes: string;
+  force_refresh_timestamp: number;
   sessionContext: Record<string, any>;
   // Phase 8: Canvas tab sync
   activeCanvasTab: string;
