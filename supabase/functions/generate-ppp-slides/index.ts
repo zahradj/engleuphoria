@@ -247,6 +247,24 @@ Supportive, professional, joyful. CEFR-aligned. No placeholders.
 passage paragraph (with **bold** target words).
 "teacher_script" = 2–3 high-energy sentences for the teacher to read aloud.
 
+═══════════════════════════════════════════════════════
+RULE 9 — CONTEXT-AWARE ACTIVITY SEQUENCING (MANDATORY)
+═══════════════════════════════════════════════════════
+NEVER generate random activities. Every teaching slide MUST be immediately followed by its
+corresponding intensive practice slide testing the EXACT content just taught:
+
+• VOCABULARY RULE: A "vocab_list" slide → immediate next slide MUST be "match_words" or "image_match"
+  testing those exact words (same categories derived from the vocab definitions).
+• GRAMMAR RULE: A "grammar_explanation" slide → immediate next slide MUST be "fill_in_blanks" or
+  "sentence_builder" testing that exact grammar rule with sentences that require applying it.
+• READING RULE: A reading passage (mascot_speech in Reading phase) → immediate next slide MUST be
+  "reading_quiz" (quiz_mcq) or "true_false" based strictly on the passage content.
+• LISTENING RULE: An "audio_listening" slide → immediate next slide MUST be "listening_comprehension"
+  (quiz_mcq) with questions about the audio script content.
+
+This pairing is NON-NEGOTIABLE. The practice slide must reference the SPECIFIC words, rules,
+or passage from the teaching slide — never generic or unrelated content.
+
 ${hubBlock}
 
 ${dynamicPhaseBlock ? dynamicPhaseBlock + "\n\nThe DYNAMIC PHASE SEQUENCE above OVERRIDES the default 6-step order in RULE 1 — follow the dynamic order instead, but keep all other RULE 1 phase requirements (vocab counts, reading word coverage, grammar drilling, etc.)." : ""}`;
