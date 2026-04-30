@@ -28,6 +28,7 @@ export interface ClassroomSession {
   diceValue: number | null;
   // Phase 7: Shared notes & context
   sharedNotes: string;
+  force_refresh_timestamp: number;
   sessionContext: Record<string, any>;
   // Phase 8: Canvas tab sync
   activeCanvasTab: string;
@@ -289,8 +290,10 @@ class ClassroomSyncService {
           filter: `room_id=eq.${roomId}`
         },
         (payload) => {
+          console.log('🔄 SYNC EVENT received:', payload);
           const session = this.mapToSession(payload.new);
           if (session) {
+            console.log('🔄 Mapped session – slideIndex:', session.currentSlideIndex, 'forceRefresh:', (payload.new as any)?.force_refresh_timestamp);
             onUpdate(session);
           }
         }
@@ -386,7 +389,8 @@ class ClassroomSyncService {
       diceValue: data.dice_value || null,
       sharedNotes: data.shared_notes || '',
       sessionContext: data.session_context || {},
-      activeCanvasTab: data.active_canvas_tab || 'slides'
+      activeCanvasTab: data.active_canvas_tab || 'slides',
+      force_refresh_timestamp: data.force_refresh_timestamp || 0
     };
   }
 

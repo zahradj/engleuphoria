@@ -1495,6 +1495,7 @@ export type Database = {
           dice_value: number | null
           embedded_url: string | null
           ended_at: string | null
+          force_refresh_timestamp: number | null
           id: string
           is_milestone: boolean | null
           is_screen_sharing: boolean | null
@@ -1530,6 +1531,7 @@ export type Database = {
           dice_value?: number | null
           embedded_url?: string | null
           ended_at?: string | null
+          force_refresh_timestamp?: number | null
           id?: string
           is_milestone?: boolean | null
           is_screen_sharing?: boolean | null
@@ -1565,6 +1567,7 @@ export type Database = {
           dice_value?: number | null
           embedded_url?: string | null
           ended_at?: string | null
+          force_refresh_timestamp?: number | null
           id?: string
           is_milestone?: boolean | null
           is_screen_sharing?: boolean | null

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useClassroomSync } from "@/hooks/useClassroomSync";
@@ -26,7 +26,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AnimatePresence } from "framer-motion";
-import { Wand2 } from "lucide-react";
+import { Wand2, RefreshCw } from "lucide-react";
 import LibraryDrawer from "@/components/lesson-player/LibraryDrawer";
 import { useIdleOpacity } from "@/hooks/useIdleOpacity";
 import { useClassroomTimer } from "@/hooks/classroom/useClassroomTimer";
@@ -125,6 +125,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   );
 
   const {
+    session,
     currentSlide,
     lessonSlides: syncedLessonSlides,
     lessonTitle: syncedLessonTitle,
@@ -185,6 +186,34 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   const teacherUserId = user?.id || sessionStorage.getItem('demo-teacher-id') || 'teacher';
   const [channelStatus, setChannelStatus] = useState<'CONNECTING' | 'SUBSCRIBED' | 'CLOSED' | 'CHANNEL_ERROR' | 'TIMED_OUT'>('CONNECTING');
+  const pageLoadTime = useRef(Date.now());
+
+  // Force Sync: update force_refresh_timestamp to trigger reload on all clients
+  const handleForceSync = useCallback(async () => {
+    const { supabase } = await import('@/integrations/supabase/client');
+    const now = Date.now();
+    const { error } = await supabase
+      .from('classroom_sessions')
+      .update({ force_refresh_timestamp: now } as any)
+      .eq('room_id', roomName);
+    if (error) {
+      console.error('Force sync failed:', error);
+      toast({ title: '❌ Force Sync failed', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: '🔄 Force Sync sent', description: 'Both screens will reload now.' });
+      setTimeout(() => window.location.reload(), 500);
+    }
+  }, [roomName, toast]);
+
+  // Listen for force_refresh_timestamp changes via the session subscription
+  useEffect(() => {
+    if (!session) return;
+    const ts = (session as any).force_refresh_timestamp;
+    if (ts && ts > pageLoadTime.current) {
+      console.log('🔄 Force refresh triggered by remote, reloading…');
+      window.location.reload();
+    }
+  }, [(session as any)?.force_refresh_timestamp]);
 
   useEffect(() => {
     if (!roomName || !teacherUserId) return;
@@ -436,6 +465,9 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
       <div className="fixed top-3 right-3 z-[110] flex items-center gap-2 rounded-full bg-background/85 px-3 py-1.5 shadow-sm ring-1 ring-border backdrop-blur-md">
         <div className={`h-2.5 w-2.5 rounded-full ${channelStatus === 'SUBSCRIBED' ? 'bg-success animate-pulse' : 'bg-destructive'}`} />
         <span className="text-[11px] font-medium text-foreground">Realtime</span>
+        <Button variant="destructive" size="sm" className="ml-2 h-6 text-[10px] px-2" onClick={handleForceSync}>
+          <RefreshCw className="w-3 h-3 mr-1" /> Force Sync
+        </Button>
       </div>
 
       {/* Teacher-only: live diagnostics for realtime + WebRTC */}
