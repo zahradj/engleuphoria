@@ -540,6 +540,8 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             userName={teacherName}
             role="teacher"
             iframeUnlocked={iframeUnlocked}
+            rawSlides={rawSlides}
+            hubType={hubType}
             onAddStroke={addStroke}
           />
           <TeacherControlDock
