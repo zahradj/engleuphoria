@@ -6,7 +6,7 @@ export interface ClassroomSession {
   teacherId: string;
   currentSlideIndex: number;
   lessonTitle: string;
-  lessonSlides: Array<{ id: string; title: string; imageUrl?: string; content?: string; type?: string; quizQuestion?: string; quizOptions?: Array<{ id: string; text: string; isCorrect: boolean }>; pollQuestion?: string; pollOptions?: Array<{ id: string; text: string }> }>;
+  lessonSlides: Array<Record<string, any> & { id: string; title?: string; imageUrl?: string; content?: any; type?: string; quizQuestion?: string; quizOptions?: Array<{ id: string; text: string; isCorrect: boolean }>; pollQuestion?: string; pollOptions?: Array<{ id: string; text: string }> }>;
   activeTool: string;
   studentCanDraw: boolean;
   sessionStatus: string;
@@ -37,7 +37,7 @@ export interface SessionUpdate {
   currentSlideIndex?: number;
   activeTool?: string;
   studentCanDraw?: boolean;
-  lessonSlides?: Array<{ id: string; title: string; imageUrl?: string; content?: string }>;
+  lessonSlides?: Array<Record<string, any> & { id: string; title?: string; imageUrl?: string; content?: any }>;
   lessonTitle?: string;
   quizActive?: boolean;
   quizLocked?: boolean;
