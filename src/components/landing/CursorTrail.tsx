@@ -11,20 +11,32 @@ interface Particle {
   color: string;
 }
 
-const BRAND_COLORS = [
-  "#9b87f5", // primary purple
-  "#F97316", // orange accent
-  "#3B82F6", // blue accent
-  "#22D3EE", // cyan accent
-  "#A78BFA", // lavender
-];
-
 const MAX_PARTICLES = 120;
+
+/** Read HSL CSS variables from :root and convert to usable HSL strings. */
+function getBrandColors(): string[] {
+  const vars = ["--primary", "--secondary", "--accent", "--ring", "--chart-1", "--chart-2"];
+  const style = getComputedStyle(document.documentElement);
+  const colors: string[] = [];
+
+  for (const v of vars) {
+    const raw = style.getPropertyValue(v).trim();
+    if (raw) {
+      colors.push(`hsl(${raw})`);
+    }
+  }
+
+  // Fallback if no CSS vars resolved
+  if (colors.length === 0) {
+    return ["hsl(280 60% 65%)", "hsl(24 95% 54%)", "hsl(217 91% 60%)", "hsl(190 95% 53%)"];
+  }
+  return colors;
+}
 
 export function CursorTrail() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particles = useRef<Particle[]>([]);
-  const mouse = useRef({ x: -100, y: -100 });
+  const brandColors = useRef<string[]>([]);
   const rafId = useRef<number>(0);
 
   const resize = useCallback(() => {
@@ -35,14 +47,13 @@ export function CursorTrail() {
   }, []);
 
   useEffect(() => {
+    // Read brand colors once on mount (they adapt to dark/light mode)
+    brandColors.current = getBrandColors();
+
     resize();
     window.addEventListener("resize", resize);
 
     const onMove = (e: MouseEvent) => {
-      mouse.current.x = e.clientX;
-      mouse.current.y = e.clientY;
-
-      // Spawn 2-3 particles per move
       const count = 2 + Math.floor(Math.random() * 2);
       for (let i = 0; i < count; i++) {
         if (particles.current.length >= MAX_PARTICLES) {
@@ -57,7 +68,7 @@ export function CursorTrail() {
           size: 3 + Math.random() * 3.5,
           life: maxLife,
           maxLife,
-          color: BRAND_COLORS[Math.floor(Math.random() * BRAND_COLORS.length)],
+          color: brandColors.current[Math.floor(Math.random() * brandColors.current.length)],
         });
       }
     };
