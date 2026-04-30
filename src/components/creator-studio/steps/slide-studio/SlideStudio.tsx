@@ -120,50 +120,6 @@ const SlideStudioInner: React.FC = () => {
     setActiveSlideId(slides[activeIndex + 1].id);
   };
 
-  const handleAutoGenerate = async () => {
-    if (autoGenerating || !slides.length) return;
-    const lessonId = activeLessonData.lesson_id ?? activeLessonData.source_lesson?.id ?? 'draft';
-    const hub = activeLessonData.hub ?? 'Academy';
-    setAutoGenerating(true);
-    toast.message('🎨 AI Art Director is composing the deck…', {
-      description: `Generating images & fetching videos for ${slides.length} slides.`,
-    });
-    try {
-      const { results, summary } = await generateAllMedia(lessonId, hub, slides as unknown as Array<Record<string, unknown>>, false);
-      for (const r of results) {
-        if (r.error || r.skipped) continue;
-        const patch: Record<string, unknown> = {};
-        if (r.custom_image_url) {
-          patch.custom_image_url = r.custom_image_url;
-          patch.custom_video_url = undefined;
-          patch.youtube_video_id = undefined;
-        }
-        if (r.youtube_video_id) {
-          patch.youtube_video_id = r.youtube_video_id;
-          patch.youtube_embed_url = r.youtube_embed_url;
-          patch.youtube_title = r.youtube_title;
-          patch.youtube_thumbnail = r.youtube_thumbnail;
-          patch.custom_image_url = undefined;
-          patch.custom_video_url = undefined;
-        }
-        if (Object.keys(patch).length) updateSlide(r.slideId, patch);
-      }
-      if (summary.errors > 0) {
-        toast.warning(`Done with ${summary.errors} issue${summary.errors === 1 ? '' : 's'}`, {
-          description: `🖼️ ${summary.images} images · 🎬 ${summary.videos} videos · ⏭️ ${summary.skipped} skipped.`,
-        });
-      } else {
-        toast.success('Deck media ready ✨', {
-          description: `🖼️ ${summary.images} images · 🎬 ${summary.videos} videos · ⏭️ ${summary.skipped} skipped.`,
-        });
-      }
-    } catch (e) {
-      toast.error(`Auto-generate failed: ${(e as Error).message}`);
-    } finally {
-      setAutoGenerating(false);
-    }
-  };
-
   return (
     <div className={cn('h-full flex flex-col -m-6 hub-surface', theme.themeClass, theme.font)}>
       {/* ── Lesson header strip ── */}
