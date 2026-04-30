@@ -55,6 +55,7 @@ Deno.serve(async (req) => {
       hub = "academy",
       target_hub, // ← preferred new field; falls back to `hub`
       blueprint, // ← Approved Blueprint (optional). When present, treated as ground truth.
+      student_profile, // ← Hyper-personalization: { industry, age, interests[] }
     } = body || {};
 
     // Allow the title to fall back to blueprint.lesson_title when caller omits it.
