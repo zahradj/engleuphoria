@@ -80,7 +80,26 @@ export const VoiceRecorder = ({
           context,
         },
       });
-      if (error) throw error;
+      if (error) {
+        // Surface friendly INSUFFICIENT_VOICE_ENERGY message when applicable
+        const ctx: any = (error as any)?.context;
+        let msg = (error as Error)?.message || 'Could not evaluate speech.';
+        try {
+          if (ctx?.body && typeof ctx.body.getReader === 'function') {
+            const text = await new Response(ctx.body).text();
+            const parsed = JSON.parse(text);
+            if (parsed?.error === 'INSUFFICIENT_VOICE_ENERGY') {
+              toast.error('Out of Voice Energy ⚡', {
+                description: parsed.message || 'Upgrade your plan to keep practicing.',
+                duration: 7000,
+              });
+              return;
+            }
+            msg = parsed?.message || parsed?.error || msg;
+          }
+        } catch { /* ignore */ }
+        throw new Error(msg);
+      }
       setResult(data);
       onResult?.(data);
 
@@ -89,7 +108,7 @@ export const VoiceRecorder = ({
       else toast.warning(data.encouragement);
     } catch (e) {
       console.error(e);
-      toast.error('Could not evaluate speech. Try again.');
+      toast.error((e as Error)?.message || 'Could not evaluate speech. Try again.');
     } finally {
       setIsProcessing(false);
     }
