@@ -154,7 +154,10 @@ export default function LessonPlayerContainer({
     setFeedbackSolution('');
     setFeedbackVisible(true);
     if (!muted) soundEffectsService.playCorrect();
-  }, [muted]);
+    // SRS: track mastery for the current slide's item
+    const itemKey = currentSlide?.content?.targetWord || currentSlide?.content?.title || currentSlide?.title;
+    if (itemKey) trackMastery(itemKey, true, 'vocabulary', hub);
+  }, [muted, currentSlide, trackMastery, hub]);
 
   const handleIncorrectAnswer = useCallback(() => {
     setAnswerSelected(true);
@@ -163,7 +166,10 @@ export default function LessonPlayerContainer({
     setFeedbackSolution(answer);
     setFeedbackVisible(true);
     if (!muted) soundEffectsService.playIncorrect();
-  }, [muted, currentSlide]);
+    // SRS: track mastery failure
+    const itemKey = currentSlide?.content?.targetWord || currentSlide?.content?.title || currentSlide?.title;
+    if (itemKey) trackMastery(itemKey, false, 'vocabulary', hub);
+  }, [muted, currentSlide, trackMastery, hub]);
 
   const handlePrevSlide = useCallback(() => {
     if (currentSlideIndex > 0) {
