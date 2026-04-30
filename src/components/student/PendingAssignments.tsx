@@ -40,7 +40,7 @@ export const PendingAssignments: React.FC = () => {
       </CardHeader>
       <CardContent className="space-y-3">
         {assignments.map((a: any) => {
-          const lesson = a.ai_lessons;
+          const lesson = a.curriculum_lessons;
           return (
             <div
               key={a.id}
@@ -52,7 +52,7 @@ export const PendingAssignments: React.FC = () => {
                 </div>
                 <div>
                   <p className="font-medium text-sm text-foreground">
-                    {lesson?.title || lesson?.topic || 'Lesson'}
+                    {lesson?.title || 'Lesson'}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Assigned {new Date(a.assigned_at).toLocaleDateString()}
