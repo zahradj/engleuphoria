@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { HelpCircle, Check, X, PartyPopper, RotateCcw } from 'lucide-react';
+import WhyWrongButton from './WhyWrongButton';
 import { Button } from '@/components/ui/button';
 
 interface EditorialQuizMCQProps {
