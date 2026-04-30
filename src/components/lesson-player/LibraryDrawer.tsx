@@ -49,11 +49,10 @@ export default function LibraryDrawer({ open, onClose, onSelectLesson }: Library
       .select('id, title, topic, age_range, script')
       .order('created_at', { ascending: false })
       .then(({ data, error }) => {
-        if (error || !data || data.length === 0) {
-          console.warn('LibraryDrawer: No lessons found or error, using dummy data', error);
-          setLessons(DUMMY_LESSONS);
-        } else {
-          setLessons(
+        if (error) {
+          console.warn('LibraryDrawer fetch error:', error);
+        }
+        setLessons(
             data.map((l: any) => ({
               id: l.id,
               title: l.title || l.topic || 'Untitled Lesson',
