@@ -360,18 +360,24 @@ export default function LessonPlayerContainer({
         </div>
       </div>
 
-      {/* ── Centered Content Area ── */}
-      <div className="flex-1 flex items-center justify-center px-4 py-4 overflow-auto" style={{ paddingTop: 124, paddingBottom: 88 }}>
-        <div className={`w-full max-w-5xl rounded-[20px] overflow-hidden relative z-20 ${skin.card}`}>
-          <AnimatePresence mode="wait">
-            <DynamicSlideRenderer
-              key={currentSlide.id}
-              slide={currentSlide}
-              hub={hub}
-              onCorrectAnswer={handleCorrectAnswer}
-              onIncorrectAnswer={handleIncorrectAnswer}
-            />
-          </AnimatePresence>
+      {/* ── Centered Fluid App-Card ── */}
+      <div className="flex-1 flex items-center justify-center px-4 w-full" style={{ paddingTop: 124, paddingBottom: 88 }}>
+        <div
+          className={`w-full max-w-5xl rounded-3xl flex flex-col relative z-20 ${skin.card}`}
+          style={{ minHeight: '70vh', maxHeight: '85vh' }}
+        >
+          {/* Scrollable content area — header/footer stay locked */}
+          <div className="flex-1 overflow-y-auto p-6">
+            <AnimatePresence mode="wait">
+              <DynamicSlideRenderer
+                key={currentSlide.id}
+                slide={currentSlide}
+                hub={hub}
+                onCorrectAnswer={handleCorrectAnswer}
+                onIncorrectAnswer={handleIncorrectAnswer}
+              />
+            </AnimatePresence>
+          </div>
         </div>
       </div>
 
