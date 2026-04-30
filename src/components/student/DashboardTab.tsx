@@ -120,6 +120,9 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
 
   return (
     <div className="space-y-8">
+      {/* Pending Assignments — top priority */}
+      <PendingAssignments />
+
       {/* Enhanced Welcome Section */}
       <StudentWelcomeSection
         studentName={studentName}
