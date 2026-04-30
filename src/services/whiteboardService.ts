@@ -69,6 +69,12 @@ export interface SlideCompletionPayload {
   timestamp: number;
 }
 
+export interface SlideSyncPayload {
+  index: number;
+  senderId?: string;
+  timestamp?: number;
+}
+
 export type RewardType = 'star' | 'sticker';
 export interface RewardPayload {
   rewardType: RewardType;
@@ -110,6 +116,7 @@ type ToolActionListener = (payload: ToolActionPayload) => void;
 type ChatListener = (payload: ChatBroadcastPayload) => void;
 type WorksheetLoadListener = (payload: WorksheetLoadPayload) => void;
 type SlideCompletionListener = (payload: SlideCompletionPayload) => void;
+type SlideSyncListener = (payload: SlideSyncPayload) => void;
 type GameStateListener = (payload: GameStatePayload) => void;
 
 interface RoomChannel {
@@ -128,6 +135,7 @@ interface RoomChannel {
   worksheetListeners: Set<WorksheetLoadListener>;
   gameStateListeners: Set<GameStateListener>;
   slideCompletionListeners: Set<SlideCompletionListener>;
+  slideSyncListeners: Set<SlideSyncListener>;
   refCount: number;
 }
 
@@ -155,6 +163,7 @@ class WhiteboardService {
     const worksheetListeners = new Set<WorksheetLoadListener>();
     const gameStateListeners = new Set<GameStateListener>();
     const slideCompletionListeners = new Set<SlideCompletionListener>();
+    const slideSyncListeners = new Set<SlideSyncListener>();
     const statusListeners = new Set<(status: string) => void>();
 
     const channel = supabase
@@ -216,6 +225,10 @@ class WhiteboardService {
       })
       .on('broadcast', { event: 'slide_completion' }, (payload) => {
         slideCompletionListeners.forEach((cb) => cb(payload.payload as SlideCompletionPayload));
+      })
+      .on('broadcast', { event: 'SYNC_SLIDE' }, (response) => {
+        console.log('Received sync event:', response.payload);
+        slideSyncListeners.forEach((cb) => cb(response.payload as SlideSyncPayload));
       });
 
     const ready = new Promise<void>((resolve) => {
@@ -242,6 +255,7 @@ class WhiteboardService {
       worksheetListeners,
       gameStateListeners,
       slideCompletionListeners,
+      slideSyncListeners,
       refCount: 0,
     };
     this.rooms.set(channelName, room);
