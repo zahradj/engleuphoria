@@ -63,6 +63,10 @@ function getSlidesArray(content: any): any[] {
   return [];
 }
 
+export function getLibraryLessonSlides(lesson: Pick<LibraryLesson, 'content'>): any[] {
+  return getSlidesArray(lesson.content);
+}
+
 export function getLibrarySlideCount(lesson: Pick<LibraryLesson, 'content'>): number {
   return getSlidesArray(lesson.content).length;
 }
