@@ -28,6 +28,7 @@ import { BookMyClassModal } from '../BookMyClassModal';
 import { JoinLessonHero } from '../JoinLessonHero';
 import { HubLogo } from '../HubLogo';
 import { cn } from '@/lib/utils';
+import { DashboardVoiceGym } from '../DashboardVoiceGym';
 
 interface AcademyDashboardProps {
   studentName?: string;

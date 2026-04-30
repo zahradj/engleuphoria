@@ -22,6 +22,7 @@ import { Volume2, Star, Rocket, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
+import { DashboardVoiceGym } from '../DashboardVoiceGym';
 
 interface PlaygroundDashboardProps {
   studentName?: string;
@@ -350,6 +351,7 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
           </p>
         </motion.div>
 
+        <DashboardVoiceGym hub="playground" />
         <VirtualPetWidget petType={petType} petHappiness={petHappiness} wordsLearnedToday={wordsLearnedToday} wordsGoal={5} />
         <AIPersonalizedLessonCard />
         <WeeklyGoalWidget studentLevel="playground" />
