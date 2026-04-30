@@ -9,13 +9,13 @@ interface UseClassroomSyncOptions {
   role: 'teacher' | 'student';
   lessonData?: {
     title: string;
-    slides: Array<Record<string, any> & { id: string; title?: string; imageUrl?: string; content?: any }>;
+    slides: Array<Record<string, any> & { id: string; title: string; imageUrl?: string; content?: any }>;
   };
 }
 
 type SyncedLessonSlide = Record<string, any> & {
   id: string;
-  title?: string;
+  title: string;
   imageUrl?: string;
   content?: any;
   type?: string;
