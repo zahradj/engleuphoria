@@ -119,8 +119,8 @@ export const CollaborativeWhiteboard = ({
       .subscribe();
 
     return () => {
-      drawingChannel.unsubscribe();
-      cursorChannel.unsubscribe();
+      supabase.removeChannel(drawingChannel);
+      supabase.removeChannel(cursorChannel);
     };
   };
 
