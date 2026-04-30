@@ -11,10 +11,36 @@ const isHyperbeamUrl = (url: string | null | undefined) =>
 
 interface Slide {
   id: string;
-  title: string;
+  title?: string;
   imageUrl?: string;
-  content?: React.ReactNode;
+  content?: any;
 }
+
+const resolveSlideImage = (slide: any): string | undefined =>
+  slide?.imageUrl || slide?.image_url || slide?.generated_image_url || slide?.custom_image_url || slide?.media_url || slide?.content?.imageUrl;
+
+const normalizeLiveSlide = (slide: any, index: number): GeneratedSlide | null => {
+  if (!slide) return null;
+  const rawType = slide.slide_type || slide.slideType || slide.activityType || slide.type;
+  const activityType =
+    rawType === 'match_halves' ? 'drag_and_match'
+    : rawType === 'drag_and_match' || rawType === 'fill_in_the_gaps' || rawType === 'multiple_choice' ? rawType
+    : slide.activityType;
+
+  return {
+    ...slide,
+    id: String(slide.id ?? index + 1),
+    order: slide.order ?? index + 1,
+    title: String(slide.title || slide.content?.title || `Slide ${index + 1}`),
+    imageUrl: resolveSlideImage(slide),
+    slideType: slide.slideType || (activityType ? 'activity' : rawType === 'vocab_list' ? 'vocabulary' : 'hook'),
+    type: slide.type || activityType || rawType || 'title',
+    activityType,
+    content: typeof slide.content === 'string' ? { prompt: slide.content } : slide.content,
+    teacherNotes: slide.teacherNotes || slide.teacher_script || slide.teacher_instructions || '',
+    keywords: Array.isArray(slide.keywords) ? slide.keywords : [],
+  } as GeneratedSlide;
+};
 
 interface StageContentProps {
   mode: StageMode;
@@ -88,43 +114,20 @@ export const StageContent: React.FC<StageContentProps> = ({
     return <div className="absolute inset-0 bg-white" />;
   }
 
-  // 'slide' — try premium renderer first if raw slide data is available
-  const rawSlide = rawSlides?.[currentSlideIndex] as GeneratedSlide | undefined;
+  const currentSlide = normalizeLiveSlide(rawSlides?.[currentSlideIndex] ?? slides[currentSlideIndex], currentSlideIndex);
+  if (!currentSlide) return <div className="absolute inset-0 bg-white" />;
 
-  if (rawSlide && (rawSlide.slideType || rawSlide.activityType || rawSlide.type)) {
-    return (
-      <div className="absolute inset-0 bg-white flex items-center justify-center overflow-auto p-2">
-        <div className="w-full h-full flex items-center justify-center">
-          <DynamicSlideRenderer
-            slide={rawSlide}
-            hub={hubType}
-            onCorrectAnswer={() => {}}
-            onIncorrectAnswer={() => {}}
-            onComplete={() => {}}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  // Fallback: basic title/image rendering
-  const slide = slides[currentSlideIndex];
   return (
-    <div className="absolute inset-0 bg-white flex items-center justify-center overflow-hidden">
-      {slide?.imageUrl ? (
-        <img
-          src={slide.imageUrl}
-          alt={slide.title}
-          className="w-full h-full object-contain"
+    <div className="absolute inset-0 bg-white w-full h-full overflow-y-auto p-2">
+      <div className="min-h-full w-full flex items-center justify-center">
+        <DynamicSlideRenderer
+          slide={currentSlide}
+          hub={hubType}
+          onCorrectAnswer={() => {}}
+          onIncorrectAnswer={() => {}}
+          onComplete={() => {}}
         />
-      ) : (
-        <div className="text-center p-8 max-w-3xl">
-          <h2 className="text-3xl font-bold text-foreground mb-4">
-            {slide?.title || `Slide ${currentSlideIndex + 1}`}
-          </h2>
-          {slide?.content && <div className="text-muted-foreground text-lg">{slide.content}</div>}
-        </div>
-      )}
+      </div>
     </div>
   );
 };
