@@ -127,6 +127,7 @@ interface RoomChannel {
   chatListeners: Set<ChatListener>;
   worksheetListeners: Set<WorksheetLoadListener>;
   gameStateListeners: Set<GameStateListener>;
+  slideCompletionListeners: Set<SlideCompletionListener>;
   refCount: number;
 }
 
