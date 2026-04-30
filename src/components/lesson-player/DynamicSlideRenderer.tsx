@@ -329,6 +329,15 @@ export default function DynamicSlideRenderer({
     if (directorType === 'sentence_builder') {
       return <EditorialSentenceBuilder slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
     }
+    if (directorType === 'shadowing_drill') {
+      return <EditorialShadowingDrill slide={slide} onCorrect={onCorrectAnswer} />;
+    }
+    if (directorType === 'real_world_task') {
+      return <EditorialRealWorldTask slide={slide} onCorrect={onCorrectAnswer} />;
+    }
+    if (directorType === 'branching_dialogue') {
+      return <EditorialBranchingDialogue slide={slide} onCorrect={onCorrectAnswer} />;
+    }
     // Aliases: reading_quiz maps to quiz_mcq, match_words/image_match map to sorting_game
     if (directorType === 'reading_quiz' || directorType === 'listening_comprehension') {
       return <EditorialQuizMCQ slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
