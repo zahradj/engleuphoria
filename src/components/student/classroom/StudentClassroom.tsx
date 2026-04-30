@@ -80,6 +80,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     stageMode,
     drawingEnabled,
     iframeUnlocked,
+    setCurrentSlideIndex,
     updateSharedNotes,
     applyRemoteStageMode,
     applyRemoteDrawingEnabled,
@@ -152,6 +153,10 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
         setChannelStatus(status as 'CONNECTING' | 'SUBSCRIBED' | 'CLOSED' | 'CHANNEL_ERROR' | 'TIMED_OUT');
       }
     });
+    const unsubSlideSync = whiteboardService.subscribeToSlideSync(roomId, (payload) => {
+      if (typeof payload.index !== 'number') return;
+      setCurrentSlideIndex(payload.index);
+    });
 
     return () => {
       unsubStage();
@@ -160,8 +165,9 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
       unsubReward();
       unsubTool();
       unsubStatus();
+      unsubSlideSync();
     };
-  }, [roomId, studentId, applyRemoteStageMode, applyRemoteDrawingEnabled, applyRemoteIframeUnlocked, toast]);
+  }, [roomId, studentId, applyRemoteStageMode, applyRemoteDrawingEnabled, applyRemoteIframeUnlocked, setCurrentSlideIndex, toast]);
 
   // Auto-join local media after mount (post-PreFlightCheck)
   useEffect(() => { media.join(); return () => { media.leave(); }; }, []);
