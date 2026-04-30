@@ -96,6 +96,31 @@ export default function LessonPlayerContainer({
   const [spotlightActive, setSpotlightActive] = useState(false);
   const startTimeRef = useRef(Date.now());
 
+  // Stars remaining (used by the resume bookmark — defaults to 3 hearts/lives)
+  const [starsRemaining] = useState(3);
+
+  // Resume prompt — shown once per mount, only if a saved bookmark exists for an incomplete lesson
+  const [resumePrompt, setResumePrompt] = useState<{ slide: number; stars: number } | null>(null);
+  const resumeChecked = useRef(false);
+  useEffect(() => {
+    if (resumeChecked.current) return;
+    resumeChecked.current = true;
+    const bookmark = readLessonBookmark(lessonId);
+    if (bookmark && bookmark.slide_index > 0 && bookmark.slide_index < slides.length - 1) {
+      setResumePrompt({ slide: bookmark.slide_index, stars: bookmark.stars_remaining });
+    }
+  }, [lessonId, slides.length]);
+
+  // Auto-save bookmark on every slide change
+  useLessonAutoSave({
+    lessonId,
+    studentId,
+    slideIndex: currentSlideIndex,
+    starsRemaining,
+    totalSlides: slides.length,
+    completed,
+  });
+
   const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [feedbackCorrect, setFeedbackCorrect] = useState(false);
   const [feedbackSolution, setFeedbackSolution] = useState('');
