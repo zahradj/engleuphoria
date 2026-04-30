@@ -565,6 +565,7 @@ export default function LessonPlayerContainer({
         open={isLibraryOpen}
         onClose={() => setIsLibraryOpen(false)}
         onSelectLesson={handleLibraryInject}
+        slideFormat="raw"
       />
     </div>
   );
