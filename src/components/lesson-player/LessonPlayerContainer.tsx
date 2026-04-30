@@ -97,6 +97,8 @@ export default function LessonPlayerContainer({
   const [answerSelected, setAnswerSelected] = useState(false);
   const [spotlightActive, setSpotlightActive] = useState(false);
   const startTimeRef = useRef(Date.now());
+  const { trackMastery } = useMasteryTracker();
+  const { bumpStreak } = useStreak();
 
   // Stars remaining (used by the resume bookmark — defaults to 3 hearts/lives)
   const [starsRemaining] = useState(3);
