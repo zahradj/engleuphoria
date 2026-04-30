@@ -11,6 +11,19 @@ import { useThemeMode } from "@/hooks/useThemeMode";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStreak } from "@/hooks/useStreak";
 
+const StreakBadge: React.FC<{ isDark: boolean }> = ({ isDark }) => {
+  const { streak, loading } = useStreak();
+  if (loading || streak < 1) return null;
+  return (
+    <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-colors ${
+      isDark ? 'bg-orange-900/30 text-orange-300' : 'bg-orange-100 text-orange-600'
+    }`}>
+      <Flame className="h-3.5 w-3.5" />
+      {streak}
+    </div>
+  );
+};
+
 interface MinimalStudentHeaderProps {
   studentName: string;
   studentId: string;
