@@ -86,6 +86,9 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   // Teacher instructions sidebar
   const [instructionsSidebarOpen, setInstructionsSidebarOpen] = useState(false);
 
+  // Library drawer for live lesson injection
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+
   // Smart timer for Professional Buffer
   const sessionDuration: 25 | 55 = 25; // TODO: derive from booking data
   const { classTime } = useClassroomTimer();
