@@ -16,7 +16,8 @@ import {
   PersonalizedPathSection,
   GamificationSection,
   FinalCTASection,
-  AppDownloadSection
+  AppDownloadSection,
+  CursorTrail
 } from '@/components/landing';
 
 export default function LandingPage() {
@@ -29,6 +30,7 @@ export default function LandingPage() {
   return (
     <HeroThemeProvider>
       <main className="min-h-screen bg-white dark:bg-[#09090B] transition-colors duration-300">
+        <CursorTrail />
         <NavHeader />
         <HeroSection />
         <TrustBarSection />

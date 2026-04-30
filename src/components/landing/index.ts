@@ -16,3 +16,4 @@ export { GamificationSection } from './GamificationSection';
 export { FinalCTASection } from './FinalCTASection';
 export { CourseOfferingsSection } from './CourseOfferingsSection';
 export { AppDownloadSection } from './AppDownloadSection';
+export { CursorTrail } from './CursorTrail';
