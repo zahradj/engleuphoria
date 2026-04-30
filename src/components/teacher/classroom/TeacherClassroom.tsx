@@ -185,6 +185,34 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   const teacherUserId = user?.id || sessionStorage.getItem('demo-teacher-id') || 'teacher';
   const [channelStatus, setChannelStatus] = useState<'CONNECTING' | 'SUBSCRIBED' | 'CLOSED' | 'CHANNEL_ERROR' | 'TIMED_OUT'>('CONNECTING');
+  const pageLoadTime = useRef(Date.now());
+
+  // Force Sync: update force_refresh_timestamp to trigger reload on all clients
+  const handleForceSync = useCallback(async () => {
+    const { supabase } = await import('@/integrations/supabase/client');
+    const now = Date.now();
+    const { error } = await supabase
+      .from('classroom_sessions')
+      .update({ force_refresh_timestamp: now } as any)
+      .eq('room_id', roomName);
+    if (error) {
+      console.error('Force sync failed:', error);
+      toast({ title: '❌ Force Sync failed', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: '🔄 Force Sync sent', description: 'Both screens will reload now.' });
+      setTimeout(() => window.location.reload(), 500);
+    }
+  }, [roomName, toast]);
+
+  // Listen for force_refresh_timestamp changes via the session subscription
+  useEffect(() => {
+    if (!session) return;
+    const ts = (session as any).force_refresh_timestamp;
+    if (ts && ts > pageLoadTime.current) {
+      console.log('🔄 Force refresh triggered by remote, reloading…');
+      window.location.reload();
+    }
+  }, [(session as any)?.force_refresh_timestamp]);
 
   useEffect(() => {
     if (!roomName || !teacherUserId) return;
