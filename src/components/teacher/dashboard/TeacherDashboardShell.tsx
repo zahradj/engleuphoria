@@ -15,8 +15,9 @@ import { FloatingHelpButton } from '@/components/support/FloatingHelpButton';
 import { ThemeModeToggle } from '@/components/ui/ThemeModeToggle';
 import { WelcomeSuccessModal } from './WelcomeSuccessModal';
 import { MobileTeacherBottomNav } from './MobileTeacherBottomNav';
+import { TeacherLessonLibrary } from '@/components/teacher/library/TeacherLessonLibrary';
 
-type TabType = 'dashboard' | 'schedule' | 'analytics' | 'methodology' | 'account' | 'teacher-hub' | 'help';
+type TabType = 'dashboard' | 'schedule' | 'library' | 'analytics' | 'methodology' | 'account' | 'teacher-hub' | 'help';
 
 interface TeacherDashboardShellProps {
   teacherName: string;
@@ -54,6 +55,8 @@ export const TeacherDashboardShell = ({
           return <NovakidDashboard teacherId={teacherId} />;
         case 'schedule':
           return <ClassScheduler teacherName={teacherName} teacherId={teacherId} />;
+        case 'library':
+          return <TeacherLessonLibrary />;
         case 'analytics':
           return <StudentLearningAnalytics teacherId={teacherId} />;
         case 'account':

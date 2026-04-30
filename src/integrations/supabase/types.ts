@@ -7027,6 +7027,44 @@ export type Database = {
           },
         ]
       }
+      student_assignments: {
+        Row: {
+          assigned_at: string
+          completed_at: string | null
+          id: string
+          lesson_id: string
+          status: string
+          student_id: string
+          teacher_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          completed_at?: string | null
+          id?: string
+          lesson_id: string
+          status?: string
+          student_id: string
+          teacher_id: string
+        }
+        Update: {
+          assigned_at?: string
+          completed_at?: string | null
+          id?: string
+          lesson_id?: string
+          status?: string
+          student_id?: string
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_assignments_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "ai_lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_badges: {
         Row: {
           badge_description: string | null

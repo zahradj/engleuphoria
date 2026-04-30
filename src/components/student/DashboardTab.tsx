@@ -26,6 +26,7 @@ import { StudentLearningGoals } from "./dashboard/StudentLearningGoals";
 import { CreditDisplay } from "@/components/student/CreditDisplay";
 import { usePackageValidation } from "@/hooks/usePackageValidation";
 import { LessonHistory } from "./dashboard/LessonHistory";
+import { PendingAssignments } from "./PendingAssignments";
 
 interface DashboardTabProps {
   studentName: string;
@@ -119,6 +120,9 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
 
   return (
     <div className="space-y-8">
+      {/* Pending Assignments — top priority */}
+      <PendingAssignments />
+
       {/* Enhanced Welcome Section */}
       <StudentWelcomeSection
         studentName={studentName}
