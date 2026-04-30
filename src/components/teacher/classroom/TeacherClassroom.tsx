@@ -573,6 +573,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             onOpenTimer={handleOpenTimer}
             onRollDice={handleRollDice}
             onSendSticker={handleSendSticker}
+            onOpenLibrary={() => setIsLibraryOpen(true)}
           />
         </div>
 
