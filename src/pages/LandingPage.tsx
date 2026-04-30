@@ -16,7 +16,8 @@ import {
   PersonalizedPathSection,
   GamificationSection,
   FinalCTASection,
-  AppDownloadSection
+  AppDownloadSection,
+  CursorTrail
 } from '@/components/landing';
 
 export default function LandingPage() {
