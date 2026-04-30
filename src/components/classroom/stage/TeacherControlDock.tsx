@@ -332,6 +332,16 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
             </Popover>
           </div>
         )}
+
+        {/* Library quick-load */}
+        {onOpenLibrary && (
+          <div className="pl-2 ml-1 border-l border-border">
+            <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs" onClick={onOpenLibrary} title="Open Lesson Library">
+              <BookOpen className="h-3.5 w-3.5" />
+              Library
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
