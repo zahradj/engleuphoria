@@ -205,12 +205,28 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
         setChannelStatus(status as 'CONNECTING' | 'SUBSCRIBED' | 'CLOSED' | 'CHANNEL_ERROR' | 'TIMED_OUT');
       }
     });
+    const unsubSlideComplete = whiteboardService.subscribeToSlideCompletion(roomName, (payload) => {
+      if (payload.senderId === teacherUserId) return;
+      console.log(`[SlideCompletion] ${payload.senderName} completed slide ${payload.slideIndex}`, {
+        slideId: payload.slideId,
+        accuracy: payload.accuracy,
+        timeSpent: payload.timeSpent,
+      });
+      toast({
+        title: `✅ ${payload.senderName} completed activity`,
+        description: payload.accuracy != null
+          ? `Accuracy: ${payload.accuracy}% • Slide ${payload.slideIndex + 1}`
+          : `Slide ${payload.slideIndex + 1} finished`,
+        duration: 3000,
+      });
+    });
 
     return () => {
       unsubStage();
       unsubDrawing();
       unsubReward();
       unsubStatus();
+      unsubSlideComplete();
     };
   }, [roomName, teacherUserId, applyRemoteStageMode, applyRemoteDrawingEnabled]);
 
