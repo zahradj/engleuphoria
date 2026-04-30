@@ -55,6 +55,52 @@ Deno.serve(async (req) => {
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
 
+    // ─── Cost Control: Lesson Credit Gate ───
+    // Verify the caller has at least one lesson credit, then atomically deduct.
+    const SUPA_URL = Deno.env.get("SUPABASE_URL");
+    const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
+    const authHeader = req.headers.get("Authorization") || "";
+    if (SUPA_URL && SERVICE_KEY && ANON_KEY && authHeader.startsWith("Bearer ")) {
+      try {
+        const userResp = await fetch(`${SUPA_URL}/auth/v1/user`, {
+          headers: { Authorization: authHeader, apikey: ANON_KEY },
+        });
+        if (userResp.ok) {
+          const { id: userId } = await userResp.json();
+          if (userId) {
+            const credResp = await fetch(`${SUPA_URL}/rest/v1/rpc/consume_lesson_credit`, {
+              method: "POST",
+              headers: {
+                apikey: SERVICE_KEY,
+                Authorization: `Bearer ${SERVICE_KEY}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ p_user_id: userId }),
+            });
+            if (credResp.ok) {
+              const rows = await credResp.json();
+              const row = Array.isArray(rows) ? rows[0] : rows;
+              if (row && row.success === false) {
+                return new Response(
+                  JSON.stringify({
+                    error: "INSUFFICIENT_LESSON_CREDITS",
+                    message: "You have run out of Lesson Credits. Upgrade your plan to keep generating.",
+                    remaining: row.remaining ?? 0,
+                  }),
+                  { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+                );
+              }
+            } else {
+              console.warn("[credits] consume_lesson_credit RPC failed", credResp.status);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("[credits] gate error (allowing through)", e);
+      }
+    }
+
     const resolvedHub = normalizeHub(target_hub ?? hub);
     const hubBlock = buildBlueprintHubBlock(resolvedHub, cefr_level);
 
@@ -238,58 +284,72 @@ Draft the lesson blueprint now. Pick the best pedagogical framework and emit its
       },
     } as const;
 
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        tools: [tool],
-        tool_choice: { type: "function", function: { name: "emit_blueprint" } },
-      }),
-    });
-
-    if (!aiResp.ok) {
-      const detail = await aiResp.text();
-      if (aiResp.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit reached. Please try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
-      }
-      if (aiResp.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Add funds in Settings → Workspace → Usage." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
-      }
-      console.error("Blueprint AI gateway error:", aiResp.status, detail);
-      return new Response(JSON.stringify({ error: "AI gateway error", detail }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // ─── Self-Healing JSON Wrapper ───
+    // Up to 3 attempts. On JSON-parse failure or missing tool_call, append a
+    // corrective instruction and retry. After 3 fails, return graceful UI error.
+    const callGemini = async (extraInstruction: string) => {
+      return await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: systemPrompt + (extraInstruction ? `\n\n${extraInstruction}` : "") },
+            { role: "user", content: userPrompt },
+          ],
+          tools: [tool],
+          tool_choice: { type: "function", function: { name: "emit_blueprint" } },
+        }),
       });
+    };
+
+    const HEAL_INSTRUCTION =
+      "CRITICAL: Your last output contained invalid JSON. Ensure all quotes are escaped and brackets are closed.";
+
+    let blueprint: any = null;
+    let lastErrorDetail = "";
+
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const aiResp = await callGemini(attempt === 0 ? "" : HEAL_INSTRUCTION);
+
+      if (!aiResp.ok) {
+        const detail = await aiResp.text();
+        if (aiResp.status === 429) {
+          return new Response(
+            JSON.stringify({ error: "Rate limit reached. Please try again in a moment." }),
+            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+        if (aiResp.status === 402) {
+          return new Response(
+            JSON.stringify({ error: "AI credits exhausted. Add funds in Settings → Workspace → Usage." }),
+            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+        lastErrorDetail = `gateway ${aiResp.status}: ${detail}`;
+        console.error(`[blueprint attempt ${attempt + 1}] gateway error`, aiResp.status);
+        continue;
+      }
+
+      try {
+        const data = await aiResp.json();
+        const toolCall = data?.choices?.[0]?.message?.tool_calls?.[0];
+        const argsRaw = toolCall?.function?.arguments;
+        if (!argsRaw) throw new Error("No tool_call in response");
+        blueprint = typeof argsRaw === "string" ? JSON.parse(argsRaw) : argsRaw;
+        break; // success
+      } catch (e) {
+        lastErrorDetail = (e as Error).message;
+        console.warn(`[blueprint attempt ${attempt + 1}] JSON parse failed:`, lastErrorDetail);
+      }
     }
 
-    const data = await aiResp.json();
-    const toolCall = data?.choices?.[0]?.message?.tool_calls?.[0];
-    const argsRaw = toolCall?.function?.arguments;
-    if (!argsRaw) {
-      console.error("No tool_call in blueprint response:", JSON.stringify(data).slice(0, 500));
-      return new Response(JSON.stringify({ error: "AI did not return a structured blueprint." }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    let blueprint: any;
-    try {
-      blueprint = typeof argsRaw === "string" ? JSON.parse(argsRaw) : argsRaw;
-    } catch (e) {
+    if (!blueprint) {
       return new Response(
-        JSON.stringify({ error: `Could not parse blueprint JSON: ${(e as Error).message}` }),
+        JSON.stringify({
+          error: "The AI encountered a formatting error. Please try generating again.",
+          detail: lastErrorDetail,
+        }),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
