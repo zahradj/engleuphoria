@@ -16,8 +16,9 @@ export function useExplainMistake() {
     setLoading(true);
     setExplanation(null);
     try {
-      const { data, error } = await supabase.functions.invoke('explain-mistake', {
+      const { data, error } = await supabase.functions.invoke('ai-feedback', {
         body: {
+          action: 'explain_mistake',
           lesson_context: params.lessonContext,
           question_text: params.questionText,
           correct_answer: params.correctAnswer,
