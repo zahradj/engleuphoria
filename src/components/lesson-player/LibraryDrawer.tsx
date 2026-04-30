@@ -8,7 +8,7 @@ interface LessonCard {
   id: string;
   title: string;
   topic: string | null;
-  hub: string | null;
+  hub: string;
   description: string | null;
   slide_count: number;
 }
@@ -24,6 +24,15 @@ const HUB_BADGE_COLORS: Record<string, string> = {
   academy: 'bg-violet-100 text-violet-700 border-violet-200',
   professional: 'bg-emerald-100 text-emerald-700 border-emerald-200',
 };
+
+/** Derive hub from age_range text, matching TeacherLessonLibrary logic */
+function deriveHub(ageRange: string | null): string {
+  if (!ageRange) return 'academy';
+  const lower = ageRange.toLowerCase();
+  if (lower.includes('kid') || lower.includes('playground') || /\b[5-9]\b/.test(lower)) return 'playground';
+  if (lower.includes('teen') || lower.includes('academy') || /\b1[0-4]\b/.test(lower)) return 'academy';
+  return 'professional';
+}
 
 const DUMMY_LESSONS: LessonCard[] = [
   { id: 'dummy-1', title: 'Present Simple Mastery', topic: 'Grammar', hub: 'academy', description: 'Master daily routines and habits using the present simple tense.', slide_count: 6 },
@@ -43,7 +52,7 @@ export default function LibraryDrawer({ open, onClose, onSelectLesson }: Library
     setLoading(true);
     supabase
       .from('ai_lessons')
-      .select('id, title, topic, hub, description, slides')
+      .select('id, title, topic, age_range, script')
       .order('created_at', { ascending: false })
       .then(({ data, error }) => {
         if (error || !data || data.length === 0) {
@@ -53,11 +62,11 @@ export default function LibraryDrawer({ open, onClose, onSelectLesson }: Library
           setLessons(
             data.map((l: any) => ({
               id: l.id,
-              title: l.title || 'Untitled Lesson',
+              title: l.title || l.topic || 'Untitled Lesson',
               topic: l.topic,
-              hub: l.hub,
-              description: l.description,
-              slide_count: Array.isArray(l.slides) ? l.slides.length : 0,
+              hub: deriveHub(l.age_range),
+              description: l.topic,
+              slide_count: Array.isArray(l.script) ? l.script.length : 0,
             }))
           );
         }
@@ -88,16 +97,16 @@ export default function LibraryDrawer({ open, onClose, onSelectLesson }: Library
     setLoadingLessonId(lessonId);
     const { data, error } = await supabase
       .from('ai_lessons')
-      .select('slides, title')
+      .select('script, title')
       .eq('id', lessonId)
       .single();
 
-    if (error || !data?.slides) {
+    if (error || !data?.script) {
       console.error('Failed to load lesson slides:', error);
       setLoadingLessonId(null);
       return;
     }
-    onSelectLesson(data.slides as GeneratedSlide[], data.title || 'Lesson');
+    onSelectLesson(data.script as GeneratedSlide[], data.title || 'Lesson');
     setLoadingLessonId(null);
   };
 
