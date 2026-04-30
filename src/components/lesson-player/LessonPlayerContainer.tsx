@@ -79,7 +79,7 @@ function slideHasMedia(slide: GeneratedSlide): boolean {
     s.video_url ||
     s.youtube_url ||
     s.media_url ||
-    (slide.mediaType && slide.mediaType !== 'none')
+    (slide.mediaType && (slide.mediaType as string) !== 'none')
   );
 }
 
