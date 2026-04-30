@@ -4,6 +4,8 @@ import { Mic, CheckCircle, Sparkles } from 'lucide-react';
 import { VoiceRecorder, SpeechEvaluation } from '@/components/lesson-player/VoiceRecorder';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useMasteryTracker } from '@/hooks/useMasteryTracker';
+import { useStreak } from '@/hooks/useStreak';
 import { cn } from '@/lib/utils';
 
 const DAILY_GYM_KEY = 'daily_voice_gym_completed';
@@ -95,11 +97,22 @@ export const DashboardVoiceGym: React.FC<DashboardVoiceGymProps> = ({
     return DEFAULT_TEMPLATES[Math.floor(Math.random() * DEFAULT_TEMPLATES.length)];
   }, [weakItem]);
 
+  const { trackMastery } = useMasteryTracker();
+  const { bumpStreak } = useStreak();
+
   const handleResult = (result: SpeechEvaluation) => {
     setScore(result.overallScore);
-    if (result.overallScore >= 80) {
+    const passed = result.overallScore >= 80;
+
+    // Track mastery for the practiced item
+    if (weakItem) {
+      trackMastery(weakItem.item_key, passed, weakItem.item_type, hub);
+    }
+
+    if (passed) {
       markTodayCompleted();
       setCompleted(true);
+      bumpStreak();
     }
   };
 
