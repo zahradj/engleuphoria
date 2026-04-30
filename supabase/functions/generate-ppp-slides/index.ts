@@ -181,8 +181,18 @@ You may ALSO use these premium slide_type values. The frontend has dedicated wid
 • sorting_game           → { "categories": string[2..3], "items": [{"word": string, "correct_category": string}] }
 • fill_in_blanks         → { "sentences": [{"text_with_blank": string, "hint": string, "correct_answer": string}] }
 • match_halves           → { "pairs": [{"left_part": string, "right_part": string}] }  // Frontend shuffles right parts
-• quiz_mcq               → { "question": string, "options": string[4], "correct_index": 0..3 }
+• quiz_mcq               → { "question": string, "options": string[4], "correct_index": 0..3, "explanation"?: string }
 • role_play              → { "scenario_text": string, "tips": string[], "key_phrases": string[], "requires_voice_recording": true }
+• audio_listening        → { "audio_script": string, "description": string }
+                           // audio_script = exact text for ElevenLabs TTS. The frontend shows a placeholder player + script.
+• true_false             → { "statements": [{"text": string, "is_true": boolean}] }
+                           // 3-6 statements the student marks True or False.
+• sentence_builder       → { "target_sentence": string, "scrambled_words": string[] }
+                           // Student drags scrambled words into the correct order.
+• reading_quiz           → Same schema as quiz_mcq. Use for comprehension questions after a reading passage.
+• listening_comprehension → Same schema as quiz_mcq. Use for comprehension questions after an audio_listening slide.
+• match_words            → Same schema as sorting_game. Use to test vocab by sorting words into meaning categories.
+• image_match            → Same schema as sorting_game. Use to match words to visual categories.
 
 For EVERY interactive slide (multiple_choice, drag_and_match, fill_in_the_gaps, drag_and_drop) you
 MUST also include a top-level "hint_text": short kid-friendly hint (≤ 90 chars) revealed after the
