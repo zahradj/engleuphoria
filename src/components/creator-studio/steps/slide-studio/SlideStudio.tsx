@@ -4,7 +4,7 @@ import { EmptyState } from './EmptyState';
 import { SlideCanvas } from './SlideCanvas';
 import { TeacherControlsPanel } from './TeacherControlsPanel';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Target, Sparkles, Loader2, Image as ImageIcon, ListChecks, Pencil, Layers } from 'lucide-react';
+import { ArrowRight, Loader2, Image as ImageIcon, ListChecks, Pencil, Layers } from 'lucide-react';
 import { generateAllMedia } from './mediaGeneration';
 import { toast } from 'sonner';
 import { SlideErrorBoundary } from '@/components/common/SlideErrorBoundary';
@@ -26,10 +26,12 @@ const SlideStudioInner: React.FC = () => {
   const { activeLessonData, updateSlide, setCurrentStep } = useCreator();
   const [activeSlideId, setActiveSlideId] = useState<string | null>(null);
   const [autoGenerating, setAutoGenerating] = useState(false);
+  const autoGenTriggered = React.useRef(false);
   const { theme } = useHubTheme();
 
+  const slides = activeLessonData?.slides ?? [];
+
   useEffect(() => {
-    const slides = activeLessonData?.slides ?? [];
     if (!slides.length) {
       setActiveSlideId(null);
       return;
@@ -37,7 +39,51 @@ const SlideStudioInner: React.FC = () => {
     if (!activeSlideId || !slides.find((s) => s.id === activeSlideId)) {
       setActiveSlideId(slides[0].id);
     }
-  }, [activeLessonData?.slides, activeSlideId]);
+  }, [slides, activeSlideId]);
+
+  // ── No-Click Auto-Image Pipeline ──
+  // When slides first populate, auto-generate media for any slide missing images
+  useEffect(() => {
+    if (autoGenTriggered.current || autoGenerating || !slides.length || !activeLessonData) return;
+    const needsMedia = slides.some(
+      (s) => !s.custom_image_url && (s.visual_keyword || '').trim().length > 0
+    );
+    if (!needsMedia) return;
+    autoGenTriggered.current = true;
+    const run = async () => {
+      setAutoGenerating(true);
+      try {
+        const lessonId = activeLessonData.lesson_id ?? activeLessonData.source_lesson?.id ?? 'draft';
+        const hub = activeLessonData.hub ?? 'Academy';
+        const { results } = await generateAllMedia(lessonId, hub, slides as unknown as Array<Record<string, unknown>>, false);
+        for (const r of results) {
+          if (r.error || r.skipped) continue;
+          const patch: Record<string, unknown> = {};
+          if (r.custom_image_url) {
+            patch.custom_image_url = r.custom_image_url;
+            patch.custom_video_url = undefined;
+            patch.youtube_video_id = undefined;
+          }
+          if (r.youtube_video_id) {
+            patch.youtube_video_id = r.youtube_video_id;
+            patch.youtube_embed_url = r.youtube_embed_url;
+            patch.youtube_title = r.youtube_title;
+            patch.youtube_thumbnail = r.youtube_thumbnail;
+            patch.custom_image_url = undefined;
+            patch.custom_video_url = undefined;
+          }
+          if (Object.keys(patch).length) updateSlide(r.slideId, patch);
+        }
+        toast.success('✨ AI Art Director finished composing the deck.');
+      } catch (e) {
+        console.error('[auto-media]', e);
+        toast.error(`Auto-generate failed: ${(e as Error).message}`);
+      } finally {
+        setAutoGenerating(false);
+      }
+    };
+    run();
+  }, [slides, activeLessonData, autoGenerating, updateSlide]);
 
   if (!activeLessonData) {
     return (
@@ -55,7 +101,6 @@ const SlideStudioInner: React.FC = () => {
     );
   }
 
-  const slides = activeLessonData.slides;
   const activeSlide = slides.find((s) => s.id === activeSlideId) ?? null;
   const activeIndex = activeSlide ? slides.findIndex((s) => s.id === activeSlide.id) : -1;
 
@@ -73,50 +118,6 @@ const SlideStudioInner: React.FC = () => {
   const goToNextSlide = () => {
     if (activeIndex < 0 || activeIndex >= slides.length - 1) return;
     setActiveSlideId(slides[activeIndex + 1].id);
-  };
-
-  const handleAutoGenerate = async () => {
-    if (autoGenerating || !slides.length) return;
-    const lessonId = activeLessonData.lesson_id ?? activeLessonData.source_lesson?.id ?? 'draft';
-    const hub = activeLessonData.hub ?? 'Academy';
-    setAutoGenerating(true);
-    toast.message('🎨 AI Art Director is composing the deck…', {
-      description: `Generating images & fetching videos for ${slides.length} slides.`,
-    });
-    try {
-      const { results, summary } = await generateAllMedia(lessonId, hub, slides as unknown as Array<Record<string, unknown>>, false);
-      for (const r of results) {
-        if (r.error || r.skipped) continue;
-        const patch: Record<string, unknown> = {};
-        if (r.custom_image_url) {
-          patch.custom_image_url = r.custom_image_url;
-          patch.custom_video_url = undefined;
-          patch.youtube_video_id = undefined;
-        }
-        if (r.youtube_video_id) {
-          patch.youtube_video_id = r.youtube_video_id;
-          patch.youtube_embed_url = r.youtube_embed_url;
-          patch.youtube_title = r.youtube_title;
-          patch.youtube_thumbnail = r.youtube_thumbnail;
-          patch.custom_image_url = undefined;
-          patch.custom_video_url = undefined;
-        }
-        if (Object.keys(patch).length) updateSlide(r.slideId, patch);
-      }
-      if (summary.errors > 0) {
-        toast.warning(`Done with ${summary.errors} issue${summary.errors === 1 ? '' : 's'}`, {
-          description: `🖼️ ${summary.images} images · 🎬 ${summary.videos} videos · ⏭️ ${summary.skipped} skipped.`,
-        });
-      } else {
-        toast.success('Deck media ready ✨', {
-          description: `🖼️ ${summary.images} images · 🎬 ${summary.videos} videos · ⏭️ ${summary.skipped} skipped.`,
-        });
-      }
-    } catch (e) {
-      toast.error(`Auto-generate failed: ${(e as Error).message}`);
-    } finally {
-      setAutoGenerating(false);
-    }
   };
 
   return (
@@ -145,14 +146,12 @@ const SlideStudioInner: React.FC = () => {
               <span className="text-xs text-slate-400 font-mono">
                 {slides.length} slide{slides.length === 1 ? '' : 's'}
               </span>
-              <Button
-                onClick={handleAutoGenerate}
-                disabled={autoGenerating || !slides.length}
-                className="bg-gradient-to-r from-violet-600 via-fuchsia-500 to-amber-400 text-white font-extrabold shadow-lg shadow-fuchsia-500/30 hover:shadow-fuchsia-500/50 transition-shadow border-0"
-              >
-                {autoGenerating ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Sparkles className="h-4 w-4 mr-1.5" />}
-                ✨ Auto-Generate All Media
-              </Button>
+              {autoGenerating && (
+                <div className="flex items-center gap-1.5 text-xs text-fuchsia-500 font-semibold animate-pulse">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  🎨 AI is painting…
+                </div>
+              )}
             </div>
           )}
         </div>
