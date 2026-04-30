@@ -136,6 +136,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     stageMode,
     drawingEnabled,
     iframeUnlocked,
+    setCurrentSlideIndex,
     setIframeUnlocked,
     updateSlide,
     updateTool,
@@ -363,12 +364,28 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     await updateCanvasTab('slides');
   }, [updateSharedDisplay, updateCanvasTab, setStageMode]);
 
-  const handlePrevSlide = useCallback(async () => { await updateSlide(Math.max(0, currentSlide - 1)); }, [currentSlide, updateSlide]);
+  const broadcastSlideIndex = useCallback(async (index: number) => {
+    setCurrentSlideIndex(index);
+    await whiteboardService.sendSlideSync(roomName, { index, senderId: teacherUserId });
+  }, [roomName, setCurrentSlideIndex, teacherUserId]);
+
+  const handlePrevSlide = useCallback(async () => {
+    const newIndex = Math.max(0, currentSlide - 1);
+    await updateSlide(newIndex);
+    await broadcastSlideIndex(newIndex);
+  }, [broadcastSlideIndex, currentSlide, updateSlide]);
   const displayedSlides = syncedLessonSlides.length > 0 ? syncedLessonSlides : slides;
   const activeLessonTitle = syncedLessonTitle || lessonTitle;
 
-  const handleNextSlide = useCallback(async () => { await updateSlide(Math.min(displayedSlides.length - 1, currentSlide + 1)); }, [currentSlide, displayedSlides.length, updateSlide]);
-  const handleSlideSelect = useCallback(async (index: number) => { await updateSlide(index); }, [updateSlide]);
+  const handleNextSlide = useCallback(async () => {
+    const newIndex = Math.min(displayedSlides.length - 1, currentSlide + 1);
+    await updateSlide(newIndex);
+    await broadcastSlideIndex(newIndex);
+  }, [broadcastSlideIndex, currentSlide, displayedSlides.length, updateSlide]);
+  const handleSlideSelect = useCallback(async (index: number) => {
+    await updateSlide(index);
+    await broadcastSlideIndex(index);
+  }, [broadcastSlideIndex, updateSlide]);
 
   const handleToolChange = useCallback(async (tool: string) => {
     setActiveTool(tool);
