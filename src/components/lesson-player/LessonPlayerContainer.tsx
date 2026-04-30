@@ -69,6 +69,64 @@ const HUB_SKINS = {
   },
 } as const;
 
+/** Check if a slide has visual media (image/video) for the left pane */
+function slideHasMedia(slide: GeneratedSlide): boolean {
+  if (!slide) return false;
+  const s = slide as any;
+  return !!(
+    slide.imageUrl ||
+    slide.content?.imageUrl ||
+    s.video_url ||
+    s.youtube_url ||
+    s.media_url ||
+    (slide.mediaType && (slide.mediaType as string) !== 'none')
+  );
+}
+
+/** Left pane: renders the visual anchor (image or video) */
+function SlideMediaPane({ slide }: { slide: GeneratedSlide }) {
+  const s = slide as any;
+  const videoUrl = s.video_url || s.youtube_url || s.media_url;
+  const imageUrl = slide.imageUrl || slide.content?.imageUrl;
+
+  if (videoUrl) {
+    const ytId = videoUrl.match(/(?:youtu\.be\/|v=)([^&?#]+)/)?.[1];
+    if (ytId) {
+      return (
+        <div className="w-full aspect-video rounded-2xl overflow-hidden">
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${ytId}`}
+            className="w-full h-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            title="Lesson video"
+          />
+        </div>
+      );
+    }
+    return (
+      <video src={videoUrl} controls className="w-full rounded-2xl max-h-full object-contain" />
+    );
+  }
+
+  if (imageUrl) {
+    return (
+      <img
+        src={imageUrl}
+        alt={slide.title || 'Slide visual'}
+        className="max-w-full max-h-full rounded-2xl object-contain"
+      />
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center text-center gap-3 opacity-60">
+      <span className="text-6xl">📚</span>
+      <p className="text-sm text-muted-foreground font-medium">{slide.title}</p>
+    </div>
+  );
+}
+
 interface LessonPlayerContainerProps {
   slides: GeneratedSlide[];
   hub: HubType;
@@ -371,14 +429,20 @@ export default function LessonPlayerContainer({
         </div>
       </div>
 
-      {/* ── Centered Fluid App-Card ── */}
+      {/* ── Centered Fluid App-Card — Horizontal Split on Desktop ── */}
       <div className="flex-1 flex items-center justify-center px-4 w-full" style={{ paddingTop: 124, paddingBottom: 88 }}>
         <div
-          className={`w-full max-w-5xl rounded-3xl flex flex-col relative z-20 ${skin.card}`}
-          style={{ minHeight: '70vh', maxHeight: '85vh' }}
+          className={`w-full max-w-6xl h-[85vh] rounded-3xl flex flex-col md:flex-row relative z-20 overflow-hidden ${skin.card}`}
         >
-          {/* Scrollable content area — header/footer stay locked */}
-          <div className="flex-1 overflow-y-auto p-6">
+          {/* Left Pane — Media & Visual Anchor */}
+          {slideHasMedia(currentSlide) && (
+            <div className="w-full md:w-1/2 h-[40vh] md:h-full bg-slate-50 dark:bg-slate-900/40 flex items-center justify-center p-6 border-b md:border-b-0 md:border-r border-slate-100 dark:border-slate-800 shrink-0">
+              <SlideMediaPane slide={currentSlide} />
+            </div>
+          )}
+
+          {/* Right Pane — Interactive & Text Content */}
+          <div className={`w-full ${slideHasMedia(currentSlide) ? 'md:w-1/2' : ''} h-[45vh] md:h-full overflow-y-auto p-8 md:p-12 flex flex-col`}>
             <AnimatePresence mode="wait">
               <DynamicSlideRenderer
                 key={currentSlide.id}
