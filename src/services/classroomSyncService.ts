@@ -289,8 +289,10 @@ class ClassroomSyncService {
           filter: `room_id=eq.${roomId}`
         },
         (payload) => {
+          console.log('🔄 SYNC EVENT received:', payload);
           const session = this.mapToSession(payload.new);
           if (session) {
+            console.log('🔄 Mapped session – slideIndex:', session.currentSlideIndex, 'forceRefresh:', (payload.new as any)?.force_refresh_timestamp);
             onUpdate(session);
           }
         }
