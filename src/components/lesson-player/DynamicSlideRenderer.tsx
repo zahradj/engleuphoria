@@ -391,7 +391,9 @@ export default function DynamicSlideRenderer({
       transition={{ type: 'spring', stiffness: 260, damping: 20 }}
       className="w-full h-full flex items-center justify-center"
     >
-      {renderContent()}
+      <SlideErrorBoundary slideId={slide.id}>
+        {renderContent()}
+      </SlideErrorBoundary>
     </motion.div>
   );
 }
