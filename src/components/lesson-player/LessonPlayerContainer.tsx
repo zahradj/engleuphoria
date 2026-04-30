@@ -69,6 +69,64 @@ const HUB_SKINS = {
   },
 } as const;
 
+/** Check if a slide has visual media (image/video) for the left pane */
+function slideHasMedia(slide: GeneratedSlide): boolean {
+  if (!slide) return false;
+  const s = slide as any;
+  return !!(
+    slide.imageUrl ||
+    slide.content?.imageUrl ||
+    s.video_url ||
+    s.youtube_url ||
+    s.media_url ||
+    (slide.mediaType && slide.mediaType !== 'none')
+  );
+}
+
+/** Left pane: renders the visual anchor (image or video) */
+function SlideMediaPane({ slide }: { slide: GeneratedSlide }) {
+  const s = slide as any;
+  const videoUrl = s.video_url || s.youtube_url || s.media_url;
+  const imageUrl = slide.imageUrl || slide.content?.imageUrl;
+
+  if (videoUrl) {
+    const ytId = videoUrl.match(/(?:youtu\.be\/|v=)([^&?#]+)/)?.[1];
+    if (ytId) {
+      return (
+        <div className="w-full aspect-video rounded-2xl overflow-hidden">
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${ytId}`}
+            className="w-full h-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            title="Lesson video"
+          />
+        </div>
+      );
+    }
+    return (
+      <video src={videoUrl} controls className="w-full rounded-2xl max-h-full object-contain" />
+    );
+  }
+
+  if (imageUrl) {
+    return (
+      <img
+        src={imageUrl}
+        alt={slide.title || 'Slide visual'}
+        className="max-w-full max-h-full rounded-2xl object-contain"
+      />
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center text-center gap-3 opacity-60">
+      <span className="text-6xl">📚</span>
+      <p className="text-sm text-muted-foreground font-medium">{slide.title}</p>
+    </div>
+  );
+}
+
 interface LessonPlayerContainerProps {
   slides: GeneratedSlide[];
   hub: HubType;
