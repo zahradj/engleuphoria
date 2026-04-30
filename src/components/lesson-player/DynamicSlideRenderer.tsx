@@ -1,7 +1,28 @@
-import React from 'react';
+import React, { Component, ReactNode } from 'react';
 import SpeakingPractice from './activities/SpeakingPractice';
 import { motion, Variants } from 'framer-motion';
 import { HubType, AnimationType, GeneratedSlide } from '@/components/admin/lesson-builder/ai-wizard/types';
+import { AlertTriangle } from 'lucide-react';
+
+/* ── Local Error Boundary for individual slides ────────────────────── */
+interface SlideBoundaryState { hasError: boolean; error?: Error }
+class SlideErrorBoundary extends Component<{ children: ReactNode; slideId?: string }, SlideBoundaryState> {
+  state: SlideBoundaryState = { hasError: false };
+  static getDerivedStateFromError(error: Error): SlideBoundaryState { return { hasError: true, error }; }
+  componentDidCatch(error: Error, info: any) { console.error('[SlideErrorBoundary] Slide crashed:', this.props.slideId, error, info); }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8 text-center">
+          <AlertTriangle className="w-12 h-12 mb-4 text-amber-500" />
+          <h3 className="text-lg font-semibold mb-2">Slide Data Error</h3>
+          <p className="text-sm max-w-md">The AI generated incomplete data for this activity. Please skip to the next slide.</p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConfig';
 import PlaygroundDragDrop from './activities/PlaygroundDragDrop';
 import PlaygroundMatchPictures from './activities/PlaygroundMatchPictures';
