@@ -368,7 +368,7 @@ export default function DynamicSlideRenderer({
       animate={{ x: 0, opacity: 1, scale: 1 }}
       exit={{ x: -60, opacity: 0, scale: 0.98 }}
       transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-      className="w-full flex items-center justify-center"
+      className="w-full h-full flex items-center justify-center"
     >
       {renderContent()}
     </motion.div>
