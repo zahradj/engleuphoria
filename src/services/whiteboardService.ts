@@ -472,23 +472,6 @@ class WhiteboardService {
     return () => this.release(roomId, () => room.slideCompletionListeners.delete(onComplete));
   }
 
-  async sendSlideSync(roomId: string, payload: Omit<SlideSyncPayload, 'timestamp'>): Promise<void> {
-    const room = this.getRoom(roomId);
-    await room.ready;
-    await room.channel.send({
-      type: 'broadcast',
-      event: 'SYNC_SLIDE',
-      payload: { ...payload, timestamp: Date.now() } satisfies SlideSyncPayload,
-    });
-  }
-
-  subscribeToSlideSync(roomId: string, onSync: SlideSyncListener): () => void {
-    const room = this.getRoom(roomId);
-    room.slideSyncListeners.add(onSync);
-    room.refCount += 1;
-    return () => this.release(roomId, () => room.slideSyncListeners.delete(onSync));
-  }
-
   subscribeToStatus(roomId: string, onStatus: (status: string) => void): () => void {
     const room = this.getRoom(roomId);
     room.statusListeners.add(onStatus);
@@ -516,7 +499,6 @@ class WhiteboardService {
       room.worksheetListeners.size === 0 &&
       room.gameStateListeners.size === 0 &&
       room.slideCompletionListeners.size === 0 &&
-      room.slideSyncListeners.size === 0 &&
       room.statusListeners.size === 0
     ) {
       supabase.removeChannel(room.channel);
