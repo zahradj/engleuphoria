@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useCallback } from "react";
+import { useHeroTheme, GROUP_THEMES } from "@/contexts/HeroThemeContext";
 
 interface Particle {
   x: number;
@@ -13,22 +14,28 @@ interface Particle {
 
 const MAX_PARTICLES = 120;
 
-/** Playground yellow-orange palette for cursor trail particles. */
-function getBrandColors(): string[] {
-  return [
-    "#FE6A2F", // Playground primary orange
-    "#F59E0B", // Amber
-    "#FBBF24", // Yellow-400
-    "#F97316", // Orange-500
-    "#FDBA74", // Orange-300 (softer glow)
-  ];
-}
+/** Map each hero theme index to a matching color palette. */
+const THEME_PALETTES: string[][] = [
+  // Kids / Playground — Yellow-Orange
+  ["#FF9F1C", "#FFBF00", "#F59E0B", "#F97316", "#FBBF24"],
+  // Teens / Academy — Purple-Blue
+  ["#6366F1", "#A855F7", "#8B5CF6", "#7C3AED", "#818CF8"],
+  // Adults / Success Hub — Emerald-Teal
+  ["#10B981", "#059669", "#0F766E", "#34D399", "#2DD4BF"],
+];
 
 export function CursorTrail() {
+  const { activeIndex } = useHeroTheme();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particles = useRef<Particle[]>([]);
-  const brandColors = useRef<string[]>([]);
+  const colorsRef = useRef<string[]>(THEME_PALETTES[0]);
   const rafId = useRef<number>(0);
+
+  // Update the color ref when activeIndex changes — existing particles keep
+  // their original color and fade out naturally for a smooth transition.
+  useEffect(() => {
+    colorsRef.current = THEME_PALETTES[activeIndex] ?? THEME_PALETTES[0];
+  }, [activeIndex]);
 
   const resize = useCallback(() => {
     const c = canvasRef.current;
@@ -38,9 +45,6 @@ export function CursorTrail() {
   }, []);
 
   useEffect(() => {
-    // Read brand colors once on mount (they adapt to dark/light mode)
-    brandColors.current = getBrandColors();
-
     resize();
     window.addEventListener("resize", resize);
 
@@ -51,6 +55,7 @@ export function CursorTrail() {
           particles.current.shift();
         }
         const maxLife = 30 + Math.random() * 15;
+        const palette = colorsRef.current;
         particles.current.push({
           x: e.clientX,
           y: e.clientY,
@@ -59,7 +64,7 @@ export function CursorTrail() {
           size: 3 + Math.random() * 3.5,
           life: maxLife,
           maxLife,
-          color: brandColors.current[Math.floor(Math.random() * brandColors.current.length)],
+          color: palette[Math.floor(Math.random() * palette.length)],
         });
       }
     };
