@@ -83,7 +83,17 @@ export const BlueprintEngine: React.FC = () => {
         units,
       };
       setCurriculumData(next);
-      toast.success(`Blueprint ready · ${units.length} units · ${units.reduce((n: number, u: any) => n + u.lessons.length, 0)} lessons`);
+      const totalLessons = units.reduce((n: number, u: any) => n + u.lessons.length, 0);
+      toast.success(`Blueprint ready · ${units.length} units · ${totalLessons} lessons`);
+
+      // Auto-save all lessons as locked drafts in the database
+      try {
+        const saved = await persistBlueprintAsDrafts(next);
+        toast.success(`🔒 ${saved.totalCount} draft lessons saved to the database`);
+      } catch (saveErr: any) {
+        console.error('Blueprint auto-save error:', saveErr);
+        toast.error(`Blueprint generated but auto-save failed: ${saveErr?.message || 'Unknown error'}`);
+      }
     } catch (err: any) {
       console.error('Blueprint generation error:', err);
       setError(err?.message || 'Failed to generate blueprint.');
