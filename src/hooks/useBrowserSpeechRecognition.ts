@@ -14,7 +14,7 @@ interface UseSpeechRecognitionReturn {
   reset: () => void;
 }
 
-export function useSpeechRecognition(
+export function useBrowserSpeechRecognition(
   options: UseSpeechRecognitionOptions = {}
 ): UseSpeechRecognitionReturn {
   const { language = 'en-US', continuous = true } = options;
