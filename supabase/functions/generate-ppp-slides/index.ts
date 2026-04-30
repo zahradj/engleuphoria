@@ -399,7 +399,7 @@ Top-level shape:
 Each slide object MUST have these keys:
   "phase": "Hook" | "Presentation" | "Practice" | "Production" | "Mission",
   "lesson_phase": "Vocabulary" | "Reading" | "Comprehension" | "Grammar" | "Speaking" | "Writing",
-  "slide_type": "mascot_speech" | "multiple_choice" | "drawing_canvas" | "drag_and_drop" | "flashcard" | "drag_and_match" | "fill_in_the_gaps" | "hero_media" | "vocab_list" | "grammar_explanation" | "sorting_game" | "fill_in_blanks" | "match_halves" | "quiz_mcq" | "role_play",
+  "slide_type": "mascot_speech" | "multiple_choice" | "drawing_canvas" | "drag_and_drop" | "flashcard" | "drag_and_match" | "fill_in_the_gaps" | "hero_media" | "vocab_list" | "grammar_explanation" | "sorting_game" | "fill_in_blanks" | "match_halves" | "quiz_mcq" | "role_play" | "audio_listening" | "true_false" | "sentence_builder" | "reading_quiz" | "listening_comprehension" | "match_words" | "image_match" | "shadowing_drill" | "real_world_task" | "branching_dialogue",
   "media_type": "image" | "video",
   "layout_style": "split_left" | "split_right" | "center_card" | "full_background",
   "title": string,
