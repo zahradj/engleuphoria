@@ -93,7 +93,6 @@ export function ContentGenerationTab({
       return;
     }
 
-    console.log('Generating content:', { type, topic, level, duration });
     
     // Call the generation function
     onGenerate(type as any);

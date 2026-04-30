@@ -17,20 +17,16 @@ export function useWebRTC({ roomId, userId, localStream, enabled, isInitiator }:
 
   const initialize = useCallback(async () => {
     if (!enabled || !localStream || !roomId || !userId) {
-      console.log('⏸️ WebRTC not ready:', { enabled, hasStream: !!localStream, roomId, userId });
       return;
     }
 
     try {
-      console.log('🚀 Initializing WebRTC as', isInitiator ? 'initiator' : 'responder');
 
       const service = new WebRTCService({
         onRemoteStream: (stream) => {
-          console.log('✅ Remote stream received');
           setRemoteStream(stream);
         },
         onConnectionChange: (connected) => {
-          console.log('🔗 Peer connection changed:', connected);
           setIsConnected(connected);
         },
         onError: (error) => {
@@ -40,7 +36,6 @@ export function useWebRTC({ roomId, userId, localStream, enabled, isInitiator }:
           setSignalingReady(true);
           // Re-trigger negotiation on (re)connect for the initiator
           if (isInitiator) {
-            console.log('📡 Signaling ready — (re)creating offer');
             service.createOffer().catch((e) => console.error('createOffer failed:', e));
           }
         },
@@ -64,7 +59,6 @@ export function useWebRTC({ roomId, userId, localStream, enabled, isInitiator }:
 
     return () => {
       if (webrtcServiceRef.current) {
-        console.log('🧹 Cleaning up WebRTC');
         webrtcServiceRef.current.dispose();
         webrtcServiceRef.current = null;
       }

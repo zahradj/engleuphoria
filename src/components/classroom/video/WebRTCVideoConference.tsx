@@ -45,7 +45,6 @@ export function WebRTCVideoConference({
           audio: true
         });
         setLocalStream(stream);
-        console.log('📹 Local media initialized for classroom');
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Failed to access media devices';
         setError(message);
@@ -65,7 +64,6 @@ export function WebRTCVideoConference({
   // Set up participants listener
   useEffect(() => {
     realTimeVideoService.onParticipantsChange((newParticipants) => {
-      console.log('Participants updated in classroom:', newParticipants);
       setParticipants(newParticipants);
     });
   }, []);
@@ -91,7 +89,6 @@ export function WebRTCVideoConference({
         setConnectionQuality(metrics);
       });
       
-      console.log('✅ Connected to classroom video');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to connect';
       setError(message);

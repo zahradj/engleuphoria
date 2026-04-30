@@ -16,7 +16,6 @@ export function VideoPlayer({ stream, hasVideo, isTeacher, userLabel, isCameraOf
   useEffect(() => {
     if (videoRef.current && stream) {
       videoRef.current.srcObject = stream;
-      console.log(`🎥 ${userLabel} video stream connected`);
     }
   }, [stream, userLabel]);
 

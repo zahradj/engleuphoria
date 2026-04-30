@@ -215,7 +215,6 @@ const InterviewRoom = () => {
           },
         });
       } catch (emailError) {
-        console.log('Post-interview rejection email could not be sent:', emailError);
       }
 
       toast.success('Application rejected.');

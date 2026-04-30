@@ -87,7 +87,6 @@ class ProductionMonitor {
         .slice(0, 10),
     };
 
-    console.log('📊 Production Performance Report:', report);
     return report;
   }
 
@@ -97,7 +96,6 @@ class ProductionMonitor {
       failedQueries: [],
       slowRenders: [],
     };
-    console.log('✅ Metrics cleared');
   }
 
   // Export to JSON for analysis
@@ -110,7 +108,6 @@ class ProductionMonitor {
     a.download = `performance-metrics-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    console.log('📥 Metrics exported');
   }
 }
 

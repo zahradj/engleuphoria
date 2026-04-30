@@ -104,11 +104,9 @@ export function EnhancedWhiteboardToolbar({
   };
 
   const clearCanvas = () => {
-    console.log("Clear canvas functionality");
   };
 
   const downloadCanvas = () => {
-    console.log("Download canvas functionality");
   };
 
   return (

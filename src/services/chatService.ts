@@ -26,7 +26,6 @@ class ChatService {
     senderRole: 'teacher' | 'student'
   ): Promise<void> {
     try {
-      console.log('📧 ChatService: Sending message to room:', roomId);
       
       const { error } = await supabase
         .from('chat_messages')
@@ -44,7 +43,6 @@ class ChatService {
         throw new Error(`Failed to send message: ${error.message}`);
       }
       
-      console.log('📧 ChatService: Message sent successfully');
     } catch (error: any) {
       console.error('📧 ChatService: Send message failed:', error);
       throw error;
@@ -53,7 +51,6 @@ class ChatService {
 
   async getMessages(roomId: string): Promise<ChatMessage[]> {
     try {
-      console.log('📧 ChatService: Fetching messages for room:', roomId);
       
       const { data, error } = await supabase
         .from('chat_messages')
@@ -67,7 +64,6 @@ class ChatService {
         throw new Error(`Failed to fetch messages: ${error.message}`);
       }
       
-      console.log(`📧 ChatService: Fetched ${data?.length || 0} messages`);
       return data || [];
     } catch (error: any) {
       console.error('📧 ChatService: Get messages failed:', error);
@@ -78,13 +74,11 @@ class ChatService {
   subscribeToMessages(roomId: string, onMessage: (message: ChatMessage) => void): () => void {
     const channelName = `chat_${roomId}`;
     
-    console.log('📧 ChatService: Subscribing to messages for channel:', channelName);
     
     // Clean up existing channel if it exists
     if (this.channels.has(channelName)) {
       const existingChannel = this.channels.get(channelName);
       supabase.removeChannel(existingChannel);
-      console.log('📧 ChatService: Removed existing channel');
     }
 
     const channel = supabase
@@ -98,19 +92,16 @@ class ChatService {
           filter: `room_id=eq.${roomId}`
         },
         (payload) => {
-          console.log('📧 ChatService: New message received via realtime:', payload);
           onMessage(payload.new as ChatMessage);
         }
       )
       .subscribe((status) => {
-        console.log('📧 ChatService: Subscription status:', status);
       });
 
     this.channels.set(channelName, channel);
 
     // Return cleanup function
     return () => {
-      console.log('📧 ChatService: Unsubscribing from channel:', channelName);
       if (this.channels.has(channelName)) {
         supabase.removeChannel(this.channels.get(channelName));
         this.channels.delete(channelName);
@@ -126,7 +117,6 @@ class ChatService {
     senderRole: 'teacher' | 'student'
   ): Promise<void> {
     try {
-      console.log('📧 ChatService: Uploading file:', file.name);
       
       // Upload file to storage
       const fileExt = file.name.split('.').pop();
@@ -147,7 +137,6 @@ class ChatService {
         .from('classroom-files')
         .getPublicUrl(filePath);
 
-      console.log('📧 ChatService: File uploaded, sending message');
 
       // Send message with file info
       const { error } = await supabase
@@ -168,7 +157,6 @@ class ChatService {
         throw new Error(`Failed to send file message: ${error.message}`);
       }
       
-      console.log('📧 ChatService: File message sent successfully');
     } catch (error: any) {
       console.error('📧 ChatService: Send file message failed:', error);
       throw error;

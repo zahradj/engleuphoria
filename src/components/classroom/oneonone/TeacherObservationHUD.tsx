@@ -217,11 +217,13 @@ export const TeacherObservationHUD: React.FC<TeacherObservationHUDProps> = ({
           className="w-full gap-1.5 border-amber-300 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
           onClick={async () => {
             const channel = supabase.channel(`hint-${sessionId}`);
-            channel.send({
+            await channel.subscribe();
+            await channel.send({
               type: 'broadcast',
               event: 'grammar-hint',
               payload: { active: true, timestamp: new Date().toISOString() },
             });
+            supabase.removeChannel(channel);
             toast.success('Hint sent — correct block is glowing on student screen');
           }}
         >

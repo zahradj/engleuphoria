@@ -41,11 +41,9 @@ const Dashboard: React.FC = () => {
     const userRole = (user as any).role;
 
     if (!userRole) {
-      console.log('⏳ [Dashboard] Waiting for user role to be populated...');
       return;
     }
 
-    console.log('📍 [Dashboard] redirecting user with role:', userRole);
 
     if (userRole === 'admin') { setRedirectPath('/super-admin'); return; }
     if (userRole === 'teacher') { setRedirectPath('/teacher'); return; }
@@ -75,7 +73,6 @@ const Dashboard: React.FC = () => {
 
       // Last-resort: pure metadata + background heal.
       const { route, level, source } = resolveHubRoute({ metadata: (user as any).user_metadata });
-      console.log(`📍 [Dashboard] hub from ${source} →`, level);
       if (!autoHealAttemptedRef.current) {
         autoHealAttemptedRef.current = true;
         supabase.from('student_profiles').upsert(
@@ -84,7 +81,6 @@ const Dashboard: React.FC = () => {
         ).then(({ error }) => {
           if (error) console.error('🔴 [Dashboard] background heal failed:', error);
           else {
-            console.log('🟢 [Dashboard] background heal OK →', level);
             refetch();
           }
         });

@@ -93,14 +93,6 @@ export const lessonPricingService = {
   ): Promise<{ lesson: any; payment?: LessonPayment }> {
     // Coerce to number to handle any type mismatches
     const durationNum = Number(duration);
-    
-    console.log('🔍 Duration validation:', { 
-      original: duration, 
-      type: typeof duration, 
-      coerced: durationNum,
-      typeAfter: typeof durationNum
-    });
-    
     // Validate duration (updated to 30/60 minutes)
     const allowedDurations = [30, 60];
     if (!allowedDurations.includes(durationNum)) {
@@ -130,7 +122,6 @@ export const lessonPricingService = {
       else studentHub = 'academy';
     } catch (_) { /* fall back to academy */ }
     const hubPayout = await this.getHubPayout(studentHub);
-    console.log('💰 Using hub payout', { studentHub, hubPayout });
 
     // If using a package, check and redeem credits
     if (packagePurchaseId) {
@@ -209,7 +200,6 @@ export const lessonPricingService = {
         
         if (checkSlot?.lesson_id === lesson.id) {
           // Success! Our lesson ID is on the slot, so booking succeeded
-          console.log('✅ Slot booking verified via check query');
         } else {
           // Genuine failure - rollback
           await supabase.from('lessons').delete().eq('id', lesson.id);
@@ -220,7 +210,6 @@ export const lessonPricingService = {
         await supabase.from('lessons').delete().eq('id', lesson.id);
         throw new Error('This time slot is no longer available. Please refresh and select another slot.');
       } else {
-        console.log('✅ Availability slot marked as booked:', updatedSlot.id);
       }
 
       // Redeem package credit
@@ -236,13 +225,6 @@ export const lessonPricingService = {
           package_purchase_id: packagePurchaseId,
           lesson_id: lesson.id
         }]);
-
-      console.log('✅ Package credit deducted and lesson created:', {
-        lessonId: lesson.id,
-        duration: durationMinutes,
-        creditsRemaining: packageData.lessons_remaining - 1
-      });
-
       return { lesson };
     } else {
       // Individual lesson payment
@@ -304,7 +286,6 @@ export const lessonPricingService = {
         
         if (checkSlot?.lesson_id === lesson.id) {
           // Success! Our lesson ID is on the slot, so booking succeeded
-          console.log('✅ Slot booking verified via check query');
         } else {
           // Genuine failure - rollback
           await supabase.from('lessons').delete().eq('id', lesson.id);
@@ -315,7 +296,6 @@ export const lessonPricingService = {
         await supabase.from('lessons').delete().eq('id', lesson.id);
         throw new Error('This time slot is no longer available. Please refresh and select another slot.');
       } else {
-        console.log('✅ Availability slot marked as booked:', updatedSlot.id);
       }
 
       // Create payment record
@@ -333,13 +313,6 @@ export const lessonPricingService = {
         .single();
 
       if (paymentError) throw paymentError;
-
-      console.log('✅ Individual lesson payment processed:', {
-        lessonId: lesson.id,
-        duration: durationMinutes,
-        amount: pricing.studentPrice
-      });
-
       return { lesson, payment };
     }
   },

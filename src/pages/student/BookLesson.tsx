@@ -101,14 +101,6 @@ const BookLesson = () => {
         });
         return;
       }
-
-      console.log('📦 Using package:', {
-        packageId: matchingPackage.id,
-        duration: slot.duration,
-        durationType: typeof slot.duration,
-        creditsRemaining: matchingPackage.lessons_remaining
-      });
-
       await lessonService.createLesson(
         {
           title: `Lesson with ${slot.teacherName}`,

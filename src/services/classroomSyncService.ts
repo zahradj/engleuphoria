@@ -72,7 +72,6 @@ class ClassroomSyncService {
       if (error) throw error;
       const count = data || 0;
       if (count > 0) {
-        console.log(`🧹 Cleaned up ${count} stale session(s)`);
       }
       return count;
     } catch (error) {

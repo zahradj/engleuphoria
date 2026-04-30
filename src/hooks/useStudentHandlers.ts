@@ -40,7 +40,6 @@ export const useStudentHandlers = () => {
 
   const handleSubmitHomework = (assignmentId: string, submission: { text: string; files: File[] }) => {
     // Simulate homework submission
-    console.log("Submitting homework:", { assignmentId, submission });
     
     toast({
       title: "Homework Submitted!",
@@ -50,7 +49,6 @@ export const useStudentHandlers = () => {
 
   const handleMessageTeacher = (message: { teacherId: string; subject: string; content: string }) => {
     // Navigate to teachers tab to select and message a teacher
-    console.log("Opening teachers to message:", message);
     
     toast({
       title: "Select a Teacher",

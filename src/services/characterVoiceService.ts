@@ -36,7 +36,6 @@ class CharacterVoiceService {
     
     // Check cache first
     if (this.audioCache.has(cacheKey)) {
-      console.log('Using cached audio for:', text.substring(0, 30));
       return this.audioCache.get(cacheKey)!;
     }
 

@@ -40,9 +40,7 @@ const TeacherSignUp = () => {
     if (!loading && user && !hasInitiatedSignOut) {
       setHasInitiatedSignOut(true);
       setIsSigningOut(true);
-      console.log('Existing user detected on teacher signup page, signing out...');
       supabase.auth.signOut().finally(() => {
-        console.log('Previous session cleared for new teacher signup');
         setIsSigningOut(false);
       });
     }
@@ -129,7 +127,6 @@ const TeacherSignUp = () => {
           .maybeSingle();
         
         if (!existingProfile) {
-          console.log('Trigger failed to create teacher profile, creating manually...');
           
           await supabase.from('users').insert({
             id: data.user.id,
@@ -143,7 +140,6 @@ const TeacherSignUp = () => {
             role: 'teacher'
           });
           
-          console.log('Manually created teacher profile for:', values.email);
         }
 
         toast({

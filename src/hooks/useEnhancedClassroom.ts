@@ -14,14 +14,6 @@ export function useEnhancedClassroom({
   userRole
 }: UseEnhancedClassroomProps) {
   const [session, setSession] = useState<ClassroomSession | null>(null);
-
-  console.log('🏫 useEnhancedClassroom initializing with:', {
-    roomId,
-    userId,
-    displayName,
-    userRole
-  });
-
   // Video service management
   const {
     videoService,

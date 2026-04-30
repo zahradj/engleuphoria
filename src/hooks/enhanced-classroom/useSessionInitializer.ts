@@ -36,13 +36,11 @@ export function useSessionInitializer({
                             window.location.pathname.includes('/unified-classroom');
     
     if (!isClassroomPage) {
-      console.log('🚫 Skipping session initialization - not on classroom page');
       return;
     }
 
     initializationInProgress.current = true;
 
-    console.log('🚀 Initializing classroom session...', { userRole, roomId });
     
     const initializeSession = async () => {
       try {
@@ -51,7 +49,6 @@ export function useSessionInitializer({
         
         // For development mode, if we have userId in URL params, proceed without authentication
         if ((authError || !user) && !userId) {
-          console.log('🚫 Skipping session initialization - authentication required');
           initializationInProgress.current = false;
           return;
         }
@@ -61,15 +58,12 @@ export function useSessionInitializer({
 
         // Initialize based on role
         if (userRole === 'teacher') {
-          console.log('👨‍🏫 Teacher initializing - creating session...');
           await sessionManager.createSession();
         } else {
-          console.log('👨‍🎓 Student initializing - joining session...');
           await sessionManager.joinSession();
         }
         
         hasInitialized.current = true;
-        console.log('✅ Classroom initialization complete');
       } catch (error) {
         console.error('❌ Classroom initialization failed:', error);
       } finally {

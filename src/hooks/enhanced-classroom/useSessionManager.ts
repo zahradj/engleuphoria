@@ -55,7 +55,6 @@ export function useSessionManager({ roomId, userId, userRole }: UseSessionManage
 
       if (existingSession) {
         setSession(existingSession);
-        console.log('🏫 Using existing session:', existingSession.id);
         return existingSession;
       }
 
@@ -73,7 +72,6 @@ export function useSessionManager({ roomId, userId, userRole }: UseSessionManage
       if (createError) throw createError;
 
       setSession(newSession);
-      console.log('🏫 Created new session:', newSession.id);
       
       toast({
         title: "Session Created",
@@ -116,7 +114,6 @@ export function useSessionManager({ roomId, userId, userRole }: UseSessionManage
       }
 
       setSession(existingSession);
-      console.log('🏫 Joined session:', existingSession.id);
       
       if (userRole === 'student') {
         toast({

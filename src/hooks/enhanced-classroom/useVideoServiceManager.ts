@@ -35,7 +35,6 @@ export function useVideoServiceManager({
 
   const serviceCallbacks = useMemo(() => ({
     onConnectionStatusChanged: (connected: boolean) => {
-      console.log('🔗 Connection status changed:', connected);
       setIsConnected(connected);
     },
     onError: (err: string) => {
@@ -43,10 +42,8 @@ export function useVideoServiceManager({
       setError(err);
     },
     onParticipantJoined: (id: string, name: string) => {
-      console.log('👋 Participant joined:', id, name);
     },
     onParticipantLeft: (id: string) => {
-      console.log('👋 Participant left:', id);
     }
   }), []);
 
@@ -56,14 +53,12 @@ export function useVideoServiceManager({
 
     const initService = async () => {
       try {
-        console.log('🎥 Initializing RealTimeVideoService...');
         const service = new RealTimeVideoService();
 
         await service.initialize();
         
         if (mounted) {
           setVideoService(service);
-          console.log('✅ RealTimeVideoService initialized successfully');
         }
       } catch (err) {
         if (mounted) {
@@ -78,7 +73,6 @@ export function useVideoServiceManager({
     return () => {
       mounted = false;
       if (videoService) {
-        console.log('🧹 Disposing video service...');
         videoService.dispose();
       }
     };

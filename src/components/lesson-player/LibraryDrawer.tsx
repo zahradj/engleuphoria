@@ -34,12 +34,6 @@ function deriveHub(ageRange: string | null): string {
   return 'professional';
 }
 
-const DUMMY_LESSONS: LessonCard[] = [
-  { id: 'dummy-1', title: 'Present Simple Mastery', topic: 'Grammar', hub: 'academy', description: 'Master daily routines and habits using the present simple tense.', slide_count: 6 },
-  { id: 'dummy-2', title: 'Business Negotiations', topic: 'Speaking', hub: 'professional', description: 'Learn corporate phrasing and negotiation strategies.', slide_count: 8 },
-  { id: 'dummy-3', title: 'Animal Friends', topic: 'Vocabulary', hub: 'playground', description: 'Learn the names of animals through fun activities!', slide_count: 5 },
-  { id: 'dummy-4', title: 'Past Tense Adventures', topic: 'Grammar', hub: 'academy', description: 'Travel back in time to explore past tense verbs.', slide_count: 7 },
-];
 
 export default function LibraryDrawer({ open, onClose, onSelectLesson }: LibraryDrawerProps) {
   const [lessons, setLessons] = useState<LessonCard[]>([]);
@@ -55,12 +49,12 @@ export default function LibraryDrawer({ open, onClose, onSelectLesson }: Library
       .select('id, title, topic, age_range, script')
       .order('created_at', { ascending: false })
       .then(({ data, error }) => {
-        if (error || !data || data.length === 0) {
-          console.warn('LibraryDrawer: No lessons found or error, using dummy data', error);
-          setLessons(DUMMY_LESSONS);
+        if (error) {
+          console.warn('LibraryDrawer fetch error:', error);
+          setLessons([]);
         } else {
           setLessons(
-            data.map((l: any) => ({
+            (data || []).map((l: any) => ({
               id: l.id,
               title: l.title || l.topic || 'Untitled Lesson',
               topic: l.topic,
@@ -86,13 +80,6 @@ export default function LibraryDrawer({ open, onClose, onSelectLesson }: Library
   }, [lessons, searchQuery]);
 
   const handleSelect = async (lessonId: string) => {
-    // For dummy lessons, just log and close
-    if (lessonId.startsWith('dummy-')) {
-      const dummy = DUMMY_LESSONS.find(l => l.id === lessonId);
-      console.log('Lesson Selected:', lessonId, dummy?.title);
-      onClose();
-      return;
-    }
 
     setLoadingLessonId(lessonId);
     const { data, error } = await supabase

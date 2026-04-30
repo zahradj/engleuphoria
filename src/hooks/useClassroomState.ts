@@ -28,21 +28,17 @@ export function useClassroomState() {
     if (loading) return;
     
     if (!user) {
-      console.log("No authenticated user, redirecting to login");
       navigate("/login");
       return;
     }
 
-    console.log("useClassroomState - Auth check:", { userId: user.id, role: user.role });
 
     // Set state based on server-validated user role
     if (user.role === "teacher" || user.role === "admin") {
-      console.log("Setting teacher view");
       setStudentName(user.email?.split('@')[0] || "Teacher");
       setPoints(0); // Teachers don't have points
       setIsTeacherView(true);
     } else {
-      console.log("Setting student view");
       setStudentName(user.email?.split('@')[0] || "Student");
       // Load points from a secure source if needed
       const storedPoints = localStorage.getItem("points");

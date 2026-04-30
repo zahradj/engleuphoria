@@ -16,11 +16,9 @@ export function SimpleContentViewer({ mode, isTeacher, studentName }: SimpleCont
   const [color, setColor] = useState("#9B87F5");
 
   const clearCanvas = () => {
-    console.log("Clearing canvas");
   };
 
   const downloadCanvas = () => {
-    console.log("Downloading canvas");
   };
 
   return (

@@ -56,22 +56,15 @@ export const VideoPreviewCard = ({
   const setupVideoElement = (mediaStream: MediaStream) => {
     const video = videoRef.current;
     if (!video) return;
-
-    console.log('Setting up video element with stream:', mediaStream.id);
-
     if (videoTimeoutRef.current) {
       clearTimeout(videoTimeoutRef.current);
     }
 
     const handleLoadedMetadata = () => {
-      console.log('Video metadata loaded, ready state:', video.readyState);
-      console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
-      
       const playPromise = video.play();
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
-            console.log('Video started playing successfully');
             setIsVideoPlaying(true);
             setVideoLoadTimeout(false);
             setNeedsUserInteraction(false);
@@ -93,7 +86,6 @@ export const VideoPreviewCard = ({
     };
 
     const handlePlaying = () => {
-      console.log('Video is playing');
       setIsVideoPlaying(true);
       setVideoLoadTimeout(false);
       setCameraStatus('working');
@@ -132,16 +124,6 @@ export const VideoPreviewCard = ({
   const validateMediaTracks = (mediaStream: MediaStream) => {
     const videoTracks = mediaStream.getVideoTracks();
     const audioTracks = mediaStream.getAudioTracks();
-    
-    console.log('Validating tracks:', {
-      video: videoTracks.length,
-      audio: audioTracks.length,
-      videoEnabled: videoTracks[0]?.enabled,
-      audioEnabled: audioTracks[0]?.enabled,
-      videoReadyState: videoTracks[0]?.readyState,
-      audioReadyState: audioTracks[0]?.readyState
-    });
-
     if (audioTracks.length > 0 && audioTracks[0].readyState === 'live' && audioTracks[0].enabled) {
       setMicrophoneStatus('working');
       startAudioLevelMonitoring(mediaStream);

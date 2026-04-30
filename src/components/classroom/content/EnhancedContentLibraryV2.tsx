@@ -96,7 +96,6 @@ export const EnhancedContentLibrary: React.FC<EnhancedContentLibraryProps> = ({
 
   const handleDownloadContent = async (item: ContentItem) => {
     try {
-      console.log('Downloading:', item.title);
       // Implementation would go here
     } catch (error) {
       console.error('Download failed:', error);
@@ -219,7 +218,6 @@ export const EnhancedContentLibrary: React.FC<EnhancedContentLibraryProps> = ({
               onBack={() => setSelectedAdventure(null)}
               onStartLesson={() => {
                 // Handle lesson start - could integrate with existing lesson system
-                console.log('Starting adventure lesson:', selectedAdventure.id);
               }}
             />
           ) : (

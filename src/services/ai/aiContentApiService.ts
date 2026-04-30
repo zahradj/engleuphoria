@@ -19,7 +19,6 @@ export class AIContentApiService {
     const startTime = Date.now();
 
     try {
-      console.log('AIContentApiService: Calling Supabase function');
       
       const { data, error } = await supabase.functions.invoke('ai-content-generator', {
         body: request
@@ -40,13 +39,6 @@ export class AIContentApiService {
         ...generatedContent.metadata,
         generationTime: Date.now() - startTime
       };
-      
-      console.log('AIContentApiService: Content generated successfully', {
-        id: generatedContent.id,
-        type: generatedContent.type,
-        generationTime: generatedContent.metadata.generationTime
-      });
-      
       return generatedContent;
     } catch (error) {
       console.error('AIContentApiService: Content generation failed:', error);

@@ -35,7 +35,6 @@ export const SessionPrivacyGuard: React.FC<SessionPrivacyGuardProps> = ({
 
     // Admin "God Mode" — instant access
     if (isAdmin) {
-      console.log('[SessionPrivacyGuard] Admin God Mode — access granted');
       setAccess('granted');
       return;
     }

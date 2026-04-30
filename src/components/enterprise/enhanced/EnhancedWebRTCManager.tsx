@@ -34,7 +34,17 @@ export const useEnhancedWebRTC = (roomId: string, userId: string) => {
   
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const peerConnectionsRef = useRef<Map<string, RTCPeerConnection>>(new Map());
+  const signalingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const { toast } = useToast();
+
+  // Lazily get or create the signaling channel — single channel per room
+  const getSignalingChannel = useCallback(() => {
+    if (!signalingChannelRef.current) {
+      signalingChannelRef.current = supabase.channel(`webrtc_${roomId}`);
+      signalingChannelRef.current.subscribe();
+    }
+    return signalingChannelRef.current;
+  }, [roomId]);
 
   // ICE servers configuration with TURN/STUN
   const iceServers = [
@@ -95,7 +105,6 @@ export const useEnhancedWebRTC = (roomId: string, userId: string) => {
 
     // Handle connection state changes
     peerConnection.onconnectionstatechange = () => {
-      console.log(`Connection state for ${participantId}:`, peerConnection.connectionState);
       
       if (peerConnection.connectionState === 'failed') {
         // Attempt to restart ICE
@@ -107,7 +116,7 @@ export const useEnhancedWebRTC = (roomId: string, userId: string) => {
     peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
         // Send ICE candidate via Supabase signaling
-        supabase.channel(`webrtc_${roomId}`).send({
+        getSignalingChannel().send({
           type: 'broadcast',
           event: 'ice-candidate',
           payload: {
@@ -226,7 +235,7 @@ export const useEnhancedWebRTC = (roomId: string, userId: string) => {
     await peerConnection.setLocalDescription(answer);
 
     // Send answer via Supabase signaling
-    supabase.channel(`webrtc_${roomId}`).send({
+    getSignalingChannel().send({
       type: 'broadcast',
       event: 'answer',
       payload: {
@@ -258,7 +267,7 @@ export const useEnhancedWebRTC = (roomId: string, userId: string) => {
     await peerConnection.setLocalDescription(offer);
 
     // Send offer via Supabase signaling
-    supabase.channel(`webrtc_${roomId}`).send({
+    getSignalingChannel().send({
       type: 'broadcast',
       event: 'offer',
       payload: {
@@ -277,6 +286,12 @@ export const useEnhancedWebRTC = (roomId: string, userId: string) => {
     // Stop local stream
     if (localStream) {
       localStream.getTracks().forEach(track => track.stop());
+    }
+
+    // Remove Realtime signaling channel
+    if (signalingChannelRef.current) {
+      supabase.removeChannel(signalingChannelRef.current);
+      signalingChannelRef.current = null;
     }
 
     setIsConnected(false);

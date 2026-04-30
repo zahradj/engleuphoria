@@ -21,7 +21,6 @@ export function StudentVideoPanel({ studentName, currentUser }: StudentVideoPane
   const hasVideo = media.stream && media.isConnected && !media.isCameraOff;
 
   const handleJoinVideo = () => {
-    console.log("🎥 Student joining video...");
     media.join();
   };
 

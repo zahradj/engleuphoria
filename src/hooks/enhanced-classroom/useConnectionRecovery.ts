@@ -40,7 +40,6 @@ export function useConnectionRecovery({
     const currentAttempt = retryCount + 1;
     
     try {
-      console.log(`🔄 Connection recovery attempt ${currentAttempt}/${maxRetries}`);
       
       await onReconnect();
       
@@ -81,7 +80,6 @@ export function useConnectionRecovery({
   // Auto-retry when connection is lost
   useEffect(() => {
     if (!isConnected && error && retryCount === 0 && !isRecovering) {
-      console.log('🔄 Starting auto-recovery process');
       const delayedRecovery = setTimeout(() => {
         attemptRecovery();
       }, 1000); // Initial delay before first retry
@@ -94,7 +92,6 @@ export function useConnectionRecovery({
   useEffect(() => {
     if (isConnected && !error) {
       resetRetryCount();
-      console.log('✅ Connection restored, resetting recovery state');
     }
   }, [isConnected, error, resetRetryCount]);
 

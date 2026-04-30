@@ -65,7 +65,6 @@ export function OneOnOneRightPanel({
 
   // Handle adding word to vocabulary
   const handleAddToVocab = (word: string, definition: string) => {
-    console.log('Adding to vocabulary:', word, definition);
     // This would integrate with student vocabulary tracking
   };
 

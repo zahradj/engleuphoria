@@ -42,7 +42,6 @@ export function useClassroomActions({
     }
 
     try {
-      console.log('🚀 Joining room...');
       
       // Configure RealTimeVideoService with room details and local stream
       if ('setRoomConfig' in videoService && localStream) {
@@ -76,7 +75,6 @@ export function useClassroomActions({
     }
 
     try {
-      console.log('🚪 Leaving room...');
       await videoService.leaveRoom();
       updateParticipants();
       
@@ -112,7 +110,6 @@ export function useClassroomActions({
     }
 
     try {
-      console.log('🎬 Starting recording...');
       const success = await videoService.startRecording();
       
       if (success) {
@@ -155,7 +152,6 @@ export function useClassroomActions({
     }
 
     try {
-      console.log('🛑 Stopping recording...');
       const success = await videoService.stopRecording();
       
       if (success) {
@@ -189,7 +185,6 @@ export function useClassroomActions({
     }
 
     try {
-      console.log('✋ Raising hand...');
       const success = await videoService.raiseHand();
       
       if (success) {
@@ -218,7 +213,6 @@ export function useClassroomActions({
     }
 
     try {
-      console.log('🖥️ Starting screen share...');
       const success = await videoService.startScreenShare();
       
       if (success) {

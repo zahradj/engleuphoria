@@ -47,7 +47,6 @@ export const EnhancedPaymentPlansGrid: React.FC<EnhancedPaymentPlansGridProps> =
     setProcessingPlan(plan.id);
     
     try {
-      console.log(`Processing payment for plan ${plan.id} with gateway ${gateway}`);
       
       if (selectedRegion === 'algeria') {
         if (gateway === 'baridimob') {

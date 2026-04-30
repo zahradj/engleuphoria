@@ -33,7 +33,6 @@ export const useAIIntegration = () => {
     
     try {
       // This will be replaced with actual API call when backend is connected
-      console.log('Generating AI content with request:', request);
       
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 2000));

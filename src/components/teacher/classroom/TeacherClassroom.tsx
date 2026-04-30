@@ -545,7 +545,6 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             }}
             embeddedUrl={embeddedUrl}
             onEmbedUrl={async (url) => {
-              console.log(`[Co-Play] Teacher broadcasting embedUrl to room ${roomName}:`, url);
               await updateSharedDisplay({ embeddedUrl: url });
               await setStageMode('web');
               await updateCanvasTab('web');

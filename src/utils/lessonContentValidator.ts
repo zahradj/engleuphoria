@@ -228,13 +228,6 @@ export function validateLessonContent(lessonData: any): ValidationResult {
 }
 
 export function printValidationReport(result: ValidationResult): void {
-  console.log('\n=== LESSON VALIDATION REPORT ===\n');
-  console.log(`Total Slides: ${result.stats.totalSlides}`);
-  console.log(`Vocabulary Words: ${result.stats.vocabularyWords}`);
-  console.log(`Grammar Exercises: ${result.stats.grammarExercises}`);
-  console.log(`Interactive Activities: ${result.stats.interactiveActivities}`);
-  console.log(`Missing Fields: ${result.stats.missingFields}`);
-  console.log(`\nStatus: ${result.isValid ? '✅ VALID' : '❌ INVALID'}`);
   
   if (result.errors.length > 0) {
     console.error(`\n❌ ERRORS (${result.errors.length}):`);
@@ -250,5 +243,4 @@ export function printValidationReport(result: ValidationResult): void {
     });
   }
   
-  console.log('\n================================\n');
 }

@@ -81,7 +81,6 @@ export const MessagesTab = () => {
 
   const handleSendMessage = () => {
     if (messageText.trim()) {
-      console.log("Sending message:", messageText);
       setMessageText("");
     }
   };

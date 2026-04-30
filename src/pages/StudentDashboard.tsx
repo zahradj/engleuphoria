@@ -102,7 +102,6 @@ const StudentDashboard = () => {
   useEffect(() => {
     const initializeDashboard = async () => {
       try {
-        console.log('📊 Initializing student dashboard...');
         
         const profile = localStorage.getItem('studentProfile');
         if (profile) {
@@ -143,7 +142,6 @@ const StudentDashboard = () => {
         }
         
         setIsInitialized(true);
-        console.log('✅ Student dashboard initialized successfully');
       } catch (error) {
         console.error('❌ Error initializing student dashboard:', error);
         toast({

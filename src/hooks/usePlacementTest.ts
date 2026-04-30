@@ -75,10 +75,6 @@ export function usePlacementTest() {
 
     if (error) throw error;
 
-    console.log(
-      `Placement result: hub=${level}, track=${track}, cefr=${cefrLevel}, score=${score}% (${correctCount}/${total}), avgComplexity=${avgComplexity.toFixed(2)}`
-    );
-
     return getStudentDashboardRoute(level);
   };
 

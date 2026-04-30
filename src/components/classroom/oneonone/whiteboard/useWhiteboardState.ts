@@ -103,7 +103,6 @@ export function useWhiteboardState() {
   };
 
   const handleIframeError = (gameId: string) => {
-    console.log("Marking game as blocked:", gameId);
     setEmbeddedGames(prev => ({
       ...prev,
       [activeTab]: (prev[activeTab] || []).map(game => 

@@ -7,23 +7,13 @@ export function useVideoRefs(media: any, isTeacher: boolean) {
   const studentVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    console.log("🎥 useVideoRefs effect triggered:", {
-      hasStream: !!media.stream,
-      isConnected: media.isConnected,
-      isCameraOff: media.isCameraOff,
-      isTeacher,
-      streamActive: media.stream?.active
-    });
-
     // Clear streams if no media stream or not connected
     if (!media.stream || !media.isConnected) {
       if (teacherVideoRef.current) {
         teacherVideoRef.current.srcObject = null;
-        console.log("🎥 Cleared teacher video");
       }
       if (studentVideoRef.current) {
         studentVideoRef.current.srcObject = null;
-        console.log("🎥 Cleared student video");
       }
       return;
     }
@@ -36,7 +26,6 @@ export function useVideoRefs(media: any, isTeacher: boolean) {
       // Only assign if not already assigned
       if (currentUserVideoRef.current.srcObject !== media.stream) {
         currentUserVideoRef.current.srcObject = media.stream;
-        console.log(`🎥 Assigned stream to ${currentUserLabel} video element`);
         
         // Ensure video plays
         currentUserVideoRef.current.play().catch(error => {

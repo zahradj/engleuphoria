@@ -46,7 +46,6 @@ export const SpeakingPracticeTab = () => {
       setIsDemoMode(demoMode);
       
       if (demoMode) {
-        console.log('Running in demo mode - using mock data');
       }
       
       // Load data in parallel

@@ -5,7 +5,6 @@ import { EnhancedDictionary } from "@/components/classroom/oneonone/dictionary/E
 
 export function DictionaryTabContent() {
   const handleAddToVocab = (word: string, definition: string) => {
-    console.log('Adding to vocabulary:', { word, definition });
     // This would integrate with student vocabulary tracking
     // For now, just log the action
   };

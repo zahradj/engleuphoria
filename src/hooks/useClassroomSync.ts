@@ -167,10 +167,6 @@ export const useClassroomSync = ({
         // so we can verify "One Room, One Session" in DevTools.
         setSession(prev => {
           if (role === 'student' && prev?.embeddedUrl !== updatedSession.embeddedUrl && updatedSession.embeddedUrl) {
-            console.log(
-              `[Co-Play] Student received embedUrl from teacher broadcast (room ${roomId}):`,
-              updatedSession.embeddedUrl,
-            );
           }
           return updatedSession;
         });

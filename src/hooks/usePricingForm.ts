@@ -56,8 +56,6 @@ export const usePricingForm = () => {
       return;
     }
 
-    console.log(`Plan ${planId} selected with ${gateway} gateway`);
-    console.log('User data:', formData);
     
     // Save user data for payment process
     localStorage.setItem('pendingUser', JSON.stringify(formData));

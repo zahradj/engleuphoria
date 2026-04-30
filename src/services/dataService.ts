@@ -86,7 +86,6 @@ class DataService {
   // Remove console.log statements in production
   private log(message: string, data?: any) {
     if (process.env.NODE_ENV === 'development') {
-      console.log(message, data);
     }
   }
 }

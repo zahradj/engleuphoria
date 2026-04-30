@@ -106,7 +106,6 @@ export function useClassroomSession({ roomId, userId, userRole }: UseClassroomSe
 
     // Cleanup existing channel first
     if (channelRef.current) {
-      console.log('🧹 Cleaning up existing classroom session channel');
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
     }
@@ -114,7 +113,6 @@ export function useClassroomSession({ roomId, userId, userRole }: UseClassroomSe
     // Small delay to ensure proper cleanup
     const timeoutId = setTimeout(() => {
       const channelName = `classroom_session_${roomId}_${userId}`;
-      console.log('📡 Creating classroom session channel:', channelName);
       
       const channel = supabase
         .channel(channelName)
@@ -127,7 +125,6 @@ export function useClassroomSession({ roomId, userId, userRole }: UseClassroomSe
             filter: `room_id=eq.${roomId}`
           },
           (payload) => {
-            console.log('Session state changed:', payload);
             
             if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
               setSession(payload.new as ClassroomSession);
@@ -143,7 +140,6 @@ export function useClassroomSession({ roomId, userId, userRole }: UseClassroomSe
           }
         )
         .subscribe((status) => {
-          console.log('📡 Classroom session channel status:', status);
         });
 
       channelRef.current = channel;
@@ -152,7 +148,6 @@ export function useClassroomSession({ roomId, userId, userRole }: UseClassroomSe
     return () => {
       clearTimeout(timeoutId);
       if (channelRef.current) {
-        console.log('🧹 Cleaning up classroom session channel on unmount');
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
       }

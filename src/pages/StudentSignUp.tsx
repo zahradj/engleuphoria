@@ -43,9 +43,7 @@ const StudentSignUp = () => {
     if (!loading && user && !hasInitiatedSignOut) {
       setHasInitiatedSignOut(true);
       setIsSigningOut(true);
-      console.log('Existing user detected on student signup page, signing out...');
       supabase.auth.signOut().finally(() => {
-        console.log('Previous session cleared for new student signup');
         setIsSigningOut(false);
       });
     }
@@ -149,7 +147,6 @@ const StudentSignUp = () => {
           .maybeSingle();
 
         if (!existingProfile) {
-          console.log('Trigger failed to create user row, creating manually...');
           await supabase.from('users').insert({
             id: data.user.id,
             email: values.email,
@@ -180,7 +177,6 @@ const StudentSignUp = () => {
         if (profileError) {
           console.error('Failed to upsert student_profiles:', profileError);
         } else {
-          console.log('✅ student_profiles set for', values.email, '→ level:', studentLevel);
         }
 
         toast({

@@ -39,7 +39,6 @@ class PollService {
         .single();
 
       if (existing) {
-        console.log('Student already voted on this poll');
         return this.mapToResponse(existing);
       }
 

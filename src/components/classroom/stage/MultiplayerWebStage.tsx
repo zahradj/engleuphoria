@@ -89,7 +89,6 @@ export const MultiplayerWebStage: React.FC<MultiplayerWebStageProps> = ({
           timeout: 30_000,
           onConnectionStateChange: (e) => {
             if (cancelled) return;
-            console.log('[Hyperbeam] connection state:', e.state);
             setJoinState(e.state as JoinState);
           },
           onDisconnect: (e) => {
@@ -332,7 +331,6 @@ export async function createHyperbeamSession(
     );
   }
 
-  console.log('[Co-Play] Teacher minting a new Hyperbeam VM…', { startUrl });
 
   const { data, error } = await supabase.functions.invoke('hyperbeam-session', {
     body: { startUrl },

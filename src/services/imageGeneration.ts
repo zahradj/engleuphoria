@@ -41,7 +41,6 @@ class ImageGenerationService {
     try {
       const fullPrompt = `${options.prompt}, educational illustration for English learning`;
 
-      console.log('Generating AI image | style:', options.style, '| postProcess:', !!options.postProcess, '| prompt:', fullPrompt.slice(0, 100));
       
       const response = await supabase.functions.invoke('ai-image-generation', {
         body: {

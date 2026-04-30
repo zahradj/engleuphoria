@@ -129,7 +129,6 @@ class WhiteboardService {
     const existing = this.rooms.get(channelName);
     if (existing) return existing;
 
-    console.log('Joining channel:', channelName);
 
     const strokeListeners = new Set<StrokeListener>();
     const scrollListeners = new Set<ScrollListener>();

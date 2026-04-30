@@ -8,7 +8,6 @@ export class ContentLibraryService {
 
   constructor() {
     // Don't auto-load content on initialization to prevent cache issues
-    console.log('📚 ContentLibraryService initialized (no auto-load)');
   }
 
   addToLibrary(content: AIGeneratedContent): void {
@@ -23,7 +22,6 @@ export class ContentLibraryService {
 
     this.contentLibrary.unshift(libraryItem);
     this.saveContentLibrary();
-    console.log('➕ Added item to content library:', content.title);
   }
 
   getContentLibrary(): ContentLibraryItem[] {
@@ -31,7 +29,6 @@ export class ContentLibraryService {
   }
 
   clearLibrary(): void {
-    console.log('🧹 Clearing content library cache...');
     this.contentLibrary = [];
     
     // Clear localStorage cache
@@ -42,11 +39,9 @@ export class ContentLibraryService {
         supabase.auth.getUser().then(({ data: { user } }) => {
           if (user) {
             localStorage.removeItem(`ai_content_library_${user.id}`);
-            console.log('🗑️ Cleared user-specific content cache');
           }
         });
       }
-      console.log('✅ Content library cache cleared successfully');
     } catch (error) {
       console.error('❌ Failed to clear content library cache:', error);
     }
@@ -78,7 +73,6 @@ export class ContentLibraryService {
 
   // Method to manually load stored content if needed
   async loadStoredContent(): Promise<void> {
-    console.log('📖 Loading stored content from cache...');
     
     if (!isSupabaseConfigured()) {
       // Fallback to localStorage for development
@@ -86,7 +80,6 @@ export class ContentLibraryService {
         const stored = localStorage.getItem('ai_content_library');
         if (stored) {
           this.contentLibrary = JSON.parse(stored);
-          console.log(`📚 Loaded ${this.contentLibrary.length} items from localStorage`);
         }
       } catch (error) {
         console.error('Failed to load stored content:', error);
@@ -97,14 +90,12 @@ export class ContentLibraryService {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        console.log('👤 No authenticated user, skipping cache load');
         return;
       }
 
       const stored = localStorage.getItem(`ai_content_library_${user.id}`);
       if (stored) {
         this.contentLibrary = JSON.parse(stored);
-        console.log(`📚 Loaded ${this.contentLibrary.length} items from user cache`);
       }
     } catch (error) {
       console.error('Failed to load user content:', error);

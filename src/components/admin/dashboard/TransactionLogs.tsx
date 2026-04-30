@@ -99,7 +99,6 @@ export function TransactionLogs() {
           table: 'lesson_payments'
         },
         (payload) => {
-          console.log('💰 New transaction:', payload);
           toast({
             title: "New Transaction",
             description: `€${payload.new.amount_charged} payment processed`,

@@ -78,12 +78,6 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
 
   // Debug logging for authentication
   useEffect(() => {
-    console.log('🔍 Calendar Auth Debug:', {
-      teacherId,
-      userFromAuth: user?.id,
-      userRole: user?.role,
-      idsMatch: user?.id === teacherId
-    });
   }, [teacherId, user]);
   
   // Calculate slot counts - ONLY future slots

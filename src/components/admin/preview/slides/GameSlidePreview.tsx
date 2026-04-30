@@ -48,7 +48,6 @@ export function GameSlidePreview({ slide, system = 'hub' }: GameSlidePreviewProp
           game={ironLMSGame} 
           targetGroup={targetGroup}
           onComplete={(result) => {
-            console.log('[GameSlide] Game completed:', result);
           }}
         />
       </div>

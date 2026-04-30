@@ -196,7 +196,6 @@ export function ContextGame({ game, targetGroup, onComplete, onProgress }: Conte
                 className="gap-2"
                 onClick={() => {
                   // Future: Add text-to-speech
-                  console.log('Play pronunciation for:', activeWord);
                 }}
               >
                 <Volume2 className="h-4 w-4" />

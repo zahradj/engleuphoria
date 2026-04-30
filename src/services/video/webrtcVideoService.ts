@@ -36,13 +36,11 @@ export class WebRTCVideoService {
 
     // Set up remote stream handler
     this.peerManager.setOnRemoteStream((peerId, stream) => {
-      console.log(`🎥 Remote stream received from ${peerId}`);
       this.notifyParticipantsUpdate();
     });
 
     // Set up connection state handler
     this.peerManager.setOnConnectionStateChange((peerId, state) => {
-      console.log(`🔌 Connection state changed for ${peerId}: ${state}`);
       if (state === 'failed' || state === 'disconnected') {
         this.notifyParticipantsUpdate();
       }
@@ -54,7 +52,6 @@ export class WebRTCVideoService {
 
   private async connectViaRealtimeBroadcast(roomId: string, userId: string): Promise<void> {
     const channelName = `webrtc-${roomId}`;
-    console.log(`🔗 Subscribing to Supabase Realtime channel: ${channelName}`);
 
     this.channel = supabase.channel(channelName, {
       config: {
@@ -88,7 +85,6 @@ export class WebRTCVideoService {
     return new Promise((resolve, reject) => {
       this.channel!.subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
-          console.log(`✅ Subscribed to Realtime channel: ${channelName}`);
           this.isJoined = true;
 
           // Track presence so peers can deterministically discover each other
@@ -134,12 +130,10 @@ export class WebRTCVideoService {
     remoteUserIds.forEach((remoteUserId) => {
       if (this.peerManager.getConnectionState(remoteUserId)) return;
       if (this.userId! < remoteUserId) {
-        console.log(`🤝 Presence — initiating offer to ${remoteUserId}`);
         this.initiateConnectionToUser(remoteUserId).catch((err) =>
           console.error('Presence-driven offer failed', err)
         );
       } else {
-        console.log(`⏳ Presence — waiting for offer from ${remoteUserId}`);
       }
     });
   }
@@ -154,12 +148,10 @@ export class WebRTCVideoService {
     if (this.peerManager.getConnectionState(remoteUserId)) return;
     if (this.userId! >= remoteUserId) return;
 
-    console.log(`👤 User ${remoteUserId} joined — initiating offer`);
     await this.initiateConnectionToUser(remoteUserId);
   }
 
   private async initiateConnectionToUser(targetUserId: string) {
-    console.log(`🤝 Initiating connection to user ${targetUserId}`);
 
     // Create peer connection with ICE candidate relay
     await this.peerManager.createPeerConnection(targetUserId, (candidate) => {
@@ -181,7 +173,6 @@ export class WebRTCVideoService {
 
   private async handleOffer(fromUserId: string, offer: RTCSessionDescriptionInit) {
     if (fromUserId === this.userId) return;
-    console.log(`📥 Handling offer from ${fromUserId}`);
 
     // Create peer connection if it doesn't exist
     if (!this.peerManager.getConnectionState(fromUserId)) {
@@ -205,19 +196,16 @@ export class WebRTCVideoService {
 
   private async handleAnswer(fromUserId: string, answer: RTCSessionDescriptionInit) {
     if (fromUserId === this.userId) return;
-    console.log(`📥 Handling answer from ${fromUserId}`);
     await this.peerManager.handleAnswer(fromUserId, answer);
   }
 
   private async handleIceCandidate(fromUserId: string, candidate: RTCIceCandidateInit) {
     if (fromUserId === this.userId) return;
-    console.log(`🧊 Handling ICE candidate from ${fromUserId}`);
     await this.peerManager.handleIceCandidate(fromUserId, candidate);
   }
 
   private handleUserLeft(userId: string) {
     if (userId === this.userId) return;
-    console.log(`👋 User ${userId} left`);
     this.peerManager.closePeerConnection(userId);
     this.notifyParticipantsUpdate();
     toast.info("Participant left");

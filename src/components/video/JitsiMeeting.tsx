@@ -139,33 +139,27 @@ export const JitsiMeeting: React.FC<JitsiMeetingProps> = ({
 
         // Set up event listeners
         apiRef.current.addListener('videoConferenceJoined', () => {
-          console.log(`[Jitsi] ${displayName} joined room: ${cleanRoomName}`);
           setIsLoading(false);
           
           // Grant moderator rights to teachers
           if (isTeacher) {
             // Teachers are automatically moderators in their own rooms
-            console.log('[Jitsi] Teacher joined as moderator');
           }
         });
 
         apiRef.current.addListener('videoConferenceLeft', () => {
-          console.log(`[Jitsi] ${displayName} left room: ${cleanRoomName}`);
           onReadyToClose?.();
         });
 
         apiRef.current.addListener('participantJoined', (participant: any) => {
-          console.log('[Jitsi] Participant joined:', participant);
           onParticipantJoined?.(participant);
         });
 
         apiRef.current.addListener('participantLeft', (participant: any) => {
-          console.log('[Jitsi] Participant left:', participant);
           onParticipantLeft?.(participant);
         });
 
         apiRef.current.addListener('readyToClose', () => {
-          console.log('[Jitsi] Ready to close');
           onReadyToClose?.();
         });
 

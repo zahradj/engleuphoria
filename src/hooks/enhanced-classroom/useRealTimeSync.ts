@@ -88,7 +88,6 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
   const connectToSync = useCallback(async () => {
     if (!isMountedRef.current) return;
     if (connectInFlightRef.current) {
-      console.log('🔄 Connect already in flight, skipping…');
       return;
     }
     connectInFlightRef.current = true;
@@ -101,7 +100,6 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
       await new Promise((resolve) => setTimeout(resolve, 150));
 
       const channelName = `classroom_sync_${roomId}_${userId}`;
-      console.log('🔄 Opening sync channel:', channelName);
       logRealtime('info', 'Opening sync channel', { channel: channelName, userRole });
       setConnectionStatus(reconnectAttemptsRef.current === 0 ? 'connecting' : 'reconnecting');
 
@@ -118,10 +116,8 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
           setSyncState((prev) => ({ ...prev, participants }));
         })
         .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-          console.log('👋 User joined:', key, newPresences);
         })
         .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-          console.log('👋 User left:', key, leftPresences);
         })
         .on('broadcast', { event: 'whiteboard_update' }, ({ payload }) => {
           if (payload.userId !== userId) {
@@ -140,7 +136,6 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
         });
 
       channel.subscribe(async (status, err) => {
-        console.log('🔄 Sync channel status:', status, err ? `error: ${err.message}` : '');
         if (err) {
           console.error('❌ Supabase Realtime Error:', err);
           logRealtime('error', `Realtime error: ${err.message}`, {
@@ -224,7 +219,6 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
   }, []);
 
   const disconnect = useCallback(() => {
-    console.log('🔄 Disconnecting real-time sync…');
     if (reconnectTimerRef.current) {
       clearTimeout(reconnectTimerRef.current);
       reconnectTimerRef.current = null;
@@ -237,7 +231,6 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
   // Re-subscribe when offline → online (network flap)
   useEffect(() => {
     const handleOnline = () => {
-      console.log('🌐 Network back online — forcing reconnect');
       reconnectAttemptsRef.current = 0;
       void connectToSync();
     };
