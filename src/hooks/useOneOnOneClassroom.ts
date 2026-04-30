@@ -5,7 +5,6 @@ import { useClassroomActions } from "./classroom/useClassroomActions";
 import { useRewardNotifications } from "./classroom/useRewardNotifications";
 
 export function useOneOnOneClassroom() {
-  console.log("useOneOnOneClassroom hook initializing");
   
   const { classTime } = useClassroomTimer();
   const {
@@ -45,8 +44,6 @@ export function useOneOnOneClassroom() {
     originalAwardPoints(points, reason);
   };
 
-  console.log("Hook state initialized");
-  console.log("Hook returning values");
   
   return {
     isRecording,

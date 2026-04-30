@@ -130,7 +130,6 @@ export const lessonPricingService = {
       else studentHub = 'academy';
     } catch (_) { /* fall back to academy */ }
     const hubPayout = await this.getHubPayout(studentHub);
-    console.log('💰 Using hub payout', { studentHub, hubPayout });
 
     // If using a package, check and redeem credits
     if (packagePurchaseId) {
@@ -209,7 +208,6 @@ export const lessonPricingService = {
         
         if (checkSlot?.lesson_id === lesson.id) {
           // Success! Our lesson ID is on the slot, so booking succeeded
-          console.log('✅ Slot booking verified via check query');
         } else {
           // Genuine failure - rollback
           await supabase.from('lessons').delete().eq('id', lesson.id);
@@ -220,7 +218,6 @@ export const lessonPricingService = {
         await supabase.from('lessons').delete().eq('id', lesson.id);
         throw new Error('This time slot is no longer available. Please refresh and select another slot.');
       } else {
-        console.log('✅ Availability slot marked as booked:', updatedSlot.id);
       }
 
       // Redeem package credit
@@ -304,7 +301,6 @@ export const lessonPricingService = {
         
         if (checkSlot?.lesson_id === lesson.id) {
           // Success! Our lesson ID is on the slot, so booking succeeded
-          console.log('✅ Slot booking verified via check query');
         } else {
           // Genuine failure - rollback
           await supabase.from('lessons').delete().eq('id', lesson.id);
@@ -315,7 +311,6 @@ export const lessonPricingService = {
         await supabase.from('lessons').delete().eq('id', lesson.id);
         throw new Error('This time slot is no longer available. Please refresh and select another slot.');
       } else {
-        console.log('✅ Availability slot marked as booked:', updatedSlot.id);
       }
 
       // Create payment record

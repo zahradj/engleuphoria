@@ -36,7 +36,6 @@ export const usePaymentForm = () => {
   };
 
   const handlePlanSelect = (planId: string, gateway: string) => {
-    console.log(`Plan ${planId} selected with ${gateway} gateway`);
     toast({
       title: "Redirecting to Payment",
       description: `Opening ${gateway} payment gateway...`,

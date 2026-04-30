@@ -11,11 +11,9 @@ export const useAudioProcessing = (
     updateRecordingState({ isProcessing: true });
 
     try {
-      console.log('Processing audio blob:', audioBlob.size, 'bytes');
       
       const base64Audio = await convertBlobToBase64(audioBlob);
 
-      console.log('Calling speech-to-text function...');
 
       // Call Supabase edge function for speech-to-text
       const { data, error } = await supabase.functions.invoke('speech-to-text', {
@@ -28,7 +26,6 @@ export const useAudioProcessing = (
       }
 
       const transcript = data.text || '';
-      console.log('Transcription received:', transcript);
       
       updateRecordingState({
         isProcessing: false,

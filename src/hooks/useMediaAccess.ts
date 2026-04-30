@@ -27,7 +27,6 @@ export const useMediaAccess = (opts?: { cameraId?: string; micId?: string }) => 
     setNeedsUserInteraction(false);
     
     try {
-      console.log('Requesting media access...');
       
       const constraints = {
         video: { 

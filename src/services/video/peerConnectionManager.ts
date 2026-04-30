@@ -21,7 +21,6 @@ export class PeerConnectionManager {
 
   setLocalStream(stream: MediaStream) {
     this.localStream = stream;
-    console.log("📹 Local stream set:", stream.getTracks().map(t => t.kind));
   }
 
   setOnRemoteStream(callback: (userId: string, stream: MediaStream) => void) {
@@ -36,7 +35,6 @@ export class PeerConnectionManager {
     userId: string,
     onIceCandidate: (candidate: RTCIceCandidate) => void
   ): Promise<RTCPeerConnection> {
-    console.log(`🔗 Creating peer connection for user ${userId}`);
 
     const pc = new RTCPeerConnection(ICE_SERVERS);
     
@@ -47,7 +45,6 @@ export class PeerConnectionManager {
       this.localStream.getTracks().forEach(track => {
         if (this.localStream) {
           pc.addTrack(track, this.localStream);
-          console.log(`➕ Added ${track.kind} track to peer connection`);
         }
       });
     }
@@ -55,14 +52,12 @@ export class PeerConnectionManager {
     // Handle ICE candidates
     pc.onicecandidate = (event) => {
       if (event.candidate) {
-        console.log(`🧊 ICE candidate for ${userId}:`, event.candidate.type);
         onIceCandidate(event.candidate);
       }
     };
 
     // Handle remote stream
     pc.ontrack = (event) => {
-      console.log(`📥 Received ${event.track.kind} track from ${userId}`);
       const [stream] = event.streams;
       
       const connection = this.connections.get(userId);
@@ -77,7 +72,6 @@ export class PeerConnectionManager {
 
     // Handle connection state changes
     pc.onconnectionstatechange = () => {
-      console.log(`🔌 Connection state for ${userId}:`, pc.connectionState);
       
       if (this.onConnectionStateChange) {
         this.onConnectionStateChange(userId, pc.connectionState);
@@ -89,13 +83,11 @@ export class PeerConnectionManager {
       } else if (pc.connectionState === 'disconnected') {
         console.warn(`⚠️ Connection disconnected for ${userId}`);
       } else if (pc.connectionState === 'connected') {
-        console.log(`✅ Successfully connected to ${userId}`);
         toast.success(`Connected to peer`);
       }
     };
 
     pc.oniceconnectionstatechange = () => {
-      console.log(`🧊 ICE connection state for ${userId}:`, pc.iceConnectionState);
     };
 
     return pc;
@@ -107,7 +99,6 @@ export class PeerConnectionManager {
       throw new Error(`No connection found for user ${userId}`);
     }
 
-    console.log(`📤 Creating offer for ${userId}`);
     const offer = await connection.pc.createOffer();
     await connection.pc.setLocalDescription(offer);
     return offer;
@@ -122,7 +113,6 @@ export class PeerConnectionManager {
       throw new Error(`No connection found for user ${userId}`);
     }
 
-    console.log(`📥 Handling offer from ${userId}`);
     await connection.pc.setRemoteDescription(new RTCSessionDescription(offer));
     
     const answer = await connection.pc.createAnswer();
@@ -137,7 +127,6 @@ export class PeerConnectionManager {
       throw new Error(`No connection found for user ${userId}`);
     }
 
-    console.log(`📥 Handling answer from ${userId}`);
     await connection.pc.setRemoteDescription(new RTCSessionDescription(answer));
   }
 
@@ -150,7 +139,6 @@ export class PeerConnectionManager {
 
     try {
       await connection.pc.addIceCandidate(new RTCIceCandidate(candidate));
-      console.log(`🧊 Added ICE candidate for ${userId}`);
     } catch (error) {
       console.error(`Error adding ICE candidate for ${userId}:`, error);
     }
@@ -160,7 +148,6 @@ export class PeerConnectionManager {
     const connection = this.connections.get(userId);
     if (!connection) return;
 
-    console.log(`🔄 Restarting ICE for ${userId}`);
     try {
       const offer = await connection.pc.createOffer({ iceRestart: true });
       await connection.pc.setLocalDescription(offer);
@@ -172,14 +159,12 @@ export class PeerConnectionManager {
   closePeerConnection(userId: string) {
     const connection = this.connections.get(userId);
     if (connection) {
-      console.log(`🔌 Closing peer connection for ${userId}`);
       connection.pc.close();
       this.connections.delete(userId);
     }
   }
 
   closeAllConnections() {
-    console.log(`🔌 Closing all peer connections`);
     this.connections.forEach((connection) => {
       connection.pc.close();
     });

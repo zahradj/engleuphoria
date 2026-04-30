@@ -77,7 +77,6 @@ export const speakingPracticeService = {
       throw error;
     }
     
-    console.log('Session created successfully:', data);
     return data;
   },
 
@@ -149,7 +148,6 @@ export const speakingPracticeService = {
       throw error;
     }
     
-    console.log('Progress initialized:', data);
     return data;
   },
 
@@ -177,7 +175,6 @@ export const speakingPracticeService = {
       throw error;
     }
     
-    console.log('Badge added:', newBadge);
   },
 
   async getTodaysSpeakingTime(): Promise<number> {

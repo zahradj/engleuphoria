@@ -168,7 +168,6 @@ export async function massGenerateImages(
 
   if (successCount > 0) {
     try {
-      console.log('Starting Picsart post-processing pipeline...');
       const hubMap: Record<string, HubFilter> = {
         playground: 'playground',
         academy: 'academy',
@@ -198,11 +197,9 @@ export async function massGenerateImages(
         slideInputs,
         userId,
         (picsartSlides) => {
-          console.log(`Picsart: ${picsartSlides.length} slides processed`);
         },
       );
 
-      console.log(`Picsart pipeline complete: ${picsartResult.totalProcessed} processed, ${picsartResult.totalErrors} errors in ${picsartResult.durationMs}ms`);
     } catch (err) {
       console.error('Picsart pipeline failed (non-blocking):', err);
     }

@@ -30,8 +30,6 @@ export const ProfileCompleteGuard = ({ teacherId, children }: ProfileCompleteGua
 
       if (error) throw error;
 
-      console.log('Profile data:', data);
-      console.log('Profile complete check:', data?.profile_complete && data?.can_teach);
       
       setProfileComplete(data?.profile_complete && data?.can_teach);
     } catch (error) {

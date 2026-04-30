@@ -77,7 +77,6 @@ export const IronGameGenerator = ({ onNavigate }: IronGameGeneratorProps) => {
   };
 
   const handleGameComplete = (result: GameResult) => {
-    console.log(`Game completed: ${result.score}/${result.maxScore}`);
   };
 
   return (

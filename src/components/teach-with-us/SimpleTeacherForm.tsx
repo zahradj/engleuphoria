@@ -240,7 +240,6 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
           },
         });
       } catch (emailError) {
-        console.log('Confirmation email could not be sent:', emailError);
       }
 
       setIsSuccess(true);

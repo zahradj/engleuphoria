@@ -28,12 +28,10 @@ export function useRealTimeChat({ roomId, userId, userName, userRole }: UseRealT
   // Load initial messages with retry logic
   const loadMessages = useCallback(async (attempt = 1) => {
     try {
-      console.log(`📧 Loading chat messages for room ${roomId} (attempt ${attempt})`);
       setIsLoading(true);
       setError(null);
       
       const initialMessages = await chatService.getMessages(roomId);
-      console.log(`📧 Loaded ${initialMessages.length} messages`);
       
       setMessages(initialMessages);
       setRetryCount(0);
@@ -48,7 +46,6 @@ export function useRealTimeChat({ roomId, userId, userName, userRole }: UseRealT
       setError(chatError);
       
       if (attempt < maxRetries) {
-        console.log(`📧 Retrying in ${attempt * 2} seconds...`);
         setTimeout(() => {
           setRetryCount(attempt);
           loadMessages(attempt + 1);
@@ -76,10 +73,8 @@ export function useRealTimeChat({ roomId, userId, userName, userRole }: UseRealT
   useEffect(() => {
     if (!roomId || error) return;
 
-    console.log(`📧 Subscribing to real-time messages for room ${roomId}`);
     
     const unsubscribe = chatService.subscribeToMessages(roomId, (newMessage) => {
-      console.log('📧 New message received:', newMessage);
       
       setMessages(prev => {
         // Avoid duplicates
@@ -91,7 +86,6 @@ export function useRealTimeChat({ roomId, userId, userName, userRole }: UseRealT
     });
 
     return () => {
-      console.log(`📧 Unsubscribing from messages for room ${roomId}`);
       unsubscribe();
     };
   }, [roomId, error]);
@@ -103,11 +97,9 @@ export function useRealTimeChat({ roomId, userId, userName, userRole }: UseRealT
       setIsSending(true);
       setError(null);
       
-      console.log('📧 Sending message:', content);
       
       await chatService.sendMessage(roomId, content.trim(), userId, userName, userRole);
       
-      console.log('📧 Message sent successfully');
     } catch (error: any) {
       console.error('📧 Failed to send message:', error);
       
@@ -135,7 +127,6 @@ export function useRealTimeChat({ roomId, userId, userName, userRole }: UseRealT
       setIsSending(true);
       setError(null);
       
-      console.log('📧 Sending file:', file.name);
       
       await chatService.sendFileMessage(roomId, file, userId, userName, userRole);
       
@@ -144,7 +135,6 @@ export function useRealTimeChat({ roomId, userId, userName, userRole }: UseRealT
         description: `${file.name} has been shared in the chat`,
       });
       
-      console.log('📧 File sent successfully');
     } catch (error: any) {
       console.error('📧 Failed to send file:', error);
       

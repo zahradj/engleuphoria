@@ -263,7 +263,6 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
       let mediaResult: MediaGenerationResult | null = null;
       try {
         mediaResult = await generateLessonMedia(mediaManifest, (p) => {
-          console.log(`[Media] ${p.step} (${p.current}/${p.total})`);
         });
         if (mediaResult.errors.length > 0) {
           console.warn('Media generation warnings:', mediaResult.errors);

@@ -12,7 +12,6 @@ export const ttsService = {
     
     // Check cache first
     if (audioCache.has(cacheKey)) {
-      console.log('🎵 Using cached audio');
       return audioCache.get(cacheKey)!;
     }
 

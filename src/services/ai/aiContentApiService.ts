@@ -19,7 +19,6 @@ export class AIContentApiService {
     const startTime = Date.now();
 
     try {
-      console.log('AIContentApiService: Calling Supabase function');
       
       const { data, error } = await supabase.functions.invoke('ai-content-generator', {
         body: request

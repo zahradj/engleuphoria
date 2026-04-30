@@ -47,7 +47,6 @@ export const useAudioRecording = () => {
       mediaRecorder.start(1000); // Capture data every second
       setRecordingState(prev => ({ ...prev, isRecording: true }));
       
-      console.log('Recording started');
     } catch (error) {
       console.error('Error starting recording:', error);
       setRecordingState(prev => ({ ...prev, isRecording: false }));
@@ -58,7 +57,6 @@ export const useAudioRecording = () => {
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && recordingState.isRecording) {
       mediaRecorderRef.current.stop();
-      console.log('Recording stopped');
       
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());

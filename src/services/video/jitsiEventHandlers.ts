@@ -16,7 +16,6 @@ export class JitsiEventHandlers {
     if (!api) return;
 
     api.addEventListener('participantJoined', (event: any) => {
-      console.log('Enhanced: Participant joined:', event);
       const participant: ParticipantData = {
         id: event.id,
         displayName: event.displayName || 'Unknown',
@@ -32,7 +31,6 @@ export class JitsiEventHandlers {
     });
 
     api.addEventListener('participantLeft', (event: any) => {
-      console.log('Enhanced: Participant left:', event);
       this.participants.delete(event.id);
       this.callbacks.onParticipantLeft?.(event.id);
     });
@@ -70,7 +68,6 @@ export class JitsiEventHandlers {
     });
 
     api.addEventListener('videoConferenceJoined', () => {
-      console.log('Enhanced: Video conference joined successfully');
       this.callbacks.onConnectionStatusChanged?.(true);
     });
   }

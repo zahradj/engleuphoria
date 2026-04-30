@@ -105,7 +105,6 @@ export const useEnhancedWebRTC = (roomId: string, userId: string) => {
 
     // Handle connection state changes
     peerConnection.onconnectionstatechange = () => {
-      console.log(`Connection state for ${participantId}:`, peerConnection.connectionState);
       
       if (peerConnection.connectionState === 'failed') {
         // Attempt to restart ICE

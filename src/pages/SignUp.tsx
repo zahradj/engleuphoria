@@ -17,9 +17,7 @@ const SignUp = () => {
     if (!loading && user && !hasInitiatedSignOut) {
       setHasInitiatedSignOut(true);
       setIsSigningOut(true);
-      console.log('Existing user detected on signup page, signing out...');
       supabase.auth.signOut().finally(() => {
-        console.log('Previous session cleared for new signup');
         setIsSigningOut(false);
       });
     }

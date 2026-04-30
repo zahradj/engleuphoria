@@ -54,13 +54,11 @@ export class RealTimeVideoService {
         }
       },
       (status) => {
-        console.log(`🔄 Reconnection status: ${status}`);
       }
     );
   }
 
   async initialize(): Promise<void> {
-    console.log('🎥 RealTimeVideoService initialized');
   }
 
   private updateParticipantsFromStreams(remoteStreams: Map<string, MediaStream>) {
@@ -85,7 +83,6 @@ export class RealTimeVideoService {
     if (!this.roomId || !this.userId || !this.localStream) {
       throw new Error('Room configuration not set. Call setRoomConfig first.');
     }
-    console.log(`🎥 Joining video room ${this.roomId} as ${this.userId}`);
     await this.webrtcService.joinRoom(this.roomId, this.userId, this.localStream);
     this.connected = true;
   }
@@ -97,7 +94,6 @@ export class RealTimeVideoService {
   }
 
   async leaveRoom(): Promise<void> {
-    console.log(`🚪 Leaving video room`);
     this.webrtcService.leaveRoom();
     this.participants.clear();
     this.notifyParticipantsChange();
@@ -208,22 +204,18 @@ export class RealTimeVideoService {
   }
 
   async startRecording(): Promise<boolean> {
-    console.log('Recording not implemented in WebRTC service');
     return false;
   }
 
   async stopRecording(): Promise<string | null> {
-    console.log('Recording not implemented in WebRTC service');
     return null;
   }
 
   async raiseHand(): Promise<boolean> {
-    console.log('Raise hand not implemented in WebRTC service');
     return false;
   }
 
   async startScreenShare(): Promise<boolean> {
-    console.log('Screen share not implemented in WebRTC service');
     return false;
   }
 

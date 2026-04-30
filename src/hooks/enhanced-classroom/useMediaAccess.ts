@@ -15,14 +15,12 @@ export function useMediaAccess() {
   // Initialize media access
   const initializeMedia = useCallback(async () => {
     if (isInitialized || isInitializing) {
-      console.log('🎤 Media already initialized or initializing');
       return localStream;
     }
     
     setIsInitializing(true);
     
     try {
-      console.log('🎤 Requesting media access...');
       
       // Try to get both video and audio first
       let stream: MediaStream;
@@ -99,7 +97,6 @@ export function useMediaAccess() {
       if (audioTrack) {
         audioTrack.enabled = !audioTrack.enabled;
         setIsMuted(!audioTrack.enabled);
-        console.log('🎤 Microphone toggled:', !audioTrack.enabled ? 'muted' : 'unmuted');
         return !audioTrack.enabled;
       }
     }
@@ -107,7 +104,6 @@ export function useMediaAccess() {
     // If no stream, toggle state only
     const newMutedState = !isMuted;
     setIsMuted(newMutedState);
-    console.log('🎤 Microphone state toggled (no stream):', newMutedState ? 'muted' : 'unmuted');
     return newMutedState;
   }, [localStream, isMuted]);
 
@@ -118,7 +114,6 @@ export function useMediaAccess() {
       if (videoTrack) {
         videoTrack.enabled = !videoTrack.enabled;
         setIsCameraOff(!videoTrack.enabled);
-        console.log('📹 Camera toggled:', !videoTrack.enabled ? 'off' : 'on');
         return !videoTrack.enabled;
       }
     }
@@ -126,7 +121,6 @@ export function useMediaAccess() {
     // If no stream, toggle state only
     const newCameraState = !isCameraOff;
     setIsCameraOff(newCameraState);
-    console.log('📹 Camera state toggled (no stream):', newCameraState ? 'off' : 'on');
     return newCameraState;
   }, [localStream, isCameraOff]);
 
@@ -137,7 +131,6 @@ export function useMediaAccess() {
       setLocalStream(null);
       setIsInitialized(false);
       hasShownToast.current = false;
-      console.log('🎤 Media stream stopped');
     }
   }, [localStream]);
 

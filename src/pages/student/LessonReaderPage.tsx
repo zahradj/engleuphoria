@@ -79,7 +79,6 @@ const LessonReaderPage: React.FC = () => {
         lessonId={lesson.id}
         studentId={user?.id}
         onComplete={(score) => {
-          console.log('Lesson completed with score:', score);
         }}
         onExit={() => navigate(-1)}
       />

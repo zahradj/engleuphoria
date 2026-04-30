@@ -95,7 +95,6 @@ class AssignmentService {
     };
 
     // In a real implementation, this would save to Supabase
-    console.log('Creating assignment:', assignment);
     return assignment;
   }
 
@@ -142,7 +141,6 @@ class AssignmentService {
       updatedAt: new Date().toISOString()
     };
 
-    console.log('Creating submission:', submission);
     return submission;
   }
 
@@ -209,7 +207,6 @@ class AssignmentService {
     feedback: string, 
     rubricScores?: RubricScore[]
   ): Promise<AssignmentSubmission> {
-    console.log('Grading submission:', { submissionId, grade, feedback, rubricScores });
     
     // Mock return
     return {
@@ -261,12 +258,10 @@ class AssignmentService {
   // File operations
   async uploadFile(file: File, category: 'assignment' | 'submission'): Promise<string> {
     // Mock file upload - in real implementation would upload to Supabase Storage
-    console.log('Uploading file:', file.name, 'Category:', category);
     return URL.createObjectURL(file);
   }
 
   async deleteFile(fileUrl: string): Promise<boolean> {
-    console.log('Deleting file:', fileUrl);
     return true;
   }
 }

@@ -95,9 +95,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
 
   React.useEffect(() => {
     if (mode === 'signup' && user) {
-      console.log('Existing user detected on signup page, signing out...');
       supabase.auth.signOut().then(() => {
-        console.log('Previous session cleared for new signup');
       });
     }
   }, [mode, user]);
@@ -213,7 +211,6 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
               .maybeSingle();
             
             if (!existingProfile) {
-              console.log('Trigger failed to create profile, creating manually...');
               await supabase.from('users').insert({
                 id: data.user.id,
                 email: formData.email,
@@ -225,7 +222,6 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                 user_id: data.user.id,
                 role: formData.role
               });
-              console.log('Manually created profile for:', formData.email);
             }
           }
 

@@ -50,7 +50,6 @@ export function EnhancedVideoPanel({
   useEffect(() => {
     if (videoRef.current && localStream) {
       videoRef.current.srcObject = localStream;
-      console.log('🎥 Video element updated with local stream');
     }
   }, [localStream]);
 

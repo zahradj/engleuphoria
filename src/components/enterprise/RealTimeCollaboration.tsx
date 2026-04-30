@@ -121,7 +121,6 @@ export const RealTimeCollaboration = ({ roomId }: { roomId: string }) => {
       }
       
       // In a real implementation, you would set up WebRTC connections here
-      console.log('Media initialized');
     } catch (error) {
       console.error('Error accessing media devices:', error);
       toast({
@@ -168,10 +167,8 @@ export const RealTimeCollaboration = ({ roomId }: { roomId: string }) => {
         setParticipants(participantData);
       })
       .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-        console.log('User joined:', key, newPresences);
       })
       .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-        console.log('User left:', key, leftPresences);
       })
       .subscribe();
 
@@ -249,7 +246,6 @@ export const RealTimeCollaboration = ({ roomId }: { roomId: string }) => {
       await updatePresence({ isPresenting: true });
       
       // In a real implementation, you would replace the video track in WebRTC connections
-      console.log('Screen sharing started');
       
       toast({
         title: "Screen Sharing",

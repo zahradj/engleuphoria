@@ -56,7 +56,6 @@ export const IronImageGenerator: React.FC<IronImageGeneratorProps> = ({
       // Append cohort-specific style modifier
       const fullPrompt = `${imagePrompt.trim()}, ${styleConfig.modifier}`;
       
-      console.log('Generating Iron image with prompt:', fullPrompt);
       
       const response = await supabase.functions.invoke('ai-image-generation', {
         body: {

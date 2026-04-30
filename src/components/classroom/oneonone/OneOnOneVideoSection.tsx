@@ -43,7 +43,6 @@ export function OneOnOneVideoSection({
     handleStartLesson();
     logEvent("Lesson started by Teacher.");
     if (!media.isConnected) {
-      console.log("🎥 Starting lesson and joining media...");
       media.join();
     }
   };

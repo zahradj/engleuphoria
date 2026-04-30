@@ -75,7 +75,6 @@ export function EnhancedUnifiedClassroomProvider({ children }: EnhancedUnifiedCl
     const validateLessonAccess = async () => {
       if (finalRoomId && currentUser.id && !lessonContext.isValidated) {
         try {
-          console.log('🔐 Validating lesson access...', { finalRoomId, userId: currentUser.id });
           
           const canAccess = await lessonService.canAccessLesson(finalRoomId, currentUser.id);
           
@@ -87,7 +86,6 @@ export function EnhancedUnifiedClassroomProvider({ children }: EnhancedUnifiedCl
               duration: 60
             });
             
-            console.log('✅ Lesson access validated');
           } else {
             setLessonContext({ isValidated: false });
             
@@ -97,7 +95,6 @@ export function EnhancedUnifiedClassroomProvider({ children }: EnhancedUnifiedCl
               variant: "destructive"
             });
             
-            console.log('❌ Lesson access denied');
           }
         } catch (error) {
           console.error('Error validating lesson access:', error);

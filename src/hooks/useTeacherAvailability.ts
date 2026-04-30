@@ -159,7 +159,6 @@ export const useTeacherAvailability = (teacherId: string, weekDays: Date[]) => {
           filter: `teacher_id=eq.${teacherId}`,
         },
         (payload) => {
-          console.log('Real-time update:', payload);
           fetchSlotsRef.current(); // Use ref to avoid subscription recreation
         }
       )

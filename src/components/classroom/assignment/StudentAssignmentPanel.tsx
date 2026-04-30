@@ -72,7 +72,6 @@ export function StudentAssignmentPanel({ studentName }: StudentAssignmentPanelPr
         onBack={handleBackToAssignments}
         onComplete={(score) => {
           // Handle completion
-          console.log("Assignment completed with score:", score);
           handleBackToAssignments();
         }}
       />

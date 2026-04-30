@@ -168,7 +168,6 @@ export function useMultiUnitBulkGenerator() {
     
     // Validate the generated lesson
     const validation = validateLesson(lessonData, 60);
-    console.log(`Lesson validation for "${lesson.lessonTitle}": score=${validation.score}%, isValid=${validation.isValid}`);
     
     if (!validation.isValid) {
       console.warn(`Lesson "${lesson.lessonTitle}" has validation issues:`, validation.errors.slice(0, 5));

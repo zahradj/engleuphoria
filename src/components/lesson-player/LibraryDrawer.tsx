@@ -89,7 +89,6 @@ export default function LibraryDrawer({ open, onClose, onSelectLesson }: Library
     // For dummy lessons, just log and close
     if (lessonId.startsWith('dummy-')) {
       const dummy = DUMMY_LESSONS.find(l => l.id === lessonId);
-      console.log('Lesson Selected:', lessonId, dummy?.title);
       onClose();
       return;
     }

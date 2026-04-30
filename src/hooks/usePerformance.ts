@@ -9,7 +9,6 @@ export const usePerformance = (componentName: string) => {
     renderCount.current += 1;
     
     if (process.env.NODE_ENV === 'development') {
-      console.log(`🏃 ${componentName} rendered ${renderCount.current} times`);
     }
   });
 

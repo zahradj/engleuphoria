@@ -294,7 +294,6 @@ export const HiringKanbanBoard: React.FC = () => {
           },
         });
       } catch (emailError) {
-        console.log('Email sending fallback:', emailError);
       }
 
       toast.success('Interview Scheduled & Invitation Sent! 📨', {

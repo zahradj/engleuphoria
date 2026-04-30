@@ -258,7 +258,6 @@ The EnglEuphoria Hiring Team`,
           },
         });
       } catch (emailError) {
-        console.log('Interview email could not be sent via transactional system:', emailError);
       }
 
       toast.success('Interview Scheduled & Invitation Sent! 📨', {
@@ -311,7 +310,6 @@ The EnglEuphoria Hiring Team`,
           },
         });
       } catch (emailError) {
-        console.log('Rejection email could not be sent:', emailError);
       }
 
       toast.success('Application Rejected', {

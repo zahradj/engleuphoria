@@ -50,7 +50,6 @@ export class WebRTCService {
     });
 
     this.peerConnection.ontrack = (event) => {
-      console.log('🎥 Received remote track:', event.track.kind);
       if (event.streams && event.streams[0]) {
         this.remoteStream = event.streams[0];
         this.callbacks.onRemoteStream?.(this.remoteStream);
@@ -59,7 +58,6 @@ export class WebRTCService {
 
     this.peerConnection.onconnectionstatechange = () => {
       const state = this.peerConnection?.connectionState;
-      console.log('🔗 Peer connection state:', state);
       logPeer(
         state === 'connected' ? 'info' : state === 'failed' ? 'error' : 'warn',
         `Peer connection state: ${state}`,
@@ -117,19 +115,16 @@ export class WebRTCService {
     }
 
     const channelName = `webrtc-${this.roomId}`;
-    console.log('📡 WebRTC: opening signaling channel', channelName);
     logWebRTC('info', 'Opening signaling channel', { channel: channelName });
 
     this.channel = supabase
       .channel(channelName)
       .on('broadcast', { event: 'offer' }, async ({ payload }: any) => {
         if (payload.from === this.userId) return;
-        console.log('📩 Received offer');
         await this.handleOffer(payload.offer);
       })
       .on('broadcast', { event: 'answer' }, async ({ payload }: any) => {
         if (payload.from === this.userId) return;
-        console.log('📩 Received answer');
         await this.handleAnswer(payload.answer);
       })
       .on('broadcast', { event: 'ice-candidate' }, async ({ payload }: any) => {
@@ -138,7 +133,6 @@ export class WebRTCService {
       });
 
     this.channel.subscribe((status: string, err?: Error) => {
-      console.log('📡 WebRTC signaling status:', status, err ? `error: ${err.message}` : '');
       if (err) {
         console.error('❌ Supabase Realtime Error (WebRTC):', err);
         logWebRTC('error', `Signaling error: ${err.message}`, {
@@ -193,7 +187,6 @@ export class WebRTCService {
     const offer = await this.peerConnection.createOffer();
     await this.peerConnection.setLocalDescription(offer);
     await this.sendSignal('offer', { offer });
-    console.log('📤 Sent offer');
   }
 
   private async handleOffer(offer: RTCSessionDescriptionInit) {
@@ -202,7 +195,6 @@ export class WebRTCService {
     const answer = await this.peerConnection.createAnswer();
     await this.peerConnection.setLocalDescription(answer);
     await this.sendSignal('answer', { answer });
-    console.log('📤 Sent answer');
   }
 
   private async handleAnswer(answer: RTCSessionDescriptionInit) {

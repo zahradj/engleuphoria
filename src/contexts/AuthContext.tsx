@@ -123,7 +123,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           await supabase.rpc('ensure_user_role', { p_user_id: authUser.id, p_role: role });
         } catch (e) { console.error('Auto-heal user_roles RPC failed:', e); }
         
-        console.log('🔧 Auto-healed missing user rows for:', authUser.email);
         return;
       }
 
@@ -306,7 +305,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Reduced from 10s to 6s — faster fallback with role recovery
     const timeout = setTimeout(async () => {
       if (signInRedirectRef.current) {
-        console.log('⏳ Safety timeout skipped - redirect in progress');
         return;
       }
       if (initialFetchDoneRef.current) {
@@ -387,7 +385,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               registeredAt: new Date().toISOString()
             }
           });
-          console.log('Admin notification sent successfully');
         } catch (notifyError) {
           console.warn('Failed to notify admins:', notifyError);
           // Don't fail signup if notification fails
@@ -448,7 +445,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           .maybeSingle();
         
         if (!existingUser) {
-          console.log('Missing user profile detected, auto-creating...');
           const fullName = data.user.user_metadata?.full_name || sanitizedEmail.split('@')[0] || 'User';
           const role = data.user.user_metadata?.role || 'student';
           
@@ -471,7 +467,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             console.error('Auto-heal user_roles RPC failed:', rpcErr);
           }
           
-          console.log('Auto-created missing user profile for:', sanitizedEmail);
         } else {
           // Auto-heal: check if user_roles rows exist (use .select, NOT .maybeSingle to avoid PGRST116)
           const { data: existingRoles } = await supabase
@@ -616,7 +611,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     try {
-      console.log('🚪 Sign out initiated');
       setError(null);
       
       if (!isConfigured) {
@@ -625,14 +619,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return { error: new Error('Supabase not configured') };
       }
 
-      console.log('🔄 Clearing user state...');
       // Clear redirect flag so next login can redirect again
       sessionStorage.removeItem('auth_redirect_done');
       // Clear user state immediately
       setUser(null);
       setSession(null);
       
-      console.log('📤 Calling Supabase signOut...');
       // Use 'local' scope so a missing/expired server session doesn't fail the flow.
       // The user is logged out client-side regardless.
       const { error } = await supabase.auth.signOut({ scope: 'local' });
@@ -646,16 +638,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           msg.includes('session') && (msg.includes('not found') || msg.includes('missing') || msg.includes('expired'));
 
         if (isAlreadyGone) {
-          console.log('ℹ️ Server session already gone — treating as logged out');
         } else {
           console.error('❌ Logout error:', error);
           // Don't block redirect — still proceed to home
         }
       } else {
-        console.log('✅ Supabase signOut successful');
       }
       
-      console.log('🏠 Redirecting to home page...');
       // Force redirect to home page using location.replace for complete reload
       window.location.replace('/');
       
@@ -664,7 +653,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.error('❌ Sign out error:', error);
       setError('Sign out failed');
       // Force redirect even on error
-      console.log('🏠 Force redirecting to home page after error...');
       window.location.replace('/');
       return { error };
     }

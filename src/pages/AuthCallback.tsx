@@ -81,7 +81,6 @@ const AuthCallback = () => {
             { onConflict: 'user_id' }
           );
           
-          console.log('🔧 Auth callback auto-healed student_profiles →', resolvedLevel);
         }
 
         // Step 3: Also ensure users row exists (belt + suspenders)
@@ -101,7 +100,6 @@ const AuthCallback = () => {
             full_name: fullName,
             role: session.user.user_metadata?.role || 'student',
           }, { onConflict: 'id' });
-          console.log('🔧 Auth callback auto-healed users row');
         }
 
         // Step 4: Direct hub-based redirect — bypass /dashboard smart router
@@ -125,7 +123,6 @@ const AuthCallback = () => {
               metadata: session.user.user_metadata,
               dbStudentLevel: freshProfile?.student_level,
             });
-            console.log(`📍 [AuthCallback] hub from ${source} →`, level, route);
             navigate(route, { replace: true });
           }
         }

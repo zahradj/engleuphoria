@@ -83,7 +83,6 @@ export const useOfflineStorage = <T>({ key, defaultValue, syncOnReconnect = true
 
     try {
       // Here you would implement actual sync logic with your backend
-      console.log('Syncing pending changes:', pendingSync);
       
       // Clear pending after successful sync
       setPendingSync([]);

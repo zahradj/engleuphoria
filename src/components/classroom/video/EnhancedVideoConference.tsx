@@ -40,7 +40,6 @@ export function EnhancedVideoConference({
     const initializeVideo = async () => {
       if (videoService && !isConnected) {
         try {
-          console.log('🎥 Auto-initializing video service...');
           await videoService.initialize();
           
           // Wait a bit for initialization

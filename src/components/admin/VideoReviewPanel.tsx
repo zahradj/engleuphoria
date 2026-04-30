@@ -80,7 +80,6 @@ export const VideoReviewPanel: React.FC<VideoReviewPanelProps> = ({
           }
         });
       } catch (emailErr) {
-        console.log('Email service not available, notification simulated');
       }
 
       toast.success('Video rejected & teacher notified', {
@@ -127,7 +126,6 @@ export const VideoReviewPanel: React.FC<VideoReviewPanelProps> = ({
           }
         });
       } catch (emailErr) {
-        console.log('Email service not available, notification simulated');
       }
 
       // Create admin notification

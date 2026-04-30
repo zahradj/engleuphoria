@@ -67,7 +67,6 @@ export function useEnhancedContentManager(
   };
 
   const handleEnhancedUpload = useCallback(async (uploadFiles: UploadFile[]) => {
-    console.log('📁 useEnhancedContentManager: handleEnhancedUpload called with files:', uploadFiles);
     
     const newItems: ContentItem[] = await Promise.all(uploadFiles.map(async (uploadFile) => {
       const fileType = getFileType(uploadFile.file);
@@ -103,10 +102,8 @@ export function useEnhancedContentManager(
       };
     }));
 
-    console.log('📚 Created content items:', newItems);
     setContentItems(prev => {
       const updated = [...prev, ...newItems];
-      console.log('📋 Updated content items:', updated);
       return updated;
     });
     

@@ -35,7 +35,6 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js')
         .then((registration) => {
-          console.log('SW registered: ', registration);
           if (registration.waiting) {
             registration.waiting.postMessage({ type: 'SKIP_WAITING' });
           }
@@ -55,7 +54,6 @@ if ('serviceWorker' in navigator) {
           setInterval(() => { registration.update?.(); }, 60 * 60 * 1000);
         })
         .catch((registrationError) => {
-          console.log('SW registration failed: ', registrationError);
         });
     });
   } else {

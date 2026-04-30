@@ -28,7 +28,6 @@ export function ScreenShareView({
   useEffect(() => {
     if (videoRef.current && screenStream) {
       videoRef.current.srcObject = screenStream;
-      console.log('🖥️ Screen share stream connected');
     }
   }, [screenStream]);
 

@@ -82,7 +82,6 @@ export const useTeacherHandlers = () => {
   };
 
   const handleStartScheduledClass = (className: string) => {
-    console.log(`Starting class: ${className}`);
     toast({
       title: "Starting Class",
       description: `Starting ${className}...`,

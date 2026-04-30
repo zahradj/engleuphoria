@@ -29,7 +29,6 @@ export const useWebRTCConnection = ({
     connectingRef.current = true;
     setIsConnecting(true);
     try {
-      console.log(`🔗 Connecting to WebRTC room ${roomId}`);
       realTimeVideoService.setRoomConfig(roomId, userId, localStream);
       await realTimeVideoService.joinRoom();
       connectedRef.current = true;
@@ -47,7 +46,6 @@ export const useWebRTCConnection = ({
   const disconnect = useCallback(async () => {
     if (!connectedRef.current) return;
 
-    console.log('🔌 Disconnecting from WebRTC');
     await realTimeVideoService.leaveRoom();
     connectedRef.current = false;
     setIsConnected(false);
@@ -57,7 +55,6 @@ export const useWebRTCConnection = ({
   // Set up participants listener — stable across renders
   useEffect(() => {
     realTimeVideoService.onParticipantsChange((newParticipants) => {
-      console.log(`👥 Participants updated: ${newParticipants.length}`);
       setParticipants(newParticipants);
     });
 

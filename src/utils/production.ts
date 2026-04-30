@@ -7,7 +7,6 @@ export const isProduction = import.meta.env.PROD;
 export const devLog = {
   log: (...args: any[]) => {
     if (isDevelopment) {
-      console.log(...args);
     }
   },
   warn: (...args: any[]) => {
@@ -33,7 +32,6 @@ export const measurePerformance = (name: string, fn: () => void) => {
     const start = performance.now();
     fn();
     const end = performance.now();
-    console.log(`⏱️ ${name}: ${(end - start).toFixed(2)}ms`);
   } else {
     fn();
   }

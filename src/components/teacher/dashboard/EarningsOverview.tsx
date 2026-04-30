@@ -29,7 +29,6 @@ export function EarningsOverview() {
           filter: `teacher_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('💰 New payment received:', payload);
           
           // Show real-time notification
           toast({
@@ -53,7 +52,6 @@ export function EarningsOverview() {
         },
         (payload) => {
           if (payload.new.status === 'completed' && payload.old.status !== 'completed') {
-            console.log('✅ Lesson completed:', payload);
             fetchTeacherEarnings();
           }
         }

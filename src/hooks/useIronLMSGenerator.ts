@@ -20,7 +20,6 @@ export function useIronLMSGenerator() {
     setGeneratedGame(null);
 
     try {
-      console.log('[IronLMS] Generating game:', request);
 
       const { data, error: fnError } = await supabase.functions.invoke('generate-iron-game', {
         body: request
@@ -41,7 +40,6 @@ export function useIronLMSGenerator() {
         throw new Error('Invalid game structure returned');
       }
 
-      console.log('[IronLMS] Generated game:', game);
       setGeneratedGame(game);
       toast.success(`${game.type.charAt(0).toUpperCase() + game.type.slice(1)} game generated!`);
       

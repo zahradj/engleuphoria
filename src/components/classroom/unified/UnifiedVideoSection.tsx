@@ -115,7 +115,6 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
 
   const handleStartSession = async () => {
     try {
-      console.log('🎬 Teacher starting session...');
       await startSession();
       // After starting session, initialize teacher's media
       if (!mediaState.isConnected) {
@@ -128,7 +127,6 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
 
   const handleJoinVideo = () => {
     try {
-      console.log(`🎥 ${isTeacher ? 'Teacher' : 'Student'} joining video...`);
       mediaState.joinOrInitialize();
     } catch (error) {
       console.error('Error joining video:', error);

@@ -51,14 +51,12 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onModeChange }) => {
   React.useEffect(() => {
     // Redirect authenticated users to their appropriate dashboard
     if (user && !hasRedirected) {
-      console.log('🔄 Redirecting user:', user.email, 'Role:', user.role);
       const dashboardMap: Record<string, string> = {
         student: '/student',
         teacher: '/teacher',
         admin: '/admin'
       };
       const targetPath = dashboardMap[user.role] || '/student';
-      console.log('🔄 Redirecting to:', targetPath);
       
       // Use React Router for navigation
       navigate(targetPath, { replace: true });

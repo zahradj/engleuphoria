@@ -42,13 +42,11 @@ export function EmbeddedGame({
   const [retryCount, setRetryCount] = useState(0);
 
   const handleIframeError = () => {
-    console.log("Iframe failed to load:", game.url);
     setLoadError(true);
     onError(game.id);
   };
 
   const handleIframeLoad = () => {
-    console.log("Iframe loaded successfully:", game.url);
     setLoadError(false);
     setLoadTimeout(false);
     setRetryCount(0);

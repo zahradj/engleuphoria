@@ -49,7 +49,6 @@ export const StudentBookingCalendar = ({
           filter: 'is_available=eq.true'
         },
         (payload) => {
-          console.log('📡 Availability changed:', payload);
           window.dispatchEvent(new CustomEvent('availability-changed'));
         }
       )

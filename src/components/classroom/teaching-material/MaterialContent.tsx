@@ -24,22 +24,18 @@ export function MaterialContent({
   
   const handleImageError = () => {
     setImageError(true);
-    console.log("Image error loading source:", source);
   };
 
   const handleVideoError = () => {
     setVideoError(true);
-    console.log("Video error loading source:", source);
   };
 
   const handleIframeError = () => {
     setIframeError(true);
-    console.log("iFrame error loading source:", source);
   };
 
   const handlePdfError = () => {
     setPdfError(true);
-    console.log("PDF error loading source:", source);
   };
 
   // Process source URL to ensure it's valid

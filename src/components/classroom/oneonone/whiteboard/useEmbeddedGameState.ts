@@ -7,12 +7,10 @@ export function useEmbeddedGameState(gameUrl: string) {
   const [retryCount, setRetryCount] = useState(0);
 
   const handleIframeError = () => {
-    console.log("Iframe failed to load:", gameUrl);
     setLoadError(true);
   };
 
   const handleIframeLoad = () => {
-    console.log("Iframe loaded successfully:", gameUrl);
     setLoadError(false);
     setLoadTimeout(false);
     setRetryCount(0);
@@ -28,7 +26,6 @@ export function useEmbeddedGameState(gameUrl: string) {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!loadError) {
-        console.log("Iframe load timeout for:", gameUrl);
         setLoadTimeout(true);
       }
     }, 15000);
