@@ -28,6 +28,7 @@ import { HubLogo } from '../HubLogo';
 import { usePackageValidation } from '@/hooks/usePackageValidation';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
+import { DashboardVoiceGym } from '../DashboardVoiceGym';
 
 interface HubDashboardProps {
   studentName?: string;
@@ -204,6 +205,9 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
             </motion.div>
             <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.28 }}>
               <AILessonAgent studentLevel="professional" studentInterests={['business', 'technology', 'leadership']} cefrLevel="B1" />
+            </motion.div>
+            <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.32 }}>
+              <DashboardVoiceGym hub="success" />
             </motion.div>
           </div>
 
