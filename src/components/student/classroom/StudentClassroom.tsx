@@ -479,6 +479,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
           roomId={roomId}
           userId={studentId}
           userName={studentName}
+          sessionId={session?.id}
           quizActive={quizActive}
           quizLocked={quizLocked}
           quizRevealAnswer={quizRevealAnswer}
@@ -492,6 +493,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
           drawingEnabled={drawingEnabled}
           iframeUnlocked={iframeUnlocked}
           onAddStroke={addStroke}
+          onSlideComplete={handleSlideCompletion}
         />
       </div>
 
