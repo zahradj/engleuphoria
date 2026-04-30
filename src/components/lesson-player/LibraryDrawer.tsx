@@ -80,12 +80,6 @@ export default function LibraryDrawer({ open, onClose, onSelectLesson }: Library
   }, [lessons, searchQuery]);
 
   const handleSelect = async (lessonId: string) => {
-    // For dummy lessons, just log and close
-    if (lessonId.startsWith('dummy-')) {
-      const dummy = DUMMY_LESSONS.find(l => l.id === lessonId);
-      onClose();
-      return;
-    }
 
     setLoadingLessonId(lessonId);
     const { data, error } = await supabase
