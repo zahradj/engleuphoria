@@ -249,7 +249,7 @@ export const CollaborativeWhiteboard = ({
 
     // Update cursor position for other users
     const cursorCh = cursorChannelRef.current;
-    cursorChannel.track({
+    cursorCh?.track({
       userId,
       userName,
       x,
