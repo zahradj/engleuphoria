@@ -672,16 +672,14 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
         slideFormat="raw"
         onSelectLesson={async (selectedSlides, title) => {
           setIsLibraryOpen(false);
-          // Store raw slides for premium DynamicSlideRenderer
-          setRawSlides(selectedSlides);
-          // Build minimal sync-safe slides for the real-time channel
-          const syncSlides = selectedSlides.map((s: any, i: number) => ({
+          const liveSlides = selectedSlides.map((s: any, i: number) => ({
+            ...s,
             id: String(s?.id ?? i + 1),
             title: String(s?.title || `Slide ${i + 1}`),
             imageUrl: s?.imageUrl || s?.image_url || s?.generated_image_url || undefined,
-            content: typeof s?.content === 'string' ? s.content : undefined,
           }));
-          await updateSharedDisplay({ lessonSlides: syncSlides, lessonTitle: title, embeddedUrl: null });
+          setRawSlides(liveSlides);
+          await updateSharedDisplay({ lessonSlides: liveSlides, lessonTitle: title, embeddedUrl: null });
           await updateSlide(0);
           await setStageMode('slide');
           await updateCanvasTab('slides');
