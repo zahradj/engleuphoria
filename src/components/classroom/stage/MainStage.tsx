@@ -9,9 +9,9 @@ import { Layout, Globe, PenTool, Wifi, Gamepad2 } from 'lucide-react';
 
 interface Slide {
   id: string;
-  title: string;
+  title?: string;
   imageUrl?: string;
-  content?: React.ReactNode;
+  content?: any;
 }
 
 interface MainStageProps {
