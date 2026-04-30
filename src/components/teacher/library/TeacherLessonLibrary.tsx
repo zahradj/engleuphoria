@@ -38,15 +38,14 @@ export const TeacherLessonLibrary: React.FC = () => {
   const [assignLesson, setAssignLesson] = useState<AiLesson | null>(null);
 
   const { data: lessons, isLoading } = useQuery({
-    queryKey: ['teacher-lessons', user?.id],
+    queryKey: ['teacher-lessons-all'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('ai_lessons')
         .select('*')
-        .eq('user_id', user!.id)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data as AiLesson[];
+      return (data && data.length > 0 ? data : null) as AiLesson[] | null;
     },
     enabled: !!user?.id,
   });
