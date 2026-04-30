@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { StageMode, WhiteboardStroke, SmartWorksheet } from '@/services/whiteboardService';
+import type { HubType } from '@/components/admin/lesson-builder/ai-wizard/types';
 import { StageContent } from './StageContent';
 import { TransparentCanvas } from './TransparentCanvas';
 import { useCollapseWatcher } from '@/hooks/useCollapseWatcher';
