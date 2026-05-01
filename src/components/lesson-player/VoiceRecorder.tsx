@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useBrowserSpeechRecognition } from '@/hooks/useBrowserSpeechRecognition';
 
 export interface SpeechEvaluation {
   overallScore: number;
@@ -44,6 +45,8 @@ export const VoiceRecorder = ({
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<number | null>(null);
 
+  const speech = useBrowserSpeechRecognition({ language: 'en-US', continuous: true });
+
   const blobToBase64 = (blob: Blob): Promise<string> =>
     new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -60,12 +63,13 @@ export const VoiceRecorder = ({
       recorderRef.current.stop();
     }
     streamRef.current?.getTracks().forEach((t) => t.stop());
+    speech.stop();
     if (timerRef.current) {
       window.clearInterval(timerRef.current);
       timerRef.current = null;
     }
     setIsRecording(false);
-  }, []);
+  }, [speech]);
 
   const evaluate = async (blob: Blob) => {
     setIsProcessing(true);
@@ -82,7 +86,6 @@ export const VoiceRecorder = ({
         },
       });
       if (error) {
-        // Surface friendly INSUFFICIENT_VOICE_ENERGY message when applicable
         const ctx: any = (error as any)?.context;
         let msg = (error as Error)?.message || 'Could not evaluate speech.';
         try {
@@ -118,6 +121,7 @@ export const VoiceRecorder = ({
   const startRecording = async () => {
     setResult(null);
     setElapsed(0);
+    speech.reset();
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
@@ -137,6 +141,7 @@ export const VoiceRecorder = ({
       };
 
       mr.start();
+      speech.start();
       setIsRecording(true);
 
       timerRef.current = window.setInterval(() => {
@@ -157,6 +162,7 @@ export const VoiceRecorder = ({
   const reset = () => {
     setResult(null);
     setElapsed(0);
+    speech.reset();
   };
 
   const tierStyles =
@@ -204,7 +210,21 @@ export const VoiceRecorder = ({
             </div>
           )}
 
-          {!isRecording && !isProcessing && (
+          {/* Live transcript while recording */}
+          {(isRecording || (speech.transcript && !isProcessing)) && !result && (
+            <div className="w-full max-w-md rounded-lg border border-border/50 bg-muted/30 p-3 min-h-[44px]">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">
+                🎧 Live Transcript
+              </p>
+              <p className="text-sm">
+                {speech.transcript || (
+                  <span className="text-muted-foreground/50 italic">Listening…</span>
+                )}
+              </p>
+            </div>
+          )}
+
+          {!isRecording && !isProcessing && !speech.transcript && (
             <p className="text-xs text-muted-foreground">Tap the mic and speak clearly</p>
           )}
         </div>
