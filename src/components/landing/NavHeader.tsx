@@ -132,14 +132,14 @@ export function NavHeader() {
                 <Button variant="ghost" className={`text-sm font-medium ${
                   isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
                 }`}>
-                  Log In
+                  {t('lp.nav.logIn')}
                 </Button>
               </Link>
               <Link to="/student-signup">
                 <Button
                   className={`text-white font-semibold px-6 shadow-lg rounded-xl transition-all duration-700 bg-gradient-to-r ${theme.gradient} ${theme.shadow}`}
                 >
-                  Get Started Free
+                  {t('lp.nav.getStarted')}
                 </Button>
               </Link>
             </div>
