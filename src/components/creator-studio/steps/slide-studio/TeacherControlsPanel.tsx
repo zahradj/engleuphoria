@@ -416,9 +416,9 @@ export const TeacherControlsPanel: React.FC<Props> = ({ slide, onChange }) => {
   };
 
   return (
-    <aside className="w-[360px] shrink-0 h-full overflow-y-auto bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800">
+    <div className="w-full h-full bg-white dark:bg-slate-900">
       {/* Phase chip */}
-      <div className="px-5 pt-5 pb-3 border-b border-slate-200/70 dark:border-slate-800/70">
+      <div className="px-4 pt-4 pb-2.5 border-b border-slate-200/70 dark:border-slate-800/70">
         <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">
           Phase
         </div>
