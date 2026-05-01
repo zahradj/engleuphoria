@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import { CreatorProvider, useCreator } from './CreatorContext';
 import { StudioSidebar } from './StudioSidebar';
 import { StudioHeader } from './StudioHeader';
@@ -8,7 +9,15 @@ import { SlideStudio } from './steps/SlideStudio';
 import { LibraryManager } from './steps/LibraryManager';
 
 const StudioBody: React.FC = () => {
-  const { currentStep } = useCreator();
+  const { currentStep, setCurrentStep } = useCreator();
+  const location = useLocation();
+
+  React.useEffect(() => {
+    if (location.pathname.endsWith('/library') && currentStep !== 'library') {
+      setCurrentStep('library');
+    }
+  }, [currentStep, location.pathname, setCurrentStep]);
+
   const Step =
     currentStep === 'blueprint' ? BlueprintEngine
     : currentStep === 'slide-builder' ? SlideStudio
