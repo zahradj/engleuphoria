@@ -178,7 +178,7 @@ export function NavHeader() {
             >
               <div className="flex flex-col h-full p-6">
                 <div className="flex items-center justify-between mb-10">
-                  <span className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Menu</span>
+                  <span className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{t('lp.nav.menu')}</span>
                   <button
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`p-2 rounded-xl ${isDark ? 'text-white/60 hover:bg-white/5' : 'text-slate-400 hover:bg-slate-50'}`}
