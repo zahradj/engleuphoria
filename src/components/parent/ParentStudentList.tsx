@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,16 +25,18 @@ interface ParentStudentListProps {
 }
 
 export function ParentStudentList({ students, onSelectStudent }: ParentStudentListProps) {
+  const { t } = useTranslation();
+
   if (students.length === 0) {
     return (
       <Card className="p-8 text-center">
         <User className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-        <h3 className="text-lg font-semibold mb-2">No Students Linked</h3>
+        <h3 className="text-lg font-semibold mb-2">{t('pd.students.empty.title')}</h3>
         <p className="text-muted-foreground mb-4">
-          You don't have any students linked to your account yet.
+          {t('pd.students.empty.body')}
         </p>
         <p className="text-sm text-muted-foreground">
-          Contact support to link your children's accounts.
+          {t('pd.students.empty.cta')}
         </p>
       </Card>
     );
@@ -53,7 +56,7 @@ export function ParentStudentList({ students, onSelectStudent }: ParentStudentLi
               </p>
             </div>
             {relationship.is_primary_contact && (
-              <Badge variant="secondary">Primary</Badge>
+              <Badge variant="secondary">{t('pd.students.primary')}</Badge>
             )}
           </div>
 
@@ -66,13 +69,13 @@ export function ParentStudentList({ students, onSelectStudent }: ParentStudentLi
 
             <div className="flex flex-wrap gap-2 text-xs">
               {relationship.can_view_progress && (
-                <Badge variant="secondary">View Progress</Badge>
+                <Badge variant="secondary">{t('pd.students.viewProgress')}</Badge>
               )}
               {relationship.can_book_lessons && (
-                <Badge variant="secondary">Book Lessons</Badge>
+                <Badge variant="secondary">{t('pd.students.bookLessons')}</Badge>
               )}
               {relationship.can_communicate_teachers && (
-                <Badge variant="secondary">Message Teachers</Badge>
+                <Badge variant="secondary">{t('pd.students.messageTeachers')}</Badge>
               )}
             </div>
           </div>
@@ -82,8 +85,8 @@ export function ParentStudentList({ students, onSelectStudent }: ParentStudentLi
             className="w-full"
             variant="outline"
           >
-            <Eye className="h-4 w-4 mr-2" />
-            View Progress
+            <Eye className="h-4 w-4 me-2" />
+            {t('pd.students.viewProgressBtn')}
           </Button>
         </Card>
       ))}
