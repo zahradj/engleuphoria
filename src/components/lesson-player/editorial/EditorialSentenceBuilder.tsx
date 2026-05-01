@@ -39,10 +39,26 @@ export default function EditorialSentenceBuilder({ slide, onCorrect, onIncorrect
     setRemaining(prev => [...prev, word]);
   };
 
+  const normalize = (str: string) =>
+    str.toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_`~()?"']/g, '').replace(/\s{2,}/g, ' ').trim();
+
   const handleCheck = useCallback(() => {
-    const builtSentence = placed.join(' ').trim().toLowerCase().replace(/[.!?,;:]+$/g, '');
-    const target = targetSentence.trim().toLowerCase().replace(/[.!?,;:]+$/g, '');
-    const correct = builtSentence === target;
+    const normalizedPlaced = placed.map(w => normalize(w));
+    const normalizedTarget = normalize(targetSentence).split(' ').filter(Boolean);
+
+    // Check if the core word order matches (allow extra trailing filler words)
+    let correct = true;
+    if (normalizedPlaced.length < normalizedTarget.length) {
+      correct = false;
+    } else {
+      for (let i = 0; i < normalizedTarget.length; i++) {
+        if (normalizedPlaced[i] !== normalizedTarget[i]) {
+          correct = false;
+          break;
+        }
+      }
+    }
+
     setIsCorrect(correct);
     setChecked(true);
     if (correct) onCorrect?.();
