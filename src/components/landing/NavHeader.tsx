@@ -222,7 +222,7 @@ export function NavHeader() {
                   >
                     <span className="flex items-center gap-2">
                       <GraduationCap className="w-4 h-4" />
-                      Teach With Us
+                      {t('lp.nav.teachWithUs')}
                     </span>
                     <ChevronRight className="w-4 h-4 opacity-40" />
                   </Link>
