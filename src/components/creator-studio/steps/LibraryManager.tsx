@@ -149,7 +149,9 @@ export const LibraryManager: React.FC = () => {
         'id, title, description, target_system, difficulty_level, is_published, updated_at, content, ai_metadata, level_id, unit_id, sequence_order, skills_focus',
       )
       .eq('created_by', uid)
-      .order('updated_at', { ascending: false })
+      .order('target_system', { ascending: true })
+      .order('difficulty_level', { ascending: true })
+      .order('sequence_order', { ascending: true })
       .limit(500);
 
     if (lessonsRes.error) {
