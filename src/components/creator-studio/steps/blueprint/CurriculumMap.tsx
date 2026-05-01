@@ -38,21 +38,55 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
       return;
     }
 
-    const lessonsToInsert = data.units.flatMap((unit) =>
-      unit.lessons.map((lesson) => ({
+    // Normalize hub → target_system used by Master Library
+    const hubToTargetSystem = (hub: string): string => {
+      const h = (hub || '').toLowerCase();
+      if (h === 'playground' || h === 'kids') return 'kids';
+      if (h === 'academy' || h === 'teen' || h === 'teens') return 'teen';
+      if (h === 'success' || h === 'adult' || h === 'adults' || h === 'professional') return 'adult';
+      return h || 'teen';
+    };
+
+    const { data: userData, error: userErr } = await supabase.auth.getUser();
+    if (userErr || !userData.user) {
+      toast.error('You must be signed in to save the blueprint.');
+      return;
+    }
+    const uid = userData.user.id;
+    const targetSystem = hubToTargetSystem(data.hub);
+    const difficulty = (data.cefr_level || 'A1').toUpperCase();
+
+    const lessonsToInsert = data.units.flatMap((unit, uIdx) =>
+      unit.lessons.map((lesson, lIdx) => ({
         title: lesson.title,
-        unit_title: unit.unit_title,
-        level: data.cefr_level,
-        hub: data.hub,
-        status: 'draft',
+        description: lesson.objective || lesson.learning_objective || null,
+        target_system: targetSystem,
+        difficulty_level: difficulty,
+        is_published: false,
+        created_by: uid,
+        sequence_order: lIdx + 1,
+        skills_focus: lesson.skill_focus ? [lesson.skill_focus] : [],
+        content: { slides: [], homework_missions: [] },
+        ai_metadata: {
+          blueprint_ref: lesson,
+          unit_title: unit.unit_title,
+          unit_number: unit.unit_number ?? uIdx + 1,
+          curriculum_title: data.curriculum_title,
+          theme_hint: data.theme_hint ?? null,
+          hub: data.hub,
+        },
       })),
     );
 
     try {
-      const { error } = await supabase.from('lessons').insert(lessonsToInsert as any);
+      const { data: inserted, error } = await supabase
+        .from('curriculum_lessons')
+        .insert(lessonsToInsert as any)
+        .select('id, title');
+      console.log('Library Save Result:', { inserted, error, count: lessonsToInsert.length });
       if (error) throw error;
 
-      toast.success('Blueprint saved successfully!');
+      toast.success(`Blueprint saved! ${inserted?.length ?? lessonsToInsert.length} draft lessons added to your library.`);
       setCurrentStep('library');
       navigate('/content-creator/library');
     } catch (err: any) {
