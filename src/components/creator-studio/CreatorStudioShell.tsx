@@ -13,9 +13,12 @@ const StudioBody: React.FC = () => {
   const location = useLocation();
 
   React.useEffect(() => {
-    if (location.pathname.endsWith('/library') && currentStep !== 'library') {
-      setCurrentStep('library');
-    }
+    const path = location.pathname;
+    let next: typeof currentStep | null = null;
+    if (path.endsWith('/library')) next = 'library';
+    else if (path.endsWith('/blueprint')) next = 'blueprint';
+    else if (path.endsWith('/slide-builder') || path.endsWith('/slides')) next = 'slide-builder';
+    if (next && next !== currentStep) setCurrentStep(next);
   }, [currentStep, location.pathname, setCurrentStep]);
 
   const Step =
