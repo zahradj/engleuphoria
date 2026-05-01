@@ -230,23 +230,23 @@ export function NavHeader() {
 
                 <div className={`space-y-3 pt-6 border-t ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
                   <div className="flex items-center justify-between px-4 mb-3">
-                    <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Language</span>
+                    <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{t('lp.nav.language')}</span>
                     <LanguageSwitcher />
                   </div>
                   <div className="flex items-center justify-between px-4 mb-3">
-                    <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Theme</span>
+                    <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{t('lp.nav.theme')}</span>
                     <ThemeModeToggle className={isDark ? 'text-white/70 hover:text-white' : 'text-slate-500 hover:text-slate-900'} />
                   </div>
                   <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="block">
                     <Button variant="outline" className={`w-full ${
                       isDark ? 'border-white/20 text-white' : 'border-slate-200 text-slate-700'
                     }`}>
-                      Log In
+                      {t('lp.nav.logIn')}
                     </Button>
                   </Link>
                   <Link to="/student-signup" onClick={() => setIsMobileMenuOpen(false)} className="block">
                     <Button className={`w-full text-white font-semibold transition-all duration-700 bg-gradient-to-r ${theme.gradient}`}>
-                      Get Started Free
+                      {t('lp.nav.getStarted')}
                     </Button>
                   </Link>
                 </div>
