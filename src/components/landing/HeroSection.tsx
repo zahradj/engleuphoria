@@ -215,9 +215,9 @@ export function HeroSection() {
               transition={{ duration: 0.7, delay: 0.5 }}
             >
               {[
-                { ref: students.ref, count: students.count, suffix: '+', label: 'Active Students', icon: Users },
-                { ref: countries.ref, count: countries.count, suffix: '+', label: 'Countries', icon: Globe },
-                { ref: lessons.ref, count: lessons.count, suffix: '+', label: 'Lessons Delivered', icon: Award },
+                { ref: students.ref, count: students.count, suffix: '+', label: t('lp.hero.statsStudents'), icon: Users },
+                { ref: countries.ref, count: countries.count, suffix: '+', label: t('lp.hero.statsCountries'), icon: Globe },
+                { ref: lessons.ref, count: lessons.count, suffix: '+', label: t('lp.hero.statsLessons'), icon: Award },
               ].map((stat, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-700 ${
