@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Save, Rocket, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { useCreator } from './CreatorContext';
 import { toast } from 'sonner';
 import { persistLesson } from './persistLesson';
+import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
 
 export const StudioHeader: React.FC = () => {
   const {
@@ -15,6 +17,7 @@ export const StudioHeader: React.FC = () => {
     setCurrentStep,
     setDirty,
   } = useCreator();
+  const { t } = useTranslation();
   const [savingDraft, setSavingDraft] = useState(false);
   const [publishing, setPublishing] = useState(false);
 
@@ -64,23 +67,24 @@ export const StudioHeader: React.FC = () => {
     setCurrentStep('library');
   };
 
-  const publishLabel = inSlideStudio ? 'Save & Publish to Library' : 'Publish';
+  const publishLabel = inSlideStudio ? t('nav.publish_to_library') : t('nav.publish');
 
   return (
     <header className="h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4 px-3 sm:px-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0">
       <div className="min-w-0">
         <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-          {currentStep === 'blueprint' ? 'Blueprint Engine'
-            : currentStep === 'slide-builder' ? 'Slide Studio'
-            : 'Master Library'}
+          {currentStep === 'blueprint' ? t('nav.blueprint')
+            : currentStep === 'slide-builder' ? t('nav.slide_studio')
+            : t('nav.master_library')}
         </div>
         <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50 truncate">
           {workingTitle}
-          {isDirty && <span className="ml-2 text-xs font-medium text-amber-500">• Unsaved</span>}
+          {isDirty && <span className="ms-2 text-xs font-medium text-amber-500">• {t('nav.unsaved')}</span>}
         </h1>
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
+        <LanguageSwitcher variant="ghost" size="sm" align="end" compact className="hidden md:inline-flex" />
         <Button
           variant="outline"
           size="sm"
@@ -89,7 +93,7 @@ export const StudioHeader: React.FC = () => {
           className="gap-1.5"
         >
           {savingDraft ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-          <span className="hidden sm:inline">Save Draft</span>
+          <span className="hidden sm:inline">{savingDraft ? t('nav.saving') : t('nav.save_draft')}</span>
         </Button>
         <Button
           size="sm"
@@ -98,7 +102,7 @@ export const StudioHeader: React.FC = () => {
           className="gap-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white border-0 shadow-md"
         >
           {publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Rocket className="h-4 w-4" />}
-          <span className="hidden sm:inline">💾 {publishLabel}</span>
+          <span className="hidden sm:inline">💾 {publishing ? t('nav.publishing') : publishLabel}</span>
         </Button>
       </div>
     </header>
