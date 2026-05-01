@@ -124,10 +124,27 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
     }
   };
 
-  const forceSaveToLibrary = () =>
-    data
-      ? saveBlueprintToLibrary(data, { navigateAfter: true })
-      : (toast.error('No curriculum lessons to save.'), Promise.resolve({ ok: false, count: 0 }));
+  const forceSaveToLibrary = async () => {
+    if (isSaving || hasSaved) return;
+    if (!data) {
+      toast.error('No curriculum lessons to save.');
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const res = await saveBlueprintToLibrary(data, { navigateAfter: false });
+      if (res.ok) {
+        setHasSaved(true);
+        toast.success(`✅ Saved ${res.count} lessons. Opening library…`);
+        setTimeout(() => navigate('/content-creator/library'), 1000);
+        // Intentionally keep isSaving=true so button stays locked during redirect
+      } else {
+        setIsSaving(false);
+      }
+    } catch (err) {
+      setIsSaving(false);
+    }
+  };
 
   // ── Auto-save: as soon as a fresh blueprint arrives, persist all
   // lessons to the Master Library as drafts (no button click required).
