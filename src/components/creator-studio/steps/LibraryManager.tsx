@@ -149,7 +149,9 @@ export const LibraryManager: React.FC = () => {
         'id, title, description, target_system, difficulty_level, is_published, updated_at, content, ai_metadata, level_id, unit_id, sequence_order, skills_focus',
       )
       .eq('created_by', uid)
-      .order('updated_at', { ascending: false })
+      .order('target_system', { ascending: true })
+      .order('difficulty_level', { ascending: true })
+      .order('sequence_order', { ascending: true })
       .limit(500);
 
     if (lessonsRes.error) {
@@ -272,12 +274,24 @@ export const LibraryManager: React.FC = () => {
 
       for (const lesson of lessons) {
         const u = lesson.unit_id ? unitById.get(lesson.unit_id) : undefined;
-        const uKey = u ? u.id : UNCAT_KEY;
+        const metaUnitNumber: number | null =
+          typeof lesson.ai_metadata?.unit_number === 'number' ? lesson.ai_metadata.unit_number : null;
+        const metaUnitTitle: string | null =
+          typeof lesson.ai_metadata?.unit_title === 'string' ? lesson.ai_metadata.unit_title : null;
+
+        const resolvedUnitNumber = u?.unit_number ?? metaUnitNumber;
+        const resolvedUnitTitle = u?.title ?? metaUnitTitle ?? 'Uncategorized';
+        const uKey = u
+          ? u.id
+          : metaUnitNumber != null
+          ? `meta::${metaUnitNumber}::${metaUnitTitle ?? ''}`
+          : UNCAT_KEY;
+
         if (!unitMap.has(uKey)) {
           unitMap.set(uKey, {
             unit_id: u?.id ?? null,
-            unit_number: u?.unit_number ?? null,
-            unit_title: u?.title ?? 'Uncategorized',
+            unit_number: resolvedUnitNumber,
+            unit_title: resolvedUnitTitle,
             lessons: [],
           });
         }
@@ -553,7 +567,12 @@ export const LibraryManager: React.FC = () => {
                           const isDraft = !row.is_published;
                           const isBusy = busyId === row.id;
                           const isChecked = selectedIds.has(row.id);
-                          const lessonNumber = row.sequence_order;
+                          const lessonNumber: number | null =
+                            typeof row.ai_metadata?.lesson_number === 'number'
+                              ? row.ai_metadata.lesson_number
+                              : row.sequence_order != null && row.sequence_order > 100
+                              ? row.sequence_order % 100
+                              : row.sequence_order;
                           const cardGradient = getLevelGradient(row.target_system, difficultyToCefr(row.difficulty_level));
 
                           return (
@@ -577,6 +596,12 @@ export const LibraryManager: React.FC = () => {
                                 ) : (
                                   <BookOpen className={cn('h-8 w-8 opacity-20', cardGradient.text)} />
                                 )}
+                                {/* Prominent L# badge */}
+                                {lessonNumber != null && (
+                                  <div className="absolute top-2 right-2 h-8 min-w-[2rem] px-2 rounded-lg bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm shadow-sm flex items-center justify-center font-black text-xs text-slate-900 dark:text-slate-50 tracking-tight">
+                                    L{lessonNumber}
+                                  </div>
+                                )}
                               </div>
 
                               {/* Selection checkbox */}
@@ -589,14 +614,14 @@ export const LibraryManager: React.FC = () => {
                                 />
                               </div>
 
-                              {/* Hover action toolbar */}
-                              <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              {/* Hover action toolbar — bottom-right of thumbnail to avoid L# badge */}
+                              <div className="absolute top-[68px] right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                                 <Button
                                   size="sm"
                                   variant="ghost"
                                   onClick={() => handleDelete(row)}
                                   disabled={isBusy}
-                                  className="h-7 w-7 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 bg-white/80 dark:bg-slate-900/80 rounded-full"
+                                  className="h-7 w-7 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 bg-white/90 dark:bg-slate-900/90 rounded-full shadow"
                                   aria-label="Delete lesson"
                                   title="Delete lesson"
                                 >
