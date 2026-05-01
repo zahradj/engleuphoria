@@ -1,3 +1,13 @@
+// ============================================================================
+// L1/L2 PEDAGOGICAL RULE — DO NOT TRANSLATE LESSON CONTENT
+// ----------------------------------------------------------------------------
+// The student's UI chrome (sidebar, headers, buttons) is localized via i18n,
+// but ALL curriculum content rendered here MUST stay in English. Never wrap
+// `slide.target_phrase`, `slide.questions`, vocabulary, example sentences,
+// `lesson.title`, or `lesson.description` in `t()`. They come from the
+// `curriculum_lessons` / lesson_slides tables and must render verbatim so
+// students get authentic English (L2) input regardless of their UI language (L1).
+// ============================================================================
 import React, { Component, ReactNode } from 'react';
 import SpeakingPractice from './activities/SpeakingPractice';
 import { motion, Variants } from 'framer-motion';

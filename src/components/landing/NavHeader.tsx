@@ -7,6 +7,7 @@ import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
 import { ThemeModeToggle } from '@/components/ui/ThemeModeToggle';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { useHeroTheme } from '@/contexts/HeroThemeContext';
+import { useTranslation } from 'react-i18next';
 import logoBlack from '@/assets/logo-black.png';
 import logoWhite from '@/assets/logo-white.png';
 
@@ -16,6 +17,7 @@ export function NavHeader() {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
   const { theme } = useHeroTheme();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -34,12 +36,12 @@ export function NavHeader() {
   };
 
   const navItems = [
-    { label: 'How It Works', id: 'how-it-works' },
-    { label: 'Pricing', id: 'pricing' },
+    { label: t('lp.nav.howItWorks'), id: 'how-it-works' },
+    { label: t('lp.nav.pricing'), id: 'pricing' },
   ];
 
   const navLinks = [
-    { label: 'About Us', to: '/about' },
+    { label: t('lp.nav.aboutUs'), to: '/about' },
   ];
 
   return (
@@ -113,7 +115,7 @@ export function NavHeader() {
                 }`}
               >
                 <GraduationCap className="w-4 h-4" />
-                Teach With Us
+                {t('lp.nav.teachWithUs')}
               </Link>
             </nav>
 
@@ -130,14 +132,14 @@ export function NavHeader() {
                 <Button variant="ghost" className={`text-sm font-medium ${
                   isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
                 }`}>
-                  Log In
+                  {t('lp.nav.logIn')}
                 </Button>
               </Link>
               <Link to="/student-signup">
                 <Button
                   className={`text-white font-semibold px-6 shadow-lg rounded-xl transition-all duration-700 bg-gradient-to-r ${theme.gradient} ${theme.shadow}`}
                 >
-                  Get Started Free
+                  {t('lp.nav.getStarted')}
                 </Button>
               </Link>
             </div>
@@ -176,7 +178,7 @@ export function NavHeader() {
             >
               <div className="flex flex-col h-full p-6">
                 <div className="flex items-center justify-between mb-10">
-                  <span className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Menu</span>
+                  <span className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{t('lp.nav.menu')}</span>
                   <button
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`p-2 rounded-xl ${isDark ? 'text-white/60 hover:bg-white/5' : 'text-slate-400 hover:bg-slate-50'}`}
@@ -220,7 +222,7 @@ export function NavHeader() {
                   >
                     <span className="flex items-center gap-2">
                       <GraduationCap className="w-4 h-4" />
-                      Teach With Us
+                      {t('lp.nav.teachWithUs')}
                     </span>
                     <ChevronRight className="w-4 h-4 opacity-40" />
                   </Link>
@@ -228,23 +230,23 @@ export function NavHeader() {
 
                 <div className={`space-y-3 pt-6 border-t ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
                   <div className="flex items-center justify-between px-4 mb-3">
-                    <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Language</span>
+                    <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{t('lp.nav.language')}</span>
                     <LanguageSwitcher />
                   </div>
                   <div className="flex items-center justify-between px-4 mb-3">
-                    <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Theme</span>
+                    <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{t('lp.nav.theme')}</span>
                     <ThemeModeToggle className={isDark ? 'text-white/70 hover:text-white' : 'text-slate-500 hover:text-slate-900'} />
                   </div>
                   <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="block">
                     <Button variant="outline" className={`w-full ${
                       isDark ? 'border-white/20 text-white' : 'border-slate-200 text-slate-700'
                     }`}>
-                      Log In
+                      {t('lp.nav.logIn')}
                     </Button>
                   </Link>
                   <Link to="/student-signup" onClick={() => setIsMobileMenuOpen(false)} className="block">
                     <Button className={`w-full text-white font-semibold transition-all duration-700 bg-gradient-to-r ${theme.gradient}`}>
-                      Get Started Free
+                      {t('lp.nav.getStarted')}
                     </Button>
                   </Link>
                 </div>

@@ -4,6 +4,7 @@ import { Star, Play, ArrowRight, Globe, Users, Award, CheckCircle2 } from 'lucid
 import { useRef, useEffect, useState } from 'react';
 import { useInView } from 'framer-motion';
 import { useThemeMode } from '@/hooks/useThemeMode';
+import { useTranslation } from 'react-i18next';
 import heroKid from '@/assets/hero-kid.png';
 import heroTeen from '@/assets/hero-teen.png';
 import heroAdult from '@/assets/hero-adult.png';
@@ -95,6 +96,7 @@ export function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const { activeIndex: activeImage, setActiveIndex: setActiveImage } = useHeroTheme();
   const theme = GROUP_THEMES[activeImage];
+  const { t } = useTranslation();
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -147,7 +149,7 @@ export function HeroSection() {
               }`}
             >
               <CheckCircle2 className="w-4 h-4" />
-              <span className="text-sm font-medium">Trusted by 2,500+ students worldwide</span>
+              <span className="text-sm font-medium">{t('lp.hero.badge')}</span>
             </motion.div>
 
             {/* Headline with dynamic gradient accent */}
@@ -159,7 +161,7 @@ export function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.1 }}
             >
-              Learn English
+              {t('lp.hero.headline')}
               <br />
               <span className={`bg-gradient-to-r ${theme.gradient} bg-clip-text text-transparent transition-all duration-700`}>
                 {theme.tagline}
@@ -175,8 +177,7 @@ export function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
             >
-              Personalized 1-on-1 lessons with native speakers.
-              For kids, teens, and professionals — at any level.
+              {t('lp.hero.subheadline')}
             </motion.p>
 
             {/* CTA Buttons — gradient matches active group */}
@@ -190,7 +191,7 @@ export function HeroSection() {
                 to="/student-signup"
                 className={`inline-flex items-center justify-center gap-2 px-6 py-3 sm:px-8 sm:py-4 rounded-2xl bg-gradient-to-r ${theme.gradient} ${theme.gradientHover} text-white font-bold text-base sm:text-lg shadow-xl ${theme.shadow} transition-all duration-500 hover:-translate-y-0.5`}
               >
-                Get Started Free
+                {t('lp.hero.ctaPrimary')}
                 <ArrowRight className="w-5 h-5" />
               </Link>
               <button
@@ -202,7 +203,7 @@ export function HeroSection() {
                 }`}
               >
                 <Play className="w-5 h-5" />
-                How It Works
+                {t('lp.hero.ctaSecondary')}
               </button>
             </motion.div>
 
@@ -214,9 +215,9 @@ export function HeroSection() {
               transition={{ duration: 0.7, delay: 0.5 }}
             >
               {[
-                { ref: students.ref, count: students.count, suffix: '+', label: 'Active Students', icon: Users },
-                { ref: countries.ref, count: countries.count, suffix: '+', label: 'Countries', icon: Globe },
-                { ref: lessons.ref, count: lessons.count, suffix: '+', label: 'Lessons Delivered', icon: Award },
+                { ref: students.ref, count: students.count, suffix: '+', label: t('lp.hero.statsStudents'), icon: Users },
+                { ref: countries.ref, count: countries.count, suffix: '+', label: t('lp.hero.statsCountries'), icon: Globe },
+                { ref: lessons.ref, count: lessons.count, suffix: '+', label: t('lp.hero.statsLessons'), icon: Award },
               ].map((stat, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-700 ${
@@ -316,7 +317,7 @@ export function HeroSection() {
                   </div>
                   <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>4.9/5</span>
                 </div>
-                <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>from 1,200+ reviews</p>
+                <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{t('lp.hero.ratingReviews')}</p>
               </motion.div>
 
               {/* Floating card — Free Trial */}
@@ -334,8 +335,8 @@ export function HeroSection() {
                     <CheckCircle2 className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Free Trial Lesson</p>
-                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>No credit card needed</p>
+                    <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{t('lp.hero.freeTrial')}</p>
+                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{t('lp.hero.noCard')}</p>
                   </div>
                 </div>
               </motion.div>
@@ -353,7 +354,7 @@ export function HeroSection() {
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full animate-pulse transition-colors duration-700 ${theme.dotActive}`} />
                   <span className={`text-xs font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                    <strong className={isDark ? 'text-white' : 'text-slate-900'}>127</strong> students online now
+                    <strong className={isDark ? 'text-white' : 'text-slate-900'}>127</strong> {t('lp.hero.studentsOnline')}
                   </span>
                 </div>
               </motion.div>

@@ -1,3 +1,10 @@
+// ============================================================================
+// L1/L2 PEDAGOGICAL RULE — DO NOT TRANSLATE LESSON CONTENT
+// ----------------------------------------------------------------------------
+// `lesson.title` and `lesson.description` are sourced from `curriculum_lessons`
+// and MUST render in English. Only translate surrounding chrome (e.g. a
+// "Start" button label) via `useTranslation`, never the lesson data itself.
+// ============================================================================
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
