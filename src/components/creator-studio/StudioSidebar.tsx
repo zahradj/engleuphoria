@@ -4,6 +4,8 @@ import { Map, Palette, Library, LogOut, ChevronLeft, ChevronRight } from 'lucide
 import { Logo } from '@/components/Logo';
 import { cn } from '@/lib/utils';
 import { useCreator, CreatorStep } from './CreatorContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 const NAV: Array<{ key: CreatorStep; label: string; icon: React.ElementType; emoji: string }> = [
   { key: 'blueprint', label: 'Curriculum Blueprint', icon: Map, emoji: '🗺️' },
@@ -14,7 +16,23 @@ const NAV: Array<{ key: CreatorStep; label: string; icon: React.ElementType; emo
 export const StudioSidebar: React.FC = () => {
   const { currentStep, setCurrentStep } = useCreator();
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await signOut();
+      // signOut already does window.location.replace('/'); failsafe below in case it doesn't
+      navigate('/login', { replace: true });
+    } catch (err) {
+      console.error('Logout error:', err);
+      toast.error('Sign out failed — redirecting anyway.');
+      navigate('/login', { replace: true });
+    }
+  };
 
   return (
     <aside
