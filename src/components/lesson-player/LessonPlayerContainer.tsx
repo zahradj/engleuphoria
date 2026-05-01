@@ -10,6 +10,7 @@ import { soundEffectsService } from '@/services/soundEffectsService';
 import { triggerCelebration } from '@/services/celebration';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { validatePedagogy } from '@/utils/validatePedagogy';
 import { useMasteryTracker } from '@/hooks/useMasteryTracker';
 import { useStreak } from '@/hooks/useStreak';
 import { X, Volume2, VolumeX, Zap, Star, ChevronLeft, ChevronRight, Focus, BookOpen } from 'lucide-react';
