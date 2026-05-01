@@ -599,7 +599,7 @@ export const SlideCanvas: React.FC<Props> = ({ slide, onChange }) => {
         </div>
 
         {/* ── Front Page (cinematic, full-bleed) ─────────────────────── */}
-        {slide.slide_type === 'front_page' ? (
+        {((slide as any).slide_type === 'front_page' || (slide as any).type === 'front_page') ? (
           <div
             className="relative rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-inner bg-slate-900"
             style={{ minHeight: '70vh' }}
