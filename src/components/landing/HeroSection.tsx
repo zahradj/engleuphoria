@@ -149,7 +149,7 @@ export function HeroSection() {
               }`}
             >
               <CheckCircle2 className="w-4 h-4" />
-              <span className="text-sm font-medium">Trusted by 2,500+ students worldwide</span>
+              <span className="text-sm font-medium">{t('lp.hero.badge')}</span>
             </motion.div>
 
             {/* Headline with dynamic gradient accent */}
