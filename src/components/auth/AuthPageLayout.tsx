@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { CursorTrail } from '@/components/landing/CursorTrail';
 import { useHeroTheme, GROUP_THEMES } from '@/contexts/HeroThemeContext';
 import { ThemeModeToggle } from '@/components/ui/ThemeModeToggle';
 import logoBlack from '@/assets/logo-black.png';
@@ -49,6 +50,7 @@ export function AuthPageLayout({
 
   return (
     <div className="relative min-h-screen flex flex-col lg:flex-row bg-white dark:bg-[#09090B] transition-colors duration-300">
+      <CursorTrail />
       {/* ── Left Panel: Branding & Hero Carousel — compact on mobile ── */}
       <div className="relative lg:w-[48%] flex flex-col items-center justify-center overflow-hidden px-6 py-6 lg:p-12">
         {/* Ambient radial glows */}

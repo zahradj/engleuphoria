@@ -2,6 +2,8 @@ import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { TeacherHero, BenefitsCards, SimpleTeacherForm, TeacherCTA } from '@/components/teach-with-us';
 import { FooterSection } from '@/components/landing';
+import { CursorTrail } from '@/components/landing/CursorTrail';
+import { HeroThemeProvider } from '@/contexts/HeroThemeContext';
 import logoBlack from '@/assets/logo-black.png';
 import logoWhite from '@/assets/logo-white.png';
 import { useThemeMode } from '@/hooks/useThemeMode';
@@ -15,7 +17,9 @@ const TeachWithUsPage = () => {
   };
 
   return (
+    <HeroThemeProvider>
     <div className="min-h-screen bg-slate-950">
+      <CursorTrail />
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-white/5">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
@@ -57,6 +61,7 @@ const TeachWithUsPage = () => {
       {/* Footer */}
       <FooterSection />
     </div>
+    </HeroThemeProvider>
   );
 };
 
