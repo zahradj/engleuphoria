@@ -1,6 +1,6 @@
 import React from 'react';
 import { getEditorialTheme } from './editorialHubTheme';
-import { GraduationCap } from 'lucide-react';
+import logoWhite from '@/assets/logo-white.png';
 
 interface FrontPageSlideProps {
   lessonTitle: string;
@@ -8,64 +8,118 @@ interface FrontPageSlideProps {
   level?: string;
   hub?: string;
   coverImageUrl?: string;
+  unitNumber?: number | string;
+  unitTitle?: string;
 }
 
-export default function FrontPageSlide({ lessonTitle, topic, level, hub, coverImageUrl }: FrontPageSlideProps) {
+/**
+ * Cinematic, full-bleed front page for every lesson.
+ * - Full-page background image (or themed gradient fallback)
+ * - Dark gradient overlay for text legibility
+ * - Engleuphoria logo top-left
+ * - CEFR + Hub badge top-right
+ * - Centered hero title + unit subtitle
+ */
+export default function FrontPageSlide({
+  lessonTitle,
+  topic,
+  level,
+  hub,
+  coverImageUrl,
+  unitNumber,
+  unitTitle,
+}: FrontPageSlideProps) {
   const theme = getEditorialTheme(hub);
+  const unitLine =
+    unitTitle && unitNumber != null
+      ? `Unit ${unitNumber}: ${unitTitle}`
+      : unitTitle ||
+        (unitNumber != null ? `Unit ${unitNumber}` : topic && topic !== lessonTitle ? topic : '');
 
   return (
-    <div className="relative w-full h-full min-h-[520px] flex flex-col items-center justify-center overflow-hidden rounded-2xl">
-      {/* Background image or gradient */}
+    <div className="relative w-full h-full min-h-[520px] overflow-hidden rounded-2xl">
+      {/* ── Full-bleed background ─────────────────────────────────── */}
       {coverImageUrl ? (
         <img
           src={coverImageUrl}
-          alt="Lesson cover"
+          alt=""
+          aria-hidden="true"
           className="absolute inset-0 w-full h-full object-cover"
         />
       ) : (
         <div
           className="absolute inset-0"
           style={{
-            background: `linear-gradient(135deg, ${theme.primary}22 0%, ${theme.primaryLight} 50%, ${theme.primary}11 100%)`,
+            background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.primaryLight} 60%, ${theme.primary} 100%)`,
           }}
         />
       )}
 
-      {/* Dark overlay for text readability */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/40" />
+      {/* ── Cinematic dark gradient overlay for legibility ──────── */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/35 to-black/75" />
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `radial-gradient(ellipse at center, transparent 0%, ${theme.primary}33 100%)`,
+        }}
+      />
 
-      {/* Content */}
-      <div className="relative z-10 flex flex-col items-center gap-6 px-8 text-center max-w-3xl">
-        {/* Logo area */}
-        <div className="flex items-center gap-2 text-white/80">
-          <GraduationCap className="w-6 h-6" />
-          <span className="text-sm font-semibold tracking-widest uppercase">Engleuphoria</span>
-        </div>
+      {/* ── Top-left: Engleuphoria logo ─────────────────────────── */}
+      <div className="absolute top-5 left-6 z-20 flex items-center gap-2">
+        <img
+          src={logoWhite}
+          alt="Engleuphoria"
+          className="h-9 md:h-11 w-auto drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
+        />
+      </div>
 
-        {/* Level badge */}
+      {/* ── Top-right: CEFR Level + Hub badge ───────────────────── */}
+      <div className="absolute top-5 right-6 z-20 flex items-center gap-2">
         {level && (
           <span
-            className="px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider"
-            style={{ backgroundColor: theme.primary, color: 'white' }}
+            className="px-3 py-1.5 rounded-lg text-xs font-extrabold uppercase tracking-widest text-white shadow-lg"
+            style={{ backgroundColor: theme.primary }}
           >
             {level}
           </span>
         )}
+        <span className="px-3 py-1.5 rounded-lg bg-white/15 backdrop-blur-md text-white text-xs font-bold uppercase tracking-widest border border-white/30 shadow-lg">
+          {theme.label}
+        </span>
+      </div>
 
-        {/* Title */}
-        <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight drop-shadow-lg">
+      {/* ── Centered hero content ───────────────────────────────── */}
+      <div className="relative z-10 h-full w-full flex flex-col items-center justify-center px-8 text-center">
+        {unitLine && (
+          <p
+            className="mb-4 text-[11px] md:text-xs font-bold uppercase tracking-[0.35em] text-white/80"
+            style={{ textShadow: '0 1px 6px rgba(0,0,0,0.5)' }}
+          >
+            {unitLine}
+          </p>
+        )}
+
+        <h1
+          className="font-serif text-4xl md:text-6xl lg:text-7xl font-black text-white leading-[1.05] max-w-4xl"
+          style={{ textShadow: '0 4px 24px rgba(0,0,0,0.55)' }}
+        >
           {lessonTitle}
         </h1>
 
-        {/* Topic subtitle */}
-        {topic && topic !== lessonTitle && (
-          <p className="text-lg md:text-xl text-white/80 font-light">{topic}</p>
+        {topic && topic !== lessonTitle && unitLine && unitLine !== topic && (
+          <p
+            className="mt-5 text-base md:text-lg text-white/85 font-light max-w-2xl"
+            style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}
+          >
+            {topic}
+          </p>
         )}
 
-        {/* Hub badge */}
-        <span className="mt-4 px-5 py-2 rounded-full bg-white/20 backdrop-blur-sm text-white text-sm font-medium border border-white/30">
-          {theme.label}
-        </span>
+        {/* Hub accent bar */}
+        <div
+          className="mt-7 h-1 w-20 rounded-full"
+          style={{ backgroundColor: theme.primary, boxShadow: `0 0 20px ${theme.primary}` }}
+        />
       </div>
     </div>
   );

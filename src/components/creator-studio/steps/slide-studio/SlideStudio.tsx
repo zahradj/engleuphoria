@@ -121,42 +121,35 @@ const SlideStudioInner: React.FC = () => {
   };
 
   return (
-    <div className={cn('h-full flex flex-col -m-6 hub-surface', theme.themeClass, theme.font)}>
-      {/* ── Lesson header strip ── */}
-      <div className="px-6 py-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shrink-0">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-              <span>{activeLessonData.cefr_level}</span>
-              <span>·</span>
-              <span>{activeLessonData.hub} Hub</span>
-              {activeLessonData.source_lesson?.skill_focus && (
-                <>
-                  <span>·</span>
-                  <span>{activeLessonData.source_lesson.skill_focus}</span>
-                </>
-              )}
-            </div>
-            <h2 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-slate-50 truncate">
+    <div className={cn('h-full flex flex-col -m-6 hub-surface overflow-hidden', theme.themeClass, theme.font)}>
+      {/* ── Compact Lesson header strip ── */}
+      <div className="px-4 py-1.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shrink-0">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="min-w-0 flex items-center gap-2.5">
+            <h2 className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-slate-50 truncate max-w-[42ch]">
               {activeLessonData.lesson_title}
             </h2>
+            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 whitespace-nowrap">
+              {activeLessonData.cefr_level} · {activeLessonData.hub} Hub
+              {activeLessonData.source_lesson?.skill_focus ? ` · ${activeLessonData.source_lesson.skill_focus}` : ''}
+            </span>
           </div>
           {!!slides.length && (
-            <div className="flex items-center gap-3 shrink-0">
-              <span className="text-xs text-slate-400 font-mono">
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-[10px] text-slate-400 font-mono">
                 {slides.length} slide{slides.length === 1 ? '' : 's'}
               </span>
               {autoGenerating && (
-                <div className="flex items-center gap-1.5 text-xs text-fuchsia-500 font-semibold animate-pulse">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  🎨 AI is painting…
+                <div className="flex items-center gap-1 text-[10px] text-fuchsia-500 font-semibold animate-pulse">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  AI painting…
                 </div>
               )}
             </div>
           )}
         </div>
         {!!slides.length && (
-          <div className="mt-2">
+          <div className="mt-1">
             <PhaseTracker
               slides={slides as any}
               currentIndex={Math.max(0, activeIndex)}
@@ -166,7 +159,7 @@ const SlideStudioInner: React.FC = () => {
         )}
       </div>
 
-      {/* ── Body: Left Sidebar (controls) + Center Stage (preview) ── */}
+      {/* ── Body: thin Sidebar + HERO Slide Canvas ── */}
       {!slides.length ? (
         <div className="flex-1 min-h-0">
           <EmptyState />
@@ -174,18 +167,20 @@ const SlideStudioInner: React.FC = () => {
       ) : (
         <div className="flex-1 min-h-0 flex flex-col">
           <div className="flex-1 min-h-0 flex">
-            {/* Left Sidebar — Teacher Controls (20%) */}
+            {/* Left Sidebar — thin, unobtrusive */}
             {activeSlide && (
-              <aside className="w-[280px] xl:w-[320px] shrink-0 h-full overflow-y-auto border-r border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm">
+              <aside className="w-[260px] xl:w-[290px] shrink-0 h-full overflow-y-auto border-r border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm">
                 <TeacherControlsPanel slide={activeSlide} onChange={(patch) => updateSlide(activeSlide.id, patch)} />
               </aside>
             )}
 
-            {/* Center Stage — Gray canvas with scaled App-Card preview (80%) */}
+            {/* Center Stage — HERO: maximum space, no inner scroll */}
             {activeSlide ? (
-              <SlideErrorBoundary resetKey={activeSlide.id} label="this slide" onSkip={goToNextSlide}>
-                <SlideCanvas slide={activeSlide} onChange={(patch) => updateSlide(activeSlide.id, patch)} />
-              </SlideErrorBoundary>
+              <div className="flex-1 min-w-0 min-h-0 overflow-hidden">
+                <SlideErrorBoundary resetKey={activeSlide.id} label="this slide" onSkip={goToNextSlide}>
+                  <SlideCanvas slide={activeSlide} onChange={(patch) => updateSlide(activeSlide.id, patch)} />
+                </SlideErrorBoundary>
+              </div>
             ) : (
               <div className="flex-1 flex items-center justify-center text-sm text-slate-500">
                 Select a slide below to start editing.
@@ -193,9 +188,9 @@ const SlideStudioInner: React.FC = () => {
             )}
           </div>
 
-          {/* ── Bottom Timeline — Horizontal scrollable slide thumbnails ── */}
-          <div className="shrink-0 h-[100px] border-t border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 backdrop-blur-md">
-            <div className="h-full overflow-x-auto px-3 py-2 flex items-center gap-2">
+          {/* ── Compact Bottom Filmstrip ── */}
+          <div className="shrink-0 h-[64px] border-t border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 backdrop-blur-md">
+            <div className="h-full overflow-x-auto px-2 py-1.5 flex items-center gap-1.5">
               {slides.map((s, i) => {
                 const active = s.id === activeSlideId;
                 const phaseKey = normalizePhase(s.phase as string);
@@ -206,23 +201,24 @@ const SlideStudioInner: React.FC = () => {
                     key={s.id}
                     type="button"
                     onClick={() => setActiveSlideId(s.id)}
+                    title={s.title || `Slide ${i + 1}`}
                     className={cn(
-                      'shrink-0 w-[120px] h-[78px] rounded-xl border-2 p-2 flex flex-col justify-between transition-all text-left',
+                      'shrink-0 w-[78px] h-[50px] rounded-md border p-1 flex flex-col justify-between transition-all text-left',
                       style.gradient,
                       active
-                        ? `${style.ring} ring-2 border-transparent shadow-lg scale-105`
-                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-sm',
+                        ? `${style.ring} ring-2 border-transparent shadow scale-[1.04]`
+                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600',
                     )}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className={cn('text-[8px] font-bold px-1 py-0.5 rounded', style.chip)}>
+                    <div className="flex items-center justify-between leading-none">
+                      <span className={cn('text-[7px] font-bold px-1 py-0.5 rounded', style.chip)}>
                         {style.label}
                       </span>
-                      <span className="text-[9px] font-mono text-slate-400">#{i + 1}</span>
+                      <span className="text-[8px] font-mono text-slate-400">#{i + 1}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 mt-auto">
-                      <Icon className="h-3 w-3 text-slate-500 shrink-0" />
-                      <span className="text-[10px] font-semibold text-slate-700 dark:text-slate-200 truncate">
+                    <div className="flex items-center gap-1 mt-auto">
+                      <Icon className="h-2.5 w-2.5 text-slate-500 shrink-0" />
+                      <span className="text-[9px] font-semibold text-slate-700 dark:text-slate-200 truncate">
                         {s.title || 'Untitled'}
                       </span>
                     </div>
