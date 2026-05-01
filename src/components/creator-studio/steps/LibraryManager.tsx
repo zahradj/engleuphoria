@@ -853,7 +853,12 @@ export const LibraryManager: React.FC = () => {
                     </div>
                   );
                 })}
-              </section>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    );
+                  })}
+                </CollapsibleContent>
+              </Collapsible>
             );
           })}
         </div>
