@@ -286,7 +286,15 @@ export default function DynamicSlideRenderer({
 
     // ── Bookend slides ────────────────────────────────────────────
     if (directorType === 'front_page') {
-      return <FrontPageSlide lessonTitle={(slide as any).title || ''} topic={(slide as any).topic} level={(slide as any).level} hub={hub} coverImageUrl={(slide as any).coverImageUrl || (slide as any).imageUrl} />;
+      return <FrontPageSlide
+        lessonTitle={(slide as any).title || ''}
+        topic={(slide as any).topic}
+        level={(slide as any).level}
+        hub={hub}
+        coverImageUrl={(slide as any).coverImageUrl || (slide as any).imageUrl || (slide as any).custom_image_url}
+        unitNumber={(slide as any).unitNumber ?? (slide as any).unit_number}
+        unitTitle={(slide as any).unitTitle ?? (slide as any).unit_title}
+      />;
     }
     if (directorType === 'celebration') {
       return <CelebrationSlide lessonTitle={(slide as any).title || ''} topic={(slide as any).topic} hub={hub} onFinish={onComplete} />;
