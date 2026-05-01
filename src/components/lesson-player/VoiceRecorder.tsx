@@ -71,8 +71,9 @@ export const VoiceRecorder = ({
     setIsProcessing(true);
     try {
       const base64 = await blobToBase64(blob);
-      const { data, error } = await supabase.functions.invoke('evaluate-speech', {
+      const { data, error } = await supabase.functions.invoke('ai-core', {
         body: {
+          action: 'evaluate_speech',
           audioBase64: base64,
           mimeType: 'audio/webm',
           targetSentence,

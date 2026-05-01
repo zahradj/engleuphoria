@@ -202,8 +202,8 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
           }
 
           // Generate feedback for user message
-          const { data: feedbackData } = await supabase.functions.invoke('ai-feedback', {
-            body: { text, scenario }
+          const { data: feedbackData } = await supabase.functions.invoke('ai-core', {
+            body: { action: 'speaking_feedback', text, scenario }
           });
 
           if (feedbackData?.feedback) {
