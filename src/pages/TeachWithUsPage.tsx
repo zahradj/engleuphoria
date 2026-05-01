@@ -61,6 +61,7 @@ const TeachWithUsPage = () => {
       {/* Footer */}
       <FooterSection />
     </div>
+    </HeroThemeProvider>
   );
 };
 
