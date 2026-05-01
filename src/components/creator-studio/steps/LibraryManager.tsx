@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Library, Loader2, FileText, CheckCircle2, Pencil, Trash2, X, Lock, BookOpen, Gamepad2 } from 'lucide-react';
+import { Library, Loader2, FileText, CheckCircle2, Pencil, Trash2, X, Lock, BookOpen, Gamepad2, Search, ChevronDown } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
