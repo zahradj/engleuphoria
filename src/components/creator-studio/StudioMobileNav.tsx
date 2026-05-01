@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Map, Palette, Library, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useCreator, CreatorStep } from './CreatorContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 const NAV: Array<{ key: CreatorStep; label: string; icon: React.ElementType; emoji: string }> = [
   { key: 'blueprint', label: 'Blueprint', icon: Map, emoji: '🗺️' },
@@ -13,6 +15,21 @@ const NAV: Array<{ key: CreatorStep; label: string; icon: React.ElementType; emo
 export const StudioMobileNav: React.FC = () => {
   const { currentStep, setCurrentStep } = useCreator();
   const navigate = useNavigate();
+  const { signOut } = useAuth();
+  const [signingOut, setSigningOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await signOut();
+      navigate('/login', { replace: true });
+    } catch (err) {
+      console.error('Logout error:', err);
+      toast.error('Sign out failed — redirecting anyway.');
+      navigate('/login', { replace: true });
+    }
+  };
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-950 border-t border-slate-800 flex items-center justify-around px-2 py-1 safe-area-pb">
