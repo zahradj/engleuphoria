@@ -35,12 +35,10 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
     toast.success(`Opening Slide Studio for "${lesson.title}"…`);
   };
 
-  const forceSaveToLibrary = async () => {
-    if (!data) {
-      toast.error('No curriculum lessons to save.');
-      return;
-    }
-
+  const saveBlueprintToLibrary = async (
+    payload: CurriculumData,
+    opts: { silent?: boolean; navigateAfter?: boolean } = {},
+  ): Promise<{ ok: boolean; count: number; error?: string }> => {
     // Normalize hub → target_system used by Master Library
     const hubToTargetSystem = (hub: string): string => {
       const h = (hub || '').toLowerCase();
@@ -52,14 +50,14 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
 
     const { data: userData, error: userErr } = await supabase.auth.getUser();
     if (userErr || !userData.user) {
-      toast.error('You must be signed in to save the blueprint.');
-      return;
+      if (!opts.silent) toast.error('You must be signed in to save the blueprint.');
+      return { ok: false, count: 0, error: 'not-signed-in' };
     }
     const uid = userData.user.id;
-    const targetSystem = hubToTargetSystem(data.hub);
-    const difficulty = (data.cefr_level || 'A1').toUpperCase();
+    const targetSystem = hubToTargetSystem(payload.hub);
+    const difficulty = (payload.cefr_level || 'A1').toUpperCase();
 
-    const lessonsToInsert = data.units.flatMap((unit, uIdx) =>
+    const lessonsToInsert = payload.units.flatMap((unit, uIdx) =>
       unit.lessons.map((lesson, lIdx) => ({
         title: lesson.title,
         description: lesson.objective || lesson.learning_objective || null,
@@ -74,9 +72,9 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
           blueprint_ref: lesson,
           unit_title: unit.unit_title,
           unit_number: unit.unit_number ?? uIdx + 1,
-          curriculum_title: data.curriculum_title,
-          theme_hint: data.theme_hint ?? null,
-          hub: data.hub,
+          curriculum_title: payload.curriculum_title,
+          theme_hint: payload.theme_hint ?? null,
+          hub: payload.hub,
         },
       })),
     );
@@ -86,17 +84,57 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
         .from('curriculum_lessons')
         .insert(lessonsToInsert as any)
         .select('id, title');
-      console.log('Library Save Result:', { inserted, error, count: lessonsToInsert.length });
+      console.log('Library Save Result:', { inserted, error, count: lessonsToInsert.length, silent: opts.silent });
       if (error) throw error;
 
-      toast.success(`Blueprint saved! ${inserted?.length ?? lessonsToInsert.length} draft lessons added to your library.`);
-      setCurrentStep('library');
-      navigate('/content-creator/library');
+      const count = inserted?.length ?? lessonsToInsert.length;
+      if (!opts.silent) {
+        toast.success(`Blueprint saved! ${count} draft lessons added to your library.`);
+      }
+      if (opts.navigateAfter) {
+        setCurrentStep('library');
+        navigate('/content-creator/library');
+      }
+      return { ok: true, count };
     } catch (err: any) {
-      console.error('FORCE SAVE TO LIBRARY error:', err);
-      toast.error(err?.message || JSON.stringify(err) || 'Unknown SQL error');
+      console.error('SAVE TO LIBRARY error:', err);
+      if (!opts.silent) {
+        toast.error(err?.message || JSON.stringify(err) || 'Unknown SQL error');
+      }
+      return { ok: false, count: 0, error: err?.message || 'unknown' };
     }
   };
+
+  const forceSaveToLibrary = () =>
+    data
+      ? saveBlueprintToLibrary(data, { navigateAfter: true })
+      : (toast.error('No curriculum lessons to save.'), Promise.resolve({ ok: false, count: 0 }));
+
+  // ── Auto-save: as soon as a fresh blueprint arrives, persist all
+  // lessons to the Master Library as drafts (no button click required).
+  useEffect(() => {
+    if (!data || loading) return;
+    const fingerprint =
+      `${data.curriculum_title}::${data.cefr_level}::${data.hub}::` +
+      `${data.units.length}::${data.units.reduce((n, u) => n + u.lessons.length, 0)}`;
+    if (autoSavedRef.current === fingerprint) return;
+    autoSavedRef.current = fingerprint;
+
+    setAutoSaveStatus('saving');
+    saveBlueprintToLibrary(data, { silent: true }).then((res) => {
+      if (res.ok) {
+        setAutoSaveStatus('saved');
+        setSavedCount(res.count);
+        toast.success(`Auto-saved ${res.count} lessons to your Master Library as drafts.`);
+      } else {
+        setAutoSaveStatus('error');
+        toast.error(`Auto-save failed: ${res.error ?? 'unknown error'}. You can retry below.`);
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, loading]);
+
+
 
   if (loading && !data) {
     return (
