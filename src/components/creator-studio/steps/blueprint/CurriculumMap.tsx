@@ -65,28 +65,36 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
     };
     const difficulty = cefrToDifficulty(cefr);
 
-    const lessonsToInsert = payload.units.flatMap((unit, uIdx) =>
-      unit.lessons.map((lesson, lIdx) => ({
-        title: lesson.title,
-        description: lesson.objective || lesson.learning_objective || null,
-        target_system: targetSystem,
-        difficulty_level: difficulty,
-        is_published: false,
-        created_by: uid,
-        sequence_order: lIdx + 1,
-        skills_focus: lesson.skill_focus ? [lesson.skill_focus] : [],
-        content: { slides: [], homework_missions: [] },
-        ai_metadata: {
-          blueprint_ref: lesson,
-          cefr_level: cefr,
-          unit_title: unit.unit_title,
-          unit_number: unit.unit_number ?? uIdx + 1,
-          curriculum_title: payload.curriculum_title,
-          theme_hint: payload.theme_hint ?? null,
-          hub: payload.hub,
-        },
-      })),
-    );
+    const lessonsToInsert = payload.units.flatMap((unit, uIdx) => {
+      const unitNumber = unit.unit_number ?? uIdx + 1;
+      return unit.lessons.map((lesson, lIdx) => {
+        const lessonNumber = lIdx + 1;
+        // Strict sequential global order: U1L1=101, U1L2=102, U2L1=201...
+        // Keeps unit grouping AND lesson order intact via a single column.
+        const globalOrder = unitNumber * 100 + lessonNumber;
+        return {
+          title: lesson.title,
+          description: lesson.objective || lesson.learning_objective || null,
+          target_system: targetSystem,
+          difficulty_level: difficulty,
+          is_published: false,
+          created_by: uid,
+          sequence_order: globalOrder,
+          skills_focus: lesson.skill_focus ? [lesson.skill_focus] : [],
+          content: { slides: [], homework_missions: [] },
+          ai_metadata: {
+            blueprint_ref: lesson,
+            cefr_level: cefr,
+            unit_title: unit.unit_title,
+            unit_number: unitNumber,
+            lesson_number: lessonNumber,
+            curriculum_title: payload.curriculum_title,
+            theme_hint: payload.theme_hint ?? null,
+            hub: payload.hub,
+          },
+        };
+      });
+    });
 
     try {
       const { data: inserted, error } = await supabase
