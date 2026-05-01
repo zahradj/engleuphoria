@@ -39,7 +39,8 @@ export const generateSlideVoiceover = (
   text: string,
   lessonId: string,
   slideId: string,
-) => invokeJson('generate-slide-voiceover', { text, lessonId, slideId });
+  voiceId?: string,
+) => invokeJson('generate-slide-voiceover', { text, lessonId, slideId, voiceId });
 
 export const generateSlideMusic = (
   prompt: string,
