@@ -566,55 +566,52 @@ export const SlideCanvas: React.FC<Props> = ({ slide, onChange }) => {
   const hasImage = !!(slide.custom_image_url || (slide.visual_keyword || '').trim());
 
   return (
-    <section className={cn('flex-1 min-w-0 h-full overflow-y-auto p-6 hub-surface', theme.themeClass, theme.font)}>
-      <div className="max-w-5xl mx-auto">
-        {/* Top bar: phase + dual-view toggle */}
-        <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
-          <span className={cn('text-[11px] font-bold uppercase tracking-widest px-2 py-1 rounded', style.chip)}>
-            {style.label}
-          </span>
+    <section className={cn('h-full w-full flex flex-col p-3 sm:p-4 hub-surface', theme.themeClass, theme.font)}>
+      {/* Top bar: phase + dual-view toggle (compact) */}
+      <div className="flex items-center justify-between mb-2 gap-2 flex-wrap shrink-0">
+        <span className={cn('text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded', style.chip)}>
+          {style.label}
+        </span>
 
-          <div className="inline-flex items-center rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-0.5 text-xs font-semibold shadow-sm">
-            {(['student', 'teacher'] as ViewMode[]).map((v) => (
-              <button
-                key={v}
-                type="button"
-                onClick={() => setMode(v)}
-                className={cn(
-                  'px-3 py-1.5 rounded-full transition',
-                  mode === v
-                    ? 'bg-slate-900 text-white shadow'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200',
-                )}
-              >
-                {VIEW_KEY[v]}
-              </button>
-            ))}
-          </div>
-
-          <span className="text-[11px] font-mono text-slate-400 inline-flex items-center gap-1.5">
-            {!hasImage && <ImageOff className="h-3 w-3" aria-label="No visual keyword set" />}
-            {slide.slide_type ?? 'text_image'}
-          </span>
+        <div className="inline-flex items-center rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-0.5 text-[11px] font-semibold shadow-sm">
+          {(['student', 'teacher'] as ViewMode[]).map((v) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setMode(v)}
+              className={cn(
+                'px-2.5 py-1 rounded-full transition',
+                mode === v
+                  ? 'bg-slate-900 text-white shadow'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200',
+              )}
+            >
+              {VIEW_KEY[v]}
+            </button>
+          ))}
         </div>
 
-        {/* ── Front Page (cinematic, full-bleed) ─────────────────────── */}
+        <span className="text-[10px] font-mono text-slate-400 inline-flex items-center gap-1.5">
+          {!hasImage && <ImageOff className="h-3 w-3" aria-label="No visual keyword set" />}
+          {slide.slide_type ?? 'text_image'}
+        </span>
+      </div>
+
+      {/* HERO Slide — fills all remaining vertical space, no inner scroll */}
+      <div className="flex-1 min-h-0 flex items-center justify-center">
         {((slide as any).slide_type === 'front_page' || (slide as any).type === 'front_page') ? (
           <div
-            className="relative rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-inner bg-slate-900"
-            style={{ minHeight: '70vh' }}
+            className="relative w-full h-full max-w-[1280px] aspect-video mx-auto rounded-2xl overflow-hidden shadow-2xl bg-slate-900"
           >
-            <div className="absolute inset-0">
-              <FrontPageSlide
-                lessonTitle={(slide as any).title || 'Untitled Lesson'}
-                topic={(slide as any).topic || (slide as any).visual_keyword}
-                level={(slide as any).level || (slide as any).cefr_level}
-                hub={hub}
-                coverImageUrl={(slide as any).custom_image_url || (slide as any).coverImageUrl}
-                unitNumber={(slide as any).unit_number ?? (slide as any).unitNumber}
-                unitTitle={(slide as any).unit_title ?? (slide as any).unitTitle}
-              />
-            </div>
+            <FrontPageSlide
+              lessonTitle={(slide as any).title || 'Untitled Lesson'}
+              topic={(slide as any).topic || (slide as any).visual_keyword}
+              level={(slide as any).level || (slide as any).cefr_level}
+              hub={hub}
+              coverImageUrl={(slide as any).custom_image_url || (slide as any).coverImageUrl}
+              unitNumber={(slide as any).unit_number ?? (slide as any).unitNumber}
+              unitTitle={(slide as any).unit_title ?? (slide as any).unitTitle}
+            />
             {mode === 'teacher' && (
               <Teleprompter
                 script={slide.teacher_script ?? slide.teacher_instructions ?? ''}
@@ -623,50 +620,42 @@ export const SlideCanvas: React.FC<Props> = ({ slide, onChange }) => {
             )}
           </div>
         ) : (
-        <div
-          className="relative rounded-3xl overflow-hidden bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-inner"
-          style={{ minHeight: '70vh' }}
-        >
-          <div className="relative h-full w-full flex items-start sm:items-center justify-center p-6 sm:p-10 overflow-y-auto">
-            {/* Centered "Quiz App" container — themed per Hub */}
-            <div className={cn(
-              'w-full max-w-2xl mx-auto p-6 sm:p-8 space-y-6 hub-card',
-              theme.radius,
-              theme.cardShadow,
-              theme.font,
-            )}>
-              <SlideMedia slide={slide} />
-              <TitleField slide={slide} onChange={onChange} />
-              <InteractiveBlock slide={slide} mode={mode} hub={hub} />
-              {/* Audio button only when slide is pedagogically audio-required (Pronunciation, Listening, Dialogue). */}
-              {shouldShowAudioButton(slide) && (
-                <div className="flex justify-center pt-2">
-                  <PlaySoundButton slide={slide} />
-                </div>
-              )}
-              {/* Hub-specific decoration */}
-              {hub === 'playground' && slide.slide_type === 'mascot_speech' && (
-                <div className="absolute bottom-4 right-4 text-5xl select-none animate-bounce" aria-hidden>
-                  {theme.mascot}
-                </div>
-              )}
+          <div
+            className="relative w-full h-full max-w-[1280px] aspect-video mx-auto rounded-2xl overflow-hidden shadow-2xl bg-slate-900 text-slate-100"
+            style={{
+              backgroundImage:
+                'radial-gradient(ellipse at top, rgba(99,102,241,0.15) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(168,85,247,0.12) 0%, transparent 55%)',
+            }}
+          >
+            <div className="relative h-full w-full flex items-center justify-center p-5 sm:p-8">
+              <div className={cn(
+                'w-full max-w-3xl mx-auto p-5 sm:p-7 space-y-4 rounded-2xl bg-white/[0.04] backdrop-blur-sm border border-white/10 shadow-xl',
+                theme.font,
+              )}>
+                <SlideMedia slide={slide} />
+                <TitleField slide={slide} onChange={onChange} />
+                <InteractiveBlock slide={slide} mode={mode} hub={hub} />
+                {shouldShowAudioButton(slide) && (
+                  <div className="flex justify-center pt-1">
+                    <PlaySoundButton slide={slide} />
+                  </div>
+                )}
+                {hub === 'playground' && slide.slide_type === 'mascot_speech' && (
+                  <div className="absolute bottom-4 right-4 text-5xl select-none animate-bounce" aria-hidden>
+                    {theme.mascot}
+                  </div>
+                )}
+              </div>
             </div>
+
+            {mode === 'teacher' && (
+              <Teleprompter
+                script={slide.teacher_script ?? slide.teacher_instructions ?? ''}
+                onChange={(v) => onChange({ teacher_script: v })}
+              />
+            )}
           </div>
-
-          {mode === 'teacher' && (
-            <Teleprompter
-              script={slide.teacher_script ?? slide.teacher_instructions ?? ''}
-              onChange={(v) => onChange({ teacher_script: v })}
-            />
-          )}
-        </div>
         )}
-
-        <p className="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
-          {mode === 'teacher'
-            ? 'Teacher view shows the teleprompter and highlights correct answers. Drag the card by its header.'
-            : 'Student view renders exactly what learners will see in class.'}
-        </p>
       </div>
     </section>
   );
