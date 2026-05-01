@@ -521,7 +521,7 @@ export const LibraryManager: React.FC = () => {
                 {levelGroup.unitGroups.map((group) => {
                   const isUncat = group.unit_number == null;
                   return (
-                    <div key={group.unit_id ?? '__uncat__'} className="space-y-3 pl-4">
+                    <div key={group.unit_id ?? `__uncat__-${levelGroup.hub}-${levelGroup.cefr}-${group.unit_title}`} className="space-y-3 pl-4">
                       {/* Unit Sub-Header */}
                       <div
                         className={cn(
