@@ -191,7 +191,7 @@ export function HeroSection() {
                 to="/student-signup"
                 className={`inline-flex items-center justify-center gap-2 px-6 py-3 sm:px-8 sm:py-4 rounded-2xl bg-gradient-to-r ${theme.gradient} ${theme.gradientHover} text-white font-bold text-base sm:text-lg shadow-xl ${theme.shadow} transition-all duration-500 hover:-translate-y-0.5`}
               >
-                Get Started Free
+                {t('lp.hero.ctaPrimary')}
                 <ArrowRight className="w-5 h-5" />
               </Link>
               <button
@@ -203,7 +203,7 @@ export function HeroSection() {
                 }`}
               >
                 <Play className="w-5 h-5" />
-                How It Works
+                {t('lp.hero.ctaSecondary')}
               </button>
             </motion.div>
 
