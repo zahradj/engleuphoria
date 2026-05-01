@@ -335,8 +335,8 @@ export function HeroSection() {
                     <CheckCircle2 className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Free Trial Lesson</p>
-                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>No credit card needed</p>
+                    <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{t('lp.hero.freeTrial')}</p>
+                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{t('lp.hero.noCard')}</p>
                   </div>
                 </div>
               </motion.div>
