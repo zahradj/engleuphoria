@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Library, Loader2, FileText, CheckCircle2, Pencil, Trash2, X, Lock, BookOpen, Gamepad2 } from 'lucide-react';
+import { Library, Loader2, FileText, CheckCircle2, Pencil, Trash2, X, Lock, BookOpen, Gamepad2, Search, ChevronDown } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -133,6 +135,13 @@ export const LibraryManager: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
   const [confirmBulk, setConfirmBulk] = useState<'selected' | 'all' | null>(null);
+  // ── Navigation / filter state ────────────────────────────────────
+  const [hubFilter, setHubFilter] = useState<'all' | 'playground' | 'academy' | 'success'>('all');
+  const [search, setSearch] = useState('');
+  const [openHubs, setOpenHubs] = useState<Set<string>>(new Set(['playground', 'academy', 'success']));
+  const [openLevels, setOpenLevels] = useState<Set<string>>(new Set());
+  const toggleHub = (h: string) => setOpenHubs((p) => { const n = new Set(p); n.has(h) ? n.delete(h) : n.add(h); return n; });
+  const toggleLevel = (k: string) => setOpenLevels((p) => { const n = new Set(p); n.has(k) ? n.delete(k) : n.add(k); return n; });
 
   const fetchRows = React.useCallback(async () => {
     setLoading(true);
@@ -331,6 +340,54 @@ export const LibraryManager: React.FC = () => {
     return groups;
   }, [rows, units]);
 
+  // Apply hub filter + free-text search to the grouped data
+  const filteredHubGroups = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const byHub = new Map<string, LevelGroup[]>();
+    for (const g of levelGroups) {
+      if (hubFilter !== 'all' && g.hub !== hubFilter) continue;
+
+      // Filter lessons inside each unit by search term
+      const filteredUnits = g.unitGroups
+        .map((u) => ({
+          ...u,
+          lessons: q
+            ? u.lessons.filter(
+                (l) =>
+                  l.title.toLowerCase().includes(q) ||
+                  (l.description ?? '').toLowerCase().includes(q) ||
+                  u.unit_title.toLowerCase().includes(q),
+              )
+            : u.lessons,
+        }))
+        .filter((u) => u.lessons.length > 0);
+
+      if (filteredUnits.length === 0) continue;
+      const filteredGroup: LevelGroup = {
+        ...g,
+        lessons: filteredUnits.flatMap((u) => u.lessons),
+        unitGroups: filteredUnits,
+      };
+      if (!byHub.has(g.hub)) byHub.set(g.hub, []);
+      byHub.get(g.hub)!.push(filteredGroup);
+    }
+    const HUB_ORDER: Record<string, number> = { playground: 0, academy: 1, success: 2 };
+    return Array.from(byHub.entries())
+      .map(([hub, levels]) => ({ hub, levels }))
+      .sort((a, b) => (HUB_ORDER[a.hub] ?? 9) - (HUB_ORDER[b.hub] ?? 9));
+  }, [levelGroups, hubFilter, search]);
+
+  // Auto-open the first level inside each hub once data arrives (only once)
+  useEffect(() => {
+    if (filteredHubGroups.length === 0 || openLevels.size > 0) return;
+    const initial = new Set<string>();
+    for (const h of filteredHubGroups) {
+      if (h.levels[0]) initial.add(`${h.hub}::${h.levels[0].cefr}`);
+    }
+    setOpenLevels(initial);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredHubGroups.length]);
+
   const performBulkDelete = async (mode: 'selected' | 'all') => {
     if (!rows) return;
     const ids = mode === 'all' ? rows.map((r) => r.id) : Array.from(selectedIds);
@@ -479,6 +536,55 @@ export const LibraryManager: React.FC = () => {
         </div>
       )}
 
+      {/* ── Hub filter tabs + search ─────────────────────────────────── */}
+      {!!rows?.length && (
+        <div className="sticky top-0 z-20 -mx-6 px-6 py-3 mb-5 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800/60">
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Hub tabs */}
+            <div className="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+              {([
+                { key: 'all', label: 'All', gradient: 'from-slate-600 to-slate-700' },
+                { key: 'playground', label: 'Playground', gradient: HUB_HEADER_GRADIENT.playground },
+                { key: 'academy', label: 'Academy', gradient: HUB_HEADER_GRADIENT.academy },
+                { key: 'success', label: 'Success', gradient: HUB_HEADER_GRADIENT.success },
+              ] as const).map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setHubFilter(tab.key)}
+                  className={cn(
+                    'px-3 py-1.5 rounded-lg text-xs font-bold tracking-wide transition-all',
+                    hubFilter === tab.key
+                      ? `bg-gradient-to-r ${tab.gradient} text-white shadow-sm`
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100',
+                  )}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            {/* Search */}
+            <div className="relative flex-1 min-w-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search lessons by title, description, or unit…"
+                className="pl-9 h-9 text-sm rounded-lg"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+                  aria-label="Clear search"
+                >
+                  <X className="h-3.5 w-3.5 text-slate-400" />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Content */}
       {loading ? (
         <div className="flex items-center justify-center py-16 text-slate-400">
@@ -489,34 +595,72 @@ export const LibraryManager: React.FC = () => {
           <FileText className="h-8 w-8 mx-auto text-slate-400 mb-2" />
           <p className="text-sm text-slate-500">No lessons yet. Build one in the Blueprint, then the Slide Studio.</p>
         </div>
+      ) : filteredHubGroups.length === 0 ? (
+        <div className="text-center py-16 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-white/60 dark:bg-slate-900/40">
+          <Search className="h-8 w-8 mx-auto text-slate-400 mb-2" />
+          <p className="text-sm text-slate-500">No lessons match your filters.</p>
+          <Button variant="ghost" size="sm" className="mt-2" onClick={() => { setSearch(''); setHubFilter('all'); }}>
+            Clear filters
+          </Button>
+        </div>
       ) : (
-        <div className="space-y-10">
-          {levelGroups.map((levelGroup) => {
-            const gradient = getLevelGradient(levelGroup.hub, levelGroup.cefr);
-            const hubGradient = HUB_HEADER_GRADIENT[levelGroup.hub] || HUB_HEADER_GRADIENT.academy;
-
+        <div className="space-y-6">
+          {filteredHubGroups.map(({ hub, levels }) => {
+            const hubGradient = HUB_HEADER_GRADIENT[hub] || HUB_HEADER_GRADIENT.academy;
+            const hubLabel = hub.charAt(0).toUpperCase() + hub.slice(1);
+            const hubLessonCount = levels.reduce((n, l) => n + l.lessons.length, 0);
+            const hubOpen = openHubs.has(hub);
             return (
-              <section key={`${levelGroup.hub}-${levelGroup.cefr}`} className="space-y-5">
-                {/* ── Level Header ────────────────────────────── */}
-                <div className={cn('flex items-center gap-3 px-5 py-3 rounded-2xl', gradient.bg, gradient.text)}>
-                  <div className="h-10 w-10 shrink-0 rounded-xl bg-white/30 dark:bg-white/10 backdrop-blur-sm flex items-center justify-center font-black text-lg">
-                    {levelGroup.cefr}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-70">
-                      {levelGroup.hub.charAt(0).toUpperCase() + levelGroup.hub.slice(1)} Hub
-                    </p>
-                    <h3 className="text-lg font-extrabold tracking-tight">
-                      Level {levelGroup.cefr}
-                    </h3>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    {HUB_ICON[levelGroup.hub]}
-                    <Badge variant="secondary" className="text-[11px] font-semibold bg-white/20 dark:bg-white/10 border-0">
-                      {levelGroup.lessons.length} lesson{levelGroup.lessons.length === 1 ? '' : 's'}
+              <Collapsible key={hub} open={hubOpen} onOpenChange={() => toggleHub(hub)}>
+                {/* ── HUB HEADER ───────────────────────────────────── */}
+                <CollapsibleTrigger asChild>
+                  <button
+                    className={cn(
+                      'w-full flex items-center gap-3 px-5 py-4 rounded-2xl text-left transition-all',
+                      `bg-gradient-to-r ${hubGradient} text-white shadow-md hover:shadow-lg`,
+                    )}
+                  >
+                    <div className="h-11 w-11 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
+                      {HUB_ICON[hub]}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">Hub</p>
+                      <h3 className="text-lg font-extrabold tracking-tight">{hubLabel}</h3>
+                    </div>
+                    <Badge variant="secondary" className="bg-white/20 text-white border-0 backdrop-blur-sm shrink-0 text-[11px] font-bold">
+                      {levels.length} level{levels.length === 1 ? '' : 's'} · {hubLessonCount} lesson{hubLessonCount === 1 ? '' : 's'}
                     </Badge>
-                  </div>
-                </div>
+                    <ChevronDown
+                      className={cn('h-5 w-5 shrink-0 transition-transform', hubOpen ? 'rotate-180' : '')}
+                    />
+                  </button>
+                </CollapsibleTrigger>
+
+                <CollapsibleContent className="pt-4 pl-2 sm:pl-4 space-y-5 data-[state=open]:animate-in data-[state=open]:fade-in-0">
+                  {levels.map((levelGroup) => {
+                    const gradient = getLevelGradient(levelGroup.hub, levelGroup.cefr);
+                    const levelKey = `${levelGroup.hub}::${levelGroup.cefr}`;
+                    const levelOpen = openLevels.has(levelKey);
+                    return (
+                      <Collapsible key={levelKey} open={levelOpen} onOpenChange={() => toggleLevel(levelKey)}>
+                        {/* ── LEVEL HEADER (hub-shaded) ──────────── */}
+                        <CollapsibleTrigger asChild>
+                          <button className={cn('w-full flex items-center gap-3 px-5 py-3 rounded-xl text-left transition-all hover:opacity-90', gradient.bg, gradient.text)}>
+                            <div className="h-10 w-10 shrink-0 rounded-xl bg-white/40 dark:bg-white/10 backdrop-blur-sm flex items-center justify-center font-black text-lg">
+                              {levelGroup.cefr}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-70">CEFR Level</p>
+                              <h4 className="text-base font-extrabold tracking-tight">Level {levelGroup.cefr}</h4>
+                            </div>
+                            <Badge variant="secondary" className="text-[11px] font-semibold bg-white/30 dark:bg-white/10 border-0 shrink-0">
+                              {levelGroup.lessons.length} lesson{levelGroup.lessons.length === 1 ? '' : 's'}
+                            </Badge>
+                            <ChevronDown className={cn('h-4 w-4 shrink-0 transition-transform opacity-70', levelOpen ? 'rotate-180' : '')} />
+                          </button>
+                        </CollapsibleTrigger>
+
+                        <CollapsibleContent className="pt-4 space-y-4">
 
                 {/* ── Unit sub-groups ─────────────────────────── */}
                 {levelGroup.unitGroups.map((group) => {
@@ -685,7 +829,12 @@ export const LibraryManager: React.FC = () => {
                     </div>
                   );
                 })}
-              </section>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    );
+                  })}
+                </CollapsibleContent>
+              </Collapsible>
             );
           })}
         </div>

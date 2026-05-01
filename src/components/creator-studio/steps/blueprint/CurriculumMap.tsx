@@ -155,27 +155,20 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
     }
   };
 
-  // ── Auto-save: as soon as a fresh blueprint arrives, persist all
-  // lessons to the Master Library as drafts (no button click required).
+  // ── Single-save guarantee ─────────────────────────────────────────
+  // We intentionally do NOT auto-save the blueprint. The user must click
+  // "Save Blueprint" exactly once. That click is protected by:
+  //   1. React state lock      (isSaving / hasSaved — prevents double-click)
+  //   2. autoSavedRef sentinel (kept for future-proofing against rerenders)
+  //   3. DB partial unique index curriculum_lessons_unique_slot
+  //      (creator + hub + cefr + unit + lesson) — final backstop, makes
+  //      duplicates physically impossible even across page reloads.
+  // We just surface a friendly "Ready to save" status in the UI.
   useEffect(() => {
-    if (!data || loading) return;
-    const fingerprint =
-      `${data.curriculum_title}::${data.cefr_level}::${data.hub}::` +
-      `${data.units.length}::${data.units.reduce((n, u) => n + u.lessons.length, 0)}`;
-    if (autoSavedRef.current === fingerprint) return;
-    autoSavedRef.current = fingerprint;
-
-    setAutoSaveStatus('saving');
-    saveBlueprintToLibrary(data, { silent: true }).then((res) => {
-      if (res.ok) {
-        setAutoSaveStatus('saved');
-        setSavedCount(res.count);
-        toast.success(`Auto-saved ${res.count} lessons to your Master Library as drafts.`);
-      } else {
-        setAutoSaveStatus('error');
-        toast.error(`Auto-save failed: ${res.error ?? 'unknown error'}. You can retry below.`);
-      }
-    });
+    if (data && !loading && autoSaveStatus === 'idle') {
+      setAutoSaveStatus('idle');
+      setSavedCount(data.units.reduce((n, u) => n + u.lessons.length, 0));
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, loading]);
 
