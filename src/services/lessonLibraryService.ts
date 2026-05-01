@@ -127,7 +127,7 @@ export async function saveToLibrary(
 
   const { data, error } = await supabase
     .from('curriculum_lessons')
-    .insert({
+    .upsert({
       title: topic,
       description: `AI-generated ${hub} lesson on "${topic}"`,
       target_system: hub,
@@ -137,8 +137,11 @@ export async function saveToLibrary(
       content: { slides, hub, generatedAt: new Date().toISOString() },
       is_published: true,
       created_by: userId || null,
-      ai_metadata: { hub, level, slideCount: slides.length },
-    } as any)
+      ai_metadata: { hub, level, cefr_level: level, slideCount: slides.length },
+    } as any, {
+      onConflict: 'created_by,target_system,((ai_metadata->>\'cefr_level\')),((ai_metadata->>\'unit_number\')),((ai_metadata->>\'lesson_number\'))',
+      ignoreDuplicates: false,
+    })
     .select()
     .single();
 

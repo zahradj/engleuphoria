@@ -99,16 +99,21 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
     });
 
     try {
+      // Upsert against the partial unique index (creator + hub + cefr + unit + lesson).
+      // If a row already exists for this slot, UPDATE it instead of creating a duplicate.
       const { data: inserted, error } = await supabase
         .from('curriculum_lessons')
-        .insert(lessonsToInsert as any)
+        .upsert(lessonsToInsert as any, {
+          onConflict: 'created_by,target_system,((ai_metadata->>\'cefr_level\')),((ai_metadata->>\'unit_number\')),((ai_metadata->>\'lesson_number\'))',
+          ignoreDuplicates: false,
+        })
         .select('id, title');
       console.log('Library Save Result:', { inserted, error, count: lessonsToInsert.length, silent: opts.silent });
       if (error) throw error;
 
       const count = inserted?.length ?? lessonsToInsert.length;
       if (!opts.silent) {
-        toast.success(`Blueprint saved! ${count} draft lessons added to your library.`);
+        toast.success(`Blueprint saved! ${count} lessons synced to your library (no duplicates).`);
       }
       if (opts.navigateAfter) {
         setCurrentStep('library');
@@ -132,10 +137,14 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
     }
     setIsSaving(true);
     try {
+      // Mark fingerprint so the auto-save effect cannot re-fire and double-write.
+      autoSavedRef.current =
+        `${data.curriculum_title}::${data.cefr_level}::${data.hub}::` +
+        `${data.units.length}::${data.units.reduce((n, u) => n + u.lessons.length, 0)}`;
       const res = await saveBlueprintToLibrary(data, { navigateAfter: false });
       if (res.ok) {
         setHasSaved(true);
-        toast.success(`✅ Saved ${res.count} lessons. Opening library…`);
+        toast.success(`✅ Synced ${res.count} lessons. Opening library…`);
         setTimeout(() => navigate('/content-creator/library'), 1000);
         // Intentionally keep isSaving=true so button stays locked during redirect
       } else {
