@@ -132,11 +132,11 @@ export function HeroSection() {
         }`}
       />
 
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 sm:py-28 lg:py-0">
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center min-h-[auto] lg:min-h-[85vh]">
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12 sm:py-28 lg:py-0">
+        <div className="grid lg:grid-cols-2 gap-6 lg:gap-16 items-center min-h-[auto] lg:min-h-[85vh]">
 
-          {/* Left: Content */}
-          <div className="order-2 lg:order-1">
+          {/* Left: Content — show first on mobile */}
+          <div className="order-1 lg:order-1">
             {/* Trust badge — colored per group */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -235,15 +235,15 @@ export function HeroSection() {
             </motion.div>
           </div>
 
-          {/* Right: Hero Image */}
+          {/* Right: Hero Image — below content on mobile */}
           <motion.div
-            className="order-1 lg:order-2 relative"
+            className="order-2 lg:order-2 relative"
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
             style={{ y: bgY }}
           >
-            <div className="relative mx-auto max-w-lg lg:max-w-none">
+            <div className="relative mx-auto max-w-xs sm:max-w-lg lg:max-w-none">
               {/* Colored glow behind image */}
               <div
                 className={`absolute inset-0 rounded-full blur-[80px] transition-colors duration-700 ${theme.glowColor} ${
@@ -253,7 +253,7 @@ export function HeroSection() {
               />
 
               {/* Image container — no heavy overlay, object-contain for transparent PNGs */}
-              <div className="relative aspect-[3/4] sm:aspect-[4/5] flex items-end justify-center max-h-[50vh] sm:max-h-none">
+              <div className="relative aspect-[4/3] sm:aspect-[4/5] flex items-end justify-center max-h-[35vh] sm:max-h-[50vh] lg:max-h-none">
                 <AnimatePresence mode="wait">
                   <motion.img
                     key={activeImage}

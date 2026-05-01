@@ -10,12 +10,12 @@ export function FinalCTASection() {
   const { theme } = useHeroTheme();
 
   return (
-    <section className={`py-24 md:py-32 relative overflow-hidden ${
+    <section className={`py-12 sm:py-24 md:py-32 relative overflow-hidden ${
       isDark ? 'bg-[#09090B]' : 'bg-white'
     }`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
-          className={`max-w-4xl mx-auto text-center rounded-[2rem] p-12 md:p-16 relative overflow-hidden ${
+          className={`max-w-4xl mx-auto text-center rounded-2xl sm:rounded-[2rem] p-6 sm:p-12 md:p-16 relative overflow-hidden ${
             isDark
               ? 'bg-gradient-to-br from-indigo-950/80 to-violet-950/80 border border-indigo-500/20'
               : 'bg-gradient-to-br from-indigo-600 to-violet-700'
@@ -34,18 +34,18 @@ export function FinalCTASection() {
               Limited time: First lesson is free
             </div>
 
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6 leading-tight">
+            <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-4 sm:mb-6 leading-tight">
               Ready to Start
               <br />
               Speaking English?
             </h2>
 
-            <p className="text-lg text-white/70 max-w-xl mx-auto mb-10">
+            <p className="text-sm sm:text-lg text-white/70 max-w-xl mx-auto mb-6 sm:mb-10">
               Join 2,500+ students who chose EnglEuphoria to reach their language goals. 
               Your first lesson is on us.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
               <Link
                 to="/student-signup"
                 className={`inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-bold text-lg shadow-xl shadow-black/10 transition-all duration-700 hover:shadow-2xl hover:-translate-y-0.5`}
