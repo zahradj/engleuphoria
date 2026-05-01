@@ -17,6 +17,7 @@ export function NavHeader() {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
   const { theme } = useHeroTheme();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
