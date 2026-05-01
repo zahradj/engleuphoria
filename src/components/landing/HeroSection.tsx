@@ -253,7 +253,7 @@ export function HeroSection() {
               />
 
               {/* Image container — no heavy overlay, object-contain for transparent PNGs */}
-              <div className="relative aspect-[4/5] flex items-end justify-center">
+              <div className="relative aspect-[3/4] sm:aspect-[4/5] flex items-end justify-center max-h-[50vh] sm:max-h-none">
                 <AnimatePresence mode="wait">
                   <motion.img
                     key={activeImage}
@@ -300,7 +300,7 @@ export function HeroSection() {
 
               {/* Floating card — Rating */}
               <motion.div
-                className={`absolute -left-4 top-8 lg:-left-12 backdrop-blur-xl rounded-2xl px-5 py-4 z-10 ${
+                className={`hidden sm:block absolute -left-4 top-8 lg:-left-12 backdrop-blur-xl rounded-2xl px-5 py-4 z-10 ${
                   isDark
                     ? 'bg-slate-900/80 border border-white/10 shadow-xl'
                     : 'bg-white/90 border border-slate-200/60 shadow-xl shadow-slate-200/50'
@@ -321,7 +321,7 @@ export function HeroSection() {
 
               {/* Floating card — Free Trial */}
               <motion.div
-                className={`absolute -right-4 bottom-20 lg:-right-12 backdrop-blur-xl rounded-2xl px-5 py-4 z-10 ${
+                className={`hidden sm:block absolute -right-4 bottom-20 lg:-right-12 backdrop-blur-xl rounded-2xl px-5 py-4 z-10 ${
                   isDark
                     ? 'bg-slate-900/80 border border-white/10 shadow-xl'
                     : 'bg-white/90 border border-slate-200/60 shadow-xl shadow-slate-200/50'
@@ -342,7 +342,7 @@ export function HeroSection() {
 
               {/* Active now indicator */}
               <motion.div
-                className={`absolute -left-2 bottom-32 lg:-left-8 backdrop-blur-xl rounded-xl px-4 py-3 z-10 ${
+                className={`hidden sm:block absolute -left-2 bottom-32 lg:-left-8 backdrop-blur-xl rounded-xl px-4 py-3 z-10 ${
                   isDark
                     ? 'bg-slate-900/80 border border-white/10 shadow-lg'
                     : 'bg-white/90 border border-slate-200/60 shadow-lg'
