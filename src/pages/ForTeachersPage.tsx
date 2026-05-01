@@ -13,6 +13,7 @@ export default function ForTeachersPage() {
     <HeroThemeProvider>
       <div className="min-h-screen bg-background transition-colors duration-300">
         <CursorTrail />
+        <NavHeader />
         <TeacherHero />
         <TeacherBenefits />
         <TeacherRequirements />
