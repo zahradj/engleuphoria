@@ -150,7 +150,7 @@ export default function EditorialSentenceBuilder({ slide, onCorrect, onIncorrect
 
       {/* Actions */}
       <div className="flex items-center justify-center gap-4">
-        {!checked && remaining.length === 0 && placed.length > 0 && (
+        {!checked && placed.length > 0 && (
           <Button onClick={handleCheck} className="px-10 py-3 text-base font-semibold">
             Check Sentence
           </Button>
