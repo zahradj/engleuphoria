@@ -4,6 +4,8 @@ import { Map, Palette, Library, LogOut, ChevronLeft, ChevronRight } from 'lucide
 import { Logo } from '@/components/Logo';
 import { cn } from '@/lib/utils';
 import { useCreator, CreatorStep } from './CreatorContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 const NAV: Array<{ key: CreatorStep; label: string; icon: React.ElementType; emoji: string }> = [
   { key: 'blueprint', label: 'Curriculum Blueprint', icon: Map, emoji: '🗺️' },
@@ -14,7 +16,23 @@ const NAV: Array<{ key: CreatorStep; label: string; icon: React.ElementType; emo
 export const StudioSidebar: React.FC = () => {
   const { currentStep, setCurrentStep } = useCreator();
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await signOut();
+      // signOut already does window.location.replace('/'); failsafe below in case it doesn't
+      navigate('/login', { replace: true });
+    } catch (err) {
+      console.error('Logout error:', err);
+      toast.error('Sign out failed — redirecting anyway.');
+      navigate('/login', { replace: true });
+    }
+  };
 
   return (
     <aside
@@ -78,15 +96,16 @@ export const StudioSidebar: React.FC = () => {
       {/* Footer */}
       <div className={cn('border-t border-slate-800', collapsed ? 'p-2' : 'p-3')}>
         <button
-          onClick={() => navigate('/super-admin')}
-          title={collapsed ? 'Exit Studio' : undefined}
+          onClick={handleLogout}
+          disabled={signingOut}
+          title={collapsed ? 'Sign out' : undefined}
           className={cn(
-            'w-full flex items-center rounded-lg text-sm text-slate-400 hover:bg-slate-900 hover:text-white transition-colors',
+            'w-full flex items-center rounded-lg text-sm text-slate-400 hover:bg-slate-900 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
             collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2.5'
           )}
         >
           <LogOut className="h-4 w-4" />
-          {!collapsed && 'Exit Studio'}
+          {!collapsed && (signingOut ? 'Signing out…' : 'Sign Out')}
         </button>
       </div>
     </aside>
