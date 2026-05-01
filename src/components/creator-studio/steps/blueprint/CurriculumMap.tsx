@@ -183,6 +183,49 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
       </div>
 
       <div className="flex-1 overflow-y-auto p-6">
+        {/* ── Auto-save status banner ───────────────────────────── */}
+        {autoSaveStatus !== 'idle' && (
+          <div
+            className={
+              'mb-5 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm ' +
+              (autoSaveStatus === 'saved'
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-200'
+                : autoSaveStatus === 'saving'
+                ? 'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-900/50 dark:bg-sky-950/30 dark:text-sky-200'
+                : 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200')
+            }
+          >
+            {autoSaveStatus === 'saving' && (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Auto-saving all lessons to your Master Library…</span>
+              </>
+            )}
+            {autoSaveStatus === 'saved' && (
+              <>
+                <CheckCircle2 className="h-4 w-4" />
+                <span className="flex-1">
+                  <strong>{savedCount} draft lessons</strong> were automatically saved to your Master Library. Edit and publish them anytime.
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2 text-emerald-700 hover:bg-emerald-100 dark:text-emerald-200 dark:hover:bg-emerald-900/40"
+                  onClick={() => {
+                    setCurrentStep('library');
+                    navigate('/content-creator/library');
+                  }}
+                >
+                  Open Library →
+                </Button>
+              </>
+            )}
+            {autoSaveStatus === 'error' && (
+              <span className="flex-1">Auto-save didn't go through. Tap retry below.</span>
+            )}
+          </div>
+        )}
+
         <Accordion type="multiple" defaultValue={data.units.map((u) => u.id)} className="space-y-3">
           {data.units.map((unit, uIdx) => (
             <AccordionItem
