@@ -49,8 +49,8 @@ export function AuthPageLayout({
 
   return (
     <div className="relative min-h-screen flex flex-col lg:flex-row bg-white dark:bg-[#09090B] transition-colors duration-300">
-      {/* ── Left Panel: Branding & Hero Carousel ── */}
-      <div className="relative lg:w-[48%] flex flex-col items-center justify-center overflow-hidden p-8 lg:p-12">
+      {/* ── Left Panel: Branding & Hero Carousel — compact on mobile ── */}
+      <div className="relative lg:w-[48%] flex flex-col items-center justify-center overflow-hidden px-6 py-6 lg:p-12">
         {/* Ambient radial glows */}
         <motion.div
           className="absolute inset-0 pointer-events-none"
@@ -60,22 +60,22 @@ export function AuthPageLayout({
           transition={{ duration: 1 }}
         />
 
-        {/* Floating decorative dots */}
+        {/* Floating decorative dots — hidden on mobile */}
         <motion.div
-          className="absolute top-16 right-16 w-3 h-3 rounded-full opacity-40"
+          className="hidden lg:block absolute top-16 right-16 w-3 h-3 rounded-full opacity-40"
           style={{ backgroundColor: theme.cssFrom }}
           animate={{ y: [0, -12, 0], opacity: [0.3, 0.6, 0.3] }}
           transition={{ duration: 3, repeat: Infinity }}
         />
         <motion.div
-          className="absolute bottom-24 left-12 w-2 h-2 rounded-full opacity-30"
+          className="hidden lg:block absolute bottom-24 left-12 w-2 h-2 rounded-full opacity-30"
           style={{ backgroundColor: theme.cssTo }}
           animate={{ y: [0, 10, 0], opacity: [0.2, 0.5, 0.2] }}
           transition={{ duration: 4, repeat: Infinity, delay: 1 }}
         />
 
         {/* Logo */}
-        <Link to="/" className="relative z-10 flex items-center gap-2.5 mb-8 lg:mb-12">
+        <Link to="/" className="relative z-10 flex items-center gap-2.5 mb-4 lg:mb-12">
           <motion.div
             className="w-9 h-9 rounded-xl p-0.5 flex items-center justify-center"
             animate={{
@@ -103,8 +103,8 @@ export function AuthPageLayout({
           </motion.span>
         </Link>
 
-        {/* Character Image Carousel */}
-        <div className="relative z-10 w-56 h-56 sm:w-64 sm:h-64 lg:w-72 lg:h-72 mb-6">
+        {/* Character Image Carousel — smaller on mobile */}
+        <div className="relative z-10 w-32 h-32 sm:w-40 sm:h-40 lg:w-72 lg:h-72 mb-3 lg:mb-6">
           {/* Glow ring behind character */}
           <motion.div
             className="absolute inset-0 rounded-full blur-2xl opacity-30"
@@ -135,11 +135,11 @@ export function AuthPageLayout({
           </AnimatePresence>
         </div>
 
-        {/* Tagline */}
+        {/* Tagline — hidden on very small screens */}
         <AnimatePresence mode="wait">
           <motion.p
             key={activeIndex}
-            className="relative z-10 text-center text-lg font-medium text-foreground/80 max-w-xs"
+            className="relative z-10 text-center text-sm lg:text-lg font-medium text-foreground/80 max-w-xs hidden sm:block"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
@@ -150,15 +150,15 @@ export function AuthPageLayout({
         </AnimatePresence>
 
         {/* Mini avatar selectors */}
-        <div className="relative z-10 flex items-center gap-3 mt-6">
+        <div className="relative z-10 flex items-center gap-3 mt-3 lg:mt-6">
           {HERO_IMAGES.map((img, i) => (
             <button
               key={i}
               onClick={() => setActiveIndex(i)}
               className={`relative rounded-full transition-all duration-300 ${
                 i === activeIndex
-                  ? 'w-12 h-12 ring-2 scale-110'
-                  : 'w-9 h-9 opacity-50 hover:opacity-80 hover:scale-105'
+                  ? 'w-10 h-10 lg:w-12 lg:h-12 ring-2 scale-110'
+                  : 'w-7 h-7 lg:w-9 lg:h-9 opacity-50 hover:opacity-80 hover:scale-105'
               }`}
               style={{
                 ['--tw-ring-color' as string]: i === activeIndex ? theme.cssFrom : undefined,
