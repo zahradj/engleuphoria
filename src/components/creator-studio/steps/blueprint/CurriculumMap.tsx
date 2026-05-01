@@ -1,5 +1,5 @@
-import React from 'react';
-import { Loader2, BookOpen, Palette, Target } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Loader2, BookOpen, Palette, Target, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useCreator, CurriculumData, BlueprintLessonRef } from '../../CreatorContext';
@@ -16,6 +16,9 @@ interface Props {
 export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
   const { setActiveLessonData, setCurrentStep } = useCreator();
   const navigate = useNavigate();
+  const autoSavedRef = useRef<string | null>(null);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [savedCount, setSavedCount] = useState(0);
 
   const handleBuildSlides = (lesson: BlueprintLessonRef) => {
     if (!data) return;
