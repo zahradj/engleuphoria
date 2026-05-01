@@ -1,66 +1,84 @@
-## Current State (already in place)
+# L1/L2 Localization: UI Only, Lesson Content Stays English
 
-Good news — i18n infrastructure already exists, just incomplete:
+## Goal
+Wire the landing page hero, student dashboard, and student sidebar to `react-i18next` so they switch instantly with `<LanguageSwitcher />`, while enforcing a strict rule that all curriculum content rendered from the database stays in English.
 
-- `src/lib/i18n.ts` — i18next + react-i18next + LanguageDetector configured
-- `src/main.tsx` — already sets `document.documentElement.dir = 'rtl'` for Arabic on language change
-- `src/components/common/LanguageSwitcher.tsx` — dropdown with all 6 flags exists (but lists Turkish without a translation file, and Italian is missing entirely)
-- `src/translations/` — `english`, `spanish`, `arabic`, `french` exist; **`turkish` and `italian` are missing**
-- Sidebar/header text (`StudioSidebar.tsx`, `StudioHeader.tsx`, `StudioMobileNav.tsx`) is **hardcoded** — not using `useTranslation` yet
+## Scope
 
-## What to Build
+### IN scope (translate)
+- **Landing**: `HeroSection.tsx`, `NavHeader.tsx`, `FinalCTASection.tsx` — hero headline, tagline, CTA buttons ("Start Learning", "Watch Demo", "Join Now"), nav links.
+- **Student Dashboard chrome**: `src/pages/StudentDashboard.tsx`, `WelcomeSection.tsx`, `DashboardTab.tsx`, `LearningPathTab.tsx` (tab labels, section headings, button labels — NOT lesson titles).
+- **Sidebar**: `StudentSidebar.tsx`, `MinimalStudentHeader.tsx`, `MobileBottomNav.tsx` — already partly translated; audit & complete missing keys.
+- **Common UI strings**: "Welcome back", "Start Lesson", "My Progress", "Profile", "Settings", "Continue", "View All", loading/empty states.
 
-### 1. Add the two missing languages
-- Create `src/translations/turkish.ts` and `src/translations/italian.ts` (mirroring the existing english structure)
-- Add an `italian` entry to `LanguageSwitcher` (Turkish is already listed)
-- Register both in `src/lib/i18n.ts` resources map and in `src/translations/index.ts`
+### OUT of scope (must stay English — enforce "Do Not Touch" rule)
+- `DynamicSlideRenderer.tsx` and any child slide component.
+- Anything reading from `curriculum_lessons` / `lesson_slides`: `lesson.title`, `lesson.description`, `slide.target_phrase`, `slide.questions`, vocabulary words, example sentences.
+- `LessonPlayerContainer.tsx`, `AcademyLessonLayout.tsx`, `UnitRoadmap.tsx` lesson-data fields.
+- `LessonCard.tsx` lesson title/description (only surrounding chrome like a "Start" button gets translated).
 
-### 2. Create a shared `nav` namespace
-Add a `nav` block to all 6 translation files with the keys the user listed:
+## Implementation
+
+### 1. Translation keys
+Add a new `landing` namespace and extend `dashboardUI` in all 6 locales (`english`, `arabic`, `french`, `turkish`, `spanish`, `italian`):
+
+```text
+landing.hero.headline
+landing.hero.tagline
+landing.hero.cta_primary    // "Start Learning Free"
+landing.hero.cta_secondary  // "Watch Demo"
+landing.nav.for_parents / for_teachers / about / login / signup
+landing.cta.final_headline / final_button
+
+dashboardUI.sd.welcome_back        // "Welcome back, {{name}}"
+dashboardUI.sd.ready_to_learn
+dashboardUI.sd.start_lesson
+dashboardUI.sd.continue_lesson
+dashboardUI.sd.my_progress
+dashboardUI.sd.view_all
+dashboardUI.sd.tabs.dashboard / learning_path / certificates / billing / chat
 ```
-nav: { dashboard, slide_studio, master_library, blueprint, logout, settings, language }
-```
-Translations for each language hand-authored (not machine output) for the ~7 nav strings.
 
-### 3. Wire the Creator Studio chrome to `useTranslation`
-Replace hardcoded labels in:
-- `src/components/creator-studio/StudioSidebar.tsx` — nav items array + Logout button
-- `src/components/creator-studio/StudioMobileNav.tsx` — same labels
-- `src/components/creator-studio/StudioHeader.tsx` — header strings
+Register the new `landing.ts` module in each locale's `index.ts`.
 
-Each becomes `t('nav.master_library')` etc.
+### 2. Component refactors
+For each in-scope component:
+- Import `useTranslation` from `react-i18next`.
+- Replace hardcoded English strings with `t('landing.hero.headline')` etc.
+- Use interpolation for `{{name}}` in welcome strings.
+- Preserve all existing Tailwind classes, glassmorphism, hub colors, animations — no styling changes.
 
-### 4. Mount the LanguageSwitcher
-Drop `<LanguageSwitcher />` into the **bottom of `StudioSidebar`** (above the Logout button) so it's visible across the entire Content Creator hub. Also confirm it's reachable from `StudioMobileNav`.
+`WelcomeSection.tsx` currently uses `languageText.welcomeUser` (legacy `LanguageContext`); migrate it to `useTranslation` for consistency with the rest of the i18n stack.
 
-### 5. RTL polish for the Studio chrome
-The global `dir="rtl"` flip already works (it's in `main.tsx`). To make the Studio sidebar mirror cleanly, swap a handful of directional Tailwind classes to logical ones in just the three chrome files above:
-- `ml-*` → `ms-*`, `mr-*` → `me-*`
-- `pl-*` → `ps-*`, `pr-*` → `pe-*`
-- `left-*` → `start-*`, `right-*` → `end-*`
-- `text-left` → `text-start`, `text-right` → `text-end`
-- Flip chevron icons under `[dir="rtl"]` via a small CSS rule in `index.css`
+### 3. Enforcement of "Do Not Touch" rule
+- Add a header comment block to `DynamicSlideRenderer.tsx` and `LessonCard.tsx`:
+  ```text
+  // L1/L2 RULE: Do NOT wrap lesson content (title, description,
+  // target_phrase, questions, vocabulary) in t(). Curriculum content
+  // from `curriculum_lessons` must render verbatim in English.
+  ```
+- Audit these files with `rg "useTranslation"` to confirm none currently apply `t()` to DB-sourced strings; if any exist, remove them.
 
-Scope is intentionally limited to Sidebar / Header / MobileNav — a full-app RTL pass on every page is out of scope for this PoC.
-
-### 6. Verify i18n init order
-Confirm `src/lib/i18n.ts` is imported in `main.tsx` **before** `App` renders (it already is — just adding a sanity check during implementation).
-
-## Out of scope (intentionally)
-
-- Translating page bodies, lesson content, toasts, or admin panels — only the nav chrome is in scope per the prompt's "PoC" wording.
-- I18nextProvider wrapping — `react-i18next` v12+ does **not** require it; the `i18n.use(initReactI18next)` call already binds it globally. I'll skip the redundant provider unless you specifically want one.
-
-## Files to create
-- `src/translations/turkish.ts`
-- `src/translations/italian.ts`
+### 4. Verification
+- Manually switch the language via `<LanguageSwitcher />` and confirm:
+  - Hero, nav, sidebar, dashboard tabs, welcome message all change.
+  - A lesson card's title and the slide content stay in English.
+  - Arabic flips RTL correctly (already wired in `LanguageSwitcher`).
 
 ## Files to edit
-- `src/lib/i18n.ts` (register tr + it)
-- `src/translations/index.ts` (export tr + it)
-- `src/translations/english.ts`, `spanish.ts`, `arabic.ts`, `french.ts` (add `nav` block)
-- `src/components/common/LanguageSwitcher.tsx` (add Italian)
-- `src/components/creator-studio/StudioSidebar.tsx` (translate + mount switcher + logical classes)
-- `src/components/creator-studio/StudioHeader.tsx` (translate + logical classes)
-- `src/components/creator-studio/StudioMobileNav.tsx` (translate + logical classes)
-- `src/index.css` (chevron flip rule for RTL)
+- `src/translations/{english,arabic,french,turkish,spanish,italian}/landing.ts` (new)
+- `src/translations/{english,arabic,french,turkish,spanish,italian}/dashboardUI.ts` (extend)
+- `src/translations/{...}/index.ts` (register `landing`)
+- `src/components/landing/HeroSection.tsx`
+- `src/components/landing/NavHeader.tsx`
+- `src/components/landing/FinalCTASection.tsx`
+- `src/components/dashboard/WelcomeSection.tsx`
+- `src/pages/StudentDashboard.tsx` (audit remaining hardcoded strings)
+- `src/components/student/DashboardTab.tsx`, `LearningPathTab.tsx` (chrome only)
+- `src/components/lesson-player/DynamicSlideRenderer.tsx` (add enforcement comment)
+- `src/components/student/LessonCard.tsx` (add enforcement comment)
+
+## Out of scope / not changing
+- No DB schema, no Supabase migration, no edge-function changes.
+- No changes to lesson player runtime, audio, or scoring logic.
+- Teacher/parent dashboards (already done in earlier session).
