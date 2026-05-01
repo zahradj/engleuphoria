@@ -354,7 +354,7 @@ export function HeroSection() {
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full animate-pulse transition-colors duration-700 ${theme.dotActive}`} />
                   <span className={`text-xs font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                    <strong className={isDark ? 'text-white' : 'text-slate-900'}>127</strong> students online now
+                    <strong className={isDark ? 'text-white' : 'text-slate-900'}>127</strong> {t('lp.hero.studentsOnline')}
                   </span>
                 </div>
               </motion.div>
