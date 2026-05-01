@@ -3,11 +3,13 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { useHeroTheme } from '@/contexts/HeroThemeContext';
+import { useTranslation } from 'react-i18next';
 
 export function FinalCTASection() {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
   const { theme } = useHeroTheme();
+  const { t } = useTranslation();
 
   return (
     <section className={`py-12 sm:py-24 md:py-32 relative overflow-hidden ${
