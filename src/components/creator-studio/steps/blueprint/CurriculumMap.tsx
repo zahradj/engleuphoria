@@ -1,5 +1,5 @@
-import React from 'react';
-import { Loader2, BookOpen, Palette, Target } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Loader2, BookOpen, Palette, Target, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useCreator, CurriculumData, BlueprintLessonRef } from '../../CreatorContext';
@@ -16,6 +16,9 @@ interface Props {
 export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
   const { setActiveLessonData, setCurrentStep } = useCreator();
   const navigate = useNavigate();
+  const autoSavedRef = useRef<string | null>(null);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [savedCount, setSavedCount] = useState(0);
 
   const handleBuildSlides = (lesson: BlueprintLessonRef) => {
     if (!data) return;
@@ -32,12 +35,10 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
     toast.success(`Opening Slide Studio for "${lesson.title}"…`);
   };
 
-  const forceSaveToLibrary = async () => {
-    if (!data) {
-      toast.error('No curriculum lessons to save.');
-      return;
-    }
-
+  const saveBlueprintToLibrary = async (
+    payload: CurriculumData,
+    opts: { silent?: boolean; navigateAfter?: boolean } = {},
+  ): Promise<{ ok: boolean; count: number; error?: string }> => {
     // Normalize hub → target_system used by Master Library
     const hubToTargetSystem = (hub: string): string => {
       const h = (hub || '').toLowerCase();
@@ -49,14 +50,14 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
 
     const { data: userData, error: userErr } = await supabase.auth.getUser();
     if (userErr || !userData.user) {
-      toast.error('You must be signed in to save the blueprint.');
-      return;
+      if (!opts.silent) toast.error('You must be signed in to save the blueprint.');
+      return { ok: false, count: 0, error: 'not-signed-in' };
     }
     const uid = userData.user.id;
-    const targetSystem = hubToTargetSystem(data.hub);
-    const difficulty = (data.cefr_level || 'A1').toUpperCase();
+    const targetSystem = hubToTargetSystem(payload.hub);
+    const difficulty = (payload.cefr_level || 'A1').toUpperCase();
 
-    const lessonsToInsert = data.units.flatMap((unit, uIdx) =>
+    const lessonsToInsert = payload.units.flatMap((unit, uIdx) =>
       unit.lessons.map((lesson, lIdx) => ({
         title: lesson.title,
         description: lesson.objective || lesson.learning_objective || null,
@@ -71,9 +72,9 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
           blueprint_ref: lesson,
           unit_title: unit.unit_title,
           unit_number: unit.unit_number ?? uIdx + 1,
-          curriculum_title: data.curriculum_title,
-          theme_hint: data.theme_hint ?? null,
-          hub: data.hub,
+          curriculum_title: payload.curriculum_title,
+          theme_hint: payload.theme_hint ?? null,
+          hub: payload.hub,
         },
       })),
     );
@@ -83,17 +84,57 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
         .from('curriculum_lessons')
         .insert(lessonsToInsert as any)
         .select('id, title');
-      console.log('Library Save Result:', { inserted, error, count: lessonsToInsert.length });
+      console.log('Library Save Result:', { inserted, error, count: lessonsToInsert.length, silent: opts.silent });
       if (error) throw error;
 
-      toast.success(`Blueprint saved! ${inserted?.length ?? lessonsToInsert.length} draft lessons added to your library.`);
-      setCurrentStep('library');
-      navigate('/content-creator/library');
+      const count = inserted?.length ?? lessonsToInsert.length;
+      if (!opts.silent) {
+        toast.success(`Blueprint saved! ${count} draft lessons added to your library.`);
+      }
+      if (opts.navigateAfter) {
+        setCurrentStep('library');
+        navigate('/content-creator/library');
+      }
+      return { ok: true, count };
     } catch (err: any) {
-      console.error('FORCE SAVE TO LIBRARY error:', err);
-      toast.error(err?.message || JSON.stringify(err) || 'Unknown SQL error');
+      console.error('SAVE TO LIBRARY error:', err);
+      if (!opts.silent) {
+        toast.error(err?.message || JSON.stringify(err) || 'Unknown SQL error');
+      }
+      return { ok: false, count: 0, error: err?.message || 'unknown' };
     }
   };
+
+  const forceSaveToLibrary = () =>
+    data
+      ? saveBlueprintToLibrary(data, { navigateAfter: true })
+      : (toast.error('No curriculum lessons to save.'), Promise.resolve({ ok: false, count: 0 }));
+
+  // ── Auto-save: as soon as a fresh blueprint arrives, persist all
+  // lessons to the Master Library as drafts (no button click required).
+  useEffect(() => {
+    if (!data || loading) return;
+    const fingerprint =
+      `${data.curriculum_title}::${data.cefr_level}::${data.hub}::` +
+      `${data.units.length}::${data.units.reduce((n, u) => n + u.lessons.length, 0)}`;
+    if (autoSavedRef.current === fingerprint) return;
+    autoSavedRef.current = fingerprint;
+
+    setAutoSaveStatus('saving');
+    saveBlueprintToLibrary(data, { silent: true }).then((res) => {
+      if (res.ok) {
+        setAutoSaveStatus('saved');
+        setSavedCount(res.count);
+        toast.success(`Auto-saved ${res.count} lessons to your Master Library as drafts.`);
+      } else {
+        setAutoSaveStatus('error');
+        toast.error(`Auto-save failed: ${res.error ?? 'unknown error'}. You can retry below.`);
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, loading]);
+
+
 
   if (loading && !data) {
     return (
@@ -142,6 +183,49 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
       </div>
 
       <div className="flex-1 overflow-y-auto p-6">
+        {/* ── Auto-save status banner ───────────────────────────── */}
+        {autoSaveStatus !== 'idle' && (
+          <div
+            className={
+              'mb-5 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm ' +
+              (autoSaveStatus === 'saved'
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-200'
+                : autoSaveStatus === 'saving'
+                ? 'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-900/50 dark:bg-sky-950/30 dark:text-sky-200'
+                : 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200')
+            }
+          >
+            {autoSaveStatus === 'saving' && (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Auto-saving all lessons to your Master Library…</span>
+              </>
+            )}
+            {autoSaveStatus === 'saved' && (
+              <>
+                <CheckCircle2 className="h-4 w-4" />
+                <span className="flex-1">
+                  <strong>{savedCount} draft lessons</strong> were automatically saved to your Master Library. Edit and publish them anytime.
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2 text-emerald-700 hover:bg-emerald-100 dark:text-emerald-200 dark:hover:bg-emerald-900/40"
+                  onClick={() => {
+                    setCurrentStep('library');
+                    navigate('/content-creator/library');
+                  }}
+                >
+                  Open Library →
+                </Button>
+              </>
+            )}
+            {autoSaveStatus === 'error' && (
+              <span className="flex-1">Auto-save didn't go through. Tap retry below.</span>
+            )}
+          </div>
+        )}
+
         <Accordion type="multiple" defaultValue={data.units.map((u) => u.id)} className="space-y-3">
           {data.units.map((unit, uIdx) => (
             <AccordionItem
@@ -206,7 +290,16 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
           ))}
         </Accordion>
 
-        <button onClick={forceSaveToLibrary} className="w-full py-4 mt-8 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xl rounded-xl shadow-lg">🛑 FORCE SAVE TO LIBRARY 🛑</button>
+        <button
+          onClick={forceSaveToLibrary}
+          className="w-full py-4 mt-8 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg rounded-xl shadow-lg"
+        >
+          {autoSaveStatus === 'saved'
+            ? '✅ Save Again & Open Library'
+            : autoSaveStatus === 'error'
+            ? '🔁 Retry Save to Library'
+            : '💾 Save to Library & Open'}
+        </button>
       </div>
     </>
   );
