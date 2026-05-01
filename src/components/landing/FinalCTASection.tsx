@@ -33,18 +33,17 @@ export function FinalCTASection() {
           <div className="relative z-10">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white/90 text-sm font-medium mb-8 backdrop-blur-sm">
               <Sparkles className="w-4 h-4" />
-              Limited time: First lesson is free
+              {t('lp.cta.badge')}
             </div>
 
             <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-4 sm:mb-6 leading-tight">
-              Ready to Start
+              {t('lp.cta.headline1')}
               <br />
-              Speaking English?
+              {t('lp.cta.headline2')}
             </h2>
 
             <p className="text-sm sm:text-lg text-white/70 max-w-xl mx-auto mb-6 sm:mb-10">
-              Join 2,500+ students who chose EnglEuphoria to reach their language goals. 
-              Your first lesson is on us.
+              {t('lp.cta.subheadline')}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
@@ -53,14 +52,14 @@ export function FinalCTASection() {
                 className={`inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-bold text-lg shadow-xl shadow-black/10 transition-all duration-700 hover:shadow-2xl hover:-translate-y-0.5`}
                 style={{ background: `linear-gradient(to right, ${theme.cssFrom}, ${theme.cssTo})`, color: 'white' }}
               >
-                Get Started Free
+                {t('lp.cta.primary')}
                 <ArrowRight className="w-5 h-5" />
               </Link>
               <button
                 onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-white/10 text-white font-semibold text-lg backdrop-blur-sm border border-white/20 transition-all duration-300 hover:bg-white/20"
               >
-                View Pricing
+                {t('lp.cta.secondary')}
               </button>
             </div>
           </div>
