@@ -167,9 +167,9 @@ const SlideStudioInner: React.FC = () => {
       ) : (
         <div className="flex-1 min-h-0 flex flex-col">
           <div className="flex-1 min-h-0 flex">
-            {/* Left Sidebar — thin, unobtrusive */}
+            {/* Left Sidebar — compact asset editor */}
             {activeSlide && (
-              <aside className="w-[260px] xl:w-[290px] shrink-0 h-full overflow-y-auto border-r border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm">
+              <aside className="w-[320px] xl:w-[340px] shrink-0 h-full overflow-y-auto border-r border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm">
                 <TeacherControlsPanel slide={activeSlide} onChange={(patch) => updateSlide(activeSlide.id, patch)} />
               </aside>
             )}
