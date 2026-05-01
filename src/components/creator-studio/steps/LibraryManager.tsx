@@ -596,6 +596,12 @@ export const LibraryManager: React.FC = () => {
                                 ) : (
                                   <BookOpen className={cn('h-8 w-8 opacity-20', cardGradient.text)} />
                                 )}
+                                {/* Prominent L# badge */}
+                                {lessonNumber != null && (
+                                  <div className="absolute top-2 right-2 h-8 min-w-[2rem] px-2 rounded-lg bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm shadow-sm flex items-center justify-center font-black text-xs text-slate-900 dark:text-slate-50 tracking-tight">
+                                    L{lessonNumber}
+                                  </div>
+                                )}
                               </div>
 
                               {/* Selection checkbox */}
