@@ -15,7 +15,7 @@ const getFooterLinks = (t: TFn) => ({
     items: [
       { label: t('lp.footer.link.playground'), href: '/student-signup' },
       { label: t('lp.footer.link.academy'), href: '/student-signup' },
-      { label: t('lp.footer.link.professional'), href: '/student-signup' },
+      { label: t('lp.footer.link.proHub'), href: '/student-signup' },
     ],
   },
   learn: {
@@ -128,7 +128,7 @@ export function FooterSection() {
           transition={{ delay: 0.3 }}
         >
           <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-            © {new Date().getFullYear()} EnglEuphoria. {t('lp.footer.rights')}
+            © {new Date().getFullYear()} EnglEuphoria. {t('lp.footer.copyright')}
           </p>
           <div className="flex items-center gap-6">
             <Link to="/login" className={`text-sm font-medium transition-colors ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}>
@@ -160,7 +160,7 @@ export function FooterSection() {
           </motion.p>
         </div>
         <p className={`text-center text-sm pb-8 -mt-4 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
-          {t('lp.footer.signature')}
+          {t('lp.footer.bigTagline')}
         </p>
       </div>
     </footer>
