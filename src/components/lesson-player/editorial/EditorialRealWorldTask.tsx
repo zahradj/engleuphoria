@@ -54,8 +54,9 @@ export default function EditorialRealWorldTask({ slide, onCorrect }: EditorialRe
   const evaluateWithAI = async (studentResponse: string) => {
     setEvaluating(true);
     try {
-      const { data, error } = await supabase.functions.invoke('evaluate-speaking', {
+      const { data, error } = await supabase.functions.invoke('ai-core', {
         body: {
+          action: 'evaluate_speaking',
           mission_briefing: missionBriefing,
           student_transcript: studentResponse,
           success_criteria: successCriteria,
