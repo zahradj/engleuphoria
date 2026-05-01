@@ -34,34 +34,38 @@ export async function persistBlueprintAsDrafts(curriculum: CurriculumData) {
   const targetSystem = hubToTargetSystem(curriculum.hub);
   const difficultyLevel = cefrToDifficulty(curriculum.cefr_level);
 
-  // 1. Upsert level
+  // 1. Insert level (NOT NULL: name, cefr_level, age_group, description, level_order)
   const { data: levelRow, error: levelErr } = await supabase
     .from('curriculum_levels')
-    .upsert(
-      {
-        name: `${curriculum.cefr_level} – ${curriculum.curriculum_title}`,
-        cefr_level: curriculum.cefr_level,
-        age_group: targetSystem,
-        target_system: targetSystem,
-        description: curriculum.theme_hint || null,
-      },
-      { onConflict: 'id' }, // always insert a new row
-    )
+    .insert({
+      name: `${curriculum.cefr_level} – ${curriculum.curriculum_title}`,
+      cefr_level: curriculum.cefr_level,
+      age_group: targetSystem,
+      target_system: targetSystem,
+      description: curriculum.theme_hint || curriculum.curriculum_title || 'Auto-generated blueprint',
+      level_order: 1,
+      sequence_order: 1,
+    })
     .select('id')
     .single();
   if (levelErr) throw levelErr;
   const levelId = levelRow.id;
 
-  // 2. Insert units
+  // 2. Insert units (NOT NULL: title, unit_number, duration_weeks, age_group, cefr_level, learning_objectives)
   const unitIdMap = new Map<string, string>(); // local uid → DB uuid
   for (const unit of curriculum.units) {
+    const objectives = (unit as any).learning_objectives
+      ?? (unit as any).objectives
+      ?? (unit.unit_title ? [unit.unit_title] : ['Learning objectives TBD']);
     const { data: unitRow, error: unitErr } = await supabase
       .from('curriculum_units')
       .insert({
         title: unit.unit_title,
         unit_number: unit.unit_number ?? 1,
+        duration_weeks: 1,
         cefr_level: curriculum.cefr_level,
         age_group: targetSystem,
+        learning_objectives: Array.isArray(objectives) ? objectives : [String(objectives)],
         created_by: userId,
         is_published: false,
       })
