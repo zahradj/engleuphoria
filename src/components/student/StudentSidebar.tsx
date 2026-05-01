@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from "@/components/ui/badge";
 import { HubLogo } from '@/components/student/HubLogo';
 import { 
@@ -71,6 +72,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
   hasProfile = false,
   onLogout 
 }) => {
+  const { t } = useTranslation();
   const { studentLevel } = useStudentLevel();
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
@@ -79,21 +81,22 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
   const hubColors = HUB_ICON_COLORS[hubKey] || HUB_ICON_COLORS.playground;
   const hubId = hubKey as 'playground' | 'academy' | 'professional';
 
+  const newBadge = t('sd.badge.new');
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'classes', label: 'Classes', icon: Calendar },
-    { id: 'homework', label: 'Homework', icon: BookOpen },
-    { id: 'lessons', label: 'My Lessons', icon: BookOpen },
-    { id: 'learning-path', label: 'My Learning Path', icon: Map, badge: 'New' },
-    { id: 'sounds', label: 'Map of Sounds', icon: Sparkles, badge: 'New' },
-    { id: 'vocabulary', label: 'Vocabulary Vault', icon: BookOpen, badge: 'New' },
-    { id: 'milestones', label: 'Mastery Milestones', icon: Trophy, badge: 'New' },
-    { id: 'assessments', label: 'Assessments', icon: ClipboardList },
-    { id: 'certificates', label: 'Certificates', icon: Library },
-    { id: 'teachers', label: 'My Teachers', icon: Users },
-    { id: 'progress', label: 'Progress', icon: TrendingUp },
-    { id: 'referrals', label: 'Invite Friends', icon: Gift, badge: 'New' },
-    { id: 'profile', label: 'Profile', icon: User }
+    { id: 'dashboard', label: t('sd.menu.dashboard'), icon: Home },
+    { id: 'classes', label: t('sd.menu.classes'), icon: Calendar },
+    { id: 'homework', label: t('sd.menu.homework'), icon: BookOpen },
+    { id: 'lessons', label: t('sd.menu.lessons'), icon: BookOpen },
+    { id: 'learning-path', label: t('sd.menu.learningPath'), icon: Map, badge: newBadge },
+    { id: 'sounds', label: t('sd.menu.sounds'), icon: Sparkles, badge: newBadge },
+    { id: 'vocabulary', label: t('sd.menu.vocabulary'), icon: BookOpen, badge: newBadge },
+    { id: 'milestones', label: t('sd.menu.milestones'), icon: Trophy, badge: newBadge },
+    { id: 'assessments', label: t('sd.menu.assessments'), icon: ClipboardList },
+    { id: 'certificates', label: t('sd.menu.certificates'), icon: Library },
+    { id: 'teachers', label: t('sd.menu.teachers'), icon: Users },
+    { id: 'progress', label: t('sd.menu.progress'), icon: TrendingUp },
+    { id: 'referrals', label: t('sd.menu.referrals'), icon: Gift, badge: newBadge },
+    { id: 'profile', label: t('sd.menu.profile'), icon: User }
   ];
 
   const { state } = useSidebar();
@@ -177,7 +180,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
                       }`}
                     >
                       <LogOut className="h-5 w-5" />
-                      {!isCollapsed && <span>Logout</span>}
+                      {!isCollapsed && <span>{t('sd.menu.logout')}</span>}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
