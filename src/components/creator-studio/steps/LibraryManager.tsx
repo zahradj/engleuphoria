@@ -274,12 +274,24 @@ export const LibraryManager: React.FC = () => {
 
       for (const lesson of lessons) {
         const u = lesson.unit_id ? unitById.get(lesson.unit_id) : undefined;
-        const uKey = u ? u.id : UNCAT_KEY;
+        const metaUnitNumber: number | null =
+          typeof lesson.ai_metadata?.unit_number === 'number' ? lesson.ai_metadata.unit_number : null;
+        const metaUnitTitle: string | null =
+          typeof lesson.ai_metadata?.unit_title === 'string' ? lesson.ai_metadata.unit_title : null;
+
+        const resolvedUnitNumber = u?.unit_number ?? metaUnitNumber;
+        const resolvedUnitTitle = u?.title ?? metaUnitTitle ?? 'Uncategorized';
+        const uKey = u
+          ? u.id
+          : metaUnitNumber != null
+          ? `meta::${metaUnitNumber}::${metaUnitTitle ?? ''}`
+          : UNCAT_KEY;
+
         if (!unitMap.has(uKey)) {
           unitMap.set(uKey, {
             unit_id: u?.id ?? null,
-            unit_number: u?.unit_number ?? null,
-            unit_title: u?.title ?? 'Uncategorized',
+            unit_number: resolvedUnitNumber,
+            unit_title: resolvedUnitTitle,
             lessons: [],
           });
         }
