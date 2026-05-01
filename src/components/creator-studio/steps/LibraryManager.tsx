@@ -135,6 +135,13 @@ export const LibraryManager: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
   const [confirmBulk, setConfirmBulk] = useState<'selected' | 'all' | null>(null);
+  // ── Navigation / filter state ────────────────────────────────────
+  const [hubFilter, setHubFilter] = useState<'all' | 'playground' | 'academy' | 'success'>('all');
+  const [search, setSearch] = useState('');
+  const [openHubs, setOpenHubs] = useState<Set<string>>(new Set(['playground', 'academy', 'success']));
+  const [openLevels, setOpenLevels] = useState<Set<string>>(new Set());
+  const toggleHub = (h: string) => setOpenHubs((p) => { const n = new Set(p); n.has(h) ? n.delete(h) : n.add(h); return n; });
+  const toggleLevel = (k: string) => setOpenLevels((p) => { const n = new Set(p); n.has(k) ? n.delete(k) : n.add(k); return n; });
 
   const fetchRows = React.useCallback(async () => {
     setLoading(true);
