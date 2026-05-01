@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -26,6 +27,7 @@ interface StudentRelationship {
 }
 
 const ParentDashboard: React.FC = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
 
@@ -86,8 +88,8 @@ const ParentDashboard: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* Mobile sticky header */}
       <header className="sticky top-0 z-30 md:hidden bg-card/90 backdrop-blur-xl border-b border-border/60 px-4 py-3">
-        <h1 className="text-lg font-bold text-foreground">Parent Portal</h1>
-        <p className="text-xs text-muted-foreground">Track progress & talk to teachers</p>
+        <h1 className="text-lg font-bold text-foreground">{t('pd.title')}</h1>
+        <p className="text-xs text-muted-foreground">{t('pd.subtitleMobile')}</p>
       </header>
 
       <div
@@ -95,9 +97,9 @@ const ParentDashboard: React.FC = () => {
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}
       >
         <div className="hidden md:block mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Parent Portal</h1>
+          <h1 className="text-3xl font-bold text-foreground">{t('pd.title')}</h1>
           <p className="text-muted-foreground mt-2">
-            Monitor your children's learning progress and communicate with teachers
+            {t('pd.subtitleDesktop')}
           </p>
         </div>
 
@@ -116,28 +118,28 @@ const ParentDashboard: React.FC = () => {
               className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-2 text-[11px] md:text-sm min-h-[44px]"
             >
               <Users className="h-5 w-5 md:h-4 md:w-4" />
-              <span>Students</span>
+              <span>{t('pd.tab.students')}</span>
             </TabsTrigger>
             <TabsTrigger
               value="progress"
               className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-2 text-[11px] md:text-sm min-h-[44px]"
             >
               <TrendingUp className="h-5 w-5 md:h-4 md:w-4" />
-              <span>Progress</span>
+              <span>{t('pd.tab.progress')}</span>
             </TabsTrigger>
             <TabsTrigger
               value="messages"
               className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-2 text-[11px] md:text-sm min-h-[44px]"
             >
               <MessageSquare className="h-5 w-5 md:h-4 md:w-4" />
-              <span>Messages</span>
+              <span>{t('pd.tab.messages')}</span>
             </TabsTrigger>
             <TabsTrigger
               value="notifications"
               className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-2 text-[11px] md:text-sm min-h-[44px]"
             >
               <Bell className="h-5 w-5 md:h-4 md:w-4" />
-              <span className="truncate max-w-full">Alerts</span>
+              <span className="truncate max-w-full">{t('pd.tab.alerts')}</span>
             </TabsTrigger>
           </TabsList>
 
