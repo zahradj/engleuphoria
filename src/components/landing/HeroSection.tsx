@@ -132,8 +132,8 @@ export function HeroSection() {
         }`}
       />
 
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-28 lg:py-0">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center min-h-[85vh]">
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 sm:py-28 lg:py-0">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center min-h-[auto] lg:min-h-[85vh]">
 
           {/* Left: Content */}
           <div className="order-2 lg:order-1">
@@ -152,7 +152,7 @@ export function HeroSection() {
 
             {/* Headline with dynamic gradient accent */}
             <motion.h1
-              className={`text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05] mb-6 ${
+              className={`text-3xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight leading-[1.08] mb-4 sm:mb-6 ${
                 isDark ? 'text-white' : 'text-slate-900'
               }`}
               initial={{ opacity: 0, y: 30 }}
@@ -168,7 +168,7 @@ export function HeroSection() {
 
             {/* Subheadline */}
             <motion.p
-              className={`text-xl leading-relaxed mb-8 max-w-lg ${
+              className={`text-base sm:text-xl leading-relaxed mb-6 sm:mb-8 max-w-lg ${
                 isDark ? 'text-slate-400' : 'text-slate-600'
               }`}
               initial={{ opacity: 0, y: 20 }}
@@ -188,14 +188,14 @@ export function HeroSection() {
             >
               <Link
                 to="/student-signup"
-                className={`inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r ${theme.gradient} ${theme.gradientHover} text-white font-bold text-lg shadow-xl ${theme.shadow} transition-all duration-500 hover:-translate-y-0.5`}
+                className={`inline-flex items-center justify-center gap-2 px-6 py-3 sm:px-8 sm:py-4 rounded-2xl bg-gradient-to-r ${theme.gradient} ${theme.gradientHover} text-white font-bold text-base sm:text-lg shadow-xl ${theme.shadow} transition-all duration-500 hover:-translate-y-0.5`}
               >
                 Get Started Free
                 <ArrowRight className="w-5 h-5" />
               </Link>
               <button
                 onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
-                className={`inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 ${
+                className={`inline-flex items-center justify-center gap-2 px-6 py-3 sm:px-8 sm:py-4 rounded-2xl font-semibold text-base sm:text-lg transition-all duration-300 ${
                   isDark
                     ? 'bg-white/5 border border-white/10 text-white hover:bg-white/10'
                     : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'
@@ -208,7 +208,7 @@ export function HeroSection() {
 
             {/* Stats Row — icons colored per group */}
             <motion.div
-              className="flex flex-wrap gap-8"
+              className="flex flex-wrap gap-4 sm:gap-8"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.7, delay: 0.5 }}
@@ -225,10 +225,10 @@ export function HeroSection() {
                     <stat.icon className={`w-5 h-5 transition-colors duration-700 ${isDark ? theme.iconColor.dark : theme.iconColor.light}`} />
                   </div>
                   <div>
-                    <span ref={stat.ref} className={`text-2xl font-extrabold block leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    <span ref={stat.ref} className={`text-lg sm:text-2xl font-extrabold block leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
                       {stat.count.toLocaleString()}{stat.suffix}
                     </span>
-                    <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{stat.label}</span>
+                    <span className={`text-[10px] sm:text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{stat.label}</span>
                   </div>
                 </div>
               ))}
@@ -253,7 +253,7 @@ export function HeroSection() {
               />
 
               {/* Image container — no heavy overlay, object-contain for transparent PNGs */}
-              <div className="relative aspect-[4/5] flex items-end justify-center">
+              <div className="relative aspect-[3/4] sm:aspect-[4/5] flex items-end justify-center max-h-[50vh] sm:max-h-none">
                 <AnimatePresence mode="wait">
                   <motion.img
                     key={activeImage}
@@ -300,7 +300,7 @@ export function HeroSection() {
 
               {/* Floating card — Rating */}
               <motion.div
-                className={`absolute -left-4 top-8 lg:-left-12 backdrop-blur-xl rounded-2xl px-5 py-4 z-10 ${
+                className={`hidden sm:block absolute -left-4 top-8 lg:-left-12 backdrop-blur-xl rounded-2xl px-5 py-4 z-10 ${
                   isDark
                     ? 'bg-slate-900/80 border border-white/10 shadow-xl'
                     : 'bg-white/90 border border-slate-200/60 shadow-xl shadow-slate-200/50'
@@ -321,7 +321,7 @@ export function HeroSection() {
 
               {/* Floating card — Free Trial */}
               <motion.div
-                className={`absolute -right-4 bottom-20 lg:-right-12 backdrop-blur-xl rounded-2xl px-5 py-4 z-10 ${
+                className={`hidden sm:block absolute -right-4 bottom-20 lg:-right-12 backdrop-blur-xl rounded-2xl px-5 py-4 z-10 ${
                   isDark
                     ? 'bg-slate-900/80 border border-white/10 shadow-xl'
                     : 'bg-white/90 border border-slate-200/60 shadow-xl shadow-slate-200/50'
@@ -342,7 +342,7 @@ export function HeroSection() {
 
               {/* Active now indicator */}
               <motion.div
-                className={`absolute -left-2 bottom-32 lg:-left-8 backdrop-blur-xl rounded-xl px-4 py-3 z-10 ${
+                className={`hidden sm:block absolute -left-2 bottom-32 lg:-left-8 backdrop-blur-xl rounded-xl px-4 py-3 z-10 ${
                   isDark
                     ? 'bg-slate-900/80 border border-white/10 shadow-lg'
                     : 'bg-white/90 border border-slate-200/60 shadow-lg'
