@@ -55,7 +55,15 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
     }
     const uid = userData.user.id;
     const targetSystem = hubToTargetSystem(payload.hub);
-    const difficulty = (payload.cefr_level || 'A1').toUpperCase();
+    const cefr = (payload.cefr_level || 'A1').toUpperCase();
+    // CHECK constraint on curriculum_lessons.difficulty_level only allows
+    // 'beginner' | 'intermediate' | 'advanced'. Map CEFR → bucket.
+    const cefrToDifficulty = (c: string): 'beginner' | 'intermediate' | 'advanced' => {
+      if (['A1', 'A2'].includes(c)) return 'beginner';
+      if (['B1', 'B2'].includes(c)) return 'intermediate';
+      return 'advanced'; // C1, C2, fallback
+    };
+    const difficulty = cefrToDifficulty(cefr);
 
     const lessonsToInsert = payload.units.flatMap((unit, uIdx) =>
       unit.lessons.map((lesson, lIdx) => ({
@@ -70,6 +78,7 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
         content: { slides: [], homework_missions: [] },
         ai_metadata: {
           blueprint_ref: lesson,
+          cefr_level: cefr,
           unit_title: unit.unit_title,
           unit_number: unit.unit_number ?? uIdx + 1,
           curriculum_title: payload.curriculum_title,
