@@ -36,12 +36,12 @@ export function NavHeader() {
   };
 
   const navItems = [
-    { label: 'How It Works', id: 'how-it-works' },
-    { label: 'Pricing', id: 'pricing' },
+    { label: t('lp.nav.howItWorks'), id: 'how-it-works' },
+    { label: t('lp.nav.pricing'), id: 'pricing' },
   ];
 
   const navLinks = [
-    { label: 'About Us', to: '/about' },
+    { label: t('lp.nav.aboutUs'), to: '/about' },
   ];
 
   return (
