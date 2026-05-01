@@ -67,7 +67,7 @@ export const StudioHeader: React.FC = () => {
   const publishLabel = inSlideStudio ? 'Save & Publish to Library' : 'Publish';
 
   return (
-    <header className="h-16 flex items-center justify-between gap-4 px-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0">
+    <header className="h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4 px-3 sm:px-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0">
       <div className="min-w-0">
         <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
           {currentStep === 'blueprint' ? 'Blueprint Engine'
