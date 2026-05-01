@@ -1,38 +1,41 @@
 import { UserPlus, ClipboardCheck, Calendar, Rocket, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useThemeMode } from '@/hooks/useThemeMode';
 
-const steps = [
+type TFn = (k: string) => string;
+
+const getSteps = (t: TFn) => [
   {
     icon: UserPlus,
     number: '01',
-    title: 'Create Your Account',
-    description: 'Sign up in 30 seconds. No credit card required.',
+    title: t('lp.how.step1.title'),
+    description: t('lp.how.step1.desc'),
     gradient: 'from-indigo-500 to-violet-600',
     bgLight: 'bg-indigo-50',
   },
   {
     icon: ClipboardCheck,
     number: '02',
-    title: 'Take the Level Test',
-    description: 'Our adaptive placement test finds your exact CEFR level in 10 minutes.',
+    title: t('lp.how.step2.title'),
+    description: t('lp.how.step2.desc'),
     gradient: 'from-violet-500 to-purple-600',
     bgLight: 'bg-violet-50',
   },
   {
     icon: Calendar,
     number: '03',
-    title: 'Book Your Lessons',
-    description: 'Choose your teacher, pick times that work for you. It\'s that simple.',
+    title: t('lp.how.step3.title'),
+    description: t('lp.how.step3.desc'),
     gradient: 'from-amber-500 to-orange-600',
     bgLight: 'bg-amber-50',
   },
   {
     icon: Rocket,
     number: '04',
-    title: 'Start Speaking',
-    description: 'Jump into interactive 1-on-1 lessons and watch your confidence soar.',
+    title: t('lp.how.step4.title'),
+    description: t('lp.how.step4.desc'),
     gradient: 'from-emerald-500 to-teal-600',
     bgLight: 'bg-emerald-50',
   },
@@ -41,6 +44,8 @@ const steps = [
 export function HowItWorksSection() {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
+  const { t } = useTranslation();
+  const steps = getSteps(t);
 
   return (
     <section id="how-it-works" className={`py-24 md:py-32 relative overflow-hidden scroll-mt-20 transition-colors duration-300 ${
@@ -58,24 +63,23 @@ export function HowItWorksSection() {
           <span className={`inline-block text-sm font-bold tracking-widest uppercase mb-4 ${
             isDark ? 'text-indigo-400' : 'text-indigo-600'
           }`}>
-            Getting Started
+            {t('lp.how.eyebrow')}
           </span>
           <h2 className={`text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-5 ${
             isDark ? 'text-white' : 'text-slate-900'
           }`}>
-            How It{' '}
+            {t('lp.how.heading')}{' '}
             <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
-              Works
+              {t('lp.how.headingAccent')}
             </span>
           </h2>
           <p className={`text-lg max-w-xl mx-auto ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            From sign-up to speaking — in four simple steps.
+            {t('lp.how.subtitle')}
           </p>
         </motion.div>
 
         {/* Steps */}
         <div className="max-w-5xl mx-auto">
-          {/* Desktop: Alternating left-right layout */}
           <div className="space-y-0">
             {steps.map((step, index) => {
               const Icon = step.icon;
@@ -90,7 +94,6 @@ export function HowItWorksSection() {
                   transition={{ duration: 0.6, delay: index * 0.15 }}
                   className="relative"
                 >
-                  {/* Connector line */}
                   {index < steps.length - 1 && (
                     <div className={`hidden md:block absolute left-1/2 -translate-x-1/2 top-[120px] h-[calc(100%-60px)] w-[2px] ${
                       isDark ? 'bg-white/[0.06]' : 'bg-slate-200'
@@ -108,26 +111,23 @@ export function HowItWorksSection() {
                   <div className={`flex flex-col md:flex-row items-center gap-8 md:gap-16 py-8 ${
                     isEven ? '' : 'md:flex-row-reverse'
                   }`}>
-                    {/* Number circle in center for desktop */}
                     <div className="hidden md:flex md:absolute md:left-1/2 md:-translate-x-1/2 z-10">
                       <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${step.gradient} flex items-center justify-center text-white font-extrabold text-xl shadow-xl`}>
                         {step.number}
                       </div>
                     </div>
 
-                    {/* Content card */}
-                    <div className={`flex-1 ${isEven ? 'md:pr-24 md:text-right' : 'md:pl-24 md:text-left'}`}>
+                    <div className={`flex-1 ${isEven ? 'md:pe-24 md:text-end' : 'md:ps-24 md:text-start'}`}>
                       <div className={`rounded-3xl p-8 transition-all duration-500 ${
                         isDark
                           ? 'bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.05]'
                           : 'bg-white border border-slate-100 shadow-sm hover:shadow-lg'
                       }`}>
-                        {/* Mobile number */}
                         <div className={`md:hidden w-12 h-12 rounded-xl bg-gradient-to-br ${step.gradient} flex items-center justify-center text-white font-bold text-sm mb-4`}>
                           {step.number}
                         </div>
 
-                        <div className={`w-14 h-14 rounded-2xl ${isDark ? 'bg-white/5' : step.bgLight} flex items-center justify-center mb-5 ${isEven ? 'md:ml-auto' : ''}`}>
+                        <div className={`w-14 h-14 rounded-2xl ${isDark ? 'bg-white/5' : step.bgLight} flex items-center justify-center mb-5 ${isEven ? 'md:ms-auto' : ''}`}>
                           <Icon className={`w-7 h-7 ${isDark ? 'text-white' : 'text-slate-700'}`} />
                         </div>
                         <h3 className={`text-2xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>
@@ -139,7 +139,6 @@ export function HowItWorksSection() {
                       </div>
                     </div>
 
-                    {/* Spacer for other side */}
                     <div className="hidden md:block flex-1" />
                   </div>
                 </motion.div>
@@ -159,8 +158,8 @@ export function HowItWorksSection() {
               to="/student-signup"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-lg shadow-xl shadow-indigo-500/25 transition-all duration-300 hover:-translate-y-0.5"
             >
-              Start Your Free Trial
-              <ArrowRight className="w-5 h-5" />
+              {t('lp.how.cta')}
+              <ArrowRight className="w-5 h-5 rtl:rotate-180" />
             </Link>
           </motion.div>
         </div>
