@@ -567,7 +567,12 @@ export const LibraryManager: React.FC = () => {
                           const isDraft = !row.is_published;
                           const isBusy = busyId === row.id;
                           const isChecked = selectedIds.has(row.id);
-                          const lessonNumber = row.sequence_order;
+                          const lessonNumber: number | null =
+                            typeof row.ai_metadata?.lesson_number === 'number'
+                              ? row.ai_metadata.lesson_number
+                              : row.sequence_order != null && row.sequence_order > 100
+                              ? row.sequence_order % 100
+                              : row.sequence_order;
                           const cardGradient = getLevelGradient(row.target_system, difficultyToCefr(row.difficulty_level));
 
                           return (
