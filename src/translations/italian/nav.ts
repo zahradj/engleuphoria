@@ -1,0 +1,22 @@
+export const navTranslations = {
+  nav: {
+    dashboard: "Dashboard",
+    blueprint: "Piano Curricolare",
+    slide_studio: "Studio Diapositive",
+    master_library: "Libreria Principale",
+    settings: "Impostazioni",
+    logout: "Esci",
+    signing_out: "Disconnessione…",
+    language: "Lingua",
+    studio_label: "Studio",
+    studio_tagline: "Pubblicazione di contenuti",
+    expand_sidebar: "Espandi barra laterale",
+    collapse_sidebar: "Comprimi barra laterale",
+    save_draft: "Salva Bozza",
+    publish: "Pubblica",
+    publish_to_library: "Salva e Pubblica",
+    saving: "Salvataggio…",
+    publishing: "Pubblicazione…",
+    unsaved: "Non salvato",
+  },
+};

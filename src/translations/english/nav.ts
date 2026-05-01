@@ -1,0 +1,22 @@
+export const navTranslations = {
+  nav: {
+    dashboard: "Dashboard",
+    blueprint: "Curriculum Blueprint",
+    slide_studio: "Slide Studio",
+    master_library: "Master Library",
+    settings: "Settings",
+    logout: "Sign Out",
+    signing_out: "Signing out…",
+    language: "Language",
+    studio_label: "Studio",
+    studio_tagline: "Content publishing",
+    expand_sidebar: "Expand sidebar",
+    collapse_sidebar: "Collapse sidebar",
+    save_draft: "Save Draft",
+    publish: "Publish",
+    publish_to_library: "Save & Publish to Library",
+    saving: "Saving…",
+    publishing: "Publishing…",
+    unsaved: "Unsaved",
+  },
+};
