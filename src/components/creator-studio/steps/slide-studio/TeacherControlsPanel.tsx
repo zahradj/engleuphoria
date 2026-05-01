@@ -673,23 +673,43 @@ const VisualsPanel: React.FC<Props> = ({ slide, onChange }) => {
 // AUDIO PANEL — Voiceover (ElevenLabs TTS) + Background Music
 // ============================================================
 
+// ── ElevenLabs voice catalogue (curated subset) ─────────────────
+const ELEVENLABS_VOICES: Array<{ id: string; name: string; tag: string }> = [
+  { id: '9BWtsMINqrJLrRacOk9x', name: 'Aria', tag: 'Friendly · Default' },
+  { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah', tag: 'Warm · Narrator' },
+  { id: 'FGY2WhTYpPnrIDTdsKH5', name: 'Laura', tag: 'Bright · Teacher' },
+  { id: 'XrExE9yKIg1WjnnlVkGX', name: 'Matilda', tag: 'Gentle · Storyteller' },
+  { id: 'cgSgspJ2msm6clMCkdW9', name: 'Jessica', tag: 'Conversational' },
+  { id: 'pFZP5JQG7iQjIQuC4Bku', name: 'Lily', tag: 'Soft · Kids' },
+  { id: 'JBFqnCBsd6RMkjVDRZzb', name: 'George', tag: 'Authoritative · Male' },
+  { id: 'IKne3meq5aSn9XLyUdCD', name: 'Charlie', tag: 'Casual · Male' },
+  { id: 'TX3LPaxmHKxFdv7VOQHJ', name: 'Liam', tag: 'Energetic · Male' },
+  { id: 'nPczCjzI2devNBz1zQrb', name: 'Brian', tag: 'Deep · Male' },
+  { id: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel', tag: 'British · Male' },
+  { id: 'cjVigY5qzO86Huf0OWal', name: 'Eric', tag: 'Articulate · Male' },
+];
+const DEFAULT_VOICE_ID = ELEVENLABS_VOICES[0].id;
+
 const AudioPanel: React.FC<Props> = ({ slide, onChange }) => {
   const { activeLessonData } = useCreator();
   const lessonId = activeLessonData?.lesson_id ?? activeLessonData?.source_lesson?.id ?? 'draft';
   const [generatingVO, setGeneratingVO] = useState(false);
   const [generatingMusic, setGeneratingMusic] = useState(false);
 
+  const voiceId = (slide as any).voice_id || DEFAULT_VOICE_ID;
+  const selectedVoice = ELEVENLABS_VOICES.find((v) => v.id === voiceId) ?? ELEVENLABS_VOICES[0];
+
   const handleGenerateVoice = async () => {
-    const text = (slide.elevenlabs_script || slide.content || slide.title || '').trim();
+    const text = (slide.elevenlabs_script || (slide as any).audio_script || slide.content || slide.title || '').trim();
     if (!text) {
-      toast.error('Add a voiceover script first.');
+      toast.error('Add an audio script first.');
       return;
     }
     try {
       setGeneratingVO(true);
-      const { url } = await generateSlideVoiceover(text, lessonId, slide.id);
-      onChange({ audio_url: url });
-      toast.success('Voiceover generated and attached.');
+      const { url } = await generateSlideVoiceover(text, lessonId, slide.id, voiceId);
+      onChange({ audio_url: url } as any);
+      toast.success(`Voiceover generated with ${selectedVoice.name}.`);
     } catch (err) {
       console.error(err);
       toast.error((err as Error).message || 'Voiceover generation failed.');
@@ -723,69 +743,181 @@ const AudioPanel: React.FC<Props> = ({ slide, onChange }) => {
     a.play().catch(() => toast.error('Could not play audio.'));
   };
 
+  const scriptValue = slide.elevenlabs_script ?? (slide as any).audio_script ?? '';
+  const charCount = scriptValue.length;
+
   return (
-    <div className="space-y-4">
-      <PromptField
-        label="Voiceover Script (ElevenLabs)"
-        icon={Volume2}
-        value={slide.elevenlabs_script ?? ''}
-        onChange={(v) => onChange({ elevenlabs_script: v })}
-        placeholder='e.g. "A says ah, Apple!"'
-        rows={3}
-      />
+    <div className="space-y-5">
+      {/* ── Header ── */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-1.5">
+            <Headphones className="h-4 w-4 text-fuchsia-500" /> Audio Manager
+          </h3>
+          <p className="text-[10px] text-slate-500 mt-0.5">ElevenLabs TTS voiceover + background music for this slide.</p>
+        </div>
+      </div>
+
+      {/* ── Audio Script ── */}
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <Label className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+            <Volume2 className="h-3 w-3" /> Audio Script
+          </Label>
+          <span className={cn(
+            'text-[10px] font-mono',
+            charCount > 800 ? 'text-amber-500' : 'text-slate-400',
+          )}>
+            {charCount} / 1000
+          </span>
+        </div>
+        <Textarea
+          value={scriptValue}
+          onChange={(e) => onChange({ elevenlabs_script: e.target.value } as any)}
+          placeholder='What the narrator should say on this slide. e.g. "Welcome to Lesson 3. Today we explore daily routines."'
+          rows={5}
+          className="text-sm resize-none"
+        />
+      </div>
+
+      {/* ── Voice Selector ── */}
+      <div className="space-y-1.5">
+        <Label className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+          <Mic className="h-3 w-3" /> Select Voice
+        </Label>
+        <Select
+          value={voiceId}
+          onValueChange={(v) => onChange({ voice_id: v } as any)}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue>
+              <span className="font-semibold">{selectedVoice.name}</span>
+              <span className="ml-2 text-[10px] text-slate-400">{selectedVoice.tag}</span>
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent className="max-h-72">
+            {ELEVENLABS_VOICES.map((v) => (
+              <SelectItem key={v.id} value={v.id}>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">{v.name}</span>
+                  <span className="text-[10px] text-slate-400">{v.tag}</span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* ── Generate / Preview ── */}
       <div className="grid grid-cols-[1fr_auto] gap-2">
-        <Button type="button" onClick={handleGenerateVoice} disabled={generatingVO}
-          className="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-bold">
-          {generatingVO ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Mic className="h-4 w-4 mr-1.5" />}
-          🗣️ Generate VoiceOver
+        <Button
+          type="button"
+          onClick={handleGenerateVoice}
+          disabled={generatingVO || !scriptValue.trim()}
+          className="bg-gradient-to-r from-fuchsia-500 via-violet-500 to-indigo-500 hover:from-fuchsia-600 hover:via-violet-600 hover:to-indigo-600 text-white font-bold h-11 shadow-lg"
+        >
+          {generatingVO ? (
+            <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Generating…</>
+          ) : (
+            <><Sparkles className="h-4 w-4 mr-1.5" /> Generate / Preview Audio</>
+          )}
         </Button>
-        <Button type="button" variant="outline" disabled={!slide.audio_url}
-          onClick={() => previewAudio(slide.audio_url)} aria-label="Preview voiceover">
+        <Button
+          type="button"
+          variant="outline"
+          disabled={!slide.audio_url}
+          onClick={() => previewAudio(slide.audio_url)}
+          aria-label="Preview voiceover"
+          className="h-11 w-11"
+          title="Play attached voiceover"
+        >
           <Play className="h-4 w-4" />
         </Button>
       </div>
-      {slide.audio_url && (
-        <div className="flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-900/40 px-3 py-2 text-[11px] text-emerald-800 dark:text-emerald-300">
-          <span>✓ Voiceover attached</span>
-          <button type="button" onClick={() => onChange({ audio_url: undefined })}
-            className="text-emerald-700 hover:text-red-600">
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
+
+      {/* ── Attached state ── */}
+      {slide.audio_url ? (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-900/40 p-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+              <Check className="h-3.5 w-3.5" /> Voiceover Attached
+            </span>
+            <button
+              type="button"
+              onClick={() => onChange({ audio_url: undefined } as any)}
+              className="text-emerald-700 hover:text-red-600"
+              title="Remove voiceover"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <audio src={slide.audio_url} controls className="w-full h-8" preload="none" />
+        </div>
+      ) : (
+        <div className="rounded-lg border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 p-3 text-center">
+          <Volume2 className="h-4 w-4 text-slate-400 mx-auto mb-1" />
+          <p className="text-[10px] text-slate-500">No voiceover yet. Add a script and tap Generate.</p>
         </div>
       )}
 
       <div className="h-px bg-slate-200 dark:bg-slate-800" />
 
-      <PromptField
-        label="Background Music Prompt"
-        icon={Music}
-        value={slide.music_generation_prompt ?? ''}
-        onChange={(v) => onChange({ music_generation_prompt: v })}
-        placeholder="e.g. A 30-second upbeat acoustic guitar track for kids"
-        rows={3}
-      />
+      {/* ── Background music ── */}
+      <div className="space-y-1.5">
+        <Label className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+          <Music className="h-3 w-3" /> Background Music Prompt
+        </Label>
+        <Textarea
+          value={slide.music_generation_prompt ?? ''}
+          onChange={(e) => onChange({ music_generation_prompt: e.target.value })}
+          placeholder="e.g. A 30-second upbeat acoustic guitar track for kids"
+          rows={3}
+          className="text-sm resize-none"
+        />
+      </div>
       <div className="grid grid-cols-[1fr_auto] gap-2">
-        <Button type="button" onClick={handleGenerateMusic} disabled={generatingMusic}
-          className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold">
-          {generatingMusic ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Music className="h-4 w-4 mr-1.5" />}
-          🎸 Generate Background Track
+        <Button
+          type="button"
+          onClick={handleGenerateMusic}
+          disabled={generatingMusic || !(slide.music_generation_prompt || '').trim()}
+          className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold h-10"
+        >
+          {generatingMusic ? (
+            <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Composing…</>
+          ) : (
+            <><Music className="h-4 w-4 mr-1.5" /> Generate Background Track</>
+          )}
         </Button>
-        <Button type="button" variant="outline" disabled={!slide.background_music_url}
-          onClick={() => previewAudio(slide.background_music_url)} aria-label="Preview music">
+        <Button
+          type="button"
+          variant="outline"
+          disabled={!slide.background_music_url}
+          onClick={() => previewAudio(slide.background_music_url)}
+          aria-label="Preview music"
+          className="h-10 w-10"
+        >
           <Play className="h-4 w-4" />
         </Button>
       </div>
       {slide.background_music_url && (
-        <div className="flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-900/40 px-3 py-2 text-[11px] text-emerald-800 dark:text-emerald-300">
-          <span>✓ Music attached</span>
-          <button type="button" onClick={() => onChange({ background_music_url: undefined })}
-            className="text-emerald-700 hover:text-red-600">
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-900/40 p-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+              <Check className="h-3.5 w-3.5" /> Music Attached
+            </span>
+            <button
+              type="button"
+              onClick={() => onChange({ background_music_url: undefined })}
+              className="text-emerald-700 hover:text-red-600"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <audio src={slide.background_music_url} controls className="w-full h-8" preload="none" />
         </div>
       )}
-      <p className="text-[11px] text-slate-400 leading-relaxed">
-        Music generation uses ElevenLabs Music (~30s tracks). Requires music access on your ElevenLabs plan.
+      <p className="text-[10px] text-slate-400 leading-relaxed">
+        🎙️ Voiceover uses ElevenLabs <span className="font-mono">eleven_turbo_v2_5</span>. Music requires Music access on your ElevenLabs plan.
       </p>
     </div>
   );
