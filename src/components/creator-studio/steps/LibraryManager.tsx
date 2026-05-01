@@ -254,11 +254,12 @@ export const LibraryManager: React.FC = () => {
     if (!rows) return [];
     const unitById = new Map(units.map((u) => [u.id, u]));
 
-    // Group by hub + difficulty_level (CEFR proxy)
+    // Group by hub + CEFR. Prefer ai_metadata.cefr_level (the real value)
+    // over the coarse difficulty_level enum (which is often "beginner" for everything).
     const hubLevelMap = new Map<string, LessonRow[]>();
     for (const lesson of rows) {
       const hub = targetSystemToHub(lesson.target_system);
-      const cefr = difficultyToCefr(lesson.difficulty_level);
+      const cefr = resolveCefr(lesson);
       const key = `${hub}::${cefr}`;
       if (!hubLevelMap.has(key)) hubLevelMap.set(key, []);
       hubLevelMap.get(key)!.push(lesson);
@@ -573,7 +574,7 @@ export const LibraryManager: React.FC = () => {
                               : row.sequence_order != null && row.sequence_order > 100
                               ? row.sequence_order % 100
                               : row.sequence_order;
-                          const cardGradient = getLevelGradient(row.target_system, difficultyToCefr(row.difficulty_level));
+                          const cardGradient = getLevelGradient(row.target_system, resolveCefr(row));
 
                           return (
                             <li
@@ -702,4 +703,18 @@ function difficultyToCefr(difficulty: string): string {
   // Already a CEFR code?
   if (['a1', 'a2', 'b1', 'b2', 'c1', 'c2'].includes(d)) return d.toUpperCase();
   return 'A1';
+}
+
+// Single source of truth for resolving a lesson's CEFR level.
+// Priority: ai_metadata.cefr_level → ai_metadata.level → difficulty_level enum.
+function resolveCefr(lesson: { difficulty_level: string; ai_metadata: any }): string {
+  const meta = lesson.ai_metadata ?? {};
+  const candidates = [meta.cefr_level, meta.level, meta.cefr];
+  for (const c of candidates) {
+    if (typeof c === 'string') {
+      const up = c.trim().toUpperCase();
+      if (['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].includes(up)) return up;
+    }
+  }
+  return difficultyToCefr(lesson.difficulty_level);
 }

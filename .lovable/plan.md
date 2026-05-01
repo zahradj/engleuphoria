@@ -1,83 +1,83 @@
-# Blueprint-First Generation Architecture
+# Master Library — Fix Duplicates & Missing A2 Level
 
-Replace the current single-shot generation in the Slide Studio's `EmptyState` with a 2-step flow: **Plan → Review → Build**. The teacher always sees and edits the lesson plan before any of the 20+ slides are produced.
+## What's actually broken (confirmed in DB)
 
-## 1. New edge function: `generate-blueprint`
+Query against `curriculum_lessons` for `target_system='teen'`:
 
-Path: `supabase/functions/generate-blueprint/index.ts`. Public CORS, no JWT required (matches `generate-ppp-slides`).
+| CEFR (in `ai_metadata`) | Rows in DB | Unique unit+lesson slots |
+|---|---|---|
+| A1 | 150 | 50 |
+| A2 | 250 | 50 |
 
-- **Input** (JSON body):
-  - `topic` (string, required)
-  - `target_audience` (string, required) — e.g. `"A2 Adult Professional"`
-  - Optional context passthrough: `cefr_level`, `hub`, `skill_focus` (used to flavor the prompt)
-- **Model**: `google/gemini-3-flash-preview` via Lovable AI Gateway, using **tool-calling** for structured output (avoids the JSON-schema complexity issue we hit before).
-- **Tool schema** → enforced response shape:
-  ```json
-  {
-    "lesson_title": "string",
-    "target_vocabulary": [
-      { "word": "string", "definition": "string", "example": "string" }
-    ],            // 5–8 items
-    "target_grammar_rule": "string",          // one focused rule, e.g. "Past Simple regular verbs"
-    "grammar_explanation": "string",          // 1–2 sentence teacher-facing rationale
-    "reading_passage_summary": "string",      // 2–4 sentences describing the Phase-2 text
-    "final_speaking_mission": "string"        // the Phase-5 production task
-  }
-  ```
-- **Errors**: surface `429` and `402` from the gateway with friendly messages; everything else returns `{ error }` with a 500.
+Two distinct bugs working together:
 
-## 2. Blueprint Review UI
+1. **A2 is invisible in the Library.** Every row was saved with `difficulty_level = 'beginner'`. The Library's grouping helper `difficultyToCefr('beginner')` always returns `'A1'`, so all 400 teen lessons are crammed under Academy → A1. A2 has nowhere to render. The real CEFR is sitting unused in `ai_metadata.cefr_level`.
+2. **Duplicates exist at the DB level.** A1 has 3× copies of each of its 50 lessons; A2 has 5× copies. The previous "anti-spam lock" only protects against double-clicking a single Save button — it does nothing about repeated blueprint generations or parallel inserts, and there is no DB constraint preventing a second copy of `(creator, hub, cefr, unit, lesson)` from being written.
 
-New component: `src/components/creator-studio/steps/slide-studio/BlueprintReview.tsx`.
+## The fix (3 parts)
 
-Mounted from `EmptyState.tsx` — replaces today's "✨ Auto-Generate PPP Slides" single button with the new 2-step flow:
+### 1. Read CEFR from the right place (UI)
+
+In `src/components/creator-studio/steps/LibraryManager.tsx`, change the level resolver so it prefers `ai_metadata.cefr_level` (and `ai_metadata.level`) over the coarse `difficulty_level` enum. Fallback chain:
 
 ```text
-EmptyState
-  ├─ Step A:  topic input → [Draft Lesson Blueprint]   (calls generate-blueprint)
-  └─ Step B:  <BlueprintReview/> editable card
-              ├─ Vocabulary chips     (add / edit / delete, 3–10 enforced)
-              ├─ Grammar rule         (single-line input + multi-line rationale)
-              ├─ Reading summary      (textarea)
-              ├─ Final mission        (textarea)
-              ├─ [Regenerate Blueprint]   (re-call generate-blueprint)
-              └─ [Approve & Generate 1-Hour Lesson]   (primary CTA)
+ai_metadata.cefr_level  →  ai_metadata.level  →  difficultyToCefr(difficulty_level)
 ```
 
-Behavior:
-- The blueprint draft is held in local component state (no DB round-trip yet) so edits feel instant.
-- The "Approve" button is disabled until vocabulary has ≥3 words and grammar rule + reading summary are non-empty.
-- On Approve, call `generate-ppp-slides` with the existing payload **plus** a new `blueprint` field, then run today's persist + toast logic unchanged.
+Apply this in two places: the `levelGroups` memo (line ~261) and the per-card gradient (line ~576). Result: A1 and A2 (and B1/B2/C1/C2 in the future) each render as their own collapsible Level section under the Academy hub.
 
-## 3. Upgrade `generate-ppp-slides`
+### 2. Purge existing duplicates (one-time migration)
 
-Add an optional `blueprint` field to the request body. When present, the system prompt is augmented with:
+Keep the **oldest** row for each `(created_by, target_system, ai_metadata.cefr_level, ai_metadata.unit_number, ai_metadata.lesson_number)` tuple, delete the rest. Expected outcome: 400 teen rows → 100 (50 A1 + 50 A2). A preview SELECT will be shown for confirmation before the DELETE runs.
+
+### 3. Make duplicates impossible going forward (DB constraint)
+
+Add a partial unique index on `curriculum_lessons`:
+
+```sql
+CREATE UNIQUE INDEX curriculum_lessons_unique_slot
+ON public.curriculum_lessons (
+  created_by,
+  target_system,
+  (ai_metadata->>'cefr_level'),
+  ((ai_metadata->>'unit_number')::int),
+  ((ai_metadata->>'lesson_number')::int)
+)
+WHERE ai_metadata ? 'cefr_level'
+  AND ai_metadata ? 'unit_number'
+  AND ai_metadata ? 'lesson_number';
+```
+
+Then update the blueprint save path (`CurriculumMap.tsx` / `lessonLibraryService.saveToLibrary`) to use `.upsert(..., { onConflict: 'created_by,target_system,...' })` so a re-run **updates** the existing lesson instead of inserting a duplicate. Surface the constraint violation as a friendly toast: *"This lesson slot already exists — updated in place."*
+
+### 4. Also persist CEFR to `difficulty_level` correctly
+
+When saving, set `difficulty_level` to the actual CEFR string (`'A1'`, `'A2'`, …) instead of the bucket word `'beginner'`. The existing `difficultyToCefr` helper already accepts both, so old rows keep working.
+
+## Files to change
+
+- `src/components/creator-studio/steps/LibraryManager.tsx` — fix level resolution (no longer collapses A2 into A1).
+- `src/components/creator-studio/steps/blueprint/CurriculumMap.tsx` — switch insert → upsert, write real CEFR into `difficulty_level`.
+- `src/services/lessonLibraryService.ts` (`saveToLibrary`) — same upsert + real CEFR.
+- New SQL migration — partial unique index + one-time dedupe DELETE (preview first).
+
+## What stays the same
+
+- Single source of truth remains `curriculum_lessons` (per project memory).
+- Existing UI hierarchy (Hub → Level → Unit → Lesson) is unchanged — it just finally has the data it needs to render every level.
+- All existing RLS policies and the anti-spam button lock stay in place; the DB constraint is a belt-and-braces second line of defense.
+
+## After this lands you'll see
 
 ```text
-APPROVED BLUEPRINT — TREAT AS GROUND TRUTH:
-- TARGET LEXICON (Phase 1 must teach exactly these words, in this order): [...]
-- TARGET GRAMMAR RULE (Phase 4 must explicitly teach this and only this): "..."
-- READING DIRECTION (Phase 2 passage must follow this summary): "..."
-- FINAL MISSION (Phase 5/6 production must end with this task): "..."
-You MUST NOT invent additional vocabulary words or substitute the grammar rule.
+Academy Hub
+├── Level A1   (50 lessons)
+│   ├── Unit 1: My Digital Life     → Lessons 1–5
+│   ├── Unit 2: …
+│   └── Unit 10: Global Citizens
+└── Level A2   (50 lessons)         ← finally visible
+    ├── Unit 1: …
+    └── …
 ```
 
-Validation safeguard: after the model responds, verify that every `blueprint.target_vocabulary[*].word` appears in at least one Phase 1 slide; if not, return a 422 so the UI can prompt the teacher to retry. Lesson title falls back to `blueprint.lesson_title` when not provided by the caller.
-
-When `blueprint` is omitted, behavior is unchanged (full backward compatibility for the bulk generators in `useBulkLessonGenerator`, `useMultiUnitBulkGenerator`, etc.).
-
-## Technical details
-
-- **Files created**
-  - `supabase/functions/generate-blueprint/index.ts`
-  - `src/components/creator-studio/steps/slide-studio/BlueprintReview.tsx`
-  - `src/components/creator-studio/steps/slide-studio/blueprintTypes.ts` (shared `LessonBlueprint` type used by EmptyState + BlueprintReview)
-- **Files edited**
-  - `src/components/creator-studio/steps/slide-studio/EmptyState.tsx` — split into "draft blueprint" and "approved → generate" phases; pass `blueprint` to the existing `generate-ppp-slides` invoke call.
-  - `supabase/functions/generate-ppp-slides/index.ts` — accept `blueprint`, inject the ground-truth section into the system prompt, post-validate vocabulary coverage.
-- **AI Gateway**: both functions use the existing `LOVABLE_API_KEY` secret. No new secrets required.
-- **Error UX**: same parsing pattern already in `EmptyState` (read `ctx.body` → JSON → toast) is reused for both calls; 429/402 mapped to friendly toasts.
-- **No DB migration**: the blueprint lives only in component state until the user approves; the final lesson is persisted via the existing `persistLesson` flow.
-- **No breaking changes** to bulk generators — they keep calling `generate-ppp-slides` without a `blueprint` and get today's behavior.
-
-After approval, please confirm and I'll implement.
+No duplicates, A2 visible, and re-running a generation can never create a second copy.
