@@ -51,7 +51,7 @@ export const StudioSidebar: React.FC = () => {
           return (
             <button
               key={item.key}
-              onClick={() => setCurrentStep(item.key)}
+              onClick={() => { setCurrentStep(item.key); navigate(`/content-creator/${item.key}`); }}
               title={collapsed ? item.label : undefined}
               className={cn(
                 'w-full flex items-center rounded-lg text-sm font-medium transition-all',
