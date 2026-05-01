@@ -53,11 +53,12 @@ export const StudioMobileNav: React.FC = () => {
         );
       })}
       <button
-        onClick={() => navigate('/super-admin')}
-        className="flex flex-col items-center gap-0.5 px-3 py-2 rounded-lg text-[10px] font-medium text-slate-400 active:text-white min-w-[60px]"
+        onClick={handleLogout}
+        disabled={signingOut}
+        className="flex flex-col items-center gap-0.5 px-3 py-2 rounded-lg text-[10px] font-medium text-slate-400 active:text-white min-w-[60px] disabled:opacity-50"
       >
         <LogOut className="h-5 w-5 text-slate-500" />
-        <span>Exit</span>
+        <span>{signingOut ? '…' : 'Sign Out'}</span>
       </button>
     </nav>
   );
