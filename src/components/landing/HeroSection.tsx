@@ -317,7 +317,7 @@ export function HeroSection() {
                   </div>
                   <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>4.9/5</span>
                 </div>
-                <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>from 1,200+ reviews</p>
+                <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{t('lp.hero.ratingReviews')}</p>
               </motion.div>
 
               {/* Floating card — Free Trial */}
