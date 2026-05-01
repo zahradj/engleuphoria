@@ -19,6 +19,8 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
   const autoSavedRef = useRef<string | null>(null);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [savedCount, setSavedCount] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasSaved, setHasSaved] = useState(false);
 
   const handleBuildSlides = (lesson: BlueprintLessonRef) => {
     if (!data) return;
