@@ -328,13 +328,18 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
 
         <button
           onClick={forceSaveToLibrary}
-          className="w-full py-4 mt-8 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg rounded-xl shadow-lg"
+          disabled={isSaving || hasSaved}
+          className={`w-full py-4 mt-8 font-bold text-lg rounded-xl shadow-lg transition-colors ${
+            isSaving || hasSaved
+              ? 'bg-slate-400 text-white cursor-not-allowed'
+              : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+          }`}
         >
-          {autoSaveStatus === 'saved'
-            ? '✅ Save Again & Open Library'
-            : autoSaveStatus === 'error'
-            ? '🔁 Retry Save to Library'
-            : '💾 Save to Library & Open'}
+          {isSaving
+            ? '⏳ Saving to Database...'
+            : hasSaved
+            ? '✅ Saved Successfully!'
+            : '🛑 FORCE SAVE TO LIBRARY 🛑'}
         </button>
       </div>
     </>
