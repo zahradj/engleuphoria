@@ -340,6 +340,54 @@ export const LibraryManager: React.FC = () => {
     return groups;
   }, [rows, units]);
 
+  // Apply hub filter + free-text search to the grouped data
+  const filteredHubGroups = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const byHub = new Map<string, LevelGroup[]>();
+    for (const g of levelGroups) {
+      if (hubFilter !== 'all' && g.hub !== hubFilter) continue;
+
+      // Filter lessons inside each unit by search term
+      const filteredUnits = g.unitGroups
+        .map((u) => ({
+          ...u,
+          lessons: q
+            ? u.lessons.filter(
+                (l) =>
+                  l.title.toLowerCase().includes(q) ||
+                  (l.description ?? '').toLowerCase().includes(q) ||
+                  u.unit_title.toLowerCase().includes(q),
+              )
+            : u.lessons,
+        }))
+        .filter((u) => u.lessons.length > 0);
+
+      if (filteredUnits.length === 0) continue;
+      const filteredGroup: LevelGroup = {
+        ...g,
+        lessons: filteredUnits.flatMap((u) => u.lessons),
+        unitGroups: filteredUnits,
+      };
+      if (!byHub.has(g.hub)) byHub.set(g.hub, []);
+      byHub.get(g.hub)!.push(filteredGroup);
+    }
+    const HUB_ORDER: Record<string, number> = { playground: 0, academy: 1, success: 2 };
+    return Array.from(byHub.entries())
+      .map(([hub, levels]) => ({ hub, levels }))
+      .sort((a, b) => (HUB_ORDER[a.hub] ?? 9) - (HUB_ORDER[b.hub] ?? 9));
+  }, [levelGroups, hubFilter, search]);
+
+  // Auto-open the first level inside each hub once data arrives (only once)
+  useEffect(() => {
+    if (filteredHubGroups.length === 0 || openLevels.size > 0) return;
+    const initial = new Set<string>();
+    for (const h of filteredHubGroups) {
+      if (h.levels[0]) initial.add(`${h.hub}::${h.levels[0].cefr}`);
+    }
+    setOpenLevels(initial);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredHubGroups.length]);
+
   const performBulkDelete = async (mode: 'selected' | 'all') => {
     if (!rows) return;
     const ids = mode === 'all' ? rows.map((r) => r.id) : Array.from(selectedIds);
