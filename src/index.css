@@ -16,6 +16,62 @@
   html {
     scroll-behavior: smooth;
   }
+
+  /* ============= Arabic Typography (auto-applied via <html lang="ar" dir="rtl">) ============= */
+  /* Cairo for headings (display weight, geometric, premium feel) */
+  /* Tajawal for body (highly readable, optimized for UI) */
+  html[lang="ar"],
+  html[dir="rtl"] {
+    font-family: 'Tajawal', 'Cairo', 'Segoe UI', system-ui, sans-serif;
+  }
+
+  html[lang="ar"] body,
+  html[dir="rtl"] body {
+    font-family: 'Tajawal', 'Cairo', 'Segoe UI', system-ui, sans-serif;
+    /* Arabic glyphs render slightly smaller — boost legibility */
+    font-size: 1.02em;
+    line-height: 1.75;
+    letter-spacing: 0;
+  }
+
+  /* Headings get Cairo for stronger display presence */
+  html[lang="ar"] h1,
+  html[lang="ar"] h2,
+  html[lang="ar"] h3,
+  html[lang="ar"] h4,
+  html[lang="ar"] h5,
+  html[lang="ar"] h6,
+  html[dir="rtl"] h1,
+  html[dir="rtl"] h2,
+  html[dir="rtl"] h3,
+  html[dir="rtl"] h4,
+  html[dir="rtl"] h5,
+  html[dir="rtl"] h6 {
+    font-family: 'Cairo', 'Tajawal', 'Segoe UI', system-ui, sans-serif;
+    /* Arabic display tracks better with slightly looser leading */
+    line-height: 1.4;
+    /* Letter-spacing must be 0 for Arabic — no tracking */
+    letter-spacing: 0 !important;
+    /* Tracking-tight Tailwind utilities cause cluster breakage in Arabic */
+    word-spacing: 0.02em;
+  }
+
+  /* Neutralize tight tracking utilities that distort Arabic shaping */
+  html[lang="ar"] .tracking-tight,
+  html[lang="ar"] .tracking-tighter,
+  html[lang="ar"] .tracking-wide,
+  html[lang="ar"] .tracking-widest,
+  html[dir="rtl"] .tracking-tight,
+  html[dir="rtl"] .tracking-tighter,
+  html[dir="rtl"] .tracking-wide,
+  html[dir="rtl"] .tracking-widest {
+    letter-spacing: 0 !important;
+  }
+
+  /* Ensure inline icon + text rows reflow naturally in RTL */
+  html[dir="rtl"] .lucide {
+    flex-shrink: 0;
+  }
 }
 
 @layer components {

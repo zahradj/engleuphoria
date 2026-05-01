@@ -1,48 +1,64 @@
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Globe, Mail, MessageCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import logoWhite from '@/assets/logo-white.png';
 import logoBlack from '@/assets/logo-black.png';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { useRef } from 'react';
 
-const footerLinks = {
-  worlds: [
-    { label: 'The Playground (Kids)', href: '/student-signup' },
-    { label: 'The Academy (Teens)', href: '/student-signup' },
-    { label: 'Professional Hub', href: '/student-signup' },
-  ],
-  learn: [
-    { label: 'Methodology', href: '/methodology' },
-    { label: 'Curriculum', href: '/curriculum' },
-    { label: 'Teachers', href: '/teachers' },
-    { label: 'Pricing', href: '/pricing' },
-  ],
-  company: [
-    { label: 'About Us', href: '/about' },
-    { label: 'Careers', href: '/for-teachers' },
-    { label: 'Blog', href: '/blog' },
-    { label: 'Contact', href: 'mailto:hello@engleuphoria.com' },
-  ],
-  legal: [
-    { label: 'Terms of Service', href: '/terms-of-service' },
-    { label: 'Privacy Policy', href: '/privacy-policy' },
-    { label: 'Refund Policy', href: '/refund-policy' },
-  ],
-};
+type TFn = (k: string) => string;
+
+const getFooterLinks = (t: TFn) => ({
+  worlds: {
+    heading: t('lp.footer.col.worlds'),
+    items: [
+      { label: t('lp.footer.link.playground'), href: '/student-signup' },
+      { label: t('lp.footer.link.academy'), href: '/student-signup' },
+      { label: t('lp.footer.link.proHub'), href: '/student-signup' },
+    ],
+  },
+  learn: {
+    heading: t('lp.footer.col.learn'),
+    items: [
+      { label: t('lp.footer.link.methodology'), href: '/methodology' },
+      { label: t('lp.footer.link.curriculum'), href: '/curriculum' },
+      { label: t('lp.footer.link.teachers'), href: '/teachers' },
+      { label: t('lp.footer.link.pricing'), href: '/pricing' },
+    ],
+  },
+  company: {
+    heading: t('lp.footer.col.company'),
+    items: [
+      { label: t('lp.footer.link.about'), href: '/about' },
+      { label: t('lp.footer.link.careers'), href: '/for-teachers' },
+      { label: t('lp.footer.link.blog'), href: '/blog' },
+      { label: t('lp.footer.link.contact'), href: 'mailto:hello@engleuphoria.com' },
+    ],
+  },
+  legal: {
+    heading: t('lp.footer.col.legal'),
+    items: [
+      { label: t('lp.footer.link.terms'), href: '/terms-of-service' },
+      { label: t('lp.footer.link.privacy'), href: '/privacy-policy' },
+      { label: t('lp.footer.link.refund'), href: '/refund-policy' },
+    ],
+  },
+});
 
 export function FooterSection() {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
+  const { t } = useTranslation();
   const logoRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: logoRef, offset: ['start end', 'end start'] });
   const logoY = useTransform(scrollYProgress, [0, 1], [40, -40]);
+  const footerLinks = getFooterLinks(t);
 
   return (
     <footer className={`relative transition-colors duration-300 ${
       isDark ? 'bg-slate-950 border-t border-white/10' : 'bg-[#FAFAFA] border-t border-slate-200'
     }`}>
-      {/* Gradient divider line */}
       <div className="absolute top-0 left-0 right-0 h-[1px]">
         <div className={`h-full w-full bg-gradient-to-r ${
           isDark
@@ -59,7 +75,6 @@ export function FooterSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          {/* Brand Column */}
           <div className="lg:col-span-2">
             <Link to="/" className="inline-flex items-center gap-3 mb-6">
               <img src={isDark ? logoWhite : logoBlack} alt="EnglEuphoria" className="w-10 h-10 object-contain" />
@@ -68,7 +83,7 @@ export function FooterSection() {
               </h3>
             </Link>
             <p className={`mb-6 max-w-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-              Three specialized English schools under one roof. From playful kids' adventures to professional business mastery.
+              {t('lp.footer.tagline')}
             </p>
             <div className="flex items-center gap-4">
               {[Globe, Mail, MessageCircle].map((Icon, i) => (
@@ -83,14 +98,13 @@ export function FooterSection() {
             </div>
           </div>
 
-          {/* Link Columns */}
-          {Object.entries(footerLinks).map(([key, links]) => (
+          {Object.entries(footerLinks).map(([key, col]) => (
             <div key={key}>
-              <h4 className={`font-display font-semibold mb-4 capitalize ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                {key === 'worlds' ? 'The Worlds' : key}
+              <h4 className={`font-display font-semibold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                {col.heading}
               </h4>
               <ul className="space-y-3">
-                {links.map((link) => (
+                {col.items.map((link) => (
                   <li key={link.label}>
                     <Link to={link.href} className={`text-sm transition-colors story-link ${
                       isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
@@ -104,7 +118,6 @@ export function FooterSection() {
           ))}
         </motion.div>
 
-        {/* Bottom Bar */}
         <motion.div
           className={`mt-16 pt-8 border-t flex flex-col md:flex-row items-center justify-between gap-4 ${
             isDark ? 'border-white/10' : 'border-slate-200'
@@ -115,23 +128,22 @@ export function FooterSection() {
           transition={{ delay: 0.3 }}
         >
           <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-            © {new Date().getFullYear()} EnglEuphoria. All rights reserved.
+            © {new Date().getFullYear()} EnglEuphoria. {t('lp.footer.copyright')}
           </p>
           <div className="flex items-center gap-6">
             <Link to="/login" className={`text-sm font-medium transition-colors ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}>
-              Teacher Login
+              {t('lp.footer.teacherLogin')}
             </Link>
             <Link
               to="/student-signup"
               className="px-6 py-2.5 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:opacity-90 transition-opacity"
             >
-              Get Started Free
+              {t('lp.nav.getStarted')}
             </Link>
           </div>
         </motion.div>
       </div>
 
-      {/* Signature Oversized Logo with parallax */}
       <div ref={logoRef} className="relative overflow-hidden pointer-events-none select-none" aria-hidden="true">
         <div className="max-w-[100vw] overflow-hidden text-center pb-4">
           <motion.p
@@ -148,7 +160,7 @@ export function FooterSection() {
           </motion.p>
         </div>
         <p className={`text-center text-sm pb-8 -mt-4 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
-          The last English platform you will ever need.
+          {t('lp.footer.bigTagline')}
         </p>
       </div>
     </footer>
