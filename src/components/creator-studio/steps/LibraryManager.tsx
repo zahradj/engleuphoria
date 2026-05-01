@@ -614,14 +614,14 @@ export const LibraryManager: React.FC = () => {
                                 />
                               </div>
 
-                              {/* Hover action toolbar */}
-                              <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              {/* Hover action toolbar — bottom-right of thumbnail to avoid L# badge */}
+                              <div className="absolute top-[68px] right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                                 <Button
                                   size="sm"
                                   variant="ghost"
                                   onClick={() => handleDelete(row)}
                                   disabled={isBusy}
-                                  className="h-7 w-7 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 bg-white/80 dark:bg-slate-900/80 rounded-full"
+                                  className="h-7 w-7 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 bg-white/90 dark:bg-slate-900/90 rounded-full shadow"
                                   aria-label="Delete lesson"
                                   title="Delete lesson"
                                 >
