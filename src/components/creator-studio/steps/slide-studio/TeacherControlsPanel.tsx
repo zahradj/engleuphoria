@@ -527,7 +527,7 @@ export const TeacherControlsPanel: React.FC<Props> = ({ slide, onChange }) => {
           <AudioPanel slide={slide} onChange={onChange} />
         </TabsContent>
       </Tabs>
-    </aside>
+    </div>
   );
 };
 
