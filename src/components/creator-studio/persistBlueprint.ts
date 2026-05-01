@@ -33,6 +33,13 @@ export async function persistBlueprintAsDrafts(curriculum: CurriculumData) {
 
   const targetSystem = hubToTargetSystem(curriculum.hub);
   const difficultyLevel = cefrToDifficulty(curriculum.cefr_level);
+  const { data: latestLevel } = await supabase
+    .from('curriculum_levels')
+    .select('level_order')
+    .order('level_order', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const nextLevelOrder = Number(latestLevel?.level_order ?? 0) + 1;
 
   // 1. Insert level (NOT NULL: name, cefr_level, age_group, description, level_order)
   const { data: levelRow, error: levelErr } = await supabase
@@ -43,8 +50,8 @@ export async function persistBlueprintAsDrafts(curriculum: CurriculumData) {
       age_group: targetSystem,
       target_system: targetSystem,
       description: curriculum.theme_hint || curriculum.curriculum_title || 'Auto-generated blueprint',
-      level_order: 1,
-      sequence_order: 1,
+      level_order: nextLevelOrder,
+      sequence_order: nextLevelOrder,
     })
     .select('id')
     .single();
