@@ -8,6 +8,8 @@ const i18nToOption: Record<string, LanguageOption> = {
   es: "spanish",
   ar: "arabic",
   fr: "french",
+  tr: "turkish",
+  it: "italian",
 };
 
 const optionToI18n: Record<LanguageOption, string> = {
@@ -15,6 +17,8 @@ const optionToI18n: Record<LanguageOption, string> = {
   spanish: "es",
   arabic: "ar",
   french: "fr",
+  turkish: "tr",
+  italian: "it",
 };
 
 const getLanguageOption = (lng: string): LanguageOption =>

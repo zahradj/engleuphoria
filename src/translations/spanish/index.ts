@@ -17,8 +17,10 @@ import { calendarTranslations } from './calendar';
 import { progressTranslations } from './progress';
 import { whiteboardTranslations } from './whiteboard';
 import { authenticationTranslations } from './authentication';
+import { navTranslations } from './nav';
 
 export const spanishTranslations = {
+  ...navTranslations,
   ...commonTranslations,
   ...learningTranslations,
   ...dashboardTranslations,

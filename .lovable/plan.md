@@ -1,83 +1,66 @@
-# Master Library — Fix Duplicates & Missing A2 Level
+## Current State (already in place)
 
-## What's actually broken (confirmed in DB)
+Good news — i18n infrastructure already exists, just incomplete:
 
-Query against `curriculum_lessons` for `target_system='teen'`:
+- `src/lib/i18n.ts` — i18next + react-i18next + LanguageDetector configured
+- `src/main.tsx` — already sets `document.documentElement.dir = 'rtl'` for Arabic on language change
+- `src/components/common/LanguageSwitcher.tsx` — dropdown with all 6 flags exists (but lists Turkish without a translation file, and Italian is missing entirely)
+- `src/translations/` — `english`, `spanish`, `arabic`, `french` exist; **`turkish` and `italian` are missing**
+- Sidebar/header text (`StudioSidebar.tsx`, `StudioHeader.tsx`, `StudioMobileNav.tsx`) is **hardcoded** — not using `useTranslation` yet
 
-| CEFR (in `ai_metadata`) | Rows in DB | Unique unit+lesson slots |
-|---|---|---|
-| A1 | 150 | 50 |
-| A2 | 250 | 50 |
+## What to Build
 
-Two distinct bugs working together:
+### 1. Add the two missing languages
+- Create `src/translations/turkish.ts` and `src/translations/italian.ts` (mirroring the existing english structure)
+- Add an `italian` entry to `LanguageSwitcher` (Turkish is already listed)
+- Register both in `src/lib/i18n.ts` resources map and in `src/translations/index.ts`
 
-1. **A2 is invisible in the Library.** Every row was saved with `difficulty_level = 'beginner'`. The Library's grouping helper `difficultyToCefr('beginner')` always returns `'A1'`, so all 400 teen lessons are crammed under Academy → A1. A2 has nowhere to render. The real CEFR is sitting unused in `ai_metadata.cefr_level`.
-2. **Duplicates exist at the DB level.** A1 has 3× copies of each of its 50 lessons; A2 has 5× copies. The previous "anti-spam lock" only protects against double-clicking a single Save button — it does nothing about repeated blueprint generations or parallel inserts, and there is no DB constraint preventing a second copy of `(creator, hub, cefr, unit, lesson)` from being written.
-
-## The fix (3 parts)
-
-### 1. Read CEFR from the right place (UI)
-
-In `src/components/creator-studio/steps/LibraryManager.tsx`, change the level resolver so it prefers `ai_metadata.cefr_level` (and `ai_metadata.level`) over the coarse `difficulty_level` enum. Fallback chain:
-
-```text
-ai_metadata.cefr_level  →  ai_metadata.level  →  difficultyToCefr(difficulty_level)
+### 2. Create a shared `nav` namespace
+Add a `nav` block to all 6 translation files with the keys the user listed:
 ```
-
-Apply this in two places: the `levelGroups` memo (line ~261) and the per-card gradient (line ~576). Result: A1 and A2 (and B1/B2/C1/C2 in the future) each render as their own collapsible Level section under the Academy hub.
-
-### 2. Purge existing duplicates (one-time migration)
-
-Keep the **oldest** row for each `(created_by, target_system, ai_metadata.cefr_level, ai_metadata.unit_number, ai_metadata.lesson_number)` tuple, delete the rest. Expected outcome: 400 teen rows → 100 (50 A1 + 50 A2). A preview SELECT will be shown for confirmation before the DELETE runs.
-
-### 3. Make duplicates impossible going forward (DB constraint)
-
-Add a partial unique index on `curriculum_lessons`:
-
-```sql
-CREATE UNIQUE INDEX curriculum_lessons_unique_slot
-ON public.curriculum_lessons (
-  created_by,
-  target_system,
-  (ai_metadata->>'cefr_level'),
-  ((ai_metadata->>'unit_number')::int),
-  ((ai_metadata->>'lesson_number')::int)
-)
-WHERE ai_metadata ? 'cefr_level'
-  AND ai_metadata ? 'unit_number'
-  AND ai_metadata ? 'lesson_number';
+nav: { dashboard, slide_studio, master_library, blueprint, logout, settings, language }
 ```
+Translations for each language hand-authored (not machine output) for the ~7 nav strings.
 
-Then update the blueprint save path (`CurriculumMap.tsx` / `lessonLibraryService.saveToLibrary`) to use `.upsert(..., { onConflict: 'created_by,target_system,...' })` so a re-run **updates** the existing lesson instead of inserting a duplicate. Surface the constraint violation as a friendly toast: *"This lesson slot already exists — updated in place."*
+### 3. Wire the Creator Studio chrome to `useTranslation`
+Replace hardcoded labels in:
+- `src/components/creator-studio/StudioSidebar.tsx` — nav items array + Logout button
+- `src/components/creator-studio/StudioMobileNav.tsx` — same labels
+- `src/components/creator-studio/StudioHeader.tsx` — header strings
 
-### 4. Also persist CEFR to `difficulty_level` correctly
+Each becomes `t('nav.master_library')` etc.
 
-When saving, set `difficulty_level` to the actual CEFR string (`'A1'`, `'A2'`, …) instead of the bucket word `'beginner'`. The existing `difficultyToCefr` helper already accepts both, so old rows keep working.
+### 4. Mount the LanguageSwitcher
+Drop `<LanguageSwitcher />` into the **bottom of `StudioSidebar`** (above the Logout button) so it's visible across the entire Content Creator hub. Also confirm it's reachable from `StudioMobileNav`.
 
-## Files to change
+### 5. RTL polish for the Studio chrome
+The global `dir="rtl"` flip already works (it's in `main.tsx`). To make the Studio sidebar mirror cleanly, swap a handful of directional Tailwind classes to logical ones in just the three chrome files above:
+- `ml-*` → `ms-*`, `mr-*` → `me-*`
+- `pl-*` → `ps-*`, `pr-*` → `pe-*`
+- `left-*` → `start-*`, `right-*` → `end-*`
+- `text-left` → `text-start`, `text-right` → `text-end`
+- Flip chevron icons under `[dir="rtl"]` via a small CSS rule in `index.css`
 
-- `src/components/creator-studio/steps/LibraryManager.tsx` — fix level resolution (no longer collapses A2 into A1).
-- `src/components/creator-studio/steps/blueprint/CurriculumMap.tsx` — switch insert → upsert, write real CEFR into `difficulty_level`.
-- `src/services/lessonLibraryService.ts` (`saveToLibrary`) — same upsert + real CEFR.
-- New SQL migration — partial unique index + one-time dedupe DELETE (preview first).
+Scope is intentionally limited to Sidebar / Header / MobileNav — a full-app RTL pass on every page is out of scope for this PoC.
 
-## What stays the same
+### 6. Verify i18n init order
+Confirm `src/lib/i18n.ts` is imported in `main.tsx` **before** `App` renders (it already is — just adding a sanity check during implementation).
 
-- Single source of truth remains `curriculum_lessons` (per project memory).
-- Existing UI hierarchy (Hub → Level → Unit → Lesson) is unchanged — it just finally has the data it needs to render every level.
-- All existing RLS policies and the anti-spam button lock stay in place; the DB constraint is a belt-and-braces second line of defense.
+## Out of scope (intentionally)
 
-## After this lands you'll see
+- Translating page bodies, lesson content, toasts, or admin panels — only the nav chrome is in scope per the prompt's "PoC" wording.
+- I18nextProvider wrapping — `react-i18next` v12+ does **not** require it; the `i18n.use(initReactI18next)` call already binds it globally. I'll skip the redundant provider unless you specifically want one.
 
-```text
-Academy Hub
-├── Level A1   (50 lessons)
-│   ├── Unit 1: My Digital Life     → Lessons 1–5
-│   ├── Unit 2: …
-│   └── Unit 10: Global Citizens
-└── Level A2   (50 lessons)         ← finally visible
-    ├── Unit 1: …
-    └── …
-```
+## Files to create
+- `src/translations/turkish.ts`
+- `src/translations/italian.ts`
 
-No duplicates, A2 visible, and re-running a generation can never create a second copy.
+## Files to edit
+- `src/lib/i18n.ts` (register tr + it)
+- `src/translations/index.ts` (export tr + it)
+- `src/translations/english.ts`, `spanish.ts`, `arabic.ts`, `french.ts` (add `nav` block)
+- `src/components/common/LanguageSwitcher.tsx` (add Italian)
+- `src/components/creator-studio/StudioSidebar.tsx` (translate + mount switcher + logical classes)
+- `src/components/creator-studio/StudioHeader.tsx` (translate + logical classes)
+- `src/components/creator-studio/StudioMobileNav.tsx` (translate + logical classes)
+- `src/index.css` (chevron flip rule for RTL)

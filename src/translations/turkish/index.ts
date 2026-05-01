@@ -1,6 +1,7 @@
-
-import { landingTranslations } from './landing';
+import { navTranslations } from './nav';
 
 export const turkishTranslations = {
-  ...landingTranslations,
+  ...navTranslations,
+  welcome: "Hoş geldiniz",
+  all: "Hepsi",
 };
