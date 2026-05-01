@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -10,6 +11,7 @@ interface ParentNotificationSettingsProps {
 }
 
 export function ParentNotificationSettings({ parentId }: ParentNotificationSettingsProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -23,7 +25,6 @@ export function ParentNotificationSettings({ parentId }: ParentNotificationSetti
         .single();
 
       if (error) {
-        // Create default preferences if they don't exist
         const { data: newPrefs, error: insertError } = await supabase
           .from("parent_notification_preferences")
           .insert({ parent_id: parentId })
@@ -50,14 +51,14 @@ export function ParentNotificationSettings({ parentId }: ParentNotificationSetti
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["parent-notification-preferences"] });
       toast({
-        title: "Settings updated",
-        description: "Your notification preferences have been saved.",
+        title: t('pd.notif.toast.saved.title'),
+        description: t('pd.notif.toast.saved.body'),
       });
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to update preferences. Please try again.",
+        title: t('pd.notif.toast.error.title'),
+        description: t('pd.notif.toast.error.body'),
         variant: "destructive",
       });
     },
@@ -79,46 +80,18 @@ export function ParentNotificationSettings({ parentId }: ParentNotificationSetti
   }
 
   const notificationOptions = [
-    {
-      key: "lesson_reminders",
-      label: "Lesson Reminders",
-      description: "Get notified before upcoming lessons",
-    },
-    {
-      key: "progress_reports",
-      label: "Progress Reports",
-      description: "Receive regular updates on your child's progress",
-    },
-    {
-      key: "homework_notifications",
-      label: "Homework Notifications",
-      description: "Get notified when homework is assigned or completed",
-    },
-    {
-      key: "attendance_alerts",
-      label: "Attendance Alerts",
-      description: "Receive alerts about attendance issues",
-    },
-    {
-      key: "payment_reminders",
-      label: "Payment Reminders",
-      description: "Get reminded about upcoming payments",
-    },
-    {
-      key: "teacher_messages",
-      label: "Teacher Messages",
-      description: "Receive notifications for new messages from teachers",
-    },
-    {
-      key: "weekly_summary",
-      label: "Weekly Summary",
-      description: "Get a weekly summary of your child's activities",
-    },
+    { key: "lesson_reminders", label: t('pd.notif.lessonReminders'), description: t('pd.notif.lessonReminders.desc') },
+    { key: "progress_reports", label: t('pd.notif.progressReports'), description: t('pd.notif.progressReports.desc') },
+    { key: "homework_notifications", label: t('pd.notif.homework'), description: t('pd.notif.homework.desc') },
+    { key: "attendance_alerts", label: t('pd.notif.attendance'), description: t('pd.notif.attendance.desc') },
+    { key: "payment_reminders", label: t('pd.notif.payment'), description: t('pd.notif.payment.desc') },
+    { key: "teacher_messages", label: t('pd.notif.teacherMessages'), description: t('pd.notif.teacherMessages.desc') },
+    { key: "weekly_summary", label: t('pd.notif.weeklySummary'), description: t('pd.notif.weeklySummary.desc') },
   ];
 
   return (
     <Card className="p-6">
-      <h3 className="text-lg font-semibold mb-6">Notification Preferences</h3>
+      <h3 className="text-lg font-semibold mb-6">{t('pd.notif.title')}</h3>
       <div className="space-y-6">
         {notificationOptions.map((option) => (
           <div key={option.key} className="flex items-center justify-between">

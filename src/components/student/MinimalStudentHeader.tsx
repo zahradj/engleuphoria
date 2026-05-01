@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Flame } from "lucide-react";
@@ -37,6 +38,7 @@ export const MinimalStudentHeader: React.FC<MinimalStudentHeaderProps> = ({
   hasProfile = false,
   studentProfile
 }) => {
+  const { t } = useTranslation();
   const { studentLevel } = useStudentLevel();
   const { resolvedTheme } = useThemeMode();
   const { user } = useAuth();
@@ -78,7 +80,7 @@ export const MinimalStudentHeader: React.FC<MinimalStudentHeaderProps> = ({
             </h1>
             <div className="flex items-center gap-2 flex-wrap">
               <span className={`text-xs ${isDark ? 'text-white/50' : 'text-muted-foreground'}`}>
-                ID: {studentId}
+                {t('sd.id')}: {studentId}
               </span>
               {hasProfile && studentProfile && (
                 <Badge variant="secondary" className={`text-xs border-0 font-medium ${

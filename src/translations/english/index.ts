@@ -18,6 +18,7 @@ import { progressTranslations } from './progress';
 import { whiteboardTranslations } from './whiteboard';
 import { authenticationTranslations } from './authentication';
 import { navTranslations } from './nav';
+import { dashboardUITranslations } from './dashboardUI';
 
 export const englishTranslations = {
   ...navTranslations,
@@ -38,5 +39,6 @@ export const englishTranslations = {
   ...calendarTranslations,
   ...progressTranslations,
   ...whiteboardTranslations,
-  ...authenticationTranslations
+  ...authenticationTranslations,
+  ...dashboardUITranslations
 };

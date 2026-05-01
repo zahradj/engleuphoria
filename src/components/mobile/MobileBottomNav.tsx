@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Home, BookOpen, Calendar, Trophy, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useStudentLevel } from '@/hooks/useStudentLevel';
@@ -16,12 +17,12 @@ interface MobileBottomNavProps {
   className?: string;
 }
 
-const NAV_ITEMS: { id: StudentNavTab; icon: typeof Home; label: string }[] = [
-  { id: 'dashboard', icon: Home, label: 'Home' },
-  { id: 'learning-path', icon: BookOpen, label: 'Lessons' },
-  { id: 'upcoming-classes', icon: Calendar, label: 'Classes' },
-  { id: 'certificates', icon: Trophy, label: 'Awards' },
-  { id: 'profile', icon: User, label: 'Profile' },
+const NAV_ITEMS: { id: StudentNavTab; icon: typeof Home; labelKey: string }[] = [
+  { id: 'dashboard', icon: Home, labelKey: 'sd.nav.home' },
+  { id: 'learning-path', icon: BookOpen, labelKey: 'sd.nav.lessons' },
+  { id: 'upcoming-classes', icon: Calendar, labelKey: 'sd.nav.classes' },
+  { id: 'certificates', icon: Trophy, labelKey: 'sd.nav.awards' },
+  { id: 'profile', icon: User, labelKey: 'sd.nav.profile' },
 ];
 
 const HUB_THEME: Record<string, { active: string; activeBg: string; ring: string }> = {
@@ -47,6 +48,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   onTabChange,
   className,
 }) => {
+  const { t } = useTranslation();
   const { studentLevel } = useStudentLevel();
   const theme = HUB_THEME[studentLevel || 'playground'];
 
@@ -59,11 +61,12 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         className
       )}
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-      aria-label="Primary mobile navigation"
+      aria-label={t('sd.nav.aria')}
     >
       <ul className="grid grid-cols-5 gap-1 px-2 pt-2 pb-2">
-        {NAV_ITEMS.map(({ id, icon: Icon, label }) => {
+        {NAV_ITEMS.map(({ id, icon: Icon, labelKey }) => {
           const isActive = activeTab === id;
+          const label = t(labelKey);
           return (
             <li key={id}>
               <button

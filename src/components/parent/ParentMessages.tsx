@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -17,6 +18,7 @@ interface ParentMessagesProps {
 }
 
 export function ParentMessages({ parentId, students }: ParentMessagesProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedStudentId, setSelectedStudentId] = useState<string>("");
@@ -62,14 +64,14 @@ export function ParentMessages({ parentId, students }: ParentMessagesProps) {
       setSelectedStudentId("");
       setShowCompose(false);
       toast({
-        title: "Message sent",
-        description: "Your message has been sent to the teacher.",
+        title: t('pd.messages.toast.sent.title'),
+        description: t('pd.messages.toast.sent.body'),
       });
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: "Failed to send message. Please try again.",
+        title: t('pd.messages.toast.error.title'),
+        description: t('pd.messages.toast.error.body'),
         variant: "destructive",
       });
       console.error("Error sending message:", error);
@@ -79,8 +81,8 @@ export function ParentMessages({ parentId, students }: ParentMessagesProps) {
   const handleSendMessage = async () => {
     if (!selectedStudentId || !newSubject || !newMessage) {
       toast({
-        title: "Missing information",
-        description: "Please fill in all fields.",
+        title: t('pd.messages.toast.missing.title'),
+        description: t('pd.messages.toast.missing.body'),
         variant: "destructive",
       });
       return;
@@ -97,8 +99,8 @@ export function ParentMessages({ parentId, students }: ParentMessagesProps) {
 
     if (!recentLesson?.teacher_id) {
       toast({
-        title: "No teacher found",
-        description: "This student doesn't have a teacher assigned yet.",
+        title: t('pd.messages.toast.noTeacher.title'),
+        description: t('pd.messages.toast.noTeacher.body'),
         variant: "destructive",
       });
       return;
@@ -116,20 +118,20 @@ export function ParentMessages({ parentId, students }: ParentMessagesProps) {
     <div className="space-y-6">
       <Card className="p-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Messages</h3>
+          <h3 className="text-lg font-semibold">{t('pd.messages.title')}</h3>
           <Button onClick={() => setShowCompose(!showCompose)}>
-            <MessageSquare className="h-4 w-4 mr-2" />
-            New Message
+            <MessageSquare className="h-4 w-4 me-2" />
+            {t('pd.messages.new')}
           </Button>
         </div>
 
         {showCompose && (
           <Card className="p-4 mb-4 bg-muted/50">
-            <h4 className="font-semibold mb-4">Compose Message</h4>
+            <h4 className="font-semibold mb-4">{t('pd.messages.compose')}</h4>
             <div className="space-y-4">
               <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select student" />
+                  <SelectValue placeholder={t('pd.messages.selectStudent')} />
                 </SelectTrigger>
                 <SelectContent>
                   {students.map((s) => (
@@ -141,13 +143,13 @@ export function ParentMessages({ parentId, students }: ParentMessagesProps) {
               </Select>
 
               <Input
-                placeholder="Subject"
+                placeholder={t('pd.messages.subject')}
                 value={newSubject}
                 onChange={(e) => setNewSubject(e.target.value)}
               />
 
               <Textarea
-                placeholder="Your message to the teacher..."
+                placeholder={t('pd.messages.placeholder')}
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 rows={5}
@@ -158,11 +160,11 @@ export function ParentMessages({ parentId, students }: ParentMessagesProps) {
                   onClick={handleSendMessage}
                   disabled={sendMessageMutation.isPending}
                 >
-                  <Send className="h-4 w-4 mr-2" />
-                  {sendMessageMutation.isPending ? "Sending..." : "Send Message"}
+                  <Send className="h-4 w-4 me-2" />
+                  {sendMessageMutation.isPending ? t('pd.messages.sending') : t('pd.messages.send')}
                 </Button>
                 <Button variant="outline" onClick={() => setShowCompose(false)}>
-                  Cancel
+                  {t('pd.messages.cancel')}
                 </Button>
               </div>
             </div>
@@ -180,9 +182,9 @@ export function ParentMessages({ parentId, students }: ParentMessagesProps) {
       ) : !messages || messages.length === 0 ? (
         <Card className="p-8 text-center">
           <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-semibold mb-2">No Messages</h3>
+          <h3 className="text-lg font-semibold mb-2">{t('pd.messages.empty.title')}</h3>
           <p className="text-muted-foreground">
-            You don't have any messages yet. Start a conversation with a teacher!
+            {t('pd.messages.empty.body')}
           </p>
         </Card>
       ) : (
@@ -193,17 +195,17 @@ export function ParentMessages({ parentId, students }: ParentMessagesProps) {
                 <div>
                   <h4 className="font-semibold">{message.subject}</h4>
                   <p className="text-sm text-muted-foreground">
-                    {message.sender_type === "parent" ? "To" : "From"}: {message.teacher?.full_name}
+                    {message.sender_type === "parent" ? t('pd.messages.to') : t('pd.messages.from')}: {message.teacher?.full_name}
                     {" • "}
-                    Regarding: {message.student?.full_name}
+                    {t('pd.messages.regarding')}: {message.student?.full_name}
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <Badge variant={message.sender_type === "parent" ? "secondary" : "default"}>
-                    {message.sender_type === "parent" ? "Sent" : "Received"}
+                    {message.sender_type === "parent" ? t('pd.messages.sent') : t('pd.messages.received')}
                   </Badge>
                   {!message.is_read && message.sender_type === "teacher" && (
-                    <Badge variant="destructive">New</Badge>
+                    <Badge variant="destructive">{t('pd.messages.new_badge')}</Badge>
                   )}
                 </div>
               </div>

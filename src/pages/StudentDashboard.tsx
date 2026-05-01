@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
@@ -82,6 +83,7 @@ const StudentDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, loading: authLoading, signOut } = useAuth();
+  const { t } = useTranslation();
   
   const generateStudentId = () => {
     const existingId = localStorage.getItem('studentId');
@@ -145,8 +147,8 @@ const StudentDashboard = () => {
       } catch (error) {
         console.error('❌ Error initializing student dashboard:', error);
         toast({
-          title: "Loading Error",
-          description: "There was an issue loading your dashboard. Please refresh the page.",
+          title: t('sd.toast.loadError.title'),
+          description: t('sd.toast.loadError.body'),
           variant: "destructive",
         });
       }
@@ -167,15 +169,15 @@ const StudentDashboard = () => {
       await signOut();
       
       toast({
-        title: "Logged out successfully",
-        description: "See you next time!",
+        title: t('sd.toast.loggedOut.title'),
+        description: t('sd.toast.loggedOut.body'),
       });
       
     } catch (error) {
       console.error('Logout error:', error);
       toast({
-        title: "Logout Error",
-        description: "There was an issue logging out. Please try again.",
+        title: t('sd.toast.logoutError.title'),
+        description: t('sd.toast.logoutError.body'),
         variant: "destructive",
       });
     }
@@ -202,12 +204,12 @@ const StudentDashboard = () => {
     return (
       <ErrorBoundary fallback={
         <div className="p-6 text-center">
-          <p className="text-red-600 mb-4">Error loading this section</p>
+          <p className="text-red-600 mb-4">{t('sd.section.error')}</p>
           <button 
             onClick={() => setActiveTab("dashboard")}
             className="bg-blue-600 text-white px-4 py-2 rounded"
           >
-            Return to Dashboard
+            {t('sd.section.return')}
           </button>
         </div>
       }>
@@ -219,7 +221,7 @@ const StudentDashboard = () => {
   if (authLoading || !isInitialized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <LoadingSpinner size="lg" message="Loading your dashboard..." />
+        <LoadingSpinner size="lg" message={t('sd.loading')} />
       </div>
     );
   }
