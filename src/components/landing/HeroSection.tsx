@@ -177,8 +177,7 @@ export function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
             >
-              Personalized 1-on-1 lessons with native speakers.
-              For kids, teens, and professionals — at any level.
+              {t('lp.hero.subheadline')}
             </motion.p>
 
             {/* CTA Buttons — gradient matches active group */}
