@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { Loader2, BookOpen, Palette, Target, Save } from 'lucide-react';
+import React from 'react';
+import { Loader2, BookOpen, Palette, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useCreator, CurriculumData, BlueprintLessonRef } from '../../CreatorContext';
 import { SkillBadge } from './SkillBadge';
-import { persistBlueprintAsDrafts } from '../../persistBlueprint';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Props {
   data: CurriculumData | null;
@@ -16,7 +16,6 @@ interface Props {
 export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
   const { setActiveLessonData, setCurrentStep } = useCreator();
   const navigate = useNavigate();
-  const [saving, setSaving] = useState(false);
 
   const handleBuildSlides = (lesson: BlueprintLessonRef) => {
     if (!data) return;
@@ -33,19 +32,32 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
     toast.success(`Opening Slide Studio for "${lesson.title}"…`);
   };
 
-  const handleSaveBlueprint = async () => {
-    if (!data) return;
-    setSaving(true);
+  const forceSaveToLibrary = async () => {
+    if (!data) {
+      toast.error('No curriculum lessons to save.');
+      return;
+    }
+
+    const lessonsToInsert = data.units.flatMap((unit) =>
+      unit.lessons.map((lesson) => ({
+        title: lesson.title,
+        unit_title: unit.unit_title,
+        level: data.cefr_level,
+        hub: data.hub,
+        status: 'draft',
+      })),
+    );
+
     try {
-      const result = await persistBlueprintAsDrafts(data);
-      toast.success(`🎉 Blueprint saved! ${result.totalCount} draft lessons created.`);
+      const { error } = await supabase.from('lessons').insert(lessonsToInsert as any);
+      if (error) throw error;
+
+      toast.success('Blueprint saved successfully!');
       setCurrentStep('library');
       navigate('/content-creator/library');
     } catch (err: any) {
-      console.error('Blueprint save error:', err);
-      toast.error(err?.message || 'Failed to save blueprint.');
-    } finally {
-      setSaving(false);
+      console.error('FORCE SAVE TO LIBRARY error:', err);
+      toast.error(err?.message || JSON.stringify(err) || 'Unknown SQL error');
     }
   };
 
@@ -160,20 +172,7 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
           ))}
         </Accordion>
 
-        {/* Save Blueprint Button */}
-        <Button
-          size="lg"
-          onClick={handleSaveBlueprint}
-          disabled={saving}
-          data-testid="save-entire-blueprint-button"
-          className="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 text-white shadow-md"
-        >
-          {saving ? (
-            <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Saving…</>
-          ) : (
-            <><Save className="w-5 h-5 mr-2" /> Save Entire Blueprint to Library</>
-          )}
-        </Button>
+        <button onClick={forceSaveToLibrary} className="w-full py-4 mt-8 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xl rounded-xl shadow-lg">🛑 FORCE SAVE TO LIBRARY 🛑</button>
       </div>
     </>
   );
