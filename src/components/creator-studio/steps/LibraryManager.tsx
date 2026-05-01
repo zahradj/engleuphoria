@@ -157,6 +157,8 @@ export const LibraryManager: React.FC = () => {
       toast.error(`Could not load library: ${lessonsRes.error.message}`);
     }
 
+    console.log('Library Fetch Result:', { uid, count: lessonsRes.data?.length ?? 0, data: lessonsRes.data });
+
     const lessons = (lessonsRes.data ?? []) as LessonRow[];
 
     const unitIds = Array.from(
