@@ -662,30 +662,6 @@ export const LibraryManager: React.FC = () => {
 
                         <CollapsibleContent className="pt-4 space-y-4">
 
-
-            return (
-              <section key={`${levelGroup.hub}-${levelGroup.cefr}`} className="space-y-5">
-                {/* ── Level Header ────────────────────────────── */}
-                <div className={cn('flex items-center gap-3 px-5 py-3 rounded-2xl', gradient.bg, gradient.text)}>
-                  <div className="h-10 w-10 shrink-0 rounded-xl bg-white/30 dark:bg-white/10 backdrop-blur-sm flex items-center justify-center font-black text-lg">
-                    {levelGroup.cefr}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-70">
-                      {levelGroup.hub.charAt(0).toUpperCase() + levelGroup.hub.slice(1)} Hub
-                    </p>
-                    <h3 className="text-lg font-extrabold tracking-tight">
-                      Level {levelGroup.cefr}
-                    </h3>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    {HUB_ICON[levelGroup.hub]}
-                    <Badge variant="secondary" className="text-[11px] font-semibold bg-white/20 dark:bg-white/10 border-0">
-                      {levelGroup.lessons.length} lesson{levelGroup.lessons.length === 1 ? '' : 's'}
-                    </Badge>
-                  </div>
-                </div>
-
                 {/* ── Unit sub-groups ─────────────────────────── */}
                 {levelGroup.unitGroups.map((group) => {
                   const isUncat = group.unit_number == null;
