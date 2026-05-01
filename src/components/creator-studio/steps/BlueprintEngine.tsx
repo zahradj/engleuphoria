@@ -8,7 +8,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useCreator, CEFRLevel, HubType, CurriculumData } from '../CreatorContext';
 import { CurriculumMap } from './blueprint/CurriculumMap';
-import { persistBlueprintAsDrafts } from '../persistBlueprint';
 
 const HUB_LABEL: Record<HubType, string> = {
   playground: 'Playground (Kids 4–9)',
@@ -86,14 +85,6 @@ export const BlueprintEngine: React.FC = () => {
       const totalLessons = units.reduce((n: number, u: any) => n + u.lessons.length, 0);
       toast.success(`Blueprint ready · ${units.length} units · ${totalLessons} lessons`);
 
-      // Auto-save all lessons as locked drafts in the database
-      try {
-        const saved = await persistBlueprintAsDrafts(next);
-        toast.success(`🔒 ${saved.totalCount} draft lessons saved to the database`);
-      } catch (saveErr: any) {
-        console.error('Blueprint auto-save error:', saveErr);
-        toast.error(`Blueprint generated but auto-save failed: ${saveErr?.message || 'Unknown error'}`);
-      }
     } catch (err: any) {
       console.error('Blueprint generation error:', err);
       setError(err?.message || 'Failed to generate blueprint.');

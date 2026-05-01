@@ -39,7 +39,8 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
     try {
       const result = await persistBlueprintAsDrafts(data);
       toast.success(`🎉 Blueprint saved! ${result.totalCount} draft lessons created.`);
-      navigate('/content-creator');
+      setCurrentStep('library');
+      navigate('/content-creator/library');
     } catch (err: any) {
       console.error('Blueprint save error:', err);
       toast.error(err?.message || 'Failed to save blueprint.');
@@ -164,6 +165,7 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
           size="lg"
           onClick={handleSaveBlueprint}
           disabled={saving}
+          data-testid="save-entire-blueprint-button"
           className="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 text-white shadow-md"
         >
           {saving ? (
