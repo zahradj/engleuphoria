@@ -4,6 +4,7 @@ import { Star, Play, ArrowRight, Globe, Users, Award, CheckCircle2 } from 'lucid
 import { useRef, useEffect, useState } from 'react';
 import { useInView } from 'framer-motion';
 import { useThemeMode } from '@/hooks/useThemeMode';
+import { useTranslation } from 'react-i18next';
 import heroKid from '@/assets/hero-kid.png';
 import heroTeen from '@/assets/hero-teen.png';
 import heroAdult from '@/assets/hero-adult.png';
