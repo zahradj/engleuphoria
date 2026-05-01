@@ -96,6 +96,7 @@ export function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const { activeIndex: activeImage, setActiveIndex: setActiveImage } = useHeroTheme();
   const theme = GROUP_THEMES[activeImage];
+  const { t } = useTranslation();
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
