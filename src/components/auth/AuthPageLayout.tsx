@@ -184,14 +184,14 @@ export function AuthPageLayout({
       </div>
 
       {/* ── Right Panel: Auth Form ── */}
-      <div className="relative flex-1 flex flex-col min-h-screen lg:min-h-0">
-        {/* Top bar */}
-        <div className="flex items-center justify-end p-4 sm:p-6">
+      <div className="relative flex-1 flex flex-col">
+        {/* Top bar — hidden on mobile (logo already visible) */}
+        <div className="hidden lg:flex items-center justify-end p-4 sm:p-6">
           <ThemeModeToggle className="text-muted-foreground hover:text-foreground hover:bg-muted" />
         </div>
 
         {/* Form container */}
-        <div className="flex-1 flex items-center justify-center px-4 sm:px-8 pb-8">
+        <div className="flex-1 flex items-center justify-center px-4 sm:px-8 py-6 lg:pb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
