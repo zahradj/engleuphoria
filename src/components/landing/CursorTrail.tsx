@@ -48,7 +48,7 @@ export function CursorTrail() {
     resize();
     window.addEventListener("resize", resize);
 
-    const onMove = (e: MouseEvent) => {
+    const spawnAt = (x: number, y: number) => {
       const count = 2 + Math.floor(Math.random() * 2);
       for (let i = 0; i < count; i++) {
         if (particles.current.length >= MAX_PARTICLES) {
@@ -57,8 +57,8 @@ export function CursorTrail() {
         const maxLife = 30 + Math.random() * 15;
         const palette = colorsRef.current;
         particles.current.push({
-          x: e.clientX,
-          y: e.clientY,
+          x,
+          y,
           vx: (Math.random() - 0.5) * 2.5,
           vy: (Math.random() - 0.5) * 2.5 - 0.5,
           size: 3 + Math.random() * 3.5,
@@ -69,7 +69,17 @@ export function CursorTrail() {
       }
     };
 
+    const onMove = (e: MouseEvent) => spawnAt(e.clientX, e.clientY);
+
+    const onTouch = (e: TouchEvent) => {
+      for (let t = 0; t < e.touches.length; t++) {
+        spawnAt(e.touches[t].clientX, e.touches[t].clientY);
+      }
+    };
+
     window.addEventListener("mousemove", onMove);
+    window.addEventListener("touchmove", onTouch, { passive: true });
+    window.addEventListener("touchstart", onTouch, { passive: true });
 
     const loop = () => {
       const c = canvasRef.current;
@@ -108,6 +118,8 @@ export function CursorTrail() {
     return () => {
       window.removeEventListener("resize", resize);
       window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("touchmove", onTouch);
+      window.removeEventListener("touchstart", onTouch);
       cancelAnimationFrame(rafId.current);
     };
   }, [resize]);
