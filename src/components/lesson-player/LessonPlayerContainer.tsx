@@ -10,6 +10,7 @@ import { soundEffectsService } from '@/services/soundEffectsService';
 import { triggerCelebration } from '@/services/celebration';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { validatePedagogy } from '@/utils/validatePedagogy';
 import { useMasteryTracker } from '@/hooks/useMasteryTracker';
 import { useStreak } from '@/hooks/useStreak';
 import { X, Volume2, VolumeX, Zap, Star, ChevronLeft, ChevronRight, Focus, BookOpen } from 'lucide-react';
@@ -177,6 +178,16 @@ export default function LessonPlayerContainer({
   // Keep in sync if parent changes props
   useEffect(() => { setActiveSlides(initialSlides); }, [initialSlides]);
   useEffect(() => { setActiveLessonTitle(initialTitle); }, [initialTitle]);
+
+  // Rule 9: Validate pedagogy sequence on mount
+  useEffect(() => {
+    if (initialSlides.length > 1) {
+      const warnings = validatePedagogy(initialSlides);
+      warnings.forEach(w => {
+        toast.warning(`⚠️ Sequence Warning: "${w.teachType}" at slide ${w.index + 1} not followed by practice. Expected: ${w.expectedTypes.join(', ')}`, { duration: 6000 });
+      });
+    }
+  }, [initialSlides]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [lessonScore, setLessonScore] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
