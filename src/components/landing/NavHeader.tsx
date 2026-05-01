@@ -115,7 +115,7 @@ export function NavHeader() {
                 }`}
               >
                 <GraduationCap className="w-4 h-4" />
-                Teach With Us
+                {t('lp.nav.teachWithUs')}
               </Link>
             </nav>
 
