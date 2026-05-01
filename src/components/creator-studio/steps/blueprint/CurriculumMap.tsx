@@ -19,6 +19,8 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
   const autoSavedRef = useRef<string | null>(null);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [savedCount, setSavedCount] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasSaved, setHasSaved] = useState(false);
 
   const handleBuildSlides = (lesson: BlueprintLessonRef) => {
     if (!data) return;
@@ -122,10 +124,27 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
     }
   };
 
-  const forceSaveToLibrary = () =>
-    data
-      ? saveBlueprintToLibrary(data, { navigateAfter: true })
-      : (toast.error('No curriculum lessons to save.'), Promise.resolve({ ok: false, count: 0 }));
+  const forceSaveToLibrary = async () => {
+    if (isSaving || hasSaved) return;
+    if (!data) {
+      toast.error('No curriculum lessons to save.');
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const res = await saveBlueprintToLibrary(data, { navigateAfter: false });
+      if (res.ok) {
+        setHasSaved(true);
+        toast.success(`✅ Saved ${res.count} lessons. Opening library…`);
+        setTimeout(() => navigate('/content-creator/library'), 1000);
+        // Intentionally keep isSaving=true so button stays locked during redirect
+      } else {
+        setIsSaving(false);
+      }
+    } catch (err) {
+      setIsSaving(false);
+    }
+  };
 
   // ── Auto-save: as soon as a fresh blueprint arrives, persist all
   // lessons to the Master Library as drafts (no button click required).
@@ -309,13 +328,18 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
 
         <button
           onClick={forceSaveToLibrary}
-          className="w-full py-4 mt-8 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg rounded-xl shadow-lg"
+          disabled={isSaving || hasSaved}
+          className={`w-full py-4 mt-8 font-bold text-lg rounded-xl shadow-lg transition-colors ${
+            isSaving || hasSaved
+              ? 'bg-slate-400 text-white cursor-not-allowed'
+              : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+          }`}
         >
-          {autoSaveStatus === 'saved'
-            ? '✅ Save Again & Open Library'
-            : autoSaveStatus === 'error'
-            ? '🔁 Retry Save to Library'
-            : '💾 Save to Library & Open'}
+          {isSaving
+            ? '⏳ Saving to Database...'
+            : hasSaved
+            ? '✅ Saved Successfully!'
+            : '🛑 FORCE SAVE TO LIBRARY 🛑'}
         </button>
       </div>
     </>
