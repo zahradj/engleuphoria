@@ -9,6 +9,7 @@ import { SafeSlideImage } from '@/components/common/SafeSlideImage';
 import { playSlideAudio } from '@/lib/playSlideAudio';
 import { useHubTheme } from '@/hooks/useHubTheme';
 import { shouldShowAudioButton } from '@/components/lesson-player/audioGate';
+import FrontPageSlide from '@/components/lesson-player/editorial/FrontPageSlide';
 
 type ViewMode = 'student' | 'teacher';
 
@@ -597,7 +598,31 @@ export const SlideCanvas: React.FC<Props> = ({ slide, onChange }) => {
           </span>
         </div>
 
-        {/* Workspace: clean off-white surface, app screen floats in the middle */}
+        {/* ── Front Page (cinematic, full-bleed) ─────────────────────── */}
+        {((slide as any).slide_type === 'front_page' || (slide as any).type === 'front_page') ? (
+          <div
+            className="relative rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-inner bg-slate-900"
+            style={{ minHeight: '70vh' }}
+          >
+            <div className="absolute inset-0">
+              <FrontPageSlide
+                lessonTitle={(slide as any).title || 'Untitled Lesson'}
+                topic={(slide as any).topic || (slide as any).visual_keyword}
+                level={(slide as any).level || (slide as any).cefr_level}
+                hub={hub}
+                coverImageUrl={(slide as any).custom_image_url || (slide as any).coverImageUrl}
+                unitNumber={(slide as any).unit_number ?? (slide as any).unitNumber}
+                unitTitle={(slide as any).unit_title ?? (slide as any).unitTitle}
+              />
+            </div>
+            {mode === 'teacher' && (
+              <Teleprompter
+                script={slide.teacher_script ?? slide.teacher_instructions ?? ''}
+                onChange={(v) => onChange({ teacher_script: v })}
+              />
+            )}
+          </div>
+        ) : (
         <div
           className="relative rounded-3xl overflow-hidden bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-inner"
           style={{ minHeight: '70vh' }}
@@ -635,6 +660,7 @@ export const SlideCanvas: React.FC<Props> = ({ slide, onChange }) => {
             />
           )}
         </div>
+        )}
 
         <p className="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
           {mode === 'teacher'
