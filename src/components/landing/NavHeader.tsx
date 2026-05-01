@@ -7,6 +7,7 @@ import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
 import { ThemeModeToggle } from '@/components/ui/ThemeModeToggle';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { useHeroTheme } from '@/contexts/HeroThemeContext';
+import { useTranslation } from 'react-i18next';
 import logoBlack from '@/assets/logo-black.png';
 import logoWhite from '@/assets/logo-white.png';
 
