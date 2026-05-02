@@ -202,6 +202,25 @@ student's first wrong answer. Never spoil the answer outright — guide them. Ex
 tense gap: "Past tense often ends in -ed."
 
 ═══════════════════════════════════════════════════════
+RULE 6C — INTERACTIVE_DATA IS STRICTLY REQUIRED
+═══════════════════════════════════════════════════════
+For ANY slide whose slide_type is one of: quiz_mcq, multiple_choice, reading_quiz,
+listening_comprehension, fill_in_blanks, fill_in_the_gaps, match_halves, match_words, image_match,
+sorting_game, sentence_builder, true_false, drag_and_match, drag_and_drop —
+the "interactive_data" field is STRICTLY REQUIRED and MUST contain ALL keys defined for that type
+in RULE 6 / RULE 6B (e.g. options + correct_index for quizzes, sentences[] for fill_in_blanks,
+pairs[] for match_halves, items + categories for sorting_game). Slides emitted with empty or missing
+interactive_data WILL BE REJECTED by the server validator and dropped from the final deck.
+
+═══════════════════════════════════════════════════════
+RULE 12 — NO DUPLICATE / REDUNDANT SLIDES
+═══════════════════════════════════════════════════════
+DO NOT generate duplicate speaking exercises (no two real_world_task, no two role_play,
+no two shadowing_drill in the same deck). DO NOT repeat the same slide_type back-to-back
+(see RULE 5). DO NOT pad with redundant review activities — every slide must teach something
+new or test something just taught.
+
+═══════════════════════════════════════════════════════
 RULE 7 — MULTIMODAL MEDIA PROMPTS (THE AI ART DIRECTOR)
 ═══════════════════════════════════════════════════════
 For every slide that has a visual (vocab presentation, hero image, drag_and_match thumbnails,
@@ -506,7 +525,57 @@ Return ONLY the JSON object.`;
       });
     }
 
-    const rawSlides: any[] = aiResult.slides;
+    let rawSlides: any[] = aiResult.slides;
+
+    // ── Server-side validator: drop interactive slides with empty interactive_data ──
+    const REQUIRED_KEYS: Record<string, string[]> = {
+      quiz_mcq: ["options"],
+      multiple_choice: ["options"],
+      reading_quiz: ["options"],
+      listening_comprehension: ["options"],
+      fill_in_blanks: ["sentences"],
+      fill_in_the_gaps: ["sentence_parts", "missing_word"],
+      match_halves: ["pairs"],
+      match_words: ["items", "categories"],
+      image_match: ["items", "categories"],
+      sorting_game: ["items", "categories"],
+      sentence_builder: ["scrambled_words"],
+      true_false: ["statements"],
+      drag_and_match: ["pairs"],
+      drag_and_drop: ["items", "targets"],
+    };
+    rawSlides = rawSlides.filter((slide: any) => {
+      const t = slide?.slide_type;
+      const required = t && REQUIRED_KEYS[t];
+      if (!required) return true;
+      const data = slide?.interactive_data;
+      if (!data || typeof data !== "object") {
+        console.warn("[ppp] dropped malformed slide", slide?.id, t, "missing interactive_data");
+        return false;
+      }
+      const ok = required.some((k) => {
+        const v = (data as any)[k];
+        return Array.isArray(v) ? v.length > 0 : v != null && v !== "";
+      });
+      if (!ok) console.warn("[ppp] dropped malformed slide", slide?.id, t, "empty payload");
+      return ok;
+    });
+
+    // ── Dedup pass: cap one occurrence per "production" speaking slide_type ──
+    const SINGLE_OCCURRENCE = new Set(["real_world_task", "role_play", "shadowing_drill"]);
+    const seen = new Set<string>();
+    rawSlides = rawSlides.filter((slide: any) => {
+      const t = slide?.slide_type;
+      if (SINGLE_OCCURRENCE.has(t)) {
+        if (seen.has(t)) {
+          console.warn("[ppp] dropped duplicate speaking slide", slide?.id, t);
+          return false;
+        }
+        seen.add(t);
+      }
+      return true;
+    });
+
 
     // Post-process: enforce divergent interactivity (no two same slide_type back-to-back, except Hook).
     for (let i = 1; i < rawSlides.length; i++) {

@@ -190,6 +190,57 @@ const normalizePairs = (slide: any) => {
     : [];
 };
 
+/** ── Interactive data validation ───────────────────────────────────────
+ * Maps each interactive slide_type to the key its UI requires inside
+ * `interactive_data`. If the AI emits the type without that payload, we
+ * render a friendly fallback instead of an empty quiz shell. */
+const INTERACTIVE_REQUIRED_KEYS: Record<string, string[]> = {
+  quiz_mcq: ['options'],
+  multiple_choice: ['options'],
+  reading_quiz: ['options'],
+  listening_comprehension: ['options'],
+  fill_in_blanks: ['sentences'],
+  fill_in_the_gaps: ['sentence_parts', 'missing_word'],
+  match_halves: ['pairs'],
+  match_words: ['items', 'categories'],
+  image_match: ['items', 'categories'],
+  sorting_game: ['items', 'categories'],
+  sentence_builder: ['scrambled_words'],
+  true_false: ['statements'],
+  drag_and_match: ['pairs'],
+  drag_and_drop: ['items', 'targets'],
+};
+
+const hasValidInteractiveData = (slide: any, type: string): boolean => {
+  const required = INTERACTIVE_REQUIRED_KEYS[type];
+  if (!required) return true;
+  const data = slide?.interactive_data || slide?.content;
+  if (!data || typeof data !== 'object') return false;
+  return required.some((k) => {
+    const v = (data as any)[k];
+    return Array.isArray(v) ? v.length > 0 : v != null && v !== '';
+  });
+};
+
+function MissingDataFallback({ slide }: { slide: any }) {
+  return (
+    <div className="w-full max-w-2xl mx-auto px-6 py-12 text-center flex flex-col items-center gap-4">
+      <div className="text-5xl">💬</div>
+      <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+        {slide?.title || "Let's discuss this topic!"}
+      </h2>
+      <p className="text-base text-muted-foreground max-w-lg">
+        Oops! The activity data is missing. Let's discuss this topic together instead!
+      </p>
+      {slide?.teacher_script && (
+        <p className="text-sm italic text-muted-foreground/80 mt-2 border-t pt-3 max-w-lg">
+          "{slide.teacher_script}"
+        </p>
+      )}
+    </div>
+  );
+}
+
 function LiveHeroMediaSlide({ slide }: { slide: any }) {
   const mediaUrl = getSlideMediaUrl(slide);
   const text = getSlideText(slide);
@@ -299,6 +350,13 @@ export default function DynamicSlideRenderer({
     // ── Director PPP interactive types (highest priority) ─────────
     // The generate-ppp-slides edge function emits slide_type = 'drag_and_match' | 'fill_in_the_gaps'.
     const directorType = (slide as any).slide_type || (slide as any).activityType || (slide as any).type;
+
+    // ── Empty interactive_data fallback ─────────────────────────
+    // Avoid showing an empty quiz/match shell when the AI forgot the payload.
+    if (directorType && INTERACTIVE_REQUIRED_KEYS[directorType] && !hasValidInteractiveData(slide, directorType)) {
+      console.warn('[DynamicSlideRenderer] Missing interactive_data for', directorType, slide?.id);
+      return <MissingDataFallback slide={slide} />;
+    }
 
     // ── Bookend slides ────────────────────────────────────────────
     if (directorType === 'front_page' || directorType === 'title_page') {
