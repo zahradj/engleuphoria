@@ -363,6 +363,16 @@ const TestPhase = ({ age, onComplete }: TestPhaseProps) => {
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
             className="space-y-3 mt-2"
           >
+            {currentQuestion.image_url && (
+              <div className="w-full flex justify-center mb-4 animate-fade-in">
+                <img
+                  src={currentQuestion.image_url}
+                  alt="Question visual"
+                  loading="lazy"
+                  className="max-w-full md:max-w-md max-h-48 object-contain rounded-xl shadow-sm border border-white/20 bg-white/5 backdrop-blur-sm"
+                />
+              </div>
+            )}
             {currentQuestion.audio_script && (
               <div className="flex flex-col items-center gap-2 mb-1">
                 <button
