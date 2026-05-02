@@ -12,7 +12,7 @@ import PlaygroundPlacementPhase from '@/components/placement/PlaygroundPlacement
 import { usePlacementTest } from '@/hooks/usePlacementTest';
 import type { StudentLevel } from '@/hooks/useStudentLevel';
 import { Logo } from '@/components/Logo';
-import HubGlowWrapper, { type HubType as GlowHubType } from '@/components/HubGlowWrapper';
+import { CursorTrail } from '@/components/landing/CursorTrail';
 import logoWhite from '@/assets/logo-white.png';
 
 type Phase = 'welcome' | 'demographics' | 'test' | 'processing' | 'celebrate';
@@ -28,7 +28,7 @@ interface PlacementGatekeeperProps {
 const HUB_THEME = {
   playground: {
     name: 'The Playground',
-    glowHub: 'Playground' as GlowHubType,
+    cursorIndex: 0 as 0 | 1 | 2,
     gradient: 'from-orange-500 via-amber-500 to-yellow-400',
     accent: 'from-orange-400 to-amber-300',
     accentText: 'text-amber-100',
@@ -37,7 +37,7 @@ const HUB_THEME = {
   },
   academy: {
     name: 'The Academy',
-    glowHub: 'Academy' as GlowHubType,
+    cursorIndex: 1 as 0 | 1 | 2,
     gradient: 'from-indigo-950 via-purple-900 to-violet-950',
     accent: 'from-violet-500 to-fuchsia-500',
     accentText: 'text-violet-300',
@@ -46,7 +46,7 @@ const HUB_THEME = {
   },
   professional: {
     name: 'The Success Hub',
-    glowHub: 'Professional' as GlowHubType,
+    cursorIndex: 2 as 0 | 1 | 2,
     gradient: 'from-emerald-950 via-teal-900 to-emerald-950',
     accent: 'from-emerald-500 to-teal-500',
     accentText: 'text-emerald-300',
