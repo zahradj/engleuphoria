@@ -67,7 +67,7 @@ export default function EditorialRealWorldTask({ slide, onCorrect }: EditorialRe
       if (data.score >= 70) onCorrect?.();
     } catch (e) {
       console.error(e);
-      toast.error('Could not evaluate your response. Try again.');
+      toast.error('AI is heavily loaded. Please wait 10 seconds and try again.');
     } finally {
       setEvaluating(false);
     }

@@ -111,8 +111,14 @@ export const VoiceRecorder = ({
       else if (data.tier === 'soft') toast(data.encouragement);
       else toast.warning(data.encouragement);
     } catch (e) {
+      const msg = (e as Error)?.message || '';
       console.error(e);
-      toast.error((e as Error)?.message || 'Could not evaluate speech. Try again.');
+      // Surface specific Voice Energy / auth messages verbatim, otherwise show the friendly load message.
+      if (/voice energy|unauthor|credits/i.test(msg)) {
+        toast.error(msg);
+      } else {
+        toast.error('AI is heavily loaded. Please wait 10 seconds and try again.');
+      }
     } finally {
       setIsProcessing(false);
     }
