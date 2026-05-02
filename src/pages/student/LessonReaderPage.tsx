@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ImmersiveLessonReader } from '@/components/student/lesson-reader/ImmersiveLessonReader';
 import LessonPlayerContainer from '@/components/lesson-player/LessonPlayerContainer';
-import { StoryBookViewer, StoryPage, StoryLayout } from '@/components/student/story-viewer/StoryBookViewer';
+import { StoryBookViewer, StoryPage, StoryLayout, StoryVisualStyle } from '@/components/student/story-viewer/StoryBookViewer';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
