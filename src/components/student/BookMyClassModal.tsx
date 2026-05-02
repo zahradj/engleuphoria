@@ -104,28 +104,42 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
   const fetchSlots = useCallback(async () => {
     setLoadingSlots(true);
     try {
+      // Always compare in UTC to avoid local timezone offsets hiding valid slots
+      const nowUtcIso = new Date().toISOString();
+
       // 1. Find teachers in this hub
-      const { data: hubTeachers } = await supabase
+      const { data: hubTeachers, error: hubError } = await supabase
         .from('teacher_profiles')
         .select('user_id, hub_role')
         .in('hub_role', allowedHubRoles);
 
-      const teacherIds = (hubTeachers || []).map((t: any) => t.user_id).filter(Boolean);
-      if (teacherIds.length === 0) {
-        setRawSlots([]);
-        return;
-      }
+      console.log('[BookMyClassModal] hub:', selectedHub, 'allowedHubRoles:', allowedHubRoles);
+      console.log('[BookMyClassModal] hubTeachers:', hubTeachers, 'hub error:', hubError);
 
-      const { data, error } = await supabase
+      const teacherIds = (hubTeachers || []).map((t: any) => t.user_id).filter(Boolean);
+      console.log('[BookMyClassModal] teacherIds:', teacherIds);
+
+      let query = supabase
         .from('teacher_availability')
         .select('id, teacher_id, start_time, end_time, duration, is_available, is_booked, hub_specialty')
-        .in('teacher_id', teacherIds)
         .eq('duration', slotDuration)
         .eq('is_available', true)
         .eq('is_booked', false)
-        .gt('start_time', new Date().toISOString())
+        .gte('start_time', nowUtcIso)
         .order('start_time', { ascending: true })
         .limit(120);
+
+      // Apply hub-teacher filter when we have teachers; otherwise fall back to all teachers
+      // so the modal isn't silently empty when hub_role classification is missing.
+      if (teacherIds.length > 0) {
+        query = query.in('teacher_id', teacherIds);
+      } else {
+        console.warn('[BookMyClassModal] No teachers found for hub roles — falling back to all teachers for this duration.');
+      }
+
+      const { data, error } = await query;
+
+      console.log('[BookMyClassModal] Fetched slots:', data, 'Fetch error:', error);
 
       if (error) throw error;
 
