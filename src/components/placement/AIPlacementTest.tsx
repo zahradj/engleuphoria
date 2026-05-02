@@ -106,7 +106,7 @@ const AIPlacementTest = () => {
           </AnimatePresence>
         </div>
       </div>
-    </HubGlowWrapper>
+    </div>
   );
 };
 
