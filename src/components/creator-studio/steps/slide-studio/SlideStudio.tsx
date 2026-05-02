@@ -24,13 +24,46 @@ const TYPE_ICON: Record<string, React.ElementType> = {
 };
 
 const SlideStudioInner: React.FC = () => {
-  const { activeLessonData, updateSlide, setCurrentStep } = useCreator();
+  const { activeLessonData, updateSlide, setCurrentStep, replaceSlides } = useCreator();
   const [activeSlideId, setActiveSlideId] = useState<string | null>(null);
   const [autoGenerating, setAutoGenerating] = useState(false);
   const autoGenTriggered = React.useRef(false);
+  const frontPageInjected = React.useRef(false);
   const { theme } = useHubTheme();
 
   const slides = activeLessonData?.slides ?? [];
+
+  // ── Auto-inject an EDITABLE branded Front Page as slide 0 ──
+  // The content creator can then edit copy + generate the cover image just like any other slide.
+  useEffect(() => {
+    if (frontPageInjected.current || !activeLessonData || !slides.length) return;
+    const first: any = slides[0];
+    if (first?.slide_type === 'front_page' || first?.slide_type === 'title_page') {
+      frontPageInjected.current = true;
+      return;
+    }
+    frontPageInjected.current = true;
+    const ref = activeLessonData.source_lesson;
+    const titleForPrompt = activeLessonData.lesson_title || 'English Lesson';
+    const topicHint = ref?.objective || activeLessonData.target_goal || '';
+    const frontSlide: any = {
+      id: `front-page-${Date.now()}`,
+      phase: 'warm-up',
+      slide_type: 'front_page',
+      title: activeLessonData.lesson_title,
+      content: topicHint,
+      teacher_script: `Welcome class! Today we are starting "${titleForPrompt}". Let's dive in!`,
+      visual_keyword: titleForPrompt,
+      image_generation_prompt: `Editorial cover illustration for an English lesson titled "${titleForPrompt}"${topicHint ? ` — ${topicHint}` : ''}. Flat vector style, soft pastel palette, friendly diverse characters, classroom or topic-relevant scene, no text, 16:9, light background.`,
+      // Metadata used by FrontPageSlide
+      level: activeLessonData.cefr_level,
+      hub: activeLessonData.hub,
+      topic: ref?.unit_theme,
+      unit_number: ref?.unit_number,
+      unit_title: ref?.unit_title,
+    };
+    replaceSlides([frontSlide as any, ...slides]);
+  }, [activeLessonData, slides, replaceSlides]);
 
   useEffect(() => {
     if (!slides.length) {

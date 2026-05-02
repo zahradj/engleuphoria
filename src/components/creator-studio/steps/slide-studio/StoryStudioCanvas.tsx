@@ -15,15 +15,46 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 export const StoryStudioCanvas: React.FC = () => {
-  const { activeLessonData, updateSlide, setActiveLessonData, isDirty, setDirty } = useCreator();
+  const { activeLessonData, updateSlide, setActiveLessonData, isDirty, setDirty, replaceSlides } = useCreator();
   const navigate = useNavigate();
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const autoGenTriggered = useRef(false);
+  const frontPageInjected = useRef(false);
   const slides = activeLessonData?.slides ?? [];
   const [activeSlideId, setActiveSlideId] = useState<string | null>(null);
   const activeSlide =
     slides.find((s) => s.id === activeSlideId) ?? slides[0] ?? null;
+
+  // ── Auto-inject an EDITABLE branded Front Page as slide 0 (story lessons) ──
+  useEffect(() => {
+    if (frontPageInjected.current || !activeLessonData || !slides.length) return;
+    const first: any = slides[0];
+    if (first?.slide_type === 'front_page' || first?.slide_type === 'title_page') {
+      frontPageInjected.current = true;
+      return;
+    }
+    frontPageInjected.current = true;
+    const ref = activeLessonData.source_lesson;
+    const titleForPrompt = activeLessonData.lesson_title || 'English Story';
+    const topicHint = ref?.objective || activeLessonData.target_goal || '';
+    const frontSlide: any = {
+      id: `front-page-${Date.now()}`,
+      phase: 'warm-up',
+      slide_type: 'front_page',
+      title: activeLessonData.lesson_title,
+      content: topicHint,
+      visual_keyword: titleForPrompt,
+      image_generation_prompt: `Editorial cover illustration for a graded reader titled "${titleForPrompt}"${topicHint ? ` — ${topicHint}` : ''}. ${activeLessonData.visual_style ? activeLessonData.visual_style.replace('_', ' ') + ' style, ' : ''}friendly characters, vivid colors, no text, 16:9.`,
+      level: activeLessonData.cefr_level,
+      hub: activeLessonData.hub,
+      topic: ref?.unit_theme,
+      unit_number: ref?.unit_number,
+      unit_title: ref?.unit_title,
+    };
+    replaceSlides([frontSlide as any, ...slides]);
+  }, [activeLessonData, slides, replaceSlides]);
+
 
   const visualStyle = useMemo(
     () => resolveStoryVisualStyle(activeLessonData?.visual_style, activeLessonData?.hub),
