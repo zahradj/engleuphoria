@@ -1,79 +1,46 @@
-# Front Page in Slide Studio + Cleaner Look
+## Fix curriculum save: `on_conflict` parser error
 
-## Goal
+### Root cause
+PostgREST's `on_conflict` query param accepts only **column names**, not expressions. The migration `20260501115349` created the unique index on expressions (`(ai_metadata->>'cefr_level')`, etc.), and the client passes those expressions to `.upsert({ onConflict })`. PostgREST refuses to parse them → the error you saw.
 
-1. The auto-prepended branded front page (logo, hub badge, CEFR level, unit/lesson title, cover image) must live inside Slide Studio so the content creator can edit copy, generate the cover image, and preview it like any other slide — instead of only appearing at classroom runtime.
-2. Redesign `FrontPageSlide` to match the lighter, simpler look in the reference screenshot: large centered illustration, bold serif title underneath, supporting subtitle, small logo top-left, level/hub chips top-right — no heavy cinematic dark overlay.
+### Fix
 
-## Changes
+**1. Migration** — promote the slot keys to real `STORED GENERATED` columns and rebuild the partial unique index on those columns:
 
-### 1. Auto-insert an editable Front Page when a lesson is created/loaded in Slide Studio
+```sql
+ALTER TABLE public.curriculum_lessons
+  ADD COLUMN IF NOT EXISTS slot_cefr_level    text
+    GENERATED ALWAYS AS (ai_metadata->>'cefr_level')    STORED,
+  ADD COLUMN IF NOT EXISTS slot_unit_number   text
+    GENERATED ALWAYS AS (ai_metadata->>'unit_number')   STORED,
+  ADD COLUMN IF NOT EXISTS slot_lesson_number text
+    GENERATED ALWAYS AS (ai_metadata->>'lesson_number') STORED;
 
-`src/components/creator-studio/steps/slide-studio/StoryStudioCanvas.tsx` (and the regular Slide Studio canvas mount path):
+DROP INDEX IF EXISTS public.curriculum_lessons_unique_slot;
 
-- On first mount, if `activeLessonData.slides[0]?.slide_type !== 'front_page'`, prepend a real slide:
-  ```ts
-  {
-    id: 'front-page',
-    slide_type: 'front_page',
-    title: activeLessonData.lesson_title,
-    topic: activeLessonData.topic,
-    subtitle: activeLessonData.subtitle ?? '',
-    level: activeLessonData.cefr_level ?? activeLessonData.level,
-    hub: activeLessonData.hub,
-    unit_number: activeLessonData.unit_number,
-    unit_title: activeLessonData.unit_title,
-    image_generation_prompt: '<auto-built from title + topic>',
-    custom_image_url: undefined,
-  }
-  ```
-- Mark dirty so it persists with `persistLesson`. Once saved, `TeacherClassroom` will see `slide_type === 'front_page'` and skip auto-prepending — no duplicates.
-- Show it in the page tabs as `T` (Title) instead of `P1`.
+CREATE UNIQUE INDEX IF NOT EXISTS curriculum_lessons_unique_slot
+  ON public.curriculum_lessons
+    (created_by, target_system, slot_cefr_level, slot_unit_number, slot_lesson_number)
+  WHERE slot_cefr_level   IS NOT NULL
+    AND slot_unit_number  IS NOT NULL
+    AND slot_lesson_number IS NOT NULL;
+```
 
-### 2. Front Page editor in TeacherControlsPanel
+Generated columns auto-backfill from existing rows; writers keep setting only `ai_metadata`.
 
-`src/components/creator-studio/steps/slide-studio/TeacherControlsPanel.tsx`:
+**2. Client** — change both `onConflict` strings to plain column names:
 
-- When `slide.slide_type === 'front_page'`, replace the generic Content tab with a focused FrontPageEditor:
-  - **Title** (lesson_title)
-  - **Subtitle** (one-line tagline shown under title)
-  - **Topic** (small caption above title)
-  - **CEFR Level** (A1–C2 select)
-  - **Unit number / Unit title**
-- Visuals tab works as-is — the existing per-slide "Generate Image (AI)" button writes to `custom_image_url`, which `FrontPageSlide` already consumes as `coverImageUrl`. The default image prompt is pre-filled with something like `"Editorial cover illustration for an English lesson titled '<title>' — <topic> — flat vector, soft pastel palette, friendly characters, no text, 16:9."`
+- `src/components/creator-studio/steps/blueprint/CurriculumMap.tsx` (line 107)
+- `src/services/lessonLibraryService.ts` (line 142)
 
-### 3. Redesign `FrontPageSlide` to match the screenshot
+Both become:
+```ts
+onConflict: 'created_by,target_system,slot_cefr_level,slot_unit_number,slot_lesson_number'
+```
 
-`src/components/lesson-player/editorial/FrontPageSlide.tsx`:
+### Result
+- Same dedupe semantics (same 5-tuple, same partial filter).
+- PostgREST can resolve `on_conflict` against real columns and use the matching unique index.
+- Curriculum blueprint save and library upserts will succeed.
 
-- Light themed background (hub-tinted soft gradient, no cover image as background).
-- Layout = vertical stack:
-  - Top bar: Engleuphoria logo (left), CEFR badge + Hub label chip (right) — both small and subtle.
-  - **Cover illustration** (`custom_image_url`) centered, ~55% of slide height, rounded with soft hub-tinted glow. Falls back to a hub-tinted placeholder card with mascot.
-  - **Title** centered below image, large bold serif (`text-4xl md:text-6xl`), dark slate text — not white-on-dark.
-  - **Subtitle** centered, muted slate, `max-w-3xl`, italic-light.
-  - Tiny hub accent bar at the bottom.
-- Drop the `bg-gradient-to-b from-black/55 ...` overlay — it was making the slide look heavy/cinematic.
-- Keep `coverImageUrl` consumption identical so existing data still renders.
-
-### 4. Stop double-prepending in TeacherClassroom
-
-`src/components/teacher/classroom/TeacherClassroom.tsx`:
-
-- Already guarded by `hasFront`. Confirm this guard plus rely on the new persisted slide. No regression for legacy lessons (still gets auto-injected on the fly).
-
-### 5. Consistency
-
-`src/hooks/useBookendSlides.ts` continues to inject a `front_page` only when missing — same guard works.
-
-## Files touched
-
-- `src/components/lesson-player/editorial/FrontPageSlide.tsx` — visual redesign.
-- `src/components/creator-studio/steps/slide-studio/StoryStudioCanvas.tsx` — auto-prepend editable front_page.
-- `src/components/creator-studio/steps/slide-studio/SlideStudioCanvas` mount path (if separate) — same auto-prepend.
-- `src/components/creator-studio/steps/slide-studio/TeacherControlsPanel.tsx` — `FrontPageEditor` block + default image prompt for `front_page` slides.
-
-## Out of scope
-
-- Migrating existing saved lessons to embed a `front_page` (legacy lessons keep using the runtime auto-prepend).
-- Changing the celebration/closing slide design (kept identical for now).
+Approve to apply.
