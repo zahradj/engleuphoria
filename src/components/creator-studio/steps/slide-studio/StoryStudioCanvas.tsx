@@ -1,19 +1,23 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCreator } from '../../CreatorContext';
 import { TeacherControlsPanel } from './TeacherControlsPanel';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, BookOpen } from 'lucide-react';
+import { ExternalLink, BookOpen, Sparkles, Loader2, Save } from 'lucide-react';
 import { StoryBookViewer } from '@/components/student/story-viewer/StoryBookViewer';
 import {
   normalizeSlidesToStoryPages,
   resolveStoryVisualStyle,
 } from '@/components/student/story-viewer/storyPageUtils';
+import { generateAllMedia } from './mediaGeneration';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 export const StoryStudioCanvas: React.FC = () => {
-  const { activeLessonData, updateSlide } = useCreator();
+  const { activeLessonData, updateSlide, isDirty } = useCreator();
   const navigate = useNavigate();
+  const [generating, setGenerating] = useState(false);
+  const autoGenTriggered = useRef(false);
   const slides = activeLessonData?.slides ?? [];
   const [activeSlideId, setActiveSlideId] = useState<string | null>(null);
   const activeSlide =
