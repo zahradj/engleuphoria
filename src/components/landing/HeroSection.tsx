@@ -178,17 +178,24 @@ export function HeroSection() {
               </span>
             </motion.h1>
 
-            {/* Subheadline */}
-            <motion.p
-              className={`text-base sm:text-xl leading-relaxed mb-6 sm:mb-8 max-w-lg ${
-                isDark ? 'text-slate-400' : 'text-slate-600'
-              }`}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-            >
-              {t('lp.hero.subheadline')}
-            </motion.p>
+            {/* Audience selector — drives the entire hero theme */}
+            <HeroAudienceSelector />
+
+            {/* Subheadline — switches per audience */}
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={subline}
+                className={`text-base sm:text-xl leading-relaxed mb-6 sm:mb-8 max-w-lg ${
+                  isDark ? 'text-slate-400' : 'text-slate-600'
+                }`}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.35 }}
+              >
+                {subline}
+              </motion.p>
+            </AnimatePresence>
 
             {/* CTA Buttons — gradient matches active group */}
             <motion.div
