@@ -46,21 +46,11 @@ export const AdvancedAuth: React.FC = () => {
   const MAX_ATTEMPTS = 5;
   const BLOCK_DURATION = 15 * 60 * 1000; // 15 minutes
 
+  // NOTE: Brute-force protection is enforced server-side by Supabase Auth.
+  // We intentionally do NOT persist attempt counters in localStorage because
+  // any attacker can trivially clear them via DevTools, giving false security.
   useEffect(() => {
-    // Load auth attempts from localStorage
-    const storedAttempts = localStorage.getItem('auth_attempts');
-    if (storedAttempts) {
-      try {
-        const attempts = JSON.parse(storedAttempts).map((attempt: any) => ({
-          ...attempt,
-          timestamp: new Date(attempt.timestamp)
-        }));
-        setAuthAttempts(attempts);
-        checkRateLimit(attempts);
-      } catch (error) {
-        console.error('Error parsing stored auth attempts:', error);
-      }
-    }
+    // no-op: rely on Supabase's server-side rate limiting
   }, []);
 
   useEffect(() => {
@@ -181,7 +171,8 @@ export const AdvancedAuth: React.FC = () => {
 
     const newAttempts = [...authAttempts, attempt];
     setAuthAttempts(newAttempts);
-    localStorage.setItem('auth_attempts', JSON.stringify(newAttempts));
+    // Intentionally NOT persisted to localStorage — server-side rate limiting
+    // (Supabase Auth) is the authoritative defense against brute-force.
 
     if (!success) {
       checkRateLimit(newAttempts);
