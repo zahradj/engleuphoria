@@ -780,83 +780,89 @@ export const TeacherControlsPanel: React.FC<Props> = ({ slide, onChange }) => {
 
         {/* ========================= CONTENT TAB ========================= */}
         <TabsContent value="content" className="px-5 pb-6 space-y-5 mt-4">
-          <div className="grid grid-cols-1 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Slide Type</Label>
-              <Select value={slide.slide_type ?? 'text_image'} onValueChange={(v) => handleTypeChange(v as SlideType)}>
-                <SelectTrigger>
-                  <SelectValue placeholder={slide.slide_type ?? 'text_image'}>
-                    {(() => {
-                      const opt = TYPE_OPTIONS.find((o) => o.value === slide.slide_type);
-                      return opt ? opt.label : (slide.slide_type ?? 'text_image');
-                    })()}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {TYPE_OPTIONS.map(({ value, label, Icon }) => (
-                    <SelectItem key={value} value={value}>
-                      <span className="inline-flex items-center gap-2"><Icon className="h-3.5 w-3.5" /> {label}</span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          {isFrontPage ? (
+            <FrontPageEditor slide={slide} onChange={onChange} />
+          ) : (
+            <>
+              <div className="grid grid-cols-1 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Slide Type</Label>
+                  <Select value={slide.slide_type ?? 'text_image'} onValueChange={(v) => handleTypeChange(v as SlideType)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={slide.slide_type ?? 'text_image'}>
+                        {(() => {
+                          const opt = TYPE_OPTIONS.find((o) => o.value === slide.slide_type);
+                          return opt ? opt.label : (slide.slide_type ?? 'text_image');
+                        })()}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TYPE_OPTIONS.map(({ value, label, Icon }) => (
+                        <SelectItem key={value} value={value}>
+                          <span className="inline-flex items-center gap-2"><Icon className="h-3.5 w-3.5" /> {label}</span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold uppercase tracking-wider text-slate-500 inline-flex items-center gap-1.5">
-                <LayoutTemplate className="h-3 w-3" /> Layout
-              </Label>
-              <Select value={slide.layout_style ?? 'full_background'}
-                onValueChange={(v) => onChange({ layout_style: v as LayoutStyle })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {LAYOUT_OPTIONS.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-slate-500 inline-flex items-center gap-1.5">
+                    <LayoutTemplate className="h-3 w-3" /> Layout
+                  </Label>
+                  <Select value={slide.layout_style ?? 'full_background'}
+                    onValueChange={(v) => onChange({ layout_style: v as LayoutStyle })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {LAYOUT_OPTIONS.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-          {/* Type-aware editor */}
-          <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-3 bg-slate-50 dark:bg-slate-950/40">
-            {AI_GAME_LABELS[slide.slide_type as SlideType] && (
-              <GameAIGenerator slide={slide} onChange={onChange} />
-            )}
-            {slide.slide_type === 'multiple_choice' ? (
-              <MCQEditor slide={slide} onChange={onChange} />
-            ) : slide.slide_type === 'flashcard' ? (
-              <FlashcardEditor slide={slide} onChange={onChange} />
-            ) : slide.slide_type === 'drawing_prompt' ? (
-              <DrawingEditor slide={slide} onChange={onChange} />
-            ) : slide.slide_type === 'drag_and_match' ? (
-              <DragAndMatchEditor slide={slide} onChange={onChange} />
-            ) : slide.slide_type === 'fill_in_the_gaps' ? (
-              <FillInTheGapsEditor slide={slide} onChange={onChange} />
-            ) : (
-              <TextImageEditor slide={slide} onChange={onChange} />
-            )}
-          </div>
+              {/* Type-aware editor */}
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-3 bg-slate-50 dark:bg-slate-950/40">
+                {AI_GAME_LABELS[slide.slide_type as SlideType] && (
+                  <GameAIGenerator slide={slide} onChange={onChange} />
+                )}
+                {slide.slide_type === 'multiple_choice' ? (
+                  <MCQEditor slide={slide} onChange={onChange} />
+                ) : slide.slide_type === 'flashcard' ? (
+                  <FlashcardEditor slide={slide} onChange={onChange} />
+                ) : slide.slide_type === 'drawing_prompt' ? (
+                  <DrawingEditor slide={slide} onChange={onChange} />
+                ) : slide.slide_type === 'drag_and_match' ? (
+                  <DragAndMatchEditor slide={slide} onChange={onChange} />
+                ) : slide.slide_type === 'fill_in_the_gaps' ? (
+                  <FillInTheGapsEditor slide={slide} onChange={onChange} />
+                ) : (
+                  <TextImageEditor slide={slide} onChange={onChange} />
+                )}
+              </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs font-bold uppercase tracking-wider text-slate-500 inline-flex items-center gap-1.5">
-              <Mic className="h-3 w-3" /> Teacher Script
-            </Label>
-            <Textarea rows={5} value={slide.teacher_script ?? slide.teacher_instructions ?? ''}
-              onChange={(e) => onChange({ teacher_script: e.target.value })}
-              placeholder="2–3 high-energy sentences for the teacher to read…"
-              className="resize-none text-sm leading-relaxed" />
-          </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold uppercase tracking-wider text-slate-500 inline-flex items-center gap-1.5">
+                  <Mic className="h-3 w-3" /> Teacher Script
+                </Label>
+                <Textarea rows={5} value={slide.teacher_script ?? slide.teacher_instructions ?? ''}
+                  onChange={(e) => onChange({ teacher_script: e.target.value })}
+                  placeholder="2–3 high-energy sentences for the teacher to read…"
+                  className="resize-none text-sm leading-relaxed" />
+              </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs font-bold uppercase tracking-wider text-slate-500 inline-flex items-center gap-1.5">
-              <Type className="h-3 w-3" /> Visual Keyword
-            </Label>
-            <Input value={slide.visual_keyword ?? ''}
-              onChange={(e) => onChange({ visual_keyword: e.target.value })}
-              placeholder="e.g. autumn forest" />
-            <p className="text-[11px] text-slate-400">Fallback only — used when no AI / uploaded asset exists.</p>
-          </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold uppercase tracking-wider text-slate-500 inline-flex items-center gap-1.5">
+                  <Type className="h-3 w-3" /> Visual Keyword
+                </Label>
+                <Input value={slide.visual_keyword ?? ''}
+                  onChange={(e) => onChange({ visual_keyword: e.target.value })}
+                  placeholder="e.g. autumn forest" />
+                <p className="text-[11px] text-slate-400">Fallback only — used when no AI / uploaded asset exists.</p>
+              </div>
+            </>
+          )}
         </TabsContent>
 
         {/* ========================= VISUALS TAB ========================= */}
