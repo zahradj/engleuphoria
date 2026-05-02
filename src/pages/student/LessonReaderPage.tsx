@@ -73,15 +73,20 @@ const LessonReaderPage: React.FC = () => {
   const hub: HubType = (lesson.content?.hub || lesson.target_system || 'playground') as HubType;
 
   if (isStory && slides && slides.length > 0) {
-    const storyLayout: StoryLayout =
-      lesson.ai_metadata?.story_layout === 'classic' ? 'classic' : 'immersive';
+    const meta = lesson.ai_metadata || {};
+    const rawStyle = meta.visual_style;
+    const visualStyle: StoryVisualStyle = (
+      ['classic', 'comic_western', 'manga_rtl', 'webtoon'].includes(rawStyle) ? rawStyle : 'classic'
+    ) as StoryVisualStyle;
+    const storyLayout: StoryLayout = meta.story_layout === 'classic' ? 'classic' : 'immersive';
     const pages = normalizeSlidesToStoryPages(slides);
-    const cover = lesson.ai_metadata?.coverImageUrl || pages.find((p) => p.imageUrl)?.imageUrl;
+    const cover = meta.coverImageUrl || pages.find((p) => p.imageUrl)?.imageUrl;
     return (
       <StoryBookViewer
         title={lesson.title}
         pages={pages}
         layout={storyLayout}
+        visualStyle={visualStyle}
         coverImageUrl={cover}
         onExit={() => navigate(-1)}
       />
