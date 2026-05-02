@@ -296,15 +296,6 @@ const StudentDashboard = () => {
               style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 80px)' }}
             >
               <div className="max-w-7xl mx-auto pb-4 md:pb-0">
-                <div className="mb-4 flex items-center justify-between">
-                  <SidebarTrigger className={`lg:hidden backdrop-blur-xl rounded-xl p-3 border shadow-md transition-colors ${
-                    hubKey === 'playground'
-                      ? 'bg-orange-500/10 border-orange-300/40 text-orange-600 dark:text-orange-400 dark:border-orange-500/30 dark:bg-orange-500/10'
-                      : hubKey === 'academy'
-                        ? 'bg-indigo-500/10 border-indigo-300/40 text-indigo-600 dark:text-indigo-400 dark:border-indigo-500/30 dark:bg-indigo-500/10'
-                        : 'bg-emerald-500/10 border-emerald-300/40 text-emerald-600 dark:text-emerald-400 dark:border-emerald-500/30 dark:bg-emerald-500/10'
-                  }`} />
-                </div>
                 <ProfileCompletionBanner />
                 <QuickActions />
                 {renderActiveTab()}
