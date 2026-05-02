@@ -4,6 +4,7 @@ import { HubType, GeneratedSlide } from '@/components/admin/lesson-builder/ai-wi
 import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConfig';
 import DynamicSlideRenderer from './DynamicSlideRenderer';
 import FeedbackOverlay from './FeedbackOverlay';
+import { PlaygroundCorrectBurst } from './PlaygroundCorrectBurst';
 import LessonRewardPage from './LessonRewardPage';
 import PipMascot from './PipMascot';
 import { soundEffectsService } from '@/services/soundEffectsService';
