@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { AcademySkeleton } from '@/components/shared/DashboardSkeleton';
 import { useLiveClassroomStatus } from '@/hooks/useLiveClassroomStatus';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { useStudentLanguageSync } from '@/hooks/useStudentLanguageSync';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { LiveSessionBadge } from '@/components/shared/LiveSessionBadge';
 import { 
   Home, BookOpen, Calendar, Trophy, User, 
