@@ -47,6 +47,54 @@ export const StoryStudioCanvas: React.FC = () => {
     [slides],
   );
 
+  const totalPanelSlots = useMemo(() => {
+    let n = 0;
+    for (const s of slides) {
+      const panels = (s as any)?.interactive_data?.panels;
+      if (Array.isArray(panels) && panels.length > 0) n += panels.length;
+      else if (((s as any).image_generation_prompt || (s as any).visual_keyword) && !s.custom_image_url) n += 1;
+      else if (s.custom_image_url) n += 1;
+    }
+    return n;
+  }, [slides]);
+
+  const filledPanelSlots = useMemo(() => {
+    let n = 0;
+    for (const s of slides) {
+      const panels = (s as any)?.interactive_data?.panels;
+      if (Array.isArray(panels) && panels.length > 0) {
+        n += panels.filter((p: any) => p?.image_url || p?.imageUrl).length;
+      } else if (s.custom_image_url) {
+        n += 1;
+      }
+    }
+    return n;
+  }, [slides]);
+
+  const ensureLessonId = async (): Promise<string | undefined> => {
+    if (activeLessonData?.lesson_id) return activeLessonData.lesson_id;
+    if (!activeLessonData) return undefined;
+    try {
+      const extra: Record<string, unknown> = {};
+      if (activeLessonData.visual_style) extra.visual_style = activeLessonData.visual_style;
+      if (activeLessonData.story_layout) extra.story_layout = activeLessonData.story_layout;
+      const result = await persistLesson(
+        activeLessonData,
+        activeLessonData.slides,
+        false,
+        activeLessonData.kind ?? 'story',
+        Object.keys(extra).length ? extra : undefined,
+      );
+      if (result.ok !== false && result.lesson_id) {
+        setActiveLessonData({ ...activeLessonData, lesson_id: result.lesson_id });
+        return result.lesson_id;
+      }
+    } catch (e) {
+      console.warn('ensureLessonId persist failed; continuing with draft id', e);
+    }
+    return undefined;
+  };
+
   const runGenerateAll = async (overwrite: boolean) => {
     if (!activeLessonData) return;
     if (generating) return;
@@ -58,7 +106,8 @@ export const StoryStudioCanvas: React.FC = () => {
     setGenerating(true);
     const tid = toast.loading(`🎨 Painting ${targetSlides.length} page${targetSlides.length === 1 ? '' : 's'}…`);
     try {
-      const lid = activeLessonData.lesson_id ?? activeLessonData.source_lesson?.id ?? 'draft';
+      const persistedId = await ensureLessonId();
+      const lid = persistedId ?? activeLessonData.lesson_id ?? activeLessonData.source_lesson?.id ?? 'draft';
       const hub = activeLessonData.hub ?? 'Academy';
       const { results, summary } = await generateAllMedia(
         lid,
