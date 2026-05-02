@@ -16,7 +16,7 @@ import { AlertTriangle } from 'lucide-react';
 
 /* ── Local Error Boundary for individual slides ────────────────────── */
 interface SlideBoundaryState { hasError: boolean; error?: Error }
-class SlideErrorBoundary extends Component<{ children: ReactNode; slideId?: string }, SlideBoundaryState> {
+class SlideErrorBoundary extends Component<{ children: ReactNode; slideId?: string; slide?: any }, SlideBoundaryState> {
   state: SlideBoundaryState = { hasError: false };
   static getDerivedStateFromError(error: Error): SlideBoundaryState { return { hasError: true, error }; }
   componentDidCatch(error: Error, info: any) { console.error('[SlideErrorBoundary] Slide crashed:', this.props.slideId, error, info); }
