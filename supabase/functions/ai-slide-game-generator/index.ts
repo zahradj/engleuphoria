@@ -19,91 +19,112 @@ type GameType =
   | 'flashcard'
   | 'drawing_prompt';
 
-const TOOL_BY_TYPE: Record<GameType, any> = {
-  multiple_choice: {
-    name: 'build_multiple_choice',
-    description: 'Build a single multiple-choice question with one correct answer.',
-    parameters: {
-      type: 'object',
-      properties: {
-        question: { type: 'string', description: 'Clear, age-appropriate question.' },
-        options: {
-          type: 'array',
-          minItems: 3,
-          maxItems: 5,
-          items: { type: 'string' },
-          description: '3-5 distinct answer choices.',
-        },
-        correct_index: { type: 'integer', minimum: 0, description: '0-based index of the correct option.' },
-        instruction: { type: 'string' },
-      },
-      required: ['question', 'options', 'correct_index'],
-    },
-  },
-  drag_and_match: {
-    name: 'build_drag_and_match',
-    description: 'Build a drag-and-match game with 3-8 pairs of related items.',
-    parameters: {
-      type: 'object',
-      properties: {
-        instruction: { type: 'string', description: 'Short student-facing instruction (e.g. "Match the word to the picture").' },
-        pairs: {
-          type: 'array',
-          minItems: 3,
-          maxItems: 8,
-          items: {
-            type: 'object',
-            properties: {
-              left_item: { type: 'string', description: 'Left card text (usually the word).' },
-              right_item: { type: 'string', description: 'Right card text (usually the meaning, translation, or matching item).' },
-              left_thumbnail_keyword: { type: 'string', description: 'Single noun keyword for an optional left icon.' },
-              right_thumbnail_keyword: { type: 'string', description: 'Single noun keyword for an optional right icon.' },
+type Difficulty = 'easy' | 'medium' | 'hard';
+
+function buildToolForType(gameType: GameType, difficulty: Difficulty): any {
+  switch (gameType) {
+    case 'multiple_choice': {
+      const maxOptions = difficulty === 'easy' ? 3 : difficulty === 'hard' ? 5 : 4;
+      return {
+        name: 'build_multiple_choice',
+        description: 'Build a single multiple-choice question with one correct answer.',
+        parameters: {
+          type: 'object',
+          properties: {
+            question: { type: 'string' },
+            options: {
+              type: 'array',
+              minItems: 3,
+              maxItems: maxOptions,
+              items: { type: 'string' },
             },
-            required: ['left_item', 'right_item'],
+            correct_index: { type: 'integer', minimum: 0 },
+            instruction: { type: 'string' },
           },
+          required: ['question', 'options', 'correct_index'],
         },
-      },
-      required: ['instruction', 'pairs'],
-    },
-  },
-  fill_in_the_gaps: {
-    name: 'build_fill_in_the_gaps',
-    description: 'Build a single fill-in-the-blank sentence with one missing word and 2-3 distractors.',
-    parameters: {
-      type: 'object',
-      properties: {
-        instruction: { type: 'string' },
-        sentence_before: { type: 'string', description: 'Text BEFORE the gap.' },
-        sentence_after: { type: 'string', description: 'Text AFTER the gap. Include the trailing period.' },
-        missing_word: { type: 'string' },
-        distractors: { type: 'array', minItems: 2, maxItems: 3, items: { type: 'string' } },
-      },
-      required: ['instruction', 'sentence_before', 'sentence_after', 'missing_word', 'distractors'],
-    },
-  },
-  flashcard: {
-    name: 'build_flashcard',
-    description: 'Build a single vocabulary flashcard.',
-    parameters: {
-      type: 'object',
-      properties: {
-        front: { type: 'string', description: 'Word or phrase on the front face.' },
-        back: { type: 'string', description: 'Definition / translation / example on the back face.' },
-      },
-      required: ['front', 'back'],
-    },
-  },
-  drawing_prompt: {
-    name: 'build_drawing_prompt',
-    description: 'Build a creative drawing prompt the student can sketch.',
-    parameters: {
-      type: 'object',
-      properties: {
-        prompt: { type: 'string', description: 'Imaginative drawing instruction tied to the lesson.' },
-      },
-      required: ['prompt'],
-    },
-  },
+      };
+    }
+    case 'drag_and_match':
+      return {
+        name: 'build_drag_and_match',
+        description: 'Build a drag-and-match game with 3-8 pairs.',
+        parameters: {
+          type: 'object',
+          properties: {
+            instruction: { type: 'string' },
+            pairs: {
+              type: 'array',
+              minItems: 3,
+              maxItems: 8,
+              items: {
+                type: 'object',
+                properties: {
+                  left_item: { type: 'string' },
+                  right_item: { type: 'string' },
+                  left_thumbnail_keyword: {
+                    type: 'string',
+                    description: 'REQUIRED single concrete noun for left card icon.',
+                  },
+                  right_thumbnail_keyword: {
+                    type: 'string',
+                    description: 'REQUIRED single concrete noun for right card icon.',
+                  },
+                },
+                required: ['left_item', 'right_item', 'left_thumbnail_keyword', 'right_thumbnail_keyword'],
+              },
+            },
+          },
+          required: ['instruction', 'pairs'],
+        },
+      };
+    case 'fill_in_the_gaps':
+      return {
+        name: 'build_fill_in_the_gaps',
+        description: 'Build a fill-in-the-blank sentence.',
+        parameters: {
+          type: 'object',
+          properties: {
+            instruction: { type: 'string' },
+            sentence_before: { type: 'string' },
+            sentence_after: { type: 'string' },
+            missing_word: { type: 'string' },
+            distractors: { type: 'array', minItems: 2, maxItems: 3, items: { type: 'string' } },
+          },
+          required: ['instruction', 'sentence_before', 'sentence_after', 'missing_word', 'distractors'],
+        },
+      };
+    case 'flashcard':
+      return {
+        name: 'build_flashcard',
+        description: 'Build a single vocabulary flashcard.',
+        parameters: {
+          type: 'object',
+          properties: { front: { type: 'string' }, back: { type: 'string' } },
+          required: ['front', 'back'],
+        },
+      };
+    case 'drawing_prompt':
+      return {
+        name: 'build_drawing_prompt',
+        description: 'Build a creative drawing prompt.',
+        parameters: {
+          type: 'object',
+          properties: { prompt: { type: 'string' } },
+          required: ['prompt'],
+        },
+      };
+  }
+}
+
+const TEMPLATE_GUIDANCE: Record<string, string> = {
+  vocab_recall: 'Focus: vocabulary recall — concrete nouns and high-frequency words from the lesson.',
+  past_simple_regular: 'Grammar focus: PAST SIMPLE with regular verbs (verb + -ed). Every sentence MUST be in past simple. Use signal words like yesterday, last week, ago.',
+  present_continuous: 'Grammar focus: PRESENT CONTINUOUS (am/is/are + verb-ing). Every sentence MUST describe an action happening now.',
+  comparatives_superlatives: 'Grammar focus: COMPARATIVES (-er / more) and SUPERLATIVES (-est / most). Each item should compare two or more things.',
+  wh_questions: 'Grammar focus: WH-QUESTIONS (what, where, when, who, why, how). Every question MUST start with a Wh-word.',
+  prepositions_of_place: 'Grammar focus: PREPOSITIONS OF PLACE (in, on, under, behind, next to, between).',
+  modal_verbs: 'Grammar focus: MODAL VERBS (can, must, should, might). Every sentence MUST use one modal.',
 };
 
 function buildSystemPrompt(opts: {
@@ -111,6 +132,9 @@ function buildSystemPrompt(opts: {
   hub?: string;
   cefrLevel?: string;
   pairCount?: number;
+  difficulty: Difficulty;
+  templateId?: string;
+  grammarFocus?: string;
 }) {
   const audience =
     opts.hub === 'Playground'
@@ -124,16 +148,52 @@ function buildSystemPrompt(opts: {
       ? `Generate EXACTLY ${opts.pairCount} pairs.`
       : '';
 
+  const difficultyLine =
+    opts.difficulty === 'easy'
+      ? 'Difficulty = EASY: very short sentences (max 6 words), single-clause distractors, only the most concrete vocabulary.'
+      : opts.difficulty === 'hard'
+      ? 'Difficulty = HARD: multi-clause sentences, abstract or idiomatic items, distractors that require careful thinking.'
+      : 'Difficulty = MEDIUM: standard one-clause sentences, plausible distractors.';
+
+  const templateLine = opts.templateId && TEMPLATE_GUIDANCE[opts.templateId]
+    ? TEMPLATE_GUIDANCE[opts.templateId]
+    : '';
+
+  const grammarLine = opts.grammarFocus
+    ? `Custom grammar focus to enforce on every item: ${opts.grammarFocus}`
+    : '';
+
+  const dragMatchLine =
+    opts.gameType === 'drag_and_match'
+      ? 'For EVERY pair, output BOTH `left_thumbnail_keyword` AND `right_thumbnail_keyword` as a single concrete noun (e.g. "apple", "doctor", "bicycle") — these will be turned into icons. Never leave them blank.'
+      : '';
+
   return `You are an expert ESL game designer.
 Audience: ${audience}
 CEFR level: ${opts.cefrLevel ?? 'A1'}.
+${difficultyLine}
 
 Design rules:
 - Pedagogically sound, age-appropriate, culturally inclusive.
 - Use real lesson vocabulary / grammar — NEVER placeholders like "Option A".
 - Distractors must be plausible but clearly wrong.
 - Keep wording short and student-friendly.
-${sizeLine}`;
+${sizeLine}
+${templateLine}
+${grammarLine}
+${dragMatchLine}`.trim();
+}
+
+// Best-effort fallback: if AI omits a thumbnail keyword, derive a single noun
+// from the card text (longest alphanumeric word, lowercased).
+function deriveKeyword(text: string): string {
+  const words = String(text || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((w) => w.length >= 3);
+  if (!words.length) return text || 'icon';
+  return words.sort((a, b) => b.length - a.length)[0];
 }
 
 serve(async (req) => {
@@ -154,18 +214,20 @@ serve(async (req) => {
     const hub: string | undefined = body.hub;
     const cefrLevel: string | undefined = body.cefrLevel;
     const pairCount: number | undefined = body.pairCount;
+    const difficulty: Difficulty = (['easy', 'medium', 'hard'] as Difficulty[]).includes(body.difficulty)
+      ? body.difficulty
+      : 'medium';
+    const templateId: string | undefined = body.templateId;
+    const grammarFocus: string | undefined = body.grammarFocus;
 
-    if (!gameType || !TOOL_BY_TYPE[gameType]) {
+    if (!gameType || !buildToolForType(gameType, difficulty)) {
       return new Response(JSON.stringify({ error: 'Unsupported gameType' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const tool = {
-      type: 'function',
-      function: TOOL_BY_TYPE[gameType],
-    };
+    const tool = { type: 'function', function: buildToolForType(gameType, difficulty) };
 
     const userContent = `
 Lesson context (vocab / grammar / topic):
@@ -187,7 +249,12 @@ Now produce the game by calling the function "${tool.function.name}".
       body: JSON.stringify({
         model: 'google/gemini-3-flash-preview',
         messages: [
-          { role: 'system', content: buildSystemPrompt({ gameType, hub, cefrLevel, pairCount }) },
+          {
+            role: 'system',
+            content: buildSystemPrompt({
+              gameType, hub, cefrLevel, pairCount, difficulty, templateId, grammarFocus,
+            }),
+          },
           { role: 'user', content: userContent },
         ],
         tools: [tool],
@@ -220,7 +287,6 @@ Now produce the game by calling the function "${tool.function.name}".
 
     const args = JSON.parse(toolCall.function.arguments);
 
-    // Normalize to the EXACT interactive_data shape each player component expects.
     let interactive_data: Record<string, unknown>;
     switch (gameType) {
       case 'multiple_choice': {
@@ -237,12 +303,18 @@ Now produce the game by calling the function "${tool.function.name}".
       case 'drag_and_match': {
         const pairs = Array.isArray(args.pairs)
           ? args.pairs
-              .map((p: any) => ({
-                left_item: String(p.left_item ?? '').trim(),
-                right_item: String(p.right_item ?? '').trim(),
-                left_thumbnail_keyword: p.left_thumbnail_keyword ? String(p.left_thumbnail_keyword) : undefined,
-                right_thumbnail_keyword: p.right_thumbnail_keyword ? String(p.right_thumbnail_keyword) : undefined,
-              }))
+              .map((p: any) => {
+                const left_item = String(p.left_item ?? '').trim();
+                const right_item = String(p.right_item ?? '').trim();
+                const left_kw = String(p.left_thumbnail_keyword ?? '').trim() || deriveKeyword(left_item);
+                const right_kw = String(p.right_thumbnail_keyword ?? '').trim() || deriveKeyword(right_item);
+                return {
+                  left_item,
+                  right_item,
+                  left_thumbnail_keyword: left_kw,
+                  right_thumbnail_keyword: right_kw,
+                };
+              })
               .filter((p: any) => p.left_item && p.right_item)
           : [];
         interactive_data = {
