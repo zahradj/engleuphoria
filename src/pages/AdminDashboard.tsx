@@ -20,6 +20,7 @@ import { StaffOperations } from '@/components/admin/StaffOperations';
 import { TeacherProfileReviewQueue } from '@/components/admin/TeacherProfileReviewQueue';
 import { TestCreditButton } from '@/components/admin/TestCreditButton';
 import { DesktopOnlyNotice } from '@/components/admin/DesktopOnlyNotice';
+import { AdminInbox } from '@/components/admin/AdminInbox';
 import { AdminMobileBottomNav, type AdminMobileTab } from '@/components/admin/AdminMobileBottomNav';
 import { ScrollHeader } from '@/components/navigation/ScrollHeader';
 import { Loader2, Menu, X } from 'lucide-react';
@@ -91,6 +92,8 @@ const AdminDashboard = () => {
         return <HiringKanbanBoard />;
       case 'profile-review':
         return <TeacherProfileReviewQueue />;
+      case 'inbox':
+        return <AdminInbox />;
       default:
         return <AdminOverview />;
     }

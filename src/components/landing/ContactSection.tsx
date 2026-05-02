@@ -10,6 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { useTranslation } from 'react-i18next';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 const contactSchema = z.object({
   name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100, 'Name must be less than 100 characters'),
@@ -26,6 +28,7 @@ export function ContactSection() {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
   const { t } = useTranslation();
+  const { user } = useAuth();
 
   const [formData, setFormData] = useState<ContactFormData>({ name: '', email: '', message: '' });
   const [errors, setErrors] = useState<Partial<ContactFormData>>({});
@@ -53,19 +56,35 @@ export function ContactSection() {
     }
 
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+    try {
+      const { error } = await supabase.from('contact_inquiries').insert({
+        name: result.data.name,
+        email: result.data.email,
+        message: result.data.message,
+        user_id: user?.id ?? null,
+      });
+      if (error) throw error;
 
-    toast({
-      title: t('lp.contact.toast.title'),
-      description: t('lp.contact.toast.body'),
-    });
+      setIsSubmitted(true);
+      toast({
+        title: t('lp.contact.toast.title'),
+        description: t('lp.contact.toast.body'),
+      });
 
-    setTimeout(() => {
-      setFormData({ name: '', email: '', message: '' });
-      setIsSubmitted(false);
-    }, 3000);
+      setTimeout(() => {
+        setFormData({ name: '', email: '', message: '' });
+        setIsSubmitted(false);
+      }, 3000);
+    } catch (err) {
+      console.error('Contact submit failed:', err);
+      toast({
+        title: 'Something went wrong',
+        description: 'Please try again in a moment.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1 } } };
