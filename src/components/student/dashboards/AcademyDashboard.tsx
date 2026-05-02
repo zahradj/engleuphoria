@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { AcademySkeleton } from '@/components/shared/DashboardSkeleton';
 import { useLiveClassroomStatus } from '@/hooks/useLiveClassroomStatus';
 import { useThemeMode } from '@/hooks/useThemeMode';
+import { useStudentLanguageSync } from '@/hooks/useStudentLanguageSync';
 import { LiveSessionBadge } from '@/components/shared/LiveSessionBadge';
 import { 
   Home, BookOpen, Calendar, Trophy, User, 
@@ -56,6 +58,8 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
   const liveStatus = useLiveClassroomStatus('student');
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
+  const { t } = useTranslation();
+  useStudentLanguageSync();
 
   const schedule = [
     { day: 'Mon', time: '3:00 PM', subject: 'Grammar', color: isDark ? 'bg-indigo-900/50 text-indigo-300' : 'bg-indigo-50 text-indigo-700' },
@@ -108,10 +112,10 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
         <div className="relative flex items-center justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#6B21A8] to-[#A855F7] bg-clip-text text-transparent">
-              Welcome back, {studentName} 📚
+              {t('sd.welcomeBack', { name: studentName, defaultValue: 'Welcome back, {{name}}' })} 📚
             </h1>
             <p className={cn('text-sm mt-1', textSecondary)}>
-              Level {level} · {totalXp.toLocaleString()} XP — Keep pushing forward!
+              {t('sd.subtitleAcademy', { level, xp: totalXp.toLocaleString(), defaultValue: 'Level {{level}} · {{xp}} XP — Keep pushing forward!' })}
             </p>
           </div>
           <motion.div
@@ -156,7 +160,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
               <div className="glass-card-hub glass-academy p-5 backdrop-blur-md">
                 <h3 className={cn('flex items-center gap-2 text-base font-semibold mb-4', textPrimary)}>
                   <Calendar className="w-4 h-4" />
-                  My Schedule
+                  {t('sd.mySchedule', 'My Schedule')}
                 </h3>
                 <div className="space-y-2">
                   {schedule.map((item, index) => (
@@ -187,15 +191,15 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
               <div className="glass-card-hub glass-academy p-5 backdrop-blur-md border-l-4 border-l-[#174EA6]">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1.5">
-                    <p className={cn('text-xs font-medium uppercase tracking-wider', textSecondary)}>Continue where you left off</p>
+                    <p className={cn('text-xs font-medium uppercase tracking-wider', textSecondary)}>{t('sd.continueWhereLeftOff', 'Continue where you left off')}</p>
                     {currentLesson && (
                       <>
                         <div className={cn('flex items-center gap-2 text-xs', textSecondary)}>
                           {(currentLesson as any).unit && (
-                            <span>Unit {(currentLesson as any).unit.unit_number}: {(currentLesson as any).unit.title}</span>
+                            <span>{t('sd.unit', 'Unit')} {(currentLesson as any).unit.unit_number}: {(currentLesson as any).unit.title}</span>
                           )}
                           {currentLesson.sequence_order && (
-                            <span>· Lesson {currentLesson.sequence_order}</span>
+                            <span>· {t('sd.lesson', 'Lesson')} {currentLesson.sequence_order}</span>
                           )}
                         </div>
                         <h3 className={cn('text-lg font-semibold', isDark ? 'text-white' : 'text-slate-800')}>
@@ -203,14 +207,14 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
                         </h3>
                       </>
                     )}
-                    {!currentLesson && <h3 className={cn('text-lg font-semibold', isDark ? 'text-white' : 'text-slate-800')}>No lessons available</h3>}
-                    <p className={cn('text-sm', textSecondary)}>{currentLesson?.duration_minutes || 35} min</p>
+                    {!currentLesson && <h3 className={cn('text-lg font-semibold', isDark ? 'text-white' : 'text-slate-800')}>{t('sd.noLessonsAvailable', 'No lessons available')}</h3>}
+                    <p className={cn('text-sm', textSecondary)}>{currentLesson?.duration_minutes || 35} {t('sd.minutesShort', 'min')}</p>
                     <div className={cn('mt-2 h-1.5 w-48 rounded-full overflow-hidden', isDark ? 'bg-indigo-900/50' : 'bg-slate-100')}>
                       <div className="h-full w-3/5 bg-gradient-to-r from-[#174EA6] to-[#B75EED] rounded-full" />
                     </div>
                   </div>
                   <Button className="bg-gradient-to-r from-[#174EA6] to-[#B75EED] hover:from-indigo-700 hover:to-purple-700 text-white px-5 rounded-lg text-sm font-medium glow-pulse-academy">
-                    Continue <ChevronRight className="w-4 h-4 ml-1" />
+                    {t('sd.continue', 'Continue')} <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
                 </div>
               </div>
@@ -239,7 +243,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
               onClick={() => setBookingOpen(true)}
               className="w-full bg-gradient-to-r from-[#174EA6] to-[#B75EED] hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-medium py-2.5 text-sm glow-pulse-academy"
             >
-              Book a Slot with a Teacher
+              {t('sd.bookSlot', 'Book a Slot with a Teacher')}
             </Button>
 
             {/* Skill XP */}
@@ -250,14 +254,14 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
               <div className="flex items-center justify-between mb-3">
                 <h3 className={cn('flex items-center gap-2 text-base font-semibold', textPrimary)}>
                   <Trophy className="w-4 h-4 text-amber-500" />
-                  Leaderboard
+                  {t('sd.leaderboard', 'Leaderboard')}
                 </h3>
               </div>
               <Tabs value={leaderboardPeriod} onValueChange={(v) => setLeaderboardPeriod(v as any)} className="mb-3">
                 <TabsList className={cn('grid grid-cols-3', isDark ? 'bg-indigo-950/50' : 'bg-slate-100')}>
-                  <TabsTrigger value="weekly" className="text-xs">Weekly</TabsTrigger>
-                  <TabsTrigger value="monthly" className="text-xs">Monthly</TabsTrigger>
-                  <TabsTrigger value="all" className="text-xs">All Time</TabsTrigger>
+                  <TabsTrigger value="weekly" className="text-xs">{t('sd.weekly', 'Weekly')}</TabsTrigger>
+                  <TabsTrigger value="monthly" className="text-xs">{t('sd.monthly', 'Monthly')}</TabsTrigger>
+                  <TabsTrigger value="all" className="text-xs">{t('sd.allTime', 'All Time')}</TabsTrigger>
                 </TabsList>
               </Tabs>
               <div className="space-y-2">
@@ -285,7 +289,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
                     </Avatar>
                     <div className="flex-1">
                       <p className={cn('font-medium', isDark ? 'text-indigo-200' : 'text-slate-700')}>
-                        {user.name} {user.isYou && <span className={cn('text-xs', textPrimary)}>(You)</span>}
+                        {user.name} {user.isYou && <span className={cn('text-xs', textPrimary)}>({t('sd.you', 'You')})</span>}
                       </p>
                     </div>
                     {user.change !== 0 && (
@@ -300,7 +304,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
               </div>
               <Button variant="outline" className={cn('w-full mt-3 text-xs', isDark ? 'border-indigo-800 text-indigo-300 hover:bg-indigo-900/30' : 'border-slate-200 text-slate-500 hover:text-[#174EA6]')}>
                 <Users className="w-3.5 h-3.5 mr-1.5" />
-                Challenge a Friend
+                {t('sd.challengeFriend', 'Challenge a Friend')}
               </Button>
             </div>
 
@@ -324,7 +328,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
                   className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-medium py-2.5 rounded-lg text-sm"
                 >
                   <Sparkles className="w-4 h-4 mr-1.5" />
-                  Graduate to The Hub!
+                  {t('sd.graduateHub', 'Graduate to The Hub!')}
                 </Button>
               </motion.div>
             )}

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { HubSkeleton } from '@/components/shared/DashboardSkeleton';
 import { useLiveClassroomStatus } from '@/hooks/useLiveClassroomStatus';
 import { LiveSessionBadge } from '@/components/shared/LiveSessionBadge';
 import { useThemeMode } from '@/hooks/useThemeMode';
+import { useStudentLanguageSync } from '@/hooks/useStudentLanguageSync';
 import { 
   LayoutDashboard, BookOpen, Award, Settings, 
   Download, FileText, TrendingUp, Clock, CheckCircle, 
@@ -50,6 +52,8 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
   const { totalCredits, loading: creditsLoading } = usePackageValidation(user?.id || null);
   const { resolvedTheme } = useThemeMode();
   const isDarkMode = resolvedTheme === 'dark';
+  const { t } = useTranslation();
+  useStudentLanguageSync();
 
   const navItems: { id: NavItem; label: string; icon: React.ReactNode }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -118,10 +122,10 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
         <div className="relative flex items-center justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#0D652D] to-[#3DD39B] bg-clip-text text-transparent">
-              Good morning, {studentName} ☀️
+              {t('sd.welcomeAdults', { name: studentName, defaultValue: 'Good morning, {{name}}' })} ☀️
             </h1>
             <p className={cn('text-sm mt-1', mutedClass)}>
-              Continue your executive learning journey where you left off.
+              {t('sd.subtitleAdults', 'Continue your executive learning journey where you left off.')}
             </p>
           </div>
           <motion.div
@@ -160,7 +164,7 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
             </div>
             <div>
               <p className="text-xs font-medium uppercase tracking-wider text-[#3DD39B]">
-                Next Career Milestone
+                {t('sd.nextCareerMilestone', 'Next Career Milestone')}
               </p>
               <p className={cn('font-semibold', textClass)}>Master Business Presentations</p>
             </div>
@@ -182,10 +186,10 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
           transition={{ delay: 0.1 }}
           className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
         >
-          <GlassStatCard icon={<CheckCircle className="w-5 h-5 text-[#3DD39B]" />} label="Completed" value={stats.coursesCompleted} suffix="courses" isDarkMode={isDarkMode} />
-          <GlassStatCard icon={<BookOpen className="w-5 h-5 text-[#3DD39B]" />} label="In Progress" value={stats.coursesInProgress} suffix="courses" isDarkMode={isDarkMode} />
-          <GlassStatCard icon={<Clock className="w-5 h-5 text-[#3DD39B]" />} label="Total Hours" value={stats.hoursLearned} suffix="hrs" isDarkMode={isDarkMode} />
-          <GlassStatCard icon={<TrendingUp className="w-5 h-5 text-[#3DD39B]" />} label="Streak" value={stats.streak} suffix="days" isDarkMode={isDarkMode} />
+          <GlassStatCard icon={<CheckCircle className="w-5 h-5 text-[#3DD39B]" />} label={t('sd.completed', 'Completed')} value={stats.coursesCompleted} suffix={t('sd.courses', 'courses')} isDarkMode={isDarkMode} />
+          <GlassStatCard icon={<BookOpen className="w-5 h-5 text-[#3DD39B]" />} label={t('sd.inProgress', 'In Progress')} value={stats.coursesInProgress} suffix={t('sd.courses', 'courses')} isDarkMode={isDarkMode} />
+          <GlassStatCard icon={<Clock className="w-5 h-5 text-[#3DD39B]" />} label={t('sd.totalHours', 'Total Hours')} value={stats.hoursLearned} suffix={t('sd.hours', 'hrs')} isDarkMode={isDarkMode} />
+          <GlassStatCard icon={<TrendingUp className="w-5 h-5 text-[#3DD39B]" />} label={t('sd.streak', 'Streak')} value={stats.streak} suffix={t('sd.days', 'days')} isDarkMode={isDarkMode} />
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -221,9 +225,9 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
             <div className="glass-card-hub glass-professional p-5 backdrop-blur-md">
               <h3 className={cn('text-lg flex items-center gap-2 tracking-tight mb-1 font-semibold', textClass)}>
                 <FileText className="w-5 h-5 text-[#3DD39B]" />
-                Resources
+                {t('sd.resources', 'Resources')}
               </h3>
-              <p className={cn('text-sm mb-4', mutedClass)}>Downloadable materials</p>
+              <p className={cn('text-sm mb-4', mutedClass)}>{t('sd.downloadableMaterials', 'Downloadable materials')}</p>
               <div className="space-y-2">
                 {resources.map((resource, index) => (
                   <ResourceItem key={index} {...resource} isDarkMode={isDarkMode} />
@@ -240,14 +244,14 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
               onClick={() => setBookingOpen(true)}
               className="w-full py-3 px-5 rounded-xl font-semibold text-sm transition-all hover:brightness-105 active:scale-95 text-white shadow-md uppercase tracking-wider bg-gradient-to-r from-[#0D652D] to-[#3DD39B] glow-pulse-professional"
             >
-              📅 Schedule Executive Briefing
+              📅 {t('sd.scheduleExecBriefing', 'Schedule Executive Briefing')}
             </button>
 
             {/* Upcoming Session — GLASS */}
             <div className="glass-card-hub glass-professional p-5 backdrop-blur-md">
               <h3 className={cn('text-lg flex items-center gap-2 tracking-tight mb-4 font-semibold', textClass)}>
                 <Calendar className="w-5 h-5 text-[#3DD39B]" />
-                Next Session
+                {t('sd.nextSession', 'Next Session')}
               </h3>
               <div className={cn(
                 'p-4 rounded-lg border',
@@ -256,7 +260,7 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
                 <p className={cn('font-medium', textClass)}>Public Speaking Workshop</p>
                 <p className={cn('text-sm mt-1', mutedClass)}>Tomorrow at 6:00 PM</p>
                 <Button className="mt-3 w-full text-white bg-gradient-to-r from-[#0D652D] to-[#3DD39B]">
-                  Join Executive Briefing
+                  {t('sd.joinExecBriefing', 'Join Executive Briefing')}
                 </Button>
                 <div className="flex gap-2 mt-2">
                   <a

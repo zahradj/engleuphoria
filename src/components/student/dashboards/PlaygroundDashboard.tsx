@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { KidsWorldMap, ThemeType } from '../kids/KidsWorldMap';
 import { usePlaygroundLessons } from '@/hooks/usePlaygroundLessons';
 import { useLiveClassroomStatus } from '@/hooks/useLiveClassroomStatus';
 import { useTimeOfDay } from '@/hooks/useTimeOfDay';
 import { useThemeMode } from '@/hooks/useThemeMode';
+import { useStudentLanguageSync } from '@/hooks/useStudentLanguageSync';
 import { LiveSessionBadge } from '@/components/shared/LiveSessionBadge';
 import { PlaygroundSkeleton } from '@/components/shared/DashboardSkeleton';
 import { VirtualPetWidget } from '../kids/VirtualPetWidget';
@@ -42,6 +44,8 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
   dailyStreak = 0,
 }) => {
   const { user } = useAuth();
+  const { t } = useTranslation();
+  useStudentLanguageSync();
   const { lessons, loading, error, markLessonComplete, getTotalStars } = usePlaygroundLessons();
   const { isDaytime } = useTimeOfDay();
   const { resolvedTheme } = useThemeMode();
@@ -197,10 +201,10 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
           <div className="relative flex items-center justify-between">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#FE6A2F] to-[#FEAF15] bg-clip-text text-transparent">
-                Welcome to the Playground! 🎪
+                {t('sd.welcomeKids', 'Welcome to the Playground!')} 🎪
               </h1>
               <p className={cn('text-sm mt-1', isDark ? 'text-amber-300/80' : 'text-orange-600/80')}>
-                Ready for today's English adventure, {studentName}?
+                {t('sd.subtitleKids', { name: studentName, defaultValue: "Ready for today's English adventure, {{name}}?" })}
               </p>
             </div>
             <motion.div
@@ -230,8 +234,8 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
           className="glass-card-hub glass-playground text-center p-10 backdrop-blur-md"
         >
           <p className="text-6xl mb-4">😢</p>
-          <p className={cn('text-xl font-bold mb-2', isDark ? 'text-amber-100' : 'text-slate-800')}>Oops! Something went wrong</p>
-          <p className={isDark ? 'text-amber-300' : 'text-slate-500'}>Please try refreshing the page</p>
+          <p className={cn('text-xl font-bold mb-2', isDark ? 'text-amber-100' : 'text-slate-800')}>{t('sd.errorTitle', 'Oops! Something went wrong')}</p>
+          <p className={isDark ? 'text-amber-300' : 'text-slate-500'}>{t('sd.errorBody', 'Please try refreshing the page')}</p>
         </motion.div>
       </div>
     );
@@ -253,8 +257,8 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
             >
               🚀
             </motion.p>
-            <p className={cn('text-xl font-bold mb-2', isDark ? 'text-amber-100' : 'text-slate-800')}>No lessons yet!</p>
-            <p className={isDark ? 'text-amber-300' : 'text-slate-500'}>Your adventure will start soon...</p>
+            <p className={cn('text-xl font-bold mb-2', isDark ? 'text-amber-100' : 'text-slate-800')}>{t('sd.noLessonsTitle', 'No lessons yet!')}</p>
+            <p className={isDark ? 'text-amber-300' : 'text-slate-500'}>{t('sd.noLessonsBody', 'Your adventure will start soon...')}</p>
           </motion.div>
         </div>
         {/* Right panel still shows in empty state */}
