@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
 import TypewriterText from './TypewriterText';
+import logoWhite from '@/assets/logo-white.png';
 
 interface ProcessingPhaseProps {
   onComplete: () => void;
@@ -32,20 +32,24 @@ const ProcessingPhase = ({ onComplete }: ProcessingPhaseProps) => {
 
   return (
     <div className="flex flex-col items-center justify-center h-full gap-8 p-8">
-      {/* Animated icon */}
+      {/* Animated brand mark — matches the Welcome / Completion modals */}
       <motion.div
-        animate={{ scale: [1, 1.15, 1], rotate: [0, 5, -5, 0] }}
+        animate={{ scale: [1, 1.08, 1] }}
         transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
         className="relative"
       >
-        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-[0_0_40px_rgba(139,92,246,0.4)]">
-          <Sparkles className="w-12 h-12 text-white" />
+        <div className="w-24 h-24 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-[0_0_40px_rgba(139,92,246,0.4)]">
+          <img
+            src={logoWhite}
+            alt="EnglEuphoria"
+            className="h-10 w-auto"
+          />
         </div>
         {/* Glow ring */}
         <motion.div
           animate={{ scale: [1, 1.5], opacity: [0.5, 0] }}
           transition={{ duration: 1.5, repeat: Infinity }}
-          className="absolute inset-0 rounded-full border-2 border-violet-400"
+          className="absolute inset-0 rounded-full border-2 border-violet-400 pointer-events-none"
         />
       </motion.div>
 
