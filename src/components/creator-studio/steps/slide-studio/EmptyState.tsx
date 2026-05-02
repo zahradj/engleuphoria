@@ -55,16 +55,15 @@ async function readEdgeError(err: unknown): Promise<{ status?: number; message: 
 
 function toastEdgeError(status: number | undefined, message: string, fallback: string) {
   if (status === 402 && /lesson credit/i.test(message)) {
-    toast.error('Out of Lesson Credits', {
-      description: 'Upgrade your plan to keep generating lessons.',
-      action: { label: 'Upgrade Plan', onClick: () => { window.location.href = '/billing'; } },
+    toast.error('Lesson generation is temporarily blocked', {
+      description: 'Please wait 10 seconds and try again.',
       duration: 8000,
     });
     return;
   }
   if (status === 429) toast.error('Rate limit reached. Try again in a moment.');
-  else if (status === 402) toast.error('AI workspace balance exhausted', {
-    description: 'Add funds in Lovable → Settings → Workspace → Usage to keep generating lessons.',
+  else if (status === 402) toast.error('AI is heavily loaded', {
+    description: 'Please wait 10 seconds and try again.',
     duration: 10000,
   });
   else toast.error(message || fallback);
