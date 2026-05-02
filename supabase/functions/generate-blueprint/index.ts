@@ -56,51 +56,10 @@ Deno.serve(async (req) => {
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
 
-    // ─── Cost Control: Lesson Credit Gate ───
-    // Verify the caller has at least one lesson credit, then atomically deduct.
-    const SUPA_URL = Deno.env.get("SUPABASE_URL");
-    const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
-    const authHeader = req.headers.get("Authorization") || "";
-    if (SUPA_URL && SERVICE_KEY && ANON_KEY && authHeader.startsWith("Bearer ")) {
-      try {
-        const userResp = await fetch(`${SUPA_URL}/auth/v1/user`, {
-          headers: { Authorization: authHeader, apikey: ANON_KEY },
-        });
-        if (userResp.ok) {
-          const { id: userId } = await userResp.json();
-          if (userId) {
-            const credResp = await fetch(`${SUPA_URL}/rest/v1/rpc/consume_lesson_credit`, {
-              method: "POST",
-              headers: {
-                apikey: SERVICE_KEY,
-                Authorization: `Bearer ${SERVICE_KEY}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ p_user_id: userId }),
-            });
-            if (credResp.ok) {
-              const rows = await credResp.json();
-              const row = Array.isArray(rows) ? rows[0] : rows;
-              if (row && row.success === false) {
-                return new Response(
-                  JSON.stringify({
-                    error: "INSUFFICIENT_LESSON_CREDITS",
-                    message: "You have run out of Lesson Credits. Upgrade your plan to keep generating.",
-                    remaining: row.remaining ?? 0,
-                  }),
-                  { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-                );
-              }
-            } else {
-              console.warn("[credits] consume_lesson_credit RPC failed", credResp.status);
-            }
-          }
-        }
-      } catch (e) {
-        console.warn("[credits] gate error (allowing through)", e);
-      }
-    }
+    // Lesson generation is governed by the configured AI providers, not the
+    // legacy in-app `user_credits.lesson_credits` gate. Keeping blueprint
+    // generation unblocked prevents false "workspace balance exhausted" errors
+    // when Google Studio / Lovable AI Gateway balances are available.
 
     const resolvedHub = normalizeHub(target_hub ?? hub);
     const hubBlock = buildBlueprintHubBlock(resolvedHub, cefr_level);
