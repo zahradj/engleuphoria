@@ -149,18 +149,6 @@ export function HeroSection() {
 
           {/* Left: Content — show first on mobile */}
           <div className="order-1 lg:order-1">
-            {/* Trust badge — colored per group */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 border transition-colors duration-700 ${
-                isDark ? theme.badgeBg.dark : theme.badgeBg.light
-              }`}
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              <span className="text-sm font-medium">{t('lp.hero.badge')}</span>
-            </motion.div>
 
             {/* Headline with dynamic gradient accent */}
             <motion.h1
