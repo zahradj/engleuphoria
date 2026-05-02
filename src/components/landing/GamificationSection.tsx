@@ -1,49 +1,51 @@
 import { motion } from 'framer-motion';
 import { Trophy, Flame, Target, MessageCircle } from 'lucide-react';
 import { useThemeMode } from '@/hooks/useThemeMode';
-
-const gamificationCards = [
-  {
-    icon: Trophy,
-    title: 'Achievement Badges',
-    description: 'Earn badges as you complete lessons, master skills, and hit milestones.',
-    accentDark: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
-    accentLight: 'text-amber-600 bg-amber-50 border-amber-200',
-    glowDark: 'group-hover:shadow-[0_0_40px_rgba(251,191,36,0.15)]',
-    floatDelay: 0,
-  },
-  {
-    icon: Flame,
-    title: 'Daily Streaks',
-    description: 'Build momentum with daily practice streaks and streak-saver rewards.',
-    accentDark: 'text-orange-400 bg-orange-500/10 border-orange-500/20',
-    accentLight: 'text-orange-600 bg-orange-50 border-orange-200',
-    glowDark: 'group-hover:shadow-[0_0_40px_rgba(251,146,60,0.15)]',
-    floatDelay: 0.3,
-  },
-  {
-    icon: Target,
-    title: 'Learning Goals',
-    description: 'Set weekly targets and track your progress with smart analytics.',
-    accentDark: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
-    accentLight: 'text-emerald-600 bg-emerald-50 border-emerald-200',
-    glowDark: 'group-hover:shadow-[0_0_40px_rgba(52,211,153,0.15)]',
-    floatDelay: 0.6,
-  },
-  {
-    icon: MessageCircle,
-    title: 'Conversation Challenges',
-    description: 'Practice speaking in themed challenges and climb the leaderboard.',
-    accentDark: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
-    accentLight: 'text-indigo-600 bg-indigo-50 border-indigo-200',
-    glowDark: 'group-hover:shadow-[0_0_40px_rgba(99,102,241,0.15)]',
-    floatDelay: 0.9,
-  },
-];
+import { useTranslation } from 'react-i18next';
 
 export function GamificationSection() {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
+  const { t } = useTranslation();
+
+  const gamificationCards = [
+    {
+      icon: Trophy,
+      title: t('lp.game.badges.title'),
+      description: t('lp.game.badges.desc'),
+      accentDark: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+      accentLight: 'text-amber-600 bg-amber-50 border-amber-200',
+      glowDark: 'group-hover:shadow-[0_0_40px_rgba(251,191,36,0.15)]',
+      floatDelay: 0,
+    },
+    {
+      icon: Flame,
+      title: t('lp.game.streaks.title'),
+      description: t('lp.game.streaks.desc'),
+      accentDark: 'text-orange-400 bg-orange-500/10 border-orange-500/20',
+      accentLight: 'text-orange-600 bg-orange-50 border-orange-200',
+      glowDark: 'group-hover:shadow-[0_0_40px_rgba(251,146,60,0.15)]',
+      floatDelay: 0.3,
+    },
+    {
+      icon: Target,
+      title: t('lp.game.goals.title'),
+      description: t('lp.game.goals.desc'),
+      accentDark: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+      accentLight: 'text-emerald-600 bg-emerald-50 border-emerald-200',
+      glowDark: 'group-hover:shadow-[0_0_40px_rgba(52,211,153,0.15)]',
+      floatDelay: 0.6,
+    },
+    {
+      icon: MessageCircle,
+      title: t('lp.game.challenges.title'),
+      description: t('lp.game.challenges.desc'),
+      accentDark: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
+      accentLight: 'text-indigo-600 bg-indigo-50 border-indigo-200',
+      glowDark: 'group-hover:shadow-[0_0_40px_rgba(99,102,241,0.15)]',
+      floatDelay: 0.9,
+    },
+  ];
 
   return (
     <section
@@ -66,21 +68,13 @@ export function GamificationSection() {
                 : 'text-amber-600 bg-amber-50 border border-amber-200'
             }`}
           >
-            Gamification
+            {t('lp.game.eyebrow')}
           </span>
-          <h2
-            className={`text-3xl md:text-4xl lg:text-5xl font-bold mb-4 ${
-              isDark ? 'text-white' : 'text-slate-900'
-            }`}
-          >
-            Stay Motivated Every Day
+          <h2 className={`text-3xl md:text-4xl lg:text-5xl font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            {t('lp.game.heading')}
           </h2>
-          <p
-            className={`text-lg max-w-2xl mx-auto ${
-              isDark ? 'text-slate-400' : 'text-slate-600'
-            }`}
-          >
-            Learning English should feel rewarding. Our gamified approach keeps you engaged and progressing.
+          <p className={`text-lg max-w-2xl mx-auto ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+            {t('lp.game.subtitle')}
           </p>
         </motion.div>
 
@@ -102,31 +96,16 @@ export function GamificationSection() {
                 }`}
               >
                 <motion.div
-                  className={`p-3.5 rounded-xl mb-4 border ${
-                    isDark ? card.accentDark : card.accentLight
-                  }`}
+                  className={`p-3.5 rounded-xl mb-4 border ${isDark ? card.accentDark : card.accentLight}`}
                   animate={{ y: [0, -5, 0] }}
-                  transition={{
-                    repeat: Infinity,
-                    duration: 3,
-                    ease: 'easeInOut',
-                    delay: card.floatDelay,
-                  }}
+                  transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut', delay: card.floatDelay }}
                 >
                   <Icon className="w-6 h-6" />
                 </motion.div>
-                <h3
-                  className={`font-semibold text-base mb-1.5 ${
-                    isDark ? 'text-white' : 'text-slate-900'
-                  }`}
-                >
+                <h3 className={`font-semibold text-base mb-1.5 ${isDark ? 'text-white' : 'text-slate-900'}`}>
                   {card.title}
                 </h3>
-                <p
-                  className={`text-sm leading-relaxed ${
-                    isDark ? 'text-slate-400' : 'text-slate-500'
-                  }`}
-                >
+                <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                   {card.description}
                 </p>
               </motion.div>

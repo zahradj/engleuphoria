@@ -2,43 +2,45 @@ import { Star, Quote, ArrowLeft, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
-const testimonials = [
+// Real customer profiles — names/countries stay as-is; only role/text/highlight are translated.
+const testimonialsBase = [
   {
     name: 'Sarah Mitchell',
-    role: 'Parent of 2 kids',
     country: '🇬🇧 UK',
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&h=120&fit=crop',
     rating: 5,
-    text: "My daughter has improved so much in just 3 months! The teachers are patient and make learning genuinely fun. She actually looks forward to her lessons now — something I never thought possible.",
-    highlight: '3 months to fluency improvement',
+    roleKey: 'lp.testimonials.t1.role',
+    textKey: 'lp.testimonials.t1.text',
+    highlightKey: 'lp.testimonials.t1.highlight',
   },
   {
     name: 'Ahmed Khalil',
-    role: 'Marketing Director',
     country: '🇦🇪 UAE',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop',
     rating: 5,
-    text: "I needed to improve my English for international presentations. The business English course was exactly what I needed — practical, focused, and flexible around my schedule.",
-    highlight: 'Promoted after 6 months',
+    roleKey: 'lp.testimonials.t2.role',
+    textKey: 'lp.testimonials.t2.text',
+    highlightKey: 'lp.testimonials.t2.highlight',
   },
   {
     name: 'Maria Lombardi',
-    role: 'University Student',
     country: '🇮🇹 Italy',
     avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=120&h=120&fit=crop',
     rating: 5,
-    text: "Preparing for my IELTS exam was so much easier with EnglEuphoria. My teacher helped me go from 6.0 to 7.5 in just two months! The structured approach made all the difference.",
-    highlight: 'IELTS 6.0 → 7.5 in 2 months',
+    roleKey: 'lp.testimonials.t3.role',
+    textKey: 'lp.testimonials.t3.text',
+    highlightKey: 'lp.testimonials.t3.highlight',
   },
   {
     name: 'Yuki Tanaka',
-    role: 'Software Engineer',
     country: '🇯🇵 Japan',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop',
     rating: 5,
-    text: "The conversation club helped me overcome my fear of speaking English. Now I confidently participate in international meetings. The teachers create such a supportive environment.",
-    highlight: 'From shy to confident speaker',
+    roleKey: 'lp.testimonials.t4.role',
+    textKey: 'lp.testimonials.t4.text',
+    highlightKey: 'lp.testimonials.t4.highlight',
   },
 ];
 
@@ -46,18 +48,28 @@ export function TestimonialsSection() {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
   const [current, setCurrent] = useState(0);
+  const { t } = useTranslation();
 
-  const goNext = () => setCurrent((prev) => (prev + 1) % testimonials.length);
-  const goPrev = () => setCurrent((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+  const goNext = () => setCurrent((prev) => (prev + 1) % testimonialsBase.length);
+  const goPrev = () => setCurrent((prev) => (prev - 1 + testimonialsBase.length) % testimonialsBase.length);
 
-  const t = testimonials[current];
+  const tBase = testimonialsBase[current];
+
+  const stats = [
+    { stat: '4.9/5', label: t('lp.testimonials.stat.rating'), icon: '⭐' },
+    { stat: '97%', label: t('lp.testimonials.stat.satisfaction'), icon: '💚' },
+    { stat: '85%', label: t('lp.testimonials.stat.complete'), icon: '🎯' },
+    { stat: '92%', label: t('lp.testimonials.stat.recommend'), icon: '🗣️' },
+  ];
 
   return (
-    <section id="testimonials" className={`py-24 md:py-32 relative overflow-hidden scroll-mt-20 transition-colors duration-300 ${
-      isDark ? 'bg-[#09090B]' : 'bg-gradient-to-b from-white to-slate-50'
-    }`}>
+    <section
+      id="testimonials"
+      className={`py-24 md:py-32 relative overflow-hidden scroll-mt-20 transition-colors duration-300 ${
+        isDark ? 'bg-[#09090B]' : 'bg-gradient-to-b from-white to-slate-50'
+      }`}
+    >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -65,22 +77,17 @@ export function TestimonialsSection() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <span className={`inline-block text-sm font-bold tracking-widest uppercase mb-4 ${
-            isDark ? 'text-indigo-400' : 'text-indigo-600'
-          }`}>
-            Testimonials
+          <span className={`inline-block text-sm font-bold tracking-widest uppercase mb-4 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
+            {t('lp.testimonials.eyebrow')}
           </span>
-          <h2 className={`text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-5 ${
-            isDark ? 'text-white' : 'text-slate-900'
-          }`}>
-            Real Stories,{' '}
+          <h2 className={`text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-5 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            {t('lp.testimonials.heading')}{' '}
             <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
-              Real Results
+              {t('lp.testimonials.headingAccent')}
             </span>
           </h2>
         </motion.div>
 
-        {/* Featured testimonial - large card */}
         <div className="max-w-4xl mx-auto">
           <AnimatePresence mode="wait">
             <motion.div
@@ -90,53 +97,44 @@ export function TestimonialsSection() {
               exit={{ opacity: 0, x: -60 }}
               transition={{ duration: 0.4 }}
               className={`relative rounded-3xl overflow-hidden ${
-                isDark
-                  ? 'bg-white/[0.03] border border-white/[0.08]'
-                  : 'bg-white border border-slate-200 shadow-xl shadow-slate-200/50'
+                isDark ? 'bg-white/[0.03] border border-white/[0.08]' : 'bg-white border border-slate-200 shadow-xl shadow-slate-200/50'
               }`}
             >
               <div className="grid md:grid-cols-[240px_1fr]">
-                {/* Left: Photo + info */}
                 <div className={`p-8 flex flex-col items-center justify-center text-center ${
-                  isDark
-                    ? 'bg-gradient-to-b from-indigo-500/10 to-transparent'
-                    : 'bg-gradient-to-b from-indigo-50 to-slate-50'
+                  isDark ? 'bg-gradient-to-b from-indigo-500/10 to-transparent' : 'bg-gradient-to-b from-indigo-50 to-slate-50'
                 }`}>
                   <img
-                    src={t.avatar}
-                    alt={t.name}
+                    src={tBase.avatar}
+                    alt={tBase.name}
                     className="w-20 h-20 rounded-full object-cover mb-4 ring-4 ring-indigo-500/20"
                     loading="lazy"
                   />
-                  <h4 className={`font-bold text-lg ${isDark ? 'text-white' : 'text-slate-900'}`}>{t.name}</h4>
-                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{t.role}</p>
-                  <p className={`text-xs mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{t.country}</p>
+                  <h4 className={`font-bold text-lg ${isDark ? 'text-white' : 'text-slate-900'}`}>{tBase.name}</h4>
+                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{t(tBase.roleKey)}</p>
+                  <p className={`text-xs mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{tBase.country}</p>
                   <div className="flex gap-0.5 mt-3">
-                    {[...Array(t.rating)].map((_, i) => (
+                    {[...Array(tBase.rating)].map((_, i) => (
                       <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
                     ))}
                   </div>
                 </div>
 
-                {/* Right: Quote */}
                 <div className="p-8 md:p-10 flex flex-col justify-center">
                   <Quote className={`w-8 h-8 mb-4 ${isDark ? 'text-indigo-500/40' : 'text-indigo-200'}`} />
                   <p className={`text-lg md:text-xl leading-relaxed mb-6 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                    "{t.text}"
+                    “{t(tBase.textKey)}”
                   </p>
                   <div className={`inline-flex items-center gap-2 self-start px-4 py-2 rounded-full text-sm font-semibold ${
-                    isDark
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                      : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    isDark ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                   }`}>
-                    ✨ {t.highlight}
+                    ✨ {t(tBase.highlightKey)}
                   </div>
                 </div>
               </div>
             </motion.div>
           </AnimatePresence>
 
-          {/* Navigation */}
           <div className="flex items-center justify-center gap-4 mt-8">
             <button
               onClick={goPrev}
@@ -145,13 +143,13 @@ export function TestimonialsSection() {
                   ? 'bg-white/5 border border-white/10 text-white hover:bg-white/10'
                   : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm'
               }`}
-              aria-label="Previous testimonial"
+              aria-label={t('lp.testimonials.prev')}
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-5 h-5 rtl:rotate-180" />
             </button>
-            
+
             <div className="flex gap-2">
-              {testimonials.map((_, i) => (
+              {testimonialsBase.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setCurrent(i)}
@@ -160,7 +158,7 @@ export function TestimonialsSection() {
                       ? `w-8 ${isDark ? 'bg-indigo-400' : 'bg-indigo-600'}`
                       : `w-2 ${isDark ? 'bg-white/20' : 'bg-slate-300'}`
                   }`}
-                  aria-label={`Go to testimonial ${i + 1}`}
+                  aria-label={`${t('lp.testimonials.goTo')} ${i + 1}`}
                 />
               ))}
             </div>
@@ -172,14 +170,13 @@ export function TestimonialsSection() {
                   ? 'bg-white/5 border border-white/10 text-white hover:bg-white/10'
                   : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm'
               }`}
-              aria-label="Next testimonial"
+              aria-label={t('lp.testimonials.next')}
             >
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-5 h-5 rtl:rotate-180" />
             </button>
           </div>
         </div>
 
-        {/* Mini testimonial cards */}
         <motion.div
           className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16 max-w-4xl mx-auto"
           initial={{ opacity: 0, y: 20 }}
@@ -187,18 +184,11 @@ export function TestimonialsSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          {[
-            { stat: '4.9/5', label: 'Average Rating', icon: '⭐' },
-            { stat: '97%', label: 'Satisfaction', icon: '💚' },
-            { stat: '85%', label: 'Complete the Course', icon: '🎯' },
-            { stat: '92%', label: 'Recommend Us', icon: '🗣️' },
-          ].map((item) => (
+          {stats.map((item) => (
             <div
               key={item.label}
               className={`rounded-2xl p-5 text-center transition-colors ${
-                isDark
-                  ? 'bg-white/[0.03] border border-white/[0.06]'
-                  : 'bg-white border border-slate-100 shadow-sm'
+                isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-slate-100 shadow-sm'
               }`}
             >
               <span className="text-2xl mb-2 block">{item.icon}</span>

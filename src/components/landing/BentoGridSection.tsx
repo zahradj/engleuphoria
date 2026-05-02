@@ -4,19 +4,25 @@ import { ArrowRight, Zap, BookOpen, Target, Trophy, Headphones, MessageCircle, B
 import { useRef, useState, useCallback } from 'react';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { useHeroTheme } from '@/contexts/HeroThemeContext';
+import { useTranslation } from 'react-i18next';
 
 /* ── Animated Skill Rings ── */
-const SKILL_DATA = [
-  { label: 'Speaking', value: 85, color: '#6366F1' },
-  { label: 'Listening', value: 72, color: '#A855F7' },
-  { label: 'Reading', value: 90, color: '#10B981' },
-  { label: 'Writing', value: 68, color: '#F59E0B' },
-  { label: 'Vocab', value: 80, color: '#EC4899' },
-];
+function useSkillData() {
+  const { t } = useTranslation();
+  return [
+    { label: t('lp.bento.skill.speaking'), value: 85, color: '#6366F1' },
+    { label: t('lp.bento.skill.listening'), value: 72, color: '#A855F7' },
+    { label: t('lp.bento.skill.reading'), value: 90, color: '#10B981' },
+    { label: t('lp.bento.skill.writing'), value: 68, color: '#F59E0B' },
+    { label: t('lp.bento.skill.vocab'), value: 80, color: '#EC4899' },
+  ];
+}
 
 function SkillRings({ isDark }: { isDark: boolean }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-40px' });
+  const skillData = useSkillData();
+  const { t } = useTranslation();
   const size = 180;
   const center = size / 2;
   const ringWidth = 8;
@@ -25,21 +31,19 @@ function SkillRings({ isDark }: { isDark: boolean }) {
   return (
     <div ref={ref} className="relative flex items-center justify-center">
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
-        {SKILL_DATA.map((skill, i) => {
+        {skillData.map((skill, i) => {
           const r = center - (ringWidth + gap) * i - ringWidth / 2 - 8;
           const circumference = 2 * Math.PI * r;
           const offset = circumference - (circumference * (isInView ? skill.value : 0)) / 100;
 
           return (
             <g key={skill.label}>
-              {/* Track */}
               <circle
                 cx={center} cy={center} r={r}
                 fill="none"
                 stroke={isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}
                 strokeWidth={ringWidth}
               />
-              {/* Value */}
               <motion.circle
                 cx={center} cy={center} r={r}
                 fill="none"
@@ -56,7 +60,6 @@ function SkillRings({ isDark }: { isDark: boolean }) {
           );
         })}
       </svg>
-      {/* Center label */}
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <motion.span
           className={`text-3xl font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}
@@ -66,20 +69,23 @@ function SkillRings({ isDark }: { isDark: boolean }) {
         >
           79%
         </motion.span>
-        <span className={`text-[10px] font-medium ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Overall</span>
+        <span className={`text-[10px] font-medium ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+          {t('lp.bento.skill.overall')}
+        </span>
       </div>
     </div>
   );
 }
 
 function SkillLegend({ isDark }: { isDark: boolean }) {
+  const skillData = useSkillData();
   return (
     <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-4">
-      {SKILL_DATA.map((s) => (
+      {skillData.map((s) => (
         <div key={s.label} className="flex items-center gap-2">
           <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: s.color }} />
           <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{s.label}</span>
-          <span className={`text-xs font-bold ml-auto ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{s.value}%</span>
+          <span className={`text-xs font-bold ms-auto ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{s.value}%</span>
         </div>
       ))}
     </div>
@@ -102,14 +108,6 @@ function useCursorGlow(isDark: boolean) {
   return { onMouseMove, onMouseLeave, glowStyle };
 }
 
-/* ── Data ── */
-const FEATURES = [
-  { icon: Target, title: 'Adaptive Learning', desc: 'Lessons adjust to your pace, strengths, and weaknesses in real-time.', iconBg: 'bg-violet-500/10 text-violet-500' },
-  { icon: Headphones, title: 'Immersive Audio', desc: 'Native-speaker conversations, pronunciation drills, and real-world listening.', iconBg: 'bg-cyan-500/10 text-cyan-500' },
-  { icon: BookOpen, title: 'CEFR Curriculum', desc: 'Structured A1→C2 progression with measurable milestones.', iconBg: 'bg-amber-500/10 text-amber-500' },
-  { icon: Trophy, title: 'Gamified Progress', desc: 'XP, streaks, badges, and leaderboards keep motivation high.', iconBg: 'bg-emerald-500/10 text-emerald-500' },
-];
-
 const teacherAvatars = [
   'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop',
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop',
@@ -126,6 +124,14 @@ export function BentoGridSection() {
   const isDark = resolvedTheme === 'dark';
   const { theme } = useHeroTheme();
   const sectionRef = useRef<HTMLElement>(null);
+  const { t } = useTranslation();
+
+  const features = [
+    { icon: Target, title: t('lp.bento.feature.adaptive.title'), desc: t('lp.bento.feature.adaptive.desc'), iconBg: 'bg-violet-500/10 text-violet-500' },
+    { icon: Headphones, title: t('lp.bento.feature.audio.title'), desc: t('lp.bento.feature.audio.desc'), iconBg: 'bg-cyan-500/10 text-cyan-500' },
+    { icon: BookOpen, title: t('lp.bento.feature.cefr.title'), desc: t('lp.bento.feature.cefr.desc'), iconBg: 'bg-amber-500/10 text-amber-500' },
+    { icon: Trophy, title: t('lp.bento.feature.gamified.title'), desc: t('lp.bento.feature.gamified.desc'), iconBg: 'bg-emerald-500/10 text-emerald-500' },
+  ];
 
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] });
   const parallaxSlow = useTransform(scrollYProgress, [0, 1], [0, -12]);
@@ -142,34 +148,31 @@ export function BentoGridSection() {
     <section ref={sectionRef} id="features" className={`relative py-28 px-6 md:px-12 lg:px-24 overflow-hidden scroll-mt-20 transition-colors duration-300 ${
       isDark ? 'bg-[#09090B]' : 'bg-[#FAFAFA]'
     }`}>
-      {/* Ambient glows */}
       <div className="absolute top-1/4 -left-1/4 w-[500px] h-[500px] rounded-full blur-[160px] pointer-events-none transition-colors duration-700"
         style={{ backgroundColor: theme.cssFrom, opacity: isDark ? 0.07 : 0.04 }} />
       <div className="absolute bottom-1/4 -right-1/4 w-[500px] h-[500px] rounded-full blur-[160px] pointer-events-none transition-colors duration-700"
         style={{ backgroundColor: theme.cssTo, opacity: isDark ? 0.07 : 0.04 }} />
 
       <div className="relative max-w-7xl mx-auto">
-        {/* Header */}
         <motion.div className="text-center mb-20" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
           <motion.div
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase mb-6 transition-all duration-700"
             style={{ background: `linear-gradient(to right, ${theme.cssFrom}15, ${theme.cssTo}15)`, color: theme.cssFrom, border: `1px solid ${theme.cssFrom}30` }}
           >
             <Zap className="w-3.5 h-3.5" />
-            Why Choose Us
+            {t('lp.bento.eyebrow')}
           </motion.div>
           <h2 className={`text-4xl md:text-5xl lg:text-6xl font-extrabold mb-5 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            Why{' '}
+            {t('lp.bento.heading')}{' '}
             <span className="bg-clip-text text-transparent transition-all duration-700" style={{ backgroundImage: `linear-gradient(to right, ${theme.cssFrom}, ${theme.cssTo})` }}>
-              EnglEuphoria
+              {t('lp.bento.headingAccent')}
             </span>?
           </h2>
           <p className={`text-lg max-w-2xl mx-auto ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            Three specialized programs under one roof — personalized for every age and goal.
+            {t('lp.bento.subtitle')}
           </p>
         </motion.div>
 
-        {/* Bento Grid — asymmetric 3-column layout */}
         <motion.div
           className="grid grid-cols-1 md:grid-cols-6 gap-5 auto-rows-auto"
           variants={containerVariants}
@@ -177,7 +180,7 @@ export function BentoGridSection() {
           whileInView="visible"
           viewport={{ once: true, margin: '-60px' }}
         >
-          {/* ── Card 1: Skill Rings (large, spans 2 cols + 2 rows) ── */}
+          {/* ── Card 1: Skill Rings (large) ── */}
           <motion.div
             className={`${cardBase} md:col-span-2 md:row-span-2 p-8`}
             variants={itemVariants}
@@ -188,18 +191,19 @@ export function BentoGridSection() {
             <div className="relative z-[1]">
               <div className="flex items-center gap-2 mb-1">
                 <BarChart3 className={`w-5 h-5 ${isDark ? 'text-indigo-400' : 'text-indigo-500'}`} />
-                <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Skill Tracker</h3>
+                <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  {t('lp.bento.skill.title')}
+                </h3>
               </div>
               <p className={`text-sm mb-5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                Watch your progress unfold across 5 core skills.
+                {t('lp.bento.skill.desc')}
               </p>
               <SkillRings isDark={isDark} />
               <SkillLegend isDark={isDark} />
             </div>
           </motion.div>
 
-          {/* ── Cards 2-5: Feature cards (each spans 2 cols) ── */}
-          {FEATURES.map((f, i) => (
+          {features.map((f, i) => (
             <motion.div
               key={f.title}
               className={`${cardBase} md:col-span-2 p-6`}
@@ -218,7 +222,7 @@ export function BentoGridSection() {
             </motion.div>
           ))}
 
-          {/* ── Card 6: Mentors (spans 2 cols) ── */}
+          {/* Mentors */}
           <motion.div
             className={`${cardBase} md:col-span-2 p-8 flex flex-col items-center justify-center text-center`}
             variants={itemVariants}
@@ -242,13 +246,17 @@ export function BentoGridSection() {
                   +50
                 </div>
               </div>
-              <h3 className={`text-xl font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>Top 3% Mentors</h3>
-              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Handpicked. Certified. Passionate.</p>
+              <h3 className={`text-xl font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                {t('lp.bento.mentors.title')}
+              </h3>
+              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                {t('lp.bento.mentors.desc')}
+              </p>
             </div>
           </motion.div>
         </motion.div>
 
-        {/* ── Bottom CTA Banner ── */}
+        {/* Bottom CTA Banner */}
         <motion.div
           className="mt-8 rounded-[24px] p-8 md:p-10 relative overflow-hidden group hover:scale-[1.01] transition-all duration-500"
           style={{ background: `linear-gradient(135deg, ${theme.cssFrom}, ${theme.cssTo})`, y: parallaxSlow }}
@@ -261,15 +269,17 @@ export function BentoGridSection() {
           <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-[80px] bg-white/10" />
           <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
-              <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">Start Your Free Trial</h3>
-              <p className="text-white/70">No credit card required • First lesson on us</p>
+              <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">
+                {t('lp.bento.cta.heading')}
+              </h3>
+              <p className="text-white/70">{t('lp.bento.cta.subtitle')}</p>
             </div>
             <Link
               to="/student-signup"
               className="inline-flex items-center gap-2 px-8 py-4 bg-white rounded-2xl text-slate-900 font-bold text-lg hover:bg-slate-100 transition-colors shadow-xl group/btn shrink-0"
             >
-              Get Started
-              <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
+              {t('lp.bento.cta.button')}
+              <ArrowRight className="w-5 h-5 rtl:rotate-180 group-hover/btn:translate-x-1 transition-transform" />
             </Link>
           </div>
         </motion.div>
