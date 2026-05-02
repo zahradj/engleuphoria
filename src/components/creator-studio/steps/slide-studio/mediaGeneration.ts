@@ -49,6 +49,12 @@ export const generateSlideMusic = (
   durationSeconds = 30,
 ) => invokeJson('generate-slide-music', { prompt, lessonId, slideId, durationSeconds });
 
+export interface AllMediaPanelResult {
+  index: number;
+  image_url?: string;
+  error?: string;
+}
+
 export interface AllMediaSlideResult {
   slideId: string;
   custom_image_url?: string;
@@ -56,6 +62,7 @@ export interface AllMediaSlideResult {
   youtube_embed_url?: string;
   youtube_title?: string;
   youtube_thumbnail?: string;
+  panels?: AllMediaPanelResult[];
   skipped?: boolean;
   error?: string;
 }

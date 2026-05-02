@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCreator } from '../../CreatorContext';
+import { persistLesson } from '../../persistLesson';
 import { TeacherControlsPanel } from './TeacherControlsPanel';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, BookOpen, Sparkles, Loader2, Save } from 'lucide-react';
+import { ExternalLink, BookOpen, Sparkles, Loader2, Save, Library } from 'lucide-react';
 import { StoryBookViewer } from '@/components/student/story-viewer/StoryBookViewer';
 import {
   normalizeSlidesToStoryPages,
@@ -14,9 +15,10 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 export const StoryStudioCanvas: React.FC = () => {
-  const { activeLessonData, updateSlide, isDirty } = useCreator();
+  const { activeLessonData, updateSlide, setActiveLessonData, isDirty, setDirty } = useCreator();
   const navigate = useNavigate();
   const [generating, setGenerating] = useState(false);
+  const [saving, setSaving] = useState(false);
   const autoGenTriggered = useRef(false);
   const slides = activeLessonData?.slides ?? [];
   const [activeSlideId, setActiveSlideId] = useState<string | null>(null);
@@ -34,6 +36,11 @@ export const StoryStudioCanvas: React.FC = () => {
   const slidesNeedingArt = useMemo(
     () =>
       slides.filter((s) => {
+        const panels = (s as any)?.interactive_data?.panels;
+        if (Array.isArray(panels) && panels.length > 0) {
+          // Paneled slide needs art if ANY panel lacks an image_url.
+          return panels.some((p: any) => !(p?.image_url || p?.imageUrl));
+        }
         const prompt = (s as any).image_generation_prompt || (s as any).visual_keyword || '';
         return !s.custom_image_url && String(prompt).trim().length > 0;
       }),
@@ -62,15 +69,27 @@ export const StoryStudioCanvas: React.FC = () => {
       let applied = 0;
       for (const r of results) {
         if (r.error || r.skipped) continue;
+        const sourceSlide = slides.find((s) => s.id === r.slideId) as any;
         const patch: Record<string, unknown> = {};
+
+        // Apply per-panel images into interactive_data.panels[i].image_url
+        if (Array.isArray(r.panels) && sourceSlide?.interactive_data?.panels) {
+          const existing = sourceSlide.interactive_data.panels as any[];
+          const merged = existing.map((p, i) => {
+            const pr = r.panels!.find((x) => x.index === i);
+            return pr?.image_url ? { ...p, image_url: pr.image_url } : p;
+          });
+          patch.interactive_data = { ...sourceSlide.interactive_data, panels: merged };
+          applied += r.panels.filter((p) => !!p.image_url).length;
+        }
         if (r.custom_image_url) {
           patch.custom_image_url = r.custom_image_url;
           patch.custom_video_url = undefined;
           patch.youtube_video_id = undefined;
+          if (!Array.isArray(r.panels)) applied += 1;
         }
         if (Object.keys(patch).length) {
           updateSlide(r.slideId, patch);
-          applied += 1;
         }
       }
       toast.success(
@@ -81,6 +100,41 @@ export const StoryStudioCanvas: React.FC = () => {
       toast.error(`Image generation failed: ${e?.message || 'Unknown error'}`, { id: tid });
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const handleSaveToLibrary = async () => {
+    if (!activeLessonData || saving) return;
+    setSaving(true);
+    const tid = toast.loading('📚 Saving to your library…');
+    try {
+      const extra: Record<string, unknown> = {};
+      if (activeLessonData.visual_style) extra.visual_style = activeLessonData.visual_style;
+      if (activeLessonData.story_layout) extra.story_layout = activeLessonData.story_layout;
+      if (activeLessonData.parent_lesson_id !== undefined) extra.linked_lesson_id = activeLessonData.parent_lesson_id;
+      if (activeLessonData.linked_lesson_title !== undefined) extra.linked_lesson_title = activeLessonData.linked_lesson_title;
+      const result = await persistLesson(
+        activeLessonData,
+        activeLessonData.slides,
+        true, // publish
+        activeLessonData.kind ?? 'story',
+        Object.keys(extra).length ? extra : undefined,
+      );
+      if (result.ok === false) {
+        console.error('Save to Library failed:', result.error);
+        toast.error(result.error || 'Failed to save to library', { id: tid });
+        return;
+      }
+      if (!activeLessonData.lesson_id) {
+        setActiveLessonData({ ...activeLessonData, lesson_id: result.lesson_id });
+      }
+      setDirty(false);
+      toast.success('📚 Saved to Library', { id: tid });
+    } catch (e: any) {
+      console.error('Save to Library error:', e);
+      toast.error(e?.message || 'Failed to save to library', { id: tid });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -150,6 +204,16 @@ export const StoryStudioCanvas: React.FC = () => {
             title="Re-generate all page artwork"
           >
             Regenerate All
+          </Button>
+          <Button
+            size="sm"
+            className="gap-1.5 bg-emerald-500 hover:bg-emerald-400 text-white border-0 font-bold"
+            onClick={handleSaveToLibrary}
+            disabled={saving || !activeLessonData}
+            title="Save the full story (panels, dialogue, images) to your library"
+          >
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Library className="h-4 w-4" />}
+            💾 Save to Library
           </Button>
           <Button
             size="sm"

@@ -747,34 +747,48 @@ ${grammar ? `- Grammar focus: ${grammar}\n` : ''}- Lesson vocabulary: ${llVocab.
         : '- Produce 4 or 5 pages, each with 3 to 5 panels.')
     : '- 4 or 5 narrative pages.';
 
-  const systemPrompt = `Write a highly engaging story strictly aligned with the requested CEFR Level. You MUST naturally include the provided Target Vocabulary Words.
-${panelGuidance ? panelGuidance + '\n' : ''}For every visual, generate an image_prompt that we can later use to generate illustrations. Keep dialogue short and faithful to ${cefr_level}.
-Add 2 Reading Comprehension multiple-choice questions at the very end of the story.
-You MUST return ONLY valid JSON. No markdown, no commentary.${groundingBlock}`;
+  const systemPrompt = `You are a master storyteller crafting cinematic graded readers for English learners at CEFR ${cefr_level}.
+
+NARRATIVE CRAFT (non-negotiable):
+- FORBIDDEN openings and lines like "This is Leo.", "Leo is a boy.", "He is happy.", "They are friends." Such robotic exposition is banned. Reveal characters through ACTION and DIALOGUE, never through label sentences.
+- The full story MUST follow a clear dramatic arc across the pages: (1) HOOK — open mid-action or with intrigue; (2) RISING ACTION — escalate stakes and obstacles; (3) CLIMAX — a charged turning point; (4) RESOLUTION — emotionally satisfying close.
+- Give characters distinct voices, motivations, and small flaws. Use vivid sensory detail (sound, smell, texture) — never just "He saw a tree."
+- Dialogue must feel spoken: contractions, interruptions, emotional beats. Max ~14 words per line. Use "" as speaker for inner thought / narration captions.
+- Stay strictly within CEFR ${cefr_level} vocabulary and grammar complexity. Naturally weave in EVERY target vocabulary word at least once.
+
+IMAGE PROMPT CRAFT (for downstream AI image generation — Nano Banana / DALL·E):
+- Every image_prompt MUST be a single rich sentence in this exact order: SUBJECT (who, with key visual traits) → ACTION (what they're doing right now) → SETTING (where, with concrete environment details) → MOOD/EMOTION → CAMERA ANGLE (close-up, wide, low-angle, over-the-shoulder, top-down…) → LIGHTING (golden hour, neon, candlelit, stormy daylight…).
+- Be specific and visual. Bad: "Leo at the park". Good: "A nervous twelve-year-old boy in a red hoodie clutches a crumpled map, staring up at a towering iron gate, deep in an overgrown moonlit park, low-angle shot, cool silver-blue lighting with dramatic shadows."
+- Keep the same character descriptions consistent across panels (same hair, clothes, age) so the illustrations stay coherent.
+${panelGuidance ? '\nPANEL LAYOUT:\n' + panelGuidance + '\n' : ''}
+OUTPUT FORMAT:
+- Return ONLY valid JSON. No markdown fences, no commentary, no trailing text.
+- End the story with exactly 2 reading-comprehension multiple-choice questions.${groundingBlock}`;
 
   const userPrompt = `Genre: "${genre}"
 CEFR Level: ${cefr_level}
 Visual Style: ${visual_style}
-Target Vocabulary (must appear naturally in the story): ${target_vocabulary.map((w: string) => `"${w}"`).join(', ')}${groundingUserBlock}
+Target Vocabulary (each MUST appear naturally somewhere in the story): ${target_vocabulary.map((w: string) => `"${w}"`).join(', ')}${groundingUserBlock}
 
 Return ONLY this JSON shape:
 {
-  "title": "<engaging title>",
+  "title": "<engaging, specific title — never generic>",
   "slides": [
     ${slideShape}
   ],
   "comprehension": [
-    { "question": "<question about the story>", "options": ["A","B","C","D"], "correct_index": 0 },
-    { "question": "<another question>", "options": ["A","B","C","D"], "correct_index": 2 }
+    { "question": "<inferential question about the story>", "options": ["A","B","C","D"], "correct_index": 0 },
+    { "question": "<another question testing understanding>", "options": ["A","B","C","D"], "correct_index": 2 }
   ]
 }
 
 Rules:
 ${pageCountRule}
-- Exactly 2 comprehension questions, each with 4 options.
+- Exactly 2 comprehension questions, each with 4 plausible options.
 - Use every target vocabulary word at least once across the story.
 - Keep grammar and sentence length faithful to ${cefr_level}.
-${isPaneled ? '- Every panel MUST have an image_prompt. Dialogue lines should be short (max ~14 words). Use "" as speaker for narration thoughts.' : ''}`;
+- The arc MUST be: hook → rising action → climax → resolution across the pages/panels.
+${isPaneled ? '- Every panel MUST have a rich, cinematic image_prompt following the SUBJECT→ACTION→SETTING→MOOD→ANGLE→LIGHTING formula. Dialogue lines short (max ~14 words). Use "" as speaker for narration captions.' : '- Every page MUST have a rich, cinematic image_prompt following the SUBJECT→ACTION→SETTING→MOOD→ANGLE→LIGHTING formula.'}`;
 
   try {
     const ai = await callAIWithFailover({
@@ -783,7 +797,7 @@ ${isPaneled ? '- Every panel MUST have an image_prompt. Dialogue lines should be
       geminiModel: 'gemini-2.5-flash',
       lovableModel: 'google/gemini-2.5-flash',
       jsonMode: true,
-      temperature: 0.85,
+      temperature: 0.9,
     });
     const cleaned = ai.text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     let story: any;
