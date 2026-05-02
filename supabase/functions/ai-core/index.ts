@@ -946,9 +946,11 @@ serve(async (req) => {
         return await handleGenerateTrialLesson(body);
       case 'generate_story':
         return await handleGenerateStory(body);
+      case 'suggest_vocabulary':
+        return await handleSuggestVocabulary(body);
       default:
         return jsonResponse({
-          error: `Unknown action: "${action}". Valid: explain_mistake, evaluate_speaking, evaluate_speech, speaking_feedback, generate_lesson, generate_trial_lesson, generate_story`,
+          error: `Unknown action: "${action}". Valid: explain_mistake, evaluate_speaking, evaluate_speech, speaking_feedback, generate_lesson, generate_trial_lesson, generate_story, suggest_vocabulary`,
         }, 400);
     }
   } catch (error) {
