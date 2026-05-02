@@ -106,7 +106,7 @@ export function CertificateCard({ certificate }: CertificateCardProps) {
           <Button
             variant="outline"
             size="sm"
-            onClick={handlePreview}
+            onClick={handleOpen}
             disabled={loading}
             className="flex-1"
           >
@@ -115,12 +115,12 @@ export function CertificateCard({ certificate }: CertificateCardProps) {
           </Button>
           <Button
             size="sm"
-            onClick={handleDownload}
+            onClick={handleOpen}
             disabled={loading}
             className="flex-1 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
           >
             <Download className="w-4 h-4 mr-1" />
-            Download
+            Download PDF
           </Button>
         </div>
       </div>
