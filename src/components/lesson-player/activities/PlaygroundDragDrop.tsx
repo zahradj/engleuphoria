@@ -10,6 +10,7 @@ interface DragItem {
   emoji?: string;
   imageKeywords?: string;
   description?: string;
+  imageUrl?: string;
 }
 
 interface Props {
@@ -18,9 +19,15 @@ interface Props {
   onIncorrect?: () => void;
 }
 
+const DIFFICULTY_STYLES: Record<string, { label: string; bg: string; color: string }> = {
+  easy:   { label: 'Easy · A1–A2',   bg: '#dcfce7', color: '#14532d' },
+  medium: { label: 'Medium · B1–B2', bg: '#fef3c7', color: '#854d0e' },
+  hard:   { label: 'Hard · C1–C2',   bg: '#fee2e2', color: '#7f1d1d' },
+};
+
 export default function PlaygroundDragDrop({ slide, onCorrect, onIncorrect }: Props) {
   // Source priority: AI ai-core/director output (`interactive_data.pairs` with
-  // {draggable, target_zone}) → legacy creator data (`content.dragItems`).
+  // {draggable, target_zone, image_url?}) → legacy creator data (`content.dragItems`).
   const interactive: any = (slide as any).interactive_data || {};
   const aiPairs: any[] = Array.isArray(interactive.pairs) ? interactive.pairs : [];
 
@@ -30,12 +37,16 @@ export default function PlaygroundDragDrop({ slide, onCorrect, onIncorrect }: Pr
         .map((p) => ({
           text: String(p.draggable ?? p.left_item),
           target: String(p.target_zone ?? p.right_item),
+          imageUrl: p.image_url || p.imageUrl || undefined,
         }))
     : (slide.content?.dragItems || [
         { text: 'Apple', target: 'Fruit', emoji: '🍎' },
         { text: 'Dog', target: 'Animal', emoji: '🐕' },
         { text: 'Sun', target: 'Nature', emoji: '☀️' },
       ]);
+
+  const difficulty: string | undefined = (slide as any).difficulty || (slide as any).content?.difficulty;
+  const diffMeta = difficulty ? DIFFICULTY_STYLES[String(difficulty).toLowerCase()] : null;
 
   const promptText: string =
     interactive.instruction ||
