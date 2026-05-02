@@ -49,7 +49,6 @@ export default function LandingPage() {
         <FinalCTASection />
         <ContactSection />
         <FooterSection />
-        <StickyMobileCTA />
         <AutoLanguageToast />
       </main>
     </HeroThemeProvider>
