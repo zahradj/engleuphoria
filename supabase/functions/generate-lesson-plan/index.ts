@@ -66,14 +66,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const apiKey = Deno.env.get("GEMINI_API_KEY");
-    if (!apiKey) {
-      return new Response(
-        JSON.stringify({ error: "GEMINI_API_KEY not configured" }),
-        { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
-      );
-    }
-
     const body = await req.json();
     const {
       hub,
@@ -266,66 +258,33 @@ Variation seed: ${variationSeed} (use this to ensure your output differs from pr
       }`;
     }
 
-    // Call Google Gemini API with exponential backoff (handles 429/503)
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-    const geminiBody = JSON.stringify({
-      systemInstruction: { parts: [{ text: systemPrompt }] },
-      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-      generationConfig: {
-        responseMimeType: "application/json",
-        temperature: 0.85, // Higher temp = more variation, less repetition
-        maxOutputTokens: 8192,
-      },
-    });
-
-    const MAX_RETRIES = 3;
-    const BASE_DELAY_MS = 2000;
-    let aiResponse: Response | null = null;
-    let lastErrText = "";
-
-    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-      aiResponse = await fetch(geminiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: geminiBody,
+    // Call AI with automatic failover (Gemini direct -> Lovable Gateway)
+    const { aiCallWithFailover } = await import("../_shared/aiFailover.ts");
+    let rawText = "";
+    try {
+      const result = await aiCallWithFailover({
+        model: "gemini-2.5-flash",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        temperature: 0.85,
+        maxTokens: 8192,
+        responseFormat: "json",
       });
-
-      if (aiResponse.ok) break;
-
-      lastErrText = await aiResponse.text();
-      console.error(`Gemini attempt ${attempt + 1}/${MAX_RETRIES} failed:`, aiResponse.status, lastErrText);
-
-      // Retry only on 429 (rate limit) or 503 (overloaded)
-      if (aiResponse.status === 429 || aiResponse.status === 503) {
-        if (attempt < MAX_RETRIES - 1) {
-          const delay = BASE_DELAY_MS * Math.pow(2, attempt); // 2s, 4s, 8s
-          console.log(`Retrying in ${delay}ms...`);
-          await new Promise((r) => setTimeout(r, delay));
-          continue;
-        }
-      } else {
-        // Non-retryable error — break immediately
-        break;
-      }
-    }
-
-    if (!aiResponse || !aiResponse.ok) {
-      const isOverload = aiResponse?.status === 429 || aiResponse?.status === 503;
+      rawText = result.text;
+      console.log(`Lesson plan generated via ${result.provider}`);
+    } catch (aiErr) {
+      console.error("AI failover exhausted:", aiErr);
       return new Response(
         JSON.stringify({
           error: true,
-          message: isOverload
-            ? "The AI curriculum engine is currently overloaded. Please try generating the lesson again in 10 seconds."
-            : "AI generation failed. Please try again.",
-          details: lastErrText,
+          message: "The AI curriculum engine is currently unavailable. Please try again in a few seconds.",
+          details: aiErr instanceof Error ? aiErr.message : String(aiErr),
         }),
         { status: 200, headers: { ...CORS, "Content-Type": "application/json" } }
       );
     }
-
-
-    const aiData = await aiResponse.json();
-    let rawText = aiData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     if (!rawText) {
       console.error("Empty Gemini response:", JSON.stringify(aiData));

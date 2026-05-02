@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { aiFetch } from "../_shared/aiFetch.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { decode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
@@ -98,7 +99,7 @@ serve(async (req) => {
       const { track, level, topic } = body;
       if (!topic?.trim()) throw new Error("Topic is required");
 
-      const response = await fetch(AI_GATEWAY, {
+      const response = await aiFetch(AI_GATEWAY, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${LOVABLE_API_KEY}`,
@@ -144,7 +145,7 @@ serve(async (req) => {
       const { content, level } = body;
       if (!content?.trim()) throw new Error("Content is required");
 
-      const response = await fetch(AI_GATEWAY, {
+      const response = await aiFetch(AI_GATEWAY, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${LOVABLE_API_KEY}`,
@@ -190,7 +191,7 @@ serve(async (req) => {
 
       const style = styleMap[track] || styleMap.teens;
 
-      const imageResponse = await fetch(AI_GATEWAY, {
+      const imageResponse = await aiFetch(AI_GATEWAY, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${LOVABLE_API_KEY}`,
@@ -253,7 +254,7 @@ serve(async (req) => {
       const { word, level: wordLevel } = body;
       if (!word?.trim()) throw new Error("Word is required");
 
-      const response = await fetch(AI_GATEWAY, {
+      const response = await aiFetch(AI_GATEWAY, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${LOVABLE_API_KEY}`,

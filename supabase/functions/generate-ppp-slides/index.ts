@@ -12,6 +12,7 @@ import {
   type LessonPhase,
 } from "../_shared/hubProfiles.ts";
 
+import { aiFetch } from "../_shared/aiFetch.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -436,7 +437,7 @@ Return ONLY the JSON object.`;
       // provider's "schema states" limit for our 16-field × 20–25 item shape.
       // The prompt itself instructs Gemini to emit a single JSON object; we
       // strip any code fences and parse defensively below.
-      const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const aiResp = await aiFetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({

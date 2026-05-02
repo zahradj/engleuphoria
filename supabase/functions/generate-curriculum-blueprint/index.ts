@@ -1,5 +1,6 @@
 // 4-Skills ESL Curriculum Blueprint Generator
 // Outputs: { curriculum_title, units: [{ unit_title, theme, lessons: [{ lesson_id, title, skill_focus, learning_objective }] }] }
+import { aiFetch } from "../_shared/aiFetch.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -161,7 +162,7 @@ Return ONLY the JSON object.`;
     };
 
     if (useLovableGateway) {
-      const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const aiResponse = await aiFetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -221,7 +222,7 @@ Return ONLY the JSON object.`;
     } else {
       // Direct Gemini fallback — uses native responseSchema for guaranteed JSON.
       const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-      const aiResponse = await fetch(geminiUrl, {
+      const aiResponse = await aiFetch(geminiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

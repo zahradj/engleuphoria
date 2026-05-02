@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+import { aiFetch } from "../_shared/aiFetch.ts";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -58,7 +59,7 @@ Scoring guide:
 - 0-49%: Replay Prime — Watch and listen again`;
 
     // First, transcribe the audio
-    const transcribeResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const transcribeResponse = await aiFetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${LOVABLE_API_KEY}`,
@@ -93,7 +94,7 @@ Scoring guide:
     console.log('Transcribed:', transcribedText, '| Target:', targetWord);
 
     // Now analyze phonetic accuracy
-    const analysisResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const analysisResponse = await aiFetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${LOVABLE_API_KEY}`,
