@@ -213,6 +213,8 @@ export interface ActiveLessonData {
   // Optional handoff metadata so we can persist links to the blueprint.
   level_id?: string;
   unit_id?: string;
+  /** Optional self-link: stories (Graded Readers) point at the curriculum lesson they expand. */
+  parent_lesson_id?: string | null;
 }
 
 interface CreatorContextValue {
