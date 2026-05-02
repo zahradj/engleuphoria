@@ -4,6 +4,7 @@ import { HubType, GeneratedSlide } from '@/components/admin/lesson-builder/ai-wi
 import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConfig';
 import DynamicSlideRenderer from './DynamicSlideRenderer';
 import FeedbackOverlay from './FeedbackOverlay';
+import { PlaygroundCorrectBurst } from './PlaygroundCorrectBurst';
 import LessonRewardPage from './LessonRewardPage';
 import PipMascot from './PipMascot';
 import { soundEffectsService } from '@/services/soundEffectsService';
@@ -228,6 +229,8 @@ export default function LessonPlayerContainer({
   const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [feedbackCorrect, setFeedbackCorrect] = useState(false);
   const [feedbackSolution, setFeedbackSolution] = useState('');
+  // Playground-only celebration trigger — incremented on every correct answer.
+  const [playgroundBurstKey, setPlaygroundBurstKey] = useState(0);
 
   const config = HUB_CONFIGS[hub];
   const skin = HUB_SKINS[hub];
@@ -254,6 +257,8 @@ export default function LessonPlayerContainer({
     setFeedbackSolution('');
     setFeedbackVisible(true);
     if (!muted) soundEffectsService.playCorrect();
+    // Playground hub: full-screen confetti + ⭐ +100 XP badge for kid-friendly delight.
+    if (hub === 'playground') setPlaygroundBurstKey((k) => k + 1);
     // SRS: track mastery for the current slide's item
     const itemKey = currentSlide?.content?.word || currentSlide?.content?.title || currentSlide?.title;
     if (itemKey) trackMastery(itemKey, true, 'vocabulary', hub);
@@ -527,6 +532,11 @@ export default function LessonPlayerContainer({
         hub={hub}
         onContinue={handleNextSlide}
       />
+
+      {/* ── Playground celebration: confetti + ⭐ +100 XP badge ── */}
+      {hub === 'playground' && (
+        <PlaygroundCorrectBurst triggerKey={playgroundBurstKey} xp={100} />
+      )}
 
       {/* ── Fixed Bottom Footer ── */}
       {!feedbackVisible && (
