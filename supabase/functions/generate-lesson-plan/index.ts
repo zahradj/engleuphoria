@@ -66,14 +66,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const apiKey = Deno.env.get("GEMINI_API_KEY");
-    if (!apiKey) {
-      return new Response(
-        JSON.stringify({ error: "GEMINI_API_KEY not configured" }),
-        { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
-      );
-    }
-
     const body = await req.json();
     const {
       hub,
