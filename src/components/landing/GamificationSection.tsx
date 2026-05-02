@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Trophy, Flame, Target, MessageCircle } from 'lucide-react';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { useTranslation } from 'react-i18next';
+import { GamificationPhoneMock } from './GamificationPhoneMock';
 
 export function GamificationSection() {
   const { resolvedTheme } = useThemeMode();
@@ -78,39 +79,46 @@ export function GamificationSection() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
-          {gamificationCards.map((card, index) => {
-            const Icon = card.icon;
-            return (
-              <motion.div
-                key={card.title}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                whileHover={{ y: -6, scale: 1.02 }}
-                className={`group relative flex flex-col items-center text-center p-6 rounded-2xl backdrop-blur-xl transition-all duration-500 ${
-                  isDark
-                    ? `bg-white/5 border border-white/10 hover:border-white/20 ${card.glowDark}`
-                    : 'bg-white border border-slate-200/60 shadow-[0_2px_16px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:border-slate-300'
-                }`}
-              >
+        <div className="grid lg:grid-cols-[1fr_auto] gap-10 lg:gap-16 items-center max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {gamificationCards.map((card, index) => {
+              const Icon = card.icon;
+              return (
                 <motion.div
-                  className={`p-3.5 rounded-xl mb-4 border ${isDark ? card.accentDark : card.accentLight}`}
-                  animate={{ y: [0, -5, 0] }}
-                  transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut', delay: card.floatDelay }}
+                  key={card.title}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  whileHover={{ y: -6, scale: 1.02 }}
+                  className={`group relative flex flex-col items-center text-center p-6 rounded-2xl backdrop-blur-xl transition-all duration-500 ${
+                    isDark
+                      ? `bg-white/5 border border-white/10 hover:border-white/20 ${card.glowDark}`
+                      : 'bg-white border border-slate-200/60 shadow-[0_2px_16px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:border-slate-300'
+                  }`}
                 >
-                  <Icon className="w-6 h-6" />
+                  <motion.div
+                    className={`p-3.5 rounded-xl mb-4 border ${isDark ? card.accentDark : card.accentLight}`}
+                    animate={{ y: [0, -5, 0] }}
+                    transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut', delay: card.floatDelay }}
+                  >
+                    <Icon className="w-6 h-6" />
+                  </motion.div>
+                  <h3 className={`font-semibold text-base mb-1.5 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    {card.title}
+                  </h3>
+                  <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                    {card.description}
+                  </p>
                 </motion.div>
-                <h3 className={`font-semibold text-base mb-1.5 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  {card.title}
-                </h3>
-                <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                  {card.description}
-                </p>
-              </motion.div>
-            );
-          })}
+              );
+            })}
+          </div>
+
+          {/* Phone mock — desktop only to keep mobile clean */}
+          <div className="hidden lg:block">
+            <GamificationPhoneMock />
+          </div>
         </div>
       </div>
     </section>
