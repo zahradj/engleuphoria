@@ -18,7 +18,6 @@ import {
   FinalCTASection,
   AppDownloadSection,
   CursorTrail,
-  StickyMobileCTA,
   AutoLanguageToast,
   TrustLogosBand
 } from '@/components/landing';
