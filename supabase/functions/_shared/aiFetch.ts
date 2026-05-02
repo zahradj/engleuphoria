@@ -108,8 +108,25 @@ async function fallbackGatewayToGemini(originalBody: any): Promise<Response> {
     throw new Error(`Failover (gemini-direct) failed: ${resp.status} ${errText}`);
   }
   const data = await resp.json();
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-  // Repackage as OpenAI Chat Completion shape
+  const parts = data.candidates?.[0]?.content?.parts || [];
+  const text = parts.map((p: any) => p.text || "").filter(Boolean).join("") || "";
+
+  // Translate Gemini functionCall → OpenAI tool_calls so callers reading
+  // `choices[0].message.tool_calls[0].function.arguments` keep working.
+  const functionCallPart = parts.find((p: any) => p.functionCall);
+  const tool_calls = functionCallPart
+    ? [{
+        id: `call_${Date.now()}`,
+        type: "function" as const,
+        function: {
+          name: functionCallPart.functionCall.name,
+          arguments: typeof functionCallPart.functionCall.args === "string"
+            ? functionCallPart.functionCall.args
+            : JSON.stringify(functionCallPart.functionCall.args ?? {}),
+        },
+      }]
+    : undefined;
+
   const openaiShape = {
     id: `gemini-fallback-${Date.now()}`,
     object: "chat.completion",
@@ -118,8 +135,10 @@ async function fallbackGatewayToGemini(originalBody: any): Promise<Response> {
     choices: [
       {
         index: 0,
-        message: { role: "assistant", content: text },
-        finish_reason: "stop",
+        message: tool_calls
+          ? { role: "assistant", content: text, tool_calls }
+          : { role: "assistant", content: text },
+        finish_reason: tool_calls ? "tool_calls" : "stop",
       },
     ],
     usage: data.usageMetadata
