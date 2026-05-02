@@ -554,6 +554,8 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
         {!isZenMode && (
           <div style={sidebarIdle.style} onMouseMove={sidebarIdle.onMouseMove} onMouseEnter={sidebarIdle.onMouseEnter}>
           <CommunicationZone
+              collapsed={commsCollapsed}
+              onToggleCollapsed={() => setCommsCollapsed(v => !v)}
               studentName={studentName}
               teacherName={teacherName}
               onGiveStar={handleGiveStar}
