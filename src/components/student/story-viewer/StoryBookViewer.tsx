@@ -609,7 +609,8 @@ const WebtoonScroller: React.FC<{
   onPlay: () => void;
   mcqAnswered: Record<number, number>;
   setMcqAnswered: React.Dispatch<React.SetStateAction<Record<number, number>>>;
-}> = ({ title, pages, onExit, ttsLoading, ttsPlaying, onPlay, mcqAnswered, setMcqAnswered }) => {
+  embedded?: boolean;
+}> = ({ title, pages, onExit, ttsLoading, ttsPlaying, onPlay, mcqAnswered, setMcqAnswered, embedded }) => {
   // Flatten all panels from all pages into one continuous column.
   const allPanels: Array<{ pageIdx: number; panel: StoryPanel }> = [];
   pages.forEach((p, pageIdx) => {
