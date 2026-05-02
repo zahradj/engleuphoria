@@ -251,7 +251,7 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
             <div className="glass-card-hub glass-professional p-5 backdrop-blur-md">
               <h3 className={cn('text-lg flex items-center gap-2 tracking-tight mb-4 font-semibold', textClass)}>
                 <Calendar className="w-5 h-5 text-[#3DD39B]" />
-                Next Session
+                {t('sd.nextSession', 'Next Session')}
               </h3>
               <div className={cn(
                 'p-4 rounded-lg border',
@@ -260,7 +260,7 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
                 <p className={cn('font-medium', textClass)}>Public Speaking Workshop</p>
                 <p className={cn('text-sm mt-1', mutedClass)}>Tomorrow at 6:00 PM</p>
                 <Button className="mt-3 w-full text-white bg-gradient-to-r from-[#0D652D] to-[#3DD39B]">
-                  Join Executive Briefing
+                  {t('sd.joinExecBriefing', 'Join Executive Briefing')}
                 </Button>
                 <div className="flex gap-2 mt-2">
                   <a
