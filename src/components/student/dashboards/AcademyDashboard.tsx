@@ -84,9 +84,8 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
       <motion.div
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="glass-card-hub glass-academy flex items-center justify-between px-5 py-3 backdrop-blur-xl"
+        className="glass-card-hub glass-academy flex items-center justify-end px-5 py-3 backdrop-blur-xl"
       >
-        <HubLogo hubId="academy" size="md" />
         <div className="flex items-center gap-3">
           <div className={cn(
             'flex items-center gap-1.5 px-3 py-1.5 rounded-full',
