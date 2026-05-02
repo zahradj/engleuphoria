@@ -310,6 +310,7 @@ export const StoryStudioCanvas: React.FC = () => {
                 title={activeLessonData?.lesson_title || 'Story'}
                 pages={pages}
                 visualStyle={visualStyle}
+                embedded
               />
             </div>
           ) : (
