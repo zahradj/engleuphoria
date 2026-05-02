@@ -594,6 +594,7 @@ Return ONLY this JSON shape:
       "teacher_script": "<what the teacher says aloud>",
       "visual_keyword": "<2-3 words for an illustration>",
       "image_generation_prompt": "<detailed prompt for an image generator>",
+      "difficulty": "easy" | "medium" | "hard",
       "interactive_data": null
     }
   ]
@@ -605,8 +606,9 @@ Rules:
 - For multiple_choice slides, set interactive_data = { "question": "...", "options": ["A","B","C","D"], "correct_index": 0 }.
 - For flashcard slides, set interactive_data = { "front": "...", "back": "..." }.
 - For drag_and_match (two-column matcher: left ↔ right), set interactive_data = { "instruction": "...", "pairs": [{ "left_item": "...", "right_item": "..." }] }.
-- For drag_and_drop (sorting/categorization: drop items into category zones), set interactive_data = { "instruction": "Drag each item into the correct category.", "pairs": [{ "draggable": "Apple", "target_zone": "Fruit" }, { "draggable": "Carrot", "target_zone": "Vegetable" }] }. Use 2-3 distinct target_zones and 4-6 draggable items total. Prefer drag_and_drop for vocabulary categorization (animals vs objects, fruits vs vegetables, verbs vs nouns, etc.) and drag_and_match for 1-to-1 pairing (word ↔ definition, English ↔ translation).
+- For drag_and_drop (sorting/categorization: drop items into category zones), set interactive_data = { "instruction": "Drag each item into the correct category.", "pairs": [{ "draggable": "Apple", "target_zone": "Fruit", "image_url": "https://..." }, { "draggable": "Carrot", "target_zone": "Vegetable", "image_url": "https://..." }] }. The "image_url" field is OPTIONAL — include it only when you have a real, publicly reachable image URL for that draggable (otherwise omit it and the renderer will auto-generate a vector illustration). Use 2-3 distinct target_zones and 4-6 draggable items total. Prefer drag_and_drop for vocabulary categorization (animals vs objects, fruits vs vegetables, verbs vs nouns, etc.) and drag_and_match for 1-to-1 pairing (word ↔ definition, English ↔ translation).
 - For fill_in_the_gaps, set interactive_data = { "instruction": "...", "sentence_parts": ["before _ ", " after"], "missing_word": "...", "distractors": ["...","..."] }.
+- Difficulty per slide MUST be calibrated to the lesson's CEFR level: A1/A2 → mostly "easy" with at most one "medium"; B1/B2 → mostly "medium" with one "easy" warm-up and one "hard" production task; C1/C2 → mostly "hard" with one "medium" scaffolding slide. Never label an A1 slide "hard" or a C1 slide "easy".
 `;
 
   try {

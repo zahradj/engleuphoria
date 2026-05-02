@@ -10,6 +10,7 @@ interface DragItem {
   emoji?: string;
   imageKeywords?: string;
   description?: string;
+  imageUrl?: string;
 }
 
 interface Props {
@@ -18,9 +19,15 @@ interface Props {
   onIncorrect?: () => void;
 }
 
+const DIFFICULTY_STYLES: Record<string, { label: string; bg: string; color: string }> = {
+  easy:   { label: 'Easy · A1–A2',   bg: '#dcfce7', color: '#14532d' },
+  medium: { label: 'Medium · B1–B2', bg: '#fef3c7', color: '#854d0e' },
+  hard:   { label: 'Hard · C1–C2',   bg: '#fee2e2', color: '#7f1d1d' },
+};
+
 export default function PlaygroundDragDrop({ slide, onCorrect, onIncorrect }: Props) {
   // Source priority: AI ai-core/director output (`interactive_data.pairs` with
-  // {draggable, target_zone}) → legacy creator data (`content.dragItems`).
+  // {draggable, target_zone, image_url?}) → legacy creator data (`content.dragItems`).
   const interactive: any = (slide as any).interactive_data || {};
   const aiPairs: any[] = Array.isArray(interactive.pairs) ? interactive.pairs : [];
 
@@ -30,12 +37,16 @@ export default function PlaygroundDragDrop({ slide, onCorrect, onIncorrect }: Pr
         .map((p) => ({
           text: String(p.draggable ?? p.left_item),
           target: String(p.target_zone ?? p.right_item),
+          imageUrl: p.image_url || p.imageUrl || undefined,
         }))
     : (slide.content?.dragItems || [
         { text: 'Apple', target: 'Fruit', emoji: '🍎' },
         { text: 'Dog', target: 'Animal', emoji: '🐕' },
         { text: 'Sun', target: 'Nature', emoji: '☀️' },
       ]);
+
+  const difficulty: string | undefined = (slide as any).difficulty || (slide as any).content?.difficulty;
+  const diffMeta = difficulty ? DIFFICULTY_STYLES[String(difficulty).toLowerCase()] : null;
 
   const promptText: string =
     interactive.instruction ||
@@ -80,9 +91,19 @@ export default function PlaygroundDragDrop({ slide, onCorrect, onIncorrect }: Pr
 
   return (
     <div className="flex flex-col items-center gap-6 p-6 w-full max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold" style={{ fontFamily: "'Quicksand', sans-serif", color: '#FF9F1C' }}>
-        🎯 {slide.title}
-      </h2>
+      <div className="flex items-center gap-3 flex-wrap justify-center">
+        <h2 className="text-2xl font-bold" style={{ fontFamily: "'Quicksand', sans-serif", color: '#FF9F1C' }}>
+          🎯 {slide.title}
+        </h2>
+        {diffMeta && (
+          <span
+            className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide"
+            style={{ background: diffMeta.bg, color: diffMeta.color, fontFamily: "'Quicksand', sans-serif" }}
+          >
+            {diffMeta.label}
+          </span>
+        )}
+      </div>
       <p className="text-base text-center text-muted-foreground" style={{ fontFamily: "'Quicksand', sans-serif" }}>
         {promptText}
       </p>
@@ -147,13 +168,26 @@ export default function PlaygroundDragDrop({ slide, onCorrect, onIncorrect }: Pr
                 width: '140px',
               }}
             >
-              <div className="w-full h-24 bg-muted/30">
-                <VocabularyImage
-                  prompt={`Colorful flat 2D vector illustration of "${item.text}", vibrant bright colors, bold clean outlines, isolated on a pure transparent background, no shadows, no gradients, no 3D, clear and simple, professional educational asset for young children`}
-                  alt={item.text}
-                  style="minimalist"
-                  className="w-full h-full object-contain"
-                />
+              <div className="w-full h-24 bg-muted/30 flex items-center justify-center">
+                {item.imageUrl ? (
+                  <img
+                    src={item.imageUrl}
+                    alt={item.text}
+                    className="w-full h-full object-contain"
+                    draggable={false}
+                    onError={(e) => {
+                      // Hide broken images so the text label still reads cleanly.
+                      (e.currentTarget as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <VocabularyImage
+                    prompt={`Colorful flat 2D vector illustration of "${item.text}", vibrant bright colors, bold clean outlines, isolated on a pure transparent background, no shadows, no gradients, no 3D, clear and simple, professional educational asset for young children`}
+                    alt={item.text}
+                    style="minimalist"
+                    className="w-full h-full object-contain"
+                  />
+                )}
               </div>
               <div
                 className="w-full text-center py-2 font-bold text-base"
