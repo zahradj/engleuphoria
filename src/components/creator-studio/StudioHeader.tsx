@@ -24,13 +24,25 @@ export const StudioHeader: React.FC = () => {
   const inSlideStudio = currentStep === 'slide-builder';
   const hasSlides = !!activeLessonData?.slides?.length;
 
+  const buildExtra = (): { kind: 'standard' | 'trial' | 'story'; extra?: Record<string, unknown> } => {
+    if (!activeLessonData) return { kind: 'standard' };
+    const kind = activeLessonData.kind ?? 'standard';
+    const extra: Record<string, unknown> = {};
+    if (activeLessonData.visual_style) extra.visual_style = activeLessonData.visual_style;
+    if (activeLessonData.story_layout) extra.story_layout = activeLessonData.story_layout;
+    if (activeLessonData.parent_lesson_id !== undefined) extra.linked_lesson_id = activeLessonData.parent_lesson_id;
+    if (activeLessonData.linked_lesson_title !== undefined) extra.linked_lesson_title = activeLessonData.linked_lesson_title;
+    return { kind, extra: Object.keys(extra).length ? extra : undefined };
+  };
+
   const handleSaveDraft = async () => {
     if (!inSlideStudio || !activeLessonData) {
       toast.message('Open a lesson in the Slide Studio to save a draft.');
       return;
     }
     setSavingDraft(true);
-    const res = await persistLesson(activeLessonData, activeLessonData.slides, false);
+    const { kind, extra } = buildExtra();
+    const res = await persistLesson(activeLessonData, activeLessonData.slides, false, kind, extra);
     setSavingDraft(false);
     if (res.ok === false) {
       toast.error(`Could not save draft: ${res.error}`);
@@ -55,7 +67,8 @@ export const StudioHeader: React.FC = () => {
       return;
     }
     setPublishing(true);
-    const res = await persistLesson(activeLessonData, activeLessonData.slides, true);
+    const { kind, extra } = buildExtra();
+    const res = await persistLesson(activeLessonData, activeLessonData.slides, true, kind, extra);
     setPublishing(false);
     if (res.ok === false) {
       toast.error(`Publish failed: ${res.error}`);
