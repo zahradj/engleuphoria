@@ -1,16 +1,17 @@
 import { useState, useRef, MouseEvent as ReactMouseEvent } from 'react';
-import { Check, Sparkles, Clock, Tag, Shield, Cpu, UserCheck, Timer } from 'lucide-react';
+import { Check, Sparkles, Clock, Shield, Cpu, UserCheck, Timer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useThemeMode } from '@/hooks/useThemeMode';
+import { useTranslation } from 'react-i18next';
 
 type AudienceLevel = 'playground' | 'professional';
 
 interface PackTier {
-  name: Record<AudienceLevel, string>;
-  label: string;
+  nameKey: Record<AudienceLevel, string>;
+  labelKey: string;
   sessions: number;
   price: Record<AudienceLevel, number>;
   originalPrice: Record<AudienceLevel, number>;
@@ -21,8 +22,8 @@ interface PackTier {
 
 const packTiers: PackTier[] = [
   {
-    name: { playground: 'Explorer', professional: 'Pro' },
-    label: 'Try it out',
+    nameKey: { playground: 'lp.pricing.pack.explorer', professional: 'lp.pricing.pack.pro' },
+    labelKey: 'lp.pricing.label.tryItOut',
     sessions: 5,
     price: { playground: 75, professional: 100 },
     originalPrice: { playground: 75, professional: 100 },
@@ -31,8 +32,8 @@ const packTiers: PackTier[] = [
     isMastery: false,
   },
   {
-    name: { playground: 'Achiever', professional: 'Executive' },
-    label: 'Most popular',
+    nameKey: { playground: 'lp.pricing.pack.achiever', professional: 'lp.pricing.pack.executive' },
+    labelKey: 'lp.pricing.label.mostPopular',
     sessions: 10,
     price: { playground: 145, professional: 195 },
     originalPrice: { playground: 150, professional: 200 },
@@ -41,8 +42,8 @@ const packTiers: PackTier[] = [
     isMastery: false,
   },
   {
-    name: { playground: 'Mastery', professional: 'Global Leader' },
-    label: 'Best value',
+    nameKey: { playground: 'lp.pricing.pack.mastery', professional: 'lp.pricing.pack.globalLeader' },
+    labelKey: 'lp.pricing.label.bestValue',
     sessions: 20,
     price: { playground: 290, professional: 390 },
     originalPrice: { playground: 300, professional: 400 },
@@ -50,21 +51,6 @@ const packTiers: PackTier[] = [
     popular: false,
     isMastery: true,
   },
-];
-
-const features = [
-  'One-on-one with native speaker',
-  'Personalized lesson plan',
-  'Homework & resources',
-  'Progress tracking',
-  'Free cancellation (24h+)',
-  'Credits valid for 6 months',
-];
-
-const valueBullets = [
-  { icon: Timer, text: '55-Min Sessions' },
-  { icon: Cpu, text: 'Adaptive Curriculum' },
-  { icon: UserCheck, text: 'Verified Native Teachers' },
 ];
 
 function useTilt() {
@@ -79,9 +65,7 @@ function useTilt() {
     setTransform(`rotateY(${x * 10}deg) rotateX(${-y * 10}deg)`);
   };
 
-  const handleMouseLeave = () => {
-    setTransform('rotateY(0deg) rotateX(0deg)');
-  };
+  const handleMouseLeave = () => setTransform('rotateY(0deg) rotateX(0deg)');
 
   return { ref, transform, handleMouseMove, handleMouseLeave };
 }
@@ -91,6 +75,7 @@ export function PricingSection() {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
   const perSession = level === 'professional' ? 20 : 15;
+  const { t } = useTranslation();
 
   return (
     <section id="pricing" className={`py-24 relative overflow-hidden transition-colors duration-300 ${
@@ -101,7 +86,6 @@ export function PricingSection() {
       }`} />
 
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -115,34 +99,32 @@ export function PricingSection() {
               : 'bg-white border border-slate-200 text-indigo-600 shadow-sm'
           }`}>
             <Sparkles className="w-4 h-4" />
-            Simple, Transparent Pricing
+            {t('lp.pricing.badge')}
           </span>
           <h2 className={`text-4xl md:text-5xl font-extrabold tracking-tight mb-4 font-display transition-colors duration-300 ${
             isDark ? 'text-white' : 'text-slate-900'
           }`}>
-            Session Credit{' '}
+            {t('lp.pricing.heading')}{' '}
             <span className="bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">
-              Packs
+              {t('lp.pricing.headingAccent')}
             </span>
           </h2>
           <p className={`text-lg max-w-2xl mx-auto mb-8 ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
-            Buy credits, book sessions. No subscriptions, no hidden fees. All sessions are 55 minutes.
+            {t('lp.pricing.subtitle')}
           </p>
 
           {/* 2-Way Toggle */}
           <div className={`inline-flex items-center backdrop-blur-xl rounded-full p-1.5 ${
-            isDark
-              ? 'bg-white/[0.04] border border-white/[0.08]'
-              : 'bg-slate-100 border border-slate-200'
+            isDark ? 'bg-white/[0.04] border border-white/[0.08]' : 'bg-slate-100 border border-slate-200'
           }`}>
             {([
-              { key: 'playground' as const, label: '🎨 Playground & Academy', cursor: 'playground' },
-              { key: 'professional' as const, label: '💼 Professional', cursor: 'professional' },
+              { key: 'playground' as const, labelKey: 'lp.pricing.toggle.playAcademy' },
+              { key: 'professional' as const, labelKey: 'lp.pricing.toggle.professional' },
             ]).map((opt) => (
               <button
                 key={opt.key}
                 onClick={() => setLevel(opt.key)}
-                data-cursor={opt.cursor}
+                data-cursor={opt.key}
                 className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
                   level === opt.key
                     ? isDark
@@ -153,24 +135,22 @@ export function PricingSection() {
                       : 'text-slate-400 hover:text-slate-600'
                 }`}
               >
-                {opt.label}
+                {t(opt.labelKey)}
               </button>
             ))}
           </div>
 
           <p className={`text-sm mt-3 ${isDark ? 'text-slate-600' : 'text-slate-500'}`}>
-            Base rate: <span className={`font-semibold ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>€{perSession}</span> per 55-minute session
+            {t('lp.pricing.baseRate')}: <span className={`font-semibold ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>€{perSession}</span> {t('lp.pricing.perSession')}
           </p>
         </motion.div>
 
-        {/* Pack Cards with perspective */}
         <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto" style={{ perspective: '1200px' }}>
           {packTiers.map((pack, index) => (
-            <PricingCard key={pack.label} pack={pack} index={index} level={level} isDark={isDark} />
+            <PricingCard key={pack.labelKey} pack={pack} index={index} level={level} isDark={isDark} />
           ))}
         </div>
 
-        {/* Cancellation Policy */}
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -183,20 +163,22 @@ export function PricingSection() {
           }`}>
             <div className="flex items-center gap-2 mb-3">
               <Shield className="w-4 h-4 text-emerald-400" />
-              <h4 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Our Fair Cancellation Policy</h4>
+              <h4 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                {t('lp.pricing.policy.title')}
+              </h4>
             </div>
             <div className="grid sm:grid-cols-3 gap-3 text-xs">
               <div className="bg-emerald-500/10 rounded-xl p-3 border border-emerald-500/10">
-                <p className="text-emerald-400 font-semibold mb-1">✅ Free Cancellation</p>
-                <p className={isDark ? 'text-slate-500' : 'text-slate-500'}>24+ hours before class — credit fully refunded</p>
+                <p className="text-emerald-400 font-semibold mb-1">✅ {t('lp.pricing.policy.free.title')}</p>
+                <p className={isDark ? 'text-slate-500' : 'text-slate-500'}>{t('lp.pricing.policy.free.desc')}</p>
               </div>
               <div className="bg-amber-500/10 rounded-xl p-3 border border-amber-500/10">
-                <p className="text-amber-400 font-semibold mb-1">⚠️ Late Cancellation</p>
-                <p className={isDark ? 'text-slate-500' : 'text-slate-500'}>Less than 24 hours — credit kept as teacher fee</p>
+                <p className="text-amber-400 font-semibold mb-1">⚠️ {t('lp.pricing.policy.late.title')}</p>
+                <p className={isDark ? 'text-slate-500' : 'text-slate-500'}>{t('lp.pricing.policy.late.desc')}</p>
               </div>
               <div className={`rounded-xl p-3 border ${isDark ? 'bg-white/[0.04] border-white/[0.06]' : 'bg-slate-50 border-slate-200'}`}>
-                <p className={`font-semibold mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>📅 Expiry</p>
-                <p className={isDark ? 'text-slate-500' : 'text-slate-500'}>Credits expire 6 months after purchase</p>
+                <p className={`font-semibold mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>📅 {t('lp.pricing.policy.expiry.title')}</p>
+                <p className={isDark ? 'text-slate-500' : 'text-slate-500'}>{t('lp.pricing.policy.expiry.desc')}</p>
               </div>
             </div>
           </div>
@@ -209,7 +191,7 @@ export function PricingSection() {
           transition={{ duration: 0.6, delay: 0.7 }}
           className={`text-center mt-8 text-sm ${isDark ? 'text-slate-600' : 'text-slate-400'}`}
         >
-          All prices in EUR. First lesson includes a free assessment.
+          {t('lp.pricing.footnote')}
         </motion.p>
       </div>
     </section>
@@ -218,10 +200,26 @@ export function PricingSection() {
 
 function PricingCard({ pack, index, level, isDark }: { pack: PackTier; index: number; level: AudienceLevel; isDark: boolean }) {
   const { ref, transform, handleMouseMove, handleMouseLeave } = useTilt();
+  const { t } = useTranslation();
   const price = pack.price[level];
   const originalPrice = pack.originalPrice[level];
   const hasDiscount = pack.savings > 0;
-  const packName = pack.name[level];
+  const packName = t(pack.nameKey[level]);
+
+  const features = [
+    t('lp.pricing.feature.oneOnOne'),
+    t('lp.pricing.feature.plan'),
+    t('lp.pricing.feature.homework'),
+    t('lp.pricing.feature.tracking'),
+    t('lp.pricing.feature.cancellation'),
+    t('lp.pricing.feature.validity'),
+  ];
+
+  const valueBullets = [
+    { icon: Timer, text: t('lp.pricing.bullet.sessions') },
+    { icon: Cpu, text: t('lp.pricing.bullet.adaptive') },
+    { icon: UserCheck, text: t('lp.pricing.bullet.verified') },
+  ];
 
   return (
     <motion.div
@@ -247,7 +245,6 @@ function PricingCard({ pack, index, level, isDark }: { pack: PackTier; index: nu
               : 'bg-white border border-slate-200 shadow-[0_8px_32px_rgba(0,0,0,0.05)]'
       } ${isDark ? 'hover:bg-white/[0.08]' : 'hover:shadow-[0_16px_48px_rgba(0,0,0,0.08)]'}`}
     >
-      {/* Border Beam for Mastery card */}
       {pack.isMastery && (
         <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
           <div className="absolute top-0 left-0 right-0 h-[1px] overflow-hidden">
@@ -275,9 +272,8 @@ function PricingCard({ pack, index, level, isDark }: { pack: PackTier; index: nu
         </div>
       )}
 
-      {/* Savings Badge — Holographic Shimmer */}
       {hasDiscount && (
-        <div className="absolute -top-3 right-4 z-10">
+        <div className="absolute -top-3 end-4 z-10">
           <span
             className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold text-white animate-shimmer"
             style={{
@@ -287,19 +283,18 @@ function PricingCard({ pack, index, level, isDark }: { pack: PackTier; index: nu
               backgroundSize: '300% 100%',
             }}
           >
-            🔥 Save €{pack.savings}
+            🔥 {t('lp.pricing.save')} €{pack.savings}
           </span>
         </div>
       )}
 
-      {/* Popular badge with pulse ring */}
       {pack.popular && (
-        <div className="absolute -top-3 left-4 z-10">
+        <div className="absolute -top-3 start-4 z-10">
           <div className="relative">
             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 blur-md opacity-40 animate-pulse-ring" />
             <Badge className="relative bg-gradient-to-r from-amber-500 to-orange-600 text-white border-0 shadow-lg shadow-orange-500/20 px-3 py-1 text-xs font-bold">
-              <Sparkles className="w-3 h-3 mr-1" />
-              Most Popular
+              <Sparkles className="w-3 h-3 me-1" />
+              {t('lp.pricing.popular')}
             </Badge>
           </div>
         </div>
@@ -308,17 +303,16 @@ function PricingCard({ pack, index, level, isDark }: { pack: PackTier; index: nu
       <div className="relative z-10 flex flex-col flex-1">
         <div className="mb-5 mt-2">
           <h3 className={`text-xl font-bold mb-1 font-display ${isDark ? 'text-white' : 'text-slate-900'}`}>{packName}</h3>
-          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{pack.label}</p>
+          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{t(pack.labelKey)}</p>
         </div>
 
         <div className="mb-4 flex items-center gap-2">
           <Clock className={`w-4 h-4 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`} />
           <span className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            {pack.sessions} × 55-min sessions
+            {pack.sessions} × {t('lp.pricing.bullet.sessions')}
           </span>
         </div>
 
-        {/* Price — Flip Animation */}
         <div className="mb-5" style={{ perspective: '600px' }}>
           <div className="flex items-baseline gap-2">
             <AnimatePresence mode="wait">
@@ -338,11 +332,10 @@ function PricingCard({ pack, index, level, isDark }: { pack: PackTier; index: nu
             )}
           </div>
           <p className={`text-xs mt-1 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
-            €{(price / pack.sessions).toFixed(2)} per session
+            €{(price / pack.sessions).toFixed(2)} {t('lp.pricing.perSessionUnit')}
           </p>
         </div>
 
-        {/* Value Bullets */}
         <div className={`space-y-2 mb-5 pb-5 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
           {valueBullets.map((bullet) => {
             const BulletIcon = bullet.icon;
@@ -355,7 +348,6 @@ function PricingCard({ pack, index, level, isDark }: { pack: PackTier; index: nu
           })}
         </div>
 
-        {/* Features */}
         <ul className="space-y-2.5 mb-6 flex-1">
           {features.map((feature) => (
             <li key={feature} className="flex items-center gap-2.5">
@@ -373,7 +365,6 @@ function PricingCard({ pack, index, level, isDark }: { pack: PackTier; index: nu
           ))}
         </ul>
 
-        {/* CTA */}
         <Link to="/student-signup">
           <Button
             className={`w-full py-5 text-base font-semibold transition-all duration-300 rounded-xl ${
@@ -386,7 +377,7 @@ function PricingCard({ pack, index, level, isDark }: { pack: PackTier; index: nu
                     : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
             }`}
           >
-            Start Your Journey
+            {t('lp.pricing.cta')}
           </Button>
         </Link>
       </div>
