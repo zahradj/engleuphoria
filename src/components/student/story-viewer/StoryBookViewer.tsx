@@ -52,7 +52,14 @@ interface StoryBookViewerProps {
   visualStyle?: StoryVisualStyle;
   coverImageUrl?: string;
   onExit?: () => void;
+  /** When true, viewer fills its parent (absolute) instead of covering the viewport (fixed). */
+  embedded?: boolean;
 }
+
+/** Outer-shell positioning helper. Embedded mode keeps the viewer inside its
+ *  parent so Studio chrome (Save button, sidebar, toolbar) stays interactive. */
+const shellPos = (embedded?: boolean) =>
+  embedded ? 'absolute inset-0' : 'fixed inset-0 z-50';
 
 const FALLBACK_BG =
   'linear-gradient(135deg, hsl(262 60% 18%), hsl(280 50% 28%), hsl(220 55% 22%))';
@@ -67,6 +74,7 @@ export const StoryBookViewer: React.FC<StoryBookViewerProps> = ({
   visualStyle = 'classic',
   coverImageUrl,
   onExit,
+  embedded = false,
 }) => {
   const [pageIndex, setPageIndex] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
@@ -160,6 +168,7 @@ export const StoryBookViewer: React.FC<StoryBookViewerProps> = ({
         onPlay={handlePlayNarration}
         mcqAnswered={mcqAnswered}
         setMcqAnswered={setMcqAnswered}
+        embedded={embedded}
       />
     );
   }
@@ -178,6 +187,7 @@ export const StoryBookViewer: React.FC<StoryBookViewerProps> = ({
         onPlay={handlePlayNarration}
         mcqAnswered={mcqAnswered}
         setMcqAnswered={setMcqAnswered}
+        embedded={embedded}
       />
     );
   }
@@ -196,6 +206,7 @@ export const StoryBookViewer: React.FC<StoryBookViewerProps> = ({
         onPlay={handlePlayNarration}
         mcqAnswered={mcqAnswered}
         setMcqAnswered={setMcqAnswered}
+        embedded={embedded}
       />
     );
   }
@@ -204,7 +215,7 @@ export const StoryBookViewer: React.FC<StoryBookViewerProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-hidden"
+      className={cn(shellPos(embedded), 'overflow-hidden')}
       style={{
         background:
           isImmersive && pageImage
@@ -598,7 +609,8 @@ const WebtoonScroller: React.FC<{
   onPlay: () => void;
   mcqAnswered: Record<number, number>;
   setMcqAnswered: React.Dispatch<React.SetStateAction<Record<number, number>>>;
-}> = ({ title, pages, onExit, ttsLoading, ttsPlaying, onPlay, mcqAnswered, setMcqAnswered }) => {
+  embedded?: boolean;
+}> = ({ title, pages, onExit, ttsLoading, ttsPlaying, onPlay, mcqAnswered, setMcqAnswered, embedded }) => {
   // Flatten all panels from all pages into one continuous column.
   const allPanels: Array<{ pageIdx: number; panel: StoryPanel }> = [];
   pages.forEach((p, pageIdx) => {
@@ -613,7 +625,7 @@ const WebtoonScroller: React.FC<{
   });
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950">
+    <div className={cn(shellPos(embedded), 'overflow-y-auto bg-slate-950')}>
       {/* Sticky top bar */}
       <div className="sticky top-0 z-30 backdrop-blur-md bg-slate-950/70 flex items-center justify-between px-4 py-3 border-b border-white/10">
         <div className="flex items-center gap-3 min-w-0">
@@ -829,6 +841,7 @@ interface BookViewerProps {
   onPlay: () => void;
   mcqAnswered: Record<number, number>;
   setMcqAnswered: React.Dispatch<React.SetStateAction<Record<number, number>>>;
+  embedded?: boolean;
 }
 
 const PictureBookViewer: React.FC<BookViewerProps> = ({
@@ -842,6 +855,7 @@ const PictureBookViewer: React.FC<BookViewerProps> = ({
   onPlay,
   mcqAnswered,
   setMcqAnswered,
+  embedded,
 }) => {
   const total = pages.length;
   const page = pages[pageIndex];
@@ -870,7 +884,7 @@ const PictureBookViewer: React.FC<BookViewerProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col bg-sky-50"
+      className={cn(shellPos(embedded), 'flex flex-col bg-sky-50')}
       style={{ fontFamily: "'Quicksand', 'Comic Neue', 'Comic Sans MS', system-ui" }}
     >
       {/* Top blue header bar */}
@@ -1020,6 +1034,7 @@ const ComicSpreadViewer: React.FC<BookViewerProps> = ({
   onPlay,
   mcqAnswered,
   setMcqAnswered,
+  embedded,
 }) => {
   const total = pages.length;
   // Spread = current page + next page (snap to even indices)
@@ -1035,7 +1050,7 @@ const ComicSpreadViewer: React.FC<BookViewerProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-slate-900">
+    <div className={cn(shellPos(embedded), 'flex flex-col bg-slate-900')}>
       {/* Top blue header bar */}
       <header className="flex items-center justify-between px-4 sm:px-6 py-3 bg-sky-600 text-white shadow-md z-20">
         <div className="flex items-center gap-2 min-w-0">

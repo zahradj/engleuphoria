@@ -47,6 +47,54 @@ export const StoryStudioCanvas: React.FC = () => {
     [slides],
   );
 
+  const totalPanelSlots = useMemo(() => {
+    let n = 0;
+    for (const s of slides) {
+      const panels = (s as any)?.interactive_data?.panels;
+      if (Array.isArray(panels) && panels.length > 0) n += panels.length;
+      else if (((s as any).image_generation_prompt || (s as any).visual_keyword) && !s.custom_image_url) n += 1;
+      else if (s.custom_image_url) n += 1;
+    }
+    return n;
+  }, [slides]);
+
+  const filledPanelSlots = useMemo(() => {
+    let n = 0;
+    for (const s of slides) {
+      const panels = (s as any)?.interactive_data?.panels;
+      if (Array.isArray(panels) && panels.length > 0) {
+        n += panels.filter((p: any) => p?.image_url || p?.imageUrl).length;
+      } else if (s.custom_image_url) {
+        n += 1;
+      }
+    }
+    return n;
+  }, [slides]);
+
+  const ensureLessonId = async (): Promise<string | undefined> => {
+    if (activeLessonData?.lesson_id) return activeLessonData.lesson_id;
+    if (!activeLessonData) return undefined;
+    try {
+      const extra: Record<string, unknown> = {};
+      if (activeLessonData.visual_style) extra.visual_style = activeLessonData.visual_style;
+      if (activeLessonData.story_layout) extra.story_layout = activeLessonData.story_layout;
+      const result = await persistLesson(
+        activeLessonData,
+        activeLessonData.slides,
+        false,
+        activeLessonData.kind ?? 'story',
+        Object.keys(extra).length ? extra : undefined,
+      );
+      if (result.ok !== false && result.lesson_id) {
+        setActiveLessonData({ ...activeLessonData, lesson_id: result.lesson_id });
+        return result.lesson_id;
+      }
+    } catch (e) {
+      console.warn('ensureLessonId persist failed; continuing with draft id', e);
+    }
+    return undefined;
+  };
+
   const runGenerateAll = async (overwrite: boolean) => {
     if (!activeLessonData) return;
     if (generating) return;
@@ -58,7 +106,8 @@ export const StoryStudioCanvas: React.FC = () => {
     setGenerating(true);
     const tid = toast.loading(`🎨 Painting ${targetSlides.length} page${targetSlides.length === 1 ? '' : 's'}…`);
     try {
-      const lid = activeLessonData.lesson_id ?? activeLessonData.source_lesson?.id ?? 'draft';
+      const persistedId = await ensureLessonId();
+      const lid = persistedId ?? activeLessonData.lesson_id ?? activeLessonData.source_lesson?.id ?? 'draft';
       const hub = activeLessonData.hub ?? 'Academy';
       const { results, summary } = await generateAllMedia(
         lid,
@@ -150,7 +199,7 @@ export const StoryStudioCanvas: React.FC = () => {
   return (
     <div className="h-full w-full flex flex-col bg-slate-950">
       {/* Top action bar */}
-      <div className="shrink-0 flex items-center justify-between gap-3 px-4 py-2 bg-slate-900 border-b border-white/10">
+      <div className="relative z-[60] shrink-0 flex items-center justify-between gap-3 px-4 py-2 bg-slate-900 border-b border-white/10">
         <div className="flex items-center gap-2 min-w-0 text-white/90">
           <BookOpen className="h-4 w-4 text-fuchsia-300" />
           <span className="text-xs font-bold uppercase tracking-[0.2em] text-fuchsia-200/80">
@@ -166,6 +215,14 @@ export const StoryStudioCanvas: React.FC = () => {
           )}
         </div>
         <div className="flex items-center gap-2">
+          {totalPanelSlots > 0 && (
+            <span
+              className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded bg-fuchsia-500/15 text-fuchsia-200"
+              title={`${filledPanelSlots} of ${totalPanelSlots} panels illustrated`}
+            >
+              🎨 {filledPanelSlots}/{totalPanelSlots} panels
+            </span>
+          )}
           <span
             className={cn(
               'text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded',
@@ -205,6 +262,18 @@ export const StoryStudioCanvas: React.FC = () => {
           >
             Regenerate All
           </Button>
+          {slidesNeedingArt.length > 0 && filledPanelSlots > 0 && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5 bg-amber-500/20 text-amber-100 border-amber-300/30 hover:bg-amber-500/30"
+              onClick={() => runGenerateAll(false)}
+              disabled={generating}
+              title="Retry generating only the panels that are still missing artwork"
+            >
+              🔁 Retry failed ({slidesNeedingArt.length})
+            </Button>
+          )}
           <Button
             size="sm"
             className="gap-1.5 bg-emerald-500 hover:bg-emerald-400 text-white border-0 font-bold"
@@ -241,6 +310,7 @@ export const StoryStudioCanvas: React.FC = () => {
                 title={activeLessonData?.lesson_title || 'Story'}
                 pages={pages}
                 visualStyle={visualStyle}
+                embedded
               />
             </div>
           ) : (
@@ -251,7 +321,7 @@ export const StoryStudioCanvas: React.FC = () => {
         </div>
 
         {/* Right: per-slide editor */}
-        <aside className="w-[340px] xl:w-[360px] shrink-0 h-full overflow-y-auto border-l border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm">
+        <aside className="relative z-[60] w-[340px] xl:w-[360px] shrink-0 h-full overflow-y-auto border-l border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm">
           <div className="px-3 pt-3 pb-2 border-b border-slate-200 dark:border-slate-800">
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
               Story Pages
