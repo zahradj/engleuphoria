@@ -83,11 +83,9 @@ export default function PlaygroundDragDrop({ slide, onCorrect, onIncorrect }: Pr
       <h2 className="text-2xl font-bold" style={{ fontFamily: "'Quicksand', sans-serif", color: '#FF9F1C' }}>
         🎯 {slide.title}
       </h2>
-      {slide.content?.prompt && (
-        <p className="text-base text-center text-muted-foreground" style={{ fontFamily: "'Quicksand', sans-serif" }}>
-          {slide.content.prompt}
-        </p>
-      )}
+      <p className="text-base text-center text-muted-foreground" style={{ fontFamily: "'Quicksand', sans-serif" }}>
+        {promptText}
+      </p>
 
       {/* Drop targets */}
       <div className="flex gap-5 flex-wrap justify-center">
