@@ -440,4 +440,20 @@ export const dashboardUITranslations = {
   'sd.lang.subtitle': 'Kendini evinde hissedesin diye panonu çevireceğiz.',
   'sd.lang.continue': 'Devam',
   'sd.lang.saved': 'Dil kaydedildi',
+
+  // ---------------- Student Profile (sd.profile.*) ----------------
+  'sd.profile.title': 'Profilin',
+  'sd.profile.fullName': 'Ad Soyad',
+  'sd.profile.fullNamePlaceholder': 'Adın ve soyadın',
+  'sd.profile.email': 'E-posta',
+  'sd.profile.dashboardLanguage': 'Pano dili',
+  'sd.profile.dashboardLanguageHelp': 'Yalnızca pano arayüzünü çevirir. Dersler İngilizce kalır.',
+  'sd.profile.englishLevel': 'İngilizce Seviyesi',
+  'sd.profile.currentCourse': 'Mevcut Kurs',
+  'sd.profile.memberSince': 'Üyelik tarihi',
+  'sd.profile.save': 'Değişiklikleri Kaydet',
+  'sd.profile.saving': 'Kaydediliyor...',
+  'sd.profile.saved': 'Profil güncellendi',
+  'sd.profile.saveError': 'Profil kaydedilemedi',
+  'sd.profile.nameRequired': 'Ad soyad zorunludur',
 };

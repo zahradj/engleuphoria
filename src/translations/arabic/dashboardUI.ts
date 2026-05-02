@@ -440,4 +440,20 @@ export const dashboardUITranslations = {
   'sd.lang.subtitle': 'سنترجم لوحة التحكم لتشعر وكأنك في بيتك.',
   'sd.lang.continue': 'متابعة',
   'sd.lang.saved': 'تم حفظ اللغة',
+
+  // ---------------- Student Profile (sd.profile.*) ----------------
+  'sd.profile.title': 'ملفك الشخصي',
+  'sd.profile.fullName': 'الاسم الكامل',
+  'sd.profile.fullNamePlaceholder': 'اسمك الكامل',
+  'sd.profile.email': 'البريد الإلكتروني',
+  'sd.profile.dashboardLanguage': 'لغة لوحة التحكم',
+  'sd.profile.dashboardLanguageHelp': 'تترجم واجهة لوحة التحكم فقط. تبقى الدروس بالإنجليزية.',
+  'sd.profile.englishLevel': 'مستوى الإنجليزية',
+  'sd.profile.currentCourse': 'الدورة الحالية',
+  'sd.profile.memberSince': 'عضو منذ',
+  'sd.profile.save': 'حفظ التغييرات',
+  'sd.profile.saving': 'جارٍ الحفظ...',
+  'sd.profile.saved': 'تم تحديث الملف الشخصي',
+  'sd.profile.saveError': 'تعذر حفظ الملف الشخصي',
+  'sd.profile.nameRequired': 'الاسم الكامل مطلوب',
 };
