@@ -171,6 +171,8 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
         userName={userName}
         role="student"
         iframeUnlocked={iframeUnlocked}
+        rawSlides={rawSlides}
+        hubType={hubType as any}
         onAddStroke={onAddStroke}
       />
 
