@@ -27,13 +27,25 @@ const normalizeLiveSlide = (slide: any, index: number): GeneratedSlide | null =>
     : rawType === 'drag_and_match' || rawType === 'fill_in_the_gaps' || rawType === 'multiple_choice' ? rawType
     : slide.activityType;
 
+  // Map AI-emitted slide_types to a renderable slideType so the renderer always
+  // resolves them (instead of falling through to the activity branch and crashing).
+  const slideTypeAlias: Record<string, string> = {
+    flashcard: 'vocabulary',
+    mascot_speech: 'core_concept',
+    text_image: 'hook',
+    drawing_canvas: 'core_concept',
+  };
+  const resolvedSlideType = slide.slideType
+    || slideTypeAlias[rawType]
+    || (activityType ? 'activity' : rawType === 'vocab_list' ? 'vocabulary' : 'hook');
+
   return {
     ...slide,
     id: String(slide.id ?? index + 1),
     order: slide.order ?? index + 1,
     title: String(slide.title || slide.content?.title || `Slide ${index + 1}`),
     imageUrl: resolveSlideImage(slide),
-    slideType: slide.slideType || (activityType ? 'activity' : rawType === 'vocab_list' ? 'vocabulary' : 'hook'),
+    slideType: resolvedSlideType,
     type: slide.type || activityType || rawType || 'title',
     activityType,
     content: typeof slide.content === 'string' ? { prompt: slide.content } : slide.content,

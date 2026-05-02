@@ -12,21 +12,27 @@ import React, { Component, ReactNode } from 'react';
 import SpeakingPractice from './activities/SpeakingPractice';
 import { motion, Variants } from 'framer-motion';
 import { HubType, AnimationType, GeneratedSlide } from '@/components/admin/lesson-builder/ai-wizard/types';
-import { AlertTriangle } from 'lucide-react';
+
 
 /* ── Local Error Boundary for individual slides ────────────────────── */
 interface SlideBoundaryState { hasError: boolean; error?: Error }
-class SlideErrorBoundary extends Component<{ children: ReactNode; slideId?: string }, SlideBoundaryState> {
+class SlideErrorBoundary extends Component<{ children: ReactNode; slideId?: string; slide?: any }, SlideBoundaryState> {
   state: SlideBoundaryState = { hasError: false };
   static getDerivedStateFromError(error: Error): SlideBoundaryState { return { hasError: true, error }; }
   componentDidCatch(error: Error, info: any) { console.error('[SlideErrorBoundary] Slide crashed:', this.props.slideId, error, info); }
   render() {
     if (this.state.hasError) {
+      // Graceful degradation: render the slide's title + content as a hero card
+      // so the live class can keep flowing instead of seeing a scary error.
+      const slide: any = (this.props as any).slide;
+      const title = slide?.title || 'Slide';
+      const text = (typeof slide?.content === 'string' ? slide.content : slide?.content?.prompt || slide?.content?.text || slide?.teacher_script || '');
+      const img = slide?.imageUrl || slide?.image_url || slide?.custom_image_url || slide?.generated_image_url;
       return (
-        <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8 text-center">
-          <AlertTriangle className="w-12 h-12 mb-4 text-amber-500" />
-          <h3 className="text-lg font-semibold mb-2">Slide Data Error</h3>
-          <p className="text-sm max-w-md">The AI generated incomplete data for this activity. Please skip to the next slide.</p>
+        <div className="w-full h-full min-h-[420px] grid gap-6 content-center p-8 text-center">
+          {img && <img src={img} alt={title} className="mx-auto max-h-[280px] w-full max-w-2xl rounded-lg object-contain" />}
+          <h2 className="text-3xl md:text-4xl font-bold leading-tight text-foreground">{title}</h2>
+          {text && <p className="mx-auto max-w-2xl text-lg text-muted-foreground whitespace-pre-line">{text}</p>}
         </div>
       );
     }
@@ -314,6 +320,25 @@ export default function DynamicSlideRenderer({
       return <VideoSlide slide={slide} />;
     }
 
+    // ── New: handle generator-emitted slide_types not yet in the editorial map ──
+    if (directorType === 'mascot_speech') {
+      const ytEmbed = (slide as any).youtube_embed_url || (slide as any).youtube_video_id;
+      if (ytEmbed) return <VideoSlide slide={slide} />;
+      return <SlideConcept slide={slide} hub={hub} />;
+    }
+    if (directorType === 'flashcard') {
+      const payload = (slide as any).interactive_data || (slide as any).content || {};
+      const hasWords = Array.isArray(payload.words) || Array.isArray(payload.vocabulary) || Array.isArray(payload.vocab_list);
+      if (hasWords) return <EditorialVocabList slide={slide} />;
+      return <LiveHeroMediaSlide slide={slide} />;
+    }
+    if (directorType === 'text_image') {
+      return <LiveHeroMediaSlide slide={slide} />;
+    }
+    if (directorType === 'drawing_canvas') {
+      return <LiveHeroMediaSlide slide={slide} />;
+    }
+
     if (directorType === 'hero_media') {
       return <EditorialHeroMedia slide={slide} />;
     }
@@ -481,7 +506,7 @@ export default function DynamicSlideRenderer({
       transition={{ type: 'spring', stiffness: 260, damping: 20 }}
       className="w-full h-full flex items-center justify-center"
     >
-      <SlideErrorBoundary slideId={slide.id}>
+      <SlideErrorBoundary slideId={slide.id} slide={slide}>
         {renderContent()}
       </SlideErrorBoundary>
     </motion.div>

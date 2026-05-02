@@ -530,6 +530,8 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
           stageMode={stageMode}
           drawingEnabled={drawingEnabled}
           iframeUnlocked={iframeUnlocked}
+          rawSlides={lessonSlides}
+          hubType={hubType === 'professional' ? 'professional' : hubType}
           onAddStroke={addStroke}
           onSlideComplete={handleSlideCompletion}
         />
