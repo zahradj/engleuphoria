@@ -1,85 +1,51 @@
-## Goal
+# Story Studio: Restore Save Button + Image Generation
 
-Fix the under-utilized classroom frame, make slide text legible, scale up the lesson image, add the missing "Academy Vocabulary Card" branding, and standardize bottom-dock buttons to the branded purple.
+## Root cause
 
-## Files to change
+`StoryBookViewer` (and its `PictureBookViewer`, `ComicSpreadViewer`, `WebtoonScroller` variants) all render with `className="fixed inset-0 z-50 ..."`. When the Studio mounts the viewer inside its preview pane, those `fixed` overlays escape the pane and cover the **entire screen**, hiding:
 
-1. `src/components/teacher/classroom/TeacherClassroom.tsx`
-2. `src/components/teacher/classroom/CommunicationZone.tsx`
-3. `src/components/classroom/stage/MainStage.tsx`
-4. `src/components/lesson-player/slides/SlideHook.tsx` (the slide rendering "Free Time Fun!")
-5. `src/components/lesson-player/slides/SlideVocabulary.tsx`
-6. `src/components/classroom/stage/TeacherControlDock.tsx` (button consistency)
-7. Same treatment mirrored in `src/components/student/classroom/StudentMainStage.tsx` so students see the identical refactor.
+- The top action bar (💾 Save to Library, Generate Images, Regenerate, Preview Reader)
+- The right-side editor sidebar
+- The page-tab strip
 
-## 1. Structural classroom refactor
+The viewer also intercepts pointer/keyboard events globally, which is why nothing on the Studio chrome is reachable.
 
-`MainStage.tsx`
-- Drop the floating-card look on the stage container. Replace `bg-white rounded-lg shadow-xl border border-border` + `p-1 sm:p-2` outer padding with a flush surface that fills the area (`p-0`, no shadow, no rounded card). Keep border-radius minimal (`rounded-md`) so it merges with the hub-tinted background.
-- Remove the always-visible "Slide" mode badge in the top-left of the stage (it's redundant with the lesson title in the top bar) — keep only the "Teacher is presenting" pill for students.
+A secondary issue blocks images from appearing: the Studio calls `generate-all-media` with `lessonId = activeLessonData.lesson_id ?? 'draft'`. When the lesson has never been persisted (`lesson_id` is undefined), images are uploaded under a `draft/` prefix and the slide patches are kept only in client state. If the auto-trigger fires before the user has any lesson row, panels can silently end up without `image_url` because the slide objects are replaced before `updateSlide` runs.
 
-`TeacherClassroom.tsx`
-- The left `CommunicationZone` should be collapsible. Add a `commsCollapsed` state (default `true` so chat starts minimized) and pass `collapsed` + `onToggleCollapsed` props into `CommunicationZone`. When collapsed, render a thin 56px rail with avatar + a chevron toggle so the center stage gains ~260px of width.
+## Fix
 
-`CommunicationZone.tsx`
-- Accept new `collapsed` and `onToggleCollapsed` props. When `collapsed`, render only the two video tiles stacked, no chat panel, width `w-16`.
-- Default chat to a minimized state (collapsed by default per the user's "minimized/collapsible" requirement).
-- Remove the `glass-panel` extra gap; tighten the right border so the sidebar feels integrated with the stage.
+### 1. `src/components/student/story-viewer/StoryBookViewer.tsx`
 
-## 2. Content & typography refactor (legibility)
+- Add `embedded?: boolean` to `StoryBookViewerProps`, `BookViewerProps`, and the `WebtoonScroller` props.
+- Replace every outer container that uses `fixed inset-0 z-50` with a helper:
+  - `embedded` → `absolute inset-0` (fills its parent, no z-50)
+  - default → `fixed inset-0 z-50` (current full-screen behavior preserved for the standalone reader route)
+- Forward `embedded` from `StoryBookViewer` into `PictureBookViewer`, `ComicSpreadViewer`, and `WebtoonScroller`.
+- Add a small floating "Exit" affordance only when **not** embedded (so the Studio doesn't show a redundant close button).
 
-`SlideHook.tsx` (this is the slide showing "Your Free Time Fun!" + "What do you love to do…"):
-- Remove the small `maxHeight: 300` cap on the image and remove `max-w-lg`. New container: `w-full max-w-3xl` with `maxHeight: 520`. Add `object-contain` so the painting reads as a focal point (~150–200% larger).
-- Title (`<motion.h1>`): bump to `text-5xl md:text-6xl font-extrabold tracking-tight uppercase`, keep hub primary color.
-- Body prompt (`<motion.p>`): replace `style={{ color: config.colorPalette.text }}` (which is the illegible light grey) with an explicit high-contrast color: `text-slate-800 dark:text-slate-100` and bump from `text-lg` → `text-2xl md:text-3xl font-medium`. Keep `max-w-3xl`.
+### 2. `src/components/creator-studio/steps/slide-studio/StoryStudioCanvas.tsx`
 
-## 3. Pedagogy: branded vocab card
+- Pass `embedded` to `<StoryBookViewer />`.
+- Raise the top action bar and right sidebar to `z-[60]` so nothing the viewer renders can overlap them.
+- Add a tiny progress chip next to "Generate Images": `X / Y panels illustrated` computed from `slidesNeedingArt` vs total panel count.
+- Add a **🔁 Retry failed panels** button that re-runs `runGenerateAll(false)` only on slides whose panels still lack `image_url`.
+- Before calling `generateAllMedia`, if `activeLessonData.lesson_id` is missing, call `persistLesson(...)` first (publish=false) so generated images are scoped to a real lesson id and survive a refresh. Update `activeLessonData.lesson_id` from the result before continuing.
+- Guard the auto-generation `useEffect` so it only fires once `activeLessonData.lesson_id` exists (or after the auto-persist above resolves).
 
-`SlideVocabulary.tsx`
-- Replace the current "NEW VOCABULARY" eyebrow with a branded header row containing:
-  - A pill badge `Academy Vocabulary Card` (or `Topic Card` for non-academy hubs) using the hub primary as background and white text, rounded-full.
-  - The Engleuphoria wordmark (`<Logo size="small" />` from `src/components/Logo.tsx`) on the right side of the same row.
-- Add a large `TARGET WORD` header above the flashcard (`text-3xl uppercase font-extrabold`, hub primary color) — sourced from `slide.title` so the active topic word is immediately prominent.
-- The same branded header strip is added at the top of `SlideHook.tsx` (since the screenshot is a Hook slide) so every classroom slide carries the brand badge + logo.
+### 3. `supabase/functions/generate-all-media/index.ts`
 
-I'll factor the strip into a small shared component:
-- New file: `src/components/lesson-player/slides/SlideBrandHeader.tsx`
-  - Props: `hub: HubType`, `label: string` (e.g. "Academy Vocabulary Card", "Academy Topic Card").
-  - Renders a left-aligned pill badge using the hub's primary color + a right-aligned `<Logo size="small" />`.
-- Imported and rendered at the top of `SlideHook.tsx` and `SlideVocabulary.tsx`.
+- No schema change required; the function already forwards `lessonId` to `generate-slide-image`. Verified `generate-slide-image` falls back to a `"draft"` folder if `lessonId` is empty, so the new client-side persist step is what actually fixes durability.
+- Add a defensive log when `lessonId === 'draft'` so future debugging is easier.
 
-## 4. Consistent controls
+## Files touched
 
-`TeacherControlDock.tsx`
-- Audit button sizing: standardize all icon buttons to `h-9 w-9` and labeled buttons to `h-9 px-3 text-sm`.
-- Replace ad-hoc colors with the branded purple (`bg-[#6B21A8] hover:bg-[#581C87] text-white`) for primary actions (Give Star, Send Sticker, Library, Embed). Secondary actions stay outline/ghost with `border-purple-200 text-purple-800`.
-- Same purple accent applied to the Send button in `CommunicationZone.tsx` chat input.
+- `src/components/student/story-viewer/StoryBookViewer.tsx` — add `embedded` plumbing, swap `fixed` for `absolute` in 4 places.
+- `src/components/creator-studio/steps/slide-studio/StoryStudioCanvas.tsx` — pass `embedded`, raise z-index, add progress chip + retry, persist-before-generate.
+- `supabase/functions/generate-all-media/index.ts` — add a log line for the draft-id case.
 
-## Out of scope
+## Verification
 
-- No changes to slide-data schema, AI generation, or routing.
-- No changes to mobile layout (`MobileClassroomLayout`) beyond what already trickles through the shared slide components.
-
-## Technical notes
-
-- `HUB_CONFIGS[hub].colorPalette.text` is what's currently producing the illegible light grey on the hook slide — we override with explicit Tailwind classes instead of touching the global hub config (which other slide types depend on).
-- `Logo` reads the active theme; on the white/cream slide background it will render the black wordmark automatically, so contrast is preserved.
-- The `commsCollapsed` default of `true` matches the requirement "Set the chat to a minimized/collapsible state by default" while still letting the teacher expand on demand.
-
-```text
-┌──────────────────────────────────────────────────────────────┐
-│ Top Bar (lesson title • timer • end class)                   │
-├──┬───────────────────────────────────────────────────────────┤
-│V │   [Academy Vocabulary Card]              [engleuphoria]   │
-│i │                                                           │
-│d │              FREE TIME FUN                                │
-│e │       ┌──────────────────────────┐                        │
-│o │       │   large painting (150%+) │                        │
-│  │       └──────────────────────────┘                        │
-│r │   What do you love to do when you're not studying?        │
-│a │   (text-2xl, slate-800, high contrast)                    │
-│i │                                                           │
-│l ├───────────────────────────────────────────────────────────┤
-│  │ Bottom dock: ◀ ▶  ✏  ⭐  ⏱  🎲  💬   (purple, h-9)        │
-└──┴───────────────────────────────────────────────────────────┘
-```
+1. Open `/content-creator/slide-builder`, generate a story → top bar with **💾 Save to Library** stays visible above the viewer.
+2. Auto-image pipeline runs: progress chip ticks up, panels populate. If any fail, **🔁 Retry failed panels** completes them.
+3. Click **💾 Save to Library** → lesson appears in library; reopen → images persist (no `draft/` paths).
+4. Standalone `/lesson/:id` reader still opens full-screen (no regression for non-embedded use).
