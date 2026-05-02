@@ -91,6 +91,26 @@ export const StudentBookingCalendar = ({
   const availableDates = getDatesWithSlots();
   const selectedDateSlots = selectedDate ? getSlotsForDate(selectedDate) : [];
 
+  // Auto-jump to the first date that actually has slots if today (or selected date) has none
+  React.useEffect(() => {
+    if (localSlots.length === 0) return;
+    if (!selectedDate) return;
+    const hasOnSelected = localSlots.some(
+      s => new Date(s.startTime).toDateString() === selectedDate.toDateString()
+    );
+    if (!hasOnSelected) {
+      const firstWithSlots = [...localSlots]
+        .map(s => new Date(s.startTime))
+        .sort((a, b) => a.getTime() - b.getTime())[0];
+      if (firstWithSlots) {
+        const normalised = new Date(firstWithSlots.toDateString());
+        setSelectedDate(normalised);
+      }
+    }
+    // Only react when the slot set changes — not on every selectedDate change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localSlots]);
+
   // Glass panel base classes
   const glassPanel = cn(
     "rounded-2xl border p-6 transition-all duration-300",
@@ -99,26 +119,45 @@ export const StudentBookingCalendar = ({
       : "bg-white/70 backdrop-blur-xl border-gray-200/50 shadow-[0_8px_32px_rgba(0,0,0,0.06)]"
   );
 
-  // Empty state
+  // Empty state — keep the calendar visible so the user can still browse dates
   if (localSlots.length === 0) {
     return (
-      <div className={glassPanel}>
-        <div className="text-center py-12 space-y-4">
-          <CalendarIcon className="w-16 h-16 mx-auto text-muted-foreground" />
-          <div>
-            <h2 className="text-xl font-semibold mb-2">No Available Slots Yet</h2>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              Teachers are still setting up their availability. Please check back soon or contact your teacher directly.
-            </p>
-          </div>
-          <div className="flex gap-2 justify-center flex-wrap">
-            <Button onClick={() => window.location.reload()}>
-              <RefreshCcw className="w-4 h-4 mr-2" />
-              Refresh
-            </Button>
-            <Button variant="outline" onClick={() => navigate('/student')}>
-              Back to Dashboard
-            </Button>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className={glassPanel}>
+          <h3 className="flex items-center gap-2 text-lg font-semibold mb-4">
+            <CalendarIcon className="w-5 h-5 text-primary" />
+            Select a Date
+          </h3>
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={setSelectedDate}
+            disabled={(date) => {
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              return date < today;
+            }}
+            className="rounded-md border-0 pointer-events-auto"
+          />
+        </div>
+        <div className={glassPanel}>
+          <div className="text-center py-12 space-y-4">
+            <CalendarIcon className="w-16 h-16 mx-auto text-muted-foreground" />
+            <div>
+              <h2 className="text-xl font-semibold mb-2">No Available Slots Yet</h2>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                We couldn't find open times for your hub right now. Try a different date, or check back soon.
+              </p>
+            </div>
+            <div className="flex gap-2 justify-center flex-wrap">
+              <Button onClick={() => window.location.reload()}>
+                <RefreshCcw className="w-4 h-4 mr-2" />
+                Refresh
+              </Button>
+              <Button variant="outline" onClick={() => navigate('/student')}>
+                Back to Dashboard
+              </Button>
+            </div>
           </div>
         </div>
       </div>
