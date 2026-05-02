@@ -18,7 +18,6 @@ import {
   FinalCTASection,
   AppDownloadSection,
   CursorTrail,
-  StickyMobileCTA,
   AutoLanguageToast,
   TrustLogosBand
 } from '@/components/landing';
@@ -50,7 +49,6 @@ export default function LandingPage() {
         <FinalCTASection />
         <ContactSection />
         <FooterSection />
-        <StickyMobileCTA />
         <AutoLanguageToast />
       </main>
     </HeroThemeProvider>
