@@ -17,6 +17,8 @@ export const navTranslations = {
     publish_to_library: "Kaydet ve Kütüphaneye Yayınla",
     saving: "Kaydediliyor…",
     publishing: "Yayınlanıyor…",
+    trial_creator: "Deneme Oluşturucu",
+    story_creator: "Hikaye Oluşturucu",
     unsaved: "Kaydedilmedi",
   },
 };
