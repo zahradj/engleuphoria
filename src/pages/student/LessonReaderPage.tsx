@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ImmersiveLessonReader } from '@/components/student/lesson-reader/ImmersiveLessonReader';
 import LessonPlayerContainer from '@/components/lesson-player/LessonPlayerContainer';
+import { StoryBookViewer, StoryPage, StoryLayout } from '@/components/student/story-viewer/StoryBookViewer';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -66,9 +67,26 @@ const LessonReaderPage: React.FC = () => {
     );
   }
 
-  // ── Detect slide-based (App-Shell) lessons ──
+  // ── Story-kind lessons get the dedicated immersive viewer ──
+  const isStory = lesson.ai_metadata?.kind === 'story';
   const slides: GeneratedSlide[] | null = lesson.content?.slides || null;
   const hub: HubType = (lesson.content?.hub || lesson.target_system || 'playground') as HubType;
+
+  if (isStory && slides && slides.length > 0) {
+    const storyLayout: StoryLayout =
+      lesson.ai_metadata?.story_layout === 'classic' ? 'classic' : 'immersive';
+    const pages = normalizeSlidesToStoryPages(slides);
+    const cover = lesson.ai_metadata?.coverImageUrl || pages.find((p) => p.imageUrl)?.imageUrl;
+    return (
+      <StoryBookViewer
+        title={lesson.title}
+        pages={pages}
+        layout={storyLayout}
+        coverImageUrl={cover}
+        onExit={() => navigate(-1)}
+      />
+    );
+  }
 
   if (slides && slides.length > 0) {
     return (
