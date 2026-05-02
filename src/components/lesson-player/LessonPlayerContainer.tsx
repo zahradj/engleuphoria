@@ -229,6 +229,8 @@ export default function LessonPlayerContainer({
   const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [feedbackCorrect, setFeedbackCorrect] = useState(false);
   const [feedbackSolution, setFeedbackSolution] = useState('');
+  // Playground-only celebration trigger — incremented on every correct answer.
+  const [playgroundBurstKey, setPlaygroundBurstKey] = useState(0);
 
   const config = HUB_CONFIGS[hub];
   const skin = HUB_SKINS[hub];
