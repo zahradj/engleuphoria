@@ -22,8 +22,10 @@ const HUB_GLOW_COLOR: Record<HubType, string> = {
 
 /**
  * Reusable mouse-tracking radial glow wrapper.
- * Adapts color based on hubType. Place this around any dark layout
- * to get an ambient cursor-following glow that stays behind content.
+ * - Listens on `window` so the glow follows the cursor anywhere on screen,
+ *   even when content above intercepts pointer events.
+ * - Glow layer is `fixed inset-0 z-0 pointer-events-none` so it covers the
+ *   whole viewport behind the content and never steals clicks.
  */
 const HubGlowWrapper = ({
   hubType = 'Academy',
@@ -31,11 +33,11 @@ const HubGlowWrapper = ({
   children,
   radius = 600,
 }: HubGlowWrapperProps) => {
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const glowRef = useRef<HTMLDivElement>(null);
   const color = HUB_GLOW_COLOR[hubType];
 
   useEffect(() => {
-    const el = wrapperRef.current;
+    const el = glowRef.current;
     if (!el) return;
 
     // Center the glow on mount (handles touch devices that never fire mousemove).
@@ -47,9 +49,9 @@ const HubGlowWrapper = ({
     let nextY = 0;
 
     const handleMove = (e: MouseEvent) => {
-      const rect = el.getBoundingClientRect();
-      nextX = e.clientX - rect.left;
-      nextY = e.clientY - rect.top;
+      // Use viewport coords directly because the glow layer is `fixed`.
+      nextX = e.clientX;
+      nextY = e.clientY;
       if (frame) return;
       frame = requestAnimationFrame(() => {
         el.style.setProperty('--mouse-x', `${nextX}px`);
@@ -58,24 +60,25 @@ const HubGlowWrapper = ({
       });
     };
 
-    el.addEventListener('mousemove', handleMove);
+    window.addEventListener('mousemove', handleMove, { passive: true });
     return () => {
-      el.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mousemove', handleMove);
       if (frame) cancelAnimationFrame(frame);
     };
   }, []);
 
   return (
-    <div ref={wrapperRef} className={cn('relative w-full h-full overflow-hidden', className)}>
-      {/* Ambient hub-branded cursor glow — always behind content */}
+    <div className={cn('relative w-full min-h-screen overflow-hidden', className)}>
+      {/* Ambient hub-branded cursor glow — fixed to viewport, behind content, ignores pointer events */}
       <div
+        ref={glowRef}
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-300"
+        className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-300"
         style={{
           background: `radial-gradient(${radius}px circle at var(--mouse-x) var(--mouse-y), ${color}, transparent 40%)`,
         }}
       />
-      {children}
+      <div className="relative z-10">{children}</div>
     </div>
   );
 };
