@@ -24,6 +24,7 @@ import { uploadSlideAsset } from './uploadSlideAsset';
 import {
   generateSlideImage, generateSlideVoiceover, generateSlideMusic,
 } from './mediaGeneration';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface Props {
