@@ -1,86 +1,33 @@
-# Classroom Sync + Branded Front Page
+# Per-Panel Image Generation in Story Studio
 
-## Root cause #1 — Student sees "Waiting for teacher" forever
+## Problem
 
-The teacher creates the row in `classroom_sessions` with `room_id = booking.id` (the `class_bookings` primary key), because `UnifiedClassroomPage` passes `classId={booking.id}` and `TeacherClassroom` uses that verbatim as `roomName`.
+Story slides (comic / webtoon / picture-book / comic-spread layouts) are made of multiple panels stored in `slide.interactive_data.panels[]`. Each panel has its own `image_prompt`, `caption`, and `image_url`. The current Visuals editor only exposes ONE prompt field and ONE "Generate Image (AI)" button that writes to the slide-level `custom_image_url`, which only fills the first panel (via the fallback in `storyPageUtils.normalizeSlidesToStoryPages`). Result: only the top image of a multi-panel page ever gets art when generating from the editor.
 
-But the student-side RLS policy on `classroom_sessions` only matches:
-- `cb.classroom_id::text = room_id`, OR
-- `cb.session_id = sessions.id::text`
+The bulk "Generate Images" button in the top bar already calls `generate-all-media`, which on the server iterates panels and generates one image per panel. So the backend is fine — the UI just doesn't let the user trigger generation for an individual panel.
 
-Neither column equals `booking.id`, so `getActiveSession()` returns `null`, the slide-index polling query also returns nothing, and the student stays stuck on the placeholder slide. Slide changes never sync because the student can never read the row.
+## Fix
 
-### Fix — DB migration
+Add a Per-Panel block to `VisualsPanel` in `src/components/creator-studio/steps/slide-studio/TeacherControlsPanel.tsx`. When the active slide has `interactive_data.panels.length > 0`, render one card per panel with:
 
-Replace the student SELECT policy on `public.classroom_sessions` with one that ALSO accepts `cb.id::text = room_id`:
+- A small thumbnail of the current `image_url` (or "No image").
+- "Panel N" label + caption preview.
+- An editable per-panel `image_prompt` textarea (saves to `panels[i].image_prompt`).
+- A "Generate" / "Regenerate" button that calls `generateSlideImage(prompt, lessonId, slideId__pN, hub)` and writes the returned URL to `panels[i].image_url` and `panels[i].imageUrl` via `onChange({ interactive_data: { ...prev, panels: nextPanels } })`.
+- Independent loading state per panel so a slow generation doesn't block other panels.
 
-```sql
-DROP POLICY IF EXISTS "Students with bookings can view their classroom sessions"
-  ON public.classroom_sessions;
+The slide-level prompt + "Generate Image" button are kept as a fallback for non-paneled layouts and renamed to "Slide Hero" when panels exist.
 
-CREATE POLICY "Students with bookings can view their classroom sessions"
-ON public.classroom_sessions
-FOR SELECT
-USING (
-  EXISTS (
-    SELECT 1 FROM public.class_bookings cb
-    WHERE cb.student_id = auth.uid()
-      AND (
-        cb.id::text = classroom_sessions.room_id           -- NEW: matches booking.id
-        OR cb.classroom_id::text = classroom_sessions.room_id
-        OR cb.session_id = classroom_sessions.id::text
-      )
-      AND cb.status <> ALL (ARRAY['cancelled','refunded'])
-  )
-);
-```
+## Why this works end-to-end
 
-(Teacher/admin policies are already correct and unchanged.)
-
-## Root cause #2 — Slide 1 has no Engleuphoria branding
-
-`LibraryDrawer.onSelectLesson` only forwards `(slides, title)`. The teacher's first slide is just the AI's vocab intro ("New Words for New Friends!") with no logo, hub badge, level chip, unit number, or lesson number.
-
-### Fix — Auto-prepend a `front_page` slide in `TeacherClassroom.tsx`
-
-Inside the existing `<LibraryDrawer onSelectLesson={...}>` handler (around line 739), if the loaded deck doesn't already start with a `front_page` / `title_page` slide, prepend a synthetic one built from the booking's `hubType` + lesson title + (when present) `level` / `unit_number` / `unit_title` / `subtitle` / first-slide cover image:
-
-```ts
-const first = mapped[0];
-const meta = (selectedSlides as any)?.[0] || {};
-const hasFront = first?.slide_type === 'front_page'
-              || first?.slide_type === 'title_page'
-              || first?.type === 'front_page';
-
-const liveSlides = hasFront ? mapped : [
-  {
-    id: 'front-page',
-    slide_type: 'front_page',
-    type: 'front_page',
-    title,
-    topic: meta.topic,
-    subtitle: meta.subtitle,
-    level: meta.level || meta.cefr_level || meta.difficulty_level,
-    hub: hubType,
-    unitNumber: meta.unit_number ?? meta.unitNumber,
-    unitTitle: meta.unit_title ?? meta.unitTitle,
-    coverImageUrl: first?.imageUrl,
-  },
-  ...mapped,
-];
-```
-
-The renderer (`DynamicSlideRenderer` → `FrontPageSlide`) already handles every one of those fields: full-bleed cover, dark cinematic overlay, Engleuphoria logo top-left, hub label + CEFR badge top-right, centered hero title with unit/lesson line and accent bar. No renderer changes needed.
-
-After the patch, `currentSlide` indices stay in sync because the prepended slide is part of `lesson_slides`, which is broadcast to the student via `updateSharedDisplay` exactly like the rest of the deck.
+- `generateSlideImage` already returns a stored URL, so the new image renders immediately in the live `StoryBookViewer` preview on the left.
+- `interactive_data.panels` is the same shape the bulk job produces, so dirty-tracking, persistence (`persistLesson`), and the student reader all work without further changes.
+- `slidesNeedingArt` and the `🎨 X/Y panels` counter in `StoryStudioCanvas` already count individual panels — once a panel gets a URL, the counter ticks up.
 
 ## Files touched
 
-- `supabase/migrations/<new>_fix_student_classroom_session_rls.sql` — the policy replacement above
-- `src/components/teacher/classroom/TeacherClassroom.tsx` — front-page prepend in the LibraryDrawer handler
+- `src/components/creator-studio/steps/slide-studio/TeacherControlsPanel.tsx` — extend `VisualsPanel` only. No other components or edge functions need changes.
 
-## Verification
+## Out of scope
 
-1. Student joins an in-progress booking → classroom_sessions row is now visible to them, "Waiting for teacher…" disappears immediately.
-2. Teacher hits Next → student's `current_slide_index` updates within ~1s (Realtime + 3s polling fallback).
-3. Slide 1 of any newly-loaded lesson shows: Engleuphoria logo, hub badge ("Academy"), CEFR chip, "Unit X: …" line, big lesson title, accent bar — the cinematic FrontPageSlide.
+- Click-on-panel-in-preview-to-regenerate. The `StoryBookViewer` is the student-facing reader and isn't aware of authoring; making it editable would require threading callbacks through 4 viewer variants. The Panels card in the right-hand editor delivers the same outcome with one click and zero risk to the reader. Can revisit later if the user wants the in-preview affordance too.

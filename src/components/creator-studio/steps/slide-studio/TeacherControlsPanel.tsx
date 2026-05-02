@@ -842,6 +842,47 @@ const VisualsPanel: React.FC<Props> = ({ slide, onChange }) => {
   const hasAsset = !!(slide.custom_image_url || slide.custom_video_url);
   const isGame = isGameSlideType(slide.slide_type);
 
+  // ── Per-panel state (story slides with interactive_data.panels) ──
+  const panels: any[] = Array.isArray((slide as any)?.interactive_data?.panels)
+    ? ((slide as any).interactive_data.panels as any[])
+    : [];
+  const [panelBusy, setPanelBusy] = useState<Record<number, boolean>>({});
+
+  const updatePanel = (idx: number, patch: Record<string, unknown>) => {
+    const next = panels.map((p, i) => (i === idx ? { ...p, ...patch } : p));
+    onChange({
+      interactive_data: {
+        ...((slide as any).interactive_data || {}),
+        panels: next,
+      },
+    } as any);
+  };
+
+  const handleGeneratePanel = async (idx: number) => {
+    const p = panels[idx] || {};
+    const prompt = String(
+      p.image_prompt || p.imagePrompt ||
+      slide.image_generation_prompt || slide.visual_keyword || slide.title || ''
+    ).trim();
+    if (!prompt) {
+      toast.error(`Add an image prompt for panel ${idx + 1} first.`);
+      return;
+    }
+    try {
+      setPanelBusy((s) => ({ ...s, [idx]: true }));
+      const { url } = await generateSlideImage(
+        prompt, lessonId, `${slide.id}__p${idx}`, activeLessonData?.hub,
+      );
+      updatePanel(idx, { image_url: url, imageUrl: url });
+      toast.success(`Panel ${idx + 1} illustrated.`);
+    } catch (err) {
+      console.error(err);
+      toast.error((err as Error).message || `Panel ${idx + 1} generation failed.`);
+    } finally {
+      setPanelBusy((s) => ({ ...s, [idx]: false }));
+    }
+  };
+
   return (
     <div className="space-y-4">
       {isGame && (
@@ -860,8 +901,69 @@ const VisualsPanel: React.FC<Props> = ({ slide, onChange }) => {
           </div>
         </div>
       )}
+
+      {/* ── Per-Panel Generation (multi-panel story slides) ── */}
+      {panels.length > 0 && (
+        <div className="rounded-xl border border-fuchsia-200 dark:border-fuchsia-900/40 bg-fuchsia-50/60 dark:bg-fuchsia-950/20 p-3 space-y-3">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-bold uppercase tracking-wider text-fuchsia-700 dark:text-fuchsia-200">
+              🎞️ Panels ({panels.length})
+            </Label>
+            <span className="text-[10px] font-semibold text-fuchsia-600/80 dark:text-fuchsia-300/70">
+              Generate each panel individually
+            </span>
+          </div>
+          {panels.map((p, i) => {
+            const url = p?.image_url || p?.imageUrl;
+            const busy = !!panelBusy[i];
+            const promptVal = String(p?.image_prompt ?? p?.imagePrompt ?? '');
+            return (
+              <div key={i} className="rounded-lg border border-fuchsia-200/70 dark:border-fuchsia-900/40 bg-white dark:bg-slate-900 p-2.5 space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="h-14 w-20 shrink-0 rounded-md overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] text-slate-400">
+                    {url ? (
+                      <img src={url} alt={`Panel ${i + 1}`} className="h-full w-full object-cover" />
+                    ) : (
+                      'No image'
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[11px] font-bold text-slate-700 dark:text-slate-200">
+                      Panel {i + 1}
+                    </div>
+                    {p?.caption && (
+                      <div className="text-[10px] text-slate-500 truncate">{p.caption}</div>
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    type="button"
+                    onClick={() => handleGeneratePanel(i)}
+                    disabled={busy}
+                    className="gap-1 bg-fuchsia-500 hover:bg-fuchsia-400 text-white border-0 h-8 text-[11px]"
+                  >
+                    {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wand2 className="h-3 w-3" />}
+                    {url ? 'Regenerate' : 'Generate'}
+                  </Button>
+                </div>
+                <Textarea
+                  rows={2}
+                  value={promptVal}
+                  onChange={(e) => updatePanel(i, { image_prompt: e.target.value })}
+                  placeholder="Image prompt for this panel — Nano Banana 2 will illustrate it."
+                  className="text-[11px] leading-snug"
+                />
+              </div>
+            );
+          })}
+          <p className="text-[10px] text-fuchsia-600/80 dark:text-fuchsia-300/70 leading-relaxed">
+            The slide-level prompt below is used as a fallback when a panel has no prompt of its own.
+          </p>
+        </div>
+      )}
+
       <PromptField
-        label="Image Prompt"
+        label={panels.length > 0 ? 'Slide-level Image Prompt (fallback)' : 'Image Prompt'}
         icon={ImageIcon}
         value={slide.image_generation_prompt ?? ''}
         onChange={(v) => onChange({ image_generation_prompt: v })}
@@ -872,7 +974,7 @@ const VisualsPanel: React.FC<Props> = ({ slide, onChange }) => {
         disabled={generating || !(slide.image_generation_prompt || '').trim()}
         className="w-full bg-gradient-to-r from-fuchsia-500 to-violet-600 hover:from-fuchsia-600 hover:to-violet-700 text-white font-bold">
         {generating ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Wand2 className="h-4 w-4 mr-1.5" />}
-        🪄 Generate Image (AI)
+        🪄 {panels.length > 0 ? 'Generate Slide Hero (single image)' : 'Generate Image (AI)'}
       </Button>
 
       <div className="h-px bg-slate-200 dark:bg-slate-800" />
