@@ -114,12 +114,12 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
   const isCollapsed = state === "collapsed";
 
   return (
-    <Sidebar collapsible="icon" className={`border-r backdrop-blur-xl transition-colors duration-300 ${
+    <Sidebar collapsible="icon" className={`border-r transition-colors duration-300 ${
       isDark
-        ? 'bg-black/30 border-white/8'
-        : 'bg-white/50 border-black/5'
+        ? 'bg-slate-900 md:bg-black/30 md:backdrop-blur-xl border-white/10 md:border-white/8'
+        : 'bg-white md:bg-white/50 md:backdrop-blur-xl border-slate-200 md:border-black/5'
     }`}>
-      <SidebarContent>
+      <SidebarContent className={isDark ? 'text-slate-100' : 'text-slate-700'}>
         {/* Brand / Logo header */}
         <div className={`px-4 py-4 mx-2 mt-2 rounded-xl ${isDark ? 'bg-white/5' : 'bg-black/3'}`}>
           <button

@@ -1,14 +1,13 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Home, BookOpen, Calendar, Trophy, User } from 'lucide-react';
+import { Home, Route as RouteIcon, BookMarked, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useStudentLevel } from '@/hooks/useStudentLevel';
 
 export type StudentNavTab =
   | 'dashboard'
   | 'learning-path'
-  | 'upcoming-classes'
-  | 'certificates'
+  | 'homework'
   | 'profile';
 
 interface MobileBottomNavProps {
@@ -19,9 +18,8 @@ interface MobileBottomNavProps {
 
 const NAV_ITEMS: { id: StudentNavTab; icon: typeof Home; labelKey: string }[] = [
   { id: 'dashboard', icon: Home, labelKey: 'sd.nav.home' },
-  { id: 'learning-path', icon: BookOpen, labelKey: 'sd.nav.lessons' },
-  { id: 'upcoming-classes', icon: Calendar, labelKey: 'sd.nav.classes' },
-  { id: 'certificates', icon: Trophy, labelKey: 'sd.nav.awards' },
+  { id: 'learning-path', icon: RouteIcon, labelKey: 'sd.menu.learningPath' },
+  { id: 'homework', icon: BookMarked, labelKey: 'sd.menu.homework' },
   { id: 'profile', icon: User, labelKey: 'sd.nav.profile' },
 ];
 
@@ -56,14 +54,14 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     <nav
       className={cn(
         'fixed bottom-0 inset-x-0 z-40 md:hidden',
-        'bg-card/90 backdrop-blur-xl border-t border-border/60',
+        'bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800',
         'shadow-[0_-4px_20px_-6px_rgba(0,0,0,0.15)]',
         className
       )}
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       aria-label={t('sd.nav.aria')}
     >
-      <ul className="grid grid-cols-5 gap-1 px-2 pt-2 pb-2">
+      <ul className="grid grid-cols-4 gap-1 px-2 pt-2 pb-2">
         {NAV_ITEMS.map(({ id, icon: Icon, labelKey }) => {
           const isActive = activeTab === id;
           const label = t(labelKey);
