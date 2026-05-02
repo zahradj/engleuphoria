@@ -5,6 +5,13 @@ import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConf
 import PipMascot from '../PipMascot';
 import { Volume2, Loader2 } from 'lucide-react';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
+import { SlideBrandHeader } from './SlideBrandHeader';
+
+const HUB_VOCAB_LABEL: Record<HubType, string> = {
+  playground: 'Playground Vocabulary Card',
+  academy: 'Academy Vocabulary Card',
+  professional: 'Success Hub Vocabulary Card',
+};
 
 // Kid-friendly voice IDs from ElevenLabs
 const VOICE_IDS = {
@@ -35,9 +42,14 @@ export default function SlideVocabulary({ slide, hub }: Props) {
 
   return (
     <div className="flex flex-col items-center gap-5 p-6 w-full text-center">
-      <h2 className="text-sm font-bold uppercase tracking-widest opacity-60" style={{ color: config.colorPalette.primary }}>
-        New Vocabulary
-      </h2>
+      <SlideBrandHeader hub={hub} label={HUB_VOCAB_LABEL[hub]} />
+
+      <h1
+        className="text-3xl md:text-4xl font-extrabold uppercase tracking-tight"
+        style={{ color: config.colorPalette.primary }}
+      >
+        {word}
+      </h1>
 
       {/* Voice Toggle */}
       <div className="flex items-center gap-2">

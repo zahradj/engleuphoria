@@ -76,10 +76,10 @@ export const MainStage: React.FC<MainStageProps> = ({
   useCollapseWatcher(stageRef, `main-stage[${role}/${mode}]`);
 
   return (
-    <div className="absolute inset-0 h-full w-full flex items-stretch justify-stretch p-1 sm:p-2 min-h-0 min-w-0">
+    <div className="absolute inset-0 h-full w-full flex items-stretch justify-stretch min-h-0 min-w-0">
       <div
         ref={stageRef}
-        className="relative flex-1 w-full h-full bg-white rounded-lg shadow-xl overflow-hidden border border-border"
+        className="relative flex-1 w-full h-full bg-white overflow-hidden"
       >
         {/* Underlying content (slide / web / blank / native game) */}
         <StageContent
@@ -111,16 +111,9 @@ export const MainStage: React.FC<MainStageProps> = ({
           iframeUnlocked={iframeUnlocked}
         />
 
-        {/* Mode badge (top-left) */}
-        <div className="absolute top-3 left-3 z-[60] flex items-center gap-2 pointer-events-none">
-          <Badge
-            variant="secondary"
-            className="flex items-center gap-1.5 bg-background/90 backdrop-blur-sm border border-border shadow-sm text-foreground"
-          >
-            <Icon className="h-3 w-3" />
-            {label}
-          </Badge>
-          {role === 'student' && (
+        {/* Student-only "Teacher is presenting" pill */}
+        {role === 'student' && (
+          <div className="absolute top-3 left-3 z-[60] flex items-center gap-2 pointer-events-none">
             <Badge
               variant="secondary"
               className="flex items-center gap-1.5 bg-background/90 backdrop-blur-sm border border-border shadow-sm text-foreground"
@@ -128,8 +121,8 @@ export const MainStage: React.FC<MainStageProps> = ({
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Teacher is presenting
             </Badge>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Slide counter (only in slide mode) */}
         {mode === 'slide' && slides.length > 0 && (

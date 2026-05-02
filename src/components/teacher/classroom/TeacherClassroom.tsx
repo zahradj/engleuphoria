@@ -71,6 +71,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   const [wrapUpOpen, setWrapUpOpen] = useState(false);
   const [isZenMode, setIsZenMode] = useState(false);
   const [zenElapsed, setZenElapsed] = useState(0);
+  const [commsCollapsed, setCommsCollapsed] = useState(true);
 
   // Star celebration state
   const [studentStars, setStudentStars] = useState(0);
@@ -553,6 +554,8 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
         {!isZenMode && (
           <div style={sidebarIdle.style} onMouseMove={sidebarIdle.onMouseMove} onMouseEnter={sidebarIdle.onMouseEnter}>
           <CommunicationZone
+              collapsed={commsCollapsed}
+              onToggleCollapsed={() => setCommsCollapsed(v => !v)}
               studentName={studentName}
               teacherName={teacherName}
               onGiveStar={handleGiveStar}
