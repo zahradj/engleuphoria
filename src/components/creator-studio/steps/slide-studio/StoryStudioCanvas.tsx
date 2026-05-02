@@ -207,6 +207,16 @@ export const StoryStudioCanvas: React.FC = () => {
           </Button>
           <Button
             size="sm"
+            className="gap-1.5 bg-emerald-500 hover:bg-emerald-400 text-white border-0 font-bold"
+            onClick={handleSaveToLibrary}
+            disabled={saving || !activeLessonData}
+            title="Save the full story (panels, dialogue, images) to your library"
+          >
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Library className="h-4 w-4" />}
+            💾 Save to Library
+          </Button>
+          <Button
+            size="sm"
             variant="outline"
             className="gap-1.5 bg-white/10 text-white border-white/20 hover:bg-white/20"
             onClick={() => {
