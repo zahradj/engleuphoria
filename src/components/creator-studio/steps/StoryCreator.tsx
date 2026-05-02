@@ -189,6 +189,7 @@ export const StoryCreator: React.FC = () => {
           genre,
           target_vocabulary: words,
           linked_lesson: linked_lesson_payload,
+          visual_style: visualStyle,
         },
       });
       if (fnErr) {
@@ -204,16 +205,26 @@ export const StoryCreator: React.FC = () => {
         throw new Error('AI returned an invalid story.');
       }
 
-      const narrativeSlides: PPPSlide[] = (story.slides as any[]).slice(0, 5).map((s, i) => ({
-        id: uid(),
-        phase: 'presentation',
-        slide_type: 'text_image',
-        title: `Page ${i + 1}`,
-        content: s.narrative || '',
-        teacher_script: s.narrative || '',
-        visual_keyword: s.image_prompt?.split(' ').slice(0, 3).join(' ') || genre,
-        image_generation_prompt: s.image_prompt || '',
-      }));
+      const isPaneled = visualStyle !== 'classic';
+
+      const narrativeSlides: PPPSlide[] = (story.slides as any[])
+        .slice(0, visualStyle === 'webtoon' ? 1 : 5)
+        .map((s, i) => {
+          const panels = Array.isArray(s.panels) ? s.panels : null;
+          const firstPanelPrompt = panels?.[0]?.image_prompt || s.image_prompt || '';
+          return {
+            id: uid(),
+            phase: 'presentation',
+            slide_type: 'text_image',
+            title: `Page ${i + 1}`,
+            content: s.narrative || s.caption || '',
+            teacher_script: s.narrative || s.caption || '',
+            visual_keyword: (firstPanelPrompt as string).split(' ').slice(0, 3).join(' ') || genre,
+            image_generation_prompt: firstPanelPrompt,
+            // Carry panels through interactive_data so the viewer can render them.
+            ...(panels ? { interactive_data: { panels } as any } : {}),
+          } as PPPSlide;
+        });
 
       const compSlides: PPPSlide[] = (Array.isArray(story.comprehension) ? story.comprehension : [])
         .slice(0, 2)
@@ -251,12 +262,18 @@ export const StoryCreator: React.FC = () => {
         parent_lesson_id: linkedLessonId,
       };
 
+      // Legacy `story_layout` for older viewer code: classic stays classic,
+      // every paneled style maps to immersive (full-bleed) as a safe fallback.
+      const legacyLayout = visualStyle === 'classic' ? 'classic' : 'immersive';
+
       const result = await persistLesson(lesson, slides, false, 'story', {
-        story_layout: layoutStyle,
+        visual_style: visualStyle,
+        story_layout: legacyLayout,
         linked_lesson_id: linkedLessonId,
         linked_lesson_title: linkedLesson?.title ?? null,
       });
       if (result.ok === false) throw new Error(result.error);
+
 
       setActiveLessonData({ ...lesson, lesson_id: result.lesson_id });
       setDirty(false);
