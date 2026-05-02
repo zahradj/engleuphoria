@@ -56,24 +56,44 @@ export function usePlacementTest() {
     const cefrLevel = calculateCefrLevel(correctCount, total);
     const { level, track } = evaluateStudentLevel(age, correctCount, total, avgComplexity);
 
-    const updateData: Record<string, unknown> = {
+    const completedAt = new Date().toISOString();
+    const upsertData: Record<string, unknown> = {
+      user_id: user.id,
       student_level: level,
+      hub_type: level, // MyPathPage / dashboard router read hub_type
       cefr_level: cefrLevel,
       onboarding_completed: true,
       placement_test_score: score,
-      placement_test_completed_at: new Date().toISOString(),
+      placement_test_completed_at: completedAt,
     };
 
     if (interests.length > 0) {
-      updateData.interests = interests;
+      upsertData.interests = interests;
     }
 
+    // Use upsert so this works even if the signup row was never created
+    // (prevents a silent no-op that re-triggers the placement gatekeeper loop).
     const { error } = await supabase
       .from('student_profiles')
-      .update(updateData)
-      .eq('user_id', user.id);
+      .upsert(upsertData as any, { onConflict: 'user_id' });
 
-    if (error) throw error;
+    if (error) {
+      console.error('[usePlacementTest] Failed to persist placement result:', error);
+      throw error;
+    }
+
+    // Verify the write actually landed before we navigate away — guarantees
+    // the gatekeeper / guards see placement_test_completed_at on next read.
+    const { data: verify } = await supabase
+      .from('student_profiles')
+      .select('placement_test_completed_at, cefr_level')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (!verify?.placement_test_completed_at) {
+      console.error('[usePlacementTest] Placement write did not persist:', verify);
+      throw new Error('Could not save your placement result. Please try again.');
+    }
 
     // After placement, hand the student off to the My Path reveal page —
     // the dashboard router is no longer the immediate destination.
