@@ -144,7 +144,7 @@ export function HeroSection() {
         }`}
       />
 
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12 sm:py-28 lg:py-0">
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 pt-32 sm:pt-36 pb-12 sm:py-28 lg:py-0">
         <div className="grid lg:grid-cols-2 gap-6 lg:gap-16 items-center min-h-[auto] lg:min-h-[85vh]">
 
           {/* Left: Content — show first on mobile */}
