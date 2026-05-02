@@ -215,6 +215,14 @@ export const StoryStudioCanvas: React.FC = () => {
           )}
         </div>
         <div className="flex items-center gap-2">
+          {totalPanelSlots > 0 && (
+            <span
+              className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded bg-fuchsia-500/15 text-fuchsia-200"
+              title={`${filledPanelSlots} of ${totalPanelSlots} panels illustrated`}
+            >
+              🎨 {filledPanelSlots}/{totalPanelSlots} panels
+            </span>
+          )}
           <span
             className={cn(
               'text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded',
