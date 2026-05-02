@@ -33,6 +33,7 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
     { id: "analytics", label: "Analytics", icon: TrendingUp },
     { id: "payments", label: "Payments", icon: CreditCard },
     { id: "communications", label: "Communications", icon: Radio },
+    { id: "inbox", label: "Contact Inbox", icon: Inbox },
     { id: "email-log", label: "Email Log", icon: Mail },
     { id: "settings", label: "Settings", icon: Settings },
   ];
