@@ -642,7 +642,7 @@ Rules:
       return jsonResponse({ error: 'AI returned an unparseable trial lesson.' }, 502);
     }
     // Enforce 6-8 slides
-    if (lesson.slides.length > 8) lesson.slides = lesson.slides.slice(0, 8);
+    if (lesson.slides.length > 9) lesson.slides = lesson.slides.slice(0, 9);
     return jsonResponse({ lesson, provider: ai.provider });
   } catch (e: any) {
     if (e?.status === 429) return jsonResponse({ error: 'Rate limited — try again shortly.' }, 429);
