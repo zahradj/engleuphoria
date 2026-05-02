@@ -6,6 +6,7 @@
 //   - fill_in_blanks
 //
 // Uses the Lovable AI Gateway with tool-calling for strict structured output.
+import { aiFetch } from "../_shared/aiFetch.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -152,7 +153,7 @@ Generate one worksheet JSON with all four game arrays. Make sure the
 in a different order, and that every "sentence_with_blank" contains exactly
 one "___" placeholder.`;
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const aiResponse = await aiFetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${LOVABLE_API_KEY}`,

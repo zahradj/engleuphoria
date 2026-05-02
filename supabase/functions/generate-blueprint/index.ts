@@ -16,6 +16,7 @@ import {
   type PedagogicalFramework,
 } from "../_shared/hubProfiles.ts";
 
+import { aiFetch } from "../_shared/aiFetch.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -288,7 +289,7 @@ Draft the lesson blueprint now. Pick the best pedagogical framework and emit its
     // Up to 3 attempts. On JSON-parse failure or missing tool_call, append a
     // corrective instruction and retry. After 3 fails, return graceful UI error.
     const callGemini = async (extraInstruction: string) => {
-      return await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      return await aiFetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
