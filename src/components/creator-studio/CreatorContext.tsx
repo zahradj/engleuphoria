@@ -295,10 +295,18 @@ export const CreatorProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (inFlight.current) return;
       inFlight.current = true;
       try {
+        const kind = activeLessonData.kind ?? 'standard';
+        const extra: Record<string, unknown> = {};
+        if (activeLessonData.visual_style) extra.visual_style = activeLessonData.visual_style;
+        if (activeLessonData.story_layout) extra.story_layout = activeLessonData.story_layout;
+        if (activeLessonData.parent_lesson_id !== undefined) extra.linked_lesson_id = activeLessonData.parent_lesson_id;
+        if (activeLessonData.linked_lesson_title !== undefined) extra.linked_lesson_title = activeLessonData.linked_lesson_title;
         const result = await persistLesson(
           activeLessonData,
           activeLessonData.slides,
           false, // autosave never publishes
+          kind,
+          Object.keys(extra).length ? extra : undefined,
         );
         if (result.ok === false) {
           const msg = result.error;
