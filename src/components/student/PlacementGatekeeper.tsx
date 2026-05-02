@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, GraduationCap, Briefcase, Lock, ArrowRight, Loader2, Smile } from 'lucide-react';
+import { Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,8 @@ import PlaygroundPlacementPhase from '@/components/placement/PlaygroundPlacement
 import { usePlacementTest } from '@/hooks/usePlacementTest';
 import type { StudentLevel } from '@/hooks/useStudentLevel';
 import { Logo } from '@/components/Logo';
+import HubGlowWrapper, { type HubType as GlowHubType } from '@/components/HubGlowWrapper';
+import logoWhite from '@/assets/logo-white.png';
 
 type Phase = 'welcome' | 'demographics' | 'test' | 'processing' | 'celebrate';
 
@@ -26,7 +28,7 @@ interface PlacementGatekeeperProps {
 const HUB_THEME = {
   playground: {
     name: 'The Playground',
-    icon: Smile,
+    glowHub: 'Playground' as GlowHubType,
     gradient: 'from-orange-500 via-amber-500 to-yellow-400',
     accent: 'from-orange-400 to-amber-300',
     accentText: 'text-amber-100',
@@ -35,7 +37,7 @@ const HUB_THEME = {
   },
   academy: {
     name: 'The Academy',
-    icon: GraduationCap,
+    glowHub: 'Academy' as GlowHubType,
     gradient: 'from-indigo-950 via-purple-900 to-violet-950',
     accent: 'from-violet-500 to-fuchsia-500',
     accentText: 'text-violet-300',
@@ -44,7 +46,7 @@ const HUB_THEME = {
   },
   professional: {
     name: 'The Success Hub',
-    icon: Briefcase,
+    glowHub: 'Professional' as GlowHubType,
     gradient: 'from-emerald-950 via-teal-900 to-emerald-950',
     accent: 'from-emerald-500 to-teal-500',
     accentText: 'text-emerald-300',
@@ -165,7 +167,6 @@ export const PlacementGatekeeper = ({
   }
 
   const theme = HUB_THEME[themeKey];
-  const Icon = theme.icon;
 
   // Kids skip Demographics — we already know they're in Playground (4-9).
   // Default age 7 keeps evaluateStudentLevel pinned to playground while still
@@ -180,7 +181,8 @@ export const PlacementGatekeeper = ({
   };
 
   return (
-    <div
+    <HubGlowWrapper
+      hubType={theme.glowHub}
       className={`min-h-screen w-full bg-gradient-to-br ${theme.gradient} flex items-center justify-center p-4 relative overflow-hidden`}
     >
       {/* Ambient blobs */}
@@ -200,8 +202,13 @@ export const PlacementGatekeeper = ({
               className={`backdrop-blur-2xl bg-white/10 border border-white/20 rounded-3xl p-10 ${theme.glow}`}
             >
               <div className="flex justify-center mb-6">
-                <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${theme.accent} flex items-center justify-center`}>
-                  <Icon className="w-10 h-10 text-white" />
+                <div className={`w-24 h-24 rounded-2xl bg-white/10 backdrop-blur-md ring-1 ring-white/20 flex items-center justify-center px-4`}>
+                  <img
+                    src={logoWhite}
+                    alt="EnglEuphoria"
+                    className="h-10 w-auto object-contain select-none pointer-events-none"
+                    draggable={false}
+                  />
                 </div>
               </div>
               <div className="flex items-center justify-center gap-2 mb-3">
@@ -311,12 +318,17 @@ export const PlacementGatekeeper = ({
               className={`backdrop-blur-2xl bg-white/10 border border-white/20 rounded-3xl p-12 text-center ${theme.glow}`}
             >
               <motion.div
-                initial={{ scale: 0, rotate: -180 }}
+                initial={{ scale: 0, rotate: -10 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ type: 'spring', duration: 0.8 }}
-                className={`w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br ${theme.accent} flex items-center justify-center`}
+                className={`w-28 h-28 mx-auto mb-6 rounded-full bg-white/10 backdrop-blur-md ring-1 ring-white/20 flex items-center justify-center px-5`}
               >
-                <Sparkles className="w-12 h-12 text-white" />
+                <img
+                  src={logoWhite}
+                  alt="EnglEuphoria"
+                  className="h-12 w-auto object-contain select-none pointer-events-none"
+                  draggable={false}
+                />
               </motion.div>
               <p className={`text-sm uppercase tracking-widest font-semibold ${theme.accentText} mb-2`}>
                 Your Level
@@ -337,7 +349,7 @@ export const PlacementGatekeeper = ({
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </HubGlowWrapper>
   );
 };
 
