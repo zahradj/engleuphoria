@@ -101,6 +101,14 @@ const CEFR_MASTER_QUESTIONS: Question[] = [
     correctIndex: 1, difficulty: 0.65, targetLevel: 'B1',
     feedback: { correct: "Right! Short adjectives add '-er'. 📱", incorrect: "Short adjectives form the comparative with '-er' → 'faster'." },
   },
+  {
+    question: "🎧 Listen carefully. What is the speaker about to do?",
+    options: ["Go shopping for food", "Cook dinner at home", "Clean the kitchen", "Watch a film"],
+    correctIndex: 0, difficulty: 0.7, targetLevel: 'B1',
+    type: 'listening_match',
+    audio_script: "I'm just heading to the supermarket to pick up some bread and milk for breakfast tomorrow.",
+    feedback: { correct: "Excellent listening! 🛒", incorrect: "The speaker is going to the supermarket — that's shopping for food. 🛒" },
+  },
 
   // ===== B2 (Upper Intermediate) — Questions 10-12 =====
   {
