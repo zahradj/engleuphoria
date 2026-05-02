@@ -50,6 +50,9 @@ interface StudentMainStageProps {
   stageMode: StageMode;
   drawingEnabled: boolean;
   iframeUnlocked?: boolean;
+  /** Raw GeneratedSlide payloads (premium renderer source). */
+  rawSlides?: any[];
+  hubType?: 'playground' | 'academy' | 'professional';
   onAddStroke: (stroke: Omit<WhiteboardStroke, 'id' | 'roomId' | 'timestamp'>) => void;
   onSlideComplete?: (slideIndex: number, slideId: string, accuracy?: number, timeSpent?: number) => void;
 }
