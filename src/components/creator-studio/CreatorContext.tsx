@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useRef, useState 
 import { toast } from 'sonner';
 import { persistLesson } from './persistLesson';
 
-export type CreatorStep = 'blueprint' | 'slide-builder' | 'library';
+export type CreatorStep = 'blueprint' | 'slide-builder' | 'library' | 'trial' | 'story';
 
 export type CEFRLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 export type HubType = 'playground' | 'academy' | 'success';
