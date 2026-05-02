@@ -1,62 +1,74 @@
-# Booking Modal — "No Available Slots" Fix
+## Root Cause (confirmed via pg_policies audit)
 
-## What the investigation found
+The "Slot no longer available" error is a hard RLS deadlock, not a race condition:
 
-- **RLS is already correct.** `teacher_availability` has a permissive SELECT policy: `Authenticated users can view available slots` → `is_available = true AND is_booked = false AND start_time > now()` for role `authenticated`. No RLS change is needed.
-- **The data exists.** The one active teacher (`academy_mentor`) has 89 future, unbooked 60-minute slots in the DB right now. The query the modal runs returns rows when executed server-side.
-- **Two booking surfaces exist:**
-  - `src/components/student/BookMyClassModal.tsx` — filters by hub: it first fetches `teacher_profiles.hub_role` matching the student's hub, then queries `teacher_availability`. If the student's hub is misclassified (e.g. resolved as `professional` when the only active teacher is `academy_mentor`), the modal silently returns zero slots.
-  - `src/pages/student/BookLesson.tsx` via `teacherAvailabilityService.getAvailableSlots()` — no hub filter, should always return rows.
-- **No diagnostics.** Today the modal swallows errors into `console.error('Failed to fetch availability slots')`, but there is no log of `data`, `error`, the resolved `teacherIds`, or the resolved `allowedHubRoles`. We cannot tell from the user's session whether the query returned `[]`, was blocked, or was never fired.
+- `teacher_availability` has an UPDATE policy `Booking owner can mark slot booked` that requires a matching row in `class_bookings` to **already exist** before the slot can be marked booked.
+- The frontend in `BookMyClassModal.handleBookSlot` does the opposite order: it UPDATEs `teacher_availability` first, then inserts the lesson and the `class_bookings` row.
+- Result: every UPDATE returns 0 rows / RLS denial → the code falls into the "slot was just taken" branch and rolls back. No student can ever book.
 
-The most likely production cause is the **hub filter wiping out all teachers** for some students (no teacher with the matching `hub_role` exists yet), with no UI/log feedback. The empty state then implies "no slots exist anywhere", which is misleading.
+Secondary issues found in the same handler:
+- The error toast hardcodes "Slot no longer available" and never surfaces the actual `updateError.message`.
+- `hasCredits` blocks the call before we even check `trialAvailable` properly — it currently allows trials (because `hasCredits = totalCredits > 0 || trialAvailable`), but the credit gate UX still fires for any edge case where `usePackageValidation` hasn't loaded. We'll harden it.
+- The handler writes to 4 tables from the client (`teacher_availability`, `lessons`, `class_bookings`, `appointments`) — fragile and racy.
 
-## Changes
+## Fix Strategy
 
-### 1. `src/components/student/BookMyClassModal.tsx` — debug + safer hub filter
+### 1. New SECURITY DEFINER RPC: `book_class_slot`
 
-In `fetchSlots`:
+Single atomic function that:
+1. Validates the caller is `auth.uid()` and the slot is currently `is_available = true AND is_booked = false AND start_time > now()`.
+2. Inserts the `lessons` row.
+3. Inserts the `class_bookings` row (triggers `generate_booking_session` for `session_id` + `meeting_link` + `classroom_id`).
+4. Marks `teacher_availability.is_booked = true`, sets `student_id`, `lesson_id`, `lesson_title`.
+5. Inserts the `appointments` row (existing `mark_slot_booked_on_appointment` trigger is already idempotent).
+6. If `is_trial = false`, calls `consume_credit`.
+7. Returns `{ booking_id, classroom_id, session_id, meeting_link, lesson_id }`.
 
-- Add explicit logging right after each Supabase call:
-  ```ts
-  console.log('[BookMyClassModal] hub:', selectedHub, 'allowedHubRoles:', allowedHubRoles);
-  console.log('[BookMyClassModal] hubTeachers:', hubTeachers, 'teacherIds:', teacherIds);
-  console.log('[BookMyClassModal] Fetched slots:', data, 'Fetch error:', error);
-  ```
-- Build the timestamp once and reuse, to make the UTC contract explicit:
-  ```ts
-  const nowUtcIso = new Date().toISOString(); // always UTC
-  ```
-- Use `.gte('start_time', nowUtcIso)` (currently `.gt`) so a slot starting exactly "now" is still bookable.
-- Keep `.eq('is_available', true).eq('is_booked', false).eq('duration', slotDuration).in('teacher_id', teacherIds)`.
-- **Hub-filter fallback:** if `teacherIds.length === 0` (no teachers match the student's hub yet), do a second query without the `.in('teacher_id', …)` constraint, still filtered by `duration`, `is_available`, `is_booked`, `start_time`. Log a warning so we know the fallback fired. This prevents the "no teacher in this hub" misclassification from rendering an empty modal during onboarding.
+Uses a row-level lock (`SELECT ... FOR UPDATE`) on the slot to prevent races. Raises a clean exception with a specific message on each failure mode (slot taken, no credits, invalid hub, etc.) so the client can surface it.
 
-### 2. `src/services/teacherAvailabilityService.ts` — debug logging
+### 2. RLS cleanup
 
-In `getAvailableSlots()` and `getTeacherAvailableSlots()`:
-- Log `console.log('[teacherAvailabilityService] Fetched slots:', data, 'Fetch error:', error)` immediately after the query, before the early return.
+Keep the existing `Booking owner can mark slot booked` policy as a fallback safety net but it is no longer the primary path — the RPC bypasses RLS via SECURITY DEFINER. No destructive policy changes needed.
 
-### 3. `src/components/student/StudentBookingCalendar.tsx` — better empty state + calendar UX
+### 3. Client refactor in `src/components/student/BookMyClassModal.tsx`
 
-- Replace the current "No Available Slots Yet" block (lines 103–126) with a smarter empty state:
-  - Title: "No Available Slots Yet"
-  - Message: "We couldn't find open times for your hub. Try a different date below, or check back soon."
-  - Always render the calendar (currently the calendar is hidden when slots are empty), so the user can still browse dates and see immediately that the picker works.
-- When slots ARE present but the selected date has none (existing branch around lines 190–200), keep the current "Try selecting another highlighted date" message and the "View All Dates" reset button — already correct, just verify it remains.
-- Auto-select the **first date that actually has slots** if `selectedDate` has none, so the modal doesn't open on today (which often has zero slots) and look broken. Logic: in a `useEffect` watching `localSlots`, if `selectedDate` has no slots and `availableDates[0]` exists, set `selectedDate = availableDates[0]`.
+Replace the entire multi-step block in `handleBookSlot` (lines ~209–333) with a single `supabase.rpc('book_class_slot', { ... })` call.
 
-### 4. RLS — no migration
+```ts
+const { data, error } = await supabase.rpc('book_class_slot', {
+  p_slot_ids: slotIds,
+  p_teacher_id: slot.teacherId,
+  p_scheduled_at: slot.startTime.toISOString(),
+  p_duration: slotDuration,
+  p_hub_type: hubTypeMap[selectedHub] || 'academy',
+  p_lesson_title: lessonTitle,
+  p_is_trial: trialAvailable,
+});
 
-Verified policies; nothing to change. Note in commit message that RLS was audited and is correct.
+if (error) {
+  console.error('Booking Error Detail:', error, { slotIds, teacherId: slot.teacherId, studentId: user.id });
+  toast({
+    title: 'Booking failed',
+    description: error.message || 'Failed to book slot',
+    variant: 'destructive',
+  });
+  await fetchSlots();
+  return;
+}
+```
 
-## Out of scope
+Also:
+- Remove the hardcoded "Slot no longer available" toast.
+- Add payload validation: bail early with a clear toast if `slot.id` is falsy or `user.id` is missing.
+- Allow trial bookings even when `totalCredits === 0` (already true via `hasCredits`, but make it explicit by checking `trialAvailable` first and skipping the credit prompt).
 
-- No new tables, no schema changes, no migration.
-- No change to the booking write path (already enforces `is_booked=false` with optimistic update + rollback).
+### 4. Diagnostics
 
-## How we'll verify
+Keep `console.log('[BookMyClassModal] booking payload', ...)` immediately before the RPC call so future failures are debuggable from the browser console.
 
-1. Open the modal as a student → console shows `hub`, `allowedHubRoles`, `teacherIds`, and `Fetched slots` arrays.
-2. Slots from the active `academy_mentor` teacher render in the calendar; dates with availability are highlighted; clicking a date shows time pills.
-3. If a hub temporarily has no matching teacher, the fallback query returns slots and a warning is logged instead of the modal looking broken.
-4. `BookLesson.tsx` page (separate pipeline) also logs slots from the service.
+## Files Touched
+
+- **New migration**: create `public.book_class_slot(...)` SECURITY DEFINER function with `GRANT EXECUTE ... TO authenticated`.
+- **Edit**: `src/components/student/BookMyClassModal.tsx` — replace `handleBookSlot` body with RPC call, fix error surfacing, harden trial path.
+
+No edge functions, no schema changes to existing tables, no destructive RLS edits.
