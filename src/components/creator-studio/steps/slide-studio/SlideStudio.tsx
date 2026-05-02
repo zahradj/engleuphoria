@@ -102,14 +102,6 @@ const SlideStudioInner: React.FC = () => {
     );
   }
 
-  // ── Story lessons render in the dedicated premium reader canvas ──
-  if (activeLessonData.kind === 'story') {
-    return (
-      <div className={cn('h-full flex flex-col -m-6 overflow-hidden', theme.themeClass, theme.font)}>
-        <StoryStudioCanvas />
-      </div>
-    );
-
   const activeSlide = slides.find((s) => s.id === activeSlideId) ?? null;
   const activeIndex = activeSlide ? slides.findIndex((s) => s.id === activeSlide.id) : -1;
 
