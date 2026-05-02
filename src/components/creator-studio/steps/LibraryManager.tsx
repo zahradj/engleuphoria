@@ -130,6 +130,7 @@ export const LibraryManager: React.FC = () => {
   const { setActiveLessonData, setCurrentStep, setDirty } = useCreator();
   const [rows, setRows] = useState<LessonRow[] | null>(null);
   const [units, setUnits] = useState<UnitRow[]>([]);
+  const [lessonsWithStory, setLessonsWithStory] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -189,8 +190,22 @@ export const LibraryManager: React.FC = () => {
       }
     }
 
+    // ── Detect lessons that have at least one linked story (Graded Reader) ──
+    const storyLinksRes = await supabase
+      .from('curriculum_lessons')
+      .select('parent_lesson_id')
+      .eq('ai_metadata->>kind', 'story')
+      .not('parent_lesson_id', 'is', null);
+    const linkedSet = new Set<string>();
+    if (!storyLinksRes.error && Array.isArray(storyLinksRes.data)) {
+      for (const r of storyLinksRes.data as Array<{ parent_lesson_id: string | null }>) {
+        if (r.parent_lesson_id) linkedSet.add(r.parent_lesson_id);
+      }
+    }
+
     setRows(lessons);
     setUnits(unitRows);
+    setLessonsWithStory(linkedSet);
     setSelectedIds(new Set());
     setLoading(false);
   }, []);
