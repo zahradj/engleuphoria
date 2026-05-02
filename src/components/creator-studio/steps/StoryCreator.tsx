@@ -115,14 +115,28 @@ export const StoryCreator: React.FC = () => {
     setPickerOpen(false);
     if (!lesson) return;
 
-    // Auto-fill CEFR
-    setCefrLevel(difficultyToCefr(lesson));
+    // Auto-fill CEFR from the lesson's metadata / difficulty
+    const nextCefr = difficultyToCefr(lesson);
+    setCefrLevel(nextCefr);
 
-    // Auto-fill vocab only if the teacher hasn't typed anything yet
-    if (!vocabInput.trim()) {
-      const vocab = vocabListToString(lesson.vocabulary_list);
-      if (vocab) setVocabInput(vocab);
+    // Auto-fill target vocabulary from the lesson (overwrite if empty,
+    // otherwise merge with what the teacher already typed — deduped).
+    const lessonVocab = vocabListToArray(lesson.vocabulary_list);
+    if (lessonVocab.length > 0) {
+      const existing = vocabInput.split(',').map((w) => w.trim()).filter(Boolean);
+      const seen = new Set<string>();
+      const merged: string[] = [];
+      for (const w of [...existing, ...lessonVocab]) {
+        const k = w.toLowerCase();
+        if (!seen.has(k)) { seen.add(k); merged.push(w); }
+      }
+      setVocabInput(merged.join(', '));
     }
+
+    const grammarHint = lesson.grammar_pattern
+      ? ` · grammar: ${lesson.grammar_pattern}`
+      : '';
+    toast.success(`Linked to "${lesson.title}" — CEFR ${nextCefr}${grammarHint}`);
   };
 
   const clearLinkedLesson = () => setLinkedLessonId(null);
@@ -299,6 +313,9 @@ export const StoryCreator: React.FC = () => {
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   CEFR & vocabulary auto-filled below.
+                  {linkedLesson.grammar_pattern ? (
+                    <> Grammar focus: <span className="font-semibold text-violet-700 dark:text-violet-300">{linkedLesson.grammar_pattern}</span>.</>
+                  ) : null}
                 </p>
               </div>
               <Button
