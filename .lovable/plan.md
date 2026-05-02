@@ -1,102 +1,75 @@
-## Goal
+# Placement Test: Branding + Audio Reliability
 
-Two coordinated upgrades:
-
-**A. AI Game Generator improvements** (per-slide game tool already lives in `ai-slide-game-generator` + `TeacherControlsPanel > GameAIGenerator`).
-
-**B. Lesson structure & pedagogy upgrade**: Title Slides, deeper Grammar slides, and HTML color-coding of parts of speech.
+Two-part upgrade to `src/components/placement/*` — brand polish and an audio playback fix. No backend schema changes.
 
 ---
 
-## A. AI Game Generator Upgrades
+## Part 1 — Branded chat avatar + ambient cursor glow
 
-### A1. Difficulty selector (Easy / Medium / Hard or CEFR A1–C1)
-- `TeacherControlsPanel.tsx > GameAIGenerator`: add two `Select` controls — **Difficulty** (`easy | medium | hard`) and **CEFR override** (`auto | A1 | A2 | B1 | B2 | C1`). Default difficulty = `medium`, CEFR = `auto` (falls back to `activeLessonData.cefr_level`).
-- Pass `difficulty` and effective `cefrLevel` to `supabase.functions.invoke('ai-slide-game-generator', { body: ... })`.
-- `ai-slide-game-generator/index.ts > buildSystemPrompt`: accept `difficulty`, append calibration rules:
-  - `easy` → very short sentences, 3 options max for MCQ, single-clause distractors
-  - `medium` → standard
-  - `hard` → multi-clause, abstract distractors, idiomatic items
-- Adjust `TOOL_BY_TYPE.multiple_choice.parameters.options.maxItems` dynamically (3 for easy, 4 for medium, 5 for hard) by cloning the tool per request.
+### 1a. Replace the star avatar with the EnglEuphoria logo
+File: `src/components/placement/ChatBubble.tsx`
 
-### A2. Auto-thumbnail keywords for drag-and-match
-- `ai-slide-game-generator/index.ts`:
-  - Make `left_thumbnail_keyword` and `right_thumbnail_keyword` **required** in the `drag_and_match` tool schema (currently optional).
-  - System prompt: "For every pair, you MUST output a single concrete noun keyword for both `left_thumbnail_keyword` and `right_thumbnail_keyword`. The keyword should be the most icon-friendly noun in that card."
-  - Post-process: if AI omits a keyword, derive a fallback from the card text (first noun word, lowercased).
-- `TeacherControlsPanel.tsx > DragAndMatchEditor`: already shows keyword fields and thumbnail URLs — no change needed beyond ensuring keywords always populate.
-- Confirm that downstream icon hydration (`mediaGeneration.ts` / `generateAllMedia`) already converts `*_thumbnail_keyword` → `*_thumbnail_url`. If missing, add a small client-side icon resolver call after generation that reuses `generateSlideImage` for each keyword (skipped if URL exists). Implementation detail confirmed during build.
+- Remove the `Sparkles` icon (lucide-react import + usage).
+- Import the logo image directly: `import logoMark from '@/assets/logo-white.png'` (we use the image, not the `<Logo />` button — the button wraps a clickable `<button>` that navigates home, which is wrong inside a chat bubble avatar).
+- Render inside the existing circular gradient container:
+  ```tsx
+  <img
+    src={logoMark}
+    alt="EnglEuphoria guide"
+    className="w-6 h-6 object-contain select-none pointer-events-none"
+    draggable={false}
+  />
+  ```
+- Keep the `w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500` halo so the white wordmark sits on a branded disc.
 
-### A3. Reusable game templates (topic + grammar focus)
-- New UI in `GameAIGenerator`: a **"Template"** dropdown above the prompt area with built-in presets, e.g.:
-  - "Vocabulary recall (any topic)"
-  - "Past simple — regular verbs"
-  - "Present continuous — actions"
-  - "Comparatives & superlatives"
-  - "Question words (Wh-)"
-  - "Prepositions of place"
-  - "Plus a 'Custom…' option"
-- Selecting a template prefills the `userPrompt` textarea AND sends a `templateId` + `grammarFocus` field to the edge function.
-- Edge function appends template-specific guardrails to the system prompt (e.g., "All MCQ stems must use past simple regular verbs ending in -ed").
-- Optional convenience: a **"Apply to next N slides"** numeric input (1–5). When >1, the client loops the same generation request across the next N game slides of the same `slide_type`, awaiting each response sequentially.
+### 1b. Hub-aware ambient cursor glow
+File: `src/components/placement/AIPlacementTest.tsx`
+
+- Add a `useRef<HTMLDivElement>` on the outermost wrapper.
+- Add a `useEffect` that attaches a `mousemove` listener on the wrapper, throttled via `requestAnimationFrame`, that writes:
+  ```ts
+  el.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+  el.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+  ```
+  Initialize the vars to `50%` / `50%` so the glow is visible before the first move and on touch devices.
+- Add a non-interactive `::before`-style overlay div (absolute, `inset-0`, `pointer-events-none`, `z-0`) with inline style:
+  ```ts
+  background: 'radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(192, 132, 252, 0.18), transparent 70%)'
+  ```
+  `rgb(192,132,252)` = `violet-400` — a vibrant, lighter violet that pops against the existing `from-slate-900 via-purple-900 to-slate-900` background (Academy hub). The card content gets `relative z-10` so it sits above the glow.
+- Cleanup the listener on unmount.
+
+(Single-hub glow is sufficient — placement test currently lives under the Academy/onboarding flow. We hardcode the violet tone now and can lift it into a prop later if Playground/Success ever get their own placement screens.)
 
 ---
 
-## B. Lesson Structure: Title Slide + Deep Grammar + Color-Coding
+## Part 2 — Audio playback fix
 
-### B1. Update AI schema in `ai-core` (`handleGenerateLesson` + `handleGenerateTrialLesson`)
-- Force the **first slide** to be `slide_type: "title_page"` with shape:
-  ```
-  { "slide_type": "title_page", "title": "...", "subtitle": "...",
-    "image_generation_prompt": "...", "phase": "warm-up" }
-  ```
-- Add `slide_type: "grammar_explanation"` to the schema and require these `interactive_data` fields:
-  ```
-  { "rule_text": "...",
-    "formula": "Subject + Verb + Object",
-    "explanation": "<plain-English rule>",
-    "examples": ["<sentence 1>", "<sentence 2>", "<sentence 3>"],
-    "common_signals": "yesterday, last week, ago" }
-  ```
-  Min 3 examples enforced in prompt.
-- Color-coding instruction added to both system prompts:
-  > When writing a `formula`, an `example` sentence, or any text inside a `grammar_explanation` slide, you MUST wrap parts of speech in HTML span tags using EXACTLY these classes:
-  > - `<span class="text-blue-600 font-bold">…</span>` for Subjects/Nouns/Pronouns
-  > - `<span class="text-red-600 font-bold">…</span>` for Verbs
-  > - `<span class="text-green-600 font-bold">…</span>` for Adjectives
-  > Output `class=` (not `className=`) — it's HTML.
+File: `src/components/placement/TestPhase.tsx` (and a tightening pass on the existing `handlePlayAudio`).
 
-### B2. Frontend renderers
+Current state (already partially correct): playback is gated behind a Play button, uses `URL.createObjectURL`, caches per-question, and revokes on unmount. The remaining gaps:
 
-**Title Page renderer** — already exists as `FrontPageSlide.tsx` and is wired in `DynamicSlideRenderer.tsx` for `directorType === 'front_page'`. Add an alias so the new AI emits `slide_type: "title_page"` and the renderer matches:
-```ts
-if (directorType === 'front_page' || directorType === 'title_page') { ... }
-```
-Pass `subtitle` through to `FrontPageSlide` (extend its props with optional `subtitle` rendered under the H1).
+1. **Blob handling is fragile.** `supabase.functions.invoke` returns `data` typed as `unknown`; for our `audio/mpeg` response it usually arrives as a `Blob`, but the fallback `new Blob([data as ArrayBuffer])` silently produces an empty/invalid blob if `data` is actually a JSON error object (e.g. when the edge function returns `{ error: "..." }` with status 500 — `invoke` does not throw on non-2xx in all cases). Fix:
+   - After the invoke, explicitly check: if `data` is not a `Blob` and not an `ArrayBuffer`, treat it as an error payload, log it, and throw with the embedded message.
+   - If `error` is present, surface `error.message` to the toast instead of a generic string.
+2. **Add a `canplaythrough` / load-error path.** Wire `audio.addEventListener('canplaythrough', ...)` to clear an `isLoading` state, and keep `onerror` to toast `"Failed to load audio. Please check your connection or try again."` (matches the prompt's wording).
+3. **Wrap `audio.play()` in `.catch`** so a rejected play promise (autoplay policy, decoding failure) toasts the same friendly message and resets `isPlaying`.
+4. **Guard against double-clicks** while loading: the button is already `disabled={isPlaying}`; add a separate `isLoading` flag so we can show `Loader2` (already imported) before the audio starts.
+5. **Console diagnostics**: log `console.error('[Placement audio]', { questionIndex, voiceId, err })` in every catch path so future failures are debuggable from the browser console.
 
-**Grammar renderer** — upgrade `EditorialGrammar.tsx`:
-- Render `formula` in a dedicated highlighted box (mono font, slate-50, large).
-- Render `examples` as a vertical stack of cards.
-- Use safe HTML rendering for `formula`, each `example`, `rule_text`, and `explanation` so the colored spans appear:
-  - Add a tiny inline sanitizer that allows ONLY `<span class="text-blue-600 font-bold|text-red-600 font-bold|text-green-600 font-bold">…</span>` and strips everything else, then injects via `dangerouslySetInnerHTML`.
-  - No new dependency; sanitizer is ~20 lines of regex-based whitelist (faster review than adding `html-react-parser`).
-- Show `common_signals` in the existing amber callout (already present).
-
-### B3. Lesson player container
-- `LessonPlayerContainer` already iterates slides and delegates to `DynamicSlideRenderer`. No changes needed beyond the alias above.
+No changes needed to `supabase/functions/elevenlabs-tts/index.ts` — it already returns the `ArrayBuffer` with `Content-Type: audio/mpeg` and proper CORS headers.
 
 ---
 
 ## Files to edit
 
-- `supabase/functions/ai-slide-game-generator/index.ts` — difficulty, required thumbnail keywords, template/grammarFocus handling.
-- `supabase/functions/ai-core/index.ts` — `handleGenerateLesson` + `handleGenerateTrialLesson` prompts: enforce title_page, deep grammar_explanation, color-coding rules.
-- `src/components/creator-studio/steps/slide-studio/TeacherControlsPanel.tsx` — extend `GameAIGenerator` with Difficulty, CEFR override, Template dropdown, and "Apply to next N slides" loop.
-- `src/components/lesson-player/DynamicSlideRenderer.tsx` — add `title_page` alias next to `front_page`.
-- `src/components/lesson-player/editorial/FrontPageSlide.tsx` — add optional `subtitle` prop + render.
-- `src/components/lesson-player/editorial/EditorialGrammar.tsx` — formula box, 3-example layout, safe HTML rendering for color-coded spans.
+- `src/components/placement/ChatBubble.tsx` — swap Sparkles → logo image.
+- `src/components/placement/AIPlacementTest.tsx` — add wrapper ref, mousemove tracker, radial-gradient overlay div.
+- `src/components/placement/TestPhase.tsx` — harden `handlePlayAudio` (blob validation, error messaging, loading state, play().catch).
 
-## Out of scope (not changing)
+## Acceptance checks
 
-- Existing PPP / editorial slide types and other generators (`ai-lesson-generator`, batch orchestrators) — they keep working unchanged.
-- No new npm dependencies.
+- Guide chat bubbles display the white EnglEuphoria wordmark inside the violet/fuchsia disc; no more 4-point star.
+- Moving the mouse over the placement test page produces a soft violet halo that follows the cursor; on touch devices the static centered glow remains.
+- Clicking the listening "Play" button either plays the audio or surfaces a toast with the explicit failure reason; nothing autoplays; repeat clicks during load are ignored.
+- Browser console shows a single structured `[Placement audio]` log when a failure occurs, including the question index.

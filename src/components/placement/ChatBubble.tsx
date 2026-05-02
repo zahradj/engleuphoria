@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
 import TypewriterText from './TypewriterText';
+import logoMark from '@/assets/logo-white.png';
 
 interface ChatBubbleProps {
   role: 'guide' | 'user';
@@ -18,8 +18,13 @@ const ChatBubble = ({ role, message, animate = false, onTypingComplete }: ChatBu
       className={`flex gap-3 ${role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
     >
       {role === 'guide' && (
-        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg">
-          <Sparkles className="w-5 h-5 text-white" />
+        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg overflow-hidden">
+          <img
+            src={logoMark}
+            alt="EnglEuphoria guide"
+            className="w-6 h-6 object-contain select-none pointer-events-none"
+            draggable={false}
+          />
         </div>
       )}
 

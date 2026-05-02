@@ -180,6 +180,7 @@ const TestPhase = ({ age, onComplete }: TestPhaseProps) => {
 
   // Listening question state
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const [hasPlayedOnce, setHasPlayedOnce] = useState(false);
   const audioCacheRef = useRef<Map<number, string>>(new Map());
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -212,36 +213,79 @@ const TestPhase = ({ age, onComplete }: TestPhaseProps) => {
 
   const handlePlayAudio = async () => {
     const q = questions[currentQIndex];
-    if (!q?.audio_script || isPlaying) return;
-    setIsPlaying(true);
+    if (!q?.audio_script || isPlaying || isLoadingAudio) return;
+
+    const FAILURE_MSG = 'Failed to load audio. Please check your connection or try again.';
+    setIsLoadingAudio(true);
+
     try {
       let url = audioCacheRef.current.get(currentQIndex);
       if (!url) {
         const { data, error } = await supabase.functions.invoke('elevenlabs-tts', {
           body: { text: q.audio_script, voiceId: q.voice_id },
         });
-        if (error) throw error;
-        // supabase-js returns the body as a Blob for binary responses
-        const blob = data instanceof Blob ? data : new Blob([data as ArrayBuffer], { type: 'audio/mpeg' });
+        if (error) {
+          console.error('[Placement audio] invoke error', { questionIndex: currentQIndex, voiceId: q.voice_id, error });
+          throw new Error(error.message || FAILURE_MSG);
+        }
+
+        let blob: Blob | null = null;
+        if (data instanceof Blob) {
+          blob = data;
+        } else if (data instanceof ArrayBuffer) {
+          blob = new Blob([data], { type: 'audio/mpeg' });
+        } else if (data && typeof data === 'object') {
+          // Edge function returned a JSON error payload instead of audio bytes.
+          const payload = data as Record<string, unknown>;
+          const msg = typeof payload.error === 'string' ? payload.error : FAILURE_MSG;
+          console.error('[Placement audio] non-audio payload', { questionIndex: currentQIndex, payload });
+          throw new Error(msg);
+        }
+
+        if (!blob || blob.size === 0) {
+          console.error('[Placement audio] empty blob', { questionIndex: currentQIndex });
+          throw new Error(FAILURE_MSG);
+        }
+
         url = URL.createObjectURL(blob);
         audioCacheRef.current.set(currentQIndex, url);
       }
+
       const audio = new Audio(url);
       currentAudioRef.current = audio;
+
+      audio.addEventListener('canplaythrough', () => {
+        setIsLoadingAudio(false);
+        setIsPlaying(true);
+      }, { once: true });
+
       audio.onended = () => {
         setIsPlaying(false);
         setHasPlayedOnce(true);
       };
-      audio.onerror = () => {
+
+      audio.onerror = (e) => {
+        console.error('[Placement audio] element error', { questionIndex: currentQIndex, error: e });
         setIsPlaying(false);
-        toast.error('Audio playback failed');
+        setIsLoadingAudio(false);
+        toast.error(FAILURE_MSG);
       };
-      await audio.play();
-      setHasPlayedOnce(true);
+
+      try {
+        await audio.play();
+        setHasPlayedOnce(true);
+      } catch (playErr) {
+        console.error('[Placement audio] play() rejected', { questionIndex: currentQIndex, voiceId: q.voice_id, err: playErr });
+        setIsPlaying(false);
+        setIsLoadingAudio(false);
+        toast.error(FAILURE_MSG);
+      }
     } catch (err) {
-      console.error('Listening audio error:', err);
+      console.error('[Placement audio]', { questionIndex: currentQIndex, voiceId: q.voice_id, err });
       setIsPlaying(false);
-      toast.error('Could not load audio. Please try again.');
+      setIsLoadingAudio(false);
+      const msg = err instanceof Error && err.message ? err.message : FAILURE_MSG;
+      toast.error(msg);
     }
   };
 
