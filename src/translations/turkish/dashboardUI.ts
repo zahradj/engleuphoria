@@ -155,6 +155,7 @@ export const dashboardUITranslations = {
   'lp.programs.headingAccent': 'kurslar',
   'lp.programs.subtitle': 'Sınava hazırlanıyor, kariyerinizi ilerletiyor ya da yeni başlıyor olun — sizin için her şey burada.',
   'lp.programs.enrolled': 'kayıtlı',
+  'lp.programs.swipeHint': 'Tüm programları görmek için kaydırın',
   'lp.programs.explore': 'Keşfet',
   'lp.programs.tag.mostPopular': 'En popüler',
   'lp.programs.tag.kidsFavourite': 'Çocukların favorisi',

@@ -17,7 +17,9 @@ import {
   GamificationSection,
   FinalCTASection,
   AppDownloadSection,
-  CursorTrail
+  CursorTrail,
+  StickyMobileCTA,
+  AutoLanguageToast
 } from '@/components/landing';
 
 export default function LandingPage() {
@@ -46,6 +48,8 @@ export default function LandingPage() {
         <FinalCTASection />
         <ContactSection />
         <FooterSection />
+        <StickyMobileCTA />
+        <AutoLanguageToast />
       </main>
     </HeroThemeProvider>
   );

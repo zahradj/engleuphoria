@@ -140,8 +140,16 @@ export function CourseOfferingsSection() {
           </p>
         </motion.div>
 
-        {/* Course Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+        {/* Course Grid (md+) — Horizontal swipe carousel on mobile */}
+        <div
+          className="
+            -mx-4 px-4 sm:mx-0 sm:px-0
+            flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4
+            [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden
+            md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6 md:overflow-visible md:pb-0 md:snap-none
+            max-w-7xl mx-auto
+          "
+        >
           {courses.map((course, i) => {
             const Icon = course.icon;
             const isHovered = hoveredIndex === i;
@@ -153,6 +161,7 @@ export function CourseOfferingsSection() {
                 transition={{ duration: 0.5, delay: i * 0.08 }}
                 onMouseEnter={() => setHoveredIndex(i)}
                 onMouseLeave={() => setHoveredIndex(null)}
+                className="snap-center shrink-0 w-[82%] sm:w-[60%] md:w-auto md:shrink"
               >
                 <Link
                   to="/student-signup"
@@ -164,7 +173,7 @@ export function CourseOfferingsSection() {
                 >
                   {/* Top gradient line */}
                   <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${course.gradient} transition-opacity duration-500 ${
-                    isHovered ? 'opacity-100' : 'opacity-0'
+                    isHovered ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'
                   }`} />
 
                   <div className="relative p-8 flex flex-col h-full">
@@ -216,6 +225,11 @@ export function CourseOfferingsSection() {
             );
           })}
         </div>
+
+        {/* Mobile swipe hint */}
+        <p className={`md:hidden text-center text-xs mt-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+          ← {t('lp.programs.swipeHint') !== 'lp.programs.swipeHint' ? t('lp.programs.swipeHint') : 'Swipe to explore all programs'} →
+        </p>
       </div>
     </section>
   );

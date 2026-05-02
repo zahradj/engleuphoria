@@ -155,6 +155,7 @@ export const dashboardUITranslations = {
   'lp.programs.headingAccent': 'cada objetivo',
   'lp.programs.subtitle': 'Tanto si te preparas para un examen, como si avanzas en tu carrera o empiezas desde cero — tenemos lo que necesitas.',
   'lp.programs.enrolled': 'inscritos',
+  'lp.programs.swipeHint': 'Desliza para ver todos los programas',
   'lp.programs.explore': 'Explorar',
   'lp.programs.tag.mostPopular': 'El más popular',
   'lp.programs.tag.kidsFavourite': 'Favorito de los niños',

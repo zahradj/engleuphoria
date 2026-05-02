@@ -166,6 +166,7 @@ export const dashboardUITranslations = {
   'lp.programs.headingAccent': 'Every Goal',
   'lp.programs.subtitle': "Whether you're preparing for an exam, advancing your career, or just starting out — we've got you covered.",
   'lp.programs.enrolled': 'enrolled',
+  'lp.programs.swipeHint': 'Swipe to explore all programs',
   'lp.programs.explore': 'Explore',
   'lp.programs.tag.mostPopular': 'Most Popular',
   'lp.programs.tag.kidsFavourite': 'Kids Favourite',

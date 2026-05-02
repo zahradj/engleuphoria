@@ -17,3 +17,5 @@ export { FinalCTASection } from './FinalCTASection';
 export { CourseOfferingsSection } from './CourseOfferingsSection';
 export { AppDownloadSection } from './AppDownloadSection';
 export { CursorTrail } from './CursorTrail';
+export { StickyMobileCTA } from './StickyMobileCTA';
+export { AutoLanguageToast } from './AutoLanguageToast';
