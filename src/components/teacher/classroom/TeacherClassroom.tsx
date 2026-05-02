@@ -738,12 +738,37 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
         slideFormat="raw"
         onSelectLesson={async (selectedSlides, title) => {
           setIsLibraryOpen(false);
-          const liveSlides = selectedSlides.map((s: any, i: number) => ({
+          const mapped = selectedSlides.map((s: any, i: number) => ({
             ...s,
             id: String(s?.id ?? i + 1),
             title: String(s?.title || `Slide ${i + 1}`),
             imageUrl: s?.imageUrl || s?.image_url || s?.generated_image_url || undefined,
           }));
+          // Auto-prepend a branded front page (Engleuphoria logo + hub badge + level + unit/lesson title)
+          // unless the lesson already ships one.
+          const first: any = mapped[0];
+          const meta: any = (selectedSlides as any)?.[0] || {};
+          const hasFront = first && (
+            first.slide_type === 'front_page' ||
+            first.slide_type === 'title_page' ||
+            first.type === 'front_page'
+          );
+          const liveSlides = hasFront ? mapped : [
+            {
+              id: 'front-page',
+              slide_type: 'front_page',
+              type: 'front_page',
+              title,
+              topic: meta?.topic,
+              subtitle: meta?.subtitle,
+              level: meta?.level || meta?.cefr_level || meta?.difficulty_level,
+              hub: hubType,
+              unitNumber: meta?.unit_number ?? meta?.unitNumber,
+              unitTitle: meta?.unit_title ?? meta?.unitTitle,
+              coverImageUrl: first?.imageUrl,
+            },
+            ...mapped,
+          ];
           setRawSlides(liveSlides);
           await updateSharedDisplay({ lessonSlides: liveSlides, lessonTitle: title, embeddedUrl: null });
           await updateSlide(0);
