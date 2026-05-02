@@ -195,7 +195,7 @@ export const StudentBookingCalendar = ({
               fontWeight: 'bold'
             }
           }}
-          className="rounded-md border-0"
+          className="rounded-md border-0 pointer-events-auto"
         />
         <div className={cn(
           "mt-4 p-3 rounded-lg",
