@@ -52,7 +52,14 @@ interface StoryBookViewerProps {
   visualStyle?: StoryVisualStyle;
   coverImageUrl?: string;
   onExit?: () => void;
+  /** When true, viewer fills its parent (absolute) instead of covering the viewport (fixed). */
+  embedded?: boolean;
 }
+
+/** Outer-shell positioning helper. Embedded mode keeps the viewer inside its
+ *  parent so Studio chrome (Save button, sidebar, toolbar) stays interactive. */
+const shellPos = (embedded?: boolean) =>
+  embedded ? 'absolute inset-0' : 'fixed inset-0 z-50';
 
 const FALLBACK_BG =
   'linear-gradient(135deg, hsl(262 60% 18%), hsl(280 50% 28%), hsl(220 55% 22%))';
