@@ -295,10 +295,11 @@ export default function DynamicSlideRenderer({
     const directorType = (slide as any).slide_type || (slide as any).activityType || (slide as any).type;
 
     // ── Bookend slides ────────────────────────────────────────────
-    if (directorType === 'front_page') {
+    if (directorType === 'front_page' || directorType === 'title_page') {
       return <FrontPageSlide
         lessonTitle={(slide as any).title || ''}
         topic={(slide as any).topic}
+        subtitle={(slide as any).subtitle}
         level={(slide as any).level}
         hub={hub}
         coverImageUrl={(slide as any).coverImageUrl || (slide as any).imageUrl || (slide as any).custom_image_url}

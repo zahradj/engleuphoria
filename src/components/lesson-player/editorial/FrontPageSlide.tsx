@@ -10,6 +10,7 @@ interface FrontPageSlideProps {
   coverImageUrl?: string;
   unitNumber?: number | string;
   unitTitle?: string;
+  subtitle?: string;
 }
 
 /**
@@ -28,6 +29,7 @@ export default function FrontPageSlide({
   coverImageUrl,
   unitNumber,
   unitTitle,
+  subtitle,
 }: FrontPageSlideProps) {
   const theme = getEditorialTheme(hub);
   const unitLine =
@@ -106,7 +108,16 @@ export default function FrontPageSlide({
           {lessonTitle}
         </h1>
 
-        {topic && topic !== lessonTitle && unitLine && unitLine !== topic && (
+        {subtitle && (
+          <p
+            className="mt-5 text-lg md:text-2xl text-white/90 font-light max-w-2xl italic"
+            style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}
+          >
+            {subtitle}
+          </p>
+        )}
+
+        {!subtitle && topic && topic !== lessonTitle && unitLine && unitLine !== topic && (
           <p
             className="mt-5 text-base md:text-lg text-white/85 font-light max-w-2xl"
             style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}
