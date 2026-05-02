@@ -181,10 +181,11 @@ export const PlacementGatekeeper = ({
   };
 
   return (
-    <HubGlowWrapper
-      hubType={theme.glowHub}
+    <div
       className={`min-h-screen w-full bg-gradient-to-br ${theme.gradient} flex items-center justify-center p-4 relative overflow-hidden`}
     >
+      {/* Same homepage interactive cursor effect, themed to the active hub */}
+      <CursorTrail themeIndex={theme.cursorIndex } />
       {/* Ambient blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className={`absolute -top-20 -left-20 w-96 h-96 rounded-full blur-3xl opacity-30 bg-gradient-to-br ${theme.accent}`} />
@@ -349,7 +350,7 @@ export const PlacementGatekeeper = ({
           )}
         </AnimatePresence>
       </div>
-    </HubGlowWrapper>
+    </div>
   );
 };
 
