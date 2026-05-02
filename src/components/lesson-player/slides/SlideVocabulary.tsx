@@ -5,6 +5,13 @@ import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConf
 import PipMascot from '../PipMascot';
 import { Volume2, Loader2 } from 'lucide-react';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
+import { SlideBrandHeader } from './SlideBrandHeader';
+
+const HUB_VOCAB_LABEL: Record<HubType, string> = {
+  playground: 'Playground Vocabulary Card',
+  academy: 'Academy Vocabulary Card',
+  professional: 'Success Hub Vocabulary Card',
+};
 
 // Kid-friendly voice IDs from ElevenLabs
 const VOICE_IDS = {
