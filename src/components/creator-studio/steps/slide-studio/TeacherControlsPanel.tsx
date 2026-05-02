@@ -203,7 +203,7 @@ const DragAndMatchEditor: React.FC<Props> = ({ slide, onChange }) => {
     update({ pairs: next });
   };
   const addPair = () => {
-    if (pairs.length >= 3) return;
+    if (pairs.length >= 8) return;
     update({ pairs: [...pairs, { left_item: '', right_item: '' }] });
   };
   const removePair = (i: number) => {
