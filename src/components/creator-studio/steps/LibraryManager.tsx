@@ -822,6 +822,15 @@ export const LibraryManager: React.FC = () => {
                                       Lesson {lessonNumber}
                                     </Badge>
                                   )}
+                                  {lessonsWithStory.has(row.id) && (
+                                    <Badge
+                                      variant="secondary"
+                                      className="text-[10px] font-bold border-0 bg-violet-100 text-violet-700 dark:bg-violet-950/40 dark:text-violet-300 gap-1"
+                                      title="A Graded Reader story is linked to this lesson"
+                                    >
+                                      📖 Includes Story
+                                    </Badge>
+                                  )}
                                 </div>
                                 <h4 className="mt-2 text-sm font-bold text-slate-900 dark:text-slate-50 line-clamp-2">
                                   {row.title}
