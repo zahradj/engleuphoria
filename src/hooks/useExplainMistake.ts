@@ -29,7 +29,7 @@ export function useExplainMistake() {
       setExplanation(data?.explanation || 'Keep trying — you\'re getting closer!');
     } catch (e) {
       console.error('explain-mistake error:', e);
-      setExplanation('Could not generate explanation. Keep going!');
+      setExplanation('AI is heavily loaded. Please wait 10 seconds and try again.');
     } finally {
       setLoading(false);
     }
