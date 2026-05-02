@@ -71,12 +71,15 @@ export function TestimonialsSection() {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
   const [current, setCurrent] = useState(0);
+  const [muted, setMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const { t } = useTranslation();
 
-  const goNext = () => setCurrent((prev) => (prev + 1) % testimonialsBase.length);
-  const goPrev = () => setCurrent((prev) => (prev - 1 + testimonialsBase.length) % testimonialsBase.length);
+  const goNext = () => { setMuted(true); setCurrent((prev) => (prev + 1) % testimonialsBase.length); };
+  const goPrev = () => { setMuted(true); setCurrent((prev) => (prev - 1 + testimonialsBase.length) % testimonialsBase.length); };
 
   const tBase = testimonialsBase[current];
+  const isVideo = !!tBase.videoSrc || !!tBase.isVideoPlaceholder;
 
   const stats = [
     { stat: '4.9/5', label: t('lp.testimonials.stat.rating'), icon: '⭐' },
@@ -123,36 +126,89 @@ export function TestimonialsSection() {
                 isDark ? 'bg-white/[0.03] border border-white/[0.08]' : 'bg-white border border-slate-200 shadow-xl shadow-slate-200/50'
               }`}
             >
-              <div className="grid md:grid-cols-[240px_1fr]">
-                <div className={`p-8 flex flex-col items-center justify-center text-center ${
-                  isDark ? 'bg-gradient-to-b from-indigo-500/10 to-transparent' : 'bg-gradient-to-b from-indigo-50 to-slate-50'
-                }`}>
-                  <img
-                    src={tBase.avatar}
-                    alt={tBase.name}
-                    className="w-20 h-20 rounded-full object-cover mb-4 ring-4 ring-indigo-500/20"
-                    loading="lazy"
-                  />
-                  <h4 className={`font-bold text-lg ${isDark ? 'text-white' : 'text-slate-900'}`}>{tBase.name}</h4>
-                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{t(tBase.roleKey)}</p>
-                  <p className={`text-xs mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{tBase.country}</p>
-                  <div className="flex gap-0.5 mt-3">
-                    {[...Array(tBase.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                    ))}
+              <div className={`grid ${isVideo ? 'md:grid-cols-[260px_1fr]' : 'md:grid-cols-[240px_1fr]'}`}>
+                {/* Left pane: avatar / video reel */}
+                {isVideo ? (
+                  <div className="relative aspect-[9/16] md:aspect-auto md:min-h-[360px] bg-slate-900 overflow-hidden">
+                    {tBase.videoSrc ? (
+                      <>
+                        <video
+                          ref={videoRef}
+                          src={tBase.videoSrc}
+                          className="absolute inset-0 w-full h-full object-cover"
+                          autoPlay
+                          loop
+                          muted={muted}
+                          playsInline
+                        />
+                        <button
+                          onClick={() => setMuted((m) => !m)}
+                          aria-label={muted ? t('lp.testimonials.tapUnmute') : t('lp.testimonials.tapMute')}
+                          className="absolute bottom-3 end-3 w-10 h-10 rounded-full bg-black/60 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/80 transition"
+                        >
+                          {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                        </button>
+                        <div className="absolute top-3 start-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-widest">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                          Reel
+                        </div>
+                      </>
+                    ) : (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center bg-gradient-to-br from-indigo-500/20 via-violet-500/20 to-rose-500/20">
+                        <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center">
+                          <VideoIcon className="w-6 h-6 text-white" />
+                        </div>
+                        <p className="text-white text-sm font-bold">{t('lp.testimonials.addYourVideo')}</p>
+                        <p className="text-white/70 text-[11px] leading-snug">
+                          {t('lp.testimonials.addYourVideoHint')}
+                        </p>
+                      </div>
+                    )}
                   </div>
-                </div>
-
-                <div className="p-8 md:p-10 flex flex-col justify-center">
-                  <Quote className={`w-8 h-8 mb-4 ${isDark ? 'text-indigo-500/40' : 'text-indigo-200'}`} />
-                  <p className={`text-lg md:text-xl leading-relaxed mb-6 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                    “{t(tBase.textKey)}”
-                  </p>
-                  <div className={`inline-flex items-center gap-2 self-start px-4 py-2 rounded-full text-sm font-semibold ${
-                    isDark ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                ) : (
+                  <div className={`p-8 flex flex-col items-center justify-center text-center ${
+                    isDark ? 'bg-gradient-to-b from-indigo-500/10 to-transparent' : 'bg-gradient-to-b from-indigo-50 to-slate-50'
                   }`}>
-                    ✨ {t(tBase.highlightKey)}
+                    <img
+                      src={tBase.avatar}
+                      alt={tBase.name}
+                      className="w-20 h-20 rounded-full object-cover mb-4 ring-4 ring-indigo-500/20"
+                      loading="lazy"
+                    />
+                    <h4 className={`font-bold text-lg ${isDark ? 'text-white' : 'text-slate-900'}`}>{tBase.name}</h4>
+                    <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{t(tBase.roleKey)}</p>
+                    <p className={`text-xs mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{tBase.country}</p>
+                    <div className="flex gap-0.5 mt-3">
+                      {[...Array(tBase.rating)].map((_, i) => (
+                        <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                      ))}
+                    </div>
                   </div>
+                )}
+
+                {/* Right pane: quote or video meta */}
+                <div className="p-8 md:p-10 flex flex-col justify-center">
+                  {isVideo ? (
+                    <>
+                      <h4 className={`font-bold text-xl mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{tBase.name}</h4>
+                      <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{t(tBase.roleKey)} · {tBase.country}</p>
+                      <p className={`mt-4 text-base leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                        {t('lp.testimonials.video.caption')}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <Quote className={`w-8 h-8 mb-4 ${isDark ? 'text-indigo-500/40' : 'text-indigo-200'}`} />
+                      <p className={`text-lg md:text-xl leading-relaxed mb-6 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                        “{t(tBase.textKey!)}”
+                      </p>
+                      <div className={`inline-flex items-center gap-2 self-start px-4 py-2 rounded-full text-sm font-semibold ${
+                        isDark ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      }`}>
+                        ✨ {t(tBase.highlightKey!)}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </motion.div>
