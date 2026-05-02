@@ -144,14 +144,30 @@ export function NavHeader() {
               </Link>
             </div>
 
-            {/* Mobile Menu Button */}
-            <button
-              className={`lg:hidden p-2 ${isDark ? 'text-white/80' : 'text-slate-600'}`}
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
-            >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+            {/* Mobile Right — keep Language + CTA visible, collapse rest */}
+            <div className="lg:hidden flex items-center gap-2">
+              <div className={`scale-90 origin-right ${isDark
+                ? '[&_button]:text-white/80 [&_button]:hover:text-white [&_button]:hover:bg-white/10 [&_button]:border-white/20'
+                : '[&_button]:text-slate-600 [&_button]:hover:text-slate-900 [&_button]:hover:bg-slate-100 [&_button]:border-slate-200'
+              }`}>
+                <LanguageSwitcher />
+              </div>
+              <Link to="/student-signup" className="hidden sm:block">
+                <Button
+                  size="sm"
+                  className={`text-white font-semibold text-xs px-3 py-2 h-9 shadow-md rounded-xl transition-all duration-700 bg-gradient-to-r ${theme.gradient} ${theme.shadow}`}
+                >
+                  {t('lp.nav.getStarted')}
+                </Button>
+              </Link>
+              <button
+                className={`p-2 rounded-lg ${isDark ? 'text-white/80 hover:bg-white/5' : 'text-slate-600 hover:bg-slate-100'}`}
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+              >
+                {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+              </button>
+            </div>
           </div>
         </div>
       </header>
