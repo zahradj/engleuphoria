@@ -10224,6 +10224,20 @@ export type Database = {
         Args: { required_permission?: string }
         Returns: boolean
       }
+      verify_certificate: {
+        Args: { _code: string }
+        Returns: {
+          cefr_level: string
+          certificate_number: string
+          hours_completed: number
+          issue_date: string
+          score_achieved: number
+          skills_demonstrated: string[]
+          student_name: string
+          teacher_name: string
+          verification_code: string
+        }[]
+      }
     }
     Enums: {
       app_role: "student" | "teacher" | "admin" | "content_creator" | "parent"
