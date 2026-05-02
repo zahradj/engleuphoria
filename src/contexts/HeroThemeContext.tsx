@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 export const GROUP_THEMES = [
   {
@@ -47,8 +47,19 @@ const HeroThemeContext = createContext<HeroThemeContextType>({
 
 export function HeroThemeProvider({ children }: { children: ReactNode }) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const theme = GROUP_THEMES[activeIndex];
+
+  // Expose live hub colors as CSS variables so any descendant (segmented pill,
+  // radar chart, phone mock, etc.) can theme itself without prop drilling.
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const root = document.documentElement;
+    root.style.setProperty('--hero-from', theme.cssFrom);
+    root.style.setProperty('--hero-to', theme.cssTo);
+  }, [theme.cssFrom, theme.cssTo]);
+
   return (
-    <HeroThemeContext.Provider value={{ activeIndex, setActiveIndex, theme: GROUP_THEMES[activeIndex] }}>
+    <HeroThemeContext.Provider value={{ activeIndex, setActiveIndex, theme }}>
       {children}
     </HeroThemeContext.Provider>
   );

@@ -19,3 +19,7 @@ export { AppDownloadSection } from './AppDownloadSection';
 export { CursorTrail } from './CursorTrail';
 export { StickyMobileCTA } from './StickyMobileCTA';
 export { AutoLanguageToast } from './AutoLanguageToast';
+export { HeroAudienceSelector } from './HeroAudienceSelector';
+export { TrustLogosBand } from './TrustLogosBand';
+export { SkillRadarChart } from './SkillRadarChart';
+export { GamificationPhoneMock } from './GamificationPhoneMock';

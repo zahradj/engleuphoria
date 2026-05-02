@@ -9,6 +9,7 @@ import heroKid from '@/assets/hero-kid.png';
 import heroTeen from '@/assets/hero-teen.png';
 import heroAdult from '@/assets/hero-adult.png';
 import { useHeroTheme } from '@/contexts/HeroThemeContext';
+import { HeroAudienceSelector } from './HeroAudienceSelector';
 
 function useCountUp(target: number, duration = 2000) {
   const [count, setCount] = useState(0);
@@ -109,11 +110,20 @@ export function HeroSection() {
   const lessons = useCountUp(50000);
 
   useEffect(() => {
+    // Pause auto-rotation if the user has already chosen an audience this session.
     const interval = setInterval(() => {
+      try {
+        if (sessionStorage.getItem('heroAutoRotatePaused') === '1') return;
+      } catch {}
       setActiveImage((prev) => (prev + 1) % GROUP_THEMES.length);
     }, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  // Per-audience subheadline override (falls back to generic).
+  const subKey = `lp.hero.subFor.${theme.id}`;
+  const tSub = t(subKey);
+  const subline = tSub === subKey ? t('lp.hero.subheadline') : tSub;
 
   return (
     <section
@@ -168,17 +178,24 @@ export function HeroSection() {
               </span>
             </motion.h1>
 
-            {/* Subheadline */}
-            <motion.p
-              className={`text-base sm:text-xl leading-relaxed mb-6 sm:mb-8 max-w-lg ${
-                isDark ? 'text-slate-400' : 'text-slate-600'
-              }`}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-            >
-              {t('lp.hero.subheadline')}
-            </motion.p>
+            {/* Audience selector — drives the entire hero theme */}
+            <HeroAudienceSelector />
+
+            {/* Subheadline — switches per audience */}
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={subline}
+                className={`text-base sm:text-xl leading-relaxed mb-6 sm:mb-8 max-w-lg ${
+                  isDark ? 'text-slate-400' : 'text-slate-600'
+                }`}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.35 }}
+              >
+                {subline}
+              </motion.p>
+            </AnimatePresence>
 
             {/* CTA Buttons — gradient matches active group */}
             <motion.div
