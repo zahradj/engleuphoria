@@ -336,7 +336,7 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
         {/* Library quick-load */}
         {onOpenLibrary && (
           <div className="pl-2 ml-1 border-l border-border">
-            <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs" onClick={onOpenLibrary} title="Open Lesson Library">
+            <Button size="sm" variant="outline" className="h-9 gap-1.5 text-sm border-purple-300 text-purple-800 hover:bg-purple-50" onClick={onOpenLibrary} title="Open Lesson Library">
               <BookOpen className="h-3.5 w-3.5" />
               Library
             </Button>
