@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -36,6 +36,7 @@ import { VocabularyVaultTab } from "@/components/student/tabs/VocabularyVaultTab
 import { MasteryMilestonesTab } from "@/components/student/tabs/MasteryMilestonesTab";
 import { MobileBottomNav, type StudentNavTab } from "@/components/mobile/MobileBottomNav";
 import { InstallPrompt } from "@/components/mobile/InstallPrompt";
+import { ProfileCompletionBanner } from "@/components/student/ProfileCompletionBanner";
 
 // Hub-specific mesh gradient blob configs
 const HUB_MESH_COLORS: Record<string, { blobs: string[]; darkBlobs: string[] }> = {
@@ -78,7 +79,9 @@ const HUB_MESH_COLORS: Record<string, { blobs: string[]; darkBlobs: string[] }> 
 };
 
 const StudentDashboard = () => {
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') || 'dashboard';
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [hasProfile, setHasProfile] = useState(false);
   const [studentProfile, setStudentProfile] = useState<any>(null);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -302,6 +305,7 @@ const StudentDashboard = () => {
                         : 'bg-emerald-500/10 border-emerald-300/40 text-emerald-600 dark:text-emerald-400 dark:border-emerald-500/30 dark:bg-emerald-500/10'
                   }`} />
                 </div>
+                <ProfileCompletionBanner />
                 <QuickActions />
                 {renderActiveTab()}
               </div>
