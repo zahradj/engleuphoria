@@ -439,37 +439,31 @@ export const StoryCreator: React.FC = () => {
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-semibold">Reader Layout</Label>
+          <Label className="text-sm font-semibold">Visual & Layout Style</Label>
+          <p className="text-xs text-slate-500 dark:text-slate-400 -mt-1">
+            Drives both AI illustration style and the in-app reader layout.
+          </p>
           <div className="grid grid-cols-2 gap-3">
             {([
-              { key: 'immersive', label: 'Immersive', desc: 'Full-bleed image · frosted text card' },
-              { key: 'classic', label: 'Classic Split', desc: '50/50 image + serif text panel' },
+              { key: 'classic',       label: 'Classic Storybook',  desc: 'One illustration per page · LTR' },
+              { key: 'comic_western', label: 'Western Comic',      desc: 'Multi-panel grid · vibrant ink · LTR' },
+              { key: 'manga_rtl',     label: 'Japanese Manga',     desc: 'B&W panels · screentone · RTL reading' },
+              { key: 'webtoon',       label: 'Webtoon (vertical)', desc: 'One long scroll of stacked panels' },
             ] as const).map((opt) => {
-              const active = layoutStyle === opt.key;
+              const active = visualStyle === opt.key;
               return (
                 <button
                   key={opt.key}
                   type="button"
-                  onClick={() => setLayoutStyle(opt.key)}
+                  onClick={() => setVisualStyle(opt.key)}
                   className={`text-left rounded-xl border-2 p-3 transition-all ${
                     active
-                      ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/30'
+                      ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/30 shadow-sm'
                       : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-1">
-                    {opt.key === 'immersive' ? (
-                      <div className="w-10 h-7 rounded bg-gradient-to-br from-violet-500 to-fuchsia-500 relative overflow-hidden">
-                        <div className="absolute bottom-0.5 left-1 right-1 h-2 rounded-sm bg-black/40 backdrop-blur-sm" />
-                      </div>
-                    ) : (
-                      <div className="w-10 h-7 rounded overflow-hidden flex">
-                        <div className="w-1/2 bg-gradient-to-br from-slate-400 to-slate-600" />
-                        <div className="w-1/2 bg-amber-50 flex items-center justify-center">
-                          <div className="w-3/4 h-0.5 bg-slate-400 rounded" />
-                        </div>
-                      </div>
-                    )}
+                    <StylePreview kind={opt.key} />
                     <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{opt.label}</span>
                   </div>
                   <p className="text-xs text-slate-500 dark:text-slate-400">{opt.desc}</p>
