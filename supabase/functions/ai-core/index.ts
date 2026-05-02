@@ -165,16 +165,15 @@ async function callAIWithFailover(opts: AICallOptions): Promise<AICallResult> {
   try {
     const text = await callGeminiDirect(opts);
     return { text, provider: 'gemini-direct' };
-  } catch (primaryError) {
-    console.warn('⚠️ Primary AI (Gemini) drained or failed. Switching to backup (Lovable Gateway)…', primaryError instanceof Error ? primaryError.message : primaryError);
+  } catch (primaryError: any) {
+    console.warn('⚠️ Primary AI (Gemini) failed → switching to Lovable Gateway. Reason:', primaryError?.status, primaryError?.message || primaryError);
     try {
       const text = await callLovableGateway(opts);
       return { text, provider: 'lovable-gateway' };
     } catch (backupError: any) {
-      console.error('❌ Both AI providers failed!', backupError?.message || backupError);
-      // Bubble up status code if backup gave one (so we can surface 429/402 nicely).
+      console.error('❌ Both AI providers failed!', 'gemini=', primaryError?.status, primaryError?.message, '| lovable=', backupError?.status, backupError?.message);
       const err: any = new Error('AI generation temporarily unavailable.');
-      err.status = backupError?.status;
+      err.status = backupError?.status ?? primaryError?.status;
       throw err;
     }
   }
