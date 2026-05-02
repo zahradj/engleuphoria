@@ -193,6 +193,7 @@ const TestPhase = ({ age, onComplete }: TestPhaseProps) => {
   useEffect(() => {
     setHasPlayedOnce(false);
     setIsPlaying(false);
+    setIsLoadingAudio(false);
     if (currentAudioRef.current) {
       currentAudioRef.current.pause();
       currentAudioRef.current = null;
