@@ -320,6 +320,25 @@ export default function DynamicSlideRenderer({
       return <VideoSlide slide={slide} />;
     }
 
+    // ── New: handle generator-emitted slide_types not yet in the editorial map ──
+    if (directorType === 'mascot_speech') {
+      const ytEmbed = (slide as any).youtube_embed_url || (slide as any).youtube_video_id;
+      if (ytEmbed) return <VideoSlide slide={slide} />;
+      return <SlideConcept slide={slide} hub={hub} />;
+    }
+    if (directorType === 'flashcard') {
+      const payload = (slide as any).interactive_data || (slide as any).content || {};
+      const hasWords = Array.isArray(payload.words) || Array.isArray(payload.vocabulary) || Array.isArray(payload.vocab_list);
+      if (hasWords) return <EditorialVocabList slide={slide} />;
+      return <LiveHeroMediaSlide slide={slide} />;
+    }
+    if (directorType === 'text_image') {
+      return <LiveHeroMediaSlide slide={slide} />;
+    }
+    if (directorType === 'drawing_canvas') {
+      return <LiveHeroMediaSlide slide={slide} />;
+    }
+
     if (directorType === 'hero_media') {
       return <EditorialHeroMedia slide={slide} />;
     }
