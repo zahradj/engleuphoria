@@ -21,6 +21,7 @@ export const StoryCreator: React.FC = () => {
   const [cefrLevel, setCefrLevel] = useState<CEFRLevel>('B1');
   const [genre, setGenre] = useState<string>('Everyday Life');
   const [vocabInput, setVocabInput] = useState('');
+  const [layoutStyle, setLayoutStyle] = useState<'classic' | 'immersive'>('immersive');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -97,7 +98,7 @@ export const StoryCreator: React.FC = () => {
         slides,
       };
 
-      const result = await persistLesson(lesson, slides, false, 'story');
+      const result = await persistLesson(lesson, slides, false, 'story', { story_layout: layoutStyle });
       if (result.ok === false) throw new Error(result.error);
 
       setActiveLessonData({ ...lesson, lesson_id: result.lesson_id });
@@ -164,6 +165,47 @@ export const StoryCreator: React.FC = () => {
           <p className="text-xs text-slate-500">
             {parseVocab(vocabInput).length}/10 words
           </p>
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold">Reader Layout</Label>
+          <div className="grid grid-cols-2 gap-3">
+            {([
+              { key: 'immersive', label: 'Immersive', desc: 'Full-bleed image · frosted text card' },
+              { key: 'classic', label: 'Classic Split', desc: '50/50 image + serif text panel' },
+            ] as const).map((opt) => {
+              const active = layoutStyle === opt.key;
+              return (
+                <button
+                  key={opt.key}
+                  type="button"
+                  onClick={() => setLayoutStyle(opt.key)}
+                  className={`text-left rounded-xl border-2 p-3 transition-all ${
+                    active
+                      ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/30'
+                      : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    {opt.key === 'immersive' ? (
+                      <div className="w-10 h-7 rounded bg-gradient-to-br from-violet-500 to-fuchsia-500 relative overflow-hidden">
+                        <div className="absolute bottom-0.5 left-1 right-1 h-2 rounded-sm bg-black/40 backdrop-blur-sm" />
+                      </div>
+                    ) : (
+                      <div className="w-10 h-7 rounded overflow-hidden flex">
+                        <div className="w-1/2 bg-gradient-to-br from-slate-400 to-slate-600" />
+                        <div className="w-1/2 bg-amber-50 flex items-center justify-center">
+                          <div className="w-3/4 h-0.5 bg-slate-400 rounded" />
+                        </div>
+                      </div>
+                    )}
+                    <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{opt.label}</span>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{opt.desc}</p>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {error && (

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ImmersiveLessonReader } from '@/components/student/lesson-reader/ImmersiveLessonReader';
 import LessonPlayerContainer from '@/components/lesson-player/LessonPlayerContainer';
+import { StoryBookViewer, StoryPage, StoryLayout } from '@/components/student/story-viewer/StoryBookViewer';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -66,9 +67,26 @@ const LessonReaderPage: React.FC = () => {
     );
   }
 
-  // ── Detect slide-based (App-Shell) lessons ──
+  // ── Story-kind lessons get the dedicated immersive viewer ──
+  const isStory = lesson.ai_metadata?.kind === 'story';
   const slides: GeneratedSlide[] | null = lesson.content?.slides || null;
   const hub: HubType = (lesson.content?.hub || lesson.target_system || 'playground') as HubType;
+
+  if (isStory && slides && slides.length > 0) {
+    const storyLayout: StoryLayout =
+      lesson.ai_metadata?.story_layout === 'classic' ? 'classic' : 'immersive';
+    const pages = normalizeSlidesToStoryPages(slides);
+    const cover = lesson.ai_metadata?.coverImageUrl || pages.find((p) => p.imageUrl)?.imageUrl;
+    return (
+      <StoryBookViewer
+        title={lesson.title}
+        pages={pages}
+        layout={storyLayout}
+        coverImageUrl={cover}
+        onExit={() => navigate(-1)}
+      />
+    );
+  }
 
   if (slides && slides.length > 0) {
     return (
@@ -110,4 +128,55 @@ const LessonReaderPage: React.FC = () => {
   );
 };
 
+// ────────────────────────────────────────────────────────────────────
+// Helpers
+// ────────────────────────────────────────────────────────────────────
+
+/**
+ * Normalize the StoryCreator slide shape into StoryPage[].
+ * - text_image / presentation slides become narrative pages.
+ * - multiple_choice (review) slides attach as `mcq` to the previous narrative page,
+ *   or stand alone as a comprehension-only page if none precedes them.
+ */
+function normalizeSlidesToStoryPages(slides: any[]): StoryPage[] {
+  const pages: StoryPage[] = [];
+  for (const s of slides) {
+    const slideType = s?.slide_type || s?.type;
+    const isMcq =
+      slideType === 'multiple_choice' ||
+      (s?.interactive_data && Array.isArray(s.interactive_data.options));
+
+    if (isMcq) {
+      const data = s.interactive_data || {};
+      const mcq = {
+        question: data.question || s.content || s.title || 'Question',
+        options: Array.isArray(data.options) ? data.options : [],
+        correct_index: typeof data.correct_index === 'number' ? data.correct_index : 0,
+      };
+      const last = pages[pages.length - 1];
+      if (last && !last.mcq) {
+        last.mcq = mcq;
+      } else {
+        pages.push({ title: s.title, text: '', mcq });
+      }
+      continue;
+    }
+
+    const text = s?.content || s?.teacher_script || '';
+    const imageUrl =
+      s?.image_url ||
+      s?.imageUrl ||
+      s?.media?.image_url ||
+      s?.interactive_data?.image_url ||
+      undefined;
+    pages.push({
+      title: s?.title,
+      text: typeof text === 'string' ? text : String(text ?? ''),
+      imageUrl,
+    });
+  }
+  return pages;
+}
+
 export default LessonReaderPage;
+
