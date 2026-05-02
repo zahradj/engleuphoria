@@ -642,20 +642,47 @@ Rules:
 
 // ─── Action: generate_story (graded reader + comprehension) ─────────
 async function handleGenerateStory(body: any) {
-  const { cefr_level = 'B1', genre = 'Everyday Life', target_vocabulary = [] } = body;
+  const { cefr_level = 'B1', genre = 'Everyday Life', target_vocabulary = [], linked_lesson = null } = body;
   if (!Array.isArray(target_vocabulary) || target_vocabulary.length < 3) {
     return jsonResponse({ error: 'target_vocabulary must be an array of at least 3 words' }, 400);
+  }
+
+  // Build optional grounding block when a curriculum lesson is linked.
+  let groundingBlock = '';
+  let groundingUserBlock = '';
+  if (linked_lesson && typeof linked_lesson === 'object') {
+    const ll: any = linked_lesson;
+    const topic = ll.topic || ll.title || '';
+    const llVocab: string[] = Array.isArray(ll.vocabulary)
+      ? ll.vocabulary.filter((w: any) => typeof w === 'string' && w.trim().length > 0)
+      : [];
+    const grammar = typeof ll.grammar_pattern === 'string' ? ll.grammar_pattern.trim() : '';
+    const desc = typeof ll.description === 'string' ? ll.description.trim() : '';
+
+    groundingBlock = `
+
+You are writing a Graded Reader story tied to a SPECIFIC curriculum lesson.
+You MUST base this story on the following lesson topic: "${topic}".
+${desc ? `Lesson context: ${desc}\n` : ''}You MUST naturally integrate ALL of the following target vocabulary at least once: ${llVocab.map((w) => `"${w}"`).join(', ') || '(none)'}.
+${grammar ? `You MUST faithfully demonstrate this grammar pattern in context: ${grammar}.\n` : ''}Stay strictly within CEFR ${cefr_level} sentence length and complexity. Do NOT introduce vocabulary above this level except where listed.`;
+
+    groundingUserBlock = `
+
+Linked Curriculum Lesson:
+- Title: ${ll.title || ''}
+- Topic: ${topic}
+${grammar ? `- Grammar focus: ${grammar}\n` : ''}- Lesson vocabulary: ${llVocab.join(', ') || '(none)'}`;
   }
 
   const systemPrompt = `Write a highly engaging story strictly aligned with the requested CEFR Level. You MUST naturally include the provided Target Vocabulary Words.
 Break the story into 4 to 5 pages (slides).
 For each page, generate an image_prompt that we can later use to generate illustrations.
 Add 2 Reading Comprehension multiple-choice questions at the very end of the story.
-You MUST return ONLY valid JSON. No markdown, no commentary.`;
+You MUST return ONLY valid JSON. No markdown, no commentary.${groundingBlock}`;
 
   const userPrompt = `Genre: "${genre}"
 CEFR Level: ${cefr_level}
-Target Vocabulary (must appear naturally in the story): ${target_vocabulary.map((w: string) => `"${w}"`).join(', ')}
+Target Vocabulary (must appear naturally in the story): ${target_vocabulary.map((w: string) => `"${w}"`).join(', ')}${groundingUserBlock}
 
 Return ONLY this JSON shape:
 {

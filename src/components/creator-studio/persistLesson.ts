@@ -68,6 +68,7 @@ export async function persistLesson(
   };
   if (lesson.level_id) basePayload.level_id = lesson.level_id;
   if (lesson.unit_id) basePayload.unit_id = lesson.unit_id;
+  if (lesson.parent_lesson_id !== undefined) basePayload.parent_lesson_id = lesson.parent_lesson_id;
 
   if (lesson.lesson_id) {
     const { data, error } = await supabase
