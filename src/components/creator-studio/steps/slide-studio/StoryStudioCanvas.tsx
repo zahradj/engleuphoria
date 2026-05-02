@@ -31,6 +31,68 @@ export const StoryStudioCanvas: React.FC = () => {
   const pages = useMemo(() => normalizeSlidesToStoryPages(slides as any[]), [slides]);
   const lessonId = activeLessonData?.lesson_id;
 
+  const slidesNeedingArt = useMemo(
+    () =>
+      slides.filter((s) => {
+        const prompt = (s as any).image_generation_prompt || (s as any).visual_keyword || '';
+        return !s.custom_image_url && String(prompt).trim().length > 0;
+      }),
+    [slides],
+  );
+
+  const runGenerateAll = async (overwrite: boolean) => {
+    if (!activeLessonData) return;
+    if (generating) return;
+    const targetSlides = overwrite ? slides : slidesNeedingArt;
+    if (!targetSlides.length) {
+      toast.message('All pages already have artwork.');
+      return;
+    }
+    setGenerating(true);
+    const tid = toast.loading(`🎨 Painting ${targetSlides.length} page${targetSlides.length === 1 ? '' : 's'}…`);
+    try {
+      const lid = activeLessonData.lesson_id ?? activeLessonData.source_lesson?.id ?? 'draft';
+      const hub = activeLessonData.hub ?? 'Academy';
+      const { results, summary } = await generateAllMedia(
+        lid,
+        hub,
+        targetSlides as unknown as Array<Record<string, unknown>>,
+        overwrite,
+      );
+      let applied = 0;
+      for (const r of results) {
+        if (r.error || r.skipped) continue;
+        const patch: Record<string, unknown> = {};
+        if (r.custom_image_url) {
+          patch.custom_image_url = r.custom_image_url;
+          patch.custom_video_url = undefined;
+          patch.youtube_video_id = undefined;
+        }
+        if (Object.keys(patch).length) {
+          updateSlide(r.slideId, patch);
+          applied += 1;
+        }
+      }
+      toast.success(
+        `✨ Generated ${applied} image${applied === 1 ? '' : 's'} · ${summary.errors} error${summary.errors === 1 ? '' : 's'}`,
+        { id: tid },
+      );
+    } catch (e: any) {
+      toast.error(`Image generation failed: ${e?.message || 'Unknown error'}`, { id: tid });
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  // ── No-Click Auto-Image Pipeline (story version) ──
+  useEffect(() => {
+    if (autoGenTriggered.current || generating || !slides.length || !activeLessonData) return;
+    if (!slidesNeedingArt.length) return;
+    autoGenTriggered.current = true;
+    void runGenerateAll(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slides, activeLessonData]);
+
   return (
     <div className="h-full w-full flex flex-col bg-slate-950">
       {/* Top action bar */}
@@ -43,8 +105,52 @@ export const StoryStudioCanvas: React.FC = () => {
           <span className="text-sm font-semibold truncate">
             {activeLessonData?.lesson_title}
           </span>
+          {generating && (
+            <span className="ml-2 inline-flex items-center gap-1 text-[11px] font-semibold text-fuchsia-300">
+              <Loader2 className="h-3 w-3 animate-spin" /> AI illustrating…
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2">
+          <span
+            className={cn(
+              'text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded',
+              isDirty
+                ? 'bg-amber-500/20 text-amber-200'
+                : 'bg-emerald-500/20 text-emerald-200',
+            )}
+            title={isDirty ? 'Saving shortly…' : 'All changes saved'}
+          >
+            {isDirty ? (
+              <span className="inline-flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Saving</span>
+            ) : (
+              <span className="inline-flex items-center gap-1"><Save className="h-3 w-3" /> Saved</span>
+            )}
+          </span>
+          <Button
+            size="sm"
+            className="gap-1.5 bg-fuchsia-500 hover:bg-fuchsia-400 text-white border-0"
+            onClick={() => runGenerateAll(false)}
+            disabled={generating || !slidesNeedingArt.length}
+            title={
+              slidesNeedingArt.length
+                ? `Generate art for ${slidesNeedingArt.length} page${slidesNeedingArt.length === 1 ? '' : 's'}`
+                : 'All pages already have artwork'
+            }
+          >
+            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            Generate Images {slidesNeedingArt.length ? `(${slidesNeedingArt.length})` : ''}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1.5 bg-white/10 text-white border-white/20 hover:bg-white/20"
+            onClick={() => runGenerateAll(true)}
+            disabled={generating || !slides.length}
+            title="Re-generate all page artwork"
+          >
+            Regenerate All
+          </Button>
           <Button
             size="sm"
             variant="outline"
