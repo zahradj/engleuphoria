@@ -1,51 +1,70 @@
-# Story Studio: Restore Save Button + Image Generation
+# Classroom Slide UI Density + AI Schema Hardening
 
-## Root cause
+## Part 1 — UI density refactor
 
-`StoryBookViewer` (and its `PictureBookViewer`, `ComicSpreadViewer`, `WebtoonScroller` variants) all render with `className="fixed inset-0 z-50 ..."`. When the Studio mounts the viewer inside its preview pane, those `fixed` overlays escape the pane and cover the **entire screen**, hiding:
+### 1. `EditorialVocabList.tsx` → 3D Flip-Card Grid
+Replace the current "pill list" with a responsive 2/3-column grid of CSS 3D flip cards.
 
-- The top action bar (💾 Save to Library, Generate Images, Regenerate, Preview Reader)
-- The right-side editor sidebar
-- The page-tab strip
+- Normalize each entry from any shape the AI emits: `{word|term, definition|meaning, example_sentence|sentence, image_url|imageUrl|thumbnail_url}`.
+- Card sizing: `h-56`, `[perspective:1200px]`. Inner wrapper uses `[transform-style:preserve-3d]` and flips on `group-hover` (desktop) + `peer-checked` from a hidden checkbox label (touch/click).
+- **Front**: `image_url` (top, `h-32 object-cover`) + bold target word centered. Fallback gradient + `BookOpen` icon when no image.
+- **Back**: definition (semibold) + italic example sentence on a hub-tinted gradient, with `[transform:rotateY(180deg)] [backface-visibility:hidden]`.
+- Surface a small "Tap to flip" hint and an empty-state when the array is missing.
 
-The viewer also intercepts pointer/keyboard events globally, which is why nothing on the Studio chrome is reachable.
+### 2. `EditorialFillBlanks.tsx` — denser vertical list
+Already supports `sentences[]`; tighten visual density so 4–5 questions fit:
 
-A secondary issue blocks images from appearing: the Studio calls `generate-all-media` with `lessonId = activeLessonData.lesson_id ?? 'draft'`. When the lesson has never been persisted (`lesson_id` is undefined), images are uploaded under a `draft/` prefix and the slide patches are kept only in client state. If the auto-trigger fires before the user has any lesson row, panels can silently end up without `image_url` because the slide objects are replaced before `updateSlide` runs.
+- Outer padding `py-12` → `py-6`, gap `gap-8` → `gap-4`.
+- Each row `p-6` → `px-4 py-3`, font `text-lg` → `text-base`.
+- Input width `w-44` → `w-32`, height `h-9`, font `text-sm`.
+- Numbered chip moves inline with the sentence (single row instead of stacked).
+- Hint/feedback text drops to `text-[11px]`.
+- "Check All Answers" button: `px-6 py-2 text-sm`.
 
-## Fix
+### 3. `EditorialMatchHalves.tsx` — denser pair grid
+Layout for 5–6 pairs without scroll:
 
-### 1. `src/components/student/story-viewer/StoryBookViewer.tsx`
+- Outer `py-12 gap-8` → `py-6 gap-4`.
+- Two-column grid keeps existing structure but row gap `gap-y-4` → `gap-y-2`.
+- Each button `px-5 py-4 text-base` → `px-3 py-2 text-sm`, secondary "→ match" line `text-[10px]`.
+- Removes title margin to free vertical space.
 
-- Add `embedded?: boolean` to `StoryBookViewerProps`, `BookViewerProps`, and the `WebtoonScroller` props.
-- Replace every outer container that uses `fixed inset-0 z-50` with a helper:
-  - `embedded` → `absolute inset-0` (fills its parent, no z-50)
-  - default → `fixed inset-0 z-50` (current full-screen behavior preserved for the standalone reader route)
-- Forward `embedded` from `StoryBookViewer` into `PictureBookViewer`, `ComicSpreadViewer`, and `WebtoonScroller`.
-- Add a small floating "Exit" affordance only when **not** embedded (so the Studio doesn't show a redundant close button).
+## Part 2 — AI brain & data fixes
 
-### 2. `src/components/creator-studio/steps/slide-studio/StoryStudioCanvas.tsx`
+### 4a. UI fallback for missing interactive_data
+In `DynamicSlideRenderer.tsx`, before routing any interactive `directorType` (`fill_in_blanks`, `match_halves`, `quiz_mcq`, `sorting_game`, `sentence_builder`, `true_false`, `drag_and_match`, `drag_and_drop`, `fill_in_the_gaps`), check that `slide.interactive_data` exists AND contains the expected key (sentences/pairs/options/items/etc.). If missing, render a friendly fallback panel instead of the empty activity shell:
 
-- Pass `embedded` to `<StoryBookViewer />`.
-- Raise the top action bar and right sidebar to `z-[60]` so nothing the viewer renders can overlap them.
-- Add a tiny progress chip next to "Generate Images": `X / Y panels illustrated` computed from `slidesNeedingArt` vs total panel count.
-- Add a **🔁 Retry failed panels** button that re-runs `runGenerateAll(false)` only on slides whose panels still lack `image_url`.
-- Before calling `generateAllMedia`, if `activeLessonData.lesson_id` is missing, call `persistLesson(...)` first (publish=false) so generated images are scoped to a real lesson id and survive a refresh. Update `activeLessonData.lesson_id` from the result before continuing.
-- Guard the auto-generation `useEffect` so it only fires once `activeLessonData.lesson_id` exists (or after the auto-persist above resolves).
+> "Oops! The activity data is missing. Let's discuss this topic instead!"
+> Followed by `slide.title`, `slide.teacher_script` if present, and a "Continue" button.
 
-### 3. `supabase/functions/generate-all-media/index.ts`
+This replaces the silent "Choose the Correct Form!" empty shell screen the user reported.
 
-- No schema change required; the function already forwards `lessonId` to `generate-slide-image`. Verified `generate-slide-image` falls back to a `"draft"` folder if `lessonId` is empty, so the new client-side persist step is what actually fixes durability.
-- Add a defensive log when `lessonId === 'draft'` so future debugging is easier.
+### 4b. Edge-function schema enforcement (`generate-ppp-slides/index.ts`)
+Add a new **RULE 6C — INTERACTIVE_DATA IS REQUIRED** block to the system prompt:
+
+> "For ANY slide whose slide_type is one of `quiz_mcq`, `multiple_choice`, `reading_quiz`, `listening_comprehension`, `fill_in_blanks`, `fill_in_the_gaps`, `match_halves`, `match_words`, `image_match`, `sorting_game`, `sentence_builder`, `true_false`, `drag_and_match`, or `drag_and_drop`, the `interactive_data` field is STRICTLY REQUIRED and MUST contain all keys listed in RULE 6/6B. Slides emitted without complete `interactive_data` will be rejected."
+
+Add a server-side validator after JSON parse: any slide with one of those types and a missing/empty `interactive_data` is dropped from the deck and logged with `console.warn('[ppp] dropped malformed slide', slide.id, slide.slide_type)` so we never ship a broken activity to the classroom.
+
+### 5. Strict Lesson Blueprint (no duplicates)
+Augment the system prompt in `generate-ppp-slides` with **RULE 0 — STRICT BLUEPRINT**:
+
+> "Unless the caller-supplied `blueprint.phases` overrides it, you MUST emit EXACTLY this 7-slide skeleton in this order: 1× `front_page` (Title) → 1× `mascot_speech` (Intro) → 1× `grammar_explanation` (Rule) → 1× `vocab_list` (4 words, flip-grid) → 1× `match_halves` (5 pairs) → 1× `fill_in_blanks` (4 sentences) → 1× `real_world_task` (Final Speaking Roleplay). NEVER emit duplicate speaking exercises, two consecutive activities of the same skill, or filler reviews."
+
+Also add a deduplication pass after JSON parse: walk the slides and drop any second occurrence of `real_world_task`, `role_play`, or `shadowing_drill`, plus any back-to-back duplicate `slide_type` (re-using the existing RULE 5 spirit but enforced server-side).
 
 ## Files touched
 
-- `src/components/student/story-viewer/StoryBookViewer.tsx` — add `embedded` plumbing, swap `fixed` for `absolute` in 4 places.
-- `src/components/creator-studio/steps/slide-studio/StoryStudioCanvas.tsx` — pass `embedded`, raise z-index, add progress chip + retry, persist-before-generate.
-- `supabase/functions/generate-all-media/index.ts` — add a log line for the draft-id case.
+- `src/components/lesson-player/editorial/EditorialVocabList.tsx` — full rewrite to flip-card grid
+- `src/components/lesson-player/editorial/EditorialFillBlanks.tsx` — density tweaks
+- `src/components/lesson-player/editorial/EditorialMatchHalves.tsx` — density tweaks
+- `src/components/lesson-player/DynamicSlideRenderer.tsx` — pre-route validation + fallback component
+- `supabase/functions/generate-ppp-slides/index.ts` — Rule 0 (blueprint), Rule 6C (required interactive_data), server-side validator + dedup pass
 
 ## Verification
 
-1. Open `/content-creator/slide-builder`, generate a story → top bar with **💾 Save to Library** stays visible above the viewer.
-2. Auto-image pipeline runs: progress chip ticks up, panels populate. If any fail, **🔁 Retry failed panels** completes them.
-3. Click **💾 Save to Library** → lesson appears in library; reopen → images persist (no `draft/` paths).
-4. Standalone `/lesson/:id` reader still opens full-screen (no regression for non-embedded use).
+1. Lesson with vocab phase shows a flippable grid; each card flips on hover/tap and exposes word + definition + example.
+2. A fill-in-the-blanks slide with 4 sentences shows all 4 in one viewport (no scroll on 1148×761).
+3. A match-halves slide with 5 pairs shows both columns without scroll.
+4. Slide with missing `interactive_data` for an interactive type renders the friendly fallback, not the empty quiz shell.
+5. Newly generated lessons follow the 7-slide skeleton exactly with no duplicate roleplays/shadowings.
