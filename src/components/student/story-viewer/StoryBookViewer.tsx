@@ -884,7 +884,7 @@ const PictureBookViewer: React.FC<BookViewerProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col bg-sky-50"
+      className={cn(shellPos(embedded), 'flex flex-col bg-sky-50')}
       style={{ fontFamily: "'Quicksand', 'Comic Neue', 'Comic Sans MS', system-ui" }}
     >
       {/* Top blue header bar */}
