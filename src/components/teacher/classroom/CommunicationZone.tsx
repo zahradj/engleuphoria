@@ -57,7 +57,9 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
   studentMicMuted = false,
   studentCameraOff = false,
   onToggleStudentMic,
-  onToggleStudentCamera
+  onToggleStudentCamera,
+  collapsed = false,
+  onToggleCollapsed,
 }) => {
   const [chatMessages, setChatMessages] = useState<Array<{ sender: string; text: string }>>([
     { sender: 'system', text: 'Class session started' }
