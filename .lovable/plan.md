@@ -1,75 +1,46 @@
-# Placement Test: Branding + Audio Reliability
+# Security Hardening Migration File
 
-Two-part upgrade to `src/components/placement/*` — brand polish and an audio playback fix. No backend schema changes.
+I'll create a new SQL migration file in `supabase/migrations/` that applies the three approved fixes. The file will be saved but **not executed** — you'll apply it via the migration tool when ready.
 
----
+## File to create
 
-## Part 1 — Branded chat avatar + ambient cursor glow
+`supabase/migrations/<timestamp>_security_hardening_phase_2.sql`
 
-### 1a. Replace the star avatar with the EnglEuphoria logo
-File: `src/components/placement/ChatBubble.tsx`
+## Contents
 
-- Remove the `Sparkles` icon (lucide-react import + usage).
-- Import the logo image directly: `import logoMark from '@/assets/logo-white.png'` (we use the image, not the `<Logo />` button — the button wraps a clickable `<button>` that navigates home, which is wrong inside a chat bubble avatar).
-- Render inside the existing circular gradient container:
-  ```tsx
-  <img
-    src={logoMark}
-    alt="EnglEuphoria guide"
-    className="w-6 h-6 object-contain select-none pointer-events-none"
-    draggable={false}
-  />
-  ```
-- Keep the `w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500` halo so the white wordmark sits on a branded disc.
+### 1. Realtime Privacy — Remove `lesson_payments` from realtime
+```sql
+ALTER PUBLICATION supabase_realtime DROP TABLE public.lesson_payments;
+```
+Stops financial events from being broadcast to any subscribed client.
 
-### 1b. Hub-aware ambient cursor glow
-File: `src/components/placement/AIPlacementTest.tsx`
+### 2. Data Normalization — Drop denormalized email columns
+```sql
+ALTER TABLE public.parent_teacher_messages
+  DROP COLUMN IF EXISTS parent_email,
+  DROP COLUMN IF EXISTS teacher_email;
+```
+Verified earlier that `ParentMessages.tsx` reads emails via profile joins — no app code depends on these columns.
 
-- Add a `useRef<HTMLDivElement>` on the outermost wrapper.
-- Add a `useEffect` that attaches a `mousemove` listener on the wrapper, throttled via `requestAnimationFrame`, that writes:
-  ```ts
-  el.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
-  el.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
-  ```
-  Initialize the vars to `50%` / `50%` so the glow is visible before the first move and on touch devices.
-- Add a non-interactive `::before`-style overlay div (absolute, `inset-0`, `pointer-events-none`, `z-0`) with inline style:
-  ```ts
-  background: 'radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(192, 132, 252, 0.18), transparent 70%)'
-  ```
-  `rgb(192,132,252)` = `violet-400` — a vibrant, lighter violet that pops against the existing `from-slate-900 via-purple-900 to-slate-900` background (Academy hub). The card content gets `relative z-10` so it sits above the glow.
-- Cleanup the listener on unmount.
+### 3. Function Hardening — Lock down 47 trigger-only SECURITY DEFINER functions
+For each trigger function, revoke `EXECUTE` from `anon`, `authenticated`, and `PUBLIC` so they can only run via the database trigger that owns them, not via PostgREST RPC.
 
-(Single-hub glow is sufficient — placement test currently lives under the Academy/onboarding flow. We hardcode the violet tone now and can lift it into a prop later if Playground/Success ever get their own placement screens.)
+Functions covered (trigger-only, never called as RPC):
+`handle_new_user`, `handle_new_user_role`, `notify_admin_new_user`, `notify_admin_new_student`, `notify_admin_teacher_ready_for_review`, `notify_admin_low_rating`, `notify_teacher_lesson_booked`, `auto_grade_question`, `update_submission_score`, `generate_certificate_number`, `auto_schedule_reminders`, `trigger_security_audit`, `enhanced_security_audit`, `check_future_booking`, `generate_booking_session`, `mark_slot_booked_on_appointment`, `free_slot_on_appointment_cancel`, `update_availability_on_lesson_booking`, `free_availability_on_lesson_cancel`, `release_cancelled_lesson_slot`, `book_teacher_slot`, `add_credits_on_purchase`, `auto_generate_referral_code`, `record_learning_analytics`, `update_phonics_on_lesson_complete`, `update_vocabulary_on_lesson_complete`, `set_email_send_state_updated_at`, `update_lesson_progress_updated_at`, `update_lesson_progress_timestamp`, `update_iron_updated_at`, and the remaining trigger-only helpers identified in the audit.
 
----
+Pattern (one block per function):
+```sql
+REVOKE EXECUTE ON FUNCTION public.handle_new_user() FROM anon, authenticated, PUBLIC;
+```
 
-## Part 2 — Audio playback fix
+Functions intentionally **left callable** (used as RPC by app code):
+`has_role`, `get_user_role`, `get_current_user_role`, `get_admin_dashboard_stats`, `get_approved_teachers`, `get_teacher_profile_with_payment`, `get_teacher_upcoming_lessons`, `get_student_upcoming_lessons`, `get_pending_reminders`, `get_global_skill_averages`, `get_student_progress_for_parent`, `get_organization_analytics`, `consume_credit`, `refund_credit`, `complete_referral`, `ensure_user_role`, `can_access_lesson`, `can_access_booking_session`, `resolve_classroom_id`, `check_achievements`, `enqueue_email`, `read_email_batch`, `delete_email`, `move_to_dlq`, `log_security_event`, `cleanup_stale_classroom_sessions`, `reset_monthly_class_usage`, `generate_adaptive_learning_path`, `generate_room_id`, `jsonb_array_append`.
 
-File: `src/components/placement/TestPhase.tsx` (and a tightening pass on the existing `handlePlayAudio`).
+## Deliverable
 
-Current state (already partially correct): playback is gated behind a Play button, uses `URL.createObjectURL`, caches per-question, and revokes on unmount. The remaining gaps:
+After approval, I'll:
+1. Write the migration file to `supabase/migrations/`
+2. Tell you the filename
+3. Wait for you to run it via the migration tool — I won't auto-execute
 
-1. **Blob handling is fragile.** `supabase.functions.invoke` returns `data` typed as `unknown`; for our `audio/mpeg` response it usually arrives as a `Blob`, but the fallback `new Blob([data as ArrayBuffer])` silently produces an empty/invalid blob if `data` is actually a JSON error object (e.g. when the edge function returns `{ error: "..." }` with status 500 — `invoke` does not throw on non-2xx in all cases). Fix:
-   - After the invoke, explicitly check: if `data` is not a `Blob` and not an `ArrayBuffer`, treat it as an error payload, log it, and throw with the embedded message.
-   - If `error` is present, surface `error.message` to the toast instead of a generic string.
-2. **Add a `canplaythrough` / load-error path.** Wire `audio.addEventListener('canplaythrough', ...)` to clear an `isLoading` state, and keep `onerror` to toast `"Failed to load audio. Please check your connection or try again."` (matches the prompt's wording).
-3. **Wrap `audio.play()` in `.catch`** so a rejected play promise (autoplay policy, decoding failure) toasts the same friendly message and resets `isPlaying`.
-4. **Guard against double-clicks** while loading: the button is already `disabled={isPlaying}`; add a separate `isLoading` flag so we can show `Loader2` (already imported) before the audio starts.
-5. **Console diagnostics**: log `console.error('[Placement audio]', { questionIndex, voiceId, err })` in every catch path so future failures are debuggable from the browser console.
-
-No changes needed to `supabase/functions/elevenlabs-tts/index.ts` — it already returns the `ArrayBuffer` with `Content-Type: audio/mpeg` and proper CORS headers.
-
----
-
-## Files to edit
-
-- `src/components/placement/ChatBubble.tsx` — swap Sparkles → logo image.
-- `src/components/placement/AIPlacementTest.tsx` — add wrapper ref, mousemove tracker, radial-gradient overlay div.
-- `src/components/placement/TestPhase.tsx` — harden `handlePlayAudio` (blob validation, error messaging, loading state, play().catch).
-
-## Acceptance checks
-
-- Guide chat bubbles display the white EnglEuphoria wordmark inside the violet/fuchsia disc; no more 4-point star.
-- Moving the mouse over the placement test page produces a soft violet halo that follows the cursor; on touch devices the static centered glow remains.
-- Clicking the listening "Play" button either plays the audio or surfaces a toast with the explicit failure reason; nothing autoplays; repeat clicks during load are ignored.
-- Browser console shows a single structured `[Placement audio]` log when a failure occurs, including the question index.
+No application code changes are needed (verified earlier that the dropped email columns are unused).
