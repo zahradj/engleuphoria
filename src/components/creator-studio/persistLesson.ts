@@ -17,6 +17,7 @@ export async function persistLesson(
   slides: PPPSlide[],
   isPublished: boolean,
   kind: LessonKind = 'standard',
+  extraMetadata?: Record<string, unknown>,
 ): Promise<{ ok: true; lesson_id: string } | { ok: false; error: string }> {
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData.user?.id;
@@ -56,6 +57,7 @@ export async function persistLesson(
       kind,
       generated_at: new Date().toISOString(),
       blueprint_ref: lesson.source_lesson ?? null,
+      ...(extraMetadata ?? {}),
     },
     is_published: isPublished,
     skills_focus: lesson.source_lesson?.skill_focus
