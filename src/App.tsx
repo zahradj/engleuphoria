@@ -32,6 +32,7 @@ const EmailVerification = lazy(() => import("./pages/EmailVerification"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const StudentOnboardingFlow = lazy(() => import("./components/onboarding/StudentOnboardingFlow"));
+const MyPathPage = lazy(() => import("./pages/MyPathPage"));
 const ParentDashboard = lazy(() => import("./pages/ParentDashboard"));
 const CommunityPage = lazy(() => import("./pages/CommunityPage"));
 const TeacherClassroomPage = lazy(() => import("./pages/TeacherClassroomPage"));
@@ -240,12 +241,21 @@ const App = () => {
                         </ImprovedProtectedRoute>
                       } />
 
-                      {/* Student Onboarding Flow */}
-                      <Route path="/onboarding" element={
+                      {/* Student Onboarding Flow — legacy; new flow goes signup → placement → my-path */}
+                      <Route path="/onboarding" element={<Navigate to="/ai-placement-test" replace />} />
+                      <Route path="/onboarding-legacy" element={
                         <ImprovedProtectedRoute requiredRole="student">
                           <Suspense fallback={<LoadingFallback />}><StudentOnboardingFlow /></Suspense>
                         </ImprovedProtectedRoute>
                       } />
+
+                      {/* My Path — branded reveal page after placement test */}
+                      <Route path="/dashboard/my-path" element={
+                        <Suspense fallback={<LoadingFallback />}><MyPathPage /></Suspense>
+                      } />
+
+                      {/* Settings shortcut — opens the dashboard with the profile tab focused */}
+                      <Route path="/dashboard/settings" element={<Navigate to="/dashboard?tab=profile" replace />} />
 
                       {/* Hub Confirmation — post-signup step */}
                       <Route path="/hub-confirmation" element={
