@@ -75,6 +75,8 @@ export const teacherAvailabilityService = {
       .gte('start_time', new Date().toISOString())
       .order('start_time', { ascending: true });
 
+    console.log('[teacherAvailabilityService.getTeacherAvailableSlots] teacher:', teacherId, 'Fetched slots:', data, 'Fetch error:', error);
+
     if (error) {
       console.error('Error fetching teacher available slots:', error);
       throw error;
