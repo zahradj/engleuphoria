@@ -4,7 +4,7 @@ import { Logo } from "@/components/Logo";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard, Activity, Users, FileText, TrendingUp, CreditCard, Settings,
-  LogOut, Calendar, GraduationCap, Radio, Video, Mail, Briefcase
+  LogOut, Calendar, GraduationCap, Radio, Video, Mail, Briefcase, Inbox
 } from "lucide-react";
 
 interface AdminSidebarProps {
