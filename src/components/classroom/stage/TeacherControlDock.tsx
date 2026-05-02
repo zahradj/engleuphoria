@@ -278,7 +278,7 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
           <div className="pl-2 ml-1 border-l border-border">
             <Popover>
               <PopoverTrigger asChild>
-                <Button size="sm" variant="default" className="h-8 gap-1.5 text-xs" title="Classroom Tools">
+                <Button size="sm" variant="default" className="h-9 gap-1.5 text-sm bg-[#6B21A8] hover:bg-[#581C87] text-white" title="Classroom Tools">
                   <Sparkles className="h-3.5 w-3.5" />
                   Tools
                 </Button>
