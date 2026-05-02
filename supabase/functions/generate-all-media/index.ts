@@ -83,6 +83,10 @@ serve(async (req) => {
       });
     }
 
+    if (!lessonId || lessonId === 'draft') {
+      console.warn(`generate-all-media called without persisted lessonId (got "${lessonId}"). Images will be uploaded under draft/ and may not survive a client refresh.`);
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const admin = createClient(supabaseUrl, serviceKey);
