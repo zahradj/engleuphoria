@@ -7647,6 +7647,7 @@ export type Database = {
           fluency_score: number
           gaps: string[] | null
           grade_level: string | null
+          hub_type: string | null
           id: string
           interests: string[] | null
           last_activity_date: string | null
@@ -7656,7 +7657,9 @@ export type Database = {
           last_completed_sequence_b2: number | null
           last_completed_sequence_prea1: number | null
           last_streak_date: string | null
+          learning_reason: string | null
           learning_style: string | null
+          lesson_duration: number | null
           long_term_goal: string | null
           longest_streak: number | null
           mistake_history: Json | null
@@ -7671,6 +7674,7 @@ export type Database = {
           placement_test_score: number | null
           placement_test_total: number | null
           preferred_lesson_time: string | null
+          profile_completion_dismissed_at: string | null
           profile_image_url: string | null
           school_name: string | null
           strengths: string[] | null
@@ -7695,6 +7699,7 @@ export type Database = {
           fluency_score?: number
           gaps?: string[] | null
           grade_level?: string | null
+          hub_type?: string | null
           id?: string
           interests?: string[] | null
           last_activity_date?: string | null
@@ -7704,7 +7709,9 @@ export type Database = {
           last_completed_sequence_b2?: number | null
           last_completed_sequence_prea1?: number | null
           last_streak_date?: string | null
+          learning_reason?: string | null
           learning_style?: string | null
+          lesson_duration?: number | null
           long_term_goal?: string | null
           longest_streak?: number | null
           mistake_history?: Json | null
@@ -7719,6 +7726,7 @@ export type Database = {
           placement_test_score?: number | null
           placement_test_total?: number | null
           preferred_lesson_time?: string | null
+          profile_completion_dismissed_at?: string | null
           profile_image_url?: string | null
           school_name?: string | null
           strengths?: string[] | null
@@ -7743,6 +7751,7 @@ export type Database = {
           fluency_score?: number
           gaps?: string[] | null
           grade_level?: string | null
+          hub_type?: string | null
           id?: string
           interests?: string[] | null
           last_activity_date?: string | null
@@ -7752,7 +7761,9 @@ export type Database = {
           last_completed_sequence_b2?: number | null
           last_completed_sequence_prea1?: number | null
           last_streak_date?: string | null
+          learning_reason?: string | null
           learning_style?: string | null
+          lesson_duration?: number | null
           long_term_goal?: string | null
           longest_streak?: number | null
           mistake_history?: Json | null
@@ -7767,6 +7778,7 @@ export type Database = {
           placement_test_score?: number | null
           placement_test_total?: number | null
           preferred_lesson_time?: string | null
+          profile_completion_dismissed_at?: string | null
           profile_image_url?: string | null
           school_name?: string | null
           strengths?: string[] | null
