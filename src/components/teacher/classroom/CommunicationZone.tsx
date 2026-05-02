@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { User, Send, Mic, MicOff, Video, VideoOff } from 'lucide-react';
+import { User, Send, Mic, MicOff, Video, VideoOff, ChevronLeft, ChevronRight, MessageSquare } from 'lucide-react';
 
 
 interface CommunicationZoneProps {
