@@ -269,8 +269,12 @@ export const StoryCreator: React.FC = () => {
         body: {
           action: 'generate_story',
           cefr_level: cefrLevel,
+          cefrLevel,
           genre,
+          topic: linkedLesson?.ai_metadata?.topic ?? linkedLesson?.title ?? genre,
           target_vocabulary: words,
+          targetGrammar: linkedLesson?.grammar_pattern ?? undefined,
+          artStyle: visualStyle,
           linked_lesson: linked_lesson_payload,
           visual_style: visualStyle,
         },

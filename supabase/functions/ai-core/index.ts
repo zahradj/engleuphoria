@@ -667,17 +667,51 @@ function injectStyle(prompt: string, modifier: string): string {
 async function handleGenerateStory(body: any) {
   const {
     cefr_level = 'B1',
-    genre = 'Everyday Life',
+    cefrLevel,                          // accept camelCase from frontend
+    genre,
+    topic,                              // explicit topic
     target_vocabulary = [],
+    target_grammar,
+    targetGrammar,                      // camelCase alias
     linked_lesson = null,
     visual_style: rawStyle = 'classic',
+    art_style: artStyleAlias,
+    artStyle,                           // camelCase alias
   } = body;
 
-  const visual_style = (['classic', 'comic_western', 'manga_rtl', 'webtoon'].includes(rawStyle)
-    ? rawStyle
+  // Normalize aliases
+  const cefr = String(cefrLevel || cefr_level || 'B1').toUpperCase();
+  const resolvedTopic = String(topic || genre || 'Everyday Life');
+
+  // Map friendly artStyle names → internal visual_style slugs.
+  const styleAliasMap: Record<string, string> = {
+    manga: 'manga_rtl',
+    'manga rtl': 'manga_rtl',
+    webtoon: 'webtoon',
+    manhwa: 'webtoon',
+    comic: 'comic_western',
+    'comic western': 'comic_western',
+    western: 'comic_western',
+    storybook: 'classic',
+    classic: 'classic',
+  };
+  const rawStyleInput = String(artStyle || artStyleAlias || rawStyle || 'classic').toLowerCase().trim();
+  const mappedStyle = styleAliasMap[rawStyleInput] || rawStyleInput;
+  const visual_style = (['classic', 'comic_western', 'manga_rtl', 'webtoon'].includes(mappedStyle)
+    ? mappedStyle
     : 'classic') as 'classic' | 'comic_western' | 'manga_rtl' | 'webtoon';
   const isPaneled = visual_style !== 'classic';
   const styleModifier = STORY_STYLE_MODIFIERS[visual_style];
+
+  // Friendly artStyle label restated in the prompt.
+  const artStyleLabel = (() => {
+    switch (visual_style) {
+      case 'manga_rtl': return 'Manga (black-and-white, screentone, dramatic angles)';
+      case 'webtoon': return 'Webtoon manhwa (vertical scroll, soft cel-shading, bright digital color)';
+      case 'comic_western': return 'Western comic book (vibrant ink, halftone, dynamic action)';
+      default: return "Children's storybook illustration (warm watercolor)";
+    }
+  })();
 
   if (!Array.isArray(target_vocabulary) || target_vocabulary.length < 3) {
     return jsonResponse({ error: 'target_vocabulary must be an array of at least 3 words' }, 400);
@@ -686,27 +720,29 @@ async function handleGenerateStory(body: any) {
   // Build optional grounding block when a curriculum lesson is linked.
   let groundingBlock = '';
   let groundingUserBlock = '';
+  let resolvedGrammar = String(targetGrammar || target_grammar || '').trim();
   if (linked_lesson && typeof linked_lesson === 'object') {
     const ll: any = linked_lesson;
-    const topic = ll.topic || ll.title || '';
+    const llTopic = ll.topic || ll.title || '';
     const llVocab: string[] = Array.isArray(ll.vocabulary)
       ? ll.vocabulary.filter((w: any) => typeof w === 'string' && w.trim().length > 0)
       : [];
     const grammar = typeof ll.grammar_pattern === 'string' ? ll.grammar_pattern.trim() : '';
+    if (!resolvedGrammar && grammar) resolvedGrammar = grammar;
     const desc = typeof ll.description === 'string' ? ll.description.trim() : '';
 
     groundingBlock = `
 
 You are writing a Graded Reader story tied to a SPECIFIC curriculum lesson.
-You MUST base this story on the following lesson topic: "${topic}".
+You MUST base this story on the following lesson topic: "${llTopic}".
 ${desc ? `Lesson context: ${desc}\n` : ''}You MUST naturally integrate ALL of the following target vocabulary at least once: ${llVocab.map((w) => `"${w}"`).join(', ') || '(none)'}.
-${grammar ? `You MUST faithfully demonstrate this grammar pattern in context: ${grammar}.\n` : ''}Stay strictly within CEFR ${cefr_level} sentence length and complexity. Do NOT introduce vocabulary above this level except where listed.`;
+${grammar ? `You MUST faithfully demonstrate this grammar pattern in context: ${grammar}.\n` : ''}Stay strictly within CEFR ${cefr} sentence length and complexity. Do NOT introduce vocabulary above this level except where listed.`;
 
     groundingUserBlock = `
 
 Linked Curriculum Lesson:
 - Title: ${ll.title || ''}
-- Topic: ${topic}
+- Topic: ${llTopic}
 ${grammar ? `- Grammar focus: ${grammar}\n` : ''}- Lesson vocabulary: ${llVocab.join(', ') || '(none)'}`;
   }
 
@@ -727,19 +763,19 @@ ${grammar ? `- Grammar focus: ${grammar}\n` : ''}- Lesson vocabulary: ${llVocab.
   const slideShape = isPaneled
     ? `{
       "page_number": 1,
-      "narrative": "<short narration / scene-setter, 1-2 sentences ${cefr_level}>",
+      "narrative": "<short narration / scene-setter, 1-2 sentences ${cefr}>",
       "panels": [
         {
-          "image_prompt": "<detailed visual scene — character, action, setting, mood>",
+          "image_prompt": "<hyper-specific scene; restate character core features and the artStyle>",
           "size": "full | wide | tall | square",
           "caption": "<optional narration, may be empty>",
           "dialogue": [
-            { "speaker": "<name or '' for thought>", "text": "<short line, ${cefr_level}>" }
+            { "speaker": "<name or '' for thought>", "text": "<short line, ${cefr}>" }
           ]
         }
       ]
     }`
-    : `{ "page_number": 1, "narrative": "<2-4 sentences appropriate for ${cefr_level}>", "image_prompt": "<detailed visual scene>" }`;
+    : `{ "page_number": 1, "narrative": "<2-4 sentences appropriate for ${cefr}>", "image_prompt": "<hyper-specific scene; restate character core features and the artStyle>" }`;
 
   const pageCountRule = isPaneled
     ? (visual_style === 'webtoon'
@@ -747,27 +783,32 @@ ${grammar ? `- Grammar focus: ${grammar}\n` : ''}- Lesson vocabulary: ${llVocab.
         : '- Produce 4 or 5 pages, each with 3 to 5 panels.')
     : '- 4 or 5 narrative pages.';
 
-  const systemPrompt = `You are a master storyteller crafting cinematic graded readers for English learners at CEFR ${cefr_level}.
+  // ── MASTER DEVELOPER SYSTEM PROMPT ──
+  const systemPrompt = `You are an award-winning comic book writer and an expert ESL (English as a Second Language) curriculum designer. Your job is to generate educational comics that are deeply engaging, emotionally resonant, and perfectly tailored to the user's CEFR level.
 
-NARRATIVE CRAFT (non-negotiable):
-- FORBIDDEN openings and lines like "This is Leo.", "Leo is a boy.", "He is happy.", "They are friends." Such robotic exposition is banned. Reveal characters through ACTION and DIALOGUE, never through label sentences.
-- The full story MUST follow a clear dramatic arc across the pages: (1) HOOK — open mid-action or with intrigue; (2) RISING ACTION — escalate stakes and obstacles; (3) CLIMAX — a charged turning point; (4) RESOLUTION — emotionally satisfying close.
-- Give characters distinct voices, motivations, and small flaws. Use vivid sensory detail (sound, smell, texture) — never just "He saw a tree."
-- Dialogue must feel spoken: contractions, interruptions, emotional beats. Max ~14 words per line. Use "" as speaker for inner thought / narration captions.
-- Stay strictly within CEFR ${cefr_level} vocabulary and grammar complexity. Naturally weave in EVERY target vocabulary word at least once.
+RULES:
+- Pedagogy First: Strictly adhere to the vocabulary and sentence complexity of the requested CEFR level. If the level is A1, use simple sentences but KEEP the emotional hook. If B2, use idioms and complex clauses.
+- Show, Don't Tell: Do not write "Leo is sad." Write dialogue that shows it: "I don't want to go in there," Leo mumbled.
+- Target Grammar: You must naturally weave the requested targetGrammar into the dialogue at least 3 times.
+- Visual Consistency: In your image_prompt fields, you must be hyper-specific so the Image AI keeps characters consistent. Always restate the character's core features (e.g., "Leo, a 10-year-old boy with messy brown hair and a blue backpack..."). Include the requested artStyle in every single image prompt.
+- Structure: Every story must have a Hook (Panel 1), Conflict/Action (Panels 2-3), and a Resolution or Cliffhanger (Panels 4-5).
 
-IMAGE PROMPT CRAFT (for downstream AI image generation — Nano Banana / DALL·E):
-- Every image_prompt MUST be a single rich sentence in this exact order: SUBJECT (who, with key visual traits) → ACTION (what they're doing right now) → SETTING (where, with concrete environment details) → MOOD/EMOTION → CAMERA ANGLE (close-up, wide, low-angle, over-the-shoulder, top-down…) → LIGHTING (golden hour, neon, candlelit, stormy daylight…).
-- Be specific and visual. Bad: "Leo at the park". Good: "A nervous twelve-year-old boy in a red hoodie clutches a crumpled map, staring up at a towering iron gate, deep in an overgrown moonlit park, low-angle shot, cool silver-blue lighting with dramatic shadows."
-- Keep the same character descriptions consistent across panels (same hair, clothes, age) so the illustrations stay coherent.
+You must return ONLY a raw JSON object matching the required schema (title, panels array with narration, dialogue, and image_prompt).
+
+CONTEXT FOR THIS GENERATION:
+- CEFR Level: ${cefr}
+- Topic: "${resolvedTopic}"
+- targetGrammar: ${resolvedGrammar ? `"${resolvedGrammar}"` : '(none specified — pick a grammar pattern appropriate for ' + cefr + ' and use it 3+ times)'}
+- artStyle: ${artStyleLabel} — RESTATE this style verbatim inside every image_prompt.
 ${panelGuidance ? '\nPANEL LAYOUT:\n' + panelGuidance + '\n' : ''}
 OUTPUT FORMAT:
 - Return ONLY valid JSON. No markdown fences, no commentary, no trailing text.
 - End the story with exactly 2 reading-comprehension multiple-choice questions.${groundingBlock}`;
 
-  const userPrompt = `Genre: "${genre}"
-CEFR Level: ${cefr_level}
-Visual Style: ${visual_style}
+  const userPrompt = `Topic: "${resolvedTopic}"
+CEFR Level: ${cefr}
+artStyle: ${artStyleLabel}
+${resolvedGrammar ? `targetGrammar (use 3+ times in dialogue): "${resolvedGrammar}"` : ''}
 Target Vocabulary (each MUST appear naturally somewhere in the story): ${target_vocabulary.map((w: string) => `"${w}"`).join(', ')}${groundingUserBlock}
 
 Return ONLY this JSON shape:
@@ -786,9 +827,10 @@ Rules:
 ${pageCountRule}
 - Exactly 2 comprehension questions, each with 4 plausible options.
 - Use every target vocabulary word at least once across the story.
-- Keep grammar and sentence length faithful to ${cefr_level}.
-- The arc MUST be: hook → rising action → climax → resolution across the pages/panels.
-${isPaneled ? '- Every panel MUST have a rich, cinematic image_prompt following the SUBJECT→ACTION→SETTING→MOOD→ANGLE→LIGHTING formula. Dialogue lines short (max ~14 words). Use "" as speaker for narration captions.' : '- Every page MUST have a rich, cinematic image_prompt following the SUBJECT→ACTION→SETTING→MOOD→ANGLE→LIGHTING formula.'}`;
+${resolvedGrammar ? `- The targetGrammar "${resolvedGrammar}" MUST appear in dialogue at least 3 times.` : ''}
+- Keep grammar and sentence length faithful to ${cefr}.
+- Story arc: Hook (panel 1) → Conflict/Action (panels 2-3) → Resolution or Cliffhanger (panels 4-5).
+${isPaneled ? '- Every panel image_prompt MUST restate the main character\'s core visual features (age, hair, clothing) AND the artStyle. Dialogue lines short (max ~14 words). Use "" as speaker for narration captions.' : '- Every page image_prompt MUST restate the main character\'s core visual features (age, hair, clothing) AND the artStyle.'}`;
 
   try {
     const ai = await callAIWithFailover({
