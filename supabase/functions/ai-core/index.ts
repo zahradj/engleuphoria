@@ -142,6 +142,7 @@ async function callLovableGateway(opts: AICallOptions): Promise<string> {
 
   if (!res.ok) {
     const errText = await res.text().catch(() => '');
+    console.error('LOVABLE GATEWAY CRASH:', res.status, errText);
     const err: any = new Error(`Lovable gateway failed (${res.status}): ${errText.slice(0, 200)}`);
     err.status = res.status;
     throw err;
@@ -149,7 +150,10 @@ async function callLovableGateway(opts: AICallOptions): Promise<string> {
 
   const data = await res.json();
   const text = data?.choices?.[0]?.message?.content?.trim() || '';
-  if (!text) throw new Error('Lovable gateway returned empty response');
+  if (!text) {
+    console.error('LOVABLE GATEWAY CRASH: empty response', JSON.stringify(data).slice(0, 300));
+    throw new Error('Lovable gateway returned empty response');
+  }
   return text;
 }
 
