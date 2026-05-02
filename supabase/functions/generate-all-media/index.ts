@@ -16,6 +16,12 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+interface PanelJob {
+  image_prompt?: string;
+  image_url?: string;
+  imageUrl?: string;
+}
+
 interface SlideJob {
   id: string;
   slide_type?: string;
@@ -27,7 +33,11 @@ interface SlideJob {
   custom_image_url?: string;
   custom_video_url?: string;
   youtube_video_id?: string;
+  panels?: PanelJob[];
+  interactive_data?: { panels?: PanelJob[] } & Record<string, unknown>;
 }
+
+interface PanelResult { index: number; image_url?: string; error?: string }
 
 interface SlideResult {
   slideId: string;
@@ -36,6 +46,7 @@ interface SlideResult {
   youtube_embed_url?: string;
   youtube_title?: string;
   youtube_thumbnail?: string;
+  panels?: PanelResult[];
   skipped?: boolean;
   error?: string;
 }
