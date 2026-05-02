@@ -1034,6 +1034,7 @@ const ComicSpreadViewer: React.FC<BookViewerProps> = ({
   onPlay,
   mcqAnswered,
   setMcqAnswered,
+  embedded,
 }) => {
   const total = pages.length;
   // Spread = current page + next page (snap to even indices)
@@ -1049,7 +1050,7 @@ const ComicSpreadViewer: React.FC<BookViewerProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-slate-900">
+    <div className={cn(shellPos(embedded), 'flex flex-col bg-slate-900')}>
       {/* Top blue header bar */}
       <header className="flex items-center justify-between px-4 sm:px-6 py-3 bg-sky-600 text-white shadow-md z-20">
         <div className="flex items-center gap-2 min-w-0">
