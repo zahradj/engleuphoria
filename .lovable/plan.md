@@ -1,82 +1,127 @@
-## Placement Test: Branding + Listening Comprehension
+## Trial Lesson Generator + Story Creator Engine
 
-Two combined upgrades to the placement test experience across all hubs (Playground, Academy, Professional).
-
----
-
-### Part 1 — Logo Branding
-
-Inject the Engleuphoria wordmark into the test header so every quiz screen carries the brand identity.
-
-**Files touched:**
-- `src/components/placement/AIPlacementTest.tsx` — replace the small "AI / The Guide" header with a centered `<Logo size="medium" />` (or `small` on mobile via `h-8 sm:h-10` sizing).
-- `src/components/placement/PlaygroundPlacementPhase.tsx` — add a centered logo above the star progress row.
-
-Logo placement is above the progress bar inside the existing glassmorphic test container. The `<Logo>` component already auto-switches to the white wordmark on dark backgrounds (placement uses a dark gradient), so no variant override is needed. Mobile scaling uses `h-7 sm:h-9` so it does not push questions below the fold.
+Two new generators inside Creator Studio (`/content-creator/*`), wired to the existing `ai-core` edge function via two new actions. Both save into `curriculum_lessons` so they reuse the existing slide renderer.
 
 ---
 
-### Part 2 — Listening Comprehension (ElevenLabs)
+### 1. Routing & Navigation
 
-Add a `listening_match` question type to the CEFR placement set. When a question has an `audio_script`, the renderer shows a prominent **Play Audio** button and locks the answer choices until the student has clicked play at least once.
+Extend `CreatorContext.CreatorStep` from `'blueprint' | 'slide-builder' | 'library'` to also include `'trial' | 'story'`.
 
-**Schema change** (`src/components/placement/TestPhase.tsx`):
-```ts
-interface Question {
-  question: string;
-  options: string[];
-  correctIndex: number;
-  difficulty: number;
-  targetLevel: 'A1' | 'A2' | 'B1' | 'B2' | 'C1';
-  feedback: { correct: string; incorrect: string };
-  audio_script?: string;        // NEW — TTS source text
-  type?: 'standard' | 'listening_match'; // NEW — discriminator
-}
+Update routing in `CreatorStudioShell.tsx` and add the two new steps to:
+- `StudioSidebar.tsx` NAV array (desktop)
+- `StudioMobileNav.tsx` NAV array (mobile)
+
+New routes (handled by the existing `/content-creator/*` route):
+- `/content-creator/trial` → `TrialCreator` step
+- `/content-creator/story` → `StoryCreator` step
+
+Add i18n keys to `src/translations/{english,arabic,spanish,french,italian,turkish}/nav.ts`:
+- `nav.trial_creator` → "Trial Creator" / equivalents
+- `nav.story_creator` → "Story Creator" / equivalents
+
+Icons (lucide): `Zap` for Trial, `BookOpen` for Story. Adheres to flat 2.0 — no 3D.
+
+---
+
+### 2. New UI Components
+
+**`src/components/creator-studio/steps/TrialCreator.tsx`**
+
+Glassmorphic card form (respects hub palette tokens) with inputs:
+- Target Demographic: `kids` (Playground/orange) | `teens` (Academy/purple) | `adults` (Success/green) — segmented buttons
+- CEFR Level: A1 → C2 select
+- Theme: text input (e.g., "Ordering coffee", "Job interview")
+- "Generate Trial Lesson" button (disabled while loading; shows spinner + status)
+
+On submit → call `supabase.functions.invoke('ai-core', { body: { action: 'generate_trial_lesson', demographic, cefr_level, theme } })`.
+On success → `setActiveLessonData(...)`, persist via `persistLesson` with `ai_metadata.kind = 'trial'`, then navigate to `/content-creator/slide-builder` so the user lands directly in the editor with the generated 6–8 slides.
+
+**`src/components/creator-studio/steps/StoryCreator.tsx`**
+
+Same shell, inputs:
+- CEFR Level (A1 → C2)
+- Genre: select (Sci-Fi, Fairy Tale, Everyday Life, Mystery, Adventure, Slice of Life) + free-text "Other"
+- Target Vocabulary: text input parsed by splitting on commas (5–10 words; client-side validation with friendly error)
+- "Generate Story" button
+
+On submit → call `ai-core` with `action: 'generate_story'`. On success same flow as trial but `ai_metadata.kind = 'story'`.
+
+Error handling on both: 429 → "AI is heavily loaded. Please wait 10 seconds and try again." 402 → friendly "AI is temporarily at capacity, please retry." Other → toast `error.message`.
+
+---
+
+### 3. ai-core Edge Function Updates
+
+`supabase/functions/ai-core/index.ts` — add two new action handlers and register them in the router switch.
+
+**`handleGenerateTrialLesson(body)`** — action `generate_trial_lesson`:
+
+Input: `demographic` (kids|teens|adults), `cefr_level`, `theme`.
+
+System prompt (verbatim per spec, with hub-tone modifier):
+```
+You are designing a 30-minute Trial English Lesson. It must be highly engaging and shorter than standard lessons.
+Limit the output to exactly 6 to 8 slides max.
+Slide 1: Icebreaker/Hook. Slide 2-3: Quick Vocabulary Win. Slide 4-5: Interactive Speaking/Roleplay. Slide 6: Wrap-up and Celebration.
+Tone: <kid-friendly with emojis | teen-friendly academic | refined professional> based on demographic.
+Align language and complexity strictly to CEFR <level>.
 ```
 
-**New questions added to `CEFR_MASTER_QUESTIONS`** (2 listening items, one B1 and one B2):
-- B1 listening_match: "What is the speaker doing?" with script *"I'm just heading to the supermarket to pick up some bread and milk for breakfast tomorrow."* → options like `Going shopping / Cooking dinner / Cleaning the kitchen / Watching TV`.
-- B2 listening_match: "Which conclusion best matches what you heard?" with a 2-sentence script that requires inference.
+Returns JSON shaped to match `ActiveLessonData` (lesson_title, target_goal, target_vocabulary, slides[] with `slide_type`, `title`, `content`, `teacher_script`, `visual_keyword`, `interactive_data` for MCQ/flashcard/drag types). Uses `callAIWithFailover` with `jsonMode: true`.
 
-**Audio playback flow:**
-1. Click `Play Audio` button → state flips to `isPlaying = true`, label becomes `Loading…`.
-2. POST `audio_script` to existing `elevenlabs-tts` edge function via `supabase.functions.invoke('elevenlabs-tts', { body: { text: audio_script } })`.
-3. Function returns raw `audio/mpeg`. Convert to `Blob` → `URL.createObjectURL` → `new Audio(url).play()`.
-4. On `audio.onended`, reset `isPlaying = false` and set `hasPlayedOnce = true`.
-5. Cache the blob URL per question so replays do not re-bill ElevenLabs.
+**`handleGenerateStory(body)`** — action `generate_story`:
 
-**UX lock:**
-- `<motion.button>` answer tiles get `disabled` + `opacity-40 cursor-not-allowed` until `hasPlayedOnce === true` for listening questions.
-- Tooltip / helper text appears below the audio button: *"Listen first, then choose your answer."*
+Input: `cefr_level`, `genre`, `target_vocabulary` (string[]).
 
-**Audio button styling** (matches the existing violet/fuchsia/pink gradient already used in the progress bar):
-```tsx
-<button
-  className="bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500
-             text-white rounded-2xl px-6 py-3 font-semibold flex items-center
-             gap-2 shadow-lg shadow-fuchsia-500/30 hover:scale-[1.02]
-             transition disabled:opacity-60"
->
-  {isPlaying ? '⏳ Loading…' : '🔊 Play Audio'}
-</button>
+System prompt (verbatim):
+```
+Write a highly engaging story strictly aligned with the requested CEFR Level. You MUST naturally include the provided Target Vocabulary Words.
+Break the story into 4 to 5 pages (slides).
+For each page, generate an image_prompt that we can later use to generate illustrations.
+Add 2 Reading Comprehension multiple-choice questions at the very end of the story.
 ```
 
----
+Returns JSON: `{ title, slides: [{ page_number, narrative, image_prompt }, ...], comprehension: [{ question, options[4], correct_index }, x2] }`. Then in the handler, map this into `PPPSlide[]`:
+- 4–5 narrative slides → `slide_type: 'text_image'`, `image_generation_prompt: image_prompt`
+- 2 comprehension slides → `slide_type: 'multiple_choice'` with `interactive_data: MCQData`
 
-### Technical Section
+Both handlers use the existing `callAIWithFailover` (Gemini direct → Lovable Gateway fallback) and surface `429`/`402` cleanly.
 
-- **No DB migration needed.** Questions stay client-side in `TestPhase.tsx` (existing pattern). The `audio_script` field is optional and additive.
-- **No new edge function.** Re-uses the existing deployed `elevenlabs-tts` function which already returns `audio/mpeg` and uses the configured `ELEVENLABS_API_KEY` secret.
-- **Per-question state reset:** `hasPlayedOnce` and the cached blob URL reset whenever `currentQIndex` advances.
-- **Cleanup:** `useEffect` cleanup revokes blob URLs on unmount to avoid memory leaks.
-- **Accessibility:** audio button gets `aria-label="Play listening prompt"`; locked answer buttons get `aria-disabled="true"`.
-- **Playground hub:** the kid-mode (`PlaygroundPlacementPhase`) is picture-only and does NOT receive listening_match questions in this pass — only the logo upgrade. Reason: the existing `audioPrompt` strings are already used as on-screen captions; introducing TTS for 4–9 year-olds requires kid-friendly voice tuning we can do in a follow-up.
+Update the router default-error message to include the two new action names.
 
 ---
 
-### Files to be edited
-1. `src/components/placement/AIPlacementTest.tsx` — header swap to Logo.
-2. `src/components/placement/PlaygroundPlacementPhase.tsx` — add Logo above progress.
-3. `src/components/placement/TestPhase.tsx` — extend `Question` interface, add 2 listening items, add audio player + lock UI.
+### 4. Data Saving (curriculum_lessons)
 
-No new files, no new edge functions, no DB changes.
+Reuse `persistLesson` — extend it to accept an optional `kind: 'standard' | 'trial' | 'story'` param (default `'standard'`) and write it into `ai_metadata.kind`. No DB migration needed (the `ai_metadata` jsonb column already exists; `curriculum_lessons` has no `hub`/`is_trial` columns and `cycle_type` is constraint-bound).
+
+Filtering in Master Library (`LibraryManager.tsx`): add a "Type" filter chip group — All / Standard / Trial / Story — matching `ai_metadata->>'kind'`.
+
+---
+
+### 5. Files to create / edit
+
+Create:
+- `src/components/creator-studio/steps/TrialCreator.tsx`
+- `src/components/creator-studio/steps/StoryCreator.tsx`
+
+Edit:
+- `src/components/creator-studio/CreatorContext.tsx` — extend `CreatorStep` union
+- `src/components/creator-studio/CreatorStudioShell.tsx` — route mapping + Step picker
+- `src/components/creator-studio/StudioSidebar.tsx` — add 2 NAV entries
+- `src/components/creator-studio/StudioMobileNav.tsx` — add 2 NAV entries
+- `src/components/creator-studio/persistLesson.ts` — accept `kind` param, write `ai_metadata.kind`
+- `src/components/creator-studio/steps/LibraryManager.tsx` — add Type filter (Standard/Trial/Story)
+- `supabase/functions/ai-core/index.ts` — two new handlers + router cases
+- `src/translations/*/nav.ts` (6 locales) — add `trial_creator` + `story_creator` keys
+
+---
+
+### Acceptance criteria
+
+- Sidebar + mobile nav show 5 tabs: Blueprint, Slide Studio, **Trial Creator**, **Story Creator**, Master Library.
+- Trial form generates a 6–8 slide lesson, lands the user in Slide Studio, row appears in `curriculum_lessons` with `ai_metadata.kind='trial'`.
+- Story form generates 4–5 narrative slides + 2 MCQ comprehension slides, persists with `ai_metadata.kind='story'`.
+- Master Library filter chips correctly filter by kind.
+- 429/402 errors show friendly toasts (no "AI exhausted" wording).

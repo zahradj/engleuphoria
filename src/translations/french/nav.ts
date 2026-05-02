@@ -17,6 +17,8 @@ export const navTranslations = {
     publish_to_library: "Enregistrer et Publier",
     saving: "Enregistrement…",
     publishing: "Publication…",
+    trial_creator: "Créateur d'Essai",
+    story_creator: "Créateur d'Histoires",
     unsaved: "Non enregistré",
   },
 };

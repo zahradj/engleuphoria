@@ -137,6 +137,7 @@ export const LibraryManager: React.FC = () => {
   const [confirmBulk, setConfirmBulk] = useState<'selected' | 'all' | null>(null);
   // ── Navigation / filter state ────────────────────────────────────
   const [hubFilter, setHubFilter] = useState<'all' | 'playground' | 'academy' | 'success'>('all');
+  const [kindFilter, setKindFilter] = useState<'all' | 'standard' | 'trial' | 'story'>('all');
   const [search, setSearch] = useState('');
   const [openHubs, setOpenHubs] = useState<Set<string>>(new Set(['playground', 'academy', 'success']));
   const [openLevels, setOpenLevels] = useState<Set<string>>(new Set());
@@ -347,18 +348,22 @@ export const LibraryManager: React.FC = () => {
     for (const g of levelGroups) {
       if (hubFilter !== 'all' && g.hub !== hubFilter) continue;
 
-      // Filter lessons inside each unit by search term
+      // Filter lessons inside each unit by search term + kind
       const filteredUnits = g.unitGroups
         .map((u) => ({
           ...u,
-          lessons: q
-            ? u.lessons.filter(
-                (l) =>
-                  l.title.toLowerCase().includes(q) ||
-                  (l.description ?? '').toLowerCase().includes(q) ||
-                  u.unit_title.toLowerCase().includes(q),
-              )
-            : u.lessons,
+          lessons: u.lessons.filter((l) => {
+            if (kindFilter !== 'all') {
+              const k = (l.ai_metadata?.kind as string | undefined) || 'standard';
+              if (k !== kindFilter) return false;
+            }
+            if (!q) return true;
+            return (
+              l.title.toLowerCase().includes(q) ||
+              (l.description ?? '').toLowerCase().includes(q) ||
+              u.unit_title.toLowerCase().includes(q)
+            );
+          }),
         }))
         .filter((u) => u.lessons.length > 0);
 
@@ -375,7 +380,7 @@ export const LibraryManager: React.FC = () => {
     return Array.from(byHub.entries())
       .map(([hub, levels]) => ({ hub, levels }))
       .sort((a, b) => (HUB_ORDER[a.hub] ?? 9) - (HUB_ORDER[b.hub] ?? 9));
-  }, [levelGroups, hubFilter, search]);
+  }, [levelGroups, hubFilter, kindFilter, search]);
 
   // Auto-open the first level inside each hub once data arrives (only once)
   useEffect(() => {
@@ -581,6 +586,24 @@ export const LibraryManager: React.FC = () => {
                 </button>
               )}
             </div>
+          </div>
+          {/* Type (kind) chips */}
+          <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mr-1">Type</span>
+            {(['all', 'standard', 'trial', 'story'] as const).map((k) => (
+              <button
+                key={k}
+                onClick={() => setKindFilter(k)}
+                className={cn(
+                  'px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all border',
+                  kindFilter === k
+                    ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 border-transparent'
+                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-400'
+                )}
+              >
+                {k === 'all' ? 'All' : k.charAt(0).toUpperCase() + k.slice(1)}
+              </button>
+            ))}
           </div>
         </div>
       )}

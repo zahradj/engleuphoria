@@ -10,10 +10,13 @@ import type { ActiveLessonData, PPPSlide } from './CreatorContext';
  * generation flow as an auto-save the moment the AI returns slides, so a
  * page refresh never wipes a generated lesson.
  */
+export type LessonKind = 'standard' | 'trial' | 'story';
+
 export async function persistLesson(
   lesson: ActiveLessonData,
   slides: PPPSlide[],
   isPublished: boolean,
+  kind: LessonKind = 'standard',
 ): Promise<{ ok: true; lesson_id: string } | { ok: false; error: string }> {
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData.user?.id;
@@ -50,6 +53,7 @@ export async function persistLesson(
     content: { slides, homework_missions: lesson.homework_missions ?? [] },
     ai_metadata: {
       source: 'creator-studio-ppp',
+      kind,
       generated_at: new Date().toISOString(),
       blueprint_ref: lesson.source_lesson ?? null,
     },

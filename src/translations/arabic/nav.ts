@@ -17,6 +17,8 @@ export const navTranslations = {
     publish_to_library: "حفظ ونشر في المكتبة",
     saving: "جاري الحفظ…",
     publishing: "جاري النشر…",
+    trial_creator: "منشئ الدرس التجريبي",
+    story_creator: "منشئ القصص",
     unsaved: "غير محفوظ",
   },
 };

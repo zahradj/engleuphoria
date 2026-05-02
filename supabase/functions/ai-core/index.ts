@@ -558,6 +558,147 @@ Return ONLY JSON in this exact shape:
   }
 }
 
+// ─── Action: generate_trial_lesson (30-min trial, 6-8 slides) ───────
+async function handleGenerateTrialLesson(body: any) {
+  const { demographic = 'teens', cefr_level = 'B1', theme } = body;
+  if (!theme) return jsonResponse({ error: 'theme is required' }, 400);
+
+  const tone = demographic === 'kids'
+    ? 'kid-friendly with playful emojis and very short sentences'
+    : demographic === 'adults'
+    ? 'refined, professional, executive-coach tone'
+    : 'energetic teen-friendly academic tone';
+
+  const systemPrompt = `You are designing a 30-minute Trial English Lesson. It must be highly engaging and shorter than standard lessons.
+Limit the output to exactly 6 to 8 slides max.
+Slide 1: Icebreaker/Hook. Slide 2-3: Quick Vocabulary Win. Slide 4-5: Interactive Speaking/Roleplay. Slide 6: Wrap-up and Celebration.
+Tone: ${tone} based on demographic.
+Align language and complexity strictly to CEFR ${cefr_level}.
+You MUST return ONLY valid JSON. No markdown, no commentary.`;
+
+  const userPrompt = `Theme: "${theme}"
+Demographic: ${demographic}
+CEFR: ${cefr_level}
+
+Return ONLY this JSON shape:
+{
+  "lesson_title": "<short, catchy title>",
+  "target_goal": "<1-sentence goal>",
+  "target_vocabulary": ["<word1>", "<word2>", "<word3>", "<word4>", "<word5>"],
+  "slides": [
+    {
+      "phase": "warm-up" | "presentation" | "practice" | "production" | "review",
+      "slide_type": "text_image" | "multiple_choice" | "flashcard" | "drag_and_match" | "fill_in_the_gaps" | "mascot_speech",
+      "title": "<slide title>",
+      "content": "<student-facing text>",
+      "teacher_script": "<what the teacher says aloud>",
+      "visual_keyword": "<2-3 words for an illustration>",
+      "image_generation_prompt": "<detailed prompt for an image generator>",
+      "interactive_data": null
+    }
+  ]
+}
+
+Rules:
+- Exactly 6 to 8 slides total.
+- Slide 1 = Hook (warm-up). Slides 2-3 = Vocabulary (presentation, with flashcard or text_image). Slides 4-5 = Speaking/Roleplay (production, with mascot_speech or multiple_choice). Last slide = Wrap-up/Celebration (review).
+- For multiple_choice slides, set interactive_data = { "question": "...", "options": ["A","B","C","D"], "correct_index": 0 }.
+- For flashcard slides, set interactive_data = { "front": "...", "back": "..." }.
+- For drag_and_match, set interactive_data = { "instruction": "...", "pairs": [{ "left_item": "...", "right_item": "..." }] }.
+- For fill_in_the_gaps, set interactive_data = { "instruction": "...", "sentence_parts": ["before _ ", " after"], "missing_word": "...", "distractors": ["...","..."] }.
+`;
+
+  try {
+    const ai = await callAIWithFailover({
+      systemPrompt,
+      userPrompt,
+      geminiModel: 'gemini-2.5-flash',
+      lovableModel: 'google/gemini-2.5-flash',
+      jsonMode: true,
+      temperature: 0.75,
+    });
+    const cleaned = ai.text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    let lesson: any;
+    try { lesson = JSON.parse(cleaned); }
+    catch {
+      const m = cleaned.match(/\{[\s\S]*\}/);
+      lesson = m ? JSON.parse(m[0]) : null;
+    }
+    if (!lesson || !Array.isArray(lesson.slides)) {
+      return jsonResponse({ error: 'AI returned an unparseable trial lesson.' }, 502);
+    }
+    // Enforce 6-8 slides
+    if (lesson.slides.length > 8) lesson.slides = lesson.slides.slice(0, 8);
+    return jsonResponse({ lesson, provider: ai.provider });
+  } catch (e: any) {
+    if (e?.status === 429) return jsonResponse({ error: 'Rate limited — try again shortly.' }, 429);
+    if (e?.status === 402) return jsonResponse({ error: 'Credits exhausted.' }, 402);
+    return jsonResponse({ error: e?.message || 'AI generation temporarily unavailable.' }, 503);
+  }
+}
+
+// ─── Action: generate_story (graded reader + comprehension) ─────────
+async function handleGenerateStory(body: any) {
+  const { cefr_level = 'B1', genre = 'Everyday Life', target_vocabulary = [] } = body;
+  if (!Array.isArray(target_vocabulary) || target_vocabulary.length < 3) {
+    return jsonResponse({ error: 'target_vocabulary must be an array of at least 3 words' }, 400);
+  }
+
+  const systemPrompt = `Write a highly engaging story strictly aligned with the requested CEFR Level. You MUST naturally include the provided Target Vocabulary Words.
+Break the story into 4 to 5 pages (slides).
+For each page, generate an image_prompt that we can later use to generate illustrations.
+Add 2 Reading Comprehension multiple-choice questions at the very end of the story.
+You MUST return ONLY valid JSON. No markdown, no commentary.`;
+
+  const userPrompt = `Genre: "${genre}"
+CEFR Level: ${cefr_level}
+Target Vocabulary (must appear naturally in the story): ${target_vocabulary.map((w: string) => `"${w}"`).join(', ')}
+
+Return ONLY this JSON shape:
+{
+  "title": "<engaging title>",
+  "slides": [
+    { "page_number": 1, "narrative": "<2-4 sentences appropriate for ${cefr_level}>", "image_prompt": "<detailed visual scene>" }
+  ],
+  "comprehension": [
+    { "question": "<question about the story>", "options": ["A","B","C","D"], "correct_index": 0 },
+    { "question": "<another question>", "options": ["A","B","C","D"], "correct_index": 2 }
+  ]
+}
+
+Rules:
+- 4 or 5 narrative pages.
+- Exactly 2 comprehension questions, each with 4 options.
+- Use every target vocabulary word at least once across the story.
+- Keep grammar and sentence length faithful to ${cefr_level}.`;
+
+  try {
+    const ai = await callAIWithFailover({
+      systemPrompt,
+      userPrompt,
+      geminiModel: 'gemini-2.5-flash',
+      lovableModel: 'google/gemini-2.5-flash',
+      jsonMode: true,
+      temperature: 0.85,
+    });
+    const cleaned = ai.text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    let story: any;
+    try { story = JSON.parse(cleaned); }
+    catch {
+      const m = cleaned.match(/\{[\s\S]*\}/);
+      story = m ? JSON.parse(m[0]) : null;
+    }
+    if (!story || !Array.isArray(story.slides)) {
+      return jsonResponse({ error: 'AI returned an unparseable story.' }, 502);
+    }
+    return jsonResponse({ story, provider: ai.provider });
+  } catch (e: any) {
+    if (e?.status === 429) return jsonResponse({ error: 'Rate limited — try again shortly.' }, 429);
+    if (e?.status === 402) return jsonResponse({ error: 'Credits exhausted.' }, 402);
+    return jsonResponse({ error: e?.message || 'AI generation temporarily unavailable.' }, 503);
+  }
+}
+
 // ─── Main Router ────────────────────────────────────────────────────
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -579,9 +720,13 @@ serve(async (req) => {
         return await handleSpeakingFeedback(body);
       case 'generate_lesson':
         return await handleGenerateLesson(body);
+      case 'generate_trial_lesson':
+        return await handleGenerateTrialLesson(body);
+      case 'generate_story':
+        return await handleGenerateStory(body);
       default:
         return jsonResponse({
-          error: `Unknown action: "${action}". Valid: explain_mistake, evaluate_speaking, evaluate_speech, speaking_feedback, generate_lesson`,
+          error: `Unknown action: "${action}". Valid: explain_mistake, evaluate_speaking, evaluate_speech, speaking_feedback, generate_lesson, generate_trial_lesson, generate_story`,
         }, 400);
     }
   } catch (error) {
