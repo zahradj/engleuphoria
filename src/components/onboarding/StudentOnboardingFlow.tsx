@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useStudentLevel, getStudentDashboardRoute, StudentLevel } from '@/hooks/useStudentLevel';
+import { LanguageStep, LanguageCode } from './steps/LanguageStep';
 import { WelcomeStep } from './steps/WelcomeStep';
 import { InterestsStep } from './steps/InterestsStep';
 import { LearningStyleStep } from './steps/LearningStyleStep';
@@ -10,8 +11,11 @@ import { QuickAssessmentStep } from './steps/QuickAssessmentStep';
 import { LearningPathStep } from './steps/LearningPathStep';
 import { Progress } from '@/components/ui/progress';
 import { Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 export interface OnboardingData {
+  language: LanguageCode;
   interests: string[];
   learningStyle: 'visual' | 'auditory' | 'kinesthetic' | null;
   assessmentScore: number;
@@ -21,56 +25,73 @@ export interface OnboardingData {
 const StudentOnboardingFlow: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { studentLevel, refetch } = useStudentLevel();
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [savingLang, setSavingLang] = useState(false);
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
+    language: 'en',
     interests: [],
     learningStyle: null,
     assessmentScore: 0,
     learningPath: null,
   });
 
-  const steps = ['Welcome', 'Interests', 'Learning Style', 'Quick Check', 'Your Path'];
+  const steps = ['Language', 'Welcome', 'Interests', 'Learning Style', 'Quick Check', 'Your Path'];
   const progress = ((currentStep + 1) / steps.length) * 100;
 
   const handleNext = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(prev => prev + 1);
-    }
+    if (currentStep < steps.length - 1) setCurrentStep((p) => p + 1);
+  };
+  const handleBack = () => {
+    if (currentStep > 0) setCurrentStep((p) => p - 1);
   };
 
-  const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
+  const handleLanguageSelected = async (lang: LanguageCode) => {
+    setOnboardingData((prev) => ({ ...prev, language: lang }));
+    if (!user?.id) {
+      handleNext();
+      return;
+    }
+    setSavingLang(true);
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ preferred_language: lang })
+        .eq('id', user.id);
+      if (error) throw error;
+      toast.success(t('sd.lang.saved', 'Language saved'));
+      handleNext();
+    } catch (e) {
+      console.error('Error saving language:', e);
+      // Still let them continue; preference is persisted in localStorage by i18n
+      handleNext();
+    } finally {
+      setSavingLang(false);
     }
   };
 
   const handleInterestsSelected = (interests: string[]) => {
-    setOnboardingData(prev => ({ ...prev, interests }));
+    setOnboardingData((p) => ({ ...p, interests }));
     handleNext();
   };
-
   const handleLearningStyleComplete = (learningStyle: 'visual' | 'auditory' | 'kinesthetic') => {
-    setOnboardingData(prev => ({ ...prev, learningStyle }));
+    setOnboardingData((p) => ({ ...p, learningStyle }));
     handleNext();
   };
-
   const handleAssessmentComplete = (score: number) => {
-    setOnboardingData(prev => ({ ...prev, assessmentScore: score }));
+    setOnboardingData((p) => ({ ...p, assessmentScore: score }));
     handleNext();
   };
-
   const handleLearningPathGenerated = (path: any) => {
-    setOnboardingData(prev => ({ ...prev, learningPath: path }));
+    setOnboardingData((p) => ({ ...p, learningPath: path }));
   };
 
   const handleComplete = async () => {
     if (!user?.id || !studentLevel) return;
-
     setIsLoading(true);
     try {
-      // Save learning path to personalized_learning_paths
       if (onboardingData.learningPath) {
         await supabase.from('personalized_learning_paths').insert({
           student_id: user.id,
@@ -83,8 +104,6 @@ const StudentOnboardingFlow: React.FC = () => {
           ai_generated: true,
         });
       }
-
-      // Update student profile with learning style
       await supabase.from('student_profiles')
         .update({
           onboarding_completed: true,
@@ -93,11 +112,7 @@ const StudentOnboardingFlow: React.FC = () => {
           placement_test_score: onboardingData.assessmentScore,
         })
         .eq('user_id', user.id);
-
-      // Refetch to update state
       await refetch();
-
-      // Navigate to appropriate dashboard
       const dashboardRoute = getStudentDashboardRoute(studentLevel);
       navigate(dashboardRoute, { replace: true });
     } catch (error) {
@@ -117,30 +132,28 @@ const StudentOnboardingFlow: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
-      {/* Progress Header */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b">
         <div className="max-w-3xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-muted-foreground">
               Step {currentStep + 1} of {steps.length}
             </span>
-            <span className="text-sm font-medium text-primary">
-              {steps[currentStep]}
-            </span>
+            <span className="text-sm font-medium text-primary">{steps[currentStep]}</span>
           </div>
           <Progress value={progress} className="h-2" />
         </div>
       </div>
 
-      {/* Step Content */}
       <div className="max-w-3xl mx-auto px-4 py-8">
         {currentStep === 0 && (
-          <WelcomeStep 
-            studentLevel={studentLevel} 
-            onNext={handleNext} 
+          <LanguageStep
+            initial={onboardingData.language}
+            onComplete={handleLanguageSelected}
+            isSaving={savingLang}
           />
         )}
-        {currentStep === 1 && (
+        {currentStep === 1 && <WelcomeStep studentLevel={studentLevel} onNext={handleNext} />}
+        {currentStep === 2 && (
           <InterestsStep
             studentLevel={studentLevel}
             selectedInterests={onboardingData.interests}
@@ -148,21 +161,21 @@ const StudentOnboardingFlow: React.FC = () => {
             onBack={handleBack}
           />
         )}
-        {currentStep === 2 && (
+        {currentStep === 3 && (
           <LearningStyleStep
             studentLevel={studentLevel}
             onComplete={handleLearningStyleComplete}
             onBack={handleBack}
           />
         )}
-        {currentStep === 3 && (
+        {currentStep === 4 && (
           <QuickAssessmentStep
             studentLevel={studentLevel}
             onComplete={handleAssessmentComplete}
             onBack={handleBack}
           />
         )}
-        {currentStep === 4 && (
+        {currentStep === 5 && (
           <LearningPathStep
             studentLevel={studentLevel}
             interests={onboardingData.interests}
