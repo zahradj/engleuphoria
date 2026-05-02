@@ -252,16 +252,11 @@ export const PlacementGatekeeper = ({
               exit={{ opacity: 0, scale: 0.97 }}
               className={`backdrop-blur-2xl bg-white/10 border border-white/20 rounded-3xl overflow-hidden h-[80vh] flex flex-col ${theme.glow}`}
             >
-              <div className="px-6 py-4 border-b border-white/10 flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${theme.accent} flex items-center justify-center`}>
-                  <Sparkles className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-white font-semibold text-sm">{theme.name} Placement</h2>
-                  <p className="text-white/60 text-xs">
-                    {isPlayground ? 'Tap the right picture!' : 'Find your perfect level'}
-                  </p>
-                </div>
+              <div className="px-6 py-3 sm:py-4 border-b border-white/10 flex flex-col items-center gap-1">
+                <Logo size="medium" variant="white" className="pointer-events-none [&_img]:h-7 sm:[&_img]:h-9" />
+                <p className="text-white/60 text-[11px] sm:text-xs">
+                  {theme.name} Placement · {isPlayground ? 'Tap the right picture!' : 'Find your perfect level'}
+                </p>
               </div>
               <div className="flex-1 overflow-hidden">
                 <AnimatePresence mode="wait">
