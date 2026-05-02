@@ -1,127 +1,123 @@
-## Trial Lesson Generator + Story Creator Engine
+# Dedicated StoryBookViewer
 
-Two new generators inside Creator Studio (`/content-creator/*`), wired to the existing `ai-core` edge function via two new actions. Both save into `curriculum_lessons` so they reuse the existing slide renderer.
-
----
-
-### 1. Routing & Navigation
-
-Extend `CreatorContext.CreatorStep` from `'blueprint' | 'slide-builder' | 'library'` to also include `'trial' | 'story'`.
-
-Update routing in `CreatorStudioShell.tsx` and add the two new steps to:
-- `StudioSidebar.tsx` NAV array (desktop)
-- `StudioMobileNav.tsx` NAV array (mobile)
-
-New routes (handled by the existing `/content-creator/*` route):
-- `/content-creator/trial` → `TrialCreator` step
-- `/content-creator/story` → `StoryCreator` step
-
-Add i18n keys to `src/translations/{english,arabic,spanish,french,italian,turkish}/nav.ts`:
-- `nav.trial_creator` → "Trial Creator" / equivalents
-- `nav.story_creator` → "Story Creator" / equivalents
-
-Icons (lucide): `Zap` for Trial, `BookOpen` for Story. Adheres to flat 2.0 — no 3D.
+A magical, immersive viewer for `curriculum_lessons` rows whose `ai_metadata.kind === 'story'`. It bypasses the standard slide player entirely — no progress bars, no sidebar, no drag zones — and supports two visual layouts the Content Creator can pick when generating.
 
 ---
 
-### 2. New UI Components
+## What we're building
 
-**`src/components/creator-studio/steps/TrialCreator.tsx`**
+### 1. New component: `src/components/student/story-viewer/StoryBookViewer.tsx`
 
-Glassmorphic card form (respects hub palette tokens) with inputs:
-- Target Demographic: `kids` (Playground/orange) | `teens` (Academy/purple) | `adults` (Success/green) — segmented buttons
-- CEFR Level: A1 → C2 select
-- Theme: text input (e.g., "Ordering coffee", "Job interview")
-- "Generate Trial Lesson" button (disabled while loading; shows spinner + status)
+Full-screen, fixed-position overlay (`fixed inset-0 z-50`). It receives normalized `pages[]` and renders one page at a time with a smooth crossfade + horizontal slide transition (Framer Motion `AnimatePresence`).
 
-On submit → call `supabase.functions.invoke('ai-core', { body: { action: 'generate_trial_lesson', demographic, cefr_level, theme } })`.
-On success → `setActiveLessonData(...)`, persist via `persistLesson` with `ai_metadata.kind = 'trial'`, then navigate to `/content-creator/slide-builder` so the user lands directly in the editor with the generated 6–8 slides.
+Top chrome is intentionally minimal:
+- Tiny "Story" eyebrow + title (top-left)
+- Frosted close button (top-right)
+- Page-dot indicator (top-center) — clickable to jump pages
 
-**`src/components/creator-studio/steps/StoryCreator.tsx`**
+Edge navigation:
+- Invisible 64–96 px hit zones on the left/right edges of the screen
+- Reveal a frosted `ChevronLeft` / `ChevronRight` pill on hover, with subtle slide-on-hover micro-animation
+- Auto-disabled (faded out) at first/last page
 
-Same shell, inputs:
-- CEFR Level (A1 → C2)
-- Genre: select (Sci-Fi, Fairy Tale, Everyday Life, Mystery, Adventure, Slice of Life) + free-text "Other"
-- Target Vocabulary: text input parsed by splitting on commas (5–10 words; client-side validation with friendly error)
-- "Generate Story" button
+Narration:
+- Reuses the existing `useTextToSpeech` hook (calls the `elevenlabs-tts` edge function)
+- Prominent "🔊 Play Narration" button anchored next to the page text
+- Toggles to "Stop" + spinner while loading
+- Auto-stops when navigating between pages
 
-On submit → call `ai-core` with `action: 'generate_story'`. On success same flow as trial but `ai_metadata.kind = 'story'`.
+Optional comprehension MCQ:
+- If a page carries `mcq`, render answer chips under the narrative
+- Locks after answer; correct → emerald, wrong → rose, others fade
 
-Error handling on both: 429 → "AI is heavily loaded. Please wait 10 seconds and try again." 402 → friendly "AI is temporarily at capacity, please retry." Other → toast `error.message`.
+### 2. Two layout modes
 
----
-
-### 3. ai-core Edge Function Updates
-
-`supabase/functions/ai-core/index.ts` — add two new action handlers and register them in the router switch.
-
-**`handleGenerateTrialLesson(body)`** — action `generate_trial_lesson`:
-
-Input: `demographic` (kids|teens|adults), `cefr_level`, `theme`.
-
-System prompt (verbatim per spec, with hub-tone modifier):
-```
-You are designing a 30-minute Trial English Lesson. It must be highly engaging and shorter than standard lessons.
-Limit the output to exactly 6 to 8 slides max.
-Slide 1: Icebreaker/Hook. Slide 2-3: Quick Vocabulary Win. Slide 4-5: Interactive Speaking/Roleplay. Slide 6: Wrap-up and Celebration.
-Tone: <kid-friendly with emojis | teen-friendly academic | refined professional> based on demographic.
-Align language and complexity strictly to CEFR <level>.
+```text
+┌──────────── classic ────────────┐    ┌─────────── immersive ───────────┐
+│  ┌────────┐ │                   │    │ ░░░░░░ full-bleed image ░░░░░░░ │
+│  │        │ │  Page title       │    │ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │
+│  │ image  │ │                   │    │ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │
+│  │ 50%    │ │  Body text in     │    │       ┌─────────────────┐       │
+│  │        │ │  Lora serif…      │    │       │ frosted card    │       │
+│  │        │ │                   │    │       │ • narrative     │       │
+│  │        │ │  [▶ Narration]    │    │       │ • [▶ Narration] │       │
+│  └────────┘ │                   │    │       └─────────────────┘       │
+└─────────────────────────────────┘    └─────────────────────────────────┘
 ```
 
-Returns JSON shaped to match `ActiveLessonData` (lesson_title, target_goal, target_vocabulary, slides[] with `slide_type`, `title`, `content`, `teacher_script`, `visual_keyword`, `interactive_data` for MCQ/flashcard/drag types). Uses `callAIWithFailover` with `jsonMode: true`.
+- **`classic`** — 50/50 split. Image left (md+), warm cream text panel right (`#fdfbf6`), Lora serif body for editorial feel.
+- **`immersive`** — Image as `bg-cover bg-center` covering the whole viewport, dark gradient overlay, narrative inside a `bg-black/45 backdrop-blur-xl` frosted card pinned to the bottom.
 
-**`handleGenerateStory(body)`** — action `generate_story`:
+Layout is chosen via prop `layout: 'classic' | 'immersive'`, defaulting to `immersive`.
 
-Input: `cefr_level`, `genre`, `target_vocabulary` (string[]).
+### 3. Wire it into the student lesson reader
 
-System prompt (verbatim):
+Update `src/pages/student/LessonReaderPage.tsx`:
+- After fetching the lesson, detect story mode: `lesson.ai_metadata?.kind === 'story'`.
+- Normalize the existing slide shape (StoryCreator already produces narrative `text_image` slides + comprehension `multiple_choice` slides) into `StoryPage[]`:
+  - Narrative slides → `{ title, text: content, imageUrl: slide.image_url ?? content.imageUrl }`
+  - MCQ slides → attached as `mcq` to the previous narrative page (so a page with a question shows the question right under the prose), or rendered as a standalone "comprehension" page if there's no preceding narrative.
+- Pull `layout` from `lesson.ai_metadata.story_layout` (default `immersive`).
+- Render `<StoryBookViewer …/>` and short-circuit before the `LessonPlayerContainer` branch.
+
+Standard lessons keep using `LessonPlayerContainer` exactly as today.
+
+### 4. Layout chooser in StoryCreator
+
+Update `src/components/creator-studio/steps/StoryCreator.tsx`:
+- Add a small visual radio group: `Classic split` vs `Immersive cinematic` (with mini wireframe icons).
+- Default = `immersive`.
+- Pass the choice into `persistLesson` so it lands in `ai_metadata.story_layout`.
+
+Update `src/components/creator-studio/persistLesson.ts`:
+- Accept an optional `extraMetadata?: Record<string, unknown>` arg merged into `ai_metadata` (so `story_layout` rides along without bloating the function signature for other callers).
+
+---
+
+## Animation & polish
+
+- Page transition: crossfade + 40 px horizontal slide that mirrors navigation direction (`direction: 1 | -1`), 450 ms `cubic-bezier(0.22, 1, 0.36, 1)`.
+- Background image in immersive mode: gentle 1.04 → 1.00 zoom on enter (Ken Burns micro-effect), 600 ms.
+- Frosted card slides up 20 px + fades in with a 150 ms delay so the background settles first.
+- Edge arrow pills nudge ±2 px on hover for tactile feedback.
+- Page-dot indicator animates width (1.5 px → 8 px) for the active page.
+
+All movements use existing Framer Motion (already in the lesson player), so no new dependencies.
+
+---
+
+## Technical details
+
+**Files added**
+- `src/components/student/story-viewer/StoryBookViewer.tsx` — the viewer + two sub-layouts (`ClassicSplit`, `ImmersiveCard`) + shared `NarrationButton` and `McqBlock` helpers.
+
+**Files edited**
+- `src/pages/student/LessonReaderPage.tsx` — story-kind detection, slide → `StoryPage[]` normalizer, dispatch to `StoryBookViewer`.
+- `src/components/creator-studio/steps/StoryCreator.tsx` — `layoutStyle` state, visual radio group, pass into `persistLesson`.
+- `src/components/creator-studio/persistLesson.ts` — accept optional extra metadata merged into `ai_metadata`.
+
+**Reused, no changes**
+- `useTextToSpeech` hook → `elevenlabs-tts` edge function (already deployed, returns `audio/mpeg` blob).
+- `framer-motion`, `lucide-react`, `cn`, shadcn `Button` — all already in the project.
+
+**Data contract — `StoryPage`**
+```ts
+interface StoryPage {
+  title?: string;
+  text: string;
+  imageUrl?: string;
+  mcq?: { question: string; options: string[]; correct_index: number };
+}
 ```
-Write a highly engaging story strictly aligned with the requested CEFR Level. You MUST naturally include the provided Target Vocabulary Words.
-Break the story into 4 to 5 pages (slides).
-For each page, generate an image_prompt that we can later use to generate illustrations.
-Add 2 Reading Comprehension multiple-choice questions at the very end of the story.
-```
 
-Returns JSON: `{ title, slides: [{ page_number, narrative, image_prompt }, ...], comprehension: [{ question, options[4], correct_index }, x2] }`. Then in the handler, map this into `PPPSlide[]`:
-- 4–5 narrative slides → `slide_type: 'text_image'`, `image_generation_prompt: image_prompt`
-- 2 comprehension slides → `slide_type: 'multiple_choice'` with `interactive_data: MCQData`
+**Storage of layout choice**
+- `curriculum_lessons.ai_metadata.story_layout: 'classic' | 'immersive'`
+- No DB migration needed — `ai_metadata` is already `jsonb`.
 
-Both handlers use the existing `callAIWithFailover` (Gemini direct → Lovable Gateway fallback) and surface `429`/`402` cleanly.
+**Routing**
+- No new routes. Story lessons are still opened via the existing `/student/lesson/:id` (or wherever `LessonReaderPage` lives) — the page just picks the right renderer.
 
-Update the router default-error message to include the two new action names.
-
----
-
-### 4. Data Saving (curriculum_lessons)
-
-Reuse `persistLesson` — extend it to accept an optional `kind: 'standard' | 'trial' | 'story'` param (default `'standard'`) and write it into `ai_metadata.kind`. No DB migration needed (the `ai_metadata` jsonb column already exists; `curriculum_lessons` has no `hub`/`is_trial` columns and `cycle_type` is constraint-bound).
-
-Filtering in Master Library (`LibraryManager.tsx`): add a "Type" filter chip group — All / Standard / Trial / Story — matching `ai_metadata->>'kind'`.
-
----
-
-### 5. Files to create / edit
-
-Create:
-- `src/components/creator-studio/steps/TrialCreator.tsx`
-- `src/components/creator-studio/steps/StoryCreator.tsx`
-
-Edit:
-- `src/components/creator-studio/CreatorContext.tsx` — extend `CreatorStep` union
-- `src/components/creator-studio/CreatorStudioShell.tsx` — route mapping + Step picker
-- `src/components/creator-studio/StudioSidebar.tsx` — add 2 NAV entries
-- `src/components/creator-studio/StudioMobileNav.tsx` — add 2 NAV entries
-- `src/components/creator-studio/persistLesson.ts` — accept `kind` param, write `ai_metadata.kind`
-- `src/components/creator-studio/steps/LibraryManager.tsx` — add Type filter (Standard/Trial/Story)
-- `supabase/functions/ai-core/index.ts` — two new handlers + router cases
-- `src/translations/*/nav.ts` (6 locales) — add `trial_creator` + `story_creator` keys
-
----
-
-### Acceptance criteria
-
-- Sidebar + mobile nav show 5 tabs: Blueprint, Slide Studio, **Trial Creator**, **Story Creator**, Master Library.
-- Trial form generates a 6–8 slide lesson, lands the user in Slide Studio, row appears in `curriculum_lessons` with `ai_metadata.kind='trial'`.
-- Story form generates 4–5 narrative slides + 2 MCQ comprehension slides, persists with `ai_metadata.kind='story'`.
-- Master Library filter chips correctly filter by kind.
-- 429/402 errors show friendly toasts (no "AI exhausted" wording).
+**Safety**
+- If `pages` is empty, show a friendly empty state instead of crashing.
+- TTS auto-stops on page change and on unmount via the hook's existing `stop()` cleanup pattern.
+- MCQ answers are tracked per page index in local state — no DB writes from the viewer (consistent with the "stories are reading, not assessment" intent).
