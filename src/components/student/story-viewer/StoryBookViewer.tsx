@@ -625,7 +625,7 @@ const WebtoonScroller: React.FC<{
   });
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950">
+    <div className={cn(shellPos(embedded), 'overflow-y-auto bg-slate-950')}>
       {/* Sticky top bar */}
       <div className="sticky top-0 z-30 backdrop-blur-md bg-slate-950/70 flex items-center justify-between px-4 py-3 border-b border-white/10">
         <div className="flex items-center gap-3 min-w-0">
