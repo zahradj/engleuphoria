@@ -641,8 +641,33 @@ Rules:
 }
 
 // ─── Action: generate_story (graded reader + comprehension) ─────────
+const STORY_STYLE_MODIFIERS: Record<string, string> = {
+  classic: ", in the style of a warm children's storybook illustration, soft watercolor, gentle lighting",
+  comic_western: ', in the style of a modern western comic book, vibrant colors, dynamic ink lines, halftone shading, action-packed composition',
+  manga_rtl: ', in the style of Japanese manga, black and white, screentone shading, high contrast, dramatic angles, expressive linework',
+  webtoon: ', in the style of a modern colorful webtoon manhwa, digital art, soft cel shading, bright lighting, clean vertical composition',
+};
+
+function injectStyle(prompt: string, modifier: string): string {
+  const base = (prompt || '').trim().replace(/[.,]+$/, '');
+  return base ? `${base}${modifier}` : `An illustrated scene${modifier}`;
+}
+
 async function handleGenerateStory(body: any) {
-  const { cefr_level = 'B1', genre = 'Everyday Life', target_vocabulary = [], linked_lesson = null } = body;
+  const {
+    cefr_level = 'B1',
+    genre = 'Everyday Life',
+    target_vocabulary = [],
+    linked_lesson = null,
+    visual_style: rawStyle = 'classic',
+  } = body;
+
+  const visual_style = (['classic', 'comic_western', 'manga_rtl', 'webtoon'].includes(rawStyle)
+    ? rawStyle
+    : 'classic') as 'classic' | 'comic_western' | 'manga_rtl' | 'webtoon';
+  const isPaneled = visual_style !== 'classic';
+  const styleModifier = STORY_STYLE_MODIFIERS[visual_style];
+
   if (!Array.isArray(target_vocabulary) || target_vocabulary.length < 3) {
     return jsonResponse({ error: 'target_vocabulary must be an array of at least 3 words' }, 400);
   }
@@ -674,21 +699,58 @@ Linked Curriculum Lesson:
 ${grammar ? `- Grammar focus: ${grammar}\n` : ''}- Lesson vocabulary: ${llVocab.join(', ') || '(none)'}`;
   }
 
+  // ── Style-specific schema instructions ──
+  const panelGuidance = (() => {
+    switch (visual_style) {
+      case 'comic_western':
+        return 'Each page is a comic page with 3 to 5 panels arranged in a Western-comic grid. Use panel "size" values: "full" (a splash), "wide" (landscape), "tall" (vertical action), "square" (default). Reading flows LEFT to RIGHT.';
+      case 'manga_rtl':
+        return 'Each page is a manga page with 3 to 5 panels. Use panel "size" values: "full", "wide", "tall", "square". Reading flows RIGHT to LEFT (Japanese manga order). Favor dramatic angles and silent panels with caption-only beats.';
+      case 'webtoon':
+        return 'Each page is one webtoon scroll with 6 to 10 panels stacked vertically (single column). Use panel "size" "wide" or "tall"; "square" sparingly. Reading flows TOP to BOTTOM with narrative beats spaced to feel like scrolling.';
+      default:
+        return '';
+    }
+  })();
+
+  const slideShape = isPaneled
+    ? `{
+      "page_number": 1,
+      "narrative": "<short narration / scene-setter, 1-2 sentences ${cefr_level}>",
+      "panels": [
+        {
+          "image_prompt": "<detailed visual scene — character, action, setting, mood>",
+          "size": "full | wide | tall | square",
+          "caption": "<optional narration, may be empty>",
+          "dialogue": [
+            { "speaker": "<name or '' for thought>", "text": "<short line, ${cefr_level}>" }
+          ]
+        }
+      ]
+    }`
+    : `{ "page_number": 1, "narrative": "<2-4 sentences appropriate for ${cefr_level}>", "image_prompt": "<detailed visual scene>" }`;
+
+  const pageCountRule = isPaneled
+    ? (visual_style === 'webtoon'
+        ? '- Produce exactly 1 webtoon "page" containing 6 to 10 panels.'
+        : '- Produce 4 or 5 pages, each with 3 to 5 panels.')
+    : '- 4 or 5 narrative pages.';
+
   const systemPrompt = `Write a highly engaging story strictly aligned with the requested CEFR Level. You MUST naturally include the provided Target Vocabulary Words.
-Break the story into 4 to 5 pages (slides).
-For each page, generate an image_prompt that we can later use to generate illustrations.
+${panelGuidance ? panelGuidance + '\n' : ''}For every visual, generate an image_prompt that we can later use to generate illustrations. Keep dialogue short and faithful to ${cefr_level}.
 Add 2 Reading Comprehension multiple-choice questions at the very end of the story.
 You MUST return ONLY valid JSON. No markdown, no commentary.${groundingBlock}`;
 
   const userPrompt = `Genre: "${genre}"
 CEFR Level: ${cefr_level}
+Visual Style: ${visual_style}
 Target Vocabulary (must appear naturally in the story): ${target_vocabulary.map((w: string) => `"${w}"`).join(', ')}${groundingUserBlock}
 
 Return ONLY this JSON shape:
 {
   "title": "<engaging title>",
   "slides": [
-    { "page_number": 1, "narrative": "<2-4 sentences appropriate for ${cefr_level}>", "image_prompt": "<detailed visual scene>" }
+    ${slideShape}
   ],
   "comprehension": [
     { "question": "<question about the story>", "options": ["A","B","C","D"], "correct_index": 0 },
@@ -697,10 +759,11 @@ Return ONLY this JSON shape:
 }
 
 Rules:
-- 4 or 5 narrative pages.
+${pageCountRule}
 - Exactly 2 comprehension questions, each with 4 options.
 - Use every target vocabulary word at least once across the story.
-- Keep grammar and sentence length faithful to ${cefr_level}.`;
+- Keep grammar and sentence length faithful to ${cefr_level}.
+${isPaneled ? '- Every panel MUST have an image_prompt. Dialogue lines should be short (max ~14 words). Use "" as speaker for narration thoughts.' : ''}`;
 
   try {
     const ai = await callAIWithFailover({
@@ -721,13 +784,32 @@ Rules:
     if (!story || !Array.isArray(story.slides)) {
       return jsonResponse({ error: 'AI returned an unparseable story.' }, 502);
     }
-    return jsonResponse({ story, provider: ai.provider });
+
+    // ── Inject visual style modifier into every image_prompt ──
+    story.visual_style = visual_style;
+    for (const slide of story.slides) {
+      if (slide && typeof slide === 'object') {
+        if (typeof slide.image_prompt === 'string') {
+          slide.image_prompt = injectStyle(slide.image_prompt, styleModifier);
+        }
+        if (Array.isArray(slide.panels)) {
+          for (const panel of slide.panels) {
+            if (panel && typeof panel === 'object' && typeof panel.image_prompt === 'string') {
+              panel.image_prompt = injectStyle(panel.image_prompt, styleModifier);
+            }
+          }
+        }
+      }
+    }
+
+    return jsonResponse({ story, provider: ai.provider, visual_style });
   } catch (e: any) {
     if (e?.status === 429) return jsonResponse({ error: 'Rate limited — try again shortly.' }, 429);
     if (e?.status === 402) return jsonResponse({ error: 'Credits exhausted.' }, 402);
     return jsonResponse({ error: e?.message || 'AI generation temporarily unavailable.' }, 503);
   }
 }
+
 
 // ─── Main Router ────────────────────────────────────────────────────
 serve(async (req) => {

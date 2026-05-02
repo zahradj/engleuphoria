@@ -66,13 +66,53 @@ const vocabListToArray = (raw: any): string[] => {
   return s.split(',').map((w) => w.trim()).filter(Boolean);
 };
 
+const StylePreview: React.FC<{ kind: 'classic' | 'comic_western' | 'manga_rtl' | 'webtoon' }> = ({ kind }) => {
+  if (kind === 'classic') {
+    return (
+      <div className="w-10 h-7 rounded overflow-hidden flex border border-slate-300">
+        <div className="w-1/2 bg-gradient-to-br from-amber-300 to-orange-400" />
+        <div className="w-1/2 bg-amber-50 flex items-center justify-center">
+          <div className="w-3/4 h-0.5 bg-slate-400 rounded" />
+        </div>
+      </div>
+    );
+  }
+  if (kind === 'comic_western') {
+    return (
+      <div className="w-10 h-7 rounded overflow-hidden grid grid-cols-2 grid-rows-2 gap-[1px] bg-slate-900 p-[1px]">
+        <div className="bg-rose-400" />
+        <div className="bg-yellow-300" />
+        <div className="col-span-2 bg-sky-400" />
+      </div>
+    );
+  }
+  if (kind === 'manga_rtl') {
+    return (
+      <div className="w-10 h-7 rounded overflow-hidden grid grid-cols-2 grid-rows-2 gap-[1px] bg-slate-900 p-[1px]" dir="rtl">
+        <div className="bg-slate-200" />
+        <div className="bg-slate-400" />
+        <div className="bg-slate-300" />
+        <div className="bg-slate-500" />
+      </div>
+    );
+  }
+  // webtoon
+  return (
+    <div className="w-10 h-7 rounded overflow-hidden flex flex-col gap-[1px] bg-slate-900 p-[1px]">
+      <div className="flex-1 bg-gradient-to-r from-violet-400 to-fuchsia-400" />
+      <div className="flex-1 bg-gradient-to-r from-emerald-400 to-teal-400" />
+      <div className="flex-1 bg-gradient-to-r from-sky-400 to-blue-400" />
+    </div>
+  );
+};
+
 export const StoryCreator: React.FC = () => {
   const navigate = useNavigate();
   const { setActiveLessonData, setCurrentStep, setDirty } = useCreator();
   const [cefrLevel, setCefrLevel] = useState<CEFRLevel>('B1');
   const [genre, setGenre] = useState<string>('Everyday Life');
   const [vocabInput, setVocabInput] = useState('');
-  const [layoutStyle, setLayoutStyle] = useState<'classic' | 'immersive'>('immersive');
+  const [visualStyle, setVisualStyle] = useState<'classic' | 'comic_western' | 'manga_rtl' | 'webtoon'>('classic');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -189,6 +229,7 @@ export const StoryCreator: React.FC = () => {
           genre,
           target_vocabulary: words,
           linked_lesson: linked_lesson_payload,
+          visual_style: visualStyle,
         },
       });
       if (fnErr) {
@@ -204,16 +245,26 @@ export const StoryCreator: React.FC = () => {
         throw new Error('AI returned an invalid story.');
       }
 
-      const narrativeSlides: PPPSlide[] = (story.slides as any[]).slice(0, 5).map((s, i) => ({
-        id: uid(),
-        phase: 'presentation',
-        slide_type: 'text_image',
-        title: `Page ${i + 1}`,
-        content: s.narrative || '',
-        teacher_script: s.narrative || '',
-        visual_keyword: s.image_prompt?.split(' ').slice(0, 3).join(' ') || genre,
-        image_generation_prompt: s.image_prompt || '',
-      }));
+      const isPaneled = visualStyle !== 'classic';
+
+      const narrativeSlides: PPPSlide[] = (story.slides as any[])
+        .slice(0, visualStyle === 'webtoon' ? 1 : 5)
+        .map((s, i) => {
+          const panels = Array.isArray(s.panels) ? s.panels : null;
+          const firstPanelPrompt = panels?.[0]?.image_prompt || s.image_prompt || '';
+          return {
+            id: uid(),
+            phase: 'presentation',
+            slide_type: 'text_image',
+            title: `Page ${i + 1}`,
+            content: s.narrative || s.caption || '',
+            teacher_script: s.narrative || s.caption || '',
+            visual_keyword: (firstPanelPrompt as string).split(' ').slice(0, 3).join(' ') || genre,
+            image_generation_prompt: firstPanelPrompt,
+            // Carry panels through interactive_data so the viewer can render them.
+            ...(panels ? { interactive_data: { panels } as any } : {}),
+          } as PPPSlide;
+        });
 
       const compSlides: PPPSlide[] = (Array.isArray(story.comprehension) ? story.comprehension : [])
         .slice(0, 2)
@@ -251,12 +302,18 @@ export const StoryCreator: React.FC = () => {
         parent_lesson_id: linkedLessonId,
       };
 
+      // Legacy `story_layout` for older viewer code: classic stays classic,
+      // every paneled style maps to immersive (full-bleed) as a safe fallback.
+      const legacyLayout = visualStyle === 'classic' ? 'classic' : 'immersive';
+
       const result = await persistLesson(lesson, slides, false, 'story', {
-        story_layout: layoutStyle,
+        visual_style: visualStyle,
+        story_layout: legacyLayout,
         linked_lesson_id: linkedLessonId,
         linked_lesson_title: linkedLesson?.title ?? null,
       });
       if (result.ok === false) throw new Error(result.error);
+
 
       setActiveLessonData({ ...lesson, lesson_id: result.lesson_id });
       setDirty(false);
@@ -422,37 +479,31 @@ export const StoryCreator: React.FC = () => {
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-semibold">Reader Layout</Label>
+          <Label className="text-sm font-semibold">Visual & Layout Style</Label>
+          <p className="text-xs text-slate-500 dark:text-slate-400 -mt-1">
+            Drives both AI illustration style and the in-app reader layout.
+          </p>
           <div className="grid grid-cols-2 gap-3">
             {([
-              { key: 'immersive', label: 'Immersive', desc: 'Full-bleed image · frosted text card' },
-              { key: 'classic', label: 'Classic Split', desc: '50/50 image + serif text panel' },
+              { key: 'classic',       label: 'Classic Storybook',  desc: 'One illustration per page · LTR' },
+              { key: 'comic_western', label: 'Western Comic',      desc: 'Multi-panel grid · vibrant ink · LTR' },
+              { key: 'manga_rtl',     label: 'Japanese Manga',     desc: 'B&W panels · screentone · RTL reading' },
+              { key: 'webtoon',       label: 'Webtoon (vertical)', desc: 'One long scroll of stacked panels' },
             ] as const).map((opt) => {
-              const active = layoutStyle === opt.key;
+              const active = visualStyle === opt.key;
               return (
                 <button
                   key={opt.key}
                   type="button"
-                  onClick={() => setLayoutStyle(opt.key)}
+                  onClick={() => setVisualStyle(opt.key)}
                   className={`text-left rounded-xl border-2 p-3 transition-all ${
                     active
-                      ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/30'
+                      ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/30 shadow-sm'
                       : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-1">
-                    {opt.key === 'immersive' ? (
-                      <div className="w-10 h-7 rounded bg-gradient-to-br from-violet-500 to-fuchsia-500 relative overflow-hidden">
-                        <div className="absolute bottom-0.5 left-1 right-1 h-2 rounded-sm bg-black/40 backdrop-blur-sm" />
-                      </div>
-                    ) : (
-                      <div className="w-10 h-7 rounded overflow-hidden flex">
-                        <div className="w-1/2 bg-gradient-to-br from-slate-400 to-slate-600" />
-                        <div className="w-1/2 bg-amber-50 flex items-center justify-center">
-                          <div className="w-3/4 h-0.5 bg-slate-400 rounded" />
-                        </div>
-                      </div>
-                    )}
+                    <StylePreview kind={opt.key} />
                     <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{opt.label}</span>
                   </div>
                   <p className="text-xs text-slate-500 dark:text-slate-400">{opt.desc}</p>

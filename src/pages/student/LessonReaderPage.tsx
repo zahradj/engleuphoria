@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ImmersiveLessonReader } from '@/components/student/lesson-reader/ImmersiveLessonReader';
 import LessonPlayerContainer from '@/components/lesson-player/LessonPlayerContainer';
-import { StoryBookViewer, StoryPage, StoryLayout } from '@/components/student/story-viewer/StoryBookViewer';
+import { StoryBookViewer, StoryPage, StoryLayout, StoryVisualStyle } from '@/components/student/story-viewer/StoryBookViewer';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -73,15 +73,20 @@ const LessonReaderPage: React.FC = () => {
   const hub: HubType = (lesson.content?.hub || lesson.target_system || 'playground') as HubType;
 
   if (isStory && slides && slides.length > 0) {
-    const storyLayout: StoryLayout =
-      lesson.ai_metadata?.story_layout === 'classic' ? 'classic' : 'immersive';
+    const meta = lesson.ai_metadata || {};
+    const rawStyle = meta.visual_style;
+    const visualStyle: StoryVisualStyle = (
+      ['classic', 'comic_western', 'manga_rtl', 'webtoon'].includes(rawStyle) ? rawStyle : 'classic'
+    ) as StoryVisualStyle;
+    const storyLayout: StoryLayout = meta.story_layout === 'classic' ? 'classic' : 'immersive';
     const pages = normalizeSlidesToStoryPages(slides);
-    const cover = lesson.ai_metadata?.coverImageUrl || pages.find((p) => p.imageUrl)?.imageUrl;
+    const cover = meta.coverImageUrl || pages.find((p) => p.imageUrl)?.imageUrl;
     return (
       <StoryBookViewer
         title={lesson.title}
         pages={pages}
         layout={storyLayout}
+        visualStyle={visualStyle}
         coverImageUrl={cover}
         onExit={() => navigate(-1)}
       />
@@ -169,10 +174,14 @@ function normalizeSlidesToStoryPages(slides: any[]): StoryPage[] {
       s?.media?.image_url ||
       s?.interactive_data?.image_url ||
       undefined;
+    const panels = Array.isArray(s?.interactive_data?.panels)
+      ? s.interactive_data.panels
+      : undefined;
     pages.push({
       title: s?.title,
       text: typeof text === 'string' ? text : String(text ?? ''),
       imageUrl,
+      panels,
     });
   }
   return pages;

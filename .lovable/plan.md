@@ -1,123 +1,79 @@
-# Dedicated StoryBookViewer
+## Multi-Style Story Engine
 
-A magical, immersive viewer for `curriculum_lessons` rows whose `ai_metadata.kind === 'story'`. It bypasses the standard slide player entirely — no progress bars, no sidebar, no drag zones — and supports two visual layouts the Content Creator can pick when generating.
-
----
-
-## What we're building
-
-### 1. New component: `src/components/student/story-viewer/StoryBookViewer.tsx`
-
-Full-screen, fixed-position overlay (`fixed inset-0 z-50`). It receives normalized `pages[]` and renders one page at a time with a smooth crossfade + horizontal slide transition (Framer Motion `AnimatePresence`).
-
-Top chrome is intentionally minimal:
-- Tiny "Story" eyebrow + title (top-left)
-- Frosted close button (top-right)
-- Page-dot indicator (top-center) — clickable to jump pages
-
-Edge navigation:
-- Invisible 64–96 px hit zones on the left/right edges of the screen
-- Reveal a frosted `ChevronLeft` / `ChevronRight` pill on hover, with subtle slide-on-hover micro-animation
-- Auto-disabled (faded out) at first/last page
-
-Narration:
-- Reuses the existing `useTextToSpeech` hook (calls the `elevenlabs-tts` edge function)
-- Prominent "🔊 Play Narration" button anchored next to the page text
-- Toggles to "Stop" + spinner while loading
-- Auto-stops when navigating between pages
-
-Optional comprehension MCQ:
-- If a page carries `mcq`, render answer chips under the narrative
-- Locks after answer; correct → emerald, wrong → rose, others fade
-
-### 2. Two layout modes
-
-```text
-┌──────────── classic ────────────┐    ┌─────────── immersive ───────────┐
-│  ┌────────┐ │                   │    │ ░░░░░░ full-bleed image ░░░░░░░ │
-│  │        │ │  Page title       │    │ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │
-│  │ image  │ │                   │    │ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │
-│  │ 50%    │ │  Body text in     │    │       ┌─────────────────┐       │
-│  │        │ │  Lora serif…      │    │       │ frosted card    │       │
-│  │        │ │                   │    │       │ • narrative     │       │
-│  │        │ │  [▶ Narration]    │    │       │ • [▶ Narration] │       │
-│  └────────┘ │                   │    │       └─────────────────┘       │
-└─────────────────────────────────┘    └─────────────────────────────────┘
-```
-
-- **`classic`** — 50/50 split. Image left (md+), warm cream text panel right (`#fdfbf6`), Lora serif body for editorial feel.
-- **`immersive`** — Image as `bg-cover bg-center` covering the whole viewport, dark gradient overlay, narrative inside a `bg-black/45 backdrop-blur-xl` frosted card pinned to the bottom.
-
-Layout is chosen via prop `layout: 'classic' | 'immersive'`, defaulting to `immersive`.
-
-### 3. Wire it into the student lesson reader
-
-Update `src/pages/student/LessonReaderPage.tsx`:
-- After fetching the lesson, detect story mode: `lesson.ai_metadata?.kind === 'story'`.
-- Normalize the existing slide shape (StoryCreator already produces narrative `text_image` slides + comprehension `multiple_choice` slides) into `StoryPage[]`:
-  - Narrative slides → `{ title, text: content, imageUrl: slide.image_url ?? content.imageUrl }`
-  - MCQ slides → attached as `mcq` to the previous narrative page (so a page with a question shows the question right under the prose), or rendered as a standalone "comprehension" page if there's no preceding narrative.
-- Pull `layout` from `lesson.ai_metadata.story_layout` (default `immersive`).
-- Render `<StoryBookViewer …/>` and short-circuit before the `LessonPlayerContainer` branch.
-
-Standard lessons keep using `LessonPlayerContainer` exactly as today.
-
-### 4. Layout chooser in StoryCreator
-
-Update `src/components/creator-studio/steps/StoryCreator.tsx`:
-- Add a small visual radio group: `Classic split` vs `Immersive cinematic` (with mini wireframe icons).
-- Default = `immersive`.
-- Pass the choice into `persistLesson` so it lands in `ai_metadata.story_layout`.
-
-Update `src/components/creator-studio/persistLesson.ts`:
-- Accept an optional `extraMetadata?: Record<string, unknown>` arg merged into `ai_metadata` (so `story_layout` rides along without bloating the function signature for other callers).
+Extend the existing Story Creator + Viewer (which today supports only `classic` and `immersive`) into a true multi-format reader: classic storybook, western comic, Japanese manga (RTL), and Korean-style webtoon. The choice drives both the AI generation (panels + style modifiers + speech-bubble dialogue) and the runtime layout.
 
 ---
 
-## Animation & polish
+### 1. Creator UI — `StoryCreator.tsx`
 
-- Page transition: crossfade + 40 px horizontal slide that mirrors navigation direction (`direction: 1 | -1`), 450 ms `cubic-bezier(0.22, 1, 0.36, 1)`.
-- Background image in immersive mode: gentle 1.04 → 1.00 zoom on enter (Ken Burns micro-effect), 600 ms.
-- Frosted card slides up 20 px + fades in with a 150 ms delay so the background settles first.
-- Edge arrow pills nudge ±2 px on hover for tactile feedback.
-- Page-dot indicator animates width (1.5 px → 8 px) for the active page.
+Replace the current "Reader Layout" 2-tile picker with a richer **Visual & Layout Style** picker (4 cards, with mini wireframe previews):
 
-All movements use existing Framer Motion (already in the lesson player), so no new dependencies.
+| Key             | Label                  | Reading | Output |
+|-----------------|------------------------|---------|--------|
+| `classic`       | Classic Storybook      | LTR     | 1 image per page |
+| `comic_western` | Western Comic Book     | LTR     | 3–5 panels per page (CSS grid) |
+| `manga_rtl`     | Japanese Manga (B&W)   | RTL     | 3–5 panels per page (CSS grid) |
+| `webtoon`       | Vertical Webtoon       | Vertical scroll | 6–10 panels, single column |
 
----
+The key is passed to the edge function as `visual_style` and persisted into `ai_metadata.visual_style`. The legacy `story_layout` value is mapped from it for backward compatibility (`classic` → `classic`; everything else → `immersive`).
 
-## Technical details
+### 2. Edge Function — `supabase/functions/ai-core/index.ts` `handleGenerateStory`
 
-**Files added**
-- `src/components/student/story-viewer/StoryBookViewer.tsx` — the viewer + two sub-layouts (`ClassicSplit`, `ImmersiveCard`) + shared `NarrationButton` and `McqBlock` helpers.
+Accept new field `visual_style` (default `classic`). Derive:
 
-**Files edited**
-- `src/pages/student/LessonReaderPage.tsx` — story-kind detection, slide → `StoryPage[]` normalizer, dispatch to `StoryBookViewer`.
-- `src/components/creator-studio/steps/StoryCreator.tsx` — `layoutStyle` state, visual radio group, pass into `persistLesson`.
-- `src/components/creator-studio/persistLesson.ts` — accept optional extra metadata merged into `ai_metadata`.
+- **Style modifier** appended to every `image_prompt`:
+  - `comic_western`: `, in the style of a modern western comic book, vibrant colors, dynamic ink lines, halftone shading`
+  - `manga_rtl`: `, in the style of Japanese manga, black and white, screentone shading, high contrast, dramatic angles`
+  - `webtoon`: `, in the style of a modern colorful webtoon manhwa, digital art, soft cel shading, bright lighting`
+  - `classic`: `, in the style of a warm children's storybook illustration, soft watercolor`
 
-**Reused, no changes**
-- `useTextToSpeech` hook → `elevenlabs-tts` edge function (already deployed, returns `audio/mpeg` blob).
-- `framer-motion`, `lucide-react`, `cn`, shadcn `Button` — all already in the project.
+- **JSON schema branch** in the system + user prompts:
+  - `classic` keeps today's shape: `slides[].narrative + image_prompt`.
+  - The other three switch each slide to:
+    ```json
+    { "page_number": 1,
+      "panels": [
+        { "image_prompt": "...", "dialogue": [{ "speaker": "Mia", "text": "..." }],
+          "caption": "optional narration", "size": "wide|tall|square|full" }
+      ]
+    }
+    ```
+  - Panel counts: comic 3–5, manga 3–5, webtoon 6–10 (single column).
+  - Vocabulary/grammar grounding rules unchanged.
 
-**Data contract — `StoryPage`**
-```ts
-interface StoryPage {
-  title?: string;
-  text: string;
-  imageUrl?: string;
-  mcq?: { question: string; options: string[]; correct_index: number };
-}
-```
+- **Persistence**: `persistLesson` is called with `extraMetadata = { visual_style, story_layout: derivedLayout, linked_lesson_id, linked_lesson_title }`. Each slide's `interactive_data.panels` carries the panel array (so the existing `slides` column needs no schema change).
 
-**Storage of layout choice**
-- `curriculum_lessons.ai_metadata.story_layout: 'classic' | 'immersive'`
-- No DB migration needed — `ai_metadata` is already `jsonb`.
+### 3. Viewer — `StoryBookViewer.tsx`
 
-**Routing**
-- No new routes. Story lessons are still opened via the existing `/student/lesson/:id` (or wherever `LessonReaderPage` lives) — the page just picks the right renderer.
+Add `visualStyle: 'classic' | 'comic_western' | 'manga_rtl' | 'webtoon'` prop. Routing inside the viewer:
 
-**Safety**
-- If `pages` is empty, show a friendly empty state instead of crashing.
-- TTS auto-stops on page change and on unmount via the hook's existing `stop()` cleanup pattern.
-- MCQ answers are tracked per page index in local state — no DB writes from the viewer (consistent with the "stories are reading, not assessment" intent).
+- `classic` → existing `ImmersiveCard` / `ClassicSplit`.
+- `comic_western` → new `ComicPage` component: CSS grid `grid-cols-6` with panel `col-span` derived from `panel.size` (full=6, wide=4, tall=2 row-span-2, square=3). LTR. Speech bubbles overlaid.
+- `manga_rtl` → same `ComicPage` wrapped in `<div dir="rtl">` and `grid-flow-row-dense`. Reading order flows R→L. Bubbles use a slightly different tail style + monochrome filter on images via `style={{ filter: 'grayscale(1) contrast(1.05)' }}`.
+- `webtoon` → new `WebtoonScroller`: replaces page navigation with one vertical `flex flex-col` column (`max-w-md mx-auto`), all panels stacked, snap scrolling. Page dots & edge arrows hidden; exit + narration float as a sticky top-right pill.
+
+### 4. Speech bubbles
+
+New tiny `SpeechBubble` subcomponent: absolutely positioned over the panel image (`absolute` with deterministic placement based on bubble index — 1st top-left, 2nd bottom-right, 3rd top-right, 4th bottom-left), white rounded-2xl bubble with a CSS `::after` triangular tail, inline speaker tag in bold-uppercase. Captions render as a yellow narration box pinned to the panel bottom.
+
+### 5. Reader routing — `LessonReaderPage.tsx`
+
+Read `lesson.ai_metadata.visual_style` (fallback to derived value from `story_layout`) and pass it to `<StoryBookViewer visualStyle=... />`. Update `normalizeSlidesToStoryPages` to also surface `interactive_data.panels` onto each `StoryPage` as `page.panels`.
+
+### 6. Backward compatibility
+
+- Existing stories without `visual_style` default to `classic` and continue to render exactly as today.
+- `StoryPage.panels` is optional; comic/manga/webtoon viewers fall back to a single full-bleed panel built from `page.imageUrl + page.text` if `panels` is missing.
+
+### Files to edit
+
+- `src/components/creator-studio/steps/StoryCreator.tsx` — replace layout picker with 4-style picker; pass `visual_style`; tweak persisted metadata.
+- `supabase/functions/ai-core/index.ts` — extend `handleGenerateStory` (style modifier, branched JSON schema, panel-aware response).
+- `src/components/creator-studio/persistLesson.ts` — no schema change; extra metadata already supported.
+- `src/components/student/story-viewer/StoryBookViewer.tsx` — add `visualStyle`, `ComicPage`, `WebtoonScroller`, `SpeechBubble`, RTL handling, panel-aware `StoryPage`.
+- `src/pages/student/LessonReaderPage.tsx` — pass `visualStyle` and propagate `panels` in normalizer.
+
+### Out of scope
+
+- Image generation pipeline itself (panels go through whatever existing `image_generation_prompt` flow already uses).
+- Editing existing stories' visual style (would require a re-generation; not added in this pass).
