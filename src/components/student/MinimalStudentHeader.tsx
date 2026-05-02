@@ -4,7 +4,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { HubLogo } from "@/components/student/HubLogo";
 import { ThemeModeToggle } from "@/components/ui/ThemeModeToggle";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { useStudentLevel } from "@/hooks/useStudentLevel";
@@ -60,8 +59,6 @@ export const MinimalStudentHeader: React.FC<MinimalStudentHeaderProps> = ({
     }`}>
       <div className="flex items-center justify-between px-4 md:px-6 py-3">
         <div className="flex items-center gap-3">
-          <HubLogo hubId={hubId} size="sm" />
-          <div className={`w-px h-8 ${isDark ? 'bg-white/10' : 'bg-black/10'}`} />
           <Avatar className={`h-9 w-9 border ${isDark ? 'border-white/15' : 'border-black/10'}`}>
             <AvatarFallback className={`font-medium text-sm ${
               hubId === 'playground'

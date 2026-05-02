@@ -17,7 +17,7 @@ import { PlacementGatekeeper } from "@/components/student/PlacementGatekeeper";
 // Lazy load components to improve initial load time
 import { MinimalStudentHeader } from "@/components/student/MinimalStudentHeader";
 import { StudentSidebar } from "@/components/student/StudentSidebar";
-import { LearningPathTab } from "@/components/student/LearningPathTab";
+
 import { TeachersTab } from "@/components/student/TeachersTab";
 import { UpcomingClassesTab } from "@/components/student/UpcomingClassesTab";
 import { SpeakingPracticeTab } from "@/components/student/speaking/SpeakingPracticeTab";
@@ -28,6 +28,12 @@ import { QuickActions } from "@/components/navigation/QuickActions";
 import { AssessmentsTab } from "@/components/student/tabs/AssessmentsTab";
 import { CertificatesTab } from "@/components/student/tabs/CertificatesTab";
 import { ReferralTab } from "@/components/student/tabs/ReferralTab";
+import { HomeworkTab } from "@/components/student/tabs/HomeworkTab";
+import { MyLessonsTab } from "@/components/student/tabs/MyLessonsTab";
+import { MyPathTab } from "@/components/student/tabs/MyPathTab";
+import { MapOfSoundsTab } from "@/components/student/tabs/MapOfSoundsTab";
+import { VocabularyVaultTab } from "@/components/student/tabs/VocabularyVaultTab";
+import { MasteryMilestonesTab } from "@/components/student/tabs/MasteryMilestonesTab";
 import { MobileBottomNav, type StudentNavTab } from "@/components/mobile/MobileBottomNav";
 import { InstallPrompt } from "@/components/mobile/InstallPrompt";
 
@@ -186,12 +192,17 @@ const StudentDashboard = () => {
   const renderActiveTab = () => {
     const tabComponents = {
       dashboard: () => <DashboardRouter systemId={systemId} studentName={studentName} />,
-      "learning-path": () => <LearningPathTab />,
-      lessons: () => <LearningPathTab />,
+      "learning-path": () => <MyPathTab />,
+      lessons: () => <MyLessonsTab />,
+      homework: () => <HomeworkTab />,
+      sounds: () => <MapOfSoundsTab />,
+      vocabulary: () => <VocabularyVaultTab />,
+      milestones: () => <MasteryMilestonesTab />,
       assessments: () => <AssessmentsTab />,
       certificates: () => <CertificatesTab />,
       teachers: () => <TeachersTab />,
       "upcoming-classes": () => <UpcomingClassesTab />,
+      classes: () => <UpcomingClassesTab />,
       speaking: () => <SpeakingPracticeTab />,
       billing: () => <EnhancedBillingTab />,
       referrals: () => <ReferralTab />,

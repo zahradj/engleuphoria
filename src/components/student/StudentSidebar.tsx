@@ -2,20 +2,16 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from "@/components/ui/badge";
 import { HubLogo } from '@/components/student/HubLogo';
-import { 
-  Home, 
-  BookOpen, 
-  Users, 
-  Calendar, 
-  ClipboardList, 
-  Library, 
-  TrendingUp, 
-  User, 
-  Map,
-  Sparkles,
+import {
+  Home,
+  PlayCircle,
+  BookMarked,
+  Route as RouteIcon,
+  Volume2,
+  Archive,
+  Target,
+  Award,
   LogOut,
-  Gift,
-  Trophy
 } from "lucide-react";
 import {
   Sidebar,
@@ -33,9 +29,9 @@ import { useStudentLevel } from '@/hooks/useStudentLevel';
 import { useThemeMode } from '@/hooks/useThemeMode';
 
 // Hub-specific color maps — bolder, more saturated
-const HUB_ICON_COLORS: Record<string, { 
-  active: string; 
-  activeBg: string; 
+const HUB_ICON_COLORS: Record<string, {
+  active: string;
+  activeBg: string;
   iconDefault: string;
   glowColor: string;
 }> = {
@@ -66,11 +62,13 @@ interface StudentSidebarProps {
   onLogout?: () => void;
 }
 
-export const StudentSidebar: React.FC<StudentSidebarProps> = ({ 
-  activeTab, 
+type NavItem = { id: string; label: string; icon: React.ComponentType<{ className?: string }>; badge?: string };
+type NavGroup = { id: string; label: string; items: NavItem[] };
+
+export const StudentSidebar: React.FC<StudentSidebarProps> = ({
+  activeTab,
   setActiveTab,
-  hasProfile = false,
-  onLogout 
+  onLogout,
 }) => {
   const { t } = useTranslation();
   const { studentLevel } = useStudentLevel();
@@ -82,21 +80,34 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
   const hubId = hubKey as 'playground' | 'academy' | 'professional';
 
   const newBadge = t('sd.badge.new');
-  const menuItems = [
-    { id: 'dashboard', label: t('sd.menu.dashboard'), icon: Home },
-    { id: 'classes', label: t('sd.menu.classes'), icon: Calendar },
-    { id: 'homework', label: t('sd.menu.homework'), icon: BookOpen },
-    { id: 'lessons', label: t('sd.menu.lessons'), icon: BookOpen },
-    { id: 'learning-path', label: t('sd.menu.learningPath'), icon: Map, badge: newBadge },
-    { id: 'sounds', label: t('sd.menu.sounds'), icon: Sparkles, badge: newBadge },
-    { id: 'vocabulary', label: t('sd.menu.vocabulary'), icon: BookOpen, badge: newBadge },
-    { id: 'milestones', label: t('sd.menu.milestones'), icon: Trophy, badge: newBadge },
-    { id: 'assessments', label: t('sd.menu.assessments'), icon: ClipboardList },
-    { id: 'certificates', label: t('sd.menu.certificates'), icon: Library },
-    { id: 'teachers', label: t('sd.menu.teachers'), icon: Users },
-    { id: 'progress', label: t('sd.menu.progress'), icon: TrendingUp },
-    { id: 'referrals', label: t('sd.menu.referrals'), icon: Gift, badge: newBadge },
-    { id: 'profile', label: t('sd.menu.profile'), icon: User }
+
+  const groups: NavGroup[] = [
+    {
+      id: 'main',
+      label: t('sd.group.main', 'Main Menu'),
+      items: [
+        { id: 'dashboard', label: t('sd.menu.dashboard'), icon: Home },
+        { id: 'lessons', label: t('sd.menu.lessons', 'My Lessons'), icon: PlayCircle },
+        { id: 'homework', label: t('sd.menu.homework', 'Homework'), icon: BookMarked },
+      ],
+    },
+    {
+      id: 'learning-lab',
+      label: t('sd.group.learningLab', 'Learning Lab'),
+      items: [
+        { id: 'learning-path', label: t('sd.menu.learningPath', 'My Learning Path'), icon: RouteIcon, badge: newBadge },
+        { id: 'sounds', label: t('sd.menu.sounds', 'Map of Sounds'), icon: Volume2, badge: newBadge },
+        { id: 'vocabulary', label: t('sd.menu.vocabulary', 'Vocabulary Vault'), icon: Archive, badge: newBadge },
+      ],
+    },
+    {
+      id: 'achievements',
+      label: t('sd.group.achievements', 'Achievements'),
+      items: [
+        { id: 'milestones', label: t('sd.menu.milestones', 'Mastery Milestones'), icon: Target, badge: newBadge },
+        { id: 'certificates', label: t('sd.menu.certificates', 'Certificates'), icon: Award },
+      ],
+    },
   ];
 
   const { state } = useSidebar();
@@ -109,69 +120,81 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
         : 'bg-white/50 border-black/5'
     }`}>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel className={`px-4 py-4 mx-2 mt-2 rounded-xl ${
-            isDark ? 'bg-white/5' : 'bg-black/3'
-          }`}>
+        {/* Brand / Logo header */}
+        <div className={`px-4 py-4 mx-2 mt-2 rounded-xl ${isDark ? 'bg-white/5' : 'bg-black/3'}`}>
+          <button
+            onClick={() => setActiveTab('dashboard')}
+            className="block w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
+            aria-label="Go to dashboard"
+          >
             <HubLogo hubId={hubId} size="sm" />
-          </SidebarGroupLabel>
-          <SidebarGroupContent className="mt-2">
-            <SidebarMenu>
-              {menuItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeTab === item.id;
-                
-                return (
-                  <SidebarMenuItem key={item.id}>
-                    <SidebarMenuButton 
-                      isActive={isActive}
-                      onClick={() => setActiveTab(item.id)}
-                      className={`
-                        relative px-4 py-3 mx-2 my-0.5 rounded-xl transition-all duration-200 font-medium border
-                        ${isActive 
-                          ? `${hubColors.activeBg} ${hubColors.glowColor}`
-                          : `border-transparent ${isDark ? 'text-white/50 hover:bg-white/5 hover:text-white/80' : 'text-muted-foreground hover:bg-black/5 hover:text-foreground'}`
-                        }
-                      `}
-                    >
-                      <Icon className={`h-5 w-5 transition-colors ${isActive ? hubColors.active : hubColors.iconDefault}`} />
-                      {!isCollapsed && (
-                        <>
-                          <span className={`flex-1 font-medium ${isActive ? hubColors.active : ''}`}>{item.label}</span>
-                          {item.badge && (
-                            <Badge 
-                              variant={item.id === 'classroom' ? 'default' : 'secondary'} 
-                              className={`ml-auto text-xs font-medium ${
-                                item.id === 'classroom' 
-                                  ? 'bg-emerald-500 text-white border-0' 
-                                  : isDark ? 'bg-white/10 text-white/70 border-0' : 'bg-black/5 text-foreground/70 border-0'
-                              }`}
-                            >
-                              {item.badge}
-                            </Badge>
-                          )}
-                          {item.id === 'learning-path' && (
-                            <Sparkles className={`ml-2 h-4 w-4 ${hubColors.active}`} />
-                          )}
-                        </>
-                      )}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+          </button>
+        </div>
+
+        {groups.map((group, idx) => (
+          <SidebarGroup key={group.id}>
+            {!isCollapsed && (
+              <SidebarGroupLabel className={`px-4 mt-3 mb-1 text-xs uppercase tracking-wider font-semibold ${
+                isDark ? 'text-white/40' : 'text-muted-foreground/70'
+              }`}>
+                {group.label}
+              </SidebarGroupLabel>
+            )}
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeTab === item.id;
+                  return (
+                    <SidebarMenuItem key={item.id}>
+                      <SidebarMenuButton
+                        isActive={isActive}
+                        onClick={() => setActiveTab(item.id)}
+                        className={`
+                          relative px-4 py-3 mx-2 my-0.5 rounded-xl transition-all duration-200 font-medium border
+                          ${isActive
+                            ? `${hubColors.activeBg} ${hubColors.glowColor}`
+                            : `border-transparent ${isDark ? 'text-white/60 hover:bg-white/5 hover:text-white/90' : 'text-muted-foreground hover:bg-black/5 hover:text-foreground'}`
+                          }
+                        `}
+                      >
+                        <Icon className={`h-5 w-5 transition-colors ${isActive ? hubColors.active : hubColors.iconDefault}`} />
+                        {!isCollapsed && (
+                          <>
+                            <span className={`flex-1 font-medium ${isActive ? hubColors.active : ''}`}>{item.label}</span>
+                            {item.badge && (
+                              <Badge
+                                variant="secondary"
+                                className={`ml-auto text-[10px] font-medium border-0 ${
+                                  isDark ? 'bg-white/10 text-white/70' : 'bg-black/5 text-foreground/70'
+                                }`}
+                              >
+                                {item.badge}
+                              </Badge>
+                            )}
+                          </>
+                        )}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+            {idx < groups.length - 1 && (
+              <SidebarSeparator className={`my-2 ${isDark ? 'bg-white/8' : 'bg-black/8'}`} />
+            )}
+          </SidebarGroup>
+        ))}
 
         {/* Logout Section */}
         {onLogout && (
           <>
-            <SidebarSeparator className={`my-4 ${isDark ? 'bg-white/8' : 'bg-black/8'}`} />
+            <SidebarSeparator className={`my-2 ${isDark ? 'bg-white/8' : 'bg-black/8'}`} />
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton 
+                    <SidebarMenuButton
                       onClick={onLogout}
                       className={`mx-2 px-4 py-3 rounded-xl font-medium border border-transparent transition-all duration-200 ${
                         isDark
