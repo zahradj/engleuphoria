@@ -83,6 +83,8 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
   stageMode,
   drawingEnabled,
   iframeUnlocked = false,
+  rawSlides,
+  hubType = 'academy',
   onAddStroke,
   onSlideComplete,
 }) => {
