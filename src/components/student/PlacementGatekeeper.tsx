@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, GraduationCap, Briefcase, Lock, ArrowRight, Loader2, Smile } from 'lucide-react';
+import { Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,8 @@ import PlaygroundPlacementPhase from '@/components/placement/PlaygroundPlacement
 import { usePlacementTest } from '@/hooks/usePlacementTest';
 import type { StudentLevel } from '@/hooks/useStudentLevel';
 import { Logo } from '@/components/Logo';
+import HubGlowWrapper, { type HubType as GlowHubType } from '@/components/HubGlowWrapper';
+import logoWhite from '@/assets/logo-white.png';
 
 type Phase = 'welcome' | 'demographics' | 'test' | 'processing' | 'celebrate';
 
