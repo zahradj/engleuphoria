@@ -587,6 +587,24 @@ export const LibraryManager: React.FC = () => {
               )}
             </div>
           </div>
+          {/* Type (kind) chips */}
+          <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mr-1">Type</span>
+            {(['all', 'standard', 'trial', 'story'] as const).map((k) => (
+              <button
+                key={k}
+                onClick={() => setKindFilter(k)}
+                className={cn(
+                  'px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all border',
+                  kindFilter === k
+                    ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 border-transparent'
+                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-400'
+                )}
+              >
+                {k === 'all' ? 'All' : k.charAt(0).toUpperCase() + k.slice(1)}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
