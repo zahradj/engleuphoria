@@ -298,7 +298,7 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
               className="text-xs bg-gray-50 border-gray-200 h-8"
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
             />
-            <Button size="icon" className="h-8 w-8 shrink-0" onClick={handleSendMessage}>
+            <Button size="icon" className="h-8 w-8 shrink-0 bg-[#6B21A8] hover:bg-[#581C87] text-white" onClick={handleSendMessage}>
               <Send className="h-3 w-3" />
             </Button>
           </div>
