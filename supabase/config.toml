@@ -48,6 +48,8 @@ project_id = "dcoxpyzoqjvmuuygvlme"
     verify_jwt = false
   [functions.ai-slide-generator]
     verify_jwt = false
+  [functions.ai-slide-game-generator]
+    verify_jwt = false
   [functions.ai-systematic-curriculum-batch]
     verify_jwt = false
   [functions.auth-email-hook]
