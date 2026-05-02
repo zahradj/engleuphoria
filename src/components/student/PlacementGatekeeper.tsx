@@ -167,7 +167,6 @@ export const PlacementGatekeeper = ({
   }
 
   const theme = HUB_THEME[themeKey];
-  const Icon = theme.icon;
 
   // Kids skip Demographics — we already know they're in Playground (4-9).
   // Default age 7 keeps evaluateStudentLevel pinned to playground while still
@@ -182,7 +181,8 @@ export const PlacementGatekeeper = ({
   };
 
   return (
-    <div
+    <HubGlowWrapper
+      hubType={theme.glowHub}
       className={`min-h-screen w-full bg-gradient-to-br ${theme.gradient} flex items-center justify-center p-4 relative overflow-hidden`}
     >
       {/* Ambient blobs */}
@@ -202,8 +202,13 @@ export const PlacementGatekeeper = ({
               className={`backdrop-blur-2xl bg-white/10 border border-white/20 rounded-3xl p-10 ${theme.glow}`}
             >
               <div className="flex justify-center mb-6">
-                <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${theme.accent} flex items-center justify-center`}>
-                  <Icon className="w-10 h-10 text-white" />
+                <div className={`w-24 h-24 rounded-2xl bg-white/10 backdrop-blur-md ring-1 ring-white/20 flex items-center justify-center px-4`}>
+                  <img
+                    src={logoWhite}
+                    alt="EnglEuphoria"
+                    className="h-10 w-auto object-contain select-none pointer-events-none"
+                    draggable={false}
+                  />
                 </div>
               </div>
               <div className="flex items-center justify-center gap-2 mb-3">
