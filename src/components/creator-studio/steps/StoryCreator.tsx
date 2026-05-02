@@ -66,6 +66,46 @@ const vocabListToArray = (raw: any): string[] => {
   return s.split(',').map((w) => w.trim()).filter(Boolean);
 };
 
+const StylePreview: React.FC<{ kind: 'classic' | 'comic_western' | 'manga_rtl' | 'webtoon' }> = ({ kind }) => {
+  if (kind === 'classic') {
+    return (
+      <div className="w-10 h-7 rounded overflow-hidden flex border border-slate-300">
+        <div className="w-1/2 bg-gradient-to-br from-amber-300 to-orange-400" />
+        <div className="w-1/2 bg-amber-50 flex items-center justify-center">
+          <div className="w-3/4 h-0.5 bg-slate-400 rounded" />
+        </div>
+      </div>
+    );
+  }
+  if (kind === 'comic_western') {
+    return (
+      <div className="w-10 h-7 rounded overflow-hidden grid grid-cols-2 grid-rows-2 gap-[1px] bg-slate-900 p-[1px]">
+        <div className="bg-rose-400" />
+        <div className="bg-yellow-300" />
+        <div className="col-span-2 bg-sky-400" />
+      </div>
+    );
+  }
+  if (kind === 'manga_rtl') {
+    return (
+      <div className="w-10 h-7 rounded overflow-hidden grid grid-cols-2 grid-rows-2 gap-[1px] bg-slate-900 p-[1px]" dir="rtl">
+        <div className="bg-slate-200" />
+        <div className="bg-slate-400" />
+        <div className="bg-slate-300" />
+        <div className="bg-slate-500" />
+      </div>
+    );
+  }
+  // webtoon
+  return (
+    <div className="w-10 h-7 rounded overflow-hidden flex flex-col gap-[1px] bg-slate-900 p-[1px]">
+      <div className="flex-1 bg-gradient-to-r from-violet-400 to-fuchsia-400" />
+      <div className="flex-1 bg-gradient-to-r from-emerald-400 to-teal-400" />
+      <div className="flex-1 bg-gradient-to-r from-sky-400 to-blue-400" />
+    </div>
+  );
+};
+
 export const StoryCreator: React.FC = () => {
   const navigate = useNavigate();
   const { setActiveLessonData, setCurrentStep, setDirty } = useCreator();
