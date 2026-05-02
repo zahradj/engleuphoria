@@ -2298,6 +2298,7 @@ export type Database = {
           language: string | null
           level_id: string | null
           order_index: number | null
+          parent_lesson_id: string | null
           phonics_focus: string | null
           sequence_order: number | null
           skills_focus: string[] | null
@@ -2326,6 +2327,7 @@ export type Database = {
           language?: string | null
           level_id?: string | null
           order_index?: number | null
+          parent_lesson_id?: string | null
           phonics_focus?: string | null
           sequence_order?: number | null
           skills_focus?: string[] | null
@@ -2354,6 +2356,7 @@ export type Database = {
           language?: string | null
           level_id?: string | null
           order_index?: number | null
+          parent_lesson_id?: string | null
           phonics_focus?: string | null
           sequence_order?: number | null
           skills_focus?: string[] | null
@@ -2379,6 +2382,13 @@ export type Database = {
             columns: ["level_id"]
             isOneToOne: false
             referencedRelation: "curriculum_levels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_lessons_parent_lesson_id_fkey"
+            columns: ["parent_lesson_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_lessons"
             referencedColumns: ["id"]
           },
           {
