@@ -9863,6 +9863,18 @@ export type Database = {
       }
     }
     Functions: {
+      book_class_slot: {
+        Args: {
+          p_duration: number
+          p_hub_type: string
+          p_is_trial?: boolean
+          p_lesson_title: string
+          p_scheduled_at: string
+          p_slot_ids: string[]
+          p_teacher_id: string
+        }
+        Returns: Json
+      }
       can_access_booking_session: {
         Args: { p_session_id: string; p_user_id: string }
         Returns: boolean
