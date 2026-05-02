@@ -19,11 +19,28 @@ interface Props {
 }
 
 export default function PlaygroundDragDrop({ slide, onCorrect, onIncorrect }: Props) {
-  const items: DragItem[] = slide.content?.dragItems || [
-    { text: 'Apple', target: 'Fruit', emoji: '🍎' },
-    { text: 'Dog', target: 'Animal', emoji: '🐕' },
-    { text: 'Sun', target: 'Nature', emoji: '☀️' },
-  ];
+  // Source priority: AI ai-core/director output (`interactive_data.pairs` with
+  // {draggable, target_zone}) → legacy creator data (`content.dragItems`).
+  const interactive: any = (slide as any).interactive_data || {};
+  const aiPairs: any[] = Array.isArray(interactive.pairs) ? interactive.pairs : [];
+
+  const items: DragItem[] = aiPairs.length
+    ? aiPairs
+        .filter((p) => p && (p.draggable || p.left_item) && (p.target_zone || p.right_item))
+        .map((p) => ({
+          text: String(p.draggable ?? p.left_item),
+          target: String(p.target_zone ?? p.right_item),
+        }))
+    : (slide.content?.dragItems || [
+        { text: 'Apple', target: 'Fruit', emoji: '🍎' },
+        { text: 'Dog', target: 'Animal', emoji: '🐕' },
+        { text: 'Sun', target: 'Nature', emoji: '☀️' },
+      ]);
+
+  const promptText: string =
+    interactive.instruction ||
+    slide.content?.prompt ||
+    'Drag each item to the correct category.';
 
   const [placed, setPlaced] = useState<Record<string, string>>({});
   const [celebrating, setCelebrating] = useState<string | null>(null);
