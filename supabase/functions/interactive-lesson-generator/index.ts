@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { aiFetch } from "../_shared/aiFetch.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 import { generateInteractiveLessonPrompt } from '../_shared/interactiveLessonPromptTemplate.ts';
 
@@ -57,7 +58,7 @@ serve(async (req) => {
     
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        const aiResponse = await aiFetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${LOVABLE_API_KEY}`,
