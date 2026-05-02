@@ -1,10 +1,15 @@
 /**
- * ai-core: Consolidated AI router function.
+ * ai-core: Consolidated AI router function with automatic failover.
+ *
+ * PRIMARY:  Google AI Studio (Gemini) — direct API
+ * BACKUP:   Lovable AI Gateway (Gemini/OpenAI proxy)
+ *
  * Routes via `action` field in request body to:
  *   - explain_mistake
  *   - evaluate_speaking (real-world task grading)
  *   - evaluate_speech (audio pronunciation grading)
  *   - speaking_feedback (general speaking practice feedback)
+ *   - generate_lesson (lightweight lesson outline generation)
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -22,15 +27,135 @@ function jsonResponse(data: unknown, status = 200) {
   });
 }
 
+// ════════════════════════════════════════════════════════════════════
+// AI FAILOVER LAYER
+// Primary  → Google AI Studio (Gemini direct)
+// Backup   → Lovable AI Gateway
+// ════════════════════════════════════════════════════════════════════
+
+interface AIMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
+interface AICallOptions {
+  systemPrompt?: string;
+  userPrompt: string;
+  geminiModel?: string;          // e.g. "gemini-2.5-flash"
+  lovableModel?: string;         // e.g. "google/gemini-2.5-flash"
+  jsonMode?: boolean;            // request JSON output
+  temperature?: number;
+}
+
+interface AICallResult {
+  text: string;
+  provider: 'gemini-direct' | 'lovable-gateway';
+}
+
+/**
+ * Call Google AI Studio (Gemini) directly.
+ * Throws on failure so the failover wrapper can retry with the backup.
+ */
+async function callGeminiDirect(opts: AICallOptions): Promise<string> {
+  const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+  if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not configured');
+
+  const model = opts.geminiModel || 'gemini-2.5-flash';
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+
+  const body: any = {
+    contents: [{ role: 'user', parts: [{ text: opts.userPrompt }] }],
+    generationConfig: {
+      temperature: opts.temperature ?? 0.7,
+      ...(opts.jsonMode ? { responseMimeType: 'application/json' } : {}),
+    },
+  };
+  if (opts.systemPrompt) {
+    body.systemInstruction = { role: 'system', parts: [{ text: opts.systemPrompt }] };
+  }
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error(`Gemini direct failed (${res.status}): ${errText.slice(0, 200)}`);
+  }
+
+  const data = await res.json();
+  const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).filter(Boolean).join('') || '';
+  if (!text) throw new Error('Gemini direct returned empty response');
+  return text;
+}
+
+/**
+ * Call Lovable AI Gateway (backup).
+ */
+async function callLovableGateway(opts: AICallOptions): Promise<string> {
+  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+  if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
+
+  const messages: AIMessage[] = [];
+  if (opts.systemPrompt) messages.push({ role: 'system', content: opts.systemPrompt });
+  messages.push({ role: 'user', content: opts.userPrompt });
+
+  const body: any = {
+    model: opts.lovableModel || 'google/gemini-2.5-flash',
+    messages,
+  };
+  if (opts.jsonMode) body.response_format = { type: 'json_object' };
+
+  const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    const err: any = new Error(`Lovable gateway failed (${res.status}): ${errText.slice(0, 200)}`);
+    err.status = res.status;
+    throw err;
+  }
+
+  const data = await res.json();
+  const text = data?.choices?.[0]?.message?.content?.trim() || '';
+  if (!text) throw new Error('Lovable gateway returned empty response');
+  return text;
+}
+
+/**
+ * The failover wrapper. Try Gemini first, fall back to Lovable Gateway.
+ * Used by every text-based action (generate_lesson, explain_mistake, evaluate_speech text portions, etc.)
+ */
+async function callAIWithFailover(opts: AICallOptions): Promise<AICallResult> {
+  try {
+    const text = await callGeminiDirect(opts);
+    return { text, provider: 'gemini-direct' };
+  } catch (primaryError) {
+    console.warn('⚠️ Primary AI (Gemini) drained or failed. Switching to backup (Lovable Gateway)…', primaryError instanceof Error ? primaryError.message : primaryError);
+    try {
+      const text = await callLovableGateway(opts);
+      return { text, provider: 'lovable-gateway' };
+    } catch (backupError: any) {
+      console.error('❌ Both AI providers failed!', backupError?.message || backupError);
+      // Bubble up status code if backup gave one (so we can surface 429/402 nicely).
+      const err: any = new Error('AI generation temporarily unavailable.');
+      err.status = backupError?.status;
+      throw err;
+    }
+  }
+}
+
 // ─── Action: explain_mistake ────────────────────────────────────────
 async function handleExplainMistake(body: any) {
   const { lesson_context, question_text, correct_answer, user_answer } = body;
   if (!correct_answer || !user_answer) {
     return jsonResponse({ error: 'correct_answer and user_answer are required' }, 400);
   }
-
-  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-  if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
 
   const systemPrompt = `You are a warm, encouraging ESL tutor. When a student gets an answer wrong, you explain WHY in exactly ONE short sentence (under 30 words). Be specific about the grammar/vocabulary rule. Never be condescending. Use simple language appropriate for language learners.`;
   const userPrompt = `The student answered a question incorrectly.
@@ -41,27 +166,20 @@ Student's answer: "${user_answer}"
 
 Explain in one encouraging sentence why their answer is wrong and what the correct answer is.`;
 
-  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'google/gemini-2.5-flash-lite',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-    }),
-  });
-
-  if (!response.ok) {
-    if (response.status === 429) return jsonResponse({ error: 'Rate limited — try again shortly.' }, 429);
-    if (response.status === 402) return jsonResponse({ error: 'Credits exhausted.' }, 402);
-    throw new Error(`AI gateway error: ${response.status}`);
+  try {
+    const { text, provider } = await callAIWithFailover({
+      systemPrompt,
+      userPrompt,
+      geminiModel: 'gemini-2.5-flash',
+      lovableModel: 'google/gemini-2.5-flash-lite',
+      temperature: 0.6,
+    });
+    return jsonResponse({ explanation: text.trim() || "Keep trying — you're getting closer!", provider });
+  } catch (e: any) {
+    if (e?.status === 429) return jsonResponse({ error: 'Rate limited — try again shortly.' }, 429);
+    if (e?.status === 402) return jsonResponse({ error: 'Credits exhausted.' }, 402);
+    return jsonResponse({ error: e?.message || 'AI generation temporarily unavailable.' }, 503);
   }
-
-  const data = await response.json();
-  const explanation = data.choices?.[0]?.message?.content?.trim() || "Keep trying — you're getting closer!";
-  return jsonResponse({ explanation });
 }
 
 // ─── Action: evaluate_speaking (real-world task) ────────────────────
@@ -70,9 +188,6 @@ async function handleEvaluateSpeaking(body: any) {
   if (!mission_briefing || !student_transcript) {
     return jsonResponse({ error: 'mission_briefing and student_transcript are required' }, 400);
   }
-
-  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-  if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY is not configured');
 
   const criteriaText = Array.isArray(success_criteria) && success_criteria.length > 0
     ? `\nSuccess Criteria the student should have addressed:\n${success_criteria.map((c: string, i: number) => `${i + 1}. ${c}`).join('\n')}`
@@ -92,71 +207,47 @@ ${criteriaText}
 
 Student's Response: "${student_transcript}"
 
-Evaluate this response and return JSON with score (0-100) and feedback (2 sentences).`;
+Evaluate this response and return ONLY the JSON object.`;
 
-  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'google/gemini-2.5-flash',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      tools: [{
-        type: 'function',
-        function: {
-          name: 'evaluate_response',
-          description: 'Return the evaluation score and feedback',
-          parameters: {
-            type: 'object',
-            properties: {
-              score: { type: 'number', description: 'Score from 0-100' },
-              feedback: { type: 'string', description: 'Two sentences of constructive feedback' },
-            },
-            required: ['score', 'feedback'],
-            additionalProperties: false,
-          },
-        },
-      }],
-      tool_choice: { type: 'function', function: { name: 'evaluate_response' } },
-    }),
-  });
-
-  if (!response.ok) {
-    if (response.status === 429) return jsonResponse({ error: 'Rate limited. Please try again in a moment.' }, 429);
-    if (response.status === 402) return jsonResponse({ error: 'AI credits exhausted. Please add funds.' }, 402);
-    const errText = await response.text();
-    console.error('AI gateway error:', response.status, errText);
-    throw new Error('AI evaluation failed');
-  }
-
-  const aiData = await response.json();
   let result = { score: 50, feedback: 'Good effort! Keep practicing to improve.' };
+  let provider: string = 'unknown';
 
   try {
-    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
-    if (toolCall?.function?.arguments) {
-      const parsed = JSON.parse(toolCall.function.arguments);
-      result.score = Math.max(0, Math.min(100, Math.round(parsed.score || 50)));
-      result.feedback = parsed.feedback || result.feedback;
-    }
-  } catch {
+    const ai = await callAIWithFailover({
+      systemPrompt,
+      userPrompt,
+      geminiModel: 'gemini-2.5-flash',
+      lovableModel: 'google/gemini-2.5-flash',
+      jsonMode: true,
+      temperature: 0.4,
+    });
+    provider = ai.provider;
+
+    const cleaned = ai.text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     try {
-      const content = aiData.choices?.[0]?.message?.content || '';
-      const jsonMatch = content.match(/\{[\s\S]*"score"[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        result.score = Math.max(0, Math.min(100, Math.round(parsed.score || 50)));
+      const parsed = JSON.parse(cleaned);
+      result.score = Math.max(0, Math.min(100, Math.round(parsed.score ?? 50)));
+      result.feedback = parsed.feedback || result.feedback;
+    } catch {
+      const m = cleaned.match(/\{[\s\S]*"score"[\s\S]*\}/);
+      if (m) {
+        const parsed = JSON.parse(m[0]);
+        result.score = Math.max(0, Math.min(100, Math.round(parsed.score ?? 50)));
         result.feedback = parsed.feedback || result.feedback;
       }
-    } catch { /* use default */ }
+    }
+  } catch (e: any) {
+    if (e?.status === 429) return jsonResponse({ error: 'Rate limit. Try again shortly.' }, 429);
+    if (e?.status === 402) return jsonResponse({ error: 'AI credits exhausted.' }, 402);
+    return jsonResponse({ error: e?.message || 'AI evaluation failed' }, 503);
   }
 
-  return jsonResponse(result);
+  return jsonResponse({ ...result, provider });
 }
 
 // ─── Action: evaluate_speech (audio pronunciation) ──────────────────
+// Audio analysis: PRIMARY = Gemini direct (generateContent with inlineData),
+// BACKUP = Lovable Gateway (chat completions with input_audio).
 async function handleEvaluateSpeech(body: any, authHeader: string | null) {
   if (!authHeader?.startsWith('Bearer ')) {
     return jsonResponse({ error: 'Unauthorized' }, 401);
@@ -208,16 +299,13 @@ async function handleEvaluateSpeech(body: any, authHeader: string | null) {
     console.warn('[voice-energy] gate error (allowing through)', e);
   }
 
-  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-  if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
-
   const tone = hub === 'playground'
     ? 'Use ultra-warm, kid-friendly language with emojis. Celebrate small wins.'
     : hub === 'success'
     ? 'Use a refined, professional, executive-coach tone.'
     : 'Use an encouraging teen-friendly academic tone.';
 
-  const systemPrompt = `You are an expert ESL pronunciation coach grading a student's spoken attempt.
+  const promptText = `You are an expert ESL pronunciation coach grading a student's spoken attempt.
 
 TARGET SENTENCE: "${targetSentence}"
 ${context ? `CONTEXT: ${context}` : ''}
@@ -249,34 +337,73 @@ Return ONLY this JSON, no markdown:
   "encouragement": "<one short warm sentence>"
 }`;
 
-  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'google/gemini-2.5-flash',
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'text', text: systemPrompt },
-          { type: 'input_audio', input_audio: { data: audioBase64, format: mimeType.includes('mp3') ? 'mp3' : 'webm' } },
-        ],
-      }],
-    }),
-  });
+  const audioFormat = mimeType.includes('mp3') ? 'mp3' : 'webm';
+  let raw = '';
+  let provider: 'gemini-direct' | 'lovable-gateway' = 'gemini-direct';
 
-  if (!response.ok) {
-    const err = await response.text();
-    console.error('Gemini audio error:', err);
-    if (response.status === 429) return jsonResponse({ error: 'Rate limit exceeded. Please wait a moment.' }, 429);
-    if (response.status === 402) return jsonResponse({ error: 'AI credits exhausted.' }, 402);
-    throw new Error(`Gemini error: ${err}`);
+  // ───── PRIMARY: Gemini direct (inline audio) ─────
+  try {
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not configured');
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          role: 'user',
+          parts: [
+            { text: promptText },
+            { inlineData: { mimeType: mimeType.includes('mp3') ? 'audio/mp3' : 'audio/webm', data: audioBase64 } },
+          ],
+        }],
+        generationConfig: { temperature: 0.3, responseMimeType: 'application/json' },
+      }),
+    });
+    if (!res.ok) {
+      const t = await res.text().catch(() => '');
+      throw new Error(`Gemini direct audio failed (${res.status}): ${t.slice(0, 200)}`);
+    }
+    const data = await res.json();
+    raw = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).filter(Boolean).join('') || '';
+    if (!raw) throw new Error('Gemini direct audio returned empty');
+  } catch (primaryError) {
+    console.warn('⚠️ Primary AI (Gemini) drained for audio. Switching to backup (Lovable Gateway)…', primaryError instanceof Error ? primaryError.message : primaryError);
+    // ───── BACKUP: Lovable Gateway (input_audio) ─────
+    try {
+      const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+      if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
+
+      const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'text', text: promptText },
+              { type: 'input_audio', input_audio: { data: audioBase64, format: audioFormat } },
+            ],
+          }],
+        }),
+      });
+      if (!res.ok) {
+        if (res.status === 429) return jsonResponse({ error: 'Rate limit exceeded. Please wait a moment.' }, 429);
+        if (res.status === 402) return jsonResponse({ error: 'AI credits exhausted.' }, 402);
+        const t = await res.text().catch(() => '');
+        throw new Error(`Lovable gateway audio failed (${res.status}): ${t.slice(0, 200)}`);
+      }
+      const data = await res.json();
+      raw = data?.choices?.[0]?.message?.content || '';
+      provider = 'lovable-gateway';
+    } catch (backupError) {
+      console.error('❌ Both AI providers failed for audio!', backupError);
+      return jsonResponse({ error: 'AI generation temporarily unavailable.' }, 503);
+    }
   }
 
-  const data = await response.json();
-  let raw = data.choices?.[0]?.message?.content || '';
   raw = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 
   let result: any;
@@ -297,29 +424,18 @@ Return ONLY this JSON, no markdown:
   else if (result.overallScore >= 50) result.tier = 'soft';
   else result.tier = 'revert';
 
-  return jsonResponse(result);
+  return jsonResponse({ ...result, provider });
 }
 
 // ─── Action: speaking_feedback (general practice) ───────────────────
 async function handleSpeakingFeedback(body: any) {
   const { text, scenario } = body;
-  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-  const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-
-  if (!openAIApiKey && !LOVABLE_API_KEY) {
-    return jsonResponse({
-      feedback: {
-        pronunciation_score: 0.8, grammar_score: 0.8, fluency_score: 0.8,
-        rating: 4, encouragement: 'Good effort! Keep practicing!', grammar_suggestions: [],
-      },
-    });
-  }
+  if (!text) return jsonResponse({ error: 'text is required' }, 400);
 
   const systemPrompt = `You are an AI English teacher providing feedback on a student's spoken response.
 
 Scenario: ${scenario?.name || 'General practice'}
 Level: ${scenario?.cefr_level || 'B1'}
-Student said: "${text}"
 
 Provide constructive feedback in this exact JSON format:
 {
@@ -330,52 +446,87 @@ Provide constructive feedback in this exact JSON format:
 
 Scores should be between 0.0 and 1.0. Rating should be 1-5 stars. Be positive and constructive.`;
 
-  let feedbackText: string;
-  if (LOVABLE_API_KEY) {
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: text },
-        ],
-      }),
-    });
-    if (!response.ok) throw new Error(`AI gateway error: ${response.status}`);
-    const data = await response.json();
-    feedbackText = data.choices?.[0]?.message?.content || '';
-  } else {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${openAIApiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: text },
-        ],
-        max_tokens: 200,
-        temperature: 0.3,
-      }),
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error?.message || 'Failed to generate feedback');
-    feedbackText = data.choices[0].message.content;
-  }
-
   let feedback;
+  let provider = 'unknown';
   try {
-    feedback = JSON.parse(feedbackText);
-  } catch {
+    const ai = await callAIWithFailover({
+      systemPrompt,
+      userPrompt: `Student said: "${text}"\n\nReturn ONLY the JSON object.`,
+      geminiModel: 'gemini-2.5-flash',
+      lovableModel: 'google/gemini-2.5-flash-lite',
+      jsonMode: true,
+      temperature: 0.4,
+    });
+    provider = ai.provider;
+    const cleaned = ai.text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    try {
+      feedback = JSON.parse(cleaned);
+    } catch {
+      feedback = {
+        pronunciation_score: 0.8, grammar_score: 0.8, fluency_score: 0.8,
+        rating: 4, encouragement: 'Great job practicing! Keep it up!', grammar_suggestions: [],
+      };
+    }
+  } catch (e: any) {
     feedback = {
       pronunciation_score: 0.8, grammar_score: 0.8, fluency_score: 0.8,
-      rating: 4, encouragement: 'Great job practicing! Keep it up!', grammar_suggestions: [],
+      rating: 4, encouragement: 'Good effort! Keep practicing!', grammar_suggestions: [],
     };
   }
 
-  return jsonResponse({ feedback });
+  return jsonResponse({ feedback, provider });
+}
+
+// ─── Action: generate_lesson (lightweight outline) ──────────────────
+async function handleGenerateLesson(body: any) {
+  const { topic, level = 'B1', objectives = [], duration_minutes = 30 } = body;
+  if (!topic) return jsonResponse({ error: 'topic is required' }, 400);
+
+  const systemPrompt = `You are a senior ESL curriculum designer. Produce a concise, classroom-ready lesson outline. Be specific, professional, and aligned with CEFR level ${level}.`;
+  const userPrompt = `Create a ${duration_minutes}-minute lesson outline on the topic: "${topic}".
+${objectives.length ? `Objectives:\n- ${objectives.join('\n- ')}` : ''}
+
+Return ONLY JSON in this exact shape:
+{
+  "title": "<lesson title>",
+  "level": "${level}",
+  "objectives": ["<objective 1>", "<objective 2>", "<objective 3>"],
+  "warm_up": "<2-3 sentence warm-up>",
+  "key_vocabulary": ["<word 1>", "<word 2>", "<word 3>", "<word 4>", "<word 5>"],
+  "stages": [
+    { "name": "Discovery", "minutes": 5, "activity": "<activity>" },
+    { "name": "Modeling", "minutes": 5, "activity": "<activity>" },
+    { "name": "Guided Practice", "minutes": 8, "activity": "<activity>" },
+    { "name": "Independent Practice", "minutes": 7, "activity": "<activity>" },
+    { "name": "Wrap-Up", "minutes": 5, "activity": "<activity>" }
+  ],
+  "assessment": "<short final check>"
+}`;
+
+  try {
+    const ai = await callAIWithFailover({
+      systemPrompt,
+      userPrompt,
+      geminiModel: 'gemini-2.5-flash',
+      lovableModel: 'google/gemini-2.5-flash',
+      jsonMode: true,
+      temperature: 0.7,
+    });
+    const cleaned = ai.text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    let lesson: any;
+    try {
+      lesson = JSON.parse(cleaned);
+    } catch {
+      const m = cleaned.match(/\{[\s\S]*\}/);
+      lesson = m ? JSON.parse(m[0]) : null;
+    }
+    if (!lesson) return jsonResponse({ error: 'AI returned an unparseable lesson.' }, 502);
+    return jsonResponse({ lesson, provider: ai.provider });
+  } catch (e: any) {
+    if (e?.status === 429) return jsonResponse({ error: 'Rate limited — try again shortly.' }, 429);
+    if (e?.status === 402) return jsonResponse({ error: 'Credits exhausted.' }, 402);
+    return jsonResponse({ error: e?.message || 'AI generation temporarily unavailable.' }, 503);
+  }
 }
 
 // ─── Main Router ────────────────────────────────────────────────────
@@ -397,8 +548,12 @@ serve(async (req) => {
         return await handleEvaluateSpeech(body, req.headers.get('Authorization'));
       case 'speaking_feedback':
         return await handleSpeakingFeedback(body);
+      case 'generate_lesson':
+        return await handleGenerateLesson(body);
       default:
-        return jsonResponse({ error: `Unknown action: "${action}". Valid: explain_mistake, evaluate_speaking, evaluate_speech, speaking_feedback` }, 400);
+        return jsonResponse({
+          error: `Unknown action: "${action}". Valid: explain_mistake, evaluate_speaking, evaluate_speech, speaking_feedback, generate_lesson`,
+        }, 400);
     }
   } catch (error) {
     console.error('ai-core error:', error);
