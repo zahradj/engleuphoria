@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCreator } from '../../CreatorContext';
+import { persistLesson } from '../../persistLesson';
 import { TeacherControlsPanel } from './TeacherControlsPanel';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, BookOpen, Sparkles, Loader2, Save } from 'lucide-react';
+import { ExternalLink, BookOpen, Sparkles, Loader2, Save, Library } from 'lucide-react';
 import { StoryBookViewer } from '@/components/student/story-viewer/StoryBookViewer';
 import {
   normalizeSlidesToStoryPages,
