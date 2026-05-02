@@ -74,6 +74,7 @@ export const StoryBookViewer: React.FC<StoryBookViewerProps> = ({
   visualStyle = 'classic',
   coverImageUrl,
   onExit,
+  embedded = false,
 }) => {
   const [pageIndex, setPageIndex] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
