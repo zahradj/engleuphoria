@@ -30,6 +30,9 @@ interface CommunicationZoneProps {
   studentCameraOff?: boolean;
   onToggleStudentMic?: () => void;
   onToggleStudentCamera?: () => void;
+  /** When true, render the rail-only collapsed sidebar. */
+  collapsed?: boolean;
+  onToggleCollapsed?: () => void;
 }
 
 export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
