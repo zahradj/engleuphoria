@@ -168,13 +168,26 @@ export default function PlaygroundDragDrop({ slide, onCorrect, onIncorrect }: Pr
                 width: '140px',
               }}
             >
-              <div className="w-full h-24 bg-muted/30">
-                <VocabularyImage
-                  prompt={`Colorful flat 2D vector illustration of "${item.text}", vibrant bright colors, bold clean outlines, isolated on a pure transparent background, no shadows, no gradients, no 3D, clear and simple, professional educational asset for young children`}
-                  alt={item.text}
-                  style="minimalist"
-                  className="w-full h-full object-contain"
-                />
+              <div className="w-full h-24 bg-muted/30 flex items-center justify-center">
+                {item.imageUrl ? (
+                  <img
+                    src={item.imageUrl}
+                    alt={item.text}
+                    className="w-full h-full object-contain"
+                    draggable={false}
+                    onError={(e) => {
+                      // Hide broken images so the text label still reads cleanly.
+                      (e.currentTarget as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <VocabularyImage
+                    prompt={`Colorful flat 2D vector illustration of "${item.text}", vibrant bright colors, bold clean outlines, isolated on a pure transparent background, no shadows, no gradients, no 3D, clear and simple, professional educational asset for young children`}
+                    alt={item.text}
+                    style="minimalist"
+                    className="w-full h-full object-contain"
+                  />
+                )}
               </div>
               <div
                 className="w-full text-center py-2 font-bold text-base"
