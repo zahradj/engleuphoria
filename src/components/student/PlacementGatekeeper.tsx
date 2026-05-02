@@ -349,7 +349,7 @@ export const PlacementGatekeeper = ({
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </HubGlowWrapper>
   );
 };
 
