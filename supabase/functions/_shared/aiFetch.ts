@@ -69,6 +69,33 @@ async function fallbackGatewayToGemini(originalBody: any): Promise<Response> {
     geminiBody.generationConfig.responseMimeType = "application/json";
   }
 
+  // ─── Tool / function-calling translation (OpenAI → Gemini) ───
+  // Many of our edge functions use `tools` + `tool_choice` to force
+  // structured JSON output. Translate that into Gemini's functionDeclarations
+  // so the failover path produces the same shape the caller expects.
+  let forcedToolName: string | null = null;
+  if (Array.isArray(originalBody.tools) && originalBody.tools.length > 0) {
+    geminiBody.tools = [{
+      functionDeclarations: originalBody.tools
+        .filter((t: any) => t?.type === "function" && t.function)
+        .map((t: any) => ({
+          name: t.function.name,
+          description: t.function.description || "",
+          parameters: t.function.parameters || { type: "object", properties: {} },
+        })),
+    }];
+    if (originalBody.tool_choice?.type === "function" && originalBody.tool_choice.function?.name) {
+      forcedToolName = originalBody.tool_choice.function.name;
+      geminiBody.toolConfig = {
+        functionCallingConfig: { mode: "ANY", allowedFunctionNames: [forcedToolName] },
+      };
+    }
+    // Tool-mode + responseMimeType=json are mutually exclusive in Gemini.
+    if (geminiBody.generationConfig.responseMimeType) {
+      delete geminiBody.generationConfig.responseMimeType;
+    }
+  }
+
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${apiKey}`;
   const resp = await fetch(url, {
     method: "POST",
