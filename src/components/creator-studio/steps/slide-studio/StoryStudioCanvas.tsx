@@ -262,6 +262,18 @@ export const StoryStudioCanvas: React.FC = () => {
           >
             Regenerate All
           </Button>
+          {slidesNeedingArt.length > 0 && filledPanelSlots > 0 && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5 bg-amber-500/20 text-amber-100 border-amber-300/30 hover:bg-amber-500/30"
+              onClick={() => runGenerateAll(false)}
+              disabled={generating}
+              title="Retry generating only the panels that are still missing artwork"
+            >
+              🔁 Retry failed ({slidesNeedingArt.length})
+            </Button>
+          )
           <Button
             size="sm"
             className="gap-1.5 bg-emerald-500 hover:bg-emerald-400 text-white border-0 font-bold"
