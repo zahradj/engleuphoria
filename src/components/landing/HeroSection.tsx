@@ -9,6 +9,7 @@ import heroKid from '@/assets/hero-kid.png';
 import heroTeen from '@/assets/hero-teen.png';
 import heroAdult from '@/assets/hero-adult.png';
 import { useHeroTheme } from '@/contexts/HeroThemeContext';
+import { HeroAudienceSelector } from './HeroAudienceSelector';
 
 function useCountUp(target: number, duration = 2000) {
   const [count, setCount] = useState(0);
@@ -109,11 +110,20 @@ export function HeroSection() {
   const lessons = useCountUp(50000);
 
   useEffect(() => {
+    // Pause auto-rotation if the user has already chosen an audience this session.
     const interval = setInterval(() => {
+      try {
+        if (sessionStorage.getItem('heroAutoRotatePaused') === '1') return;
+      } catch {}
       setActiveImage((prev) => (prev + 1) % GROUP_THEMES.length);
     }, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  // Per-audience subheadline override (falls back to generic).
+  const subKey = `lp.hero.subFor.${theme.id}`;
+  const tSub = t(subKey);
+  const subline = tSub === subKey ? t('lp.hero.subheadline') : tSub;
 
   return (
     <section
