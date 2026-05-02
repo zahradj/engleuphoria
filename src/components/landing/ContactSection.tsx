@@ -10,6 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { useTranslation } from 'react-i18next';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 const contactSchema = z.object({
   name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100, 'Name must be less than 100 characters'),
