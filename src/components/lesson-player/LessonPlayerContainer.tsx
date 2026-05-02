@@ -533,6 +533,11 @@ export default function LessonPlayerContainer({
         onContinue={handleNextSlide}
       />
 
+      {/* ── Playground celebration: confetti + ⭐ +100 XP badge ── */}
+      {hub === 'playground' && (
+        <PlaygroundCorrectBurst triggerKey={playgroundBurstKey} xp={100} />
+      )}
+
       {/* ── Fixed Bottom Footer ── */}
       {!feedbackVisible && (
         <div className={`fixed bottom-0 left-0 right-0 z-20 px-4 py-3 ${skin.footer}`}>
