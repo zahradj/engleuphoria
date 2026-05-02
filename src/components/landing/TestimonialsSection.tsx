@@ -1,11 +1,24 @@
-import { Star, Quote, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Star, Quote, ArrowLeft, ArrowRight, Volume2, VolumeX, Video as VideoIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useThemeMode } from '@/hooks/useThemeMode';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-// Real customer profiles — names/countries stay as-is; only role/text/highlight are translated.
-const testimonialsBase = [
+// Real customer profiles. `videoSrc` is optional — when present, a vertical
+// muted-autoplay loop renders alongside the quote. Drop MP4s in /public/testimonials/.
+interface TestimonialEntry {
+  name: string;
+  country: string;
+  avatar: string;
+  rating: number;
+  roleKey: string;
+  textKey?: string;
+  highlightKey?: string;
+  videoSrc?: string;       // path under /public/testimonials/
+  isVideoPlaceholder?: boolean;
+}
+
+const testimonialsBase: TestimonialEntry[] = [
   {
     name: 'Sarah Mitchell',
     country: '🇬🇧 UK',
@@ -41,6 +54,16 @@ const testimonialsBase = [
     roleKey: 'lp.testimonials.t4.role',
     textKey: 'lp.testimonials.t4.text',
     highlightKey: 'lp.testimonials.t4.highlight',
+  },
+  // Video slots — drop MP4s here when ready, then set isVideoPlaceholder=false and add videoSrc
+  {
+    name: 'Add your video',
+    country: '🎬 Reel',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=120&h=120&fit=crop',
+    rating: 5,
+    roleKey: 'lp.testimonials.video.placeholderRole',
+    isVideoPlaceholder: true,
+    // videoSrc: '/testimonials/student-1.mp4',
   },
 ];
 
