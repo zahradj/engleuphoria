@@ -3,6 +3,7 @@ import { useCreator } from '../../CreatorContext';
 import { EmptyState } from './EmptyState';
 import { SlideCanvas } from './SlideCanvas';
 import { TeacherControlsPanel } from './TeacherControlsPanel';
+import { StoryStudioCanvas } from './StoryStudioCanvas';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Loader2, Image as ImageIcon, ListChecks, Pencil, Layers } from 'lucide-react';
 import { generateAllMedia } from './mediaGeneration';
@@ -119,6 +120,15 @@ const SlideStudioInner: React.FC = () => {
     if (activeIndex < 0 || activeIndex >= slides.length - 1) return;
     setActiveSlideId(slides[activeIndex + 1].id);
   };
+
+  // ── Story lessons render in the dedicated premium reader canvas ──
+  if (activeLessonData.kind === 'story') {
+    return (
+      <div className={cn('h-full -m-6 overflow-hidden', theme.themeClass, theme.font)}>
+        <StoryStudioCanvas />
+      </div>
+    );
+  }
 
   return (
     <div className={cn('h-full flex flex-col -m-6 hub-surface overflow-hidden', theme.themeClass, theme.font)}>

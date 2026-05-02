@@ -219,18 +219,36 @@ export const LibraryManager: React.FC = () => {
     const homework_missions = Array.isArray(row.content?.homework_missions)
       ? row.content.homework_missions
       : [];
-    const blueprintRef = row.ai_metadata?.blueprint_ref ?? undefined;
+    const meta = row.ai_metadata ?? {};
+    const blueprintRef = meta.blueprint_ref ?? undefined;
+    const kindRaw = typeof meta.kind === 'string' ? meta.kind : 'standard';
+    const kind: 'standard' | 'trial' | 'story' =
+      kindRaw === 'story' || kindRaw === 'trial' ? kindRaw : 'standard';
+    const allowedStyles = ['classic', 'comic_western', 'manga_rtl', 'webtoon', 'picture_book', 'comic_spread'];
+    const visualStyle = typeof meta.visual_style === 'string' && allowedStyles.includes(meta.visual_style)
+      ? (meta.visual_style as ActiveLessonData['visual_style'])
+      : undefined;
+    const storyLayout = meta.story_layout === 'classic' || meta.story_layout === 'immersive'
+      ? meta.story_layout
+      : undefined;
+    // Resolve CEFR using the same precedence as the library cards.
+    const cefr = resolveCefr(row) as CEFRLevel;
     const next: ActiveLessonData = {
       lesson_id: row.id,
       lesson_title: row.title,
       target_goal: row.description ?? undefined,
-      cefr_level: (row.difficulty_level as CEFRLevel) ?? 'A1',
-      hub: (row.target_system as HubType) ?? 'academy',
+      cefr_level: cefr ?? 'A1',
+      hub: targetSystemToHub(row.target_system) as HubType,
       slides,
       homework_missions,
       source_lesson: blueprintRef,
       level_id: row.level_id ?? undefined,
       unit_id: row.unit_id ?? undefined,
+      kind,
+      visual_style: visualStyle,
+      story_layout: storyLayout,
+      linked_lesson_title: typeof meta.linked_lesson_title === 'string' ? meta.linked_lesson_title : null,
+      parent_lesson_id: typeof meta.linked_lesson_id === 'string' ? meta.linked_lesson_id : undefined,
     };
     setActiveLessonData(next);
     setDirty(false);

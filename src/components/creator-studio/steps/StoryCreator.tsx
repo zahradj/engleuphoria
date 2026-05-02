@@ -343,6 +343,10 @@ export const StoryCreator: React.FC = () => {
         target_vocabulary: words.join(', '),
         slides,
         parent_lesson_id: linkedLessonId,
+        kind: 'story',
+        visual_style: visualStyle,
+        story_layout: visualStyle === 'classic' ? 'classic' : 'immersive',
+        linked_lesson_title: linkedLesson?.title ?? null,
       };
 
       // Legacy `story_layout` for older viewer code: classic stays classic,
