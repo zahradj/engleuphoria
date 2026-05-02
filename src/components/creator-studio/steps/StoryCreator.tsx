@@ -207,6 +207,8 @@ export const StoryCreator: React.FC = () => {
             })}
           </div>
         </div>
+
+        {error && (
           <div className="flex items-start gap-2 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 p-3 text-sm text-red-700 dark:text-red-300">
             <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
             <span>{error}</span>
