@@ -54,14 +54,14 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     <nav
       className={cn(
         'fixed bottom-0 inset-x-0 z-40 md:hidden',
-        'bg-card/90 backdrop-blur-xl border-t border-border/60',
+        'bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800',
         'shadow-[0_-4px_20px_-6px_rgba(0,0,0,0.15)]',
         className
       )}
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       aria-label={t('sd.nav.aria')}
     >
-      <ul className="grid grid-cols-5 gap-1 px-2 pt-2 pb-2">
+      <ul className="grid grid-cols-4 gap-1 px-2 pt-2 pb-2">
         {NAV_ITEMS.map(({ id, icon: Icon, labelKey }) => {
           const isActive = activeTab === id;
           const label = t(labelKey);
