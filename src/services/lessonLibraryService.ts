@@ -139,7 +139,7 @@ export async function saveToLibrary(
       created_by: userId || null,
       ai_metadata: { hub, level, cefr_level: level, slideCount: slides.length },
     } as any, {
-      onConflict: 'created_by,target_system,((ai_metadata->>\'cefr_level\')),((ai_metadata->>\'unit_number\')),((ai_metadata->>\'lesson_number\'))',
+      onConflict: 'created_by,target_system,slot_cefr_level,slot_unit_number,slot_lesson_number',
       ignoreDuplicates: false,
     })
     .select()

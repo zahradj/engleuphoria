@@ -2302,6 +2302,9 @@ export type Database = {
           phonics_focus: string | null
           sequence_order: number | null
           skills_focus: string[] | null
+          slot_cefr_level: string | null
+          slot_lesson_number: string | null
+          slot_unit_number: string | null
           target_system: string
           thumbnail_url: string | null
           title: string
@@ -2331,6 +2334,9 @@ export type Database = {
           phonics_focus?: string | null
           sequence_order?: number | null
           skills_focus?: string[] | null
+          slot_cefr_level?: string | null
+          slot_lesson_number?: string | null
+          slot_unit_number?: string | null
           target_system: string
           thumbnail_url?: string | null
           title: string
@@ -2360,6 +2366,9 @@ export type Database = {
           phonics_focus?: string | null
           sequence_order?: number | null
           skills_focus?: string[] | null
+          slot_cefr_level?: string | null
+          slot_lesson_number?: string | null
+          slot_unit_number?: string | null
           target_system?: string
           thumbnail_url?: string | null
           title?: string
