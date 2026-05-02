@@ -257,6 +257,8 @@ export default function LessonPlayerContainer({
     setFeedbackSolution('');
     setFeedbackVisible(true);
     if (!muted) soundEffectsService.playCorrect();
+    // Playground hub: full-screen confetti + ⭐ +100 XP badge for kid-friendly delight.
+    if (hub === 'playground') setPlaygroundBurstKey((k) => k + 1);
     // SRS: track mastery for the current slide's item
     const itemKey = currentSlide?.content?.word || currentSlide?.content?.title || currentSlide?.title;
     if (itemKey) trackMastery(itemKey, true, 'vocabulary', hub);
