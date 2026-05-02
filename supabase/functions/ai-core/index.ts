@@ -588,7 +588,7 @@ Return ONLY this JSON shape:
   "slides": [
     {
       "phase": "warm-up" | "presentation" | "practice" | "production" | "review",
-      "slide_type": "text_image" | "multiple_choice" | "flashcard" | "drag_and_match" | "fill_in_the_gaps" | "mascot_speech",
+      "slide_type": "text_image" | "multiple_choice" | "flashcard" | "drag_and_match" | "drag_and_drop" | "fill_in_the_gaps" | "mascot_speech",
       "title": "<slide title>",
       "content": "<student-facing text>",
       "teacher_script": "<what the teacher says aloud>",
@@ -604,7 +604,8 @@ Rules:
 - Slide 1 = Hook (warm-up). Slides 2-3 = Vocabulary (presentation, with flashcard or text_image). Slides 4-5 = Speaking/Roleplay (production, with mascot_speech or multiple_choice). Last slide = Wrap-up/Celebration (review).
 - For multiple_choice slides, set interactive_data = { "question": "...", "options": ["A","B","C","D"], "correct_index": 0 }.
 - For flashcard slides, set interactive_data = { "front": "...", "back": "..." }.
-- For drag_and_match, set interactive_data = { "instruction": "...", "pairs": [{ "left_item": "...", "right_item": "..." }] }.
+- For drag_and_match (two-column matcher: left ↔ right), set interactive_data = { "instruction": "...", "pairs": [{ "left_item": "...", "right_item": "..." }] }.
+- For drag_and_drop (sorting/categorization: drop items into category zones), set interactive_data = { "instruction": "Drag each item into the correct category.", "pairs": [{ "draggable": "Apple", "target_zone": "Fruit" }, { "draggable": "Carrot", "target_zone": "Vegetable" }] }. Use 2-3 distinct target_zones and 4-6 draggable items total. Prefer drag_and_drop for vocabulary categorization (animals vs objects, fruits vs vegetables, verbs vs nouns, etc.) and drag_and_match for 1-to-1 pairing (word ↔ definition, English ↔ translation).
 - For fill_in_the_gaps, set interactive_data = { "instruction": "...", "sentence_parts": ["before _ ", " after"], "missing_word": "...", "distractors": ["...","..."] }.
 `;
 
