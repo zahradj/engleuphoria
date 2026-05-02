@@ -215,7 +215,7 @@ export const StoryBookViewer: React.FC<StoryBookViewerProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-hidden"
+      className={cn(shellPos(embedded), 'overflow-hidden')}
       style={{
         background:
           isImmersive && pageImage
