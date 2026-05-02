@@ -7,6 +7,8 @@ import { StudioMobileNav } from './StudioMobileNav';
 import { BlueprintEngine } from './steps/BlueprintEngine';
 import { SlideStudio } from './steps/SlideStudio';
 import { LibraryManager } from './steps/LibraryManager';
+import { TrialCreator } from './steps/TrialCreator';
+import { StoryCreator } from './steps/StoryCreator';
 
 const StudioBody: React.FC = () => {
   const { currentStep, setCurrentStep } = useCreator();
@@ -17,6 +19,8 @@ const StudioBody: React.FC = () => {
     let next: typeof currentStep | null = null;
     if (path.endsWith('/library')) next = 'library';
     else if (path.endsWith('/blueprint')) next = 'blueprint';
+    else if (path.endsWith('/trial')) next = 'trial';
+    else if (path.endsWith('/story')) next = 'story';
     else if (path.endsWith('/slide-builder') || path.endsWith('/slides')) next = 'slide-builder';
     if (next && next !== currentStep) setCurrentStep(next);
   }, [currentStep, location.pathname, setCurrentStep]);
@@ -24,6 +28,8 @@ const StudioBody: React.FC = () => {
   const Step =
     currentStep === 'blueprint' ? BlueprintEngine
     : currentStep === 'slide-builder' ? SlideStudio
+    : currentStep === 'trial' ? TrialCreator
+    : currentStep === 'story' ? StoryCreator
     : LibraryManager;
 
   return (
