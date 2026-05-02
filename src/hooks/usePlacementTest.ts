@@ -75,7 +75,9 @@ export function usePlacementTest() {
 
     if (error) throw error;
 
-    return getStudentDashboardRoute(level);
+    // After placement, hand the student off to the My Path reveal page —
+    // the dashboard router is no longer the immediate destination.
+    return '/dashboard/my-path';
   };
 
   return { completeTest, determineStudentLevel, calculateCefrLevel };

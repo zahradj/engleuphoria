@@ -1,425 +1,485 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
-import { Eye, EyeOff, User, Mail, Lock, CheckCircle, BookOpen, Loader2 } from "lucide-react";
-import { ProgressIndicator } from "@/components/navigation/ProgressIndicator";
-import { AuthPageLayout } from "@/components/auth/AuthPageLayout";
-import { supabase } from "@/integrations/supabase/client";
-import { determineStudentLevel } from "@/hooks/useStudentLevel";
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Loader2, Mail, Lock, User as UserIcon, Calendar, Eye, EyeOff, ArrowLeft, ArrowRight, CheckCircle, BookOpen } from 'lucide-react';
 
-const formSchema = z.object({
-  fullName: z.string().min(2, { message: "Full name must be at least 2 characters" }),
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  age: z.number().min(5, { message: "Age must be at least 5" }).max(99, { message: "Please enter a valid age" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
-  confirmPassword: z.string().min(6, { message: "Please confirm your password" }),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { AuthPageLayout } from '@/components/auth/AuthPageLayout';
+import {
+  assignHubFromAge,
+  calculateAgeFromDob,
+  hubToDashboardRoute,
+  HUB_BRAND,
+  LEARNING_REASONS,
+  type LearningReason,
+} from '@/lib/hubAssignment';
+
+type Step = 1 | 2 | 3;
+
+interface WizardState {
+  fullName: string;
+  email: string;
+  password: string;
+  dateOfBirth: string;
+  reason: LearningReason | null;
+}
+
+const STEP_LABELS = ['Account', 'About you', 'Your goal'];
 
 const StudentSignUp = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const hubParam = searchParams.get('hub'); // e.g. ?hub=academy
+  const [params] = useSearchParams();
   const { toast } = useToast();
   const { user, signUp, isConfigured, loading } = useAuth();
+
+  const [step, setStep] = useState<Step>(1);
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSigningOut, setIsSigningOut] = useState(false);
-  const [hasInitiatedSignOut, setHasInitiatedSignOut] = useState(false);
-
-  // Sign out existing user when accessing signup page
-  // Use hasInitiatedSignOut flag to prevent infinite loops
-  useEffect(() => {
-    if (!loading && user && !hasInitiatedSignOut) {
-      setHasInitiatedSignOut(true);
-      setIsSigningOut(true);
-      supabase.auth.signOut().finally(() => {
-        setIsSigningOut(false);
-      });
-    }
-  }, [user, loading, hasInitiatedSignOut]);
-
-  const stepLabels = ['Create Account', 'Learning Profile'];
-
-  // Show loading while auth context is initializing
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-50 via-pink-50 to-orange-50">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-violet-600" />
-          <p className="text-gray-600 text-lg">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show loading while signing out existing user
-  if (isSigningOut) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-50 via-pink-50 to-orange-50">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-violet-600" />
-          <p className="text-gray-600 text-lg">Preparing signup...</p>
-        </div>
-      </div>
-    );
-  }
-  
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      fullName: "",
-      email: "",
-      age: 10,
-      password: "",
-      confirmPassword: "",
-    },
+  const [submitting, setSubmitting] = useState(false);
+  const [signedOut, setSignedOut] = useState(false);
+  const [data, setData] = useState<WizardState>({
+    fullName: '',
+    email: '',
+    password: '',
+    dateOfBirth: '',
+    reason: null,
   });
-  
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    setIsLoading(true);
-    
+
+  // Force signout when arriving on the wizard with an active session.
+  useEffect(() => {
+    if (!loading && user && !signedOut) {
+      setSignedOut(true);
+      supabase.auth.signOut().catch(() => undefined);
+    }
+  }, [loading, user, signedOut]);
+
+  const update = <K extends keyof WizardState>(key: K, value: WizardState[K]) =>
+    setData((prev) => ({ ...prev, [key]: value }));
+
+  const age = data.dateOfBirth ? calculateAgeFromDob(data.dateOfBirth) : 0;
+  const assignment = useMemo(() => (age > 0 ? assignHubFromAge(age) : null), [age]);
+
+  // ── Step validation ──────────────────────────────────────────────────────
+  const step1Valid =
+    data.fullName.trim().length >= 2 &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email) &&
+    data.password.length >= 6;
+
+  const step2Valid = age >= 4 && age <= 99;
+  const step3Valid = !!data.reason;
+
+  const progressPct = (step / 3) * 100;
+
+  // ── Navigation ───────────────────────────────────────────────────────────
+  const next = () => setStep((s) => (s < 3 ? ((s + 1) as Step) : s));
+  const back = () => setStep((s) => (s > 1 ? ((s - 1) as Step) : s));
+
+  // ── Submission (runs at end of step 3) ───────────────────────────────────
+  const handleSubmit = async () => {
+    if (!step1Valid || !step2Valid || !step3Valid || !assignment) return;
+    setSubmitting(true);
+
     if (!isConfigured) {
-      // Demo mode fallback
-      localStorage.setItem('studentName', values.fullName);
-      localStorage.setItem('userType', 'student');
-      localStorage.setItem('studentEmail', values.email);
-      localStorage.setItem('studentAge', values.age.toString());
-      localStorage.setItem('points', '50');
-      
       toast({
-        title: "🎓 Student Account Created!",
-        description: "Welcome! Let's set up your learning journey.",
+        title: 'Authentication not configured',
+        description: 'Supabase is not connected.',
+        variant: 'destructive',
       });
-      
-      setIsLoading(false);
-      navigate("/student-application");
+      setSubmitting(false);
       return;
     }
 
     try {
-      // Determine student level early so we can pass hub_type to the DB trigger
-      const resolvedHub = hubParam === 'academy' ? 'academy'
-        : hubParam === 'playground' ? 'playground'
-        : (hubParam === 'professional' || hubParam === 'success') ? 'professional'
-        : determineStudentLevel(values.age);
+      const systemTag = age <= 10 ? 'KIDS' : age <= 17 ? 'TEENS' : 'ADULTS';
 
-      const { data, error } = await signUp(values.email, values.password, {
+      const { data: authData, error } = await signUp(data.email, data.password, {
         role: 'student',
-        age: values.age,                // ← AGE-FIRST: trigger uses this to assign hub
-        hub_type: resolvedHub,          // legacy fallback for the trigger
-        full_name: values.fullName,
+        full_name: data.fullName,
+        age,
+        hub_type: assignment.hub_type,
       } as any);
 
-      if (error) {
+      if (error || !authData?.user) {
         toast({
-          title: "Sign up failed",
-          description: error.message || "Please try again",
-          variant: "destructive",
+          title: 'Sign up failed',
+          description: error?.message ?? 'Please try again.',
+          variant: 'destructive',
         });
-        setIsLoading(false);
+        setSubmitting(false);
         return;
       }
 
-      if (data?.user) {
-        const systemTag = values.age >= 4 && values.age <= 10 ? 'KIDS'
-                        : values.age >= 11 && values.age <= 17 ? 'TEENS'
-                        : 'ADULTS';
-        
-        // resolvedHub was already computed above and passed to the DB trigger via metadata
-        const studentLevel = resolvedHub;
+      const userId = authData.user.id;
 
-        // Verify users row exists (trigger should have created it). If not, create it.
-        const { data: existingProfile } = await supabase
-          .from('users')
-          .select('id')
-          .eq('id', data.user.id)
-          .maybeSingle();
+      // Ensure public.users row exists (the auth trigger usually creates it).
+      const { data: existing } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', userId)
+        .maybeSingle();
 
-        if (!existingProfile) {
-          await supabase.from('users').insert({
-            id: data.user.id,
-            email: values.email,
-            full_name: values.fullName,
-            role: 'student',
-            current_system: systemTag
-          });
-          await supabase.from('user_roles').insert({
-            user_id: data.user.id,
-            role: 'student'
-          });
-        } else {
-          // Ensure current_system is set on the users row
-          await supabase.from('users').update({ current_system: systemTag }).eq('id', data.user.id);
-        }
-
-        // ALWAYS upsert student_profiles with the age-derived student_level.
-        // The DB trigger does NOT create student_profiles, so without this,
-        // student_level is null and the dashboard router falls back to /playground.
-        const { error: profileError } = await supabase.from('student_profiles').upsert(
-          {
-            user_id: data.user.id,
-            student_level: studentLevel,
-            onboarding_completed: false,
-          },
-          { onConflict: 'user_id' }
-        );
-        if (profileError) {
-          console.error('Failed to upsert student_profiles:', profileError);
-        } else {
-        }
-
-        toast({
-          title: "🎓 Student Account Created!",
-          description: "Welcome! Let's set up your personalized learning journey.",
-          duration: 5000,
+      if (!existing) {
+        await supabase.from('users').insert({
+          id: userId,
+          email: data.email,
+          full_name: data.fullName,
+          role: 'student',
+          current_system: systemTag,
         });
-        
-        // Store additional student data in localStorage temporarily
-        localStorage.setItem('studentAge', values.age.toString());
-        localStorage.setItem('studentName', values.fullName);
-
-        // Send welcome email (non-blocking)
-        supabase.functions.invoke('send-user-emails', {
-          body: {
-            to: values.email,
-            type: 'student-welcome',
-            data: {
-              userName: values.fullName,
-              baseUrl: window.location.origin
-            }
-          }
-        }).then(({ error }) => {
-          if (error) console.error('Failed to send welcome email:', error);
-        });
-
-        // Send admin notification email (non-blocking)
-        supabase.functions.invoke('notify-admin-new-student', {
-          body: {
-            record: {
-              id: data.user.id,
-              email: values.email,
-              full_name: values.fullName,
-              role: 'student'
-            }
-          }
-        }).then(({ error }) => {
-          if (error) console.error('Failed to send admin notification:', error);
-        });
-        
-        // Redirect directly to the correct hub dashboard
-        const hubRoute = studentLevel === 'academy' ? '/dashboard/academy'
-          : studentLevel === 'professional' ? '/dashboard/hub'
-          : '/dashboard/playground';
-        navigate(hubRoute);
+        await supabase.from('user_roles').insert({ user_id: userId, role: 'student' });
+      } else {
+        await supabase.from('users').update({ current_system: systemTag }).eq('id', userId);
       }
-    } catch (error: any) {
+
+      // Persist the wizard state into student_profiles.
+      const { error: profileError } = await supabase.from('student_profiles').upsert(
+        {
+          user_id: userId,
+          student_level: assignment.hub_type,
+          hub_type: assignment.hub_type,
+          lesson_duration: assignment.lesson_duration,
+          weekly_goal: assignment.weekly_goal,
+          weekly_goal_set_at: new Date().toISOString(),
+          learning_reason: data.reason,
+          date_of_birth: data.dateOfBirth,
+          age,
+          onboarding_completed: false,
+        } as any,
+        { onConflict: 'user_id' },
+      );
+
+      if (profileError) {
+        console.error('Failed to upsert student_profiles:', profileError);
+      }
+
+      // Fire-and-forget welcome / admin notification emails.
+      void supabase.functions
+        .invoke('send-user-emails', {
+          body: {
+            to: data.email,
+            type: 'student-welcome',
+            data: { userName: data.fullName, baseUrl: window.location.origin },
+          },
+        })
+        .catch(() => undefined);
+      void supabase.functions
+        .invoke('notify-admin-new-student', {
+          body: {
+            record: { id: userId, email: data.email, full_name: data.fullName, role: 'student' },
+          },
+        })
+        .catch(() => undefined);
+
       toast({
-        title: "Sign up failed",
-        description: error.message || "An unexpected error occurred",
-        variant: "destructive",
+        title: '🎉 Welcome to Engleuphoria!',
+        description: 'Let’s find your starting level…',
+      });
+
+      // Hand off to the placement test.
+      navigate('/ai-placement-test', { replace: true });
+    } catch (err: any) {
+      toast({
+        title: 'Sign up failed',
+        description: err?.message ?? 'An unexpected error occurred.',
+        variant: 'destructive',
       });
     } finally {
-      setIsLoading(false);
+      setSubmitting(false);
     }
   };
 
-  const passwordRequirements = [
-    { met: form.watch("password")?.length >= 6, text: "At least 6 characters" },
-    { met: /[A-Z]/.test(form.watch("password") || ""), text: "One uppercase letter" },
-    { met: /[0-9]/.test(form.watch("password") || ""), text: "One number" },
-  ];
-
-  const progressIndicator = (
-    <ProgressIndicator 
-      currentStep={1} 
-      totalSteps={2} 
-      stepLabels={stepLabels}
-    />
-  );
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <AuthPageLayout
       title="Start Learning English"
-      subtitle="Create your student account and begin your learning journey"
+      subtitle="Three quick steps and you’re in."
       icon={BookOpen}
       variant="student"
       backLink={{ to: '/', label: 'Back to Home' }}
-      showProgress={progressIndicator}
     >
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-                  control={form.control}
-                  name="fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium">Full Name</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input placeholder="Your full name" {...field} className="pl-10 h-11" />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium">Email</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input placeholder="your.email@example.com" {...field} className="pl-10 h-11" />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+      {/* Progress Bar */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-2 text-xs font-medium">
+          <span className="text-muted-foreground">Step {step} of 3</span>
+          <span className="text-primary">{STEP_LABELS[step - 1]}</span>
+        </div>
+        <Progress value={progressPct} className="h-2" />
+        <div className="mt-2 flex justify-between text-[11px] text-muted-foreground">
+          {STEP_LABELS.map((label, i) => (
+            <span
+              key={label}
+              className={i + 1 <= step ? 'font-semibold text-primary' : ''}
+            >
+              {i + 1}. {label}
+            </span>
+          ))}
+        </div>
+      </div>
 
-                <FormField
-                  control={form.control}
-                  name="age"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium">Age</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          min="5" 
-                          max="99" 
-                          placeholder="Your age" 
-                          {...field} 
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 10)}
-                          className="h-11" 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium">Password</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input 
-                            type={showPassword ? "text" : "password"} 
-                            placeholder="••••••" 
-                            {...field} 
-                            className="pl-10 pr-10 h-11" 
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-11 px-3 hover:bg-transparent"
-                            onClick={() => setShowPassword(!showPassword)}
-                          >
-                            {showPassword ? (
-                              <EyeOff className="h-4 w-4 text-gray-400" />
-                            ) : (
-                              <Eye className="h-4 w-4 text-gray-400" />
-                            )}
-                          </Button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                      
-                      {form.watch("password") && (
-                        <div className="mt-2 space-y-1">
-                          {passwordRequirements.map((req, index) => (
-                            <div key={index} className="flex items-center gap-2 text-xs">
-                              <CheckCircle className={`h-3 w-3 ${req.met ? 'text-green-500' : 'text-gray-300'}`} />
-                              <span className={req.met ? 'text-green-600' : 'text-gray-400'}>{req.text}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium">Confirm Password</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input 
-                            type={showConfirmPassword ? "text" : "password"} 
-                            placeholder="••••••" 
-                            {...field} 
-                            className="pl-10 pr-10 h-11" 
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-11 px-3 hover:bg-transparent"
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          >
-                            {showConfirmPassword ? (
-                              <EyeOff className="h-4 w-4 text-gray-400" />
-                            ) : (
-                              <Eye className="h-4 w-4 text-gray-400" />
-                            )}
-                          </Button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-          <Button 
-            type="submit" 
-            className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white transition-all duration-200"
-            disabled={isLoading}
-          >
-            {isLoading ? "Creating Account..." : 'Create Student Account'}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={step}
+          initial={{ opacity: 0, x: 24 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -24 }}
+          transition={{ duration: 0.25 }}
+          className="space-y-4"
+        >
+          {step === 1 && (
+            <Step1Account
+              data={data}
+              update={update}
+              showPassword={showPassword}
+              setShowPassword={setShowPassword}
+            />
+          )}
+
+          {step === 2 && (
+            <Step2Age
+              dateOfBirth={data.dateOfBirth}
+              onChange={(v) => update('dateOfBirth', v)}
+              age={age}
+              hubLabel={assignment ? HUB_BRAND[assignment.hub_type].label : null}
+            />
+          )}
+
+          {step === 3 && (
+            <Step3Reason reason={data.reason} onChange={(v) => update('reason', v)} />
+          )}
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Footer Nav */}
+      <div className="mt-6 flex items-center gap-2">
+        {step > 1 && (
+          <Button type="button" variant="outline" onClick={back} disabled={submitting}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back
           </Button>
-        </form>
-      </Form>
-      
+        )}
+        <div className="flex-1" />
+        {step < 3 && (
+          <Button
+            type="button"
+            onClick={next}
+            disabled={(step === 1 && !step1Valid) || (step === 2 && !step2Valid)}
+            className="bg-gradient-to-r from-violet-500 to-pink-500 text-white hover:from-violet-600 hover:to-pink-600"
+          >
+            Continue <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        )}
+        {step === 3 && (
+          <Button
+            type="button"
+            onClick={handleSubmit}
+            disabled={!step3Valid || submitting}
+            className="bg-gradient-to-r from-violet-500 to-pink-500 text-white hover:from-violet-600 hover:to-pink-600"
+          >
+            {submitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account…
+              </>
+            ) : (
+              <>
+                Start placement test <ArrowRight className="ml-2 h-4 w-4" />
+              </>
+            )}
+          </Button>
+        )}
+      </div>
+
       <div className="mt-6 text-center">
         <p className="text-sm text-muted-foreground">
-          Already have an account?{" "}
-          <Button 
-            variant="link" 
-            className="p-0 h-auto font-semibold text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300" 
+          Already have an account?{' '}
+          <Button
+            variant="link"
+            className="h-auto p-0 font-semibold text-violet-600 hover:text-violet-700"
             onClick={() => navigate('/login')}
           >
-            Log In
+            Log in
           </Button>
         </p>
       </div>
     </AuthPageLayout>
   );
 };
+
+// ── Step 1 ─────────────────────────────────────────────────────────────────
+function Step1Account({
+  data,
+  update,
+  showPassword,
+  setShowPassword,
+}: {
+  data: WizardState;
+  update: <K extends keyof WizardState>(k: K, v: WizardState[K]) => void;
+  showPassword: boolean;
+  setShowPassword: (b: boolean) => void;
+}) {
+  const passwordChecks = [
+    { ok: data.password.length >= 6, text: 'At least 6 characters' },
+    { ok: /[A-Z]/.test(data.password), text: 'One uppercase letter' },
+    { ok: /[0-9]/.test(data.password), text: 'One number' },
+  ];
+
+  return (
+    <>
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium">Full name</label>
+        <div className="relative">
+          <UserIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={data.fullName}
+            onChange={(e) => update('fullName', e.target.value)}
+            placeholder="Your full name"
+            className="h-11 pl-10"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium">Email</label>
+        <div className="relative">
+          <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="email"
+            value={data.email}
+            onChange={(e) => update('email', e.target.value)}
+            placeholder="your.email@example.com"
+            className="h-11 pl-10"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium">Password</label>
+        <div className="relative">
+          <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type={showPassword ? 'text' : 'password'}
+            value={data.password}
+            onChange={(e) => update('password', e.target.value)}
+            placeholder="••••••"
+            className="h-11 pl-10 pr-10"
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="absolute right-0 top-0 h-11 px-3 hover:bg-transparent"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </Button>
+        </div>
+        {data.password && (
+          <ul className="mt-2 space-y-1">
+            {passwordChecks.map((c) => (
+              <li key={c.text} className="flex items-center gap-2 text-xs">
+                <CheckCircle className={c.ok ? 'h-3 w-3 text-emerald-500' : 'h-3 w-3 text-muted-foreground/40'} />
+                <span className={c.ok ? 'text-emerald-600' : 'text-muted-foreground'}>{c.text}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </>
+  );
+}
+
+// ── Step 2 ─────────────────────────────────────────────────────────────────
+function Step2Age({
+  dateOfBirth,
+  onChange,
+  age,
+  hubLabel,
+}: {
+  dateOfBirth: string;
+  onChange: (v: string) => void;
+  age: number;
+  hubLabel: string | null;
+}) {
+  const today = new Date().toISOString().slice(0, 10);
+  return (
+    <>
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium">Date of birth</label>
+        <div className="relative">
+          <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="date"
+            value={dateOfBirth}
+            max={today}
+            onChange={(e) => onChange(e.target.value)}
+            className="h-11 pl-10"
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          We use this to choose the best learning hub for you.
+        </p>
+      </div>
+
+      {age > 0 && hubLabel && (
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm">
+          <p className="font-medium text-foreground">Looks like a perfect fit for the {hubLabel}.</p>
+          <p className="text-xs text-muted-foreground">
+            You can always switch later from your profile.
+          </p>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ── Step 3 ─────────────────────────────────────────────────────────────────
+function Step3Reason({
+  reason,
+  onChange,
+}: {
+  reason: LearningReason | null;
+  onChange: (v: LearningReason) => void;
+}) {
+  return (
+    <>
+      <p className="text-sm text-muted-foreground">
+        Why are you learning English? Pick the closest match.
+      </p>
+      <div className="grid grid-cols-2 gap-3">
+        {LEARNING_REASONS.map((r) => {
+          const active = reason === r.value;
+          return (
+            <button
+              key={r.value}
+              type="button"
+              onClick={() => onChange(r.value)}
+              className={`group relative rounded-2xl border-2 p-4 text-left transition-all ${
+                active
+                  ? 'border-primary bg-primary/10 shadow-md'
+                  : 'border-border bg-muted/30 hover:bg-muted/60'
+              }`}
+              aria-pressed={active}
+            >
+              <div className="text-2xl" aria-hidden>
+                {r.emoji}
+              </div>
+              <div className="mt-1 text-sm font-semibold">{r.label}</div>
+              <div className="text-xs text-muted-foreground">{r.blurb}</div>
+            </button>
+          );
+        })}
+      </div>
+    </>
+  );
+}
 
 export default StudentSignUp;
