@@ -397,6 +397,147 @@ const PromptField: React.FC<{
   </div>
 );
 
+// ----------------- AI Game Generator (per-slide) -----------------
+
+const AI_GAME_LABELS: Partial<Record<SlideType, string>> = {
+  multiple_choice: 'multiple-choice question',
+  drag_and_match: 'drag & match game',
+  fill_in_the_gaps: 'fill-in-the-gaps sentence',
+  flashcard: 'flashcard',
+  drawing_prompt: 'drawing prompt',
+};
+
+const GameAIGenerator: React.FC<Props> = ({ slide, onChange }) => {
+  const { activeLessonData } = useCreator();
+  const [open, setOpen] = useState(false);
+  const [userPrompt, setUserPrompt] = useState('');
+  const [pairCount, setPairCount] = useState<number>(4);
+  const [loading, setLoading] = useState(false);
+
+  const gameType = slide.slide_type as SlideType;
+  const label = AI_GAME_LABELS[gameType] ?? 'game';
+  const isMatch = gameType === 'drag_and_match';
+
+  const lessonContext = [
+    activeLessonData?.lesson_title && `Lesson: ${activeLessonData.lesson_title}`,
+    activeLessonData?.target_goal && `Goal: ${activeLessonData.target_goal}`,
+    activeLessonData?.target_grammar && `Grammar focus: ${activeLessonData.target_grammar}`,
+    activeLessonData?.target_vocabulary && `Vocabulary: ${activeLessonData.target_vocabulary}`,
+    slide.content && `Slide text: ${slide.content}`,
+    slide.teacher_script && `Teacher script: ${slide.teacher_script}`,
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  const handleGenerate = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.functions.invoke('ai-slide-game-generator', {
+        body: {
+          gameType,
+          lessonContext,
+          slideTitle: slide.title ?? '',
+          visualKeyword: slide.visual_keyword ?? '',
+          userPrompt,
+          hub: activeLessonData?.hub,
+          cefrLevel: activeLessonData?.cefr_level,
+          pairCount: isMatch ? pairCount : undefined,
+        },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      const interactive_data = (data as any)?.interactive_data;
+      if (!interactive_data) throw new Error('AI returned no game content.');
+      onChange({ interactive_data });
+      toast.success(`Generated ${label} with AI ✨`);
+      setOpen(false);
+      setUserPrompt('');
+    } catch (err) {
+      console.error(err);
+      toast.error((err as Error).message || 'AI game generation failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="mb-3 rounded-lg border border-fuchsia-200 bg-gradient-to-br from-fuchsia-50 to-violet-50 dark:from-fuchsia-950/20 dark:to-violet-950/20 dark:border-fuchsia-900/40 p-2.5">
+      {!open ? (
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => setOpen(true)}
+          className="w-full bg-gradient-to-r from-fuchsia-500 to-violet-600 hover:from-fuchsia-600 hover:to-violet-700 text-white font-bold h-8"
+        >
+          <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+          Generate {label} with AI
+        </Button>
+      ) : (
+        <div className="space-y-2">
+          <Label className="text-[11px] font-bold uppercase tracking-wider text-fuchsia-700 dark:text-fuchsia-300 inline-flex items-center gap-1.5">
+            <Sparkles className="h-3 w-3" /> AI {label}
+          </Label>
+          <Textarea
+            rows={2}
+            value={userPrompt}
+            onChange={(e) => setUserPrompt(e.target.value)}
+            placeholder={`Optional: tell the AI what you want — e.g. "10 animal vocab pairs", "past simple, sports topic", "easy A1 level"…`}
+            className="text-xs resize-none bg-white dark:bg-slate-900"
+          />
+          {isMatch && (
+            <div className="flex items-center gap-2">
+              <Label className="text-[11px] text-slate-600 dark:text-slate-300">Pairs:</Label>
+              <Input
+                type="number"
+                min={3}
+                max={8}
+                value={pairCount}
+                onChange={(e) =>
+                  setPairCount(Math.max(3, Math.min(8, Number(e.target.value) || 4)))
+                }
+                className="h-7 w-16 text-xs"
+              />
+              <span className="text-[10px] text-slate-400">3–8</span>
+            </div>
+          )}
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleGenerate}
+              disabled={loading}
+              className="flex-1 bg-gradient-to-r from-fuchsia-500 to-violet-600 hover:from-fuchsia-600 hover:to-violet-700 text-white font-bold h-8"
+            >
+              {loading ? (
+                <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+              ) : (
+                <Wand2 className="h-3.5 w-3.5 mr-1.5" />
+              )}
+              {loading ? 'Generating…' : 'Generate'}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setOpen(false);
+                setUserPrompt('');
+              }}
+              disabled={loading}
+              className="h-8"
+            >
+              Cancel
+            </Button>
+          </div>
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-snug">
+            AI uses the lesson title, goal, vocabulary and your hint above. Result replaces the current game content.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ----------------- Main panel (tabbed Media Suite) -----------------
 
 export const TeacherControlsPanel: React.FC<Props> = ({ slide, onChange }) => {
