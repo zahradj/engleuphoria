@@ -440,4 +440,20 @@ export const dashboardUITranslations = {
   'sd.lang.subtitle': 'Nous traduirons votre tableau de bord pour que vous vous sentiez chez vous.',
   'sd.lang.continue': 'Continuer',
   'sd.lang.saved': 'Langue enregistrée',
+
+  // ---------------- Student Profile (sd.profile.*) ----------------
+  'sd.profile.title': 'Votre profil',
+  'sd.profile.fullName': 'Nom complet',
+  'sd.profile.fullNamePlaceholder': 'Votre nom complet',
+  'sd.profile.email': 'E-mail',
+  'sd.profile.dashboardLanguage': 'Langue du tableau de bord',
+  'sd.profile.dashboardLanguageHelp': 'Traduit uniquement l\'interface. Les leçons restent en anglais.',
+  'sd.profile.englishLevel': 'Niveau d\'anglais',
+  'sd.profile.currentCourse': 'Cours actuel',
+  'sd.profile.memberSince': 'Membre depuis',
+  'sd.profile.save': 'Enregistrer',
+  'sd.profile.saving': 'Enregistrement...',
+  'sd.profile.saved': 'Profil mis à jour',
+  'sd.profile.saveError': 'Impossible d\'enregistrer le profil',
+  'sd.profile.nameRequired': 'Le nom complet est requis',
 };

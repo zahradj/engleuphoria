@@ -440,4 +440,20 @@ export const dashboardUITranslations = {
   'sd.lang.subtitle': 'Tradurremo la tua dashboard per farti sentire a casa.',
   'sd.lang.continue': 'Continua',
   'sd.lang.saved': 'Lingua salvata',
+
+  // ---------------- Student Profile (sd.profile.*) ----------------
+  'sd.profile.title': 'Il tuo profilo',
+  'sd.profile.fullName': 'Nome completo',
+  'sd.profile.fullNamePlaceholder': 'Il tuo nome completo',
+  'sd.profile.email': 'Email',
+  'sd.profile.dashboardLanguage': 'Lingua della dashboard',
+  'sd.profile.dashboardLanguageHelp': 'Traduce solo l\'interfaccia. Le lezioni restano in inglese.',
+  'sd.profile.englishLevel': 'Livello di inglese',
+  'sd.profile.currentCourse': 'Corso attuale',
+  'sd.profile.memberSince': 'Membro da',
+  'sd.profile.save': 'Salva modifiche',
+  'sd.profile.saving': 'Salvataggio...',
+  'sd.profile.saved': 'Profilo aggiornato',
+  'sd.profile.saveError': 'Impossibile salvare il profilo',
+  'sd.profile.nameRequired': 'Il nome completo è obbligatorio',
 };
