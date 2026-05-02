@@ -59,7 +59,21 @@ export const MinimalStudentHeader: React.FC<MinimalStudentHeaderProps> = ({
         ? 'bg-black/30 border-white/10'
         : 'bg-white/40 border-black/5'
     }`}>
-      <div className="flex items-center justify-between px-4 md:px-6 py-3">
+      {/* Mobile header: hamburger | logo | bell */}
+      <div className="md:hidden grid grid-cols-3 items-center px-3 py-2.5">
+        <div className="flex justify-start">
+          <SidebarTrigger className={`rounded-lg p-2 ${isDark ? 'text-white/80 hover:bg-white/10' : 'text-slate-700 hover:bg-black/5'}`} />
+        </div>
+        <div className="flex justify-center">
+          <HubLogo hubId={hubId} size="sm" />
+        </div>
+        <div className="flex justify-end">
+          {user && <NotificationBell />}
+        </div>
+      </div>
+
+      {/* Desktop / tablet header: full layout */}
+      <div className="hidden md:flex items-center justify-between px-4 md:px-6 py-3">
         <div className="flex items-center gap-3">
           <Avatar className={`h-9 w-9 border ${isDark ? 'border-white/15' : 'border-black/10'}`}>
             <AvatarFallback className={`font-medium text-sm ${
