@@ -221,10 +221,10 @@ const DragAndMatchEditor: React.FC<Props> = ({ slide, onChange }) => {
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
           <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-            Pairs ({pairs.length}/3)
+            Pairs ({pairs.length}/8)
           </Label>
           <Button type="button" size="sm" variant="ghost" onClick={addPair}
-            disabled={pairs.length >= 3} className="h-7 px-2 text-xs">
+            disabled={pairs.length >= 8} className="h-7 px-2 text-xs">
             <Plus className="h-3 w-3 mr-1" /> Add pair
           </Button>
         </div>
