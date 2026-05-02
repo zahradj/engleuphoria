@@ -594,6 +594,7 @@ Return ONLY this JSON shape:
       "teacher_script": "<what the teacher says aloud>",
       "visual_keyword": "<2-3 words for an illustration>",
       "image_generation_prompt": "<detailed prompt for an image generator>",
+      "difficulty": "easy" | "medium" | "hard",
       "interactive_data": null
     }
   ]
