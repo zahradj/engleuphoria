@@ -623,6 +623,9 @@ export const TeacherControlsPanel: React.FC<Props> = ({ slide, onChange }) => {
 
           {/* Type-aware editor */}
           <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-3 bg-slate-50 dark:bg-slate-950/40">
+            {AI_GAME_LABELS[slide.slide_type as SlideType] && (
+              <GameAIGenerator slide={slide} onChange={onChange} />
+            )}
             {slide.slide_type === 'multiple_choice' ? (
               <MCQEditor slide={slide} onChange={onChange} />
             ) : slide.slide_type === 'flashcard' ? (
