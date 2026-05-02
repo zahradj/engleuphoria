@@ -1,12 +1,28 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, X, Volume2, Loader2, Square } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Volume2,
+  Loader2,
+  Square,
+  Play,
+  Pause,
+  Settings,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { cn } from '@/lib/utils';
 
 export type StoryLayout = 'classic' | 'immersive';
-export type StoryVisualStyle = 'classic' | 'comic_western' | 'manga_rtl' | 'webtoon';
+export type StoryVisualStyle =
+  | 'classic'
+  | 'comic_western'
+  | 'manga_rtl'
+  | 'webtoon'
+  | 'picture_book'
+  | 'comic_spread';
 
 export interface StoryPanel {
   image_prompt?: string;
