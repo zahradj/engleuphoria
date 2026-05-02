@@ -11,6 +11,7 @@ import ProcessingPhase from '@/components/placement/ProcessingPhase';
 import PlaygroundPlacementPhase from '@/components/placement/PlaygroundPlacementPhase';
 import { usePlacementTest } from '@/hooks/usePlacementTest';
 import type { StudentLevel } from '@/hooks/useStudentLevel';
+import { Logo } from '@/components/Logo';
 
 type Phase = 'welcome' | 'demographics' | 'test' | 'processing' | 'celebrate';
 
