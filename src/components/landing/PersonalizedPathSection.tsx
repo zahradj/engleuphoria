@@ -3,6 +3,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { Compass, BookOpen, MessageCircle, GraduationCap } from 'lucide-react';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { useTranslation } from 'react-i18next';
+import { SkillRadarChart } from './SkillRadarChart';
 
 export function PersonalizedPathSection() {
   const { resolvedTheme } = useThemeMode();
@@ -88,7 +89,45 @@ export function PersonalizedPathSection() {
           </p>
         </motion.div>
 
-        {/* Desktop: Horizontal path */}
+        {/* Skill Tracker preview — radar chart with cycling profiles */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+          className={`max-w-5xl mx-auto mb-20 rounded-3xl p-6 md:p-10 ${
+            isDark
+              ? 'bg-white/[0.03] border border-white/[0.06]'
+              : 'bg-white border border-slate-100 shadow-[0_8px_32px_rgba(15,23,42,0.04)]'
+          }`}
+        >
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div>
+              <span className={`inline-block text-[11px] font-bold uppercase tracking-widest mb-3 px-3 py-1 rounded-full ${
+                isDark ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20' : 'text-emerald-700 bg-emerald-50 border border-emerald-200'
+              }`}>
+                {t('lp.skills.eyebrow')}
+              </span>
+              <h3 className={`text-2xl md:text-3xl font-extrabold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                {t('lp.skills.heading')}
+              </h3>
+              <p className={`text-base leading-relaxed mb-5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                {t('lp.skills.desc')}
+              </p>
+              <ul className="space-y-2.5">
+                {(['speaking','listening','reading','writing','vocabulary','grammar'] as const).map((s) => (
+                  <li key={s} className={`flex items-center gap-2 text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-emerald-500" />
+                    {t(`lp.skills.${s}`)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="flex items-center justify-center">
+              <SkillRadarChart size={320} />
+            </div>
+          </div>
+        </motion.div>
         <div className="hidden lg:block relative">
           <div className="absolute top-[72px] start-[10%] end-[10%] h-1">
             <svg viewBox="0 0 800 40" preserveAspectRatio="none" className="w-full h-10 overflow-visible">
