@@ -651,11 +651,95 @@ const GameAIGenerator: React.FC<Props> = ({ slide, onChange }) => {
   );
 };
 
+// ----------------- Front Page editor (cover slide) -----------------
+const FrontPageEditor: React.FC<Props> = ({ slide, onChange }) => {
+  const s = slide as any;
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border border-fuchsia-200 dark:border-fuchsia-900/40 bg-fuchsia-50/60 dark:bg-fuchsia-950/20 p-3">
+        <Label className="text-[10px] font-bold uppercase tracking-widest text-fuchsia-700 dark:text-fuchsia-200">
+          📘 Cover Slide
+        </Label>
+        <p className="text-[11px] text-fuchsia-700/80 dark:text-fuchsia-300/70 mt-1">
+          The first slide students see. Branding (logo, hub, level) is automatic — edit the copy and generate a cover image in the Visuals tab.
+        </p>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Lesson Title</Label>
+        <Input
+          value={s.title ?? ''}
+          onChange={(e) => onChange({ title: e.target.value } as any)}
+          placeholder="e.g. New Words for New Friends!"
+          className="text-sm font-bold"
+        />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Subtitle / Hook</Label>
+        <Textarea
+          rows={3}
+          value={s.content ?? ''}
+          onChange={(e) => onChange({ content: e.target.value } as any)}
+          placeholder="Hello everyone! Today we're kicking off our journey…"
+          className="text-sm resize-none"
+        />
+        <p className="text-[11px] text-slate-400">One or two friendly sentences shown under the title.</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-1.5">
+          <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">CEFR Level</Label>
+          <Select value={String(s.level ?? '')} onValueChange={(v) => onChange({ level: v } as any)}>
+            <SelectTrigger><SelectValue placeholder="Auto" /></SelectTrigger>
+            <SelectContent>
+              {['A1','A2','B1','B2','C1','C2'].map((l) => (
+                <SelectItem key={l} value={l}>{l}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Unit #</Label>
+          <Input
+            type="number"
+            value={s.unit_number ?? ''}
+            onChange={(e) => onChange({ unit_number: e.target.value ? Number(e.target.value) : undefined } as any)}
+            placeholder="1"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Unit Title</Label>
+        <Input
+          value={s.unit_title ?? ''}
+          onChange={(e) => onChange({ unit_title: e.target.value } as any)}
+          placeholder="e.g. First Day at the Academy"
+        />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Teacher Script</Label>
+        <Textarea
+          rows={3}
+          value={s.teacher_script ?? ''}
+          onChange={(e) => onChange({ teacher_script: e.target.value } as any)}
+          placeholder="What the teacher says to open the lesson…"
+          className="text-sm resize-none"
+        />
+      </div>
+    </div>
+  );
+};
+
 // ----------------- Main panel (tabbed Media Suite) -----------------
 
 export const TeacherControlsPanel: React.FC<Props> = ({ slide, onChange }) => {
   const phaseKey = normalizePhase(slide.phase as string);
   const style = PHASE_STYLES[phaseKey];
+  const isFrontPage =
+    (slide as any).slide_type === 'front_page' || (slide as any).slide_type === 'title_page';
 
   const handleTypeChange = (next: SlideType) => {
     if (next === slide.slide_type) return;
