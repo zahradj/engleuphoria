@@ -84,7 +84,9 @@ export const StoryBookViewer: React.FC<StoryBookViewerProps> = ({
   const isWebtoon = visualStyle === 'webtoon';
   const isComic = visualStyle === 'comic_western';
   const isManga = visualStyle === 'manga_rtl';
-  const isPaneled = isComic || isManga || isWebtoon;
+  const isPictureBook = visualStyle === 'picture_book';
+  const isComicSpread = visualStyle === 'comic_spread';
+  const isPaneled = isComic || isManga || isWebtoon || isComicSpread;
 
   // Stop narration on page change / unmount
   useEffect(() => {
