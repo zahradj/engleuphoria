@@ -48,50 +48,13 @@ const AIPlacementTest = () => {
     }
   };
 
-  const wrapperRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = wrapperRef.current;
-    if (!el) return;
-    // Initialize centered glow (also covers touch devices that never fire mousemove).
-    el.style.setProperty('--mouse-x', '50%');
-    el.style.setProperty('--mouse-y', '50%');
-
-    let frame = 0;
-    let nextX = 0;
-    let nextY = 0;
-    const handleMove = (e: MouseEvent) => {
-      const rect = el.getBoundingClientRect();
-      nextX = e.clientX - rect.left;
-      nextY = e.clientY - rect.top;
-      if (frame) return;
-      frame = requestAnimationFrame(() => {
-        el.style.setProperty('--mouse-x', `${nextX}px`);
-        el.style.setProperty('--mouse-y', `${nextY}px`);
-        frame = 0;
-      });
-    };
-    el.addEventListener('mousemove', handleMove);
-    return () => {
-      el.removeEventListener('mousemove', handleMove);
-      if (frame) cancelAnimationFrame(frame);
-    };
-  }, []);
+  const wrapperHub = hubFromAge(age);
 
   return (
-    <div
-      ref={wrapperRef}
-      className="relative min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4 overflow-hidden"
+    <HubGlowWrapper
+      hubType={wrapperHub}
+      className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4"
     >
-      {/* Ambient hub-violet cursor glow */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-300"
-        style={{
-          background:
-            'radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(192, 132, 252, 0.18), transparent 70%)',
-        }}
-      />
       <div className="relative z-10 w-full max-w-2xl h-[80vh] backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col">
         {/* Header — Engleuphoria brand */}
         <div className="px-6 py-3 sm:py-4 border-b border-white/10 flex items-center justify-center">
