@@ -176,9 +176,72 @@ const TestPhase = ({ age, onComplete }: TestPhaseProps) => {
   const [messages, setMessages] = useState<Array<{ role: 'guide' | 'user'; text: string }>>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Listening question state
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [hasPlayedOnce, setHasPlayedOnce] = useState(false);
+  const audioCacheRef = useRef<Map<number, string>>(new Map());
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, phase]);
+
+  // Reset listening lock whenever the question advances
+  useEffect(() => {
+    setHasPlayedOnce(false);
+    setIsPlaying(false);
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current = null;
+    }
+  }, [currentQIndex]);
+
+  // Cleanup blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      audioCacheRef.current.forEach((url) => URL.revokeObjectURL(url));
+      audioCacheRef.current.clear();
+      if (currentAudioRef.current) {
+        currentAudioRef.current.pause();
+        currentAudioRef.current = null;
+      }
+    };
+  }, []);
+
+  const handlePlayAudio = async () => {
+    const q = questions[currentQIndex];
+    if (!q?.audio_script || isPlaying) return;
+    setIsPlaying(true);
+    try {
+      let url = audioCacheRef.current.get(currentQIndex);
+      if (!url) {
+        const { data, error } = await supabase.functions.invoke('elevenlabs-tts', {
+          body: { text: q.audio_script },
+        });
+        if (error) throw error;
+        // supabase-js returns the body as a Blob for binary responses
+        const blob = data instanceof Blob ? data : new Blob([data as ArrayBuffer], { type: 'audio/mpeg' });
+        url = URL.createObjectURL(blob);
+        audioCacheRef.current.set(currentQIndex, url);
+      }
+      const audio = new Audio(url);
+      currentAudioRef.current = audio;
+      audio.onended = () => {
+        setIsPlaying(false);
+        setHasPlayedOnce(true);
+      };
+      audio.onerror = () => {
+        setIsPlaying(false);
+        toast.error('Audio playback failed');
+      };
+      await audio.play();
+      setHasPlayedOnce(true);
+    } catch (err) {
+      console.error('Listening audio error:', err);
+      setIsPlaying(false);
+      toast.error('Could not load audio. Please try again.');
+    }
+  };
 
   const currentQuestion = questions[currentQIndex];
 
