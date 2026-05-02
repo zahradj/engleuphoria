@@ -44,15 +44,9 @@ const AIPlacementTest = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl h-[80vh] backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-white/10 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
-            <span className="text-white text-xs font-bold">AI</span>
-          </div>
-          <div>
-            <h2 className="text-white font-semibold text-sm">The Guide</h2>
-            <p className="text-white/50 text-xs">Placement Test</p>
-          </div>
+        {/* Header — Engleuphoria brand */}
+        <div className="px-6 py-3 sm:py-4 border-b border-white/10 flex items-center justify-center">
+          <Logo size="medium" variant="white" className="pointer-events-none [&_img]:h-7 sm:[&_img]:h-9" />
         </div>
 
         {/* Phase content */}
