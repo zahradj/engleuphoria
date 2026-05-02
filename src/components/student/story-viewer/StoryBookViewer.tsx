@@ -6,11 +6,22 @@ import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { cn } from '@/lib/utils';
 
 export type StoryLayout = 'classic' | 'immersive';
+export type StoryVisualStyle = 'classic' | 'comic_western' | 'manga_rtl' | 'webtoon';
+
+export interface StoryPanel {
+  image_prompt?: string;
+  image_url?: string;
+  imageUrl?: string;
+  size?: 'full' | 'wide' | 'tall' | 'square';
+  caption?: string;
+  dialogue?: Array<{ speaker?: string; text: string }>;
+}
 
 export interface StoryPage {
   title?: string;
   text: string;
   imageUrl?: string;
+  panels?: StoryPanel[];
   mcq?: {
     question: string;
     options: string[];
@@ -22,6 +33,7 @@ interface StoryBookViewerProps {
   title: string;
   pages: StoryPage[];
   layout?: StoryLayout;
+  visualStyle?: StoryVisualStyle;
   coverImageUrl?: string;
   onExit?: () => void;
 }
@@ -29,10 +41,14 @@ interface StoryBookViewerProps {
 const FALLBACK_BG =
   'linear-gradient(135deg, hsl(262 60% 18%), hsl(280 50% 28%), hsl(220 55% 22%))';
 
+const panelImageOf = (p: StoryPanel): string | undefined =>
+  p.image_url || p.imageUrl || undefined;
+
 export const StoryBookViewer: React.FC<StoryBookViewerProps> = ({
   title,
   pages,
   layout = 'immersive',
+  visualStyle = 'classic',
   coverImageUrl,
   onExit,
 }) => {
@@ -41,10 +57,18 @@ export const StoryBookViewer: React.FC<StoryBookViewerProps> = ({
   const [mcqAnswered, setMcqAnswered] = useState<Record<number, number>>({});
   const tts = useTextToSpeech();
 
-  const safePages = useMemo(() => pages.filter((p) => p && (p.text || p.mcq)), [pages]);
+  const safePages = useMemo(
+    () => pages.filter((p) => p && (p.text || p.mcq || (p.panels && p.panels.length > 0))),
+    [pages],
+  );
   const total = safePages.length;
   const page = safePages[pageIndex];
   const pageImage = page?.imageUrl || coverImageUrl;
+
+  const isWebtoon = visualStyle === 'webtoon';
+  const isComic = visualStyle === 'comic_western';
+  const isManga = visualStyle === 'manga_rtl';
+  const isPaneled = isComic || isManga || isWebtoon;
 
   // Stop narration on page change / unmount
   useEffect(() => {
@@ -54,17 +78,18 @@ export const StoryBookViewer: React.FC<StoryBookViewerProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pageIndex]);
 
-  // Keyboard navigation
+  // Keyboard navigation (disabled for webtoon — single scroll, no pagination)
   useEffect(() => {
+    if (isWebtoon) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight') goTo(pageIndex + 1);
-      else if (e.key === 'ArrowLeft') goTo(pageIndex - 1);
+      if (e.key === 'ArrowRight') goTo(pageIndex + (isManga ? -1 : 1));
+      else if (e.key === 'ArrowLeft') goTo(pageIndex + (isManga ? 1 : -1));
       else if (e.key === 'Escape' && onExit) onExit();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pageIndex, total]);
+  }, [pageIndex, total, isWebtoon, isManga]);
 
   if (!page) {
     return (
@@ -81,24 +106,63 @@ export const StoryBookViewer: React.FC<StoryBookViewerProps> = ({
     setPageIndex(next);
   };
 
+  const collectPageNarration = (p: StoryPage): string => {
+    if (!p) return '';
+    const parts: string[] = [];
+    if (p.text) parts.push(p.text);
+    if (p.panels) {
+      for (const pan of p.panels) {
+        if (pan.caption) parts.push(pan.caption);
+        if (pan.dialogue) for (const d of pan.dialogue) {
+          parts.push(d.speaker ? `${d.speaker} says: ${d.text}` : d.text);
+        }
+      }
+    }
+    return parts.join(' ');
+  };
+
   const handlePlayNarration = () => {
     if (tts.isPlaying) {
       tts.stop();
       return;
     }
-    if (page.text) tts.speak(page.text, { speed: 0.95 });
+    const text = collectPageNarration(page);
+    if (text) tts.speak(text, { speed: 0.95 });
   };
 
-  const isImmersive = layout === 'immersive';
+  // ─── Webtoon: single vertical scroll, no pagination ───
+  if (isWebtoon) {
+    return (
+      <WebtoonScroller
+        title={title}
+        pages={safePages}
+        onExit={onExit}
+        ttsLoading={tts.isLoading}
+        ttsPlaying={tts.isPlaying}
+        onPlay={handlePlayNarration}
+        mcqAnswered={mcqAnswered}
+        setMcqAnswered={setMcqAnswered}
+      />
+    );
+  }
+
+  const isImmersive = layout === 'immersive' && !isPaneled;
 
   return (
     <div
       className="fixed inset-0 z-50 overflow-hidden"
       style={{
-        background: isImmersive && pageImage ? undefined : FALLBACK_BG,
+        background:
+          isImmersive && pageImage
+            ? undefined
+            : isManga
+            ? '#0a0a0a'
+            : isComic
+            ? 'radial-gradient(circle at 30% 20%, #1e293b, #020617)'
+            : FALLBACK_BG,
       }}
     >
-      {/* Immersive: full-bleed background image with Ken Burns */}
+      {/* Immersive (classic style only): full-bleed background image with Ken Burns */}
       {isImmersive && pageImage && (
         <AnimatePresence mode="wait">
           <motion.div
@@ -120,7 +184,7 @@ export const StoryBookViewer: React.FC<StoryBookViewerProps> = ({
       <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-6 py-4">
         <div className="flex items-center gap-3">
           <span className="text-xs font-bold tracking-[0.2em] uppercase text-white/70">
-            Story
+            {isComic ? 'Comic' : isManga ? '漫画 · Manga' : 'Story'}
           </span>
           <span className="hidden sm:block text-sm font-semibold text-white/90 truncate max-w-md">
             {title}
@@ -152,28 +216,28 @@ export const StoryBookViewer: React.FC<StoryBookViewerProps> = ({
         ))}
       </div>
 
-      {/* Edge arrows */}
+      {/* Edge arrows — for manga, swap left/right meanings */}
       <button
-        onClick={() => goTo(pageIndex - 1)}
-        disabled={pageIndex === 0}
+        onClick={() => goTo(pageIndex + (isManga ? 1 : -1))}
+        disabled={isManga ? pageIndex === total - 1 : pageIndex === 0}
         className={cn(
           'group absolute left-0 top-0 bottom-0 z-20 w-16 sm:w-24 flex items-center justify-center',
           'disabled:opacity-0 disabled:pointer-events-none transition-opacity',
         )}
-        aria-label="Previous page"
+        aria-label={isManga ? 'Next page (manga RTL)' : 'Previous page'}
       >
         <span className="rounded-full bg-white/10 group-hover:bg-white/25 backdrop-blur-md p-3 transition-all group-hover:-translate-x-0.5">
           <ChevronLeft className="w-6 h-6 text-white" />
         </span>
       </button>
       <button
-        onClick={() => goTo(pageIndex + 1)}
-        disabled={pageIndex === total - 1}
+        onClick={() => goTo(pageIndex + (isManga ? -1 : 1))}
+        disabled={isManga ? pageIndex === 0 : pageIndex === total - 1}
         className={cn(
           'group absolute right-0 top-0 bottom-0 z-20 w-16 sm:w-24 flex items-center justify-center',
           'disabled:opacity-0 disabled:pointer-events-none transition-opacity',
         )}
-        aria-label="Next page"
+        aria-label={isManga ? 'Previous page (manga RTL)' : 'Next page'}
       >
         <span className="rounded-full bg-white/10 group-hover:bg-white/25 backdrop-blur-md p-3 transition-all group-hover:translate-x-0.5">
           <ChevronRight className="w-6 h-6 text-white" />
@@ -191,7 +255,20 @@ export const StoryBookViewer: React.FC<StoryBookViewerProps> = ({
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
           className="absolute inset-0 z-10 flex"
         >
-          {isImmersive ? (
+          {isComic || isManga ? (
+            <ComicPage
+              page={page}
+              pageIndex={pageIndex}
+              total={total}
+              monochrome={isManga}
+              rtl={isManga}
+              ttsLoading={tts.isLoading}
+              ttsPlaying={tts.isPlaying}
+              onPlay={handlePlayNarration}
+              mcqAnswered={mcqAnswered}
+              setMcqAnswered={setMcqAnswered}
+            />
+          ) : isImmersive ? (
             <ImmersiveCard
               page={page}
               pageIndex={pageIndex}
@@ -298,6 +375,272 @@ const McqBlock: React.FC<{
     </div>
   </div>
 );
+
+// ─── Speech bubble (overlaid on a panel image) ───
+const BUBBLE_POSITIONS = [
+  'top-3 left-3',
+  'bottom-3 right-3',
+  'top-3 right-3',
+  'bottom-3 left-3',
+];
+
+const SpeechBubble: React.FC<{
+  speaker?: string;
+  text: string;
+  index: number;
+  variant: 'comic' | 'manga';
+}> = ({ speaker, text, index, variant }) => {
+  const pos = BUBBLE_POSITIONS[index % BUBBLE_POSITIONS.length];
+  return (
+    <div
+      className={cn(
+        'absolute z-20 max-w-[60%] px-3 py-2 rounded-2xl shadow-md text-slate-900',
+        variant === 'comic'
+          ? 'bg-white border-2 border-slate-900 font-semibold'
+          : 'bg-white border border-slate-800 font-medium',
+        pos,
+      )}
+      style={{ fontFamily: variant === 'comic' ? "'Comic Neue', 'Bangers', system-ui" : "'Bangers', system-ui" }}
+    >
+      {speaker ? (
+        <span className="block text-[10px] uppercase tracking-wider text-rose-600 font-bold mb-0.5">
+          {speaker}
+        </span>
+      ) : null}
+      <span className="text-sm leading-snug">{text}</span>
+    </div>
+  );
+};
+
+const sizeToSpan = (size?: StoryPanel['size']): string => {
+  switch (size) {
+    case 'full': return 'col-span-6 row-span-2';
+    case 'wide': return 'col-span-4 row-span-1';
+    case 'tall': return 'col-span-2 row-span-2';
+    default:     return 'col-span-3 row-span-1';
+  }
+};
+
+// ─── Comic / Manga page (multi-panel CSS grid) ───
+const ComicPage: React.FC<SubProps & { monochrome: boolean; rtl: boolean }> = ({
+  page,
+  pageIndex,
+  total,
+  monochrome,
+  rtl,
+  ttsLoading,
+  ttsPlaying,
+  onPlay,
+  mcqAnswered,
+  setMcqAnswered,
+}) => {
+  // Synthesize a single panel from page text + image when AI returned no panel array
+  const panels: StoryPanel[] = (page.panels && page.panels.length > 0)
+    ? page.panels
+    : page.imageUrl
+      ? [{ image_url: page.imageUrl, size: 'full', caption: page.text }]
+      : [];
+
+  return (
+    <div className="relative w-full h-full overflow-y-auto px-4 sm:px-8 py-16 sm:py-20">
+      <div
+        className="max-w-5xl mx-auto grid grid-cols-6 auto-rows-[140px] sm:auto-rows-[180px] gap-3 sm:gap-4 grid-flow-row-dense"
+        dir={rtl ? 'rtl' : 'ltr'}
+      >
+        {panels.map((panel, i) => {
+          const img = panelImageOf(panel);
+          return (
+            <div
+              key={i}
+              className={cn(
+                'relative overflow-hidden rounded-lg border-2 bg-slate-200',
+                monochrome ? 'border-slate-100' : 'border-slate-900',
+                sizeToSpan(panel.size),
+              )}
+            >
+              {img ? (
+                <img
+                  src={img}
+                  alt={panel.caption || `Panel ${i + 1}`}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  style={monochrome ? { filter: 'grayscale(1) contrast(1.1)' } : undefined}
+                  dir="ltr"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-xs font-mono p-3 text-center">
+                  {panel.image_prompt || 'Illustration loading…'}
+                </div>
+              )}
+
+              {/* Caption box (bottom narration band) */}
+              {panel.caption && (
+                <div
+                  dir={rtl ? 'rtl' : 'ltr'}
+                  className={cn(
+                    'absolute left-2 right-2 bottom-2 z-10 px-3 py-1.5 rounded text-xs font-bold',
+                    monochrome
+                      ? 'bg-slate-100 text-slate-900 border border-slate-900'
+                      : 'bg-amber-100 text-slate-900 border-2 border-slate-900',
+                  )}
+                  style={{ fontFamily: "'Bangers', 'Impact', system-ui" }}
+                >
+                  {panel.caption}
+                </div>
+              )}
+
+              {/* Speech bubbles */}
+              {Array.isArray(panel.dialogue) &&
+                panel.dialogue.slice(0, 4).map((d, j) => (
+                  <div dir={rtl ? 'rtl' : 'ltr'} key={j}>
+                    <SpeechBubble
+                      speaker={d.speaker}
+                      text={d.text}
+                      index={j}
+                      variant={monochrome ? 'manga' : 'comic'}
+                    />
+                  </div>
+                ))}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Comprehension MCQ */}
+      {page.mcq && (
+        <div className="max-w-3xl mx-auto mt-8 rounded-2xl bg-white/95 dark:bg-slate-900/90 p-6 backdrop-blur-md border border-slate-200 dark:border-slate-700">
+          <McqBlock
+            pageIndex={pageIndex}
+            mcq={page.mcq}
+            answered={mcqAnswered[pageIndex]}
+            onAnswer={(i) => setMcqAnswered((prev) => ({ ...prev, [pageIndex]: i }))}
+            variant="light"
+          />
+        </div>
+      )}
+
+      {/* Bottom action bar */}
+      <div className="max-w-5xl mx-auto flex items-center justify-between mt-6 px-2">
+        <NarrationButton
+          loading={ttsLoading}
+          playing={ttsPlaying}
+          onClick={onPlay}
+          variant="dark"
+        />
+        <span className="text-xs font-semibold tracking-wider text-white/70">
+          {rtl ? `${total - pageIndex} / ${total}` : `${pageIndex + 1} / ${total}`}
+        </span>
+      </div>
+    </div>
+  );
+};
+
+// ─── Webtoon: single vertical scroll, no pagination ───
+const WebtoonScroller: React.FC<{
+  title: string;
+  pages: StoryPage[];
+  onExit?: () => void;
+  ttsLoading: boolean;
+  ttsPlaying: boolean;
+  onPlay: () => void;
+  mcqAnswered: Record<number, number>;
+  setMcqAnswered: React.Dispatch<React.SetStateAction<Record<number, number>>>;
+}> = ({ title, pages, onExit, ttsLoading, ttsPlaying, onPlay, mcqAnswered, setMcqAnswered }) => {
+  // Flatten all panels from all pages into one continuous column.
+  const allPanels: Array<{ pageIdx: number; panel: StoryPanel }> = [];
+  pages.forEach((p, pageIdx) => {
+    if (p.panels && p.panels.length > 0) {
+      p.panels.forEach((panel) => allPanels.push({ pageIdx, panel }));
+    } else if (p.imageUrl || p.text) {
+      allPanels.push({
+        pageIdx,
+        panel: { image_url: p.imageUrl, caption: p.text, size: 'wide' },
+      });
+    }
+  });
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950">
+      {/* Sticky top bar */}
+      <div className="sticky top-0 z-30 backdrop-blur-md bg-slate-950/70 flex items-center justify-between px-4 py-3 border-b border-white/10">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="text-xs font-bold tracking-[0.2em] uppercase text-white/70">Webtoon</span>
+          <span className="text-sm font-semibold text-white/90 truncate">{title}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <NarrationButton
+            loading={ttsLoading}
+            playing={ttsPlaying}
+            onClick={onPlay}
+            variant="dark"
+          />
+          {onExit && (
+            <button
+              onClick={onExit}
+              className="rounded-full bg-white/10 hover:bg-white/20 p-2 transition-colors"
+              aria-label="Exit story"
+            >
+              <X className="w-4 h-4 text-white" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Continuous vertical column */}
+      <div className="max-w-md mx-auto flex flex-col">
+        {allPanels.map(({ panel }, i) => {
+          const img = panelImageOf(panel);
+          return (
+            <div key={i} className="relative w-full bg-slate-900">
+              {img ? (
+                <img
+                  src={img}
+                  alt={panel.caption || `Panel ${i + 1}`}
+                  className="block w-full h-auto"
+                />
+              ) : (
+                <div className="aspect-[4/5] flex items-center justify-center text-slate-400 text-xs font-mono p-6 text-center">
+                  {panel.image_prompt || 'Illustration loading…'}
+                </div>
+              )}
+              {/* Speech bubbles */}
+              {Array.isArray(panel.dialogue) &&
+                panel.dialogue.slice(0, 4).map((d, j) => (
+                  <SpeechBubble
+                    key={j}
+                    speaker={d.speaker}
+                    text={d.text}
+                    index={j}
+                    variant="comic"
+                  />
+                ))}
+              {/* Caption */}
+              {panel.caption && (
+                <div className="px-4 py-3 text-sm text-white/90 bg-slate-900 border-t border-white/5">
+                  {panel.caption}
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Comprehension at the very end (uses last page's mcq if present) */}
+        {pages.map((p, idx) => p.mcq ? (
+          <div key={`mcq-${idx}`} className="rounded-2xl bg-white/95 m-4 p-6">
+            <McqBlock
+              pageIndex={idx}
+              mcq={p.mcq}
+              answered={mcqAnswered[idx]}
+              onAnswer={(i) => setMcqAnswered((prev) => ({ ...prev, [idx]: i }))}
+              variant="light"
+            />
+          </div>
+        ) : null)}
+
+        <div className="h-24" />
+      </div>
+    </div>
+  );
+};
 
 const ImmersiveCard: React.FC<SubProps> = ({
   page,
