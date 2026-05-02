@@ -5,6 +5,7 @@ import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConf
 import PipMascot from '../PipMascot';
 import { Play, Loader2, Square, Music, Volume2 } from 'lucide-react';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
+import { SlideBrandHeader } from './SlideBrandHeader';
 
 interface Props {
   slide: GeneratedSlide;
