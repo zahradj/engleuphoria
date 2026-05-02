@@ -28,6 +28,7 @@ export function ContactSection() {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
   const { t } = useTranslation();
+  const { user } = useAuth();
 
   const [formData, setFormData] = useState<ContactFormData>({ name: '', email: '', message: '' });
   const [errors, setErrors] = useState<Partial<ContactFormData>>({});
