@@ -71,6 +71,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   const [wrapUpOpen, setWrapUpOpen] = useState(false);
   const [isZenMode, setIsZenMode] = useState(false);
   const [zenElapsed, setZenElapsed] = useState(0);
+  const [commsCollapsed, setCommsCollapsed] = useState(true);
 
   // Star celebration state
   const [studentStars, setStudentStars] = useState(0);
