@@ -164,6 +164,42 @@ export const StoryBookViewer: React.FC<StoryBookViewerProps> = ({
     );
   }
 
+  // ─── Picture Book: large image + bottom audio bar (Kids Hub) ───
+  if (isPictureBook) {
+    return (
+      <PictureBookViewer
+        title={title}
+        pages={safePages}
+        pageIndex={pageIndex}
+        goTo={goTo}
+        onExit={onExit}
+        ttsLoading={tts.isLoading}
+        ttsPlaying={tts.isPlaying}
+        onPlay={handlePlayNarration}
+        mcqAnswered={mcqAnswered}
+        setMcqAnswered={setMcqAnswered}
+      />
+    );
+  }
+
+  // ─── Comic Spread: two-page side-by-side spread (Academy Hub) ───
+  if (isComicSpread) {
+    return (
+      <ComicSpreadViewer
+        title={title}
+        pages={safePages}
+        pageIndex={pageIndex}
+        goTo={goTo}
+        onExit={onExit}
+        ttsLoading={tts.isLoading}
+        ttsPlaying={tts.isPlaying}
+        onPlay={handlePlayNarration}
+        mcqAnswered={mcqAnswered}
+        setMcqAnswered={setMcqAnswered}
+      />
+    );
+  }
+
   const isImmersive = layout === 'immersive' && !isPaneled;
 
   return (
