@@ -359,22 +359,59 @@ const TestPhase = ({ age, onComplete }: TestPhaseProps) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2"
+            className="space-y-3 mt-2"
           >
-            {currentQuestion.options.map((opt, i) => (
-              <motion.button
-                key={i}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.05 * i, duration: 0.3 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => handleAnswer(i)}
-                className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl px-4 py-3 text-white text-left text-sm hover:bg-white/20 transition-colors shadow-[0_4px_16px_rgba(0,0,0,0.2)]"
-              >
-                {opt}
-              </motion.button>
-            ))}
+            {currentQuestion.audio_script && (
+              <div className="flex flex-col items-center gap-2 mb-1">
+                <button
+                  type="button"
+                  onClick={handlePlayAudio}
+                  disabled={isPlaying}
+                  aria-label="Play listening prompt"
+                  className="bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500 text-white rounded-2xl px-6 py-3 font-semibold flex items-center gap-2 shadow-lg shadow-fuchsia-500/30 hover:scale-[1.02] active:scale-[0.98] transition disabled:opacity-70 disabled:cursor-wait"
+                >
+                  {isPlaying ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Loading…
+                    </>
+                  ) : (
+                    <>
+                      <Volume2 className="w-5 h-5" />
+                      {hasPlayedOnce ? 'Play Again' : 'Play Audio'}
+                    </>
+                  )}
+                </button>
+                {!hasPlayedOnce && (
+                  <p className="text-white/60 text-xs">Listen first, then choose your answer.</p>
+                )}
+              </div>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {currentQuestion.options.map((opt, i) => {
+                const lockedByListening = !!currentQuestion.audio_script && !hasPlayedOnce;
+                return (
+                  <motion.button
+                    key={i}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.05 * i, duration: 0.3 }}
+                    whileHover={lockedByListening ? undefined : { scale: 1.02 }}
+                    whileTap={lockedByListening ? undefined : { scale: 0.97 }}
+                    onClick={() => !lockedByListening && handleAnswer(i)}
+                    disabled={lockedByListening}
+                    aria-disabled={lockedByListening}
+                    className={`backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl px-4 py-3 text-white text-left text-sm transition-colors shadow-[0_4px_16px_rgba(0,0,0,0.2)] ${
+                      lockedByListening
+                        ? 'opacity-40 cursor-not-allowed'
+                        : 'hover:bg-white/20'
+                    }`}
+                  >
+                    {opt}
+                  </motion.button>
+                );
+              })}
+            </div>
           </motion.div>
         )}
       </div>
