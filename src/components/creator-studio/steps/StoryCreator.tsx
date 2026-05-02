@@ -123,7 +123,7 @@ export const StoryCreator: React.FC = () => {
     // otherwise merge with what the teacher already typed — deduped).
     const lessonVocab = vocabListToArray(lesson.vocabulary_list);
     if (lessonVocab.length > 0) {
-      const existing = parseVocab(vocabInput);
+      const existing = vocabInput.split(',').map((w) => w.trim()).filter(Boolean);
       const seen = new Set<string>();
       const merged: string[] = [];
       for (const w of [...existing, ...lessonVocab]) {
