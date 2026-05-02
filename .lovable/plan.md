@@ -1,46 +1,62 @@
-# Security Hardening Migration File
+# Booking Modal — "No Available Slots" Fix
 
-I'll create a new SQL migration file in `supabase/migrations/` that applies the three approved fixes. The file will be saved but **not executed** — you'll apply it via the migration tool when ready.
+## What the investigation found
 
-## File to create
+- **RLS is already correct.** `teacher_availability` has a permissive SELECT policy: `Authenticated users can view available slots` → `is_available = true AND is_booked = false AND start_time > now()` for role `authenticated`. No RLS change is needed.
+- **The data exists.** The one active teacher (`academy_mentor`) has 89 future, unbooked 60-minute slots in the DB right now. The query the modal runs returns rows when executed server-side.
+- **Two booking surfaces exist:**
+  - `src/components/student/BookMyClassModal.tsx` — filters by hub: it first fetches `teacher_profiles.hub_role` matching the student's hub, then queries `teacher_availability`. If the student's hub is misclassified (e.g. resolved as `professional` when the only active teacher is `academy_mentor`), the modal silently returns zero slots.
+  - `src/pages/student/BookLesson.tsx` via `teacherAvailabilityService.getAvailableSlots()` — no hub filter, should always return rows.
+- **No diagnostics.** Today the modal swallows errors into `console.error('Failed to fetch availability slots')`, but there is no log of `data`, `error`, the resolved `teacherIds`, or the resolved `allowedHubRoles`. We cannot tell from the user's session whether the query returned `[]`, was blocked, or was never fired.
 
-`supabase/migrations/<timestamp>_security_hardening_phase_2.sql`
+The most likely production cause is the **hub filter wiping out all teachers** for some students (no teacher with the matching `hub_role` exists yet), with no UI/log feedback. The empty state then implies "no slots exist anywhere", which is misleading.
 
-## Contents
+## Changes
 
-### 1. Realtime Privacy — Remove `lesson_payments` from realtime
-```sql
-ALTER PUBLICATION supabase_realtime DROP TABLE public.lesson_payments;
-```
-Stops financial events from being broadcast to any subscribed client.
+### 1. `src/components/student/BookMyClassModal.tsx` — debug + safer hub filter
 
-### 2. Data Normalization — Drop denormalized email columns
-```sql
-ALTER TABLE public.parent_teacher_messages
-  DROP COLUMN IF EXISTS parent_email,
-  DROP COLUMN IF EXISTS teacher_email;
-```
-Verified earlier that `ParentMessages.tsx` reads emails via profile joins — no app code depends on these columns.
+In `fetchSlots`:
 
-### 3. Function Hardening — Lock down 47 trigger-only SECURITY DEFINER functions
-For each trigger function, revoke `EXECUTE` from `anon`, `authenticated`, and `PUBLIC` so they can only run via the database trigger that owns them, not via PostgREST RPC.
+- Add explicit logging right after each Supabase call:
+  ```ts
+  console.log('[BookMyClassModal] hub:', selectedHub, 'allowedHubRoles:', allowedHubRoles);
+  console.log('[BookMyClassModal] hubTeachers:', hubTeachers, 'teacherIds:', teacherIds);
+  console.log('[BookMyClassModal] Fetched slots:', data, 'Fetch error:', error);
+  ```
+- Build the timestamp once and reuse, to make the UTC contract explicit:
+  ```ts
+  const nowUtcIso = new Date().toISOString(); // always UTC
+  ```
+- Use `.gte('start_time', nowUtcIso)` (currently `.gt`) so a slot starting exactly "now" is still bookable.
+- Keep `.eq('is_available', true).eq('is_booked', false).eq('duration', slotDuration).in('teacher_id', teacherIds)`.
+- **Hub-filter fallback:** if `teacherIds.length === 0` (no teachers match the student's hub yet), do a second query without the `.in('teacher_id', …)` constraint, still filtered by `duration`, `is_available`, `is_booked`, `start_time`. Log a warning so we know the fallback fired. This prevents the "no teacher in this hub" misclassification from rendering an empty modal during onboarding.
 
-Functions covered (trigger-only, never called as RPC):
-`handle_new_user`, `handle_new_user_role`, `notify_admin_new_user`, `notify_admin_new_student`, `notify_admin_teacher_ready_for_review`, `notify_admin_low_rating`, `notify_teacher_lesson_booked`, `auto_grade_question`, `update_submission_score`, `generate_certificate_number`, `auto_schedule_reminders`, `trigger_security_audit`, `enhanced_security_audit`, `check_future_booking`, `generate_booking_session`, `mark_slot_booked_on_appointment`, `free_slot_on_appointment_cancel`, `update_availability_on_lesson_booking`, `free_availability_on_lesson_cancel`, `release_cancelled_lesson_slot`, `book_teacher_slot`, `add_credits_on_purchase`, `auto_generate_referral_code`, `record_learning_analytics`, `update_phonics_on_lesson_complete`, `update_vocabulary_on_lesson_complete`, `set_email_send_state_updated_at`, `update_lesson_progress_updated_at`, `update_lesson_progress_timestamp`, `update_iron_updated_at`, and the remaining trigger-only helpers identified in the audit.
+### 2. `src/services/teacherAvailabilityService.ts` — debug logging
 
-Pattern (one block per function):
-```sql
-REVOKE EXECUTE ON FUNCTION public.handle_new_user() FROM anon, authenticated, PUBLIC;
-```
+In `getAvailableSlots()` and `getTeacherAvailableSlots()`:
+- Log `console.log('[teacherAvailabilityService] Fetched slots:', data, 'Fetch error:', error)` immediately after the query, before the early return.
 
-Functions intentionally **left callable** (used as RPC by app code):
-`has_role`, `get_user_role`, `get_current_user_role`, `get_admin_dashboard_stats`, `get_approved_teachers`, `get_teacher_profile_with_payment`, `get_teacher_upcoming_lessons`, `get_student_upcoming_lessons`, `get_pending_reminders`, `get_global_skill_averages`, `get_student_progress_for_parent`, `get_organization_analytics`, `consume_credit`, `refund_credit`, `complete_referral`, `ensure_user_role`, `can_access_lesson`, `can_access_booking_session`, `resolve_classroom_id`, `check_achievements`, `enqueue_email`, `read_email_batch`, `delete_email`, `move_to_dlq`, `log_security_event`, `cleanup_stale_classroom_sessions`, `reset_monthly_class_usage`, `generate_adaptive_learning_path`, `generate_room_id`, `jsonb_array_append`.
+### 3. `src/components/student/StudentBookingCalendar.tsx` — better empty state + calendar UX
 
-## Deliverable
+- Replace the current "No Available Slots Yet" block (lines 103–126) with a smarter empty state:
+  - Title: "No Available Slots Yet"
+  - Message: "We couldn't find open times for your hub. Try a different date below, or check back soon."
+  - Always render the calendar (currently the calendar is hidden when slots are empty), so the user can still browse dates and see immediately that the picker works.
+- When slots ARE present but the selected date has none (existing branch around lines 190–200), keep the current "Try selecting another highlighted date" message and the "View All Dates" reset button — already correct, just verify it remains.
+- Auto-select the **first date that actually has slots** if `selectedDate` has none, so the modal doesn't open on today (which often has zero slots) and look broken. Logic: in a `useEffect` watching `localSlots`, if `selectedDate` has no slots and `availableDates[0]` exists, set `selectedDate = availableDates[0]`.
 
-After approval, I'll:
-1. Write the migration file to `supabase/migrations/`
-2. Tell you the filename
-3. Wait for you to run it via the migration tool — I won't auto-execute
+### 4. RLS — no migration
 
-No application code changes are needed (verified earlier that the dropped email columns are unused).
+Verified policies; nothing to change. Note in commit message that RLS was audited and is correct.
+
+## Out of scope
+
+- No new tables, no schema changes, no migration.
+- No change to the booking write path (already enforces `is_booked=false` with optimistic update + rollback).
+
+## How we'll verify
+
+1. Open the modal as a student → console shows `hub`, `allowedHubRoles`, `teacherIds`, and `Fetched slots` arrays.
+2. Slots from the active `academy_mentor` teacher render in the calendar; dates with availability are highlighted; clicking a date shows time pills.
+3. If a hub temporarily has no matching teacher, the fallback query returns slots and a warning is logged instead of the modal looking broken.
+4. `BookLesson.tsx` page (separate pipeline) also logs slots from the service.
