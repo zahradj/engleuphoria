@@ -114,6 +114,7 @@ export const StoryCreator: React.FC = () => {
   const [vocabInput, setVocabInput] = useState('');
   const [visualStyle, setVisualStyle] = useState<'classic' | 'comic_western' | 'manga_rtl' | 'webtoon'>('classic');
   const [busy, setBusy] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // ── Linked lesson picker ──
