@@ -28,10 +28,11 @@ export const HUB_ART_PROFILES: Record<ArtHub, HubArtProfile> = {
   Playground: {
     label: "Claymation Kids",
     style_suffix:
-      "Friendly 3D claymation children's-book illustration, soft pastel palette, " +
-      "rounded shapes, big expressive eyes, plush textures, gentle rim lighting, " +
-      "centered composition on a clean solid pastel background, no text, no watermarks, " +
-      "kid-safe, age 4-9.",
+      "in a colorful, cute 3D Pixar style, child-friendly, bright and cheerful. " +
+      "Friendly 3D claymation children's-book illustration, vibrant saturated palette " +
+      "(sunshine yellows, bright oranges, sky blues), rounded shapes, big expressive eyes, " +
+      "plush textures, gentle rim lighting, centered composition on a clean solid pastel " +
+      "background, no text, no watermarks, kid-safe, age 4-9.",
     negative:
       "no scary content, no realistic photography, no weapons, no horror, " +
       "no sharp edges, no dark themes, no text overlay.",
