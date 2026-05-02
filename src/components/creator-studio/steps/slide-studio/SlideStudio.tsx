@@ -3,6 +3,7 @@ import { useCreator } from '../../CreatorContext';
 import { EmptyState } from './EmptyState';
 import { SlideCanvas } from './SlideCanvas';
 import { TeacherControlsPanel } from './TeacherControlsPanel';
+import { StoryStudioCanvas } from './StoryStudioCanvas';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Loader2, Image as ImageIcon, ListChecks, Pencil, Layers } from 'lucide-react';
 import { generateAllMedia } from './mediaGeneration';
