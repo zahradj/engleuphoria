@@ -12,7 +12,7 @@ import React, { Component, ReactNode } from 'react';
 import SpeakingPractice from './activities/SpeakingPractice';
 import { motion, Variants } from 'framer-motion';
 import { HubType, AnimationType, GeneratedSlide } from '@/components/admin/lesson-builder/ai-wizard/types';
-import { AlertTriangle } from 'lucide-react';
+
 
 /* ── Local Error Boundary for individual slides ────────────────────── */
 interface SlideBoundaryState { hasError: boolean; error?: Error }
