@@ -313,6 +313,9 @@ export const StoryCreator: React.FC = () => {
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   CEFR & vocabulary auto-filled below.
+                  {linkedLesson.grammar_pattern ? (
+                    <> Grammar focus: <span className="font-semibold text-violet-700 dark:text-violet-300">{linkedLesson.grammar_pattern}</span>.</>
+                  ) : null}
                 </p>
               </div>
               <Button
