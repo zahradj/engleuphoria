@@ -19,7 +19,8 @@ import {
   AppDownloadSection,
   CursorTrail,
   StickyMobileCTA,
-  AutoLanguageToast
+  AutoLanguageToast,
+  TrustLogosBand
 } from '@/components/landing';
 
 export default function LandingPage() {
@@ -35,6 +36,7 @@ export default function LandingPage() {
         <CursorTrail />
         <NavHeader />
         <HeroSection />
+        <TrustLogosBand />
         <TrustBarSection />
         <CourseOfferingsSection />
         <BentoGridSection />
