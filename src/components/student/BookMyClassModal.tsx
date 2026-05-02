@@ -189,8 +189,23 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
   const handleBookSlot = async (slot: TimeSlot & { sourceSlotIds?: string[] }) => {
     if (!user?.id || booking) return;
 
-    // Credit check at confirm time — show prompt instead of silently blocking
-    if (!hasCredits) {
+    // Validate payload before doing anything else
+    const slotIds = (slot.sourceSlotIds && slot.sourceSlotIds.length > 0)
+      ? slot.sourceSlotIds
+      : (slot.id ? [slot.id] : []);
+
+    if (slotIds.length === 0 || !slot.teacherId || !slot.startTime) {
+      console.error('[BookMyClassModal] Invalid booking payload', { slot, userId: user.id });
+      toast({
+        title: 'Invalid booking',
+        description: 'This slot is missing required information. Please refresh and try again.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Trial bookings bypass the credit gate
+    if (!trialAvailable && !hasCredits) {
       toast({
         title: 'Credits required',
         description: 'You need credits to book this session. Redirecting to purchase...',
@@ -202,143 +217,57 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
       }, 1500);
       return;
     }
+
     setBooking(true);
 
-    const slotIds = slot.sourceSlotIds || [slot.id];
+    const isTrial = trialAvailable;
+    const lessonTitle = isTrial
+      ? `Trial Lesson with ${slot.teacherName}`
+      : `${config.label} Lesson with ${slot.teacherName}`;
+    const hubTypeMap: Record<string, string> = {
+      playground: 'playground',
+      academy: 'academy',
+      professional: 'professional',
+    };
+
+    const rpcPayload = {
+      p_slot_ids: slotIds,
+      p_teacher_id: slot.teacherId,
+      p_scheduled_at: slot.startTime.toISOString(),
+      p_duration: slotDuration,
+      p_hub_type: hubTypeMap[selectedHub] || 'academy',
+      p_lesson_title: lessonTitle,
+      p_is_trial: isTrial,
+    };
+
+    console.log('[BookMyClassModal] booking payload', { ...rpcPayload, studentId: user.id });
 
     try {
-      // Atomic update: mark all source slots as booked
-      for (const slotId of slotIds) {
-        const { data: updated, error: updateError } = await supabase
-          .from('teacher_availability')
-          .update({ is_booked: true, student_id: user.id })
-          .eq('id', slotId)
-          .eq('is_booked', false)
-          .eq('is_available', true)
-          .select('id')
-          .single();
+      const { data, error } = await supabase.rpc('book_class_slot', rpcPayload);
 
-        if (updateError || !updated) {
-          // Rollback any previously marked slots
-          for (const prevId of slotIds) {
-            await supabase
-              .from('teacher_availability')
-              .update({ is_booked: false, student_id: null })
-              .eq('id', prevId)
-              .eq('student_id', user.id);
-          }
-
-          toast({
-            title: 'Slot no longer available',
-            description: "Oops! This slot was just taken. Please try another time.",
-            variant: 'destructive',
-          });
-          await fetchSlots();
-          setBooking(false);
-          return;
-        }
-      }
-
-      // Consume a credit (skip for trial bookings)
-      let isTrial = false;
-      if (trialAvailable) {
-        isTrial = true;
-      } else {
-        await supabase.rpc('consume_credit', { p_student_id: user.id });
-      }
-
-      // Create a lesson record
-      const lessonTitle = isTrial
-        ? `Trial Lesson with ${slot.teacherName}`
-        : `${config.label} Lesson with ${slot.teacherName}`;
-
-      const { data: lessonRecord, error: lessonError } = await supabase
-        .from('lessons')
-        .insert({
-          title: lessonTitle,
-          teacher_id: slot.teacherId,
-          student_id: user.id,
-          scheduled_at: slot.startTime.toISOString(),
-          duration: slotDuration,
-          status: 'scheduled',
-          cost: 0,
-        })
-        .select('id, room_id, room_link')
-        .single();
-
-      if (lessonError) {
-        console.error('Lesson creation failed:', lessonError);
-      }
-
-      // Update all availability slots with lesson reference
-      if (lessonRecord) {
-        for (const slotId of slotIds) {
-          await supabase
-            .from('teacher_availability')
-            .update({ lesson_id: lessonRecord.id, lesson_title: lessonTitle })
-            .eq('id', slotId);
-        }
-      }
-
-      // Insert booking record with hub_type
-      const hubTypeMap: Record<string, string> = {
-        playground: 'playground',
-        academy: 'academy',
-        professional: 'professional',
-      };
-      const { data: bookingData, error: bookingError } = await supabase
-        .from('class_bookings')
-        .insert({
-          student_id: user.id,
-          teacher_id: slot.teacherId,
-          scheduled_at: slot.startTime.toISOString(),
-          duration: slotDuration,
-          booking_type: isTrial ? 'trial' : 'standard',
-          price_paid: 0,
-          status: 'confirmed',
-          lesson_id: lessonRecord?.id || null,
-          hub_type: hubTypeMap[selectedHub] || 'academy',
-        } as any)
-        .select('session_id, meeting_link, classroom_id')
-        .single();
-
-      // Also insert into appointments table
-      await supabase.from('appointments').insert({
-        student_id: user.id,
-        teacher_id: slot.teacherId,
-        availability_id: slotIds[0],
-        status: 'confirmed',
-        hub_type: config.label,
-        scheduled_at: slot.startTime.toISOString(),
-        duration: slotDuration,
-        meeting_link: bookingData?.meeting_link || null,
-        lesson_id: lessonRecord?.id || null,
-      });
-
-      if (bookingError) {
-        console.error('Booking insert failed:', bookingError);
-        for (const slotId of slotIds) {
-          await supabase
-            .from('teacher_availability')
-            .update({ is_booked: false, student_id: null })
-            .eq('id', slotId);
-        }
+      if (error) {
+        console.error('Booking Error Detail:', error, { payload: rpcPayload, studentId: user.id });
         toast({
           title: 'Booking failed',
-          description: 'Could not complete booking. Please try again.',
+          description: error.message || 'Failed to book slot',
           variant: 'destructive',
         });
-        setBooking(false);
+        await fetchSlots();
         return;
       }
 
-      // 🎉 Success — use classroom_id-based link
-      const classroomLink = (bookingData as any)?.classroom_id 
-        ? `/classroom/${(bookingData as any).classroom_id}` 
-        : bookingData?.meeting_link ?? null;
+      const result = (data || {}) as {
+        booking_id?: string;
+        classroom_id?: string;
+        meeting_link?: string | null;
+      };
+      const classroomLink = result.classroom_id
+        ? `/classroom/${result.classroom_id}`
+        : result.meeting_link ?? null;
       setMeetingLink(classroomLink);
       setBooked(true);
       fireConfetti();
+      window.dispatchEvent(new Event('availability-changed'));
 
       toast({
         title: '🎉 Class booked!',
@@ -350,12 +279,13 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
         setBooked(false);
       }, 2500);
     } catch (err: any) {
-      console.error('Booking error:', err);
+      console.error('Booking Error Detail:', err, { payload: rpcPayload, studentId: user.id });
       toast({
-        title: 'Error',
-        description: err.message || 'Something went wrong. Please try again.',
+        title: 'Booking failed',
+        description: err?.message || 'Something went wrong. Please try again.',
         variant: 'destructive',
       });
+      await fetchSlots();
     } finally {
       setBooking(false);
     }
