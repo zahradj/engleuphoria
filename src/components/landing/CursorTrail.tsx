@@ -24,18 +24,28 @@ const THEME_PALETTES: string[][] = [
   ["#10B981", "#059669", "#0F766E", "#34D399", "#2DD4BF"],
 ];
 
-export function CursorTrail() {
+interface CursorTrailProps {
+  /**
+   * Optional override for the theme palette index.
+   * 0 = Playground (yellow/orange), 1 = Academy (purple/blue), 2 = Professional (emerald/teal).
+   * When omitted, the active hero-theme index is used.
+   */
+  themeIndex?: 0 | 1 | 2;
+}
+
+export function CursorTrail({ themeIndex }: CursorTrailProps = {}) {
   const { activeIndex } = useHeroTheme();
+  const resolvedIndex = themeIndex ?? activeIndex;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particles = useRef<Particle[]>([]);
-  const colorsRef = useRef<string[]>(THEME_PALETTES[0]);
+  const colorsRef = useRef<string[]>(THEME_PALETTES[resolvedIndex] ?? THEME_PALETTES[0]);
   const rafId = useRef<number>(0);
 
-  // Update the color ref when activeIndex changes — existing particles keep
-  // their original color and fade out naturally for a smooth transition.
+  // Update the color ref when the resolved index changes — existing particles
+  // keep their original color and fade out naturally for a smooth transition.
   useEffect(() => {
-    colorsRef.current = THEME_PALETTES[activeIndex] ?? THEME_PALETTES[0];
-  }, [activeIndex]);
+    colorsRef.current = THEME_PALETTES[resolvedIndex] ?? THEME_PALETTES[0];
+  }, [resolvedIndex]);
 
   const resize = useCallback(() => {
     const c = canvasRef.current;

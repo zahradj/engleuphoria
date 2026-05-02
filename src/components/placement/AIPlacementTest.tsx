@@ -8,12 +8,16 @@ import type { TestResult } from './TestPhase';
 import ProcessingPhase from './ProcessingPhase';
 import { usePlacementTest } from '@/hooks/usePlacementTest';
 import { Logo } from '@/components/Logo';
-import HubGlowWrapper, { type HubType } from '@/components/HubGlowWrapper';
+import { CursorTrail } from '@/components/landing/CursorTrail';
 
-const hubFromAge = (age: number): HubType => {
-  if (age > 0 && age < 13) return 'Playground';
-  if (age >= 13 && age < 18) return 'Academy';
-  return 'Professional';
+type HubIndex = 0 | 1 | 2;
+
+// Maps the student's age to the same palette index used by the homepage
+// CursorTrail: 0 = Playground, 1 = Academy, 2 = Professional.
+const hubIndexFromAge = (age: number): HubIndex => {
+  if (age > 0 && age < 13) return 0;
+  if (age >= 13 && age < 18) return 1;
+  return 2;
 };
 
 type Phase = 'demographics' | 'test' | 'processing' | 'complete';
@@ -48,13 +52,13 @@ const AIPlacementTest = () => {
     }
   };
 
-  const wrapperHub = hubFromAge(age);
+  const hubIndex = hubIndexFromAge(age);
 
   return (
-    <HubGlowWrapper
-      hubType={wrapperHub}
-      className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4"
-    >
+    <div className="relative min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4 overflow-hidden">
+      {/* Same homepage interactive cursor effect, themed to the active hub */}
+      <CursorTrail themeIndex={hubIndex} />
+
       <div className="relative z-10 w-full max-w-2xl h-[80vh] backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col">
         {/* Header — Engleuphoria brand */}
         <div className="px-6 py-3 sm:py-4 border-b border-white/10 flex items-center justify-center">
@@ -102,7 +106,7 @@ const AIPlacementTest = () => {
           </AnimatePresence>
         </div>
       </div>
-    </HubGlowWrapper>
+    </div>
   );
 };
 
