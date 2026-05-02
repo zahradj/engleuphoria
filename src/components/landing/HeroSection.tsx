@@ -289,9 +289,9 @@ export function HeroSection() {
                 </AnimatePresence>
               </div>
 
-              {/* Group label chip */}
+              {/* Group label chip — positioned lower so it's not hidden behind CTAs */}
               <motion.div
-                className={`absolute top-4 right-4 z-10 px-4 py-1.5 rounded-full text-sm font-bold ${theme.chipBg} shadow-lg`}
+                className={`absolute top-1/2 right-4 z-10 px-4 py-1.5 rounded-full text-sm font-bold ${theme.chipBg} shadow-lg`}
                 key={`chip-${activeImage}`}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
