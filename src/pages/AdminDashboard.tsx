@@ -92,6 +92,8 @@ const AdminDashboard = () => {
         return <HiringKanbanBoard />;
       case 'profile-review':
         return <TeacherProfileReviewQueue />;
+      case 'inbox':
+        return <AdminInbox />;
       default:
         return <AdminOverview />;
     }
