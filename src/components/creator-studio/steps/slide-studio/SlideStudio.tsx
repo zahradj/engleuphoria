@@ -121,6 +121,15 @@ const SlideStudioInner: React.FC = () => {
     setActiveSlideId(slides[activeIndex + 1].id);
   };
 
+  // ── Story lessons render in the dedicated premium reader canvas ──
+  if (activeLessonData.kind === 'story') {
+    return (
+      <div className={cn('h-full -m-6 overflow-hidden', theme.themeClass, theme.font)}>
+        <StoryStudioCanvas />
+      </div>
+    );
+  }
+
   return (
     <div className={cn('h-full flex flex-col -m-6 hub-surface overflow-hidden', theme.themeClass, theme.font)}>
       {/* ── Compact Lesson header strip ── */}
