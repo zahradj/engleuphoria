@@ -215,6 +215,14 @@ export interface ActiveLessonData {
   unit_id?: string;
   /** Optional self-link: stories (Graded Readers) point at the curriculum lesson they expand. */
   parent_lesson_id?: string | null;
+  /** Lesson kind: standard PPP / trial / story (Graded Reader). */
+  kind?: 'standard' | 'trial' | 'story';
+  /** Visual style for story lessons (drives StoryBookViewer layout). */
+  visual_style?: 'classic' | 'comic_western' | 'manga_rtl' | 'webtoon' | 'picture_book' | 'comic_spread';
+  /** Legacy story layout flag — kept for back-compat with older viewer code. */
+  story_layout?: 'classic' | 'immersive';
+  /** Optional cached title for the linked curriculum lesson. */
+  linked_lesson_title?: string | null;
 }
 
 interface CreatorContextValue {
