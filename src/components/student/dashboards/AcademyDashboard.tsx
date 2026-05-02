@@ -54,12 +54,33 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
   const [activeTab, setActiveTab] = useState<TabId>('home');
   const [leaderboardPeriod, setLeaderboardPeriod] = useState<'weekly' | 'monthly' | 'all'>('weekly');
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [cefrLevel, setCefrLevel] = useState<string | null>(null);
   const { data: lessons = [], isLoading } = useCurriculumLessons('teen');
   const liveStatus = useLiveClassroomStatus('student');
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
   const { t } = useTranslation();
+  const { user } = useAuth();
   useStudentLanguageSync();
+
+  // Pull the CEFR level computed by the placement test so the banner can
+  // surface the actual proficiency band (A2 / B1) instead of an abstract
+  // "Level 5" XP tier.
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('student_profiles')
+        .select('final_cefr_level, cefr_level')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      const lvl = (data?.final_cefr_level || data?.cefr_level || '').toString().toUpperCase();
+      setCefrLevel(lvl || null);
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   const schedule = [
     { day: 'Mon', time: '3:00 PM', subject: 'Grammar', color: isDark ? 'bg-indigo-900/50 text-indigo-300' : 'bg-indigo-50 text-indigo-700' },
