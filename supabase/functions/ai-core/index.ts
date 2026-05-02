@@ -55,10 +55,14 @@ interface AICallResult {
 /**
  * Call Google AI Studio (Gemini) directly.
  * Throws on failure so the failover wrapper can retry with the backup.
+ * Implements exponential backoff retry on 429 (rate limit) before giving up.
  */
 async function callGeminiDirect(opts: AICallOptions): Promise<string> {
   const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-  if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not configured');
+  if (!GEMINI_API_KEY) {
+    console.error('GEMINI CRASH: GEMINI_API_KEY missing from environment');
+    throw new Error('GEMINI_API_KEY not configured');
+  }
 
   const model = opts.geminiModel || 'gemini-2.5-flash';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
@@ -74,20 +78,42 @@ async function callGeminiDirect(opts: AICallOptions): Promise<string> {
     body.systemInstruction = { role: 'system', parts: [{ text: opts.systemPrompt }] };
   }
 
-  const res = await fetch(url, {
+  const doFetch = () => fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
 
-  if (!res.ok) {
-    const errText = await res.text().catch(() => '');
-    throw new Error(`Gemini direct failed (${res.status}): ${errText.slice(0, 200)}`);
+  let geminiRes = await doFetch();
+
+  // Exponential backoff retry on 429 rate-limit (one retry after 2s).
+  if (geminiRes.status === 429) {
+    console.warn('GEMINI Rate Limited (429). Waiting 2s and retrying once before failover...');
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    geminiRes = await doFetch();
+    if (geminiRes.status === 429) {
+      const errText = await geminiRes.text().catch(() => '');
+      console.error('GEMINI CRASH:', geminiRes.status, errText);
+      const err: any = new Error(`Gemini direct rate-limited after retry (429): ${errText.slice(0, 200)}`);
+      err.status = 429;
+      throw err;
+    }
   }
 
-  const data = await res.json();
+  if (!geminiRes.ok) {
+    const errText = await geminiRes.text().catch(() => '');
+    console.error('GEMINI CRASH:', geminiRes.status, errText);
+    const err: any = new Error(`Gemini direct failed (${geminiRes.status}): ${errText.slice(0, 200)}`);
+    err.status = geminiRes.status;
+    throw err;
+  }
+
+  const data = await geminiRes.json();
   const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).filter(Boolean).join('') || '';
-  if (!text) throw new Error('Gemini direct returned empty response');
+  if (!text) {
+    console.error('GEMINI CRASH: empty response payload', JSON.stringify(data).slice(0, 300));
+    throw new Error('Gemini direct returned empty response');
+  }
   return text;
 }
 
