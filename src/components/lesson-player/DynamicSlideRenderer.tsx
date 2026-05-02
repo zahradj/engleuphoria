@@ -351,6 +351,13 @@ export default function DynamicSlideRenderer({
     // The generate-ppp-slides edge function emits slide_type = 'drag_and_match' | 'fill_in_the_gaps'.
     const directorType = (slide as any).slide_type || (slide as any).activityType || (slide as any).type;
 
+    // ── Empty interactive_data fallback ─────────────────────────
+    // Avoid showing an empty quiz/match shell when the AI forgot the payload.
+    if (directorType && INTERACTIVE_REQUIRED_KEYS[directorType] && !hasValidInteractiveData(slide, directorType)) {
+      console.warn('[DynamicSlideRenderer] Missing interactive_data for', directorType, slide?.id);
+      return <MissingDataFallback slide={slide} />;
+    }
+
     // ── Bookend slides ────────────────────────────────────────────
     if (directorType === 'front_page' || directorType === 'title_page') {
       return <FrontPageSlide
