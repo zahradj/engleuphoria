@@ -263,7 +263,7 @@ const DragAndMatchEditor: React.FC<Props> = ({ slide, onChange }) => {
             </li>
           ))}
         </ul>
-        <p className="text-[11px] text-slate-400">Tablet-friendly cap: 3 pairs max. Add a thumbnail keyword to attach a small icon to that card.</p>
+        <p className="text-[11px] text-slate-400">Up to 8 pairs. Add a thumbnail keyword to attach a small icon to that card.</p>
       </div>
     </div>
   );
