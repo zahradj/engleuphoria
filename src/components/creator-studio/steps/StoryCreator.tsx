@@ -506,18 +506,33 @@ export const StoryCreator: React.FC = () => {
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-semibold">
-            Target Vocabulary <span className="text-slate-400 font-normal">(5–12 words, comma-separated)</span>
-          </Label>
+          <div className="flex items-center justify-between gap-2">
+            <Label className="text-sm font-semibold">
+              Target Vocabulary <span className="text-slate-400 font-normal">(5–12 words, comma-separated)</span>
+            </Label>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleSuggestVocab}
+              disabled={busy || suggesting || !cefrLevel || !genre}
+              className="h-7 px-2 text-xs gap-1"
+            >
+              {suggesting
+                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                : <Sparkles className="w-3.5 h-3.5" />}
+              Auto-suggest
+            </Button>
+          </div>
           <Input
             placeholder="e.g., curious, mountain, whisper, ancient, discover, shadow, forgotten"
             value={vocabInput}
             onChange={(e) => setVocabInput(e.target.value)}
-            disabled={busy}
+            disabled={busy || suggesting}
           />
           <p className="text-xs text-slate-500">
             {parseVocab(vocabInput).length}/12 words
-            {linkedLesson && ' (linked-lesson vocab will be merged automatically)'}
+            {linkedLesson && ' · linked-lesson vocab is always included'}
           </p>
         </div>
 
