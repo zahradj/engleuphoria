@@ -811,6 +811,116 @@ ${isPaneled ? '- Every panel MUST have an image_prompt. Dialogue lines should be
 }
 
 
+// ─── Action: suggest_vocabulary ─────────────────────────────────────
+async function handleSuggestVocabulary(body: any) {
+  const cefr = String(body.cefr_level || 'B1').toUpperCase();
+  const genre = String(body.genre || 'Everyday Life');
+  const linkedTitle = body.linked_lesson_title ? String(body.linked_lesson_title) : '';
+  const linkedGrammar = body.linked_grammar ? String(body.linked_grammar) : '';
+  const mustIncludeRaw: string[] = Array.isArray(body.must_include) ? body.must_include : [];
+
+  // Normalize must_include (dedupe case-insensitive, trim, cap at 12)
+  const mustSeen = new Set<string>();
+  const mustInclude: string[] = [];
+  for (const w of mustIncludeRaw) {
+    const t = String(w || '').trim();
+    if (!t) continue;
+    const k = t.toLowerCase();
+    if (mustSeen.has(k)) continue;
+    mustSeen.add(k);
+    mustInclude.push(t);
+    if (mustInclude.length >= 12) break;
+  }
+
+  const targetTotal = Math.min(12, Math.max(8, mustInclude.length + 4));
+
+  const systemPrompt = `You are an ESL curriculum vocabulary coach. You return ONLY valid JSON of the shape {"words": ["..."]}. No prose, no markdown, no code fences.`;
+
+  const userPrompt = `Suggest target vocabulary for a graded-reader story.
+
+Constraints (STRICT):
+- CEFR level: ${cefr} — every word must be appropriate for this level.
+- Genre: ${genre}
+${linkedTitle ? `- Linked lesson topic: "${linkedTitle}"` : ''}
+${linkedGrammar ? `- Linked grammar pattern: "${linkedGrammar}" (pick words that students can naturally use with this pattern)` : ''}
+- Total words: between 5 and 12. Aim for around ${targetTotal}.
+- Single lemmas or very short collocations (max 2 words). No sentences.
+- Lowercase, no punctuation, no duplicates (case-insensitive).
+- MUST include EVERY one of these words verbatim (already from the linked lesson): ${mustInclude.length ? JSON.stringify(mustInclude) : '[] (none)'}
+- Fill the remainder with thematically related, ${cefr}-appropriate words tied to the genre and topic.
+
+Return ONLY: {"words": ["word1", "word2", ...]}`;
+
+  try {
+    const { text, provider } = await callAIWithFailover({
+      systemPrompt,
+      userPrompt,
+      geminiModel: 'gemini-2.5-flash',
+      lovableModel: 'google/gemini-2.5-flash',
+      temperature: 0.7,
+      jsonMode: true,
+    });
+
+    let parsed: any = null;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      // Try to extract JSON object from text
+      const m = text.match(/\{[\s\S]*\}/);
+      if (m) { try { parsed = JSON.parse(m[0]); } catch { /* noop */ } }
+    }
+
+    let raw: string[] = Array.isArray(parsed?.words) ? parsed.words.map((w: any) => String(w || '').trim()).filter(Boolean) : [];
+
+    // Dedupe (case-insensitive) preserving order
+    const seen = new Set<string>();
+    let words: string[] = [];
+    for (const w of raw) {
+      const k = w.toLowerCase();
+      if (seen.has(k)) continue;
+      seen.add(k);
+      words.push(w);
+    }
+
+    // Re-inject any missing must_include words (at the front)
+    const missing = mustInclude.filter((w) => !seen.has(w.toLowerCase()));
+    if (missing.length) {
+      words = [...missing, ...words];
+      for (const w of missing) seen.add(w.toLowerCase());
+    }
+
+    // Cap at 12 (keep must_include first)
+    if (words.length > 12) {
+      const required = words.filter((w) => mustSeen.has(w.toLowerCase()));
+      const optional = words.filter((w) => !mustSeen.has(w.toLowerCase()));
+      const remaining = Math.max(0, 12 - required.length);
+      words = [...required, ...optional.slice(0, remaining)];
+    }
+
+    // Floor at 5: if too short, pad with safe genre fallbacks
+    if (words.length < 5) {
+      const fallbacks = [
+        'discover', 'journey', 'whisper', 'shadow', 'curious',
+        'ancient', 'mountain', 'silence', 'stranger', 'memory',
+        'courage', 'secret',
+      ];
+      for (const w of fallbacks) {
+        if (words.length >= 5) break;
+        const k = w.toLowerCase();
+        if (seen.has(k)) continue;
+        seen.add(k);
+        words.push(w);
+      }
+    }
+
+    return jsonResponse({ words, provider });
+  } catch (e: any) {
+    if (e?.status === 429) return jsonResponse({ error: 'Rate limited — try again shortly.' }, 429);
+    if (e?.status === 402) return jsonResponse({ error: 'AI credits exhausted.' }, 402);
+    return jsonResponse({ error: e?.message || 'AI vocabulary suggestion temporarily unavailable.' }, 503);
+  }
+}
+
 // ─── Main Router ────────────────────────────────────────────────────
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -836,9 +946,11 @@ serve(async (req) => {
         return await handleGenerateTrialLesson(body);
       case 'generate_story':
         return await handleGenerateStory(body);
+      case 'suggest_vocabulary':
+        return await handleSuggestVocabulary(body);
       default:
         return jsonResponse({
-          error: `Unknown action: "${action}". Valid: explain_mistake, evaluate_speaking, evaluate_speech, speaking_feedback, generate_lesson, generate_trial_lesson, generate_story`,
+          error: `Unknown action: "${action}". Valid: explain_mistake, evaluate_speaking, evaluate_speech, speaking_feedback, generate_lesson, generate_trial_lesson, generate_story, suggest_vocabulary`,
         }, 400);
     }
   } catch (error) {
