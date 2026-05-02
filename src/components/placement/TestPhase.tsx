@@ -422,14 +422,19 @@ const TestPhase = ({ age, onComplete }: TestPhaseProps) => {
                 <button
                   type="button"
                   onClick={handlePlayAudio}
-                  disabled={isPlaying}
+                  disabled={isPlaying || isLoadingAudio}
                   aria-label="Play listening prompt"
                   className="bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500 text-white rounded-2xl px-6 py-3 font-semibold flex items-center gap-2 shadow-lg shadow-fuchsia-500/30 hover:scale-[1.02] active:scale-[0.98] transition disabled:opacity-70 disabled:cursor-wait"
                 >
-                  {isPlaying ? (
+                  {isLoadingAudio ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
                       Loading…
+                    </>
+                  ) : isPlaying ? (
+                    <>
+                      <Volume2 className="w-5 h-5 animate-pulse" />
+                      Playing…
                     </>
                   ) : (
                     <>
