@@ -1,82 +1,82 @@
-## Landing page premium upgrades — Phase 2
+## Placement Test: Branding + Listening Comprehension
 
-Focused, high-impact additions on top of the mobile + i18n work already shipped. No backend changes; pure UI/UX upgrades to the public landing page.
-
----
-
-### 1. Interactive "Who are you?" hero selector
-
-Add a 3-tab segmented control directly under the hero headline that instantly re-themes the hero (image, gradient, sub-headline, CTA copy) — replacing the passive 5-second auto-rotation with user intent.
-
-- Tabs: **Parent** · **Student** · **Professional** (i18n keys: `lp.hero.who.parent|student|pro`)
-- Maps directly to existing `GROUP_THEMES` in `HeroThemeContext` (kids → Parent, teen → Student, adult → Professional). The context already drives the headline gradient, hero image, glow color, dots, badge, nav logo, sticky CTA — so one click flips the entire page chrome.
-- Each tab gets a tailored sub-headline (e.g. Parent: "Give your child the gift of fluency, safely."; Pro: "Boost your career with Business English."). New keys per locale.
-- Auto-rotation pauses permanently after first manual selection (stored in `sessionStorage`), so we keep the showcase effect for first-time scrollers but respect intent.
-- Pill-style segmented control with sliding active background using `framer-motion` `layoutId`; animates on tab change.
-
-### 2. Trust Band (grayscale logo strip)
-
-Slim band immediately under the hero, above `TrustBarSection`, with grayscale SVG logos that pop to color on hover.
-
-- Logos: **CEFR-aligned** · **Stripe** (already a partner) · **Cambridge English style guide** · **WCAG AA** · **GDPR**. Use inline SVG badges (no third-party logo licensing risk — text-and-shape compositions).
-- Marquee on mobile (auto-scroll), static centered row on desktop.
-- One-line localized eyebrow: "Trusted standards & partners" (`lp.trust.standards`).
-
-### 3. Skill Tracker radar/spider chart
-
-Replace the static "85% Speaking, 72% Listening" bullets in the Personalized Path / Bento area with an actual SVG **radar chart** showing 6 axes: Speaking, Listening, Reading, Writing, Vocabulary, Grammar.
-
-- Pure SVG component `SkillRadarChart.tsx` — no chart library; ~120 lines.
-- Animates on scroll-into-view (axes draw, then polygon fills with hub-themed gradient).
-- Three preset profiles cycle every 4s (Beginner → Intermediate → Advanced) so the chart visibly *grows*, communicating progress.
-- Uses semantic tokens from `index.css` (no hardcoded colors); polygon fill uses the active hero gradient via CSS variables.
-
-### 4. Gamification badge mock-up (flat, on-brand)
-
-Per the **Flat 2.0 Anti-3D constraint** in project memory, no 3D/glowing graphics. Instead, a polished flat composition that *shows* the student UI:
-
-- A floating phone-frame mock-up at the side of `GamificationSection` containing:
-  - A "Grammar Wizard" badge sticker (claymorphic flat — matches Vocabulary Vault style)
-  - A live streak counter "🔥 23-day streak"
-  - A mini XP bar filling on scroll
-- Built as a single React component using Tailwind + framer-motion entrance animations. No assets needed.
-
-### 5. Video testimonials carousel
-
-Upgrade `TestimonialsSection` to support short looping vertical videos alongside text reviews.
-
-- Add a `videoSrc?: string` field to each testimonial entry. When present, render a 9:16 muted-autoplay-loop video card with a tap-to-unmute button; when absent, fall back to current text card.
-- The four existing testimonials stay text-only (we don't have real video assets); add **2 placeholder slots** ready for the user to drop their own MP4s into `/public/testimonials/`. A friendly "Add your video here" empty state shows in the meantime so the layout is visible.
-- Reel-style aspect ratio on mobile; on desktop, the video sits beside the quote.
-
-### 6. RTL polish pass
-
-- Audit `HowItWorksSection` step arrows and `PricingSection` checkmark alignment — apply `rtl:rotate-180` and `text-end` where missing.
-- Verify the new Hero selector tabs and Skill Radar legend mirror correctly.
+Two combined upgrades to the placement test experience across all hubs (Playground, Academy, Professional).
 
 ---
 
-### Files
+### Part 1 — Logo Branding
 
-**New**
-- `src/components/landing/HeroAudienceSelector.tsx`
-- `src/components/landing/TrustLogosBand.tsx`
-- `src/components/landing/SkillRadarChart.tsx`
-- `src/components/landing/GamificationPhoneMock.tsx`
+Inject the Engleuphoria wordmark into the test header so every quiz screen carries the brand identity.
 
-**Edited**
-- `src/components/landing/HeroSection.tsx` — mount selector under headline, gate auto-rotation
-- `src/components/landing/GamificationSection.tsx` — 2-column layout with phone mock on the right
-- `src/components/landing/PersonalizedPathSection.tsx` — embed `SkillRadarChart`
-- `src/components/landing/TestimonialsSection.tsx` — video-aware card
-- `src/pages/LandingPage.tsx` — insert `<TrustLogosBand />` between Hero and `TrustBarSection`
-- `src/components/landing/index.ts` — re-exports
-- `src/components/landing/HowItWorksSection.tsx` — RTL polish
-- `src/components/landing/PricingSection.tsx` — RTL polish
-- `src/translations/{english,spanish,arabic,french,turkish,italian}/dashboardUI.ts` — new keys: `lp.hero.who.*`, `lp.hero.subFor.*`, `lp.trust.standards`, `lp.skills.{speaking,listening,reading,writing,vocabulary,grammar}`, `lp.game.streakLabel`, `lp.game.xpLabel`, `lp.testimonials.tapUnmute`, `lp.testimonials.addYourVideo`
+**Files touched:**
+- `src/components/placement/AIPlacementTest.tsx` — replace the small "AI / The Guide" header with a centered `<Logo size="medium" />` (or `small` on mobile via `h-8 sm:h-10` sizing).
+- `src/components/placement/PlaygroundPlacementPhase.tsx` — add a centered logo above the star progress row.
 
-### Out of scope (call out explicitly)
+Logo placement is above the progress bar inside the existing glassmorphic test container. The `<Logo>` component already auto-switches to the white wordmark on dark backgrounds (placement uses a dark gradient), so no variant override is needed. Mobile scaling uses `h-7 sm:h-9` so it does not push questions below the fold.
 
-- **Looping split-screen hero video** — requires real teacher/student footage. Not generating synthetic faces; will revisit when you provide footage or approve AI video generation.
-- **Real video testimonials** — same reason. We're shipping the player + slots; you drop the MP4s in.
-- Auth, routing, DB — untouched.
+---
+
+### Part 2 — Listening Comprehension (ElevenLabs)
+
+Add a `listening_match` question type to the CEFR placement set. When a question has an `audio_script`, the renderer shows a prominent **Play Audio** button and locks the answer choices until the student has clicked play at least once.
+
+**Schema change** (`src/components/placement/TestPhase.tsx`):
+```ts
+interface Question {
+  question: string;
+  options: string[];
+  correctIndex: number;
+  difficulty: number;
+  targetLevel: 'A1' | 'A2' | 'B1' | 'B2' | 'C1';
+  feedback: { correct: string; incorrect: string };
+  audio_script?: string;        // NEW — TTS source text
+  type?: 'standard' | 'listening_match'; // NEW — discriminator
+}
+```
+
+**New questions added to `CEFR_MASTER_QUESTIONS`** (2 listening items, one B1 and one B2):
+- B1 listening_match: "What is the speaker doing?" with script *"I'm just heading to the supermarket to pick up some bread and milk for breakfast tomorrow."* → options like `Going shopping / Cooking dinner / Cleaning the kitchen / Watching TV`.
+- B2 listening_match: "Which conclusion best matches what you heard?" with a 2-sentence script that requires inference.
+
+**Audio playback flow:**
+1. Click `Play Audio` button → state flips to `isPlaying = true`, label becomes `Loading…`.
+2. POST `audio_script` to existing `elevenlabs-tts` edge function via `supabase.functions.invoke('elevenlabs-tts', { body: { text: audio_script } })`.
+3. Function returns raw `audio/mpeg`. Convert to `Blob` → `URL.createObjectURL` → `new Audio(url).play()`.
+4. On `audio.onended`, reset `isPlaying = false` and set `hasPlayedOnce = true`.
+5. Cache the blob URL per question so replays do not re-bill ElevenLabs.
+
+**UX lock:**
+- `<motion.button>` answer tiles get `disabled` + `opacity-40 cursor-not-allowed` until `hasPlayedOnce === true` for listening questions.
+- Tooltip / helper text appears below the audio button: *"Listen first, then choose your answer."*
+
+**Audio button styling** (matches the existing violet/fuchsia/pink gradient already used in the progress bar):
+```tsx
+<button
+  className="bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500
+             text-white rounded-2xl px-6 py-3 font-semibold flex items-center
+             gap-2 shadow-lg shadow-fuchsia-500/30 hover:scale-[1.02]
+             transition disabled:opacity-60"
+>
+  {isPlaying ? '⏳ Loading…' : '🔊 Play Audio'}
+</button>
+```
+
+---
+
+### Technical Section
+
+- **No DB migration needed.** Questions stay client-side in `TestPhase.tsx` (existing pattern). The `audio_script` field is optional and additive.
+- **No new edge function.** Re-uses the existing deployed `elevenlabs-tts` function which already returns `audio/mpeg` and uses the configured `ELEVENLABS_API_KEY` secret.
+- **Per-question state reset:** `hasPlayedOnce` and the cached blob URL reset whenever `currentQIndex` advances.
+- **Cleanup:** `useEffect` cleanup revokes blob URLs on unmount to avoid memory leaks.
+- **Accessibility:** audio button gets `aria-label="Play listening prompt"`; locked answer buttons get `aria-disabled="true"`.
+- **Playground hub:** the kid-mode (`PlaygroundPlacementPhase`) is picture-only and does NOT receive listening_match questions in this pass — only the logo upgrade. Reason: the existing `audioPrompt` strings are already used as on-screen captions; introducing TTS for 4–9 year-olds requires kid-friendly voice tuning we can do in a follow-up.
+
+---
+
+### Files to be edited
+1. `src/components/placement/AIPlacementTest.tsx` — header swap to Logo.
+2. `src/components/placement/PlaygroundPlacementPhase.tsx` — add Logo above progress.
+3. `src/components/placement/TestPhase.tsx` — extend `Question` interface, add 2 listening items, add audio player + lock UI.
+
+No new files, no new edge functions, no DB changes.

@@ -7,6 +7,7 @@ import TestPhase from './TestPhase';
 import type { TestResult } from './TestPhase';
 import ProcessingPhase from './ProcessingPhase';
 import { usePlacementTest } from '@/hooks/usePlacementTest';
+import { Logo } from '@/components/Logo';
 
 type Phase = 'demographics' | 'test' | 'processing' | 'complete';
 
