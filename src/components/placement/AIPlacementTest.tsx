@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -8,6 +8,13 @@ import type { TestResult } from './TestPhase';
 import ProcessingPhase from './ProcessingPhase';
 import { usePlacementTest } from '@/hooks/usePlacementTest';
 import { Logo } from '@/components/Logo';
+import HubGlowWrapper, { type HubType } from '@/components/HubGlowWrapper';
+
+const hubFromAge = (age: number): HubType => {
+  if (age > 0 && age < 13) return 'Playground';
+  if (age >= 13 && age < 18) return 'Academy';
+  return 'Professional';
+};
 
 type Phase = 'demographics' | 'test' | 'processing' | 'complete';
 
