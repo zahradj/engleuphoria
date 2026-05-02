@@ -6,6 +6,8 @@ import { Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeModeToggle } from "@/components/ui/ThemeModeToggle";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { HubLogo } from "@/components/student/HubLogo";
 import { useStudentLevel } from "@/hooks/useStudentLevel";
 import { useThemeMode } from "@/hooks/useThemeMode";
 import { useAuth } from "@/contexts/AuthContext";
