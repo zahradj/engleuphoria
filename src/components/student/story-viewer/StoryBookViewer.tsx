@@ -187,6 +187,7 @@ export const StoryBookViewer: React.FC<StoryBookViewerProps> = ({
         onPlay={handlePlayNarration}
         mcqAnswered={mcqAnswered}
         setMcqAnswered={setMcqAnswered}
+        embedded={embedded}
       />
     );
   }
