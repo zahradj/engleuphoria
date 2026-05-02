@@ -222,33 +222,55 @@ const TestPhase = ({ age, onComplete }: TestPhaseProps) => {
     try {
       let url = audioCacheRef.current.get(currentQIndex);
       if (!url) {
-        const { data, error } = await supabase.functions.invoke('elevenlabs-tts', {
-          body: { text: q.audio_script, voiceId: q.voice_id },
-        });
-        if (error) {
-          console.error('[Placement audio] invoke error', { questionIndex: currentQIndex, voiceId: q.voice_id, error });
-          throw new Error(error.message || FAILURE_MSG);
-        }
+        // Bypass supabase.functions.invoke() because it can mis-parse binary
+        // audio responses as JSON. Direct fetch guarantees a clean blob.
+        const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+        const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData.session?.access_token ?? SUPABASE_KEY;
 
-        let blob: Blob | null = null;
-        if (data instanceof Blob) {
-          blob = data;
-        } else if (data instanceof ArrayBuffer) {
-          blob = new Blob([data], { type: 'audio/mpeg' });
-        } else if (data && typeof data === 'object') {
-          // Edge function returned a JSON error payload instead of audio bytes.
-          const payload = data as Record<string, unknown>;
-          const msg = typeof payload.error === 'string' ? payload.error : FAILURE_MSG;
-          console.error('[Placement audio] non-audio payload', { questionIndex: currentQIndex, payload });
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/elevenlabs-tts`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ text: q.audio_script, voiceId: q.voice_id }),
+        });
+
+        const contentType = response.headers.get('content-type') || '';
+        console.log('[Placement audio] response', {
+          questionIndex: currentQIndex,
+          status: response.status,
+          contentType,
+        });
+
+        if (!response.ok || contentType.includes('application/json')) {
+          // Edge function returned a JSON error payload (or HTTP failure).
+          let msg = FAILURE_MSG;
+          try {
+            const payload = await response.json();
+            console.error('[Placement audio] error payload', { questionIndex: currentQIndex, payload });
+            if (typeof payload?.error === 'string') msg = payload.error;
+          } catch {
+            /* ignore parse error */
+          }
           throw new Error(msg);
         }
 
+        const blob = await response.blob();
         if (!blob || blob.size === 0) {
           console.error('[Placement audio] empty blob', { questionIndex: currentQIndex });
           throw new Error(FAILURE_MSG);
         }
 
-        url = URL.createObjectURL(blob);
+        // Force the MIME type to audio/mpeg in case the server omitted it.
+        const audioBlob = blob.type.startsWith('audio/')
+          ? blob
+          : new Blob([blob], { type: 'audio/mpeg' });
+
+        url = URL.createObjectURL(audioBlob);
         audioCacheRef.current.set(currentQIndex, url);
       }
 
