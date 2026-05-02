@@ -91,9 +91,19 @@ export default function PlaygroundDragDrop({ slide, onCorrect, onIncorrect }: Pr
 
   return (
     <div className="flex flex-col items-center gap-6 p-6 w-full max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold" style={{ fontFamily: "'Quicksand', sans-serif", color: '#FF9F1C' }}>
-        🎯 {slide.title}
-      </h2>
+      <div className="flex items-center gap-3 flex-wrap justify-center">
+        <h2 className="text-2xl font-bold" style={{ fontFamily: "'Quicksand', sans-serif", color: '#FF9F1C' }}>
+          🎯 {slide.title}
+        </h2>
+        {diffMeta && (
+          <span
+            className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide"
+            style={{ background: diffMeta.bg, color: diffMeta.color, fontFamily: "'Quicksand', sans-serif" }}
+          >
+            {diffMeta.label}
+          </span>
+        )}
+      </div>
       <p className="text-base text-center text-muted-foreground" style={{ fontFamily: "'Quicksand', sans-serif" }}>
         {promptText}
       </p>
