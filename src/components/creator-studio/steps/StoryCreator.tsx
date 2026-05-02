@@ -194,6 +194,48 @@ export const StoryCreator: React.FC = () => {
   const parseVocab = (raw: string) =>
     raw.split(',').map((w) => w.trim()).filter(Boolean);
 
+  const handleSuggestVocab = async () => {
+    if (suggesting || busy) return;
+    setSuggesting(true);
+    try {
+      const linkedVocab = linkedLesson ? vocabListToArray(linkedLesson.vocabulary_list) : [];
+      const typed = parseVocab(vocabInput);
+      // Build must_include = linked lesson vocab ∪ already typed words (deduped)
+      const seen = new Set<string>();
+      const mustInclude: string[] = [];
+      for (const w of [...linkedVocab, ...typed]) {
+        const k = w.toLowerCase();
+        if (!seen.has(k)) { seen.add(k); mustInclude.push(w); }
+      }
+
+      const { data, error: invokeError } = await supabase.functions.invoke('ai-core', {
+        body: {
+          action: 'suggest_vocabulary',
+          cefr_level: cefrLevel,
+          genre,
+          linked_lesson_title: linkedLesson?.title || null,
+          linked_grammar: linkedLesson?.grammar_pattern || null,
+          must_include: mustInclude,
+        },
+      });
+
+      if (invokeError) throw invokeError;
+      if ((data as any)?.error) throw new Error((data as any).error);
+
+      const words: string[] = Array.isArray((data as any)?.words) ? (data as any).words : [];
+      if (words.length < 5) {
+        toast.error('AI returned too few words — please try again or type your own.');
+        return;
+      }
+      setVocabInput(words.join(', '));
+      toast.success(`Suggested ${words.length} vocabulary words ✓`);
+    } catch (e: any) {
+      console.error('suggest_vocabulary failed:', e);
+      toast.error(e?.message || 'Could not suggest vocabulary. Please try again.');
+    } finally {
+      setSuggesting(false);
+    }
+  };
   const handleGenerate = async () => {
     setError(null);
     const manualWords = parseVocab(vocabInput);
