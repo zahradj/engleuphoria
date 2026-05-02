@@ -174,10 +174,14 @@ function normalizeSlidesToStoryPages(slides: any[]): StoryPage[] {
       s?.media?.image_url ||
       s?.interactive_data?.image_url ||
       undefined;
+    const panels = Array.isArray(s?.interactive_data?.panels)
+      ? s.interactive_data.panels
+      : undefined;
     pages.push({
       title: s?.title,
       text: typeof text === 'string' ? text : String(text ?? ''),
       imageUrl,
+      panels,
     });
   }
   return pages;
