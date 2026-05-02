@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, BookOpen, Sparkles, AlertCircle } from 'lucide-react';
+import { Loader2, BookOpen, Sparkles, AlertCircle, Link2, X, Check, ChevronsUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import { useCreator, CEFRLevel, ActiveLessonData, PPPSlide, MCQData } from '../CreatorContext';
 import { persistLesson } from '../persistLesson';
 
@@ -14,6 +18,53 @@ const CEFR: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 const GENRES = ['Sci-Fi', 'Fairy Tale', 'Everyday Life', 'Mystery', 'Adventure', 'Slice of Life', 'Historical', 'Comedy'];
 
 const uid = () => `s_${Math.random().toString(36).slice(2, 10)}`;
+
+interface CurriculumLessonOption {
+  id: string;
+  title: string;
+  difficulty_level: string;
+  target_system: string;
+  vocabulary_list: any;
+  grammar_pattern: string | null;
+  description: string | null;
+  ai_metadata: any;
+}
+
+const HUB_LABEL: Record<string, string> = {
+  kids: 'Playground',
+  teen: 'Academy',
+  adult: 'Success Hub',
+};
+
+const difficultyToCefr = (lesson: CurriculumLessonOption): CEFRLevel => {
+  const explicit = lesson.ai_metadata?.cefr_level;
+  if (typeof explicit === 'string' && CEFR.includes(explicit.toUpperCase() as CEFRLevel)) {
+    return explicit.toUpperCase() as CEFRLevel;
+  }
+  switch ((lesson.difficulty_level || '').toLowerCase()) {
+    case 'beginner': return 'A1';
+    case 'intermediate': return 'B1';
+    case 'advanced': return 'C1';
+    default: return 'B1';
+  }
+};
+
+const vocabListToString = (raw: any): string => {
+  if (!raw) return '';
+  if (Array.isArray(raw)) {
+    return raw
+      .map((w) => (typeof w === 'string' ? w : w?.word || w?.term || ''))
+      .filter(Boolean)
+      .join(', ');
+  }
+  if (typeof raw === 'string') return raw;
+  return '';
+};
+
+const vocabListToArray = (raw: any): string[] => {
+  const s = vocabListToString(raw);
+  return s.split(',').map((w) => w.trim()).filter(Boolean);
+};
 
 export const StoryCreator: React.FC = () => {
   const navigate = useNavigate();
@@ -25,24 +76,105 @@ export const StoryCreator: React.FC = () => {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // ── Linked lesson picker ──
+  const [lessons, setLessons] = useState<CurriculumLessonOption[]>([]);
+  const [lessonsLoading, setLessonsLoading] = useState(true);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [linkedLessonId, setLinkedLessonId] = useState<string | null>(null);
+  const linkedLesson = useMemo(
+    () => lessons.find((l) => l.id === linkedLessonId) || null,
+    [lessons, linkedLessonId],
+  );
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      setLessonsLoading(true);
+      const { data, error: e } = await supabase
+        .from('curriculum_lessons')
+        .select('id, title, difficulty_level, target_system, vocabulary_list, grammar_pattern, description, ai_metadata')
+        .eq('is_published', true)
+        .order('target_system')
+        .order('difficulty_level')
+        .order('title')
+        .limit(500);
+      if (!alive) return;
+      if (!e && Array.isArray(data)) {
+        // exclude existing stories
+        const filtered = data.filter((l: any) => (l?.ai_metadata?.kind ?? 'standard') !== 'story');
+        setLessons(filtered as CurriculumLessonOption[]);
+      }
+      setLessonsLoading(false);
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  const handleSelectLesson = (id: string) => {
+    const lesson = lessons.find((l) => l.id === id);
+    setLinkedLessonId(id);
+    setPickerOpen(false);
+    if (!lesson) return;
+
+    // Auto-fill CEFR
+    setCefrLevel(difficultyToCefr(lesson));
+
+    // Auto-fill vocab only if the teacher hasn't typed anything yet
+    if (!vocabInput.trim()) {
+      const vocab = vocabListToString(lesson.vocabulary_list);
+      if (vocab) setVocabInput(vocab);
+    }
+  };
+
+  const clearLinkedLesson = () => setLinkedLessonId(null);
+
+  const grouped = useMemo(() => {
+    const groups: Record<string, CurriculumLessonOption[]> = { kids: [], teen: [], adult: [] };
+    for (const l of lessons) {
+      const key = (l.target_system in groups) ? l.target_system : 'adult';
+      groups[key].push(l);
+    }
+    return groups;
+  }, [lessons]);
+
   const parseVocab = (raw: string) =>
     raw.split(',').map((w) => w.trim()).filter(Boolean);
 
   const handleGenerate = async () => {
     setError(null);
-    const words = parseVocab(vocabInput);
-    if (words.length < 5 || words.length > 10) {
-      setError('Please provide between 5 and 10 target vocabulary words (comma-separated).');
+    const manualWords = parseVocab(vocabInput);
+
+    // Merge linked lesson vocab (deduped, case-insensitive)
+    const linkedVocab = linkedLesson ? vocabListToArray(linkedLesson.vocabulary_list) : [];
+    const seen = new Set<string>();
+    const words: string[] = [];
+    for (const w of [...manualWords, ...linkedVocab]) {
+      const k = w.toLowerCase();
+      if (!seen.has(k)) { seen.add(k); words.push(w); }
+    }
+
+    if (words.length < 5 || words.length > 12) {
+      setError('Please provide between 5 and 12 target vocabulary words (comma-separated, including any from the linked lesson).');
       return;
     }
     setBusy(true);
     try {
+      const linked_lesson_payload = linkedLesson ? {
+        id: linkedLesson.id,
+        title: linkedLesson.title,
+        topic: linkedLesson.ai_metadata?.topic ?? linkedLesson.title,
+        description: linkedLesson.description,
+        vocabulary: linkedVocab,
+        grammar_pattern: linkedLesson.grammar_pattern,
+        cefr_level: difficultyToCefr(linkedLesson),
+      } : undefined;
+
       const { data, error: fnErr } = await supabase.functions.invoke('ai-core', {
         body: {
           action: 'generate_story',
           cefr_level: cefrLevel,
           genre,
           target_vocabulary: words,
+          linked_lesson: linked_lesson_payload,
         },
       });
       if (fnErr) {
@@ -91,14 +223,25 @@ export const StoryCreator: React.FC = () => {
 
       const lesson: ActiveLessonData = {
         cefr_level: cefrLevel,
-        hub: 'academy',
+        hub: linkedLesson
+          ? (linkedLesson.target_system === 'kids' ? 'playground'
+            : linkedLesson.target_system === 'teen' ? 'academy'
+            : 'success')
+          : 'academy',
         lesson_title: story.title || `${genre} Story (${cefrLevel})`,
-        target_goal: `Graded reader: ${genre} (${cefrLevel}).`,
+        target_goal: linkedLesson
+          ? `Graded reader linked to: ${linkedLesson.title}`
+          : `Graded reader: ${genre} (${cefrLevel}).`,
         target_vocabulary: words.join(', '),
         slides,
+        parent_lesson_id: linkedLessonId,
       };
 
-      const result = await persistLesson(lesson, slides, false, 'story', { story_layout: layoutStyle });
+      const result = await persistLesson(lesson, slides, false, 'story', {
+        story_layout: layoutStyle,
+        linked_lesson_id: linkedLessonId,
+        linked_lesson_title: linkedLesson?.title ?? null,
+      });
       if (result.ok === false) throw new Error(result.error);
 
       setActiveLessonData({ ...lesson, lesson_id: result.lesson_id });
@@ -132,6 +275,99 @@ export const StoryCreator: React.FC = () => {
       </div>
 
       <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 backdrop-blur p-6 space-y-6 shadow-sm">
+
+        {/* ── Linked lesson picker (very top) ── */}
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold flex items-center gap-2">
+            <Link2 className="h-4 w-4 text-violet-500" />
+            Link to Curriculum Lesson <span className="text-slate-400 font-normal">(optional)</span>
+          </Label>
+
+          {linkedLesson ? (
+            <div className="flex items-center justify-between gap-3 rounded-xl border-2 border-violet-300 dark:border-violet-700 bg-violet-50 dark:bg-violet-950/30 p-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <Badge variant="secondary" className="text-[10px] font-bold bg-violet-200 text-violet-800 dark:bg-violet-800/50 dark:text-violet-200 border-0">
+                    {HUB_LABEL[linkedLesson.target_system] ?? linkedLesson.target_system}
+                  </Badge>
+                  <Badge variant="secondary" className="text-[10px] font-bold bg-white dark:bg-slate-800 border-0 text-slate-700 dark:text-slate-200">
+                    {difficultyToCefr(linkedLesson)}
+                  </Badge>
+                </div>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
+                  {linkedLesson.title}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  CEFR & vocabulary auto-filled below.
+                </p>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={clearLinkedLesson}
+                className="shrink-0 h-8 w-8 p-0 rounded-full"
+                aria-label="Unlink lesson"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={pickerOpen}
+                  className="w-full justify-between font-normal"
+                  disabled={lessonsLoading}
+                >
+                  {lessonsLoading
+                    ? 'Loading lessons…'
+                    : 'Select a lesson to base this story on…'}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search lessons by title…" />
+                  <CommandList>
+                    <CommandEmpty>No lessons found.</CommandEmpty>
+                    {(['kids', 'teen', 'adult'] as const).map((hub) => {
+                      const items = grouped[hub];
+                      if (!items || items.length === 0) return null;
+                      return (
+                        <CommandGroup key={hub} heading={HUB_LABEL[hub]}>
+                          {items.map((l) => (
+                            <CommandItem
+                              key={l.id}
+                              value={`${l.title} ${l.difficulty_level}`}
+                              onSelect={() => handleSelectLesson(l.id)}
+                              className="flex items-center gap-2"
+                            >
+                              <Check
+                                className={cn(
+                                  'h-4 w-4',
+                                  linkedLessonId === l.id ? 'opacity-100 text-violet-500' : 'opacity-0',
+                                )}
+                              />
+                              <span className="flex-1 truncate">{l.title}</span>
+                              <Badge variant="outline" className="text-[10px] shrink-0">
+                                {difficultyToCefr(l)}
+                              </Badge>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      );
+                    })}
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          )}
+        </div>
+
         <div className="space-y-2">
           <Label className="text-sm font-semibold">CEFR Level</Label>
           <Select value={cefrLevel} onValueChange={(v) => setCefrLevel(v as CEFRLevel)}>
@@ -154,7 +390,7 @@ export const StoryCreator: React.FC = () => {
 
         <div className="space-y-2">
           <Label className="text-sm font-semibold">
-            Target Vocabulary <span className="text-slate-400 font-normal">(5–10 words, comma-separated)</span>
+            Target Vocabulary <span className="text-slate-400 font-normal">(5–12 words, comma-separated)</span>
           </Label>
           <Input
             placeholder="e.g., curious, mountain, whisper, ancient, discover, shadow, forgotten"
@@ -163,7 +399,8 @@ export const StoryCreator: React.FC = () => {
             disabled={busy}
           />
           <p className="text-xs text-slate-500">
-            {parseVocab(vocabInput).length}/10 words
+            {parseVocab(vocabInput).length}/12 words
+            {linkedLesson && ' (linked-lesson vocab will be merged automatically)'}
           </p>
         </div>
 
