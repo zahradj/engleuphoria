@@ -59,7 +59,8 @@ export const WeeklyCalendarGrid: React.FC<WeeklyCalendarGridProps> = ({
     }
 
     if (slot.status === 'booked') {
-      return 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white cursor-pointer shadow-md ring-1 ring-blue-400/40 hover:scale-[1.01] transition-all';
+      // Safety-locked: cursor stays default-ish; click opens cancel modal, never deletes directly.
+      return 'bg-violet-600 text-white shadow-md ring-1 ring-violet-400/50 cursor-pointer hover:bg-violet-700 transition-all';
     }
 
     if (slot.status === 'selected') {
