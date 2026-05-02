@@ -54,6 +54,7 @@ const RefundPolicyPage = lazy(() => import("./pages/legal/RefundPolicyPage"));
 const InstallPage = lazy(() => import("./pages/InstallPage"));
 const HubConfirmation = lazy(() => import("./pages/HubConfirmation"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
+const StudentCertificatePage = lazy(() => import("./pages/StudentCertificatePage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -113,6 +114,13 @@ const App = () => {
 
                       {/* PWA install instructions */}
                       <Route path="/install" element={<Suspense fallback={<LoadingFallback />}><InstallPage /></Suspense>} />
+
+                      {/* Certificate Viewer — Protected */}
+                      <Route path="/certificate/:id" element={
+                        <ImprovedProtectedRoute>
+                          <Suspense fallback={<LoadingFallback />}><StudentCertificatePage /></Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
 
                       {/* Assessment Routes */}
                       <Route path="/assessment/:assessmentId" element={

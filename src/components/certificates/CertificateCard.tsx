@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,65 +25,11 @@ interface CertificateCardProps {
 
 export function CertificateCard({ certificate }: CertificateCardProps) {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
-  const handlePreview = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-certificate', {
-        body: { certificateId: certificate.id }
-      });
-
-      if (error) throw error;
-
-      // Open HTML in new window
-      const win = window.open('', '_blank');
-      if (win) {
-        win.document.write(data.html);
-        win.document.close();
-      }
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDownload = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-certificate', {
-        body: { certificateId: certificate.id }
-      });
-
-      if (error) throw error;
-
-      // Create blob and download
-      const blob = new Blob([data.html], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `certificate-${certificate.certificate_number}.html`;
-      a.click();
-      URL.revokeObjectURL(url);
-
-      toast({
-        title: "Success",
-        description: "Certificate downloaded",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+  const handleOpen = () => {
+    navigate(`/certificate/${certificate.id}`);
   };
 
   return (
@@ -159,7 +106,7 @@ export function CertificateCard({ certificate }: CertificateCardProps) {
           <Button
             variant="outline"
             size="sm"
-            onClick={handlePreview}
+            onClick={handleOpen}
             disabled={loading}
             className="flex-1"
           >
@@ -168,12 +115,12 @@ export function CertificateCard({ certificate }: CertificateCardProps) {
           </Button>
           <Button
             size="sm"
-            onClick={handleDownload}
+            onClick={handleOpen}
             disabled={loading}
             className="flex-1 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
           >
             <Download className="w-4 h-4 mr-1" />
-            Download
+            Download PDF
           </Button>
         </div>
       </div>
