@@ -79,8 +79,8 @@ const LessonReaderPage: React.FC = () => {
     let visualStyle: StoryVisualStyle = (allowed.includes(rawStyle) ? rawStyle : 'classic') as StoryVisualStyle;
     // Auto-pick premium reader by hub when style is the default
     if (visualStyle === 'classic') {
-      if (hub === 'playground' || hub === 'kids') visualStyle = 'picture_book';
-      else if (hub === 'academy' || hub === 'teen' || hub === 'teens') visualStyle = 'comic_spread';
+      if (hub === 'playground') visualStyle = 'picture_book';
+      else if (hub === 'academy') visualStyle = 'comic_spread';
     }
     const storyLayout: StoryLayout = meta.story_layout === 'classic' ? 'classic' : 'immersive';
     const pages = normalizeSlidesToStoryPages(slides);
