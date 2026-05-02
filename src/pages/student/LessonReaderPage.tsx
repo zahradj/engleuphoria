@@ -75,9 +75,13 @@ const LessonReaderPage: React.FC = () => {
   if (isStory && slides && slides.length > 0) {
     const meta = lesson.ai_metadata || {};
     const rawStyle = meta.visual_style;
-    const visualStyle: StoryVisualStyle = (
-      ['classic', 'comic_western', 'manga_rtl', 'webtoon'].includes(rawStyle) ? rawStyle : 'classic'
-    ) as StoryVisualStyle;
+    const allowed = ['classic', 'comic_western', 'manga_rtl', 'webtoon', 'picture_book', 'comic_spread'];
+    let visualStyle: StoryVisualStyle = (allowed.includes(rawStyle) ? rawStyle : 'classic') as StoryVisualStyle;
+    // Auto-pick premium reader by hub when style is the default
+    if (visualStyle === 'classic') {
+      if (hub === 'playground') visualStyle = 'picture_book';
+      else if (hub === 'academy') visualStyle = 'comic_spread';
+    }
     const storyLayout: StoryLayout = meta.story_layout === 'classic' ? 'classic' : 'immersive';
     const pages = normalizeSlidesToStoryPages(slides);
     const cover = meta.coverImageUrl || pages.find((p) => p.imageUrl)?.imageUrl;
