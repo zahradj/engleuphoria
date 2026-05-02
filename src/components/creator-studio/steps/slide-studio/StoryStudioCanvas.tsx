@@ -273,7 +273,7 @@ export const StoryStudioCanvas: React.FC = () => {
             >
               🔁 Retry failed ({slidesNeedingArt.length})
             </Button>
-          )
+          )}
           <Button
             size="sm"
             className="gap-1.5 bg-emerald-500 hover:bg-emerald-400 text-white border-0 font-bold"
