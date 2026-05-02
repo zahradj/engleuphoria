@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Volume2, Loader2 } from 'lucide-react';
 import ChatBubble from './ChatBubble';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export interface TestResult {
   questionIndex: number;
@@ -18,6 +21,8 @@ interface Question {
   difficulty: number;
   targetLevel: 'A1' | 'A2' | 'B1' | 'B2' | 'C1';
   feedback: { correct: string; incorrect: string };
+  audio_script?: string;
+  type?: 'standard' | 'listening_match';
 }
 
 interface TestPhaseProps {
@@ -96,6 +101,14 @@ const CEFR_MASTER_QUESTIONS: Question[] = [
     correctIndex: 1, difficulty: 0.65, targetLevel: 'B1',
     feedback: { correct: "Right! Short adjectives add '-er'. 📱", incorrect: "Short adjectives form the comparative with '-er' → 'faster'." },
   },
+  {
+    question: "🎧 Listen carefully. What is the speaker about to do?",
+    options: ["Go shopping for food", "Cook dinner at home", "Clean the kitchen", "Watch a film"],
+    correctIndex: 0, difficulty: 0.7, targetLevel: 'B1',
+    type: 'listening_match',
+    audio_script: "I'm just heading to the supermarket to pick up some bread and milk for breakfast tomorrow.",
+    feedback: { correct: "Excellent listening! 🛒", incorrect: "The speaker is going to the supermarket — that's shopping for food. 🛒" },
+  },
 
   // ===== B2 (Upper Intermediate) — Questions 10-12 =====
   {
@@ -115,6 +128,19 @@ const CEFR_MASTER_QUESTIONS: Question[] = [
     options: ["look after", "look up", "look for", "look into"],
     correctIndex: 1, difficulty: 0.85, targetLevel: 'B2',
     feedback: { correct: "Correct! 'Look up' = search for information. 📖", incorrect: "'Look up' means to search for information (e.g., in a dictionary)." },
+  },
+  {
+    question: "🎧 Listen carefully. What is the speaker's main point?",
+    options: [
+      "She enjoyed the film overall",
+      "She thought the film was disappointing despite good acting",
+      "She refused to watch the film",
+      "She wants to watch it a second time",
+    ],
+    correctIndex: 1, difficulty: 0.88, targetLevel: 'B2',
+    type: 'listening_match',
+    audio_script: "Honestly, the performances were excellent and the cinematography was stunning, but the story dragged on for far too long and the ending left me feeling rather let down.",
+    feedback: { correct: "Brilliant inference! You caught the contrast. 🎬", incorrect: "She praised the acting but felt let down by the story — overall disappointing." },
   },
 
   // ===== C1 (Advanced) — Questions 13-15 =====
@@ -150,9 +176,72 @@ const TestPhase = ({ age, onComplete }: TestPhaseProps) => {
   const [messages, setMessages] = useState<Array<{ role: 'guide' | 'user'; text: string }>>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Listening question state
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [hasPlayedOnce, setHasPlayedOnce] = useState(false);
+  const audioCacheRef = useRef<Map<number, string>>(new Map());
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, phase]);
+
+  // Reset listening lock whenever the question advances
+  useEffect(() => {
+    setHasPlayedOnce(false);
+    setIsPlaying(false);
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current = null;
+    }
+  }, [currentQIndex]);
+
+  // Cleanup blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      audioCacheRef.current.forEach((url) => URL.revokeObjectURL(url));
+      audioCacheRef.current.clear();
+      if (currentAudioRef.current) {
+        currentAudioRef.current.pause();
+        currentAudioRef.current = null;
+      }
+    };
+  }, []);
+
+  const handlePlayAudio = async () => {
+    const q = questions[currentQIndex];
+    if (!q?.audio_script || isPlaying) return;
+    setIsPlaying(true);
+    try {
+      let url = audioCacheRef.current.get(currentQIndex);
+      if (!url) {
+        const { data, error } = await supabase.functions.invoke('elevenlabs-tts', {
+          body: { text: q.audio_script },
+        });
+        if (error) throw error;
+        // supabase-js returns the body as a Blob for binary responses
+        const blob = data instanceof Blob ? data : new Blob([data as ArrayBuffer], { type: 'audio/mpeg' });
+        url = URL.createObjectURL(blob);
+        audioCacheRef.current.set(currentQIndex, url);
+      }
+      const audio = new Audio(url);
+      currentAudioRef.current = audio;
+      audio.onended = () => {
+        setIsPlaying(false);
+        setHasPlayedOnce(true);
+      };
+      audio.onerror = () => {
+        setIsPlaying(false);
+        toast.error('Audio playback failed');
+      };
+      await audio.play();
+      setHasPlayedOnce(true);
+    } catch (err) {
+      console.error('Listening audio error:', err);
+      setIsPlaying(false);
+      toast.error('Could not load audio. Please try again.');
+    }
+  };
 
   const currentQuestion = questions[currentQIndex];
 
@@ -270,22 +359,59 @@ const TestPhase = ({ age, onComplete }: TestPhaseProps) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2"
+            className="space-y-3 mt-2"
           >
-            {currentQuestion.options.map((opt, i) => (
-              <motion.button
-                key={i}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.05 * i, duration: 0.3 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => handleAnswer(i)}
-                className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl px-4 py-3 text-white text-left text-sm hover:bg-white/20 transition-colors shadow-[0_4px_16px_rgba(0,0,0,0.2)]"
-              >
-                {opt}
-              </motion.button>
-            ))}
+            {currentQuestion.audio_script && (
+              <div className="flex flex-col items-center gap-2 mb-1">
+                <button
+                  type="button"
+                  onClick={handlePlayAudio}
+                  disabled={isPlaying}
+                  aria-label="Play listening prompt"
+                  className="bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500 text-white rounded-2xl px-6 py-3 font-semibold flex items-center gap-2 shadow-lg shadow-fuchsia-500/30 hover:scale-[1.02] active:scale-[0.98] transition disabled:opacity-70 disabled:cursor-wait"
+                >
+                  {isPlaying ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Loading…
+                    </>
+                  ) : (
+                    <>
+                      <Volume2 className="w-5 h-5" />
+                      {hasPlayedOnce ? 'Play Again' : 'Play Audio'}
+                    </>
+                  )}
+                </button>
+                {!hasPlayedOnce && (
+                  <p className="text-white/60 text-xs">Listen first, then choose your answer.</p>
+                )}
+              </div>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {currentQuestion.options.map((opt, i) => {
+                const lockedByListening = !!currentQuestion.audio_script && !hasPlayedOnce;
+                return (
+                  <motion.button
+                    key={i}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.05 * i, duration: 0.3 }}
+                    whileHover={lockedByListening ? undefined : { scale: 1.02 }}
+                    whileTap={lockedByListening ? undefined : { scale: 0.97 }}
+                    onClick={() => !lockedByListening && handleAnswer(i)}
+                    disabled={lockedByListening}
+                    aria-disabled={lockedByListening}
+                    className={`backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl px-4 py-3 text-white text-left text-sm transition-colors shadow-[0_4px_16px_rgba(0,0,0,0.2)] ${
+                      lockedByListening
+                        ? 'opacity-40 cursor-not-allowed'
+                        : 'hover:bg-white/20'
+                    }`}
+                  >
+                    {opt}
+                  </motion.button>
+                );
+              })}
+            </div>
           </motion.div>
         )}
       </div>
