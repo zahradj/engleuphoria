@@ -109,22 +109,11 @@ export default function SlideHook({ slide, hub }: Props) {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center gap-6 p-8 w-full text-center">
-      {hasImage && (
-        <motion.img
-          src={slide.imageUrl}
-          alt={slide.title}
-          className="w-full max-w-lg rounded-2xl object-cover"
-          style={{ maxHeight: 300 }}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-          loading="lazy"
-        />
-      )}
+    <div className="flex flex-col items-center justify-start gap-6 p-6 md:p-8 w-full text-center">
+      <SlideBrandHeader hub={hub} />
 
       <motion.h1
-        className="text-3xl font-bold"
+        className="text-4xl md:text-6xl font-extrabold tracking-tight uppercase"
         style={{ color: config.colorPalette.primary, fontFamily: hub === 'playground' ? "'Quicksand', sans-serif" : undefined }}
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -132,9 +121,21 @@ export default function SlideHook({ slide, hub }: Props) {
         {slide.title}
       </motion.h1>
 
+      {hasImage && (
+        <motion.img
+          src={slide.imageUrl}
+          alt={slide.title}
+          className="w-full max-w-3xl rounded-2xl object-contain"
+          style={{ maxHeight: 520 }}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          loading="lazy"
+        />
+      )}
+
       <motion.p
-        className="text-lg leading-relaxed max-w-xl whitespace-pre-line"
-        style={{ color: config.colorPalette.text }}
+        className="text-2xl md:text-3xl font-medium leading-relaxed max-w-3xl whitespace-pre-line text-slate-800 dark:text-slate-100"
         initial={{ y: 10, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2 }}
