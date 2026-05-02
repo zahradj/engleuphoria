@@ -318,12 +318,17 @@ export const PlacementGatekeeper = ({
               className={`backdrop-blur-2xl bg-white/10 border border-white/20 rounded-3xl p-12 text-center ${theme.glow}`}
             >
               <motion.div
-                initial={{ scale: 0, rotate: -180 }}
+                initial={{ scale: 0, rotate: -10 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ type: 'spring', duration: 0.8 }}
-                className={`w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br ${theme.accent} flex items-center justify-center`}
+                className={`w-28 h-28 mx-auto mb-6 rounded-full bg-white/10 backdrop-blur-md ring-1 ring-white/20 flex items-center justify-center px-5`}
               >
-                <Sparkles className="w-12 h-12 text-white" />
+                <img
+                  src={logoWhite}
+                  alt="EnglEuphoria"
+                  className="h-12 w-auto object-contain select-none pointer-events-none"
+                  draggable={false}
+                />
               </motion.div>
               <p className={`text-sm uppercase tracking-widest font-semibold ${theme.accentText} mb-2`}>
                 Your Level
