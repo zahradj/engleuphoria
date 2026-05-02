@@ -129,6 +129,19 @@ const CEFR_MASTER_QUESTIONS: Question[] = [
     correctIndex: 1, difficulty: 0.85, targetLevel: 'B2',
     feedback: { correct: "Correct! 'Look up' = search for information. 📖", incorrect: "'Look up' means to search for information (e.g., in a dictionary)." },
   },
+  {
+    question: "🎧 Listen carefully. What is the speaker's main point?",
+    options: [
+      "She enjoyed the film overall",
+      "She thought the film was disappointing despite good acting",
+      "She refused to watch the film",
+      "She wants to watch it a second time",
+    ],
+    correctIndex: 1, difficulty: 0.88, targetLevel: 'B2',
+    type: 'listening_match',
+    audio_script: "Honestly, the performances were excellent and the cinematography was stunning, but the story dragged on for far too long and the ending left me feeling rather let down.",
+    feedback: { correct: "Brilliant inference! You caught the contrast. 🎬", incorrect: "She praised the acting but felt let down by the story — overall disappointing." },
+  },
 
   // ===== C1 (Advanced) — Questions 13-15 =====
   {
