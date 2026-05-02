@@ -407,49 +407,123 @@ const AI_GAME_LABELS: Partial<Record<SlideType, string>> = {
   drawing_prompt: 'drawing prompt',
 };
 
+type Difficulty = 'easy' | 'medium' | 'hard';
+type CefrOverride = 'auto' | 'A1' | 'A2' | 'B1' | 'B2' | 'C1';
+
+const GAME_TEMPLATES: { id: string; label: string; prompt: string; grammarFocus?: string }[] = [
+  { id: 'custom', label: 'Custom (use my hint only)', prompt: '' },
+  { id: 'vocab_recall', label: 'Vocabulary recall (any topic)',
+    prompt: 'Use the lesson key vocabulary, concrete and high-frequency words.' },
+  { id: 'past_simple_regular', label: 'Past simple — regular verbs',
+    prompt: 'All sentences in past simple with regular -ed verbs (yesterday, last week, ago).',
+    grammarFocus: 'past simple, regular verbs ending in -ed' },
+  { id: 'present_continuous', label: 'Present continuous — actions',
+    prompt: 'All sentences describe an action happening right now (am/is/are + verb-ing).',
+    grammarFocus: 'present continuous (am/is/are + verb-ing)' },
+  { id: 'comparatives_superlatives', label: 'Comparatives & superlatives',
+    prompt: 'Compare two or more things. Mix -er / more and -est / most forms.',
+    grammarFocus: 'comparatives and superlatives' },
+  { id: 'wh_questions', label: 'Wh- questions',
+    prompt: 'Every question starts with What / Where / When / Who / Why / How.',
+    grammarFocus: 'Wh- questions' },
+  { id: 'prepositions_of_place', label: 'Prepositions of place',
+    prompt: 'Focus on in / on / under / behind / next to / between.',
+    grammarFocus: 'prepositions of place' },
+  { id: 'modal_verbs', label: 'Modal verbs (can / must / should)',
+    prompt: 'Each sentence uses a modal verb (can, must, should, might).',
+    grammarFocus: 'modal verbs' },
+];
+
 const GameAIGenerator: React.FC<Props> = ({ slide, onChange }) => {
-  const { activeLessonData } = useCreator();
+  const { activeLessonData, updateSlide } = useCreator();
   const [open, setOpen] = useState(false);
   const [userPrompt, setUserPrompt] = useState('');
   const [pairCount, setPairCount] = useState<number>(4);
+  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
+  const [cefrOverride, setCefrOverride] = useState<CefrOverride>('auto');
+  const [templateId, setTemplateId] = useState<string>('custom');
+  const [applyToNext, setApplyToNext] = useState<number>(1);
   const [loading, setLoading] = useState(false);
 
   const gameType = slide.slide_type as SlideType;
   const label = AI_GAME_LABELS[gameType] ?? 'game';
   const isMatch = gameType === 'drag_and_match';
 
-  const lessonContext = [
-    activeLessonData?.lesson_title && `Lesson: ${activeLessonData.lesson_title}`,
-    activeLessonData?.target_goal && `Goal: ${activeLessonData.target_goal}`,
-    activeLessonData?.target_grammar && `Grammar focus: ${activeLessonData.target_grammar}`,
-    activeLessonData?.target_vocabulary && `Vocabulary: ${activeLessonData.target_vocabulary}`,
-    slide.content && `Slide text: ${slide.content}`,
-    slide.teacher_script && `Teacher script: ${slide.teacher_script}`,
-  ]
-    .filter(Boolean)
-    .join('\n');
+  const buildLessonContext = (s: PPPSlide) =>
+    [
+      activeLessonData?.lesson_title && `Lesson: ${activeLessonData.lesson_title}`,
+      activeLessonData?.target_goal && `Goal: ${activeLessonData.target_goal}`,
+      activeLessonData?.target_grammar && `Grammar focus: ${activeLessonData.target_grammar}`,
+      activeLessonData?.target_vocabulary && `Vocabulary: ${activeLessonData.target_vocabulary}`,
+      s.content && `Slide text: ${s.content}`,
+      s.teacher_script && `Teacher script: ${s.teacher_script}`,
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+  const handleTemplateChange = (id: string) => {
+    setTemplateId(id);
+    const tpl = GAME_TEMPLATES.find((t) => t.id === id);
+    if (tpl && tpl.id !== 'custom') setUserPrompt(tpl.prompt);
+  };
+
+  // Find next N game slides of the SAME type starting at the current slide.
+  const findTargetSlides = (): PPPSlide[] => {
+    const all = activeLessonData?.slides ?? [];
+    const idx = all.findIndex((s) => s.id === slide.id);
+    if (idx < 0) return [slide];
+    const targets: PPPSlide[] = [];
+    for (let i = idx; i < all.length && targets.length < applyToNext; i++) {
+      if ((all[i].slide_type as SlideType) === gameType) targets.push(all[i]);
+    }
+    return targets.length ? targets : [slide];
+  };
 
   const handleGenerate = async () => {
+    const tpl = GAME_TEMPLATES.find((t) => t.id === templateId);
+    const cefrLevel = cefrOverride === 'auto' ? activeLessonData?.cefr_level : cefrOverride;
+    const targets = findTargetSlides();
+
     try {
       setLoading(true);
-      const { data, error } = await supabase.functions.invoke('ai-slide-game-generator', {
-        body: {
-          gameType,
-          lessonContext,
-          slideTitle: slide.title ?? '',
-          visualKeyword: slide.visual_keyword ?? '',
-          userPrompt,
-          hub: activeLessonData?.hub,
-          cefrLevel: activeLessonData?.cefr_level,
-          pairCount: isMatch ? pairCount : undefined,
-        },
-      });
-      if (error) throw error;
-      if ((data as any)?.error) throw new Error((data as any).error);
-      const interactive_data = (data as any)?.interactive_data;
-      if (!interactive_data) throw new Error('AI returned no game content.');
-      onChange({ interactive_data });
-      toast.success(`Generated ${label} with AI ✨`);
+      let firstPatched = false;
+      for (const target of targets) {
+        const { data, error } = await supabase.functions.invoke('ai-slide-game-generator', {
+          body: {
+            gameType,
+            lessonContext: buildLessonContext(target),
+            slideTitle: target.title ?? '',
+            visualKeyword: target.visual_keyword ?? '',
+            userPrompt,
+            hub: activeLessonData?.hub,
+            cefrLevel,
+            difficulty,
+            templateId: tpl?.id,
+            grammarFocus: tpl?.grammarFocus,
+            pairCount: isMatch ? pairCount : undefined,
+          },
+        });
+        if (error) throw error;
+        if ((data as any)?.error) throw new Error((data as any).error);
+        const interactive_data = (data as any)?.interactive_data;
+        if (!interactive_data) throw new Error('AI returned no game content.');
+
+        if (target.id === slide.id) {
+          onChange({ interactive_data });
+          firstPatched = true;
+        } else {
+          updateSlide(target.id, { interactive_data });
+        }
+      }
+      if (!firstPatched && targets[0]) {
+        // Defensive: ensure at least one slide patched via onChange path.
+        updateSlide(targets[0].id, targets[0]);
+      }
+      toast.success(
+        targets.length > 1
+          ? `Generated ${label} for ${targets.length} slides ✨`
+          : `Generated ${label} with AI ✨`,
+      );
       setOpen(false);
       setUserPrompt('');
     } catch (err) {
@@ -473,64 +547,103 @@ const GameAIGenerator: React.FC<Props> = ({ slide, onChange }) => {
           Generate {label} with AI
         </Button>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           <Label className="text-[11px] font-bold uppercase tracking-wider text-fuchsia-700 dark:text-fuchsia-300 inline-flex items-center gap-1.5">
             <Sparkles className="h-3 w-3" /> AI {label}
           </Label>
+
+          {/* Template */}
+          <div className="space-y-1">
+            <Label className="text-[10px] font-semibold text-slate-500">Template</Label>
+            <Select value={templateId} onValueChange={handleTemplateChange}>
+              <SelectTrigger className="h-8 text-xs bg-white dark:bg-slate-900">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {GAME_TEMPLATES.map((t) => (
+                  <SelectItem key={t.id} value={t.id} className="text-xs">{t.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Difficulty + CEFR override */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label className="text-[10px] font-semibold text-slate-500">Difficulty</Label>
+              <Select value={difficulty} onValueChange={(v) => setDifficulty(v as Difficulty)}>
+                <SelectTrigger className="h-8 text-xs bg-white dark:bg-slate-900"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="easy" className="text-xs">Easy</SelectItem>
+                  <SelectItem value="medium" className="text-xs">Medium</SelectItem>
+                  <SelectItem value="hard" className="text-xs">Hard</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[10px] font-semibold text-slate-500">CEFR</Label>
+              <Select value={cefrOverride} onValueChange={(v) => setCefrOverride(v as CefrOverride)}>
+                <SelectTrigger className="h-8 text-xs bg-white dark:bg-slate-900"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="auto" className="text-xs">Auto (lesson)</SelectItem>
+                  <SelectItem value="A1" className="text-xs">A1</SelectItem>
+                  <SelectItem value="A2" className="text-xs">A2</SelectItem>
+                  <SelectItem value="B1" className="text-xs">B1</SelectItem>
+                  <SelectItem value="B2" className="text-xs">B2</SelectItem>
+                  <SelectItem value="C1" className="text-xs">C1</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           <Textarea
             rows={2}
             value={userPrompt}
             onChange={(e) => setUserPrompt(e.target.value)}
-            placeholder={`Optional: tell the AI what you want — e.g. "10 animal vocab pairs", "past simple, sports topic", "easy A1 level"…`}
+            placeholder={`Optional hint for the AI — e.g. "10 animal vocab pairs", "sports topic"…`}
             className="text-xs resize-none bg-white dark:bg-slate-900"
           />
-          {isMatch && (
-            <div className="flex items-center gap-2">
-              <Label className="text-[11px] text-slate-600 dark:text-slate-300">Pairs:</Label>
+
+          <div className="grid grid-cols-2 gap-2">
+            {isMatch && (
+              <div className="flex items-center gap-2">
+                <Label className="text-[11px] text-slate-600 dark:text-slate-300">Pairs:</Label>
+                <Input
+                  type="number" min={3} max={8} value={pairCount}
+                  onChange={(e) => setPairCount(Math.max(3, Math.min(8, Number(e.target.value) || 4)))}
+                  className="h-7 w-16 text-xs"
+                />
+              </div>
+            )}
+            <div className={cn('flex items-center gap-2', isMatch ? '' : 'col-span-2')}>
+              <Label className="text-[11px] text-slate-600 dark:text-slate-300">Apply to next:</Label>
               <Input
-                type="number"
-                min={3}
-                max={8}
-                value={pairCount}
-                onChange={(e) =>
-                  setPairCount(Math.max(3, Math.min(8, Number(e.target.value) || 4)))
-                }
+                type="number" min={1} max={10} value={applyToNext}
+                onChange={(e) => setApplyToNext(Math.max(1, Math.min(10, Number(e.target.value) || 1)))}
                 className="h-7 w-16 text-xs"
               />
-              <span className="text-[10px] text-slate-400">3–8</span>
+              <span className="text-[10px] text-slate-400">same-type slides</span>
             </div>
-          )}
+          </div>
+
           <div className="flex gap-2">
             <Button
-              type="button"
-              size="sm"
-              onClick={handleGenerate}
-              disabled={loading}
+              type="button" size="sm" onClick={handleGenerate} disabled={loading}
               className="flex-1 bg-gradient-to-r from-fuchsia-500 to-violet-600 hover:from-fuchsia-600 hover:to-violet-700 text-white font-bold h-8"
             >
-              {loading ? (
-                <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
-              ) : (
-                <Wand2 className="h-3.5 w-3.5 mr-1.5" />
-              )}
+              {loading ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Wand2 className="h-3.5 w-3.5 mr-1.5" />}
               {loading ? 'Generating…' : 'Generate'}
             </Button>
             <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                setOpen(false);
-                setUserPrompt('');
-              }}
-              disabled={loading}
-              className="h-8"
+              type="button" size="sm" variant="ghost"
+              onClick={() => { setOpen(false); setUserPrompt(''); }}
+              disabled={loading} className="h-8"
             >
               Cancel
             </Button>
           </div>
           <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-snug">
-            AI uses the lesson title, goal, vocabulary and your hint above. Result replaces the current game content.
+            AI uses the lesson title, goal, vocabulary, the template + difficulty above, and your hint. For drag-and-match it always emits icon keywords for both cards.
           </p>
         </div>
       )}

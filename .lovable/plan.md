@@ -1,66 +1,102 @@
-I took the screenshot of `/content-creator/slide-builder` and did a code/data trace. The premium `StoryBookViewer` code exists, but it is not what the user is seeing in Slide Studio. The generated story is still being opened as normal PPP lesson slides, so the UI naturally looks like lesson pages.
+## Goal
 
-Diagnosis found three root causes:
+Two coordinated upgrades:
 
-1. Wrong rendering surface
-- `StoryBookViewer` is only mounted in `src/pages/student/LessonReaderPage.tsx` for `/lesson/:id`.
-- The current screen is `/content-creator/slide-builder`, which renders `SlideStudio` -> `SlideCanvas`.
-- `SlideCanvas` has no branch for story lessons, so story pages are rendered as ordinary `text_image` lesson slides.
+**A. AI Game Generator improvements** (per-slide game tool already lives in `ai-slide-game-generator` + `TeacherControlsPanel > GameAIGenerator`).
 
-2. Story metadata is lost after editing/publishing
-- Initial story creation persists with `kind: 'story'`, `visual_style`, and `story_layout`.
-- But `StudioHeader` save/publish calls `persistLesson(activeLessonData, slides, ...)` without passing `kind: 'story'` or the story metadata.
-- `LibraryManager.handleEdit` also does not hydrate story metadata back into `activeLessonData`.
-- Result: after saving/publishing a story from Slide Studio, it can become `kind: 'standard'`, so `/lesson/:id` will bypass `StoryBookViewer` and use the normal `LessonPlayerContainer`.
+**B. Lesson structure & pedagogy upgrade**: Title Slides, deeper Grammar slides, and HTML color-coding of parts of speech.
 
-3. Comic panel images are not wired back to panels
-- Generated comic/webtoon/manga stories store panels inside `interactive_data.panels` with only `image_prompt`.
-- The auto media pipeline generates one `custom_image_url` per slide, not per panel.
-- The comic spread renderer expects each panel to have `image_url`/`imageUrl`. Without that, it shows placeholders or falls back poorly.
+---
 
-Planned fix:
+## A. AI Game Generator Upgrades
 
-1. Preserve story metadata end-to-end
-- Extend `ActiveLessonData` with optional fields for `kind`, `visual_style`, `story_layout`, and linked story metadata.
-- Update `StoryCreator` to set these fields on `activeLessonData` immediately after generation.
-- Update `LibraryManager.handleEdit` to hydrate those fields from `row.ai_metadata`.
-- Update `StudioHeader` save/publish and CreatorContext autosave to pass the correct `kind` and `extraMetadata` into `persistLesson`, so story lessons stay story lessons after any edit or publish.
+### A1. Difficulty selector (Easy / Medium / Hard or CEFR A1–C1)
+- `TeacherControlsPanel.tsx > GameAIGenerator`: add two `Select` controls — **Difficulty** (`easy | medium | hard`) and **CEFR override** (`auto | A1 | A2 | B1 | B2 | C1`). Default difficulty = `medium`, CEFR = `auto` (falls back to `activeLessonData.cefr_level`).
+- Pass `difficulty` and effective `cefrLevel` to `supabase.functions.invoke('ai-slide-game-generator', { body: ... })`.
+- `ai-slide-game-generator/index.ts > buildSystemPrompt`: accept `difficulty`, append calibration rules:
+  - `easy` → very short sentences, 3 options max for MCQ, single-clause distractors
+  - `medium` → standard
+  - `hard` → multi-clause, abstract distractors, idiomatic items
+- Adjust `TOOL_BY_TYPE.multiple_choice.parameters.options.maxItems` dynamically (3 for easy, 4 for medium, 5 for hard) by cloning the tool per request.
 
-2. Add an in-studio premium Story preview path
-- Update `SlideStudio` to detect story lessons from `activeLessonData.kind === 'story'` or story metadata.
-- For story lessons, render a story-aware preview canvas instead of the generic `SlideCanvas`.
-- Reuse the existing `StoryBookViewer` component, normalized from the current slides, so the creator sees the same premium Picture Book / Comic Spread / Manga / Webtoon reader while editing.
-- Keep teacher controls available either as a side panel for the selected underlying slide or as a clear “Edit slide details” section so the authoring workflow is not lost.
+### A2. Auto-thumbnail keywords for drag-and-match
+- `ai-slide-game-generator/index.ts`:
+  - Make `left_thumbnail_keyword` and `right_thumbnail_keyword` **required** in the `drag_and_match` tool schema (currently optional).
+  - System prompt: "For every pair, you MUST output a single concrete noun keyword for both `left_thumbnail_keyword` and `right_thumbnail_keyword`. The keyword should be the most icon-friendly noun in that card."
+  - Post-process: if AI omits a keyword, derive a fallback from the card text (first noun word, lowercased).
+- `TeacherControlsPanel.tsx > DragAndMatchEditor`: already shows keyword fields and thumbnail URLs — no change needed beyond ensuring keywords always populate.
+- Confirm that downstream icon hydration (`mediaGeneration.ts` / `generateAllMedia`) already converts `*_thumbnail_keyword` → `*_thumbnail_url`. If missing, add a small client-side icon resolver call after generation that reuses `generateSlideImage` for each keyword (skipped if URL exists). Implementation detail confirmed during build.
 
-3. Normalize current slide data correctly for the story viewer
-- Create or move a shared helper to convert PPP story slides into `StoryPage[]`.
-- Include `custom_image_url` as the page `imageUrl`.
-- For paneled styles, if panel images are missing but the slide has a generated `custom_image_url`, use it as a fallback for the page/panel so the premium layout visibly changes instead of looking like standard lessons.
-- Ensure the selected `visual_style` maps as expected:
-  - Playground classic/default -> `picture_book`
-  - Academy classic/default -> `comic_spread`
-  - Explicit `comic_western`, `manga_rtl`, `webtoon` keep their dedicated layout.
+### A3. Reusable game templates (topic + grammar focus)
+- New UI in `GameAIGenerator`: a **"Template"** dropdown above the prompt area with built-in presets, e.g.:
+  - "Vocabulary recall (any topic)"
+  - "Past simple — regular verbs"
+  - "Present continuous — actions"
+  - "Comparatives & superlatives"
+  - "Question words (Wh-)"
+  - "Prepositions of place"
+  - "Plus a 'Custom…' option"
+- Selecting a template prefills the `userPrompt` textarea AND sends a `templateId` + `grammarFocus` field to the edge function.
+- Edge function appends template-specific guardrails to the system prompt (e.g., "All MCQ stems must use past simple regular verbs ending in -ed").
+- Optional convenience: a **"Apply to next N slides"** numeric input (1–5). When >1, the client loops the same generation request across the next N game slides of the same `slide_type`, awaiting each response sequentially.
 
-4. Fix story publication/opening behavior
-- Ensure published stories remain `ai_metadata.kind = 'story'`.
-- Ensure `/lesson/:id` reliably opens `StoryBookViewer` for story rows.
-- Optionally add an explicit “Preview Story Reader” button in the creator studio that opens `/lesson/{lesson_id}` so the teacher can verify the student-facing reader directly.
+---
 
-5. Improve comic panel asset handling
-- Update the media generation handoff for story slides so generated images can be assigned into `interactive_data.panels[0].image_url` when only one image is generated per slide.
-- For future paneled generation, prepare the data shape so per-panel image generation can be added without changing the viewer API.
+## B. Lesson Structure: Title Slide + Deep Grammar + Color-Coding
 
-Files expected to change:
-- `src/components/creator-studio/CreatorContext.tsx`
-- `src/components/creator-studio/StudioHeader.tsx`
-- `src/components/creator-studio/steps/StoryCreator.tsx`
-- `src/components/creator-studio/steps/LibraryManager.tsx`
-- `src/components/creator-studio/steps/slide-studio/SlideStudio.tsx`
-- `src/pages/student/LessonReaderPage.tsx`
-- Possibly a new shared helper file such as `src/components/student/story-viewer/storyPageUtils.ts`
+### B1. Update AI schema in `ai-core` (`handleGenerateLesson` + `handleGenerateTrialLesson`)
+- Force the **first slide** to be `slide_type: "title_page"` with shape:
+  ```
+  { "slide_type": "title_page", "title": "...", "subtitle": "...",
+    "image_generation_prompt": "...", "phase": "warm-up" }
+  ```
+- Add `slide_type: "grammar_explanation"` to the schema and require these `interactive_data` fields:
+  ```
+  { "rule_text": "...",
+    "formula": "Subject + Verb + Object",
+    "explanation": "<plain-English rule>",
+    "examples": ["<sentence 1>", "<sentence 2>", "<sentence 3>"],
+    "common_signals": "yesterday, last week, ago" }
+  ```
+  Min 3 examples enforced in prompt.
+- Color-coding instruction added to both system prompts:
+  > When writing a `formula`, an `example` sentence, or any text inside a `grammar_explanation` slide, you MUST wrap parts of speech in HTML span tags using EXACTLY these classes:
+  > - `<span class="text-blue-600 font-bold">…</span>` for Subjects/Nouns/Pronouns
+  > - `<span class="text-red-600 font-bold">…</span>` for Verbs
+  > - `<span class="text-green-600 font-bold">…</span>` for Adjectives
+  > Output `class=` (not `className=`) — it's HTML.
 
-Validation after implementation:
-- Generate a new story and confirm `/content-creator/slide-builder` no longer looks like generic lesson slides.
-- Confirm the current story row stays `ai_metadata.kind = 'story'` after Save Draft and Publish.
-- Open `/lesson/:id` for a story and confirm `StoryBookViewer` renders.
-- Verify `comic_western` uses comic panels/speech bubbles, Playground default uses Picture Book, and Academy default uses Comic Spread.
+### B2. Frontend renderers
+
+**Title Page renderer** — already exists as `FrontPageSlide.tsx` and is wired in `DynamicSlideRenderer.tsx` for `directorType === 'front_page'`. Add an alias so the new AI emits `slide_type: "title_page"` and the renderer matches:
+```ts
+if (directorType === 'front_page' || directorType === 'title_page') { ... }
+```
+Pass `subtitle` through to `FrontPageSlide` (extend its props with optional `subtitle` rendered under the H1).
+
+**Grammar renderer** — upgrade `EditorialGrammar.tsx`:
+- Render `formula` in a dedicated highlighted box (mono font, slate-50, large).
+- Render `examples` as a vertical stack of cards.
+- Use safe HTML rendering for `formula`, each `example`, `rule_text`, and `explanation` so the colored spans appear:
+  - Add a tiny inline sanitizer that allows ONLY `<span class="text-blue-600 font-bold|text-red-600 font-bold|text-green-600 font-bold">…</span>` and strips everything else, then injects via `dangerouslySetInnerHTML`.
+  - No new dependency; sanitizer is ~20 lines of regex-based whitelist (faster review than adding `html-react-parser`).
+- Show `common_signals` in the existing amber callout (already present).
+
+### B3. Lesson player container
+- `LessonPlayerContainer` already iterates slides and delegates to `DynamicSlideRenderer`. No changes needed beyond the alias above.
+
+---
+
+## Files to edit
+
+- `supabase/functions/ai-slide-game-generator/index.ts` — difficulty, required thumbnail keywords, template/grammarFocus handling.
+- `supabase/functions/ai-core/index.ts` — `handleGenerateLesson` + `handleGenerateTrialLesson` prompts: enforce title_page, deep grammar_explanation, color-coding rules.
+- `src/components/creator-studio/steps/slide-studio/TeacherControlsPanel.tsx` — extend `GameAIGenerator` with Difficulty, CEFR override, Template dropdown, and "Apply to next N slides" loop.
+- `src/components/lesson-player/DynamicSlideRenderer.tsx` — add `title_page` alias next to `front_page`.
+- `src/components/lesson-player/editorial/FrontPageSlide.tsx` — add optional `subtitle` prop + render.
+- `src/components/lesson-player/editorial/EditorialGrammar.tsx` — formula box, 3-example layout, safe HTML rendering for color-coded spans.
+
+## Out of scope (not changing)
+
+- Existing PPP / editorial slide types and other generators (`ai-lesson-generator`, batch orchestrators) — they keep working unchanged.
+- No new npm dependencies.

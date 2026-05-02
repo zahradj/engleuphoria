@@ -518,6 +518,7 @@ ${objectives.length ? `Objectives:\n- ${objectives.join('\n- ')}` : ''}
 Return ONLY JSON in this exact shape:
 {
   "title": "<lesson title>",
+  "subtitle": "<one-sentence hook displayed under the title on the cover>",
   "level": "${level}",
   "objectives": ["<objective 1>", "<objective 2>", "<objective 3>"],
   "warm_up": "<2-3 sentence warm-up>",
@@ -569,12 +570,19 @@ async function handleGenerateTrialLesson(body: any) {
     ? 'refined, professional, executive-coach tone'
     : 'energetic teen-friendly academic tone';
 
-  const systemPrompt = `You are designing a 30-minute Trial English Lesson. It must be highly engaging and shorter than standard lessons.
-Limit the output to exactly 6 to 8 slides max.
-Slide 1: Icebreaker/Hook. Slide 2-3: Quick Vocabulary Win. Slide 4-5: Interactive Speaking/Roleplay. Slide 6: Wrap-up and Celebration.
+  const systemPrompt = `You are designing a 30-minute Trial English Lesson. It must be highly engaging.
+The output MUST be 7 to 9 slides total — the FIRST slide is ALWAYS a title_page cover, then 6-8 content slides.
+Slide 1 (REQUIRED): title_page (cover). Slide 2: Hook/Icebreaker. Slides 3-4: Vocabulary or Grammar (include at least one grammar_explanation if any grammar is taught). Slides 5-6: Interactive Speaking/Roleplay. Final slide: Wrap-up/Celebration.
 Tone: ${tone} based on demographic.
 Align language and complexity strictly to CEFR ${cefr_level}.
-You MUST return ONLY valid JSON. No markdown, no commentary.`;
+You MUST return ONLY valid JSON. No markdown, no commentary.
+
+GRAMMAR COLOR-CODING (mandatory inside every grammar_explanation slide — formula, rule_text, examples, explanation):
+Wrap parts of speech in HTML span tags using EXACTLY these classes (write class=, NOT className=):
+  <span class="text-blue-600 font-bold">…</span>  for Subjects / Nouns / Pronouns
+  <span class="text-red-600 font-bold">…</span>   for Verbs (including auxiliaries)
+  <span class="text-green-600 font-bold">…</span> for Adjectives
+Example: "<span class=\\"text-blue-600 font-bold\\">She</span> <span class=\\"text-red-600 font-bold\\">runs</span> <span class=\\"text-green-600 font-bold\\">quickly</span>."`;
 
   const userPrompt = `Theme: "${theme}"
 Demographic: ${demographic}
@@ -583,13 +591,15 @@ CEFR: ${cefr_level}
 Return ONLY this JSON shape:
 {
   "lesson_title": "<short, catchy title>",
+  "lesson_subtitle": "<one-sentence engaging hook for the cover>",
   "target_goal": "<1-sentence goal>",
   "target_vocabulary": ["<word1>", "<word2>", "<word3>", "<word4>", "<word5>"],
   "slides": [
     {
       "phase": "warm-up" | "presentation" | "practice" | "production" | "review",
-      "slide_type": "text_image" | "multiple_choice" | "flashcard" | "drag_and_match" | "drag_and_drop" | "fill_in_the_gaps" | "mascot_speech",
+      "slide_type": "title_page" | "text_image" | "multiple_choice" | "flashcard" | "drag_and_match" | "drag_and_drop" | "fill_in_the_gaps" | "mascot_speech" | "grammar_explanation",
       "title": "<slide title>",
+      "subtitle": "<only for title_page — engaging one-liner>",
       "content": "<student-facing text>",
       "teacher_script": "<what the teacher says aloud>",
       "visual_keyword": "<2-3 words for an illustration>",
@@ -601,13 +611,14 @@ Return ONLY this JSON shape:
 }
 
 Rules:
-- Exactly 6 to 8 slides total.
-- Slide 1 = Hook (warm-up). Slides 2-3 = Vocabulary (presentation, with flashcard or text_image). Slides 4-5 = Speaking/Roleplay (production, with mascot_speech or multiple_choice). Last slide = Wrap-up/Celebration (review).
+- Slide 1 MUST be { "slide_type": "title_page", "phase": "warm-up", "title": "...", "subtitle": "...", "image_generation_prompt": "<cinematic cover image prompt>", "interactive_data": null }. The title_page has NO interactive content.
+- Total slides 7-9 (Slide 1 cover + 6-8 content slides).
 - For multiple_choice slides, set interactive_data = { "question": "...", "options": ["A","B","C","D"], "correct_index": 0 }.
 - For flashcard slides, set interactive_data = { "front": "...", "back": "..." }.
-- For drag_and_match (two-column matcher: left ↔ right), set interactive_data = { "instruction": "...", "pairs": [{ "left_item": "...", "right_item": "..." }] }.
-- For drag_and_drop (sorting/categorization: drop items into category zones), set interactive_data = { "instruction": "Drag each item into the correct category.", "pairs": [{ "draggable": "Apple", "target_zone": "Fruit", "image_url": "https://..." }, { "draggable": "Carrot", "target_zone": "Vegetable", "image_url": "https://..." }] }. The "image_url" field is OPTIONAL — include it only when you have a real, publicly reachable image URL for that draggable (otherwise omit it and the renderer will auto-generate a vector illustration). Use 2-3 distinct target_zones and 4-6 draggable items total. Prefer drag_and_drop for vocabulary categorization (animals vs objects, fruits vs vegetables, verbs vs nouns, etc.) and drag_and_match for 1-to-1 pairing (word ↔ definition, English ↔ translation).
+- For drag_and_match (two-column matcher: left ↔ right), set interactive_data = { "instruction": "...", "pairs": [{ "left_item": "...", "right_item": "...", "left_thumbnail_keyword": "<noun>", "right_thumbnail_keyword": "<noun>" }] }. The keyword fields are REQUIRED — one concrete noun per card so an icon can be rendered.
+- For drag_and_drop (sorting/categorization), set interactive_data = { "instruction": "Drag each item into the correct category.", "pairs": [{ "draggable": "Apple", "target_zone": "Fruit", "image_url": "https://..." }, { "draggable": "Carrot", "target_zone": "Vegetable" }] }. The "image_url" field is OPTIONAL. Use 2-3 distinct target_zones and 4-6 draggables.
 - For fill_in_the_gaps, set interactive_data = { "instruction": "...", "sentence_parts": ["before _ ", " after"], "missing_word": "...", "distractors": ["...","..."] }.
+- For grammar_explanation, set interactive_data = { "rule_text": "<plain rule>", "formula": "<color-coded formula, e.g. <span class=\\"text-blue-600 font-bold\\">Subject</span> + <span class=\\"text-red-600 font-bold\\">Verb</span> + <span class=\\"text-blue-600 font-bold\\">Object</span>>", "explanation": "<plain-English explanation>", "examples": ["<color-coded sentence 1>", "<color-coded sentence 2>", "<color-coded sentence 3>"], "common_signals": "<optional signal words>" }. examples MUST contain AT LEAST 3 distinct sentences, each color-coded.
 - Difficulty per slide MUST be calibrated to the lesson's CEFR level: A1/A2 → mostly "easy" with at most one "medium"; B1/B2 → mostly "medium" with one "easy" warm-up and one "hard" production task; C1/C2 → mostly "hard" with one "medium" scaffolding slide. Never label an A1 slide "hard" or a C1 slide "easy".
 `;
 
@@ -631,7 +642,7 @@ Rules:
       return jsonResponse({ error: 'AI returned an unparseable trial lesson.' }, 502);
     }
     // Enforce 6-8 slides
-    if (lesson.slides.length > 8) lesson.slides = lesson.slides.slice(0, 8);
+    if (lesson.slides.length > 9) lesson.slides = lesson.slides.slice(0, 9);
     return jsonResponse({ lesson, provider: ai.provider });
   } catch (e: any) {
     if (e?.status === 429) return jsonResponse({ error: 'Rate limited — try again shortly.' }, 429);
