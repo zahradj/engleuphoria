@@ -125,9 +125,13 @@ export async function saveToLibrary(
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData?.user?.id;
 
+  // Standalone lesson save: this isn't part of a numbered blueprint slot
+  // (no unit_number/lesson_number), so a plain INSERT is correct. The
+  // blueprint slot UNIQUE constraint only applies when all slot_* columns
+  // are populated, and we don't want to dedupe one-off saves anyway.
   const { data, error } = await supabase
     .from('curriculum_lessons')
-    .upsert({
+    .insert({
       title: topic,
       description: `AI-generated ${hub} lesson on "${topic}"`,
       target_system: hub,
@@ -138,10 +142,7 @@ export async function saveToLibrary(
       is_published: true,
       created_by: userId || null,
       ai_metadata: { hub, level, cefr_level: level, slideCount: slides.length },
-    } as any, {
-      onConflict: 'created_by,target_system,slot_cefr_level,slot_unit_number,slot_lesson_number',
-      ignoreDuplicates: false,
-    })
+    } as any)
     .select()
     .single();
 
