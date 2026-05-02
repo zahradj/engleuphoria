@@ -9736,6 +9736,131 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_logs_teacher_safe: {
+        Row: {
+          created_at: string | null
+          email_sent_at: string | null
+          id: string | null
+          status: string | null
+          student_id: string | null
+          template_name: string | null
+          unit_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email_sent_at?: string | null
+          id?: string | null
+          status?: string | null
+          student_id?: string | null
+          template_name?: string | null
+          unit_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email_sent_at?: string | null
+          id?: string | null
+          status?: string | null
+          student_id?: string | null
+          template_name?: string | null
+          unit_id?: string | null
+        }
+        Relationships: []
+      }
+      teacher_profiles_public: {
+        Row: {
+          accent: string | null
+          availability_schedule: Json | null
+          bio: string | null
+          can_teach: boolean | null
+          certificate_urls: string[] | null
+          created_at: string | null
+          hourly_rate_dzd: number | null
+          hourly_rate_eur: number | null
+          hub_role: string | null
+          id: string | null
+          intro_video_url: string | null
+          is_available: boolean | null
+          languages_spoken: string[] | null
+          profile_approved_by_admin: boolean | null
+          profile_complete: boolean | null
+          profile_image_url: string | null
+          rating: number | null
+          specializations: string[] | null
+          timezone: string | null
+          total_reviews: number | null
+          updated_at: string | null
+          user_id: string | null
+          video_status: string | null
+          video_url: string | null
+          welcome_shown: boolean | null
+          years_experience: number | null
+        }
+        Insert: {
+          accent?: string | null
+          availability_schedule?: Json | null
+          bio?: string | null
+          can_teach?: boolean | null
+          certificate_urls?: string[] | null
+          created_at?: string | null
+          hourly_rate_dzd?: number | null
+          hourly_rate_eur?: number | null
+          hub_role?: string | null
+          id?: string | null
+          intro_video_url?: string | null
+          is_available?: boolean | null
+          languages_spoken?: string[] | null
+          profile_approved_by_admin?: boolean | null
+          profile_complete?: boolean | null
+          profile_image_url?: string | null
+          rating?: number | null
+          specializations?: string[] | null
+          timezone?: string | null
+          total_reviews?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          video_status?: string | null
+          video_url?: string | null
+          welcome_shown?: boolean | null
+          years_experience?: number | null
+        }
+        Update: {
+          accent?: string | null
+          availability_schedule?: Json | null
+          bio?: string | null
+          can_teach?: boolean | null
+          certificate_urls?: string[] | null
+          created_at?: string | null
+          hourly_rate_dzd?: number | null
+          hourly_rate_eur?: number | null
+          hub_role?: string | null
+          id?: string | null
+          intro_video_url?: string | null
+          is_available?: boolean | null
+          languages_spoken?: string[] | null
+          profile_approved_by_admin?: boolean | null
+          profile_complete?: boolean | null
+          profile_image_url?: string | null
+          rating?: number | null
+          specializations?: string[] | null
+          timezone?: string | null
+          total_reviews?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          video_status?: string | null
+          video_url?: string | null
+          welcome_shown?: boolean | null
+          years_experience?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       can_access_booking_session: {
