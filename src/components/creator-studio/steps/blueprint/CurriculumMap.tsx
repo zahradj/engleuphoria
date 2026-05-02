@@ -104,7 +104,7 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
       const { data: inserted, error } = await supabase
         .from('curriculum_lessons')
         .upsert(lessonsToInsert as any, {
-          onConflict: 'created_by,target_system,((ai_metadata->>\'cefr_level\')),((ai_metadata->>\'unit_number\')),((ai_metadata->>\'lesson_number\'))',
+          onConflict: 'created_by,target_system,slot_cefr_level,slot_unit_number,slot_lesson_number',
           ignoreDuplicates: false,
         })
         .select('id, title');
