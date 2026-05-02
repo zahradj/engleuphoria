@@ -73,15 +73,19 @@ export function CertificateViewer({ certificateId, open, onClose }: CertificateV
   };
 
   const handleDownload = () => {
-    const printWindow = window.open('', '_blank');
-    if (printWindow && certificateHtml) {
-      printWindow.document.write(certificateHtml);
-      printWindow.document.close();
-      printWindow.focus();
+    if (!certificateHtml) return;
+    // Use a Blob URL instead of document.write() so the certificate HTML
+    // is rendered in its own origin and cannot execute scripts in this page.
+    const blob = new Blob([certificateHtml], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const printWindow = window.open(url, '_blank');
+    if (printWindow) {
       setTimeout(() => {
-        printWindow.print();
-      }, 500);
+        try { printWindow.print(); } catch { /* user can print manually */ }
+      }, 800);
     }
+    // Revoke after a generous delay to allow rendering/printing.
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
   };
 
   const handleShare = async () => {

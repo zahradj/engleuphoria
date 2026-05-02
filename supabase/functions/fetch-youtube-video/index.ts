@@ -2,6 +2,7 @@
 // Applies hub-aware SafeSearch + duration filters from the AI Art Director profile.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { HUB_ART_PROFILES, normalizeArtHub } from "../_shared/hubArtStyles.ts";
+import { requireAuth } from "../_shared/authGuard.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -30,6 +31,13 @@ function isoDurationToSeconds(iso?: string): number {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  const auth = await requireAuth(req, { allowedRoles: ['admin', 'content_creator', 'teacher'] });
+  if (!auth.ok) {
+    return new Response(JSON.stringify(auth.body), {
+      status: auth.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
 
   try {
     const { query, hub, maxResults = 5 } = await req.json();

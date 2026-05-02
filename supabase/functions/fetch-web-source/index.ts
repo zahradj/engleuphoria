@@ -1,5 +1,7 @@
 // Fetch and clean text from a URL via Firecrawl, for source-grounded
 // Lesson Blueprint generation (NotebookLM-style).
+import { requireAuth } from "../_shared/authGuard.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -9,8 +11,35 @@ const corsHeaders = {
 const FIRECRAWL_V2 = "https://api.firecrawl.dev/v2";
 const MAX_CHARS = 12000; // keep payload Gemini-friendly
 
+// SSRF guard: block private/loopback/link-local hostnames and IPs.
+function isBlockedHost(host: string): boolean {
+  const h = host.toLowerCase();
+  if (!h || h === "localhost" || h.endsWith(".local") || h.endsWith(".internal")) return true;
+  // Block explicit IPv4 in private/link-local/loopback ranges
+  const ipv4 = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (ipv4) {
+    const [a, b] = [parseInt(ipv4[1]), parseInt(ipv4[2])];
+    if (a === 10) return true;
+    if (a === 127) return true;
+    if (a === 169 && b === 254) return true; // link-local / cloud metadata
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && b === 168) return true;
+    if (a === 0) return true;
+  }
+  // Block IPv6 loopback and unique-local
+  if (h === "::1" || h.startsWith("fc") || h.startsWith("fd") || h.startsWith("fe80")) return true;
+  return false;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  const auth = await requireAuth(req, { allowedRoles: ['admin', 'content_creator', 'teacher'] });
+  if (!auth.ok) {
+    return new Response(JSON.stringify(auth.body), {
+      status: auth.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
 
   try {
     const { url } = await req.json().catch(() => ({} as any));
@@ -18,6 +47,20 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Valid http(s) url is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    let parsed: URL;
+    try {
+      parsed = new URL(url);
+    } catch {
+      return new Response(JSON.stringify({ error: "Malformed URL" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (isBlockedHost(parsed.hostname)) {
+      return new Response(JSON.stringify({ error: "Refusing to fetch internal/private URL" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 

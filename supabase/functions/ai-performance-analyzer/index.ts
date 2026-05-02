@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { aiFetch } from "../_shared/aiFetch.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { requireAuth } from "../_shared/authGuard.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -37,6 +38,13 @@ interface ClassInsight {
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  const auth = await requireAuth(req, { allowedRoles: ['admin', 'teacher'] });
+  if (!auth.ok) {
+    return new Response(JSON.stringify(auth.body), {
+      status: auth.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 
   try {
