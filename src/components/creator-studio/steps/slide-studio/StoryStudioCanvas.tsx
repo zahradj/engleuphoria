@@ -199,7 +199,7 @@ export const StoryStudioCanvas: React.FC = () => {
   return (
     <div className="h-full w-full flex flex-col bg-slate-950">
       {/* Top action bar */}
-      <div className="shrink-0 flex items-center justify-between gap-3 px-4 py-2 bg-slate-900 border-b border-white/10">
+      <div className="relative z-[60] shrink-0 flex items-center justify-between gap-3 px-4 py-2 bg-slate-900 border-b border-white/10">
         <div className="flex items-center gap-2 min-w-0 text-white/90">
           <BookOpen className="h-4 w-4 text-fuchsia-300" />
           <span className="text-xs font-bold uppercase tracking-[0.2em] text-fuchsia-200/80">
