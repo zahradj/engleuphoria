@@ -180,12 +180,17 @@ serve(async (req) => {
 
     const results = await processBatches(slides, PARALLEL, worker);
 
+    const panelImages = results.reduce(
+      (n, r) => n + (Array.isArray(r.panels) ? r.panels.filter((p) => p.image_url).length : 0),
+      0,
+    );
     const summary = {
       total: results.length,
-      images: results.filter((r) => r.custom_image_url).length,
+      images: results.filter((r) => r.custom_image_url).length + panelImages,
       videos: results.filter((r) => r.youtube_video_id).length,
       skipped: results.filter((r) => r.skipped).length,
-      errors: results.filter((r) => r.error).length,
+      errors: results.filter((r) => r.error).length
+        + results.reduce((n, r) => n + (Array.isArray(r.panels) ? r.panels.filter((p) => p.error).length : 0), 0),
     };
 
     return new Response(JSON.stringify({ results, summary }), {
