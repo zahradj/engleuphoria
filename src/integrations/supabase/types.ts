@@ -9505,6 +9505,7 @@ export type Database = {
           full_name: string
           id: string
           payment_locked: boolean | null
+          preferred_language: string
           primary_organization_id: string | null
           referral_code: string | null
           referred_by: string | null
@@ -9523,6 +9524,7 @@ export type Database = {
           full_name: string
           id: string
           payment_locked?: boolean | null
+          preferred_language?: string
           primary_organization_id?: string | null
           referral_code?: string | null
           referred_by?: string | null
@@ -9541,6 +9543,7 @@ export type Database = {
           full_name?: string
           id?: string
           payment_locked?: boolean | null
+          preferred_language?: string
           primary_organization_id?: string | null
           referral_code?: string | null
           referred_by?: string | null
