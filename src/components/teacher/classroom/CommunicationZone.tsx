@@ -94,8 +94,76 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
     }
   };
 
+  if (collapsed) {
+    return (
+      <div className="w-14 bg-white/80 backdrop-blur-sm border-r border-gray-200/60 flex flex-col items-center py-3 gap-3 shrink-0">
+        <button
+          onClick={onToggleCollapsed}
+          className="h-8 w-8 rounded-full bg-purple-100 hover:bg-purple-200 text-purple-800 flex items-center justify-center transition-colors"
+          title="Expand video & chat"
+          aria-label="Expand sidebar"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
+        <div className="relative h-12 w-12 rounded-full overflow-hidden border-2 border-purple-300 bg-gray-900">
+          {remoteStream ? (
+            <video
+              ref={studentVideoRef}
+              autoPlay
+              playsInline
+              muted
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-100">
+              <User className="w-5 h-5 text-gray-400" />
+            </div>
+          )}
+          <span className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-white ${isRemoteConnected ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+        </div>
+        <div className="relative h-10 w-10 rounded-full overflow-hidden border border-gray-300 bg-gray-100">
+          {isVideoConnected && localStream && !isLocalCameraOff ? (
+            <video
+              ref={teacherVideoRef}
+              autoPlay
+              muted
+              playsInline
+              className="w-full h-full object-cover mirror"
+              style={{ transform: 'scaleX(-1)' }}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <User className="w-4 h-4 text-gray-400" />
+            </div>
+          )}
+        </div>
+        <button
+          onClick={onToggleCollapsed}
+          className="mt-auto h-8 w-8 rounded-full bg-purple-100 hover:bg-purple-200 text-purple-800 flex items-center justify-center transition-colors"
+          title="Open chat"
+          aria-label="Open chat"
+        >
+          <MessageSquare className="h-4 w-4" />
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-80 glass-panel border-r border-gray-200/50 flex flex-col shrink-0">
+    <div className="w-72 bg-white/80 backdrop-blur-sm border-r border-gray-200/60 flex flex-col shrink-0">
+      {onToggleCollapsed && (
+        <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200/60">
+          <span className="text-xs font-semibold uppercase tracking-wider text-purple-800">Live</span>
+          <button
+            onClick={onToggleCollapsed}
+            className="h-7 w-7 rounded-full hover:bg-purple-100 text-purple-800 flex items-center justify-center transition-colors"
+            title="Collapse sidebar"
+            aria-label="Collapse sidebar"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+        </div>
+      )}
       {/* Video Containers */}
       <div className="p-3 space-y-3">
         {/* Screen Share Preview (if active) */}
