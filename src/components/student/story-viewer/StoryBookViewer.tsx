@@ -841,6 +841,7 @@ interface BookViewerProps {
   onPlay: () => void;
   mcqAnswered: Record<number, number>;
   setMcqAnswered: React.Dispatch<React.SetStateAction<Record<number, number>>>;
+  embedded?: boolean;
 }
 
 const PictureBookViewer: React.FC<BookViewerProps> = ({
@@ -854,6 +855,7 @@ const PictureBookViewer: React.FC<BookViewerProps> = ({
   onPlay,
   mcqAnswered,
   setMcqAnswered,
+  embedded,
 }) => {
   const total = pages.length;
   const page = pages[pageIndex];
