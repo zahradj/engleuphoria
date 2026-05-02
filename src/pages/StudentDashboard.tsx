@@ -17,7 +17,7 @@ import { PlacementGatekeeper } from "@/components/student/PlacementGatekeeper";
 // Lazy load components to improve initial load time
 import { MinimalStudentHeader } from "@/components/student/MinimalStudentHeader";
 import { StudentSidebar } from "@/components/student/StudentSidebar";
-import { LearningPathTab } from "@/components/student/LearningPathTab";
+
 import { TeachersTab } from "@/components/student/TeachersTab";
 import { UpcomingClassesTab } from "@/components/student/UpcomingClassesTab";
 import { SpeakingPracticeTab } from "@/components/student/speaking/SpeakingPracticeTab";
