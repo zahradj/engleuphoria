@@ -35,14 +35,17 @@ export function ProfileCompletionBanner() {
         supabase.from('users').select('avatar_url, phone').eq('id', user.id).maybeSingle(),
         supabase
           .from('student_profiles')
-          .select('profile_completion_dismissed_at')
+          .select('profile_completion_dismissed_at, placement_test_completed_at')
           .eq('user_id', user.id)
           .maybeSingle(),
       ]);
       if (cancelled) return;
       const completed = Boolean(u?.avatar_url) && Boolean(u?.phone);
       const dismissed = Boolean(sp?.profile_completion_dismissed_at);
-      setHidden(completed || dismissed);
+      // Hide for newly-assessed students — the dashboard should feel
+      // "ready to go" right after the placement test, not nag them.
+      const justAssessed = Boolean(sp?.placement_test_completed_at);
+      setHidden(completed || dismissed || justAssessed);
     })();
 
     return () => {

@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { AcademySkeleton } from '@/components/shared/DashboardSkeleton';
 import { useLiveClassroomStatus } from '@/hooks/useLiveClassroomStatus';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { useStudentLanguageSync } from '@/hooks/useStudentLanguageSync';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { LiveSessionBadge } from '@/components/shared/LiveSessionBadge';
 import { 
   Home, BookOpen, Calendar, Trophy, User, 
@@ -54,12 +56,33 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
   const [activeTab, setActiveTab] = useState<TabId>('home');
   const [leaderboardPeriod, setLeaderboardPeriod] = useState<'weekly' | 'monthly' | 'all'>('weekly');
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [cefrLevel, setCefrLevel] = useState<string | null>(null);
   const { data: lessons = [], isLoading } = useCurriculumLessons('teen');
   const liveStatus = useLiveClassroomStatus('student');
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
   const { t } = useTranslation();
+  const { user } = useAuth();
   useStudentLanguageSync();
+
+  // Pull the CEFR level computed by the placement test so the banner can
+  // surface the actual proficiency band (A2 / B1) instead of an abstract
+  // "Level 5" XP tier.
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('student_profiles')
+        .select('final_cefr_level, cefr_level')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      const lvl = (data?.final_cefr_level || data?.cefr_level || '').toString().toUpperCase();
+      setCefrLevel(lvl || null);
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   const schedule = [
     { day: 'Mon', time: '3:00 PM', subject: 'Grammar', color: isDark ? 'bg-indigo-900/50 text-indigo-300' : 'bg-indigo-50 text-indigo-700' },
@@ -84,24 +107,9 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
 
   return (
     <div className="relative space-y-6">
-      {/* ═══════════ HEADER BAR — GLASSMORPHIC ═══════════ */}
-      <motion.div
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="glass-card-hub glass-academy flex items-center justify-end px-5 py-3 backdrop-blur-xl"
-      >
-        <div className="flex items-center gap-3">
-          <div className={cn(
-            'flex items-center gap-1.5 px-3 py-1.5 rounded-full',
-            isDark ? 'bg-orange-900/30 border border-orange-500/30' : 'bg-orange-50 border border-orange-200'
-          )}>
-            <Flame className="w-4 h-4 text-orange-500" fill="currentColor" />
-            <span className={cn('font-semibold text-sm', isDark ? 'text-orange-300' : 'text-orange-600')}>{currentStreak}</span>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* ═══════════ HERO WELCOME — GLASSMORPHIC ═══════════ */}
+      {/* ═══════════ HERO WELCOME — GLASSMORPHIC ═══════════
+          Streak chip is folded into the hero so we don't render
+          a near-empty header bar above it. */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -109,22 +117,51 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
         className="glass-card-hub glass-academy p-6 backdrop-blur-md relative overflow-hidden"
       >
         <div className="absolute inset-0 bg-gradient-to-r from-[#6B21A8]/10 via-[#A855F7]/10 to-transparent pointer-events-none" />
-        <div className="relative flex items-center justify-between">
-          <div>
+        <div className="relative flex items-start justify-between gap-4">
+          <div className="min-w-0">
             <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#6B21A8] to-[#A855F7] bg-clip-text text-transparent">
               {t('sd.welcomeBack', { name: studentName, defaultValue: 'Welcome back, {{name}}' })} 📚
             </h1>
-            <p className={cn('text-sm mt-1', textSecondary)}>
-              {t('sd.subtitleAcademy', { level, xp: totalXp.toLocaleString(), defaultValue: 'Level {{level}} · {{xp}} XP — Keep pushing forward!' })}
-            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              {cefrLevel && (
+                <span
+                  aria-label={`CEFR level ${cefrLevel}`}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-[#6B21A8] to-[#A855F7] text-white text-xs font-bold tracking-wide shadow-sm"
+                >
+                  <Trophy className="w-3.5 h-3.5" />
+                  CEFR {cefrLevel}
+                </span>
+              )}
+              <p className={cn('text-sm', textSecondary)}>
+                {cefrLevel
+                  ? t('sd.subtitleAcademyCefr', {
+                      xp: totalXp.toLocaleString(),
+                      defaultValue: '{{xp}} XP — Keep pushing forward!',
+                    })
+                  : t('sd.subtitleAcademy', {
+                      level,
+                      xp: totalXp.toLocaleString(),
+                      defaultValue: 'Level {{level}} · {{xp}} XP — Keep pushing forward!',
+                    })}
+              </p>
+            </div>
           </div>
-          <motion.div
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 3, repeat: Infinity }}
-            className="text-4xl hidden md:block"
-          >
-            🎓
-          </motion.div>
+          <div className="flex items-center gap-3 shrink-0">
+            <div className={cn(
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-full',
+              isDark ? 'bg-orange-900/30 border border-orange-500/30' : 'bg-orange-50 border border-orange-200'
+            )}>
+              <Flame className="w-4 h-4 text-orange-500" fill="currentColor" />
+              <span className={cn('font-semibold text-sm', isDark ? 'text-orange-300' : 'text-orange-600')}>{currentStreak}</span>
+            </div>
+            <motion.div
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 3, repeat: Infinity }}
+              className="text-4xl hidden md:block"
+            >
+              🎓
+            </motion.div>
+          </div>
         </div>
       </motion.div>
 
