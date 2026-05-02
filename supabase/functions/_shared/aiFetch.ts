@@ -69,6 +69,33 @@ async function fallbackGatewayToGemini(originalBody: any): Promise<Response> {
     geminiBody.generationConfig.responseMimeType = "application/json";
   }
 
+  // ─── Tool / function-calling translation (OpenAI → Gemini) ───
+  // Many of our edge functions use `tools` + `tool_choice` to force
+  // structured JSON output. Translate that into Gemini's functionDeclarations
+  // so the failover path produces the same shape the caller expects.
+  let forcedToolName: string | null = null;
+  if (Array.isArray(originalBody.tools) && originalBody.tools.length > 0) {
+    geminiBody.tools = [{
+      functionDeclarations: originalBody.tools
+        .filter((t: any) => t?.type === "function" && t.function)
+        .map((t: any) => ({
+          name: t.function.name,
+          description: t.function.description || "",
+          parameters: t.function.parameters || { type: "object", properties: {} },
+        })),
+    }];
+    if (originalBody.tool_choice?.type === "function" && originalBody.tool_choice.function?.name) {
+      forcedToolName = originalBody.tool_choice.function.name;
+      geminiBody.toolConfig = {
+        functionCallingConfig: { mode: "ANY", allowedFunctionNames: [forcedToolName] },
+      };
+    }
+    // Tool-mode + responseMimeType=json are mutually exclusive in Gemini.
+    if (geminiBody.generationConfig.responseMimeType) {
+      delete geminiBody.generationConfig.responseMimeType;
+    }
+  }
+
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${apiKey}`;
   const resp = await fetch(url, {
     method: "POST",
@@ -81,8 +108,25 @@ async function fallbackGatewayToGemini(originalBody: any): Promise<Response> {
     throw new Error(`Failover (gemini-direct) failed: ${resp.status} ${errText}`);
   }
   const data = await resp.json();
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-  // Repackage as OpenAI Chat Completion shape
+  const parts = data.candidates?.[0]?.content?.parts || [];
+  const text = parts.map((p: any) => p.text || "").filter(Boolean).join("") || "";
+
+  // Translate Gemini functionCall → OpenAI tool_calls so callers reading
+  // `choices[0].message.tool_calls[0].function.arguments` keep working.
+  const functionCallPart = parts.find((p: any) => p.functionCall);
+  const tool_calls = functionCallPart
+    ? [{
+        id: `call_${Date.now()}`,
+        type: "function" as const,
+        function: {
+          name: functionCallPart.functionCall.name,
+          arguments: typeof functionCallPart.functionCall.args === "string"
+            ? functionCallPart.functionCall.args
+            : JSON.stringify(functionCallPart.functionCall.args ?? {}),
+        },
+      }]
+    : undefined;
+
   const openaiShape = {
     id: `gemini-fallback-${Date.now()}`,
     object: "chat.completion",
@@ -91,8 +135,10 @@ async function fallbackGatewayToGemini(originalBody: any): Promise<Response> {
     choices: [
       {
         index: 0,
-        message: { role: "assistant", content: text },
-        finish_reason: "stop",
+        message: tool_calls
+          ? { role: "assistant", content: text, tool_calls }
+          : { role: "assistant", content: text },
+        finish_reason: tool_calls ? "tool_calls" : "stop",
       },
     ],
     usage: data.usageMetadata

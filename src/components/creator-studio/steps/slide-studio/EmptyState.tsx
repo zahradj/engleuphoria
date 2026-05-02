@@ -63,7 +63,10 @@ function toastEdgeError(status: number | undefined, message: string, fallback: s
     return;
   }
   if (status === 429) toast.error('Rate limit reached. Try again in a moment.');
-  else if (status === 402) toast.error('AI credits exhausted. Add funds in Workspace → Usage.');
+  else if (status === 402) toast.error('AI workspace balance exhausted', {
+    description: 'Add funds in Lovable → Settings → Workspace → Usage to keep generating lessons.',
+    duration: 10000,
+  });
   else toast.error(message || fallback);
 }
 
