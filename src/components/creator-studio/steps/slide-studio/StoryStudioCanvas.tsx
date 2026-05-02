@@ -321,7 +321,7 @@ export const StoryStudioCanvas: React.FC = () => {
         </div>
 
         {/* Right: per-slide editor */}
-        <aside className="w-[340px] xl:w-[360px] shrink-0 h-full overflow-y-auto border-l border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm">
+        <aside className="relative z-[60] w-[340px] xl:w-[360px] shrink-0 h-full overflow-y-auto border-l border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm">
           <div className="px-3 pt-3 pb-2 border-b border-slate-200 dark:border-slate-800">
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
               Story Pages
