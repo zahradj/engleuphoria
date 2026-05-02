@@ -22,7 +22,9 @@ interface Question {
   targetLevel: 'A1' | 'A2' | 'B1' | 'B2' | 'C1';
   feedback: { correct: string; incorrect: string };
   audio_script?: string;
-  type?: 'standard' | 'listening_match';
+  voice_id?: string;
+  image_url?: string;
+  type?: 'standard' | 'listening_match' | 'visual';
 }
 
 interface TestPhaseProps {
@@ -216,7 +218,7 @@ const TestPhase = ({ age, onComplete }: TestPhaseProps) => {
       let url = audioCacheRef.current.get(currentQIndex);
       if (!url) {
         const { data, error } = await supabase.functions.invoke('elevenlabs-tts', {
-          body: { text: q.audio_script },
+          body: { text: q.audio_script, voiceId: q.voice_id },
         });
         if (error) throw error;
         // supabase-js returns the body as a Blob for binary responses
