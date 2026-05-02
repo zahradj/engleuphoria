@@ -316,26 +316,6 @@ export function HeroSection() {
                 ))}
               </div>
 
-              {/* Floating card — Rating */}
-              <motion.div
-                className={`hidden sm:block absolute -left-4 top-8 lg:-left-12 backdrop-blur-xl rounded-2xl px-5 py-4 z-10 ${
-                  isDark
-                    ? 'bg-slate-900/80 border border-white/10 shadow-xl'
-                    : 'bg-white/90 border border-slate-200/60 shadow-xl shadow-slate-200/50'
-                }`}
-                animate={{ y: [0, -8, 0] }}
-                transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex -space-x-1.5">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                    ))}
-                  </div>
-                  <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>4.9/5</span>
-                </div>
-                <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{t('lp.hero.ratingReviews')}</p>
-              </motion.div>
 
               {/* Floating card — Free Trial */}
               <motion.div
