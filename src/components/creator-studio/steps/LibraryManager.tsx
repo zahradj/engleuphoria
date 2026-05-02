@@ -137,6 +137,7 @@ export const LibraryManager: React.FC = () => {
   const [confirmBulk, setConfirmBulk] = useState<'selected' | 'all' | null>(null);
   // ── Navigation / filter state ────────────────────────────────────
   const [hubFilter, setHubFilter] = useState<'all' | 'playground' | 'academy' | 'success'>('all');
+  const [kindFilter, setKindFilter] = useState<'all' | 'standard' | 'trial' | 'story'>('all');
   const [search, setSearch] = useState('');
   const [openHubs, setOpenHubs] = useState<Set<string>>(new Set(['playground', 'academy', 'success']));
   const [openLevels, setOpenLevels] = useState<Set<string>>(new Set());
@@ -347,18 +348,22 @@ export const LibraryManager: React.FC = () => {
     for (const g of levelGroups) {
       if (hubFilter !== 'all' && g.hub !== hubFilter) continue;
 
-      // Filter lessons inside each unit by search term
+      // Filter lessons inside each unit by search term + kind
       const filteredUnits = g.unitGroups
         .map((u) => ({
           ...u,
-          lessons: q
-            ? u.lessons.filter(
-                (l) =>
-                  l.title.toLowerCase().includes(q) ||
-                  (l.description ?? '').toLowerCase().includes(q) ||
-                  u.unit_title.toLowerCase().includes(q),
-              )
-            : u.lessons,
+          lessons: u.lessons.filter((l) => {
+            if (kindFilter !== 'all') {
+              const k = (l.ai_metadata?.kind as string | undefined) || 'standard';
+              if (k !== kindFilter) return false;
+            }
+            if (!q) return true;
+            return (
+              l.title.toLowerCase().includes(q) ||
+              (l.description ?? '').toLowerCase().includes(q) ||
+              u.unit_title.toLowerCase().includes(q)
+            );
+          }),
         }))
         .filter((u) => u.lessons.length > 0);
 
@@ -375,7 +380,7 @@ export const LibraryManager: React.FC = () => {
     return Array.from(byHub.entries())
       .map(([hub, levels]) => ({ hub, levels }))
       .sort((a, b) => (HUB_ORDER[a.hub] ?? 9) - (HUB_ORDER[b.hub] ?? 9));
-  }, [levelGroups, hubFilter, search]);
+  }, [levelGroups, hubFilter, kindFilter, search]);
 
   // Auto-open the first level inside each hub once data arrives (only once)
   useEffect(() => {
