@@ -22,11 +22,17 @@ class SlideErrorBoundary extends Component<{ children: ReactNode; slideId?: stri
   componentDidCatch(error: Error, info: any) { console.error('[SlideErrorBoundary] Slide crashed:', this.props.slideId, error, info); }
   render() {
     if (this.state.hasError) {
+      // Graceful degradation: render the slide's title + content as a hero card
+      // so the live class can keep flowing instead of seeing a scary error.
+      const slide: any = (this.props as any).slide;
+      const title = slide?.title || 'Slide';
+      const text = (typeof slide?.content === 'string' ? slide.content : slide?.content?.prompt || slide?.content?.text || slide?.teacher_script || '');
+      const img = slide?.imageUrl || slide?.image_url || slide?.custom_image_url || slide?.generated_image_url;
       return (
-        <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8 text-center">
-          <AlertTriangle className="w-12 h-12 mb-4 text-amber-500" />
-          <h3 className="text-lg font-semibold mb-2">Slide Data Error</h3>
-          <p className="text-sm max-w-md">The AI generated incomplete data for this activity. Please skip to the next slide.</p>
+        <div className="w-full h-full min-h-[420px] grid gap-6 content-center p-8 text-center">
+          {img && <img src={img} alt={title} className="mx-auto max-h-[280px] w-full max-w-2xl rounded-lg object-contain" />}
+          <h2 className="text-3xl md:text-4xl font-bold leading-tight text-foreground">{title}</h2>
+          {text && <p className="mx-auto max-w-2xl text-lg text-muted-foreground whitespace-pre-line">{text}</p>}
         </div>
       );
     }
