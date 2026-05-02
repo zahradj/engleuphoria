@@ -72,7 +72,7 @@ export const StoryCreator: React.FC = () => {
   const [cefrLevel, setCefrLevel] = useState<CEFRLevel>('B1');
   const [genre, setGenre] = useState<string>('Everyday Life');
   const [vocabInput, setVocabInput] = useState('');
-  const [layoutStyle, setLayoutStyle] = useState<'classic' | 'immersive'>('immersive');
+  const [visualStyle, setVisualStyle] = useState<'classic' | 'comic_western' | 'manga_rtl' | 'webtoon'>('classic');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
