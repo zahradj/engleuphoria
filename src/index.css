@@ -844,15 +844,15 @@
 /* Use HSL so we can compose with /opacity in Tailwind.          */
 /* ============================================================ */
 .theme-playground {
-  /* Bright sky blue background, sunshine yellow primary, ink text */
-  --hub-bg: 204 100% 97%;          /* #f0f9ff */
-  --hub-primary: 43 96% 56%;        /* #fbbf24 */
-  --hub-primary-foreground: 222 47% 11%;
-  --hub-text: 222 47% 11%;          /* #0f172a */
-  --hub-muted: 215 20% 65%;
+  /* Sunshine yellow wash, vibrant orange primary, sky-blue accent — bright & joyful */
+  --hub-bg: 56 95% 93%;             /* #FEFBDD warm cream-yellow */
+  --hub-primary: 18 99% 59%;        /* #FE6A2F bright orange */
+  --hub-primary-foreground: 0 0% 100%;
+  --hub-text: 222 47% 11%;          /* #0f172a ink */
+  --hub-muted: 215 20% 55%;
   --hub-card: 0 0% 100%;
-  --hub-accent: 43 96% 56%;
-  --hub-border: 43 96% 56%;
+  --hub-accent: 199 89% 60%;        /* #38bdf8 sky blue */
+  --hub-border: 18 99% 59%;         /* orange border by default */
 }
 
 .theme-academy {
