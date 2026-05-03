@@ -497,30 +497,23 @@ export default function LessonPlayerContainer({
         </div>
       </div>
 
-      {/* ── Centered Fluid App-Card — Horizontal Split on Desktop ── */}
+      {/* ── Centered Fluid App-Card — SlideShell provides the branded frame ── */}
       <div className="flex-1 flex items-center justify-center px-4 w-full" style={{ paddingTop: 124, paddingBottom: 88 }}>
-        <div
-          className={`w-full max-w-6xl h-[85vh] rounded-3xl flex flex-col md:flex-row relative z-20 overflow-hidden ${skin.card}`}
-        >
-          {/* Left Pane — Media & Visual Anchor */}
-          {slideHasMedia(currentSlide) && (
-            <div className="w-full md:w-1/2 h-[40vh] md:h-full bg-slate-50 dark:bg-slate-900/40 flex items-center justify-center p-6 border-b md:border-b-0 md:border-r border-slate-100 dark:border-slate-800 shrink-0">
-              <SlideMediaPane slide={currentSlide} />
-            </div>
-          )}
-
-          {/* Right Pane — Interactive & Text Content */}
-          <div className={`w-full ${slideHasMedia(currentSlide) ? 'md:w-1/2' : ''} h-[45vh] md:h-full overflow-y-auto p-8 md:p-12 flex flex-col`}>
-            <AnimatePresence mode="wait">
-              <DynamicSlideRenderer
-                key={currentSlide.id}
-                slide={currentSlide}
-                hub={hub}
-                onCorrectAnswer={handleCorrectAnswer}
-                onIncorrectAnswer={handleIncorrectAnswer}
-              />
-            </AnimatePresence>
-          </div>
+        <div className="w-full max-w-6xl h-[85vh] rounded-3xl relative z-20 overflow-hidden">
+          <AnimatePresence mode="wait">
+            <DynamicSlideRenderer
+              key={currentSlide.id}
+              slide={currentSlide}
+              hub={hub}
+              onCorrectAnswer={handleCorrectAnswer}
+              onIncorrectAnswer={handleIncorrectAnswer}
+              level={(currentSlide as any).level || (currentSlide as any).cefr_level}
+              unit={(currentSlide as any).unit_number ?? (currentSlide as any).unitNumber}
+              lesson={(currentSlide as any).lesson_number ?? (currentSlide as any).lessonNumber}
+              slideIndex={currentSlideIndex}
+              totalSlides={activeSlides.length}
+            />
+          </AnimatePresence>
         </div>
       </div>
 
