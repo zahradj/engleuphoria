@@ -43,6 +43,10 @@ export interface HubProfile {
   bouncerRule: string;
   /** Pedagogy block for the blueprint + slide generators. */
   pedagogyRule: string;
+  /** Hub-specific AI PERSONA — identity, audience, tone, vocabulary register. */
+  personaPrompt: string;
+  /** Hub-specific recommended slide blueprint emphasis (slide_type guidance). */
+  blueprintTemplate: string;
   /** Soft CEFR floor — used when the caller sends an unusable level. */
   cefrFloor: string;
   /** Soft CEFR ceiling — used when the caller sends an unusable level. */
