@@ -505,6 +505,42 @@ class WhiteboardService {
     return () => this.release(roomId, () => room.slideCompletionListeners.delete(onComplete));
   }
 
+  /** Teacher → all clients: instant slide jump (Leader/Follower paradigm). */
+  async sendSlideChange(roomId: string, slideIndex: number, senderId: string): Promise<void> {
+    const room = this.getRoom(roomId);
+    await room.ready;
+    await room.channel.send({
+      type: 'broadcast',
+      event: 'slide_change',
+      payload: { slideIndex, senderId, timestamp: Date.now() } satisfies SlideChangePayload,
+    });
+  }
+
+  subscribeToSlideChange(roomId: string, onChange: SlideChangeListener): () => void {
+    const room = this.getRoom(roomId);
+    room.slideChangeListeners.add(onChange);
+    room.refCount += 1;
+    return () => this.release(roomId, () => room.slideChangeListeners.delete(onChange));
+  }
+
+  /** Teacher → all clients: full state snapshot from "Force Sync" button (no page reload). */
+  async sendForceSync(roomId: string, payload: Omit<ForceSyncPayload, 'timestamp'>): Promise<void> {
+    const room = this.getRoom(roomId);
+    await room.ready;
+    await room.channel.send({
+      type: 'broadcast',
+      event: 'force_sync',
+      payload: { ...payload, timestamp: Date.now() } satisfies ForceSyncPayload,
+    });
+  }
+
+  subscribeToForceSync(roomId: string, onSync: ForceSyncListener): () => void {
+    const room = this.getRoom(roomId);
+    room.forceSyncListeners.add(onSync);
+    room.refCount += 1;
+    return () => this.release(roomId, () => room.forceSyncListeners.delete(onSync));
+  }
+
   subscribeToStatus(roomId: string, onStatus: (status: string) => void): () => void {
     const room = this.getRoom(roomId);
     room.statusListeners.add(onStatus);
@@ -532,6 +568,8 @@ class WhiteboardService {
       room.worksheetListeners.size === 0 &&
       room.gameStateListeners.size === 0 &&
       room.slideCompletionListeners.size === 0 &&
+      room.slideChangeListeners.size === 0 &&
+      room.forceSyncListeners.size === 0 &&
       room.statusListeners.size === 0
     ) {
       supabase.removeChannel(room.channel);
