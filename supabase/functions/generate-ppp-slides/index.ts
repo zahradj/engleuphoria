@@ -196,6 +196,134 @@ RULES:
       });
     }
 
+    // ─── Academy branch (TEFL/CELTA 7-block, 60-min teen lesson) ──────────
+    if (hub_type === "academy") {
+      const allowedBlocks = ["warmup", "vocab", "reading", "grammar", "practice", "interactive", "speaking"] as const;
+      const allowedTypes = new Set([
+        "intro","question","poll","opinion","vocab","matching","reading_passage","listening",
+        "truefalse","multiple","grammar_pattern","error_detection","correction","fill_blank",
+        "sentence_builder","debate_scale","role_play","speaking_task","reflection","cluster",
+      ]);
+
+      const academySystem = `You are a Master TEFL/CELTA-trained ESL lesson designer for TEENAGERS.
+Output ONLY a valid raw JSON array of slide objects (no markdown, no prose, no backticks).
+
+Build a 60-minute Academy lesson at CEFR ${cefr_level}. Topic: "${effectiveTitle}". ${objective ? `Goal: ${objective}.` : ""}
+
+STRICT 7-BLOCK STRUCTURE — slides MUST appear in this order:
+  1. warmup       — opinion / poll / question (2-3 slides)
+  2. vocab        — vocab + matching + recognition multiple (3-5 slides)
+  3. reading      — reading_passage + listening + comprehension multiple/truefalse (3-5 slides)
+  4. grammar      — grammar_pattern + error_detection / correction (3-5 slides)
+  5. practice     — fill_blank + sentence_builder + cluster (4-6 slides)
+  6. interactive  — debate_scale + role_play (2-3 slides)
+  7. speaking     — speaking_task + reflection (2-3 slides)
+
+EVERY slide MUST include a "block" field equal to one of:
+  "warmup" | "vocab" | "reading" | "grammar" | "practice" | "interactive" | "speaking".
+
+Allowed types and required minimal shapes (omit any irrelevant key):
+{ "type":"intro","block":"warmup","title":"...","subtitle":"..." }
+{ "type":"question","block":"warmup","prompt":"...","placeholder":"" }
+{ "type":"opinion","block":"warmup","prompt":"..." }
+{ "type":"poll","block":"warmup","prompt":"...","options":[{"label":"A","pct":33},{"label":"B","pct":34},{"label":"C","pct":33}] }
+{ "type":"vocab","block":"vocab","word":"...","definition":"...","example":"..." }
+{ "type":"matching","block":"vocab","prompt":"Match the pairs.","pairs":[{"left":"...","right":"..."}] }
+{ "type":"reading_passage","block":"reading","title":"...","passage":"... 60-120 words ..." }
+{ "type":"listening","block":"reading","prompt":"Listen and answer.","transcript":"..." }
+{ "type":"multiple","block":"reading|vocab|practice|grammar","question":"...","options":["A","B","C"],"answer":"<one of options>" }
+{ "type":"truefalse","block":"reading|practice","statement":"...","answer":true|false }
+{ "type":"grammar_pattern","block":"grammar","title":"...","rows":[{"a":"...","b":"..."}],"rule":"..." }
+{ "type":"error_detection","block":"grammar","prompt":"Tap the wrong word.","sentence":"He go to school.","wrongIndex":1 }
+{ "type":"correction","block":"grammar","prompt":"Fix the sentence.","wrong":"...","answer":"..." }
+{ "type":"fill_blank","block":"practice","prompt":"Complete the sentence.","before":"...","after":"...","answer":"..." }
+{ "type":"sentence_builder","block":"practice","prompt":"Order the words.","words":["..."],"answer":["..."] }
+{ "type":"cluster","block":"practice","title":"Quick Drill","content":"...","activities":[
+   {"type":"mcq","question":"...","options":["A","B","C"],"answer":"A"},
+   {"type":"fill","text":"He ___ phone.","answer":"uses"},
+   {"type":"tf","statement":"...","answer":true},
+   {"type":"build","prompt":"Build it.","words":["I","use"],"answer":["I","use"]}
+]}
+{ "type":"debate_scale","block":"interactive","prompt":"..." }
+{ "type":"role_play","block":"interactive","title":"...","lineA":"...","lineB":"..." }
+{ "type":"speaking_task","block":"speaking","prompt":"...","starters":["I think…"] }
+{ "type":"reflection","block":"speaking","prompt":"..." }
+
+PEDAGOGICAL RULES:
+- Vocabulary taught in block "vocab" MUST appear inside the "reading" passage AND in the "practice" cluster.
+- Grammar pattern in block "grammar" MUST be required by the "speaking" prompts.
+- Total 18-25 slides. Block order is STRICT: never interleave blocks out of order.
+- Use teen-appropriate, modern, culturally inclusive examples. Keep sentences level-appropriate (${cefr_level}).
+- Return RAW JSON ARRAY only.`;
+
+      const callAcademy = async (extra?: string): Promise<any[]> => {
+        const messages: any[] = [
+          { role: "system", content: academySystem },
+          { role: "user", content: `Build the Academy 7-block deck for "${effectiveTitle}" at ${cefr_level}. JSON array only.` },
+        ];
+        if (extra) messages.push({ role: "user", content: extra });
+        const aiRes = await aiFetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ model: "google/gemini-2.5-flash", messages }),
+        });
+        if (!aiRes.ok) throw new Error(`AI error ${aiRes.status}: ${await aiRes.text()}`);
+        const aiData = await aiRes.json();
+        const raw: string = aiData?.choices?.[0]?.message?.content ?? "";
+        const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "").trim();
+        let parsed: any;
+        try { parsed = JSON.parse(cleaned); }
+        catch {
+          const m = cleaned.match(/\[[\s\S]*\]/);
+          if (!m) throw new Error("AI did not return valid JSON array");
+          parsed = JSON.parse(m[0]);
+        }
+        if (!Array.isArray(parsed)) throw new Error("AI did not return a JSON array");
+
+        const filtered = parsed.filter((s: any) =>
+          s && allowedTypes.has(s.type) && (allowedBlocks as readonly string[]).includes(s.block),
+        );
+        if (filtered.length < 10) throw new Error(`AI returned only ${filtered.length} valid slides`);
+
+        // Validate strict block order: each block must appear at least once and in canonical order.
+        const seen: string[] = [];
+        for (const s of filtered) {
+          if (seen[seen.length - 1] !== s.block) seen.push(s.block);
+        }
+        const orderIdx = seen.map((b) => allowedBlocks.indexOf(b as any));
+        for (let i = 1; i < orderIdx.length; i++) {
+          if (orderIdx[i] < orderIdx[i - 1]) {
+            throw new Error(`Blocks out of order: ${seen.join(" → ")}`);
+          }
+        }
+        const present = new Set(seen);
+        const missing = allowedBlocks.filter((b) => !present.has(b));
+        if (missing.length > 0) throw new Error(`Missing required blocks: ${missing.join(", ")}`);
+        return filtered;
+      };
+
+      let academy_slides: any[] | null = null;
+      let lastErr: unknown = null;
+      for (let attempt = 0; attempt < 3 && !academy_slides; attempt++) {
+        try {
+          academy_slides = await callAcademy(
+            attempt === 0
+              ? undefined
+              : `Your previous output failed validation: ${lastErr instanceof Error ? lastErr.message : String(lastErr)}. Return the deck again, fixing this and obeying the strict 7-block order, with every slide tagged with a valid "block".`,
+          );
+        } catch (e) { lastErr = e; }
+      }
+      if (!academy_slides) {
+        return new Response(JSON.stringify({ error: `Academy AI failed after retries: ${lastErr instanceof Error ? lastErr.message : String(lastErr)}` }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify({ academy_slides }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const resolvedHub = normalizeHub(target_hub ?? blueprint?.target_hub ?? hub);
     const hubBlock = buildSlideHubBlock(resolvedHub, cefr_level);
 
