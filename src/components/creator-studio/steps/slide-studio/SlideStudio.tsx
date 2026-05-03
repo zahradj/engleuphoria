@@ -181,6 +181,7 @@ const SlideStudioInner: React.FC = () => {
           </div>
           {!!slides.length && (
             <div className="flex items-center gap-2 shrink-0">
+              <HubOverrideToggle value={hubOverride} onChange={setHubOverride} />
               <span className="text-[10px] text-slate-400 font-mono">
                 {slides.length} slide{slides.length === 1 ? '' : 's'}
               </span>
