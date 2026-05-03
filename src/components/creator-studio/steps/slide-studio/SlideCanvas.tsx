@@ -29,7 +29,13 @@ interface Props {
   level?: string;
   unitNumber?: number | string;
   lessonNumber?: number | string;
+  /** Manual hub override from the studio's preview switcher. */
+  hubOverride?: PlayerHubType | null;
 }
+
+/** Player hub → studio hub union (`professional` ↔ `success`). */
+const fromShellHub = (h: PlayerHubType): 'playground' | 'academy' | 'success' =>
+  h === 'professional' ? 'success' : h;
 
 const VIEW_KEY: Record<ViewMode, string> = { student: '👁️ Student View', teacher: '🎓 Teacher View' };
 
