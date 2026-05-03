@@ -570,17 +570,35 @@ const Teleprompter: React.FC<{ script: string; onChange: (v: string) => void }> 
 
 // ---------- main canvas ----------
 
-export const SlideCanvas: React.FC<Props> = ({ slide, onChange }) => {
+export const SlideCanvas: React.FC<Props> = ({
+  slide,
+  onChange,
+  slideIndex,
+  totalSlides,
+  level,
+  unitNumber,
+  lessonNumber,
+}) => {
   const phaseKey = normalizePhase(slide.phase as string);
   const style = PHASE_STYLES[phaseKey];
   const [mode, setMode] = useState<ViewMode>('student');
   const { hub, theme } = useHubTheme();
+  const shellHub = toShellHub(hub);
 
   const hasImage = !!(slide.custom_image_url || (slide.visual_keyword || '').trim());
+  const isFrontPage = (slide as any).slide_type === 'front_page' || (slide as any).type === 'front_page';
+
+  const teleprompter =
+    mode === 'teacher' ? (
+      <Teleprompter
+        script={slide.teacher_script ?? slide.teacher_instructions ?? ''}
+        onChange={(v) => onChange({ teacher_script: v })}
+      />
+    ) : null;
 
   return (
     <section className={cn('h-full w-full flex flex-col p-3 sm:p-4 hub-surface', theme.themeClass, theme.font)}>
-      {/* Top bar: phase + dual-view toggle (compact) */}
+      {/* Top toolbar (phase chip + dual-view toggle + slide-type badge) */}
       <div className="flex items-center justify-between mb-2 gap-2 flex-wrap shrink-0">
         <span className={cn('text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded', style.chip)}>
           {style.label}
@@ -610,41 +628,30 @@ export const SlideCanvas: React.FC<Props> = ({ slide, onChange }) => {
         </span>
       </div>
 
-      {/* HERO Slide — fills all remaining vertical space, no inner scroll */}
+      {/* HERO Slide — shared SlideShell so the builder mirrors the classroom 1:1 */}
       <div className="flex-1 min-h-0 flex items-center justify-center">
-        {((slide as any).slide_type === 'front_page' || (slide as any).type === 'front_page') ? (
-          <div
-            className="relative w-full h-full max-w-[1280px] aspect-video mx-auto rounded-2xl overflow-hidden shadow-2xl bg-slate-900"
+        <div className="relative w-full h-full max-w-[1280px] aspect-video mx-auto">
+          <SlideShell
+            hub={shellHub}
+            level={level}
+            unit={unitNumber}
+            lesson={lessonNumber}
+            slideIndex={slideIndex}
+            totalSlides={totalSlides}
+            fullBleed={isFrontPage}
           >
-            <FrontPageSlide
-              lessonTitle={(slide as any).title || 'Untitled Lesson'}
-              topic={(slide as any).topic || (slide as any).visual_keyword}
-              level={(slide as any).level || (slide as any).cefr_level}
-              hub={hub}
-              coverImageUrl={(slide as any).custom_image_url || (slide as any).coverImageUrl}
-              unitNumber={(slide as any).unit_number ?? (slide as any).unitNumber}
-              unitTitle={(slide as any).unit_title ?? (slide as any).unitTitle}
-            />
-            {mode === 'teacher' && (
-              <Teleprompter
-                script={slide.teacher_script ?? slide.teacher_instructions ?? ''}
-                onChange={(v) => onChange({ teacher_script: v })}
+            {isFrontPage ? (
+              <FrontPageSlide
+                lessonTitle={(slide as any).title || 'Untitled Lesson'}
+                topic={(slide as any).topic || (slide as any).visual_keyword}
+                level={(slide as any).level || (slide as any).cefr_level || level}
+                hub={hub}
+                coverImageUrl={(slide as any).custom_image_url || (slide as any).coverImageUrl}
+                unitNumber={(slide as any).unit_number ?? (slide as any).unitNumber ?? unitNumber}
+                unitTitle={(slide as any).unit_title ?? (slide as any).unitTitle}
               />
-            )}
-          </div>
-        ) : (
-          <div
-            className="relative w-full h-full max-w-[1280px] aspect-video mx-auto rounded-2xl overflow-hidden shadow-2xl bg-slate-900 text-slate-100"
-            style={{
-              backgroundImage:
-                'radial-gradient(ellipse at top, rgba(99,102,241,0.15) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(168,85,247,0.12) 0%, transparent 55%)',
-            }}
-          >
-            <div className="relative h-full w-full flex items-center justify-center p-5 sm:p-8">
-              <div className={cn(
-                'w-full max-w-3xl mx-auto p-5 sm:p-7 space-y-4 rounded-2xl bg-white/[0.04] backdrop-blur-sm border border-white/10 shadow-xl',
-                theme.font,
-              )}>
+            ) : (
+              <div className={cn('relative space-y-4', theme.font)}>
                 <SlideMedia slide={slide} />
                 <TitleField slide={slide} onChange={onChange} />
                 <InteractiveBlock slide={slide} mode={mode} hub={hub} />
@@ -654,22 +661,17 @@ export const SlideCanvas: React.FC<Props> = ({ slide, onChange }) => {
                   </div>
                 )}
                 {hub === 'playground' && slide.slide_type === 'mascot_speech' && (
-                  <div className="absolute bottom-4 right-4 text-5xl select-none animate-bounce" aria-hidden>
+                  <div className="absolute -bottom-2 -right-2 text-5xl select-none animate-bounce" aria-hidden>
                     {theme.mascot}
                   </div>
                 )}
               </div>
-            </div>
-
-            {mode === 'teacher' && (
-              <Teleprompter
-                script={slide.teacher_script ?? slide.teacher_instructions ?? ''}
-                onChange={(v) => onChange({ teacher_script: v })}
-              />
             )}
-          </div>
-        )}
+          </SlideShell>
+          {teleprompter}
+        </div>
       </div>
     </section>
   );
 };
+
