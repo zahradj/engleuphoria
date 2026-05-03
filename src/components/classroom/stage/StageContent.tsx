@@ -1,13 +1,23 @@
 import React from 'react';
 import { StageMode, SmartWorksheet } from '@/services/whiteboardService';
 import { ScrollSyncedIframe } from './ScrollSyncedIframe';
-import { MultiplayerWebStage } from './MultiplayerWebStage';
 import { NativeGameStage } from '@/components/classroom/native-games/NativeGameStage';
+import { NativeCoPlayArena } from '@/components/classroom/native-games/NativeCoPlayArena';
 import DynamicSlideRenderer from '@/components/lesson-player/DynamicSlideRenderer';
 import type { GeneratedSlide, HubType } from '@/components/admin/lesson-builder/ai-wizard/types';
 
-const isHyperbeamUrl = (url: string | null | undefined) =>
+// Legacy: third-party cloud-browser URLs. We now route these to the native
+// Co-Play arena instead of mounting a Hyperbeam iframe (which was suffering
+// WebRTC drops + bot/CORS blocks).
+const isLegacyCoBrowseUrl = (url: string | null | undefined) =>
   !!url && /\.hyperbeam\.com\//i.test(url);
+
+const HUB_ACCENT: Record<HubType, string> = {
+  playground: 'hsl(20 99% 59%)',
+  academy: 'hsl(262 83% 40%)',
+  professional: 'hsl(243 75% 59%)',
+  success: 'hsl(160 84% 30%)',
+} as any;
 
 interface Slide {
   id: string;
@@ -102,15 +112,22 @@ export const StageContent: React.FC<StageContentProps> = ({
   }
 
   if (mode === 'web') {
-    if (isHyperbeamUrl(embeddedUrl)) {
+    // Default Co-Play path: native Supabase-Realtime arena.
+    // Legacy Hyperbeam embed URLs are intercepted here too — we ignore the
+    // dead URL and render the native arena instead.
+    if (!embeddedUrl || isLegacyCoBrowseUrl(embeddedUrl)) {
       return (
-        <MultiplayerWebStage
-          embedUrl={embeddedUrl}
+        <NativeCoPlayArena
+          classroomId={roomId}
+          userId={userId}
           role={role}
-          controlEnabled={iframeUnlocked}
+          game="memory_match"
+          pairs={worksheet?.memory_match ?? []}
+          accent={HUB_ACCENT[hubType] ?? HUB_ACCENT.academy}
         />
       );
     }
+    // Plain external URL → use the scroll-synced iframe (read-only embed).
     return (
       <ScrollSyncedIframe
         url={embeddedUrl}
