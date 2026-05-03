@@ -58,6 +58,8 @@ const StudentCertificatePage = lazy(() => import("./pages/StudentCertificatePage
 const PlaygroundDemo = lazy(() => import("./pages/PlaygroundDemo"));
 const AcademyDemo = lazy(() => import("./pages/AcademyDemo"));
 const PlaygroundCreator = lazy(() => import("./pages/PlaygroundCreator"));
+const AcademyClassroom = lazy(() => import("./pages/AcademyClassroom"));
+const AcademyCreator = lazy(() => import("./pages/AcademyCreator"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
