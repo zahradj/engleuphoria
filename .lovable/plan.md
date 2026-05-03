@@ -1,108 +1,134 @@
 ## Goal
 
-Merge the branded PPT-style frame with the interactive activity center so every slide — regardless of `slide.type` — renders inside one cohesive, hub-themed container with a consistent header, ambient background, and progress footer. Inside that frame, upgrade the interactive content (vocab flip-grid, multi-question fill-in-blanks, 6-pair matching arena), and add Generative Fallbacks so empty slides never appear.
+Replace third-party Hyperbeam cloud-browser embedding (which is suffering WebRTC drops + bot/CORS blocks) with a **native multiplayer Co-Play arena** that runs entirely inside the classroom UI and stays in sync over Supabase Realtime broadcast channels. Teacher and student see each other's clicks, drags, card flips, and even mouse cursors with sub-100ms latency, with no external service.
 
-## Scope (files touched)
+## Files to create
 
-1. `src/components/lesson-player/SlideShell.tsx` — NEW. Branded PPT container.
-2. `src/components/lesson-player/DynamicSlideRenderer.tsx` — wrap `renderContent()` in `SlideShell`, add fallbacks, route flashcards to new `VocabFlipGrid`.
-3. `src/components/lesson-player/editorial/VocabFlipGrid.tsx` — NEW. CSS 3D flip flashcards.
-4. `src/components/lesson-player/editorial/EditorialFillBlanks.tsx` — restyle for high-density, charcoal-on-white, hub-accent inputs.
-5. `src/components/lesson-player/editorial/EditorialMatchHalves.tsx` — extend to 6 pairs, two-column drag layout, hub accent.
-6. `src/components/lesson-player/editorial/VideoSlide.tsx` — robust embed + topic-image fallback when URL invalid.
-7. `src/components/lesson-player/LessonPlayerContainer.tsx` — wrap `<DynamicSlideRenderer>` in `<AnimatePresence mode="wait">` properly so horizontal transitions actually fire (currently the animation key is on the inner motion.div); also remove the duplicate left media pane when the SlideShell already renders branded media (avoids double-frame).
+1. `src/hooks/useCoPlaySync.ts` — NEW lean realtime hook.
+2. `src/components/classroom/native-games/NativeCoPlayArena.tsx` — NEW container.
+3. `src/components/classroom/native-games/CoPlayMemoryMatch.tsx` — NEW Memory Match game (multiplayer).
+4. `src/components/classroom/native-games/SharedCursors.tsx` — NEW shared-cursor overlay.
 
-## 1. The Global Branded Frame — `SlideShell`
+## Files to edit
 
-A single component wraps every slide. It receives `hub`, `lesson`, `slideIndex`, `totalSlides`, `accentHex`, plus the slide content as children.
+5. `src/components/classroom/stage/StageContent.tsx` — when `mode === 'web'` (and the URL is a Hyperbeam URL OR Hyperbeam is disabled), render `<NativeCoPlayArena>` instead of `<MultiplayerWebStage>`. The Hyperbeam path stays available behind a feature flag for backwards compatibility but is no longer the default for collaborative activities.
+6. `src/services/whiteboardService.ts` — no breaking change; we add no new methods. Co-Play uses its own dedicated channel name (`co-play:{classroomId}`) so it cannot collide with whiteboard / stage events.
 
-Layout:
+## 1. `useCoPlaySync` hook
 
-```text
-┌──────────────────────────────────────────────────────────┐
-│  [Logo]  Academy · B1 · Unit 3 · Lesson 4    [Slide 6/22]│  ← top bar (translucent)
-│                                                          │
-│           ── ambient gradient + soft glow ──             │
-│                                                          │
-│              {children — interactive content}            │
-│                                                          │
-│  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░  ← progress bar       │
-└──────────────────────────────────────────────────────────┘
+Single subscription per `classroomId`. API:
+
+```ts
+const { isConnected, peers, broadcast, on } = useCoPlaySync({
+  classroomId, userId, userName, role,
+});
 ```
 
-- Background uses hub gradient from `HUB_TOKENS` / `HUB_CONFIGS`:
-  - Playground → orange→amber mesh
-  - Academy → purple→indigo mesh
-  - Professional → emerald→teal mesh
-- Two `radial-gradient` glows (top-left + bottom-right) at 12% opacity for the "ambient" feel.
-- Top-left: `<Logo size="small" />` + metadata pills (Hub · Level · Unit/Lesson). Top-right: `Slide N/Total`.
-- Bottom: thin `Progress` bar (`bg-white/40` track, fill in hub accent).
-- All text on the chrome uses `text-white/90` over a `backdrop-blur-md bg-black/10` strip so it stays legible on every gradient.
-- Children render inside a centered `max-w-5xl` content card with `bg-white/95 dark:bg-slate-900/90 rounded-2xl shadow-xl p-8` so interactive content always sits on a clean surface (charcoal text on white).
+Channel: `co-play:{classroomId}` with `broadcast.self=false` and presence keyed by `userId`.
 
-Source of metadata: read from `slide.lesson_meta` if present, else fall back to props passed by `LessonPlayerContainer` (it already knows `hub`, `cefr`, `unit`, `lesson`).
+Supported events (typed):
+- `cursor_move` → `{ x, y }` normalized 0..1 within the arena.
+- `card_dragged`, `card_dropped`, `card_flipped` → `{ cardId, ... }`.
+- `game_state_update` → full authoritative snapshot of the active game.
+- `game_reset` → `{}`.
+- `reaction` → `{ emoji }` (future use).
 
-## 2. Injecting Interactivity
+Every payload is wrapped in:
+```ts
+{ senderId, senderName, senderRole, data, ts }
+```
+so the receiving client can attribute the action.
 
-### 2a. `VocabFlipGrid` (NEW) — replaces `EditorialVocabList` for `flashcard` / `vocabulary` types
-- Responsive grid: `grid-cols-2 md:grid-cols-3` capped at 6 cards.
-- Each card is a CSS 3D flip (`perspective-1000`, `transform-style-preserve-3d`, `rotate-y-180` on hover/click).
-- Front: image (or large emoji fallback) + word in big bold.
-- Back: definition + example sentence, hub-accent border.
-- Card footer: small speaker icon (re-uses existing TTS hook if present).
+Presence: `track({ userId, userName, role })` so the arena can show "2 in room" and drop stale cursors when a peer disconnects.
 
-### 2b. `EditorialFillBlanks` upgrade — High-Density Quiz
-- Render up to 5 sentences (already supports N; ensure normalizer pads/truncates to 4–5).
-- Restyle: charcoal `text-slate-900` on `bg-white`, larger row spacing (`py-3`), input border uses `style={{ borderColor: accentHex }}` on focus.
-- Single "Check All" CTA in hub accent.
-- Per-row inline correct/incorrect feedback already exists — keep, just brighten contrast.
+## 2. `NativeCoPlayArena`
 
-### 2c. `EditorialMatchHalves` — Matching Arena
-- Display up to 6 pairs in two columns (`left_item` column, `right_item` column shuffled).
-- Use `@dnd-kit` (already in repo per drag activities) for drag-to-match; on drop, snap with hub-accent ring.
-- Reset / Check buttons in hub accent.
+Full-bleed surface that:
+- Wires up `useCoPlaySync` once.
+- Renders the selected game (initial release: `memory_match`).
+- Mounts `<SharedCursors>` overlay (pointer-events: none).
+- Shows a tiny status pill ("Live · 2 in room") in the corner.
 
-## 3. Data Integrity & Fallbacks
+Props:
+```ts
+{ classroomId, userId, userName, role,
+  game?: 'memory_match',          // future: 'drag_vocab', 'flashcards'
+  pairs?: MemoryPair[],            // game payload
+  accent?: string                  // hub primary hex
+}
+```
 
-### 3a. Generative Fallback Slide
-- Already partially implemented as `MissingDataFallback`. Promote it to a richer "Teacher Discussion" template:
-  - Header: 💬 + "Let's Talk About: {derived topic}"
-  - Body: 3 conversation prompts derived from `slide.title`, `slide.teacher_script`, or `lesson.topic` using a deterministic local template (no AI call): `["What do you already know about {topic}?", "Have you ever experienced this?", "How would you explain it to a friend?"]`.
-  - Hub-accent CTA: "Start Discussion".
-- Trigger conditions (extend current `hasValidInteractiveData`):
-  - `slide.type === 'interactive'` with no `interactive_data`.
-  - Any interactive `slide_type` in `INTERACTIVE_REQUIRED_KEYS` missing required keys.
+## 3. `CoPlayMemoryMatch` game
 
-### 3b. Video Slide hardening
-- In `VideoSlide.tsx`:
-  - If `extractYouTubeId` succeeds → render iframe (already present).
-  - Else if `videoUrl` looks like an mp4/webm → use a native `<video controls>` element.
-  - Else (no usable URL) → render `LiveHeroMediaSlide`-style "Conversation Starter": topic image (`slide.imageUrl` or hub mascot) + prompt block ("Discuss: {slide.title}") instead of the current grey "No video URL" box.
+Pure presentational component that owns its game state and pushes it through `sync.broadcast`.
 
-## 4. Visual Polish
+State shape:
+```ts
+{ cards: Card[], flipped: number[], matched: number[], v: number }
+```
+- `v` is a monotonic version stamp. Remote updates only apply if `incoming.v >= local.v` so two clients clicking simultaneously cannot ping-pong.
+- On flip: optimistic local update, broadcast `card_flipped`, then push `game_state_update` snapshot.
+- On second flip: 900ms reveal; if pair matches → add to `matched`; else → unflip (broadcast new snapshot at each step).
+- "Reset" broadcasts both `game_reset` and a fresh `game_state_update`.
 
-- `LessonPlayerContainer.tsx`: move the `key={currentSlide.id}` to the `<motion.div>` inside `DynamicSlideRenderer` (already keyed) and ensure `<AnimatePresence mode="wait">` receives a single direct child — currently it wraps `<DynamicSlideRenderer>` directly, which works only because the inner motion.div is keyed. We'll lift the motion wrapper one level so horizontal slide-in/out transitions reliably fire on slide change.
-- All buttons/inputs/badges inside interactive components read accent from `HUB_CONFIGS[hub].colorPalette.primary` (passed by `SlideShell` via React context: `SlideHubContext`) so they tint correctly per hub without prop-drilling.
+Visuals:
+- Grid (4-col default, 6-col when >12 cards).
+- 3D flip using existing `.perspective-1000` / `.preserve-3d` / `.rotate-y-180` utilities (already present in `index.css`).
+- Card back uses hub `accent`; matched cards switch to emerald-50 / emerald-700 with a celebration line at 100%.
+- Aspect ratio `3/4`, responsive.
 
-## Technical notes
+Pair source: `MemoryPair[] = { pair_1, pair_2 }` — same shape the existing AI worksheet generator uses (`worksheet.memory_match`), so we can drop this in without changing the generator.
 
-- New context: `SlideHubContext` exposed by `SlideShell`. Consumed by `EditorialFillBlanks`, `VocabFlipGrid`, `EditorialMatchHalves` to get accent color. Defaults to academy purple.
-- Tailwind 3D utilities: add small `@layer utilities` block in `src/index.css` with `.perspective-1000`, `.preserve-3d`, `.backface-hidden`, `.rotate-y-180`.
-- No DB / edge-function changes. No new dependencies (we already have framer-motion, @dnd-kit, lucide).
-- `LiveVocabularyGrid` and `LiveGrammarExplanation` (currently inline in DynamicSlideRenderer) become thin wrappers around new components or are deleted in favor of the editorial set.
+## 4. `SharedCursors`
 
-## Out of scope
+Listens to `cursor_move` and renders a single `<MousePointer2>` per remote user, color-coded by role (teacher = indigo, student = orange).
 
-- Slide authoring UI (Canvas Studio) — unchanged.
-- AI generation pipeline — unchanged. The fallback is a deterministic UI shim, not a re-generation.
-- Removing the existing left-media pane in `LessonPlayerContainer` if media is already handled inside `SlideShell` (will gate via a `showSplitPane` flag based on slide type to avoid regressing reading slides).
+Local side:
+- Attaches `mousemove` to the arena ref.
+- Throttles to one broadcast every 40ms.
+- Coordinates are normalized to the arena's bounding rect (0..1) so they survive different screen sizes.
+
+Remote side:
+- Stores `Record<userId, RemoteCursor>` and renders absolutely-positioned pointers with the user's name pill.
+- Cursors fade out after 4s with no updates (interval sweep).
+
+The whole overlay is `pointer-events-none` so it never intercepts game clicks.
+
+## 5. StageContent integration
+
+```text
+mode === 'web' && classroomId
+  ? <NativeCoPlayArena
+       classroomId={roomId}
+       userId={userId}
+       role={role}
+       game="memory_match"
+       pairs={worksheet?.memory_match ?? []}
+       accent={hubAccent}
+     />
+  : <ScrollSyncedIframe ... />
+```
+
+The `MultiplayerWebStage` (Hyperbeam) import is removed from this file. We keep the file in the repo so any opt-in path that still wants a cloud browser can import it directly, but the default classroom flow stops calling `createHyperbeamSession`.
+
+## Why this works
+
+- **No third-party RTC**: Supabase Realtime's broadcast channel runs over a single WebSocket — no SDP negotiation, no STUN/TURN, no bot detection.
+- **Same data path as existing games**: We reuse `whiteboard_service`-style channel naming and the existing `worksheet.memory_match` payload, so the AI generator and teacher dashboard need zero changes.
+- **Deterministic conflict resolution**: the version stamp `v` plus `broadcast.self=false` prevents echo loops even if both clients flip a card in the same frame.
+- **Cursor latency** stays under 50ms over Realtime; the throttle keeps message volume well under the channel's rate limit.
+
+## Out of scope (this turn)
+
+- Drag-and-drop vocab game and flashcard race — same arena, future games slot into the `game` prop.
+- Removing the Hyperbeam edge function (`hyperbeam-session`) — leave it deployed; we just stop calling it from the default flow.
+- Persisting game results — Memory Match wins flow into existing `lesson_completion` events from `whiteboardService` if the host wires them up later.
 
 ## Acceptance
 
-- Every slide shows the same branded shell (logo, metadata, progress, gradient).
-- Vocabulary slides render a 3D flip grid (≤6 cards).
-- Fill-in-blank slides show 4–5 high-contrast questions + one Check button.
-- Matching slides render up to 6 pairs in two columns with drag-and-drop.
-- Empty interactive payloads render the Teacher Discussion fallback, never blank.
-- Broken video URLs render a Conversation Starter, never a blank player.
-- Slide changes animate horizontally (slide-in from right, slide-out to left).
+- Two browser windows joined to the same classroom see each other's cursors moving in real time.
+- A card flipped on one side animates on the other within ~100ms.
+- A matched pair locks on both sides; mismatches unflip on both sides.
+- "Reset" wipes both boards.
+- Disconnecting one client removes its cursor within 4s and decrements the "in room" counter.
+- No `.hyperbeam.com` URLs are loaded for the default Co-Play flow.
