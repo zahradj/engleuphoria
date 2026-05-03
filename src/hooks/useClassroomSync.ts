@@ -417,7 +417,25 @@ export const useClassroomSync = ({
     }
   }, [roomId, role]);
 
-  return {
+  // Teacher: push a full state snapshot to all clients (no page reload).
+  const forceSync = useCallback(async () => {
+    if (role !== 'teacher') return;
+    try {
+      await whiteboardService.sendForceSync(roomId, {
+        slideIndex: currentSlideIndex,
+        stageMode,
+        drawingEnabled,
+        iframeUnlocked,
+        embeddedUrl: session?.embeddedUrl ?? null,
+        activeCanvasTab: session?.activeCanvasTab,
+        senderId: userId,
+      });
+    } catch (error) {
+      console.error('Failed to broadcast force_sync:', error);
+      throw error;
+    }
+  }, [role, roomId, userId, currentSlideIndex, stageMode, drawingEnabled, iframeUnlocked, session?.embeddedUrl, session?.activeCanvasTab]);
+
     session,
     currentSlide: currentSlideIndex,
     setCurrentSlideIndex,
