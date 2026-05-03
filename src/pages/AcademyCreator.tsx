@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Code2, X, Play } from 'lucide-react';
+import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Code2, X, Play, Sparkles, Loader2 } from 'lucide-react';
 import {
   SlideRenderer,
   themeMap,
@@ -10,6 +10,8 @@ import {
   type ClusterActivity,
 } from './AcademyDemo';
 import { SOCIAL_MEDIA_LESSON } from '@/data/academyLessons/socialMediaHabits';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 /**
  * Academy Slide Creator — clean teacher-facing authoring tool.
