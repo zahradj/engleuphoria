@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Eye, Code2, X, Sparkles, Loader2 } from 'lucide-react';
+import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Eye, Code2, X, Sparkles, Loader2, Image as ImageIcon } from 'lucide-react';
 import { SlideRenderer, type Slide } from './PlaygroundDemo';
+import { generateOnePlaygroundImage } from '@/hooks/usePlaygroundImages';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -38,12 +39,12 @@ function makeSlide(type: SlideType): Slide {
     case 'fill':
       return { type: 'fill', text: 'My name is ____', answer: 'Alex', voice: { text: 'Fill in the blank', autoPlay: true } };
     case 'drag':
-      return { type: 'drag', instruction: 'Drag the word onto the picture', word: 'APPLE', target: '🍎', voice: { text: 'Drag the word', autoPlay: true } };
+      return { type: 'drag', instruction: 'Drag the word onto the picture', word: 'APPLE', image_url: '/playground/placeholder-dropzone.svg', voice: { text: 'Drag the word', autoPlay: true } };
     case 'match':
       return {
         type: 'match',
         instruction: 'Tap a word, then tap its picture',
-        pairs: [{ word: 'DOG', match: '🐶' }, { word: 'CAT', match: '🐱' }],
+        pairs: [{ word: 'DOG', image_url: '/playground/placeholder-dropzone.svg' }, { word: 'CAT', image_url: '/playground/placeholder-dropzone.svg' }],
         voice: { text: 'Match them!', autoPlay: true },
       };
     case 'draw':
@@ -399,6 +400,57 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 const inputCls = 'w-full border-2 border-orange-200 focus:border-orange-500 rounded-xl px-3 py-2 outline-none text-slate-800 bg-white';
 
+function ImageField({
+  label, url, subject, onChange,
+}: { label: string; url?: string; subject?: string; onChange: (url: string) => void }) {
+  const [busy, setBusy] = useState(false);
+  const generate = async () => {
+    const subj = (subject || '').trim();
+    if (!subj) { toast.error('Set the word first'); return; }
+    setBusy(true);
+    try {
+      const u = await generateOnePlaygroundImage(subj);
+      if (!u) throw new Error('No image returned');
+      onChange(u);
+      toast.success('Image generated');
+    } catch (e: any) {
+      toast.error(e?.message || 'Image generation failed');
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div>
+      <span className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1">{label}</span>
+      <div className="flex gap-2 items-center">
+        {url ? (
+          <img src={url} alt="" className="w-14 h-14 rounded-lg object-cover border-2 border-orange-200 bg-white" />
+        ) : (
+          <div className="w-14 h-14 rounded-lg border-2 border-dashed border-orange-300 bg-orange-50 flex items-center justify-center">
+            <ImageIcon className="w-5 h-5 text-orange-400" />
+          </div>
+        )}
+        <input
+          className={inputCls + ' flex-1 text-xs'}
+          placeholder="https://..."
+          value={url || ''}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        <button
+          type="button"
+          onClick={generate}
+          disabled={busy}
+          className="text-xs font-bold text-white bg-gradient-to-r from-fuchsia-500 to-orange-500 rounded-lg px-3 py-2 inline-flex items-center gap-1 disabled:opacity-50 shadow-sm"
+        >
+          {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+          AI
+        </button>
+      </div>
+    </div>
+  );
+}
+
+
 function SlideEditor({ slide, onChange }: { slide: Slide; onChange: (p: Partial<Slide>) => void }) {
   const voice = (slide as any).voice as Slide['voice'] | undefined;
   const VoiceFields = (
@@ -484,7 +536,12 @@ function SlideEditor({ slide, onChange }: { slide: Slide; onChange: (p: Partial<
         <div className="space-y-3">
           <Field label="Instruction"><input className={inputCls} value={slide.instruction} onChange={(e) => onChange({ instruction: e.target.value } as any)} /></Field>
           <Field label="Word"><input className={inputCls} value={slide.word} onChange={(e) => onChange({ word: e.target.value } as any)} /></Field>
-          <Field label="Target (emoji)"><input className={inputCls} value={slide.target} onChange={(e) => onChange({ target: e.target.value } as any)} /></Field>
+          <ImageField
+            label="Image (AI-generated)"
+            url={slide.image_url}
+            subject={slide.word}
+            onChange={(url) => onChange({ image_url: url } as any)}
+          />
           {VoiceFields}
         </div>
       );
@@ -497,24 +554,32 @@ function SlideEditor({ slide, onChange }: { slide: Slide; onChange: (p: Partial<
             <span className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Pairs</span>
             <div className="space-y-2">
               {slide.pairs.map((p, i) => (
-                <div key={i} className="flex gap-2">
-                  <input
-                    className={inputCls + ' flex-1'} placeholder="Word" value={p.word}
-                    onChange={(e) => {
-                      const next = [...slide.pairs]; next[i] = { ...p, word: e.target.value };
-                      onChange({ pairs: next } as any);
-                    }}
-                  />
-                  <input
-                    className={inputCls + ' w-24 text-center text-2xl'} placeholder="🐶" value={p.match}
-                    onChange={(e) => {
-                      const next = [...slide.pairs]; next[i] = { ...p, match: e.target.value };
-                      onChange({ pairs: next } as any);
-                    }}
-                  />
+                <div key={i} className="flex gap-2 items-end">
+                  <div className="flex-1">
+                    <Field label="Word">
+                      <input
+                        className={inputCls} placeholder="Word" value={p.word}
+                        onChange={(e) => {
+                          const next = [...slide.pairs]; next[i] = { ...p, word: e.target.value };
+                          onChange({ pairs: next } as any);
+                        }}
+                      />
+                    </Field>
+                  </div>
+                  <div className="flex-1">
+                    <ImageField
+                      label="Image"
+                      url={p.image_url}
+                      subject={p.word}
+                      onChange={(url) => {
+                        const next = [...slide.pairs]; next[i] = { ...p, image_url: url };
+                        onChange({ pairs: next } as any);
+                      }}
+                    />
+                  </div>
                   <button
                     onClick={() => onChange({ pairs: slide.pairs.filter((_, j) => j !== i) } as any)}
-                    className="text-red-500 hover:bg-red-50 rounded-lg px-2"
+                    className="text-red-500 hover:bg-red-50 rounded-lg px-2 mb-1"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -522,7 +587,7 @@ function SlideEditor({ slide, onChange }: { slide: Slide; onChange: (p: Partial<
               ))}
             </div>
             <button
-              onClick={() => onChange({ pairs: [...slide.pairs, { word: '', match: '' }] } as any)}
+              onClick={() => onChange({ pairs: [...slide.pairs, { word: '', image_url: '/playground/placeholder-dropzone.svg' }] } as any)}
               className="mt-2 text-sm font-bold text-orange-600 hover:bg-orange-50 rounded-lg px-3 py-1.5 inline-flex items-center gap-1"
             >
               <Plus className="w-4 h-4" /> Add pair

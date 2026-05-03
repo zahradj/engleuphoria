@@ -18,11 +18,11 @@ export interface SlideVoice { text: string; autoPlay?: boolean }
 export interface SlideFeedback { correct?: string; wrong?: string }
 
 export type Slide =
-  | { type: 'intro'; title: string; text?: string; voice?: SlideVoice }
+  | { type: 'intro'; title: string; text?: string; image_url?: string; voice?: SlideVoice }
   | {
       type: 'multiple';
       question: string;
-      image?: string;
+      image_url?: string;
       options: string[];
       answer: string;
       voice?: SlideVoice;
@@ -31,6 +31,7 @@ export type Slide =
   | {
       type: 'truefalse';
       statement: string;
+      image_url?: string;
       answer: boolean;
       voice?: SlideVoice;
       feedback?: SlideFeedback;
@@ -46,14 +47,14 @@ export type Slide =
       type: 'drag';
       instruction: string;
       word: string;
-      target: string; // emoji or image url
+      image_url: string; // AI-generated cartoon for the target word
       voice?: SlideVoice;
       feedback?: SlideFeedback;
     }
   | {
       type: 'match';
       instruction: string;
-      pairs: { word: string; match: string }[];
+      pairs: { word: string; image_url: string }[];
       voice?: SlideVoice;
       feedback?: SlideFeedback;
     }
@@ -91,17 +92,17 @@ const SLIDES: Slide[] = [
     type: 'drag',
     instruction: 'Drag the word onto the picture',
     word: 'APPLE',
-    target: '🍎',
+    image_url: '/playground/placeholder-dropzone.svg',
     voice: { text: 'Drag the word apple onto the picture', autoPlay: true },
   },
   {
     type: 'match',
     instruction: 'Tap a word, then tap its picture',
     pairs: [
-      { word: 'DOG', match: '🐶' },
-      { word: 'CAT', match: '🐱' },
-      { word: 'SUN', match: '☀️' },
-      { word: 'STAR', match: '⭐' },
+      { word: 'DOG', image_url: '/playground/placeholder-dropzone.svg' },
+      { word: 'CAT', image_url: '/playground/placeholder-dropzone.svg' },
+      { word: 'SUN', image_url: '/playground/placeholder-dropzone.svg' },
+      { word: 'STAR', image_url: '/playground/placeholder-dropzone.svg' },
     ],
     voice: { text: 'Match the words to the pictures!', autoPlay: true },
   },
@@ -157,6 +158,9 @@ function Intro({ slide }: { slide: Extract<Slide, { type: 'intro' }> }) {
   useAutoVoice(slide.voice);
   return (
     <div className="flex flex-col items-center gap-6 text-center">
+      {slide.image_url && (
+        <img src={slide.image_url} alt="" className="w-44 h-44 rounded-2xl object-cover shadow-md" />
+      )}
       <h1 className="text-6xl md:text-7xl font-extrabold text-orange-600 drop-shadow-sm">
         {slide.title}
       </h1>
@@ -311,23 +315,28 @@ function DragDrop({ slide }: { slide: Extract<Slide, { type: 'drag' }> }) {
   return (
     <div className="flex flex-col items-center gap-8 w-full">
       <h2 className="text-3xl font-bold text-slate-800 text-center">{slide.instruction}</h2>
-      <div className="flex items-center justify-around w-full max-w-3xl gap-8">
+      <div className="flex items-center justify-around w-full max-w-3xl gap-8 flex-wrap">
         <motion.div
           animate={wrong ? wrongAnim : done ? correctAnim : undefined}
           onDragOver={(e) => e.preventDefault()}
           onDrop={onDrop}
-          className={`text-9xl p-8 rounded-3xl border-4 border-dashed transition ${done ? 'border-green-500 bg-green-50' : 'border-orange-400 bg-orange-50'}`}
+          className={`p-4 rounded-3xl border-4 border-dashed transition flex flex-col items-center justify-center w-56 h-56 ${done ? 'border-green-500 bg-green-50' : 'border-orange-400 bg-orange-50'}`}
         >
-          {slide.target}
-          {done && <div className="text-2xl font-bold text-green-600 mt-2">{slide.word}</div>}
+          <img
+            src={done ? slide.image_url : '/playground/placeholder-dropzone.svg'}
+            alt={done ? slide.word : 'Drop here'}
+            className="w-40 h-40 object-contain rounded-xl"
+          />
+          {done && <div className="text-xl font-bold text-green-600 mt-2">{slide.word}</div>}
         </motion.div>
         {!done && (
           <div
             draggable
             onDragStart={(e) => e.dataTransfer.setData('text/plain', slide.word)}
-            className="cursor-grab active:cursor-grabbing bg-orange-500 text-white text-3xl font-extrabold rounded-2xl shadow-lg px-8 py-6 select-none"
+            className="cursor-grab active:cursor-grabbing bg-orange-500 text-white text-3xl font-extrabold rounded-2xl shadow-lg px-8 py-6 select-none flex flex-col items-center gap-2"
           >
-            {slide.word}
+            <img src={slide.image_url} alt="" className="w-20 h-20 object-cover rounded-lg shadow-sm bg-white/30 p-1" />
+            <span>{slide.word}</span>
           </div>
         )}
       </div>
@@ -343,8 +352,8 @@ function MatchGame({ slide }: { slide: Extract<Slide, { type: 'match' }> }) {
   const [solved, setSolved] = useState<Record<string, true>>({});
   const [shake, setShake] = useState(false);
 
-  const tryPair = (word: string, match: string) => {
-    const correct = slide.pairs.some((p) => p.word === word && p.match === match);
+  const tryPair = (word: string, imageUrl: string) => {
+    const correct = slide.pairs.some((p) => p.word === word && p.image_url === imageUrl);
     if (correct) {
       setSolved((s) => ({ ...s, [word]: true }));
       fireConfetti();
@@ -382,14 +391,18 @@ function MatchGame({ slide }: { slide: Extract<Slide, { type: 'match' }> }) {
             const used = !!solved[p.word];
             return (
               <button
-                key={p.match}
+                key={p.image_url + p.word}
                 disabled={used || !selWord}
-                onClick={() => selWord && tryPair(selWord, p.match)}
-                className={`text-4xl rounded-xl shadow-md py-4 transition active:scale-95 ${
+                onClick={() => selWord && tryPair(selWord, p.image_url)}
+                className={`rounded-xl shadow-md p-2 transition active:scale-95 flex items-center justify-center ${
                   used ? 'bg-green-100 opacity-50' : 'bg-yellow-200 hover:bg-yellow-300'
                 }`}
               >
-                {p.match}
+                <img
+                  src={p.image_url}
+                  alt={p.word}
+                  className="rounded-lg shadow-sm h-24 w-24 object-cover bg-white"
+                />
               </button>
             );
           })}

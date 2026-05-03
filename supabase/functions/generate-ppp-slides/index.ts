@@ -77,65 +77,120 @@ Deno.serve(async (req) => {
     // Playground Engine's slide schema exactly so the WYSIWYG renderer can
     // consume it without translation.
     if (hub_type === "playground" || normalizeHub(target_hub ?? hub) === "playground") {
-      const playgroundSystem = `You are an expert children's ESL game designer for Engleuphoria's Playground Hub (ages 5-9, CEFR pre-A1/A1).
-You design ONE highly interactive 30-minute mini-lesson for kids.
+      const playgroundSystem = `You are an expert children's EdTech game designer. Create a highly interactive, fun English lesson. Keep vocabulary very simple. Output ONLY a valid JSON array of slide objects. Do not wrap in markdown or backticks. You MUST use a variety of these exact slide types.
 
-OUTPUT RULES (STRICT):
-- Output ONLY a JSON array of 8-12 slide objects. No prose, no wrapper.
-- Use very simple vocabulary (1-2 syllable words preferred). Lots of emoji.
-- Every slide MUST include a "voice" object: { "text": "<short kid-friendly TTS line>", "autoPlay": true }.
-- Allowed slide "type" values and their REQUIRED shape:
-  • { "type": "intro", "title": "👋 ...", "text": "...", "voice": {...} }
-  • { "type": "multiple", "question": "...", "options": ["a","b","c"], "answer": "<one of options>", "voice": {...} }
-  • { "type": "truefalse", "statement": "...", "answer": true|false, "voice": {...} }
-  • { "type": "fill", "text": "I see a ____", "answer": "<word>", "voice": {...} }
-  • { "type": "drag", "instruction": "Drag the word onto the picture", "word": "APPLE", "target": "🍎", "voice": {...} }
-  • { "type": "match", "instruction": "...", "pairs": [{ "word": "DOG", "match": "🐶" }, ...], "voice": {...} }
-  • { "type": "draw", "prompt": "Draw a ...", "voice": {...} }
-- Start with ONE "intro" slide. End with EITHER a "draw" slide OR a celebratory "intro" slide.
-- Mix at least 4 different interactive types in between (no two of the same type back-to-back).
+STRICT SCHEMA (per type) — every slide MUST include a "voice" object { "text": string, "autoPlay": true }. Use simple 1-2 syllable words. NEVER include emojis in image fields — use the literal placeholder string "AI:<short subject>" anywhere an image is needed and the server will replace it with an AI-generated cartoon URL.
+
+Allowed types and required shape:
+{ "type": "intro", "title": "...", "text": "...", "image_url": "AI:<subject>", "voice": { "text": "...", "autoPlay": true } }
+{ "type": "multiple", "question": "...", "options": ["a","b","c"], "answer": "<one of options>", "image_url": "AI:<subject>", "voice": {...} }
+{ "type": "truefalse", "statement": "...", "answer": true|false, "image_url": "AI:<subject>", "voice": {...} }
+{ "type": "fill", "text": "I see a ____", "answer": "<word>", "voice": {...} }
+{ "type": "match", "instruction": "...", "pairs": [ { "word": "DOG", "image_url": "AI:friendly puppy" }, { "word": "CAT", "image_url": "AI:cute kitten" } ], "voice": {...} }
+{ "type": "drag", "instruction": "Drag the word onto the picture", "word": "APPLE", "image_url": "AI:shiny red apple", "voice": {...} }
+
+RULES:
+- Output 8-12 slides. Start with ONE "intro". End with a celebratory "intro".
+- Use at least 4 different interactive types in between. No two same types back-to-back.
+- For every "AI:<subject>" placeholder, write a clear, kid-friendly subject ≤ 6 words.
 - Topic: "${effectiveTitle}". ${objective ? `Goal: ${objective}.` : ""}
 - Return RAW JSON ARRAY only.`;
 
-      const aiRes = await aiFetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            { role: "system", content: playgroundSystem },
-            { role: "user", content: `Generate the Playground deck for topic: "${effectiveTitle}". Output JSON array only.` },
-          ],
-        }),
-      });
-      if (!aiRes.ok) {
-        const detail = await aiRes.text();
-        return new Response(JSON.stringify({ error: `AI error ${aiRes.status}: ${detail}` }), {
-          status: 502,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+      const allowed = new Set(["intro", "multiple", "truefalse", "fill", "drag", "match", "draw"]);
+
+      const callModel = async (extraUserMsg?: string): Promise<any[]> => {
+        const messages: any[] = [
+          { role: "system", content: playgroundSystem },
+          { role: "user", content: `Generate the Playground deck for topic: "${effectiveTitle}". Output JSON array only.` },
+        ];
+        if (extraUserMsg) messages.push({ role: "user", content: extraUserMsg });
+
+        const aiRes = await aiFetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ model: "google/gemini-2.5-flash", messages }),
+        });
+        if (!aiRes.ok) throw new Error(`AI error ${aiRes.status}: ${await aiRes.text()}`);
+        const aiData = await aiRes.json();
+        const raw: string = aiData?.choices?.[0]?.message?.content ?? "";
+        const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "").trim();
+        let parsed: any;
+        try { parsed = JSON.parse(cleaned); }
+        catch {
+          const m = cleaned.match(/\[[\s\S]*\]/);
+          if (!m) throw new Error("AI did not return valid JSON array");
+          parsed = JSON.parse(m[0]);
+        }
+        if (!Array.isArray(parsed)) throw new Error("AI did not return a JSON array");
+        const filtered = parsed.filter((s: any) => s && allowed.has(s.type));
+        if (filtered.length === 0) throw new Error("AI returned no valid Playground slides");
+        return filtered;
+      };
+
+      // Up to 2 retries on parse/validation failure.
+      let playground_slides: any[] | null = null;
+      let lastErr: unknown = null;
+      for (let attempt = 0; attempt < 3 && !playground_slides; attempt++) {
+        try {
+          playground_slides = await callModel(
+            attempt === 0 ? undefined : "Your previous output was not valid JSON. Return ONLY a valid JSON array matching the schema. No prose, no markdown.",
+          );
+        } catch (e) { lastErr = e; }
+      }
+      if (!playground_slides) {
+        return new Response(JSON.stringify({ error: `AI failed after retries: ${lastErr instanceof Error ? lastErr.message : String(lastErr)}` }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const aiData = await aiRes.json();
-      const raw: string = aiData?.choices?.[0]?.message?.content ?? "";
-      // Strip code fences if present.
-      const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "").trim();
-      let parsed: any;
-      try {
-        parsed = JSON.parse(cleaned);
-      } catch {
-        // Try to extract first JSON array substring.
-        const m = cleaned.match(/\[[\s\S]*\]/);
-        if (!m) throw new Error("AI did not return valid JSON array");
-        parsed = JSON.parse(m[0]);
+
+      // ─── Hydrate "AI:<subject>" placeholders with generated cartoon URLs ───
+      const subjects: string[] = [];
+      const collect = (v: unknown) => {
+        if (typeof v === "string" && v.startsWith("AI:")) {
+          const subj = v.slice(3).trim();
+          if (subj && !subjects.includes(subj)) subjects.push(subj);
+        }
+      };
+      for (const s of playground_slides) {
+        collect(s.image_url);
+        if (Array.isArray(s.pairs)) for (const p of s.pairs) collect(p?.image_url);
       }
-      if (!Array.isArray(parsed) || parsed.length === 0) {
-        throw new Error("AI returned empty Playground deck");
+      let urlMap = new Map<string, string>();
+      if (subjects.length > 0) {
+        try {
+          const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+          const imgRes = await fetch(`${supabaseUrl}/functions/v1/generate-playground-images`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""}`,
+            },
+            body: JSON.stringify({ subjects: subjects.slice(0, 16) }),
+          });
+          if (imgRes.ok) {
+            const j = await imgRes.json();
+            for (const it of (j?.images ?? [])) {
+              if (it?.subject && it?.url) urlMap.set(it.subject, it.url);
+            }
+          } else {
+            console.error("image gen non-ok:", imgRes.status, await imgRes.text());
+          }
+        } catch (e) {
+          console.error("image hydrate failed:", e);
+        }
       }
-      const allowed = new Set(["intro", "multiple", "truefalse", "fill", "drag", "match", "draw"]);
-      const playground_slides = parsed.filter((s: any) => s && allowed.has(s.type));
-      if (playground_slides.length === 0) {
-        throw new Error("AI returned no valid Playground slides");
+      const fallback = "/playground/placeholder-dropzone.svg";
+      const swap = (v: unknown) =>
+        typeof v === "string" && v.startsWith("AI:")
+          ? (urlMap.get(v.slice(3).trim()) ?? fallback)
+          : v;
+      for (const s of playground_slides) {
+        if ("image_url" in s) s.image_url = swap(s.image_url);
+        if (Array.isArray(s.pairs)) {
+          s.pairs = s.pairs.map((p: any) => ({ ...p, image_url: swap(p?.image_url) }));
+        }
       }
+
       return new Response(JSON.stringify({ playground_slides }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
