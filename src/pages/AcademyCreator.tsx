@@ -556,5 +556,86 @@ function SlideEditor({ slide, onChange }: { slide: Slide; onChange: (p: Partial<
           </Field>
         </div>
       );
+
+    case 'cluster': {
+      const update = (next: ClusterActivity[]) => onChange({ activities: next } as any);
+      const blank = (type: ClusterActivity['type']): ClusterActivity => {
+        switch (type) {
+          case 'mcq': return { type, question: 'New question?', options: ['A', 'B', 'C'], answer: 'A' };
+          case 'fill': return { type, text: 'Fill ___ blank.', answer: 'the' };
+          case 'tf': return { type, statement: 'New statement.', answer: true };
+          case 'build': return { type, prompt: 'Build the sentence.', words: ['I', 'am', 'here'], answer: ['I', 'am', 'here'] };
+        }
+      };
+      return (
+        <div className="space-y-3">
+          <Field label="Slide title"><input className={inputCls} value={slide.title} onChange={(e) => onChange({ title: e.target.value } as any)} /></Field>
+          <Field label="Intro / context (optional)">
+            <textarea className={inputCls + ' h-16'} value={slide.content || ''} onChange={(e) => onChange({ content: e.target.value } as any)} />
+          </Field>
+          <div>
+            <span className={labelCls}>Activities ({slide.activities.length})</span>
+            <div className="space-y-3">
+              {slide.activities.map((a, i) => (
+                <div key={i} className="rounded-lg border border-slate-200 bg-slate-50 p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider">#{i + 1} · {a.type}</span>
+                    <button onClick={() => update(slide.activities.filter((_, j) => j !== i))} className="text-red-500 hover:bg-red-50 rounded px-2 py-1 text-xs"><Trash2 className="w-3.5 h-3.5" /></button>
+                  </div>
+                  {a.type === 'mcq' && (
+                    <>
+                      <input className={inputCls} value={a.question} onChange={(e) => { const n = [...slide.activities]; n[i] = { ...a, question: e.target.value }; update(n); }} />
+                      <input className={inputCls} value={a.options.join(', ')} placeholder="Options (comma separated)"
+                        onChange={(e) => { const opts = e.target.value.split(',').map((w) => w.trim()).filter(Boolean); const n = [...slide.activities]; n[i] = { ...a, options: opts }; update(n); }} />
+                      <input className={inputCls} value={a.answer} placeholder="Correct answer (must match an option)"
+                        onChange={(e) => { const n = [...slide.activities]; n[i] = { ...a, answer: e.target.value }; update(n); }} />
+                      <input className={inputCls} value={a.explanation || ''} placeholder="Explanation when wrong (optional)"
+                        onChange={(e) => { const n = [...slide.activities]; n[i] = { ...a, explanation: e.target.value }; update(n); }} />
+                    </>
+                  )}
+                  {a.type === 'fill' && (
+                    <>
+                      <input className={inputCls} value={a.text} placeholder="Sentence with ___"
+                        onChange={(e) => { const n = [...slide.activities]; n[i] = { ...a, text: e.target.value }; update(n); }} />
+                      <input className={inputCls} value={a.answer} placeholder="Answer"
+                        onChange={(e) => { const n = [...slide.activities]; n[i] = { ...a, answer: e.target.value }; update(n); }} />
+                    </>
+                  )}
+                  {a.type === 'tf' && (
+                    <>
+                      <input className={inputCls} value={a.statement} placeholder="Statement"
+                        onChange={(e) => { const n = [...slide.activities]; n[i] = { ...a, statement: e.target.value }; update(n); }} />
+                      <select className={inputCls} value={a.answer ? 'true' : 'false'}
+                        onChange={(e) => { const n = [...slide.activities]; n[i] = { ...a, answer: e.target.value === 'true' }; update(n); }}>
+                        <option value="true">True</option>
+                        <option value="false">False</option>
+                      </select>
+                    </>
+                  )}
+                  {a.type === 'build' && (
+                    <>
+                      <input className={inputCls} value={a.prompt || ''} placeholder="Prompt"
+                        onChange={(e) => { const n = [...slide.activities]; n[i] = { ...a, prompt: e.target.value }; update(n); }} />
+                      <input className={inputCls} value={a.words.join(', ')} placeholder="Word bank (comma separated)"
+                        onChange={(e) => { const words = e.target.value.split(',').map((w) => w.trim()).filter(Boolean); const n = [...slide.activities]; n[i] = { ...a, words }; update(n); }} />
+                      <input className={inputCls} value={a.answer.join(', ')} placeholder="Correct order (comma separated)"
+                        onChange={(e) => { const answer = e.target.value.split(',').map((w) => w.trim()).filter(Boolean); const n = [...slide.activities]; n[i] = { ...a, answer }; update(n); }} />
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2 mt-3">
+              {(['mcq', 'fill', 'tf', 'build'] as const).map((tp) => (
+                <button key={tp} onClick={() => update([...slide.activities, blank(tp)])}
+                  className="text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg px-3 py-1.5 inline-flex items-center gap-1">
+                  <Plus className="w-3.5 h-3.5" /> Add {tp.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
   }
 }
