@@ -654,7 +654,7 @@ export const SlideCanvas: React.FC<Props> = ({
                 lessonTitle={(slide as any).title || 'Untitled Lesson'}
                 topic={(slide as any).topic || (slide as any).visual_keyword}
                 level={(slide as any).level || (slide as any).cefr_level || level}
-                hub={hub}
+                hub={studioHub}
                 coverImageUrl={(slide as any).custom_image_url || (slide as any).coverImageUrl}
                 unitNumber={(slide as any).unit_number ?? (slide as any).unitNumber ?? unitNumber}
                 unitTitle={(slide as any).unit_title ?? (slide as any).unitTitle}
@@ -663,13 +663,13 @@ export const SlideCanvas: React.FC<Props> = ({
               <div className={cn('relative space-y-4', theme.font)}>
                 <SlideMedia slide={slide} />
                 <TitleField slide={slide} onChange={onChange} />
-                <InteractiveBlock slide={slide} mode={mode} hub={hub} />
+                <InteractiveBlock slide={slide} mode={mode} hub={studioHub} />
                 {shouldShowAudioButton(slide) && (
                   <div className="flex justify-center pt-1">
                     <PlaySoundButton slide={slide} />
                   </div>
                 )}
-                {hub === 'playground' && slide.slide_type === 'mascot_speech' && (
+                {studioHub === 'playground' && slide.slide_type === 'mascot_speech' && (
                   <div className="absolute -bottom-2 -right-2 text-5xl select-none animate-bounce" aria-hidden>
                     {theme.mascot}
                   </div>
