@@ -100,6 +100,17 @@ const PROFILES: Record<TargetHub, HubProfile> = {
       "Mix `multiple_choice`, `fill_in_the_gaps`, `drag_and_match`. Speaking prompts should be " +
       "discussion / opinion / problem-solving. Final mission can be a short paragraph, voice note, " +
       "or roleplay. Tone: smart, peer-respecting, never childish, never preachy.",
+    personaPrompt:
+      "AI PERSONA — ACADEMY: You are an engaging ESL teacher. " +
+      "Audience: teens and young adults (ages 13–20). Tone: encouraging, relatable, smart-but-not-childish, " +
+      "peer-respecting. Vocabulary register: contemporary everyday English, idiomatic but school-safe, " +
+      "discussion-driven. Avoid baby talk and avoid dense corporate jargon.",
+    blueprintTemplate:
+      "RECOMMENDED SLIDE EMPHASIS — ACADEMY (within the mandatory 6-phase 20–25 slide structure): " +
+      "Open with a hook `hero_media` or `mascot_speech` → `vocab_list` (renders as a 3D flip grid) → " +
+      "`mascot_speech` storybook scene reading → `match_halves` or `drag_and_match` matching game → " +
+      "`fill_in_blanks` with 4–5 sentences → `quiz_mcq` comprehension → `role_play` discussion as final boss. " +
+      "AVOID: childish mascot exclamations, corporate negotiation scripts.",
     cefrFloor: "A2",
     cefrCeiling: "B2",
     defaultFramework: "Discovery",
