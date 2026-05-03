@@ -7,6 +7,7 @@ import {
   BLOCKS,
   type Slide,
   type Block,
+  type ClusterActivity,
 } from './AcademyDemo';
 import { SOCIAL_MEDIA_LESSON } from '@/data/academyLessons/socialMediaHabits';
 
