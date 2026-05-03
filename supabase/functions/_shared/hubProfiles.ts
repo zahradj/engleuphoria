@@ -43,6 +43,10 @@ export interface HubProfile {
   bouncerRule: string;
   /** Pedagogy block for the blueprint + slide generators. */
   pedagogyRule: string;
+  /** Hub-specific AI PERSONA — identity, audience, tone, vocabulary register. */
+  personaPrompt: string;
+  /** Hub-specific recommended slide blueprint emphasis (slide_type guidance). */
+  blueprintTemplate: string;
   /** Soft CEFR floor — used when the caller sends an unusable level. */
   cefrFloor: string;
   /** Soft CEFR ceiling — used when the caller sends an unusable level. */
@@ -67,6 +71,17 @@ const PROFILES: Record<TargetHub, HubProfile> = {
       "image thumbnails (set left_thumbnail_keyword + right_thumbnail_keyword on every pair). " +
       "Mascot scripts in 1st person, exclamatory and warm. Final mission MUST be sing/say/show, " +
       "never write a paragraph. Keep `requires_audio` = true on most slides for pronunciation.",
+    personaPrompt:
+      "AI PERSONA — PLAYGROUND: You are a warm, playful kids' English coach. " +
+      "Audience: young learners (ages 4–11). Tone: gentle, exclamatory, mascot-led, never sarcastic. " +
+      "Vocabulary register: high-frequency concrete nouns, action verbs, simple adjectives. " +
+      "Speak in short, joyful sentences. Use 1st-person mascot voice for instructions.",
+    blueprintTemplate:
+      "RECOMMENDED SLIDE EMPHASIS — PLAYGROUND (within the mandatory 6-phase 20–25 slide structure): " +
+      "Open with a `mascot_speech` welcome → `flashcard` vocabulary intros (image-rich) → " +
+      "`drag_and_match` with left/right thumbnail keywords → short `mascot_speech` storybook reading → " +
+      "`multiple_choice` comprehension → final `mascot_speech` sing/say/show mission. " +
+      "AVOID: grammar tables, business case studies, long writing tasks.",
     cefrFloor: "Pre-A1",
     cefrCeiling: "A2",
     defaultFramework: "Immersion",
@@ -85,6 +100,17 @@ const PROFILES: Record<TargetHub, HubProfile> = {
       "Mix `multiple_choice`, `fill_in_the_gaps`, `drag_and_match`. Speaking prompts should be " +
       "discussion / opinion / problem-solving. Final mission can be a short paragraph, voice note, " +
       "or roleplay. Tone: smart, peer-respecting, never childish, never preachy.",
+    personaPrompt:
+      "AI PERSONA — ACADEMY: You are an engaging ESL teacher. " +
+      "Audience: teens and young adults (ages 13–20). Tone: encouraging, relatable, smart-but-not-childish, " +
+      "peer-respecting. Vocabulary register: contemporary everyday English, idiomatic but school-safe, " +
+      "discussion-driven. Avoid baby talk and avoid dense corporate jargon.",
+    blueprintTemplate:
+      "RECOMMENDED SLIDE EMPHASIS — ACADEMY (within the mandatory 6-phase 20–25 slide structure): " +
+      "Open with a hook `hero_media` or `mascot_speech` → `vocab_list` (renders as a 3D flip grid) → " +
+      "`mascot_speech` storybook scene reading → `match_halves` or `drag_and_match` matching game → " +
+      "`fill_in_blanks` with 4–5 sentences → `quiz_mcq` comprehension → `role_play` discussion as final boss. " +
+      "AVOID: childish mascot exclamations, corporate negotiation scripts.",
     cefrFloor: "A2",
     cefrCeiling: "B2",
     defaultFramework: "Discovery",
@@ -104,6 +130,19 @@ const PROFILES: Record<TargetHub, HubProfile> = {
       "professional production task: draft an email, deliver a 60-second pitch, run a 1-minute " +
       "negotiation, write a LinkedIn post, present a recommendation. Tone: respectful, peer-to-peer, " +
       "concise. No childish language, no emoji-heavy mascot scripts.",
+    personaPrompt:
+      "AI PERSONA — SUCCESS: You are a high-level Corporate Communications Coach. " +
+      "Audience: working business professionals (ages 22+). Tone: authoritative, polished, peer-to-peer, " +
+      "concise. Vocabulary register: advanced business idioms, negotiation language, management terminology, " +
+      "hedging and diplomatic softeners (would, might, could, perhaps), executive summaries. " +
+      "Speak as a coach to a colleague — never as a teacher to a child.",
+    blueprintTemplate:
+      "RECOMMENDED SLIDE EMPHASIS — SUCCESS (within the mandatory 6-phase 20–25 slide structure): " +
+      "Open with a `hero_media` title slide → `vocab_list` Executive Summary of key terms → " +
+      "`grammar_explanation` rendered as a structured grammar table → `mascot_speech` Business Case Study " +
+      "in split-layout reading → `quiz_mcq` analysis questions → `role_play` Roleplay Prompt → " +
+      "`real_world_task` final production (draft an email, deliver a pitch, run a negotiation). " +
+      "AVOID: childish mascots, sing-along missions, simple flashcard drills.",
     cefrFloor: "B1",
     cefrCeiling: "C1",
     defaultFramework: "TaskBased",
@@ -124,10 +163,24 @@ export function getHubProfile(hub: TargetHub): HubProfile {
   return PROFILES[hub];
 }
 
+/** Build the per-hub PERSONA + recommended blueprint block (used by both generators). */
+export function buildHubPersonaBlock(hub: TargetHub): string {
+  const p = PROFILES[hub];
+  return `
+═══════════════════════════════════════════════════════
+HUB AI PERSONA — ${hub.toUpperCase()}
+═══════════════════════════════════════════════════════
+${p.personaPrompt}
+
+${p.blueprintTemplate}`.trim();
+}
+
 /** System-prompt block for the BLUEPRINT generator — covers source, pedagogy, framework picker. */
 export function buildBlueprintHubBlock(hub: TargetHub, cefr_level: string): string {
   const p = PROFILES[hub];
   return `
+${buildHubPersonaBlock(hub)}
+
 ═══════════════════════════════════════════════════════
 TARGET HUB: ${hub.toUpperCase()}  (CEFR window ${p.cefrFloor}–${p.cefrCeiling})
 ═══════════════════════════════════════════════════════
@@ -147,12 +200,16 @@ ${FRAMEWORK_GUIDE}`.trim();
 export function buildSlideHubBlock(hub: TargetHub, cefr_level: string): string {
   const p = PROFILES[hub];
   return `
+${buildHubPersonaBlock(hub)}
+
 ═══════════════════════════════════════════════════════
 TARGET HUB: ${hub.toUpperCase()}  (CEFR window ${p.cefrFloor}–${p.cefrCeiling})
 ═══════════════════════════════════════════════════════
 ${p.pedagogyRule}
 
-Caller-supplied CEFR: ${cefr_level}. Clamp to ${p.cefrFloor}–${p.cefrCeiling} for this hub.`.trim();
+Caller-supplied CEFR: ${cefr_level}. Clamp to ${p.cefrFloor}–${p.cefrCeiling} for this hub.
+
+SCHEMA INTEGRITY: The hub persona changes the CONTENT and slide_type emphasis only. You MUST still emit the same JSON shape (slide_type, interactive_data, lesson_phase, target_skills, requires_audio) defined in the main system prompt — the frontend renderer parses one schema across all hubs.`.trim();
 }
 
 /** Build the dynamic phase-sequence block for the slide generator from a blueprint.phases array. */
