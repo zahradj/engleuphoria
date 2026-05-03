@@ -71,7 +71,7 @@ export const StudioSidebar: React.FC = () => {
         {NAV.map((item) => {
           const Icon = item.icon;
           const active = currentStep === item.key;
-          const label = t(item.tKey);
+          const label = item.fallback ? t(item.tKey, { defaultValue: item.fallback }) : t(item.tKey);
           return (
             <button
               key={item.key}
