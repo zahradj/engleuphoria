@@ -436,6 +436,7 @@ export const useClassroomSync = ({
     }
   }, [role, roomId, userId, currentSlideIndex, stageMode, drawingEnabled, iframeUnlocked, session?.embeddedUrl, session?.activeCanvasTab]);
 
+  return {
     session,
     currentSlide: currentSlideIndex,
     setCurrentSlideIndex,
