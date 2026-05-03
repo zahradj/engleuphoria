@@ -29,6 +29,17 @@ export const BLOCKS: { id: Block; label: string }[] = [
   { id: 'speaking', label: 'Speaking' },
 ];
 
+/**
+ * ClusterActivity — one mini-task inside a `cluster` slide.
+ * Allows 3–6 related exercises to live on a single slide so a slide acts like
+ * a focused, dense practice page rather than a single-question card.
+ */
+export type ClusterActivity =
+  | { type: 'mcq'; question: string; options: string[]; answer: string; explanation?: string }
+  | { type: 'fill'; text: string; answer: string; explanation?: string }
+  | { type: 'tf'; statement: string; answer: boolean; explanation?: string }
+  | { type: 'build'; prompt?: string; words: string[]; answer: string[] };
+
 export type Slide =
   | { type: 'intro'; block: Block; title: string; subtitle?: string }
   | { type: 'question'; block: Block; prompt: string; placeholder?: string }
@@ -48,7 +59,8 @@ export type Slide =
   | { type: 'debate_scale'; block: Block; prompt: string }
   | { type: 'role_play'; block: Block; title: string; lineA: string; lineB: string }
   | { type: 'speaking_task'; block: Block; prompt: string; starters?: string[] }
-  | { type: 'reflection'; block: Block; prompt: string };
+  | { type: 'reflection'; block: Block; prompt: string }
+  | { type: 'cluster'; block: Block; title: string; content?: string; activities: ClusterActivity[] };
 
 // ─── Lesson content (edit only this) ─────────────────────────────────────────
 // Topic: "How much time do you spend on your phone?" — A2 level, 36 slides.
@@ -94,6 +106,16 @@ const SLIDES: Slide[] = [
   { type: 'correction', block: 'grammar', prompt: 'Fix the sentence.', wrong: 'My sister post photos every day.', answer: 'My sister posts photos every day.' },
 
   // BLOCK 5 — Controlled Practice (19–24)
+  // 🆕 Cluster slide: 4 related micro-tasks on a single page (faster, denser, smarter).
+  { type: 'cluster', block: 'practice', title: 'Present Simple — Quick Drill',
+    content: 'He uses Instagram. She posts photos. Apply the rule four ways below.',
+    activities: [
+      { type: 'mcq', question: 'She ___ every day.', options: ['use', 'uses', 'using'], answer: 'uses', explanation: "Use 'uses' for she/he/it." },
+      { type: 'fill', text: 'He ___ (use) his phone.', answer: 'uses' },
+      { type: 'tf', statement: 'He use TikTok.', answer: false, explanation: "Should be 'He uses TikTok.'" },
+      { type: 'build', prompt: 'Build the sentence.', words: ['I', 'use', 'my', 'phone'], answer: ['I', 'use', 'my', 'phone'] },
+    ],
+  },
   { type: 'fill_blank', block: 'practice', prompt: 'Complete with the correct verb form.', before: 'He', after: '(use) his phone too much.', answer: 'uses' },
   { type: 'multiple', block: 'practice', question: 'She ___ Instagram every day.', options: ['use', 'uses', 'using'], answer: 'uses' },
   { type: 'sentence_builder', block: 'practice', prompt: 'Build the sentence.', words: ['phone', 'I', 'my', 'use'], answer: ['I', 'use', 'my', 'phone'] },
@@ -644,6 +666,143 @@ function ReflectionSlide({ slide, t }: { slide: Extract<Slide, { type: 'reflecti
   );
 }
 
+// ─── Cluster slide (multi-activity) ─────────────────────────────────────────
+function ClusterMCQ({ a, t }: { a: Extract<ClusterActivity, { type: 'mcq' }>; t: ThemeTokens }) {
+  const [picked, setPicked] = useState<string | null>(null);
+  const correct = picked === a.answer;
+  return (
+    <div className={`rounded-lg border ${t.card} p-4 space-y-3`}>
+      <p className={`text-base font-medium ${t.text}`}>{a.question}</p>
+      <div className="flex flex-wrap gap-2">
+        {a.options.map((opt) => {
+          const active = picked === opt;
+          let cls = `px-3 py-1.5 rounded-md text-sm border transition ${t.btnGhost}`;
+          if (picked && active && correct) cls = 'px-3 py-1.5 rounded-md text-sm border border-emerald-500 bg-emerald-500/10 text-emerald-200';
+          else if (picked && active && !correct) cls = 'px-3 py-1.5 rounded-md text-sm border border-red-500 bg-red-500/10 text-red-200';
+          else if (picked && opt === a.answer) cls = 'px-3 py-1.5 rounded-md text-sm border border-emerald-500/50 text-emerald-300';
+          return <button key={opt} onClick={() => picked === null && setPicked(opt)} className={cls}>{opt}</button>;
+        })}
+      </div>
+      {picked !== null && (
+        <p className={`text-sm ${correct ? 'text-emerald-400' : 'text-red-400'}`}>
+          {correct ? '✓ Correct.' : (a.explanation ?? 'Try again.')}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function ClusterFill({ a, t }: { a: Extract<ClusterActivity, { type: 'fill' }>; t: ThemeTokens }) {
+  const [val, setVal] = useState('');
+  const submitted = val.trim().length > 0;
+  const correct = val.trim().toLowerCase() === a.answer.trim().toLowerCase();
+  return (
+    <div className={`rounded-lg border ${t.card} p-4 space-y-3`}>
+      <p className={`text-base font-medium ${t.text}`}>{a.text}</p>
+      <input
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        placeholder="Type your answer…"
+        className={`w-full rounded-md border px-3 py-2 text-sm outline-none focus:border-indigo-500 ${t.inputBg}`}
+      />
+      {submitted && (
+        <p className={`text-sm ${correct ? 'text-emerald-400' : 'text-red-400'}`}>
+          {correct ? '✓ Correct.' : (a.explanation ?? `Answer: ${a.answer}`)}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function ClusterTF({ a, t }: { a: Extract<ClusterActivity, { type: 'tf' }>; t: ThemeTokens }) {
+  const [picked, setPicked] = useState<boolean | null>(null);
+  const correct = picked !== null && picked === a.answer;
+  return (
+    <div className={`rounded-lg border ${t.card} p-4 space-y-3`}>
+      <p className={`text-base font-medium ${t.text}`}>{a.statement}</p>
+      <div className="flex gap-2">
+        {[true, false].map((v) => {
+          const active = picked === v;
+          let cls = `px-4 py-1.5 rounded-md text-sm font-medium transition ${t.btnGhost}`;
+          if (active && correct) cls = 'px-4 py-1.5 rounded-md text-sm font-medium bg-emerald-600 text-white';
+          else if (active && !correct) cls = 'px-4 py-1.5 rounded-md text-sm font-medium bg-red-600 text-white';
+          return <button key={String(v)} onClick={() => picked === null && setPicked(v)} className={cls}>{v ? 'True' : 'False'}</button>;
+        })}
+      </div>
+      {picked !== null && (
+        <p className={`text-sm ${correct ? 'text-emerald-400' : 'text-red-400'}`}>
+          {correct ? '✓ Correct.' : (a.explanation ?? 'Not quite.')}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function ClusterBuild({ a, t }: { a: Extract<ClusterActivity, { type: 'build' }>; t: ThemeTokens }) {
+  const [picked, setPicked] = useState<number[]>([]);
+  const sentence = picked.map((i) => a.words[i]).join(' ');
+  const submitted = picked.length === a.words.length;
+  const correct = submitted && JSON.stringify(picked.map((i) => a.words[i])) === JSON.stringify(a.answer);
+  const reset = () => setPicked([]);
+  const toggle = (i: number) => {
+    if (picked.includes(i)) setPicked(picked.filter((x) => x !== i));
+    else setPicked([...picked, i]);
+  };
+  return (
+    <div className={`rounded-lg border ${t.card} p-4 space-y-3`}>
+      <p className={`text-base font-medium ${t.text}`}>{a.prompt ?? 'Build the sentence.'}</p>
+      <div className="flex flex-wrap gap-2">
+        {a.words.map((w, i) => {
+          const used = picked.includes(i);
+          return (
+            <button
+              key={i}
+              disabled={used}
+              onClick={() => toggle(i)}
+              className={`px-3 py-1.5 rounded-md text-sm border transition ${used ? 'opacity-30 line-through' : t.btnGhost}`}
+            >
+              {w}
+            </button>
+          );
+        })}
+      </div>
+      <div className={`min-h-[2rem] px-3 py-2 rounded-md border border-dashed border-slate-700 text-sm ${t.text}`}>
+        {sentence || <span className={t.muted}>Tap words to build…</span>}
+      </div>
+      <div className="flex items-center gap-3">
+        <button onClick={reset} className={`text-xs underline ${t.muted}`}>Reset</button>
+        {submitted && (
+          <span className={`text-sm ${correct ? 'text-emerald-400' : 'text-red-400'}`}>
+            {correct ? '✓ Correct.' : `Try: ${a.answer.join(' ')}`}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ClusterSlide({ slide, t }: { slide: Extract<Slide, { type: 'cluster' }>; t: ThemeTokens }) {
+  return (
+    <div className="space-y-5 w-full max-w-3xl">
+      <div className="space-y-2">
+        <div className={`text-xs uppercase tracking-widest ${t.muted}`}>{slide.block}</div>
+        <h2 className={`text-2xl md:text-3xl font-semibold ${t.text}`}>{slide.title}</h2>
+        {slide.content && <p className={`text-base ${t.muted}`}>{slide.content}</p>}
+      </div>
+      <div className="grid gap-3">
+        {slide.activities.map((a, i) => {
+          switch (a.type) {
+            case 'mcq': return <ClusterMCQ key={i} a={a} t={t} />;
+            case 'fill': return <ClusterFill key={i} a={a} t={t} />;
+            case 'tf': return <ClusterTF key={i} a={a} t={t} />;
+            case 'build': return <ClusterBuild key={i} a={a} t={t} />;
+          }
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Renderer ───────────────────────────────────────────────────────────────
 export function SlideRenderer({ slide, t }: { slide: Slide; t: ThemeTokens }) {
   switch (slide.type) {
@@ -666,6 +825,7 @@ export function SlideRenderer({ slide, t }: { slide: Slide; t: ThemeTokens }) {
     case 'role_play': return <RolePlaySlide slide={slide} t={t} />;
     case 'speaking_task': return <SpeakingTaskSlide slide={slide} t={t} />;
     case 'reflection': return <ReflectionSlide slide={slide} t={t} />;
+    case 'cluster': return <ClusterSlide slide={slide} t={t} />;
   }
 }
 
