@@ -18,11 +18,11 @@ export interface SlideVoice { text: string; autoPlay?: boolean }
 export interface SlideFeedback { correct?: string; wrong?: string }
 
 export type Slide =
-  | { type: 'intro'; title: string; text?: string; voice?: SlideVoice }
+  | { type: 'intro'; title: string; text?: string; image_url?: string; voice?: SlideVoice }
   | {
       type: 'multiple';
       question: string;
-      image?: string;
+      image_url?: string;
       options: string[];
       answer: string;
       voice?: SlideVoice;
@@ -31,6 +31,7 @@ export type Slide =
   | {
       type: 'truefalse';
       statement: string;
+      image_url?: string;
       answer: boolean;
       voice?: SlideVoice;
       feedback?: SlideFeedback;
@@ -46,14 +47,14 @@ export type Slide =
       type: 'drag';
       instruction: string;
       word: string;
-      target: string; // emoji or image url
+      image_url: string; // AI-generated cartoon for the target word
       voice?: SlideVoice;
       feedback?: SlideFeedback;
     }
   | {
       type: 'match';
       instruction: string;
-      pairs: { word: string; match: string }[];
+      pairs: { word: string; image_url: string }[];
       voice?: SlideVoice;
       feedback?: SlideFeedback;
     }
@@ -91,17 +92,17 @@ const SLIDES: Slide[] = [
     type: 'drag',
     instruction: 'Drag the word onto the picture',
     word: 'APPLE',
-    target: '🍎',
+    image_url: '/playground/placeholder-dropzone.svg',
     voice: { text: 'Drag the word apple onto the picture', autoPlay: true },
   },
   {
     type: 'match',
     instruction: 'Tap a word, then tap its picture',
     pairs: [
-      { word: 'DOG', match: '🐶' },
-      { word: 'CAT', match: '🐱' },
-      { word: 'SUN', match: '☀️' },
-      { word: 'STAR', match: '⭐' },
+      { word: 'DOG', image_url: '/playground/placeholder-dropzone.svg' },
+      { word: 'CAT', image_url: '/playground/placeholder-dropzone.svg' },
+      { word: 'SUN', image_url: '/playground/placeholder-dropzone.svg' },
+      { word: 'STAR', image_url: '/playground/placeholder-dropzone.svg' },
     ],
     voice: { text: 'Match the words to the pictures!', autoPlay: true },
   },
