@@ -235,6 +235,7 @@ const SlideStudioInner: React.FC = () => {
                       (activeLessonData.source_lesson as any)?.lesson_number ??
                       (activeLessonData.source_lesson as any)?.position
                     }
+                    hubOverride={hubOverride}
                   />
                 </SlideErrorBoundary>
               </div>
