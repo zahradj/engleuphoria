@@ -221,7 +221,18 @@ const SlideStudioInner: React.FC = () => {
             {activeSlide ? (
               <div className="flex-1 min-w-0 min-h-0 overflow-hidden">
                 <SlideErrorBoundary resetKey={activeSlide.id} label="this slide" onSkip={goToNextSlide}>
-                  <SlideCanvas slide={activeSlide} onChange={(patch) => updateSlide(activeSlide.id, patch)} />
+                  <SlideCanvas
+                    slide={activeSlide}
+                    onChange={(patch) => updateSlide(activeSlide.id, patch)}
+                    slideIndex={activeIndex}
+                    totalSlides={slides.length}
+                    level={activeLessonData.cefr_level}
+                    unitNumber={(activeLessonData.source_lesson as any)?.unit_number}
+                    lessonNumber={
+                      (activeLessonData.source_lesson as any)?.lesson_number ??
+                      (activeLessonData.source_lesson as any)?.position
+                    }
+                  />
                 </SlideErrorBoundary>
               </div>
             ) : (
