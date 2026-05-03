@@ -1,70 +1,108 @@
-## Diagnosis
+## Goal
 
-The current error is no longer the original parser error. The database now has generated slot columns, and the app now sends:
+Merge the branded PPT-style frame with the interactive activity center so every slide — regardless of `slide.type` — renders inside one cohesive, hub-themed container with a consistent header, ambient background, and progress footer. Inside that frame, upgrade the interactive content (vocab flip-grid, multi-question fill-in-blanks, 6-pair matching arena), and add Generative Fallbacks so empty slides never appear.
 
-```text
-onConflict: created_by,target_system,slot_cefr_level,slot_unit_number,slot_lesson_number
-```
+## Scope (files touched)
 
-However, the unique index that was created is a **partial unique index**:
+1. `src/components/lesson-player/SlideShell.tsx` — NEW. Branded PPT container.
+2. `src/components/lesson-player/DynamicSlideRenderer.tsx` — wrap `renderContent()` in `SlideShell`, add fallbacks, route flashcards to new `VocabFlipGrid`.
+3. `src/components/lesson-player/editorial/VocabFlipGrid.tsx` — NEW. CSS 3D flip flashcards.
+4. `src/components/lesson-player/editorial/EditorialFillBlanks.tsx` — restyle for high-density, charcoal-on-white, hub-accent inputs.
+5. `src/components/lesson-player/editorial/EditorialMatchHalves.tsx` — extend to 6 pairs, two-column drag layout, hub accent.
+6. `src/components/lesson-player/editorial/VideoSlide.tsx` — robust embed + topic-image fallback when URL invalid.
+7. `src/components/lesson-player/LessonPlayerContainer.tsx` — wrap `<DynamicSlideRenderer>` in `<AnimatePresence mode="wait">` properly so horizontal transitions actually fire (currently the animation key is on the inner motion.div); also remove the duplicate left media pane when the SlideShell already renders branded media (avoids double-frame).
 
-```sql
-WHERE slot_cefr_level IS NOT NULL
-  AND slot_unit_number IS NOT NULL
-  AND slot_lesson_number IS NOT NULL
-```
+## 1. The Global Branded Frame — `SlideShell`
 
-PostgREST/Supabase client upsert cannot target that partial index from `onConflict` unless the conflict target predicate is also supplied, which the JS client is not doing here. So Postgres rejects the request with:
+A single component wraps every slide. It receives `hub`, `lesson`, `slideIndex`, `totalSlides`, `accentHex`, plus the slide content as children.
 
-```text
-there is no unique or exclusion constraint matching the ON CONFLICT specification
-```
-
-That is why the problem persists even though the columns and index exist.
-
-## Root fix
-
-### 1. Replace the partial unique index with a real unique constraint
-
-Create a new migration that:
-
-- Drops the partial `curriculum_lessons_unique_slot` index.
-- Ensures `slot_cefr_level`, `slot_unit_number`, and `slot_lesson_number` are still generated from `ai_metadata`.
-- Backfills/deduplicates any existing complete curriculum slots before adding the constraint.
-- Adds a plain unique constraint on:
+Layout:
 
 ```text
-created_by, target_system, slot_cefr_level, slot_unit_number, slot_lesson_number
+┌──────────────────────────────────────────────────────────┐
+│  [Logo]  Academy · B1 · Unit 3 · Lesson 4    [Slide 6/22]│  ← top bar (translucent)
+│                                                          │
+│           ── ambient gradient + soft glow ──             │
+│                                                          │
+│              {children — interactive content}            │
+│                                                          │
+│  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░  ← progress bar       │
+└──────────────────────────────────────────────────────────┘
 ```
 
-This produces a real constraint that `onConflict` can reliably target through PostgREST.
+- Background uses hub gradient from `HUB_TOKENS` / `HUB_CONFIGS`:
+  - Playground → orange→amber mesh
+  - Academy → purple→indigo mesh
+  - Professional → emerald→teal mesh
+- Two `radial-gradient` glows (top-left + bottom-right) at 12% opacity for the "ambient" feel.
+- Top-left: `<Logo size="small" />` + metadata pills (Hub · Level · Unit/Lesson). Top-right: `Slide N/Total`.
+- Bottom: thin `Progress` bar (`bg-white/40` track, fill in hub accent).
+- All text on the chrome uses `text-white/90` over a `backdrop-blur-md bg-black/10` strip so it stays legible on every gradient.
+- Children render inside a centered `max-w-5xl` content card with `bg-white/95 dark:bg-slate-900/90 rounded-2xl shadow-xl p-8` so interactive content always sits on a clean surface (charcoal text on white).
 
-### 2. Preserve compatibility for lessons without slot metadata
+Source of metadata: read from `slide.lesson_meta` if present, else fall back to props passed by `LessonPlayerContainer` (it already knows `hub`, `cefr`, `unit`, `lesson`).
 
-Because Postgres unique constraints allow multiple `NULL` values, non-blueprint lessons without `slot_*` metadata can still coexist. Blueprint lessons with complete slot metadata will dedupe correctly.
+## 2. Injecting Interactivity
 
-### 3. Harden the frontend payload
+### 2a. `VocabFlipGrid` (NEW) — replaces `EditorialVocabList` for `flashcard` / `vocabulary` types
+- Responsive grid: `grid-cols-2 md:grid-cols-3` capped at 6 cards.
+- Each card is a CSS 3D flip (`perspective-1000`, `transform-style-preserve-3d`, `rotate-y-180` on hover/click).
+- Front: image (or large emoji fallback) + word in big bold.
+- Back: definition + example sentence, hub-accent border.
+- Card footer: small speaker icon (re-uses existing TTS hook if present).
 
-Update the blueprint save path so every generated blueprint lesson explicitly carries complete slot metadata:
+### 2b. `EditorialFillBlanks` upgrade — High-Density Quiz
+- Render up to 5 sentences (already supports N; ensure normalizer pads/truncates to 4–5).
+- Restyle: charcoal `text-slate-900` on `bg-white`, larger row spacing (`py-3`), input border uses `style={{ borderColor: accentHex }}` on focus.
+- Single "Check All" CTA in hub accent.
+- Per-row inline correct/incorrect feedback already exists — keep, just brighten contrast.
 
-- `ai_metadata.cefr_level`
-- `ai_metadata.unit_number`
-- `ai_metadata.lesson_number`
+### 2c. `EditorialMatchHalves` — Matching Arena
+- Display up to 6 pairs in two columns (`left_item` column, `right_item` column shuffled).
+- Use `@dnd-kit` (already in repo per drag activities) for drag-to-match; on drop, snap with hub-accent ring.
+- Reset / Check buttons in hub accent.
 
-Also include defensive normalization so unit/lesson numbers are always written as stable strings/numbers consistently.
+## 3. Data Integrity & Fallbacks
 
-### 4. Fix the separate single-lesson save path
+### 3a. Generative Fallback Slide
+- Already partially implemented as `MissingDataFallback`. Promote it to a richer "Teacher Discussion" template:
+  - Header: 💬 + "Let's Talk About: {derived topic}"
+  - Body: 3 conversation prompts derived from `slide.title`, `slide.teacher_script`, or `lesson.topic` using a deterministic local template (no AI call): `["What do you already know about {topic}?", "Have you ever experienced this?", "How would you explain it to a friend?"]`.
+  - Hub-accent CTA: "Start Discussion".
+- Trigger conditions (extend current `hasValidInteractiveData`):
+  - `slide.type === 'interactive'` with no `interactive_data`.
+  - Any interactive `slide_type` in `INTERACTIVE_REQUIRED_KEYS` missing required keys.
 
-`src/services/lessonLibraryService.ts` currently uses the same slot conflict target even when it saves a standalone lesson that does **not** include `unit_number` / `lesson_number`. I will change that flow so it does not use the curriculum-slot upsert path unless it actually has a complete slot identity. For standalone lesson creation, it should insert or use a different safe identity, not the blueprint slot constraint.
+### 3b. Video Slide hardening
+- In `VideoSlide.tsx`:
+  - If `extractYouTubeId` succeeds → render iframe (already present).
+  - Else if `videoUrl` looks like an mp4/webm → use a native `<video controls>` element.
+  - Else (no usable URL) → render `LiveHeroMediaSlide`-style "Conversation Starter": topic image (`slide.imageUrl` or hub mascot) + prompt block ("Discuss: {slide.title}") instead of the current grey "No video URL" box.
 
-### 5. Verification
+## 4. Visual Polish
 
-After changes, verify through read-only checks that:
+- `LessonPlayerContainer.tsx`: move the `key={currentSlide.id}` to the `<motion.div>` inside `DynamicSlideRenderer` (already keyed) and ensure `<AnimatePresence mode="wait">` receives a single direct child — currently it wraps `<DynamicSlideRenderer>` directly, which works only because the inner motion.div is keyed. We'll lift the motion wrapper one level so horizontal slide-in/out transitions reliably fire on slide change.
+- All buttons/inputs/badges inside interactive components read accent from `HUB_CONFIGS[hub].colorPalette.primary` (passed by `SlideShell` via React context: `SlideHubContext`) so they tint correctly per hub without prop-drilling.
 
-- `curriculum_lessons_unique_slot` is a real unique constraint / non-partial unique backing index.
-- No duplicate complete blueprint slots exist.
-- The frontend no longer points a standalone save at the blueprint-only conflict target.
+## Technical notes
 
-## Expected result
+- New context: `SlideHubContext` exposed by `SlideShell`. Consumed by `EditorialFillBlanks`, `VocabFlipGrid`, `EditorialMatchHalves` to get accent color. Defaults to academy purple.
+- Tailwind 3D utilities: add small `@layer utilities` block in `src/index.css` with `.perspective-1000`, `.preserve-3d`, `.backface-hidden`, `.rotate-y-180`.
+- No DB / edge-function changes. No new dependencies (we already have framer-motion, @dnd-kit, lucide).
+- `LiveVocabularyGrid` and `LiveGrammarExplanation` (currently inline in DynamicSlideRenderer) become thin wrappers around new components or are deleted in favor of the editorial set.
 
-Clicking **Force Save to Library** should update existing curriculum slots or create missing ones without creating duplicates, and without the `ON CONFLICT` constraint error.
+## Out of scope
+
+- Slide authoring UI (Canvas Studio) — unchanged.
+- AI generation pipeline — unchanged. The fallback is a deterministic UI shim, not a re-generation.
+- Removing the existing left-media pane in `LessonPlayerContainer` if media is already handled inside `SlideShell` (will gate via a `showSplitPane` flag based on slide type to avoid regressing reading slides).
+
+## Acceptance
+
+- Every slide shows the same branded shell (logo, metadata, progress, gradient).
+- Vocabulary slides render a 3D flip grid (≤6 cards).
+- Fill-in-blank slides show 4–5 high-contrast questions + one Check button.
+- Matching slides render up to 6 pairs in two columns with drag-and-drop.
+- Empty interactive payloads render the Teacher Discussion fallback, never blank.
+- Broken video URLs render a Conversation Starter, never a blank player.
+- Slide changes animate horizontally (slide-in from right, slide-out to left).

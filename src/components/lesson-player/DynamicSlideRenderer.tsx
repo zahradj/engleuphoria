@@ -93,6 +93,9 @@ import EditorialBranchingDialogue from './editorial/EditorialBranchingDialogue';
 import FrontPageSlide from './editorial/FrontPageSlide';
 import CelebrationSlide from './editorial/CelebrationSlide';
 import VideoSlide from './editorial/VideoSlide';
+import VocabFlipGrid from './editorial/VocabFlipGrid';
+import TeacherDiscussionFallback from './editorial/TeacherDiscussionFallback';
+import SlideShell from './SlideShell';
 // Slide types
 import SlideHook from './slides/SlideHook';
 import SlideVocabulary from './slides/SlideVocabulary';
@@ -223,22 +226,7 @@ const hasValidInteractiveData = (slide: any, type: string): boolean => {
 };
 
 function MissingDataFallback({ slide }: { slide: any }) {
-  return (
-    <div className="w-full max-w-2xl mx-auto px-6 py-12 text-center flex flex-col items-center gap-4">
-      <div className="text-5xl">💬</div>
-      <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-        {slide?.title || "Let's discuss this topic!"}
-      </h2>
-      <p className="text-base text-muted-foreground max-w-lg">
-        Oops! The activity data is missing. Let's discuss this topic together instead!
-      </p>
-      {slide?.teacher_script && (
-        <p className="text-sm italic text-muted-foreground/80 mt-2 border-t pt-3 max-w-lg">
-          "{slide.teacher_script}"
-        </p>
-      )}
-    </div>
-  );
+  return <TeacherDiscussionFallback slide={slide} />;
 }
 
 function LiveHeroMediaSlide({ slide }: { slide: any }) {
@@ -307,6 +295,14 @@ interface DynamicSlideRendererProps {
   onCorrectAnswer: () => void;
   onIncorrectAnswer?: () => void;
   onComplete?: () => void;
+  /** Optional metadata for the branded shell. */
+  level?: string;
+  unit?: number | string;
+  lesson?: number | string;
+  slideIndex?: number;
+  totalSlides?: number;
+  /** When true, do not wrap output in the SlideShell (used by host containers that already provide one). */
+  disableShell?: boolean;
 }
 
 export default function DynamicSlideRenderer({
@@ -315,6 +311,12 @@ export default function DynamicSlideRenderer({
   onCorrectAnswer,
   onIncorrectAnswer,
   onComplete,
+  level,
+  unit,
+  lesson,
+  slideIndex,
+  totalSlides,
+  disableShell = false,
 }: DynamicSlideRendererProps) {
   const config = HUB_CONFIGS[hub];
   const animKey = slide.animation || config.defaultAnimation;
@@ -384,11 +386,8 @@ export default function DynamicSlideRenderer({
       if (ytEmbed) return <VideoSlide slide={slide} />;
       return <SlideConcept slide={slide} hub={hub} />;
     }
-    if (directorType === 'flashcard') {
-      const payload = (slide as any).interactive_data || (slide as any).content || {};
-      const hasWords = Array.isArray(payload.words) || Array.isArray(payload.vocabulary) || Array.isArray(payload.vocab_list);
-      if (hasWords) return <EditorialVocabList slide={slide} />;
-      return <LiveHeroMediaSlide slide={slide} />;
+    if (directorType === 'flashcard' || directorType === 'vocabulary') {
+      return <VocabFlipGrid slide={slide} />;
     }
     if (directorType === 'text_image') {
       return <LiveHeroMediaSlide slide={slide} />;
@@ -401,7 +400,7 @@ export default function DynamicSlideRenderer({
       return <EditorialHeroMedia slide={slide} />;
     }
     if (directorType === 'vocab_list') {
-      return <EditorialVocabList slide={slide} />;
+      return <VocabFlipGrid slide={slide} />;
     }
     if (directorType === 'grammar_explanation') {
       return <EditorialGrammar slide={slide} />;
@@ -555,6 +554,12 @@ export default function DynamicSlideRenderer({
     }
   };
 
+  const inner = (
+    <SlideErrorBoundary slideId={slide.id} slide={slide}>
+      {renderContent()}
+    </SlideErrorBoundary>
+  );
+
   return (
     <motion.div
       key={slide.id}
@@ -564,9 +569,20 @@ export default function DynamicSlideRenderer({
       transition={{ type: 'spring', stiffness: 260, damping: 20 }}
       className="w-full h-full flex items-center justify-center"
     >
-      <SlideErrorBoundary slideId={slide.id} slide={slide}>
-        {renderContent()}
-      </SlideErrorBoundary>
+      {disableShell ? (
+        inner
+      ) : (
+        <SlideShell
+          hub={hub}
+          level={level}
+          unit={unit}
+          lesson={lesson}
+          slideIndex={slideIndex}
+          totalSlides={totalSlides}
+        >
+          {inner}
+        </SlideShell>
+      )}
     </motion.div>
   );
 }
