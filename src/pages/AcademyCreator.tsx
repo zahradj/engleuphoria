@@ -244,6 +244,9 @@ export default function AcademyCreator() {
               className="inline-flex items-center gap-2 border border-slate-300 hover:border-indigo-400 text-slate-700 font-semibold rounded-lg px-3 py-2 text-sm transition">
               <Code2 className="w-4 h-4" /> JSON
             </button>
+            <button onClick={() => setAiOpen(true)} className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:opacity-90 text-white font-semibold rounded-lg px-4 py-2 text-sm shadow-md transition">
+              <Sparkles className="w-4 h-4" /> Generate with AI
+            </button>
             <button onClick={openClassroom} className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg px-4 py-2 text-sm shadow-md transition">
               <Play className="w-4 h-4" /> Open in Classroom
             </button>
