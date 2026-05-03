@@ -1,7 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Eye, Code2, X } from 'lucide-react';
+import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Eye, Code2, X, Sparkles, Loader2 } from 'lucide-react';
 import { SlideRenderer, type Slide } from './PlaygroundDemo';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 /**
  * Playground Slide Creator
@@ -72,8 +74,43 @@ export default function PlaygroundCreator() {
   const [jsonOpen, setJsonOpen] = useState(false);
   const [jsonDraft, setJsonDraft] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiTopic, setAiTopic] = useState('Animals');
+  const [aiBusy, setAiBusy] = useState(false);
 
   const current = slides[selected];
+
+  const generateWithAI = async () => {
+    if (!aiTopic.trim()) return;
+    setAiBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-ppp-slides', {
+        body: {
+          lesson_title: aiTopic.trim(),
+          objective: `Fun interactive Playground lesson about ${aiTopic.trim()}`,
+          skill_focus: 'Vocabulary',
+          cefr_level: 'A1',
+          hub: 'playground',
+          target_hub: 'playground',
+          hub_type: 'playground',
+        },
+      });
+      if (error) throw error;
+      const playgroundSlides: Slide[] | undefined = data?.playground_slides;
+      if (!playgroundSlides || !Array.isArray(playgroundSlides) || playgroundSlides.length === 0) {
+        throw new Error('AI returned no Playground slides');
+      }
+      setSlides(playgroundSlides);
+      setSelected(0);
+      setAiOpen(false);
+      toast.success(`Generated ${playgroundSlides.length} slides ✨`);
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || 'AI generation failed');
+    } finally {
+      setAiBusy(false);
+    }
+  };
 
   const update = (patch: Partial<Slide>) => {
     setSlides((prev) => prev.map((s, i) => (i === selected ? ({ ...s, ...patch } as Slide) : s)));
@@ -171,6 +208,9 @@ export default function PlaygroundCreator() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button onClick={() => setAiOpen(true)} className="inline-flex items-center gap-2 bg-gradient-to-r from-fuchsia-500 to-orange-500 hover:opacity-90 text-white font-bold rounded-xl px-4 py-2 text-sm shadow-md transition active:scale-95">
+              <Sparkles className="w-4 h-4" /> Generate with AI
+            </button>
             <label className="cursor-pointer inline-flex items-center gap-2 bg-white border-2 border-orange-300 hover:bg-orange-50 text-orange-700 font-bold rounded-xl px-4 py-2 text-sm transition active:scale-95">
               <Upload className="w-4 h-4" /> Import
               <input
@@ -299,6 +339,45 @@ export default function PlaygroundCreator() {
               <div className="p-4 border-t border-orange-200 flex justify-end gap-2">
                 <button onClick={() => setJsonOpen(false)} className="px-4 py-2 rounded-xl border-2 border-slate-200 font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
                 <button onClick={applyJson} className="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold shadow-md">Apply</button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* AI generation modal */}
+      <AnimatePresence>
+        {aiOpen && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur flex items-center justify-center p-4"
+          >
+            <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border-4 border-orange-300 overflow-hidden">
+              <div className="bg-gradient-to-r from-fuchsia-500 to-orange-500 p-5 text-white">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-6 h-6" />
+                  <h3 className="text-xl font-extrabold">Generate Playground Lesson</h3>
+                </div>
+                <p className="text-sm opacity-90 mt-1">AI will craft a kid-friendly interactive deck.</p>
+              </div>
+              <div className="p-5 space-y-4">
+                <Field label="Topic">
+                  <input
+                    autoFocus
+                    className={inputCls}
+                    value={aiTopic}
+                    onChange={(e) => setAiTopic(e.target.value)}
+                    placeholder="e.g. Animals, Colors, Greetings"
+                    disabled={aiBusy}
+                  />
+                </Field>
+                <p className="text-xs text-slate-500">Uses the same AI core as the Standard Slide Studio with <code className="bg-orange-50 text-orange-700 rounded px-1">hub_type: 'playground'</code>.</p>
+              </div>
+              <div className="p-4 bg-orange-50 border-t border-orange-200 flex justify-end gap-2">
+                <button disabled={aiBusy} onClick={() => setAiOpen(false)} className="px-4 py-2 rounded-xl border-2 border-slate-200 font-bold text-slate-600 hover:bg-white disabled:opacity-50">Cancel</button>
+                <button disabled={aiBusy || !aiTopic.trim()} onClick={generateWithAI} className="px-5 py-2 rounded-xl bg-gradient-to-r from-fuchsia-500 to-orange-500 text-white font-bold shadow-md disabled:opacity-50 inline-flex items-center gap-2">
+                  {aiBusy ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating…</> : <><Sparkles className="w-4 h-4" /> Generate</>}
+                </button>
               </div>
             </div>
           </motion.div>

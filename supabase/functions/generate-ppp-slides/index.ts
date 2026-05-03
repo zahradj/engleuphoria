@@ -57,6 +57,7 @@ Deno.serve(async (req) => {
       target_hub, // ← preferred new field; falls back to `hub`
       blueprint, // ← Approved Blueprint (optional). When present, treated as ground truth.
       student_profile, // ← Hyper-personalization: { industry, age, interests[] }
+      hub_type, // ← when 'playground', returns the kid-friendly Playground schema instead of the 20-slide Academy deck.
     } = body || {};
 
     // Allow the title to fall back to blueprint.lesson_title when caller omits it.
@@ -70,6 +71,75 @@ Deno.serve(async (req) => {
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
+
+    // ─── Playground branch ─────────────────────────────────────────────────
+    // Kids/Interactive hub: short, highly gamified deck. Output matches the
+    // Playground Engine's slide schema exactly so the WYSIWYG renderer can
+    // consume it without translation.
+    if (hub_type === "playground" || normalizeHub(target_hub ?? hub) === "playground") {
+      const playgroundSystem = `You are an expert children's ESL game designer for Engleuphoria's Playground Hub (ages 5-9, CEFR pre-A1/A1).
+You design ONE highly interactive 30-minute mini-lesson for kids.
+
+OUTPUT RULES (STRICT):
+- Output ONLY a JSON array of 8-12 slide objects. No prose, no wrapper.
+- Use very simple vocabulary (1-2 syllable words preferred). Lots of emoji.
+- Every slide MUST include a "voice" object: { "text": "<short kid-friendly TTS line>", "autoPlay": true }.
+- Allowed slide "type" values and their REQUIRED shape:
+  • { "type": "intro", "title": "👋 ...", "text": "...", "voice": {...} }
+  • { "type": "multiple", "question": "...", "options": ["a","b","c"], "answer": "<one of options>", "voice": {...} }
+  • { "type": "truefalse", "statement": "...", "answer": true|false, "voice": {...} }
+  • { "type": "fill", "text": "I see a ____", "answer": "<word>", "voice": {...} }
+  • { "type": "drag", "instruction": "Drag the word onto the picture", "word": "APPLE", "target": "🍎", "voice": {...} }
+  • { "type": "match", "instruction": "...", "pairs": [{ "word": "DOG", "match": "🐶" }, ...], "voice": {...} }
+  • { "type": "draw", "prompt": "Draw a ...", "voice": {...} }
+- Start with ONE "intro" slide. End with EITHER a "draw" slide OR a celebratory "intro" slide.
+- Mix at least 4 different interactive types in between (no two of the same type back-to-back).
+- Topic: "${effectiveTitle}". ${objective ? `Goal: ${objective}.` : ""}
+- Return RAW JSON ARRAY only.`;
+
+      const aiRes = await aiFetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: playgroundSystem },
+            { role: "user", content: `Generate the Playground deck for topic: "${effectiveTitle}". Output JSON array only.` },
+          ],
+        }),
+      });
+      if (!aiRes.ok) {
+        const detail = await aiRes.text();
+        return new Response(JSON.stringify({ error: `AI error ${aiRes.status}: ${detail}` }), {
+          status: 502,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const aiData = await aiRes.json();
+      const raw: string = aiData?.choices?.[0]?.message?.content ?? "";
+      // Strip code fences if present.
+      const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "").trim();
+      let parsed: any;
+      try {
+        parsed = JSON.parse(cleaned);
+      } catch {
+        // Try to extract first JSON array substring.
+        const m = cleaned.match(/\[[\s\S]*\]/);
+        if (!m) throw new Error("AI did not return valid JSON array");
+        parsed = JSON.parse(m[0]);
+      }
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        throw new Error("AI returned empty Playground deck");
+      }
+      const allowed = new Set(["intro", "multiple", "truefalse", "fill", "drag", "match", "draw"]);
+      const playground_slides = parsed.filter((s: any) => s && allowed.has(s.type));
+      if (playground_slides.length === 0) {
+        throw new Error("AI returned no valid Playground slides");
+      }
+      return new Response(JSON.stringify({ playground_slides }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const resolvedHub = normalizeHub(target_hub ?? blueprint?.target_hub ?? hub);
     const hubBlock = buildSlideHubBlock(resolvedHub, cefr_level);
