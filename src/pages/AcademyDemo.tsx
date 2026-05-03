@@ -106,6 +106,16 @@ const SLIDES: Slide[] = [
   { type: 'correction', block: 'grammar', prompt: 'Fix the sentence.', wrong: 'My sister post photos every day.', answer: 'My sister posts photos every day.' },
 
   // BLOCK 5 — Controlled Practice (19–24)
+  // 🆕 Cluster slide: 4 related micro-tasks on a single page (faster, denser, smarter).
+  { type: 'cluster', block: 'practice', title: 'Present Simple — Quick Drill',
+    content: 'He uses Instagram. She posts photos. Apply the rule four ways below.',
+    activities: [
+      { type: 'mcq', question: 'She ___ every day.', options: ['use', 'uses', 'using'], answer: 'uses', explanation: "Use 'uses' for she/he/it." },
+      { type: 'fill', text: 'He ___ (use) his phone.', answer: 'uses' },
+      { type: 'tf', statement: 'He use TikTok.', answer: false, explanation: "Should be 'He uses TikTok.'" },
+      { type: 'build', prompt: 'Build the sentence.', words: ['I', 'use', 'my', 'phone'], answer: ['I', 'use', 'my', 'phone'] },
+    ],
+  },
   { type: 'fill_blank', block: 'practice', prompt: 'Complete with the correct verb form.', before: 'He', after: '(use) his phone too much.', answer: 'uses' },
   { type: 'multiple', block: 'practice', question: 'She ___ Instagram every day.', options: ['use', 'uses', 'using'], answer: 'uses' },
   { type: 'sentence_builder', block: 'practice', prompt: 'Build the sentence.', words: ['phone', 'I', 'my', 'use'], answer: ['I', 'use', 'my', 'phone'] },
