@@ -10,12 +10,25 @@ import { playSlideAudio } from '@/lib/playSlideAudio';
 import { useHubTheme } from '@/hooks/useHubTheme';
 import { shouldShowAudioButton } from '@/components/lesson-player/audioGate';
 import FrontPageSlide from '@/components/lesson-player/editorial/FrontPageSlide';
+import SlideShell from '@/components/lesson-player/SlideShell';
+import type { HubType as PlayerHubType } from '@/components/admin/lesson-builder/ai-wizard/types';
 
 type ViewMode = 'student' | 'teacher';
+
+/** Studio hub ('success') maps to the player's 'professional' hub. */
+const toShellHub = (hub: 'playground' | 'academy' | 'success'): PlayerHubType =>
+  hub === 'success' ? 'professional' : hub;
 
 interface Props {
   slide: PPPSlide;
   onChange: (patch: Partial<PPPSlide>) => void;
+  /** Position in the deck — drives the branded progress bar. */
+  slideIndex?: number;
+  totalSlides?: number;
+  /** Lesson meta surfaced in the SlideShell top bar. */
+  level?: string;
+  unitNumber?: number | string;
+  lessonNumber?: number | string;
 }
 
 const VIEW_KEY: Record<ViewMode, string> = { student: '👁️ Student View', teacher: '🎓 Teacher View' };

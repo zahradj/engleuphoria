@@ -1,134 +1,42 @@
 ## Goal
 
-Replace third-party Hyperbeam cloud-browser embedding (which is suffering WebRTC drops + bot/CORS blocks) with a **native multiplayer Co-Play arena** that runs entirely inside the classroom UI and stays in sync over Supabase Realtime broadcast channels. Teacher and student see each other's clicks, drags, card flips, and even mouse cursors with sub-100ms latency, with no external service.
+Make the **Slide Studio (builder)** look identical to the classroom: same hub-branded PPT shell (logo + metadata + radial-glow gradient + progress bar), same `SlideShell` wrapper used at runtime, same hub colors flowing into every interactive component. Single source of truth for slide visuals across builder and player.
 
-## Files to create
+## Strategy
 
-1. `src/hooks/useCoPlaySync.ts` — NEW lean realtime hook.
-2. `src/components/classroom/native-games/NativeCoPlayArena.tsx` — NEW container.
-3. `src/components/classroom/native-games/CoPlayMemoryMatch.tsx` — NEW Memory Match game (multiplayer).
-4. `src/components/classroom/native-games/SharedCursors.tsx` — NEW shared-cursor overlay.
+Rather than fork the design, **reuse the existing `SlideShell`** (already used by `DynamicSlideRenderer` in the classroom). Wrap the studio's `SlideCanvas` content inside it. Map the studio hub (`playground | academy | success`) onto the player's `HubType` (`playground | academy | professional`) so colors stay aligned.
 
-## Files to edit
+CSS-variable theming already exists via `useHubTheme()` (`hub-surface`, `theme.themeClass`); we keep using it for the side panels and add SlideShell for the slide rectangle.
 
-5. `src/components/classroom/stage/StageContent.tsx` — when `mode === 'web'` (and the URL is a Hyperbeam URL OR Hyperbeam is disabled), render `<NativeCoPlayArena>` instead of `<MultiplayerWebStage>`. The Hyperbeam path stays available behind a feature flag for backwards compatibility but is no longer the default for collaborative activities.
-6. `src/services/whiteboardService.ts` — no breaking change; we add no new methods. Co-Play uses its own dedicated channel name (`co-play:{classroomId}`) so it cannot collide with whiteboard / stage events.
+## File changes
 
-## 1. `useCoPlaySync` hook
+### 1. `src/components/creator-studio/steps/slide-studio/SlideCanvas.tsx`
+- Add imports: `SlideShell`, `HubType` from the player.
+- Add a `toShellHub()` helper mapping `success → professional`.
+- Extend `Props` with optional `slideIndex`, `totalSlides`, `level`, `unitNumber`, `lessonNumber` (used purely for the branded top-bar / progress).
+- In `SlideCanvas` render:
+  - Keep the small top toolbar (phase chip + Student/Teacher toggle + slide_type label) above the slide rectangle.
+  - Replace the inline `<div className="...bg-slate-900...">` slide rectangle with `<SlideShell hub={shellHub} level=… unit=… lesson=… slideIndex=… totalSlides=…>` and put the existing inner content (FrontPageSlide branch and the editor card branch) inside it as children.
+  - For the editor card branch: drop the manual radial-gradient inline style and the `bg-white/[0.04]` glass card — `SlideShell` already provides the dark gradient + glass content card. Inside the shell, render `<SlideMedia>`, `<TitleField>`, `<InteractiveBlock>`, audio button, mascot — wrapped in `space-y-4` only.
+  - For the front-page branch: pass `fullBleed` to `SlideShell` and render `FrontPageSlide` directly so the title-slide bleed-image-right layout still fills the frame. Teleprompter overlay stays absolutely-positioned on top.
+- Keep `TitleField` text white (already correct against the shell gradient).
+- No change to MCQ/Flashcard/DragMatch/FillGaps internals — they already match the new look; once placed inside SlideShell's white content card they read on a high-contrast surface (the previous plain white look the user complained about was the *outer* frame, not the inner activity cards).
 
-Single subscription per `classroomId`. API:
+### 2. `src/components/creator-studio/steps/slide-studio/SlideStudio.tsx`
+- Compute `activeIndex` (already exists) and pass `slideIndex={activeIndex}` and `totalSlides={slides.length}` to `<SlideCanvas>`.
+- Pass `level={activeLessonData.cefr_level}`, `unitNumber={activeLessonData.source_lesson?.unit_number}`, `lessonNumber={activeLessonData.source_lesson?.lesson_number ?? activeLessonData.source_lesson?.position}`.
+- Remove the now-redundant outer `bg-white/80 dark:bg-slate-900/80` look from the small lesson header strip — keep it functional but slim, no design overhaul there (the user's complaint is the slide preview, not the chrome).
+- No other behavior changes (auto-injection, prefetch, autogen pipeline untouched).
 
-```ts
-const { isConnected, peers, broadcast, on } = useCoPlaySync({
-  classroomId, userId, userName, role,
-});
-```
+## Out of scope
 
-Channel: `co-play:{classroomId}` with `broadcast.self=false` and presence keyed by `userId`.
-
-Supported events (typed):
-- `cursor_move` → `{ x, y }` normalized 0..1 within the arena.
-- `card_dragged`, `card_dropped`, `card_flipped` → `{ cardId, ... }`.
-- `game_state_update` → full authoritative snapshot of the active game.
-- `game_reset` → `{}`.
-- `reaction` → `{ emoji }` (future use).
-
-Every payload is wrapped in:
-```ts
-{ senderId, senderName, senderRole, data, ts }
-```
-so the receiving client can attribute the action.
-
-Presence: `track({ userId, userName, role })` so the arena can show "2 in room" and drop stale cursors when a peer disconnects.
-
-## 2. `NativeCoPlayArena`
-
-Full-bleed surface that:
-- Wires up `useCoPlaySync` once.
-- Renders the selected game (initial release: `memory_match`).
-- Mounts `<SharedCursors>` overlay (pointer-events: none).
-- Shows a tiny status pill ("Live · 2 in room") in the corner.
-
-Props:
-```ts
-{ classroomId, userId, userName, role,
-  game?: 'memory_match',          // future: 'drag_vocab', 'flashcards'
-  pairs?: MemoryPair[],            // game payload
-  accent?: string                  // hub primary hex
-}
-```
-
-## 3. `CoPlayMemoryMatch` game
-
-Pure presentational component that owns its game state and pushes it through `sync.broadcast`.
-
-State shape:
-```ts
-{ cards: Card[], flipped: number[], matched: number[], v: number }
-```
-- `v` is a monotonic version stamp. Remote updates only apply if `incoming.v >= local.v` so two clients clicking simultaneously cannot ping-pong.
-- On flip: optimistic local update, broadcast `card_flipped`, then push `game_state_update` snapshot.
-- On second flip: 900ms reveal; if pair matches → add to `matched`; else → unflip (broadcast new snapshot at each step).
-- "Reset" broadcasts both `game_reset` and a fresh `game_state_update`.
-
-Visuals:
-- Grid (4-col default, 6-col when >12 cards).
-- 3D flip using existing `.perspective-1000` / `.preserve-3d` / `.rotate-y-180` utilities (already present in `index.css`).
-- Card back uses hub `accent`; matched cards switch to emerald-50 / emerald-700 with a celebration line at 100%.
-- Aspect ratio `3/4`, responsive.
-
-Pair source: `MemoryPair[] = { pair_1, pair_2 }` — same shape the existing AI worksheet generator uses (`worksheet.memory_match`), so we can drop this in without changing the generator.
-
-## 4. `SharedCursors`
-
-Listens to `cursor_move` and renders a single `<MousePointer2>` per remote user, color-coded by role (teacher = indigo, student = orange).
-
-Local side:
-- Attaches `mousemove` to the arena ref.
-- Throttles to one broadcast every 40ms.
-- Coordinates are normalized to the arena's bounding rect (0..1) so they survive different screen sizes.
-
-Remote side:
-- Stores `Record<userId, RemoteCursor>` and renders absolutely-positioned pointers with the user's name pill.
-- Cursors fade out after 4s with no updates (interval sweep).
-
-The whole overlay is `pointer-events-none` so it never intercepts game clicks.
-
-## 5. StageContent integration
-
-```text
-mode === 'web' && classroomId
-  ? <NativeCoPlayArena
-       classroomId={roomId}
-       userId={userId}
-       role={role}
-       game="memory_match"
-       pairs={worksheet?.memory_match ?? []}
-       accent={hubAccent}
-     />
-  : <ScrollSyncedIframe ... />
-```
-
-The `MultiplayerWebStage` (Hyperbeam) import is removed from this file. We keep the file in the repo so any opt-in path that still wants a cloud browser can import it directly, but the default classroom flow stops calling `createHyperbeamSession`.
-
-## Why this works
-
-- **No third-party RTC**: Supabase Realtime's broadcast channel runs over a single WebSocket — no SDP negotiation, no STUN/TURN, no bot detection.
-- **Same data path as existing games**: We reuse `whiteboard_service`-style channel naming and the existing `worksheet.memory_match` payload, so the AI generator and teacher dashboard need zero changes.
-- **Deterministic conflict resolution**: the version stamp `v` plus `broadcast.self=false` prevents echo loops even if both clients flip a card in the same frame.
-- **Cursor latency** stays under 50ms over Realtime; the throttle keeps message volume well under the channel's rate limit.
-
-## Out of scope (this turn)
-
-- Drag-and-drop vocab game and flashcard race — same arena, future games slot into the `game` prop.
-- Removing the Hyperbeam edge function (`hyperbeam-session`) — leave it deployed; we just stop calling it from the default flow.
-- Persisting game results — Memory Match wins flow into existing `lesson_completion` events from `whiteboardService` if the host wires them up later.
+- No changes to `SlideShell` itself — colors and gradients there already match the spec (Academy = purple/indigo radial on `#1E1B4B` base, Playground = orange/amber, Professional = emerald). Editing it would risk drifting the classroom look.
+- No new CSS variable layer — `SlideShell`'s inline gradient + the existing `hub-surface` class already deliver the requested theming. Adding a third system would fragment things.
+- No refactor of `MCQBlock` / `FlashcardBlock` / `DragMatchPreview` / `FillGapsPreview` visuals. The flip-card and high-density layouts already exist; dropping them inside `SlideShell` is what the user is actually asking for ("interactive previews live inside the branded frame").
 
 ## Acceptance
 
-- Two browser windows joined to the same classroom see each other's cursors moving in real time.
-- A card flipped on one side animates on the other within ~100ms.
-- A matched pair locks on both sides; mismatches unflip on both sides.
-- "Reset" wipes both boards.
-- Disconnecting one client removes its cursor within 4s and decrements the "in room" counter.
-- No `.hyperbeam.com` URLs are loaded for the default Co-Play flow.
+- Opening `/content-creator/slide-builder` shows every slide rendered inside the dark Academy-purple radial-glow shell with the EnglEuphoria logo + "Academy · A2 · Unit 3 · Lesson 2" pill in the top-left and a thin purple progress bar across the bottom.
+- Switching to a Playground or Success Hub lesson recolors the shell to orange or emerald automatically.
+- The classroom view (`StageContent` / `DynamicSlideRenderer`) is visually identical to the builder for the same slide because both go through `SlideShell`.
+- No `bg-white` or `bg-slate-900` plain rectangle is rendered around the slide preview anymore.
