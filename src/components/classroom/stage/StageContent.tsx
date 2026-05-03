@@ -112,15 +112,22 @@ export const StageContent: React.FC<StageContentProps> = ({
   }
 
   if (mode === 'web') {
-    if (isHyperbeamUrl(embeddedUrl)) {
+    // Default Co-Play path: native Supabase-Realtime arena.
+    // Legacy Hyperbeam embed URLs are intercepted here too — we ignore the
+    // dead URL and render the native arena instead.
+    if (!embeddedUrl || isLegacyCoBrowseUrl(embeddedUrl)) {
       return (
-        <MultiplayerWebStage
-          embedUrl={embeddedUrl}
+        <NativeCoPlayArena
+          classroomId={roomId}
+          userId={userId}
           role={role}
-          controlEnabled={iframeUnlocked}
+          game="memory_match"
+          pairs={worksheet?.memory_match ?? []}
+          accent={HUB_ACCENT[hubType] ?? HUB_ACCENT.academy}
         />
       );
     }
+    // Plain external URL → use the scroll-synced iframe (read-only embed).
     return (
       <ScrollSyncedIframe
         url={embeddedUrl}
