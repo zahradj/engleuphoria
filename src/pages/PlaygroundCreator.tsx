@@ -74,8 +74,43 @@ export default function PlaygroundCreator() {
   const [jsonOpen, setJsonOpen] = useState(false);
   const [jsonDraft, setJsonDraft] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiTopic, setAiTopic] = useState('Animals');
+  const [aiBusy, setAiBusy] = useState(false);
 
   const current = slides[selected];
+
+  const generateWithAI = async () => {
+    if (!aiTopic.trim()) return;
+    setAiBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-ppp-slides', {
+        body: {
+          lesson_title: aiTopic.trim(),
+          objective: `Fun interactive Playground lesson about ${aiTopic.trim()}`,
+          skill_focus: 'Vocabulary',
+          cefr_level: 'A1',
+          hub: 'playground',
+          target_hub: 'playground',
+          hub_type: 'playground',
+        },
+      });
+      if (error) throw error;
+      const playgroundSlides: Slide[] | undefined = data?.playground_slides;
+      if (!playgroundSlides || !Array.isArray(playgroundSlides) || playgroundSlides.length === 0) {
+        throw new Error('AI returned no Playground slides');
+      }
+      setSlides(playgroundSlides);
+      setSelected(0);
+      setAiOpen(false);
+      toast.success(`Generated ${playgroundSlides.length} slides ✨`);
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || 'AI generation failed');
+    } finally {
+      setAiBusy(false);
+    }
+  };
 
   const update = (patch: Partial<Slide>) => {
     setSlides((prev) => prev.map((s, i) => (i === selected ? ({ ...s, ...patch } as Slide) : s)));
