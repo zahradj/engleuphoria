@@ -241,6 +241,12 @@ class WhiteboardService {
       })
       .on('broadcast', { event: 'slide_completion' }, (payload) => {
         slideCompletionListeners.forEach((cb) => cb(payload.payload as SlideCompletionPayload));
+      })
+      .on('broadcast', { event: 'slide_change' }, (payload) => {
+        slideChangeListeners.forEach((cb) => cb(payload.payload as SlideChangePayload));
+      })
+      .on('broadcast', { event: 'force_sync' }, (payload) => {
+        forceSyncListeners.forEach((cb) => cb(payload.payload as ForceSyncPayload));
       });
 
     const ready = new Promise<void>((resolve) => {
@@ -267,6 +273,8 @@ class WhiteboardService {
       worksheetListeners,
       gameStateListeners,
       slideCompletionListeners,
+      slideChangeListeners,
+      forceSyncListeners,
       refCount: 0,
     };
     this.rooms.set(channelName, room);
