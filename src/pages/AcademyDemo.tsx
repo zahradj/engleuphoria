@@ -29,6 +29,17 @@ export const BLOCKS: { id: Block; label: string }[] = [
   { id: 'speaking', label: 'Speaking' },
 ];
 
+/**
+ * ClusterActivity — one mini-task inside a `cluster` slide.
+ * Allows 3–6 related exercises to live on a single slide so a slide acts like
+ * a focused, dense practice page rather than a single-question card.
+ */
+export type ClusterActivity =
+  | { type: 'mcq'; question: string; options: string[]; answer: string; explanation?: string }
+  | { type: 'fill'; text: string; answer: string; explanation?: string }
+  | { type: 'tf'; statement: string; answer: boolean; explanation?: string }
+  | { type: 'build'; prompt?: string; words: string[]; answer: string[] };
+
 export type Slide =
   | { type: 'intro'; block: Block; title: string; subtitle?: string }
   | { type: 'question'; block: Block; prompt: string; placeholder?: string }
@@ -48,7 +59,8 @@ export type Slide =
   | { type: 'debate_scale'; block: Block; prompt: string }
   | { type: 'role_play'; block: Block; title: string; lineA: string; lineB: string }
   | { type: 'speaking_task'; block: Block; prompt: string; starters?: string[] }
-  | { type: 'reflection'; block: Block; prompt: string };
+  | { type: 'reflection'; block: Block; prompt: string }
+  | { type: 'cluster'; block: Block; title: string; content?: string; activities: ClusterActivity[] };
 
 // ─── Lesson content (edit only this) ─────────────────────────────────────────
 // Topic: "How much time do you spend on your phone?" — A2 level, 36 slides.
