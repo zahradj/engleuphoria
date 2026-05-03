@@ -82,6 +82,7 @@ function slideTitle(s: Slide): string {
     case 'multiple': return s.question;
     case 'truefalse': return s.statement;
     case 'correction': return s.wrong;
+    case 'cluster': return s.title;
     default: return (s as any).prompt ?? s.type;
   }
 }
