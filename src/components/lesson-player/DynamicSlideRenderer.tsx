@@ -226,22 +226,7 @@ const hasValidInteractiveData = (slide: any, type: string): boolean => {
 };
 
 function MissingDataFallback({ slide }: { slide: any }) {
-  return (
-    <div className="w-full max-w-2xl mx-auto px-6 py-12 text-center flex flex-col items-center gap-4">
-      <div className="text-5xl">💬</div>
-      <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-        {slide?.title || "Let's discuss this topic!"}
-      </h2>
-      <p className="text-base text-muted-foreground max-w-lg">
-        Oops! The activity data is missing. Let's discuss this topic together instead!
-      </p>
-      {slide?.teacher_script && (
-        <p className="text-sm italic text-muted-foreground/80 mt-2 border-t pt-3 max-w-lg">
-          "{slide.teacher_script}"
-        </p>
-      )}
-    </div>
-  );
+  return <TeacherDiscussionFallback slide={slide} />;
 }
 
 function LiveHeroMediaSlide({ slide }: { slide: any }) {
