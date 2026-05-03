@@ -670,8 +670,8 @@ export function SlideRenderer({ slide, t }: { slide: Slide; t: ThemeTokens }) {
 }
 
 // ─── Progress bar ───────────────────────────────────────────────────────────
-export function ProgressBar({ currentBlock, slideIndex, t }: { currentBlock: Block; slideIndex: number; t: ThemeTokens }) {
-  const blockSlides = SLIDES.reduce<Record<Block, number[]>>((acc, s, i) => {
+export function ProgressBar({ currentBlock, slideIndex, t, slides = SLIDES }: { currentBlock: Block; slideIndex: number; t: ThemeTokens; slides?: Slide[] }) {
+  const blockSlides = slides.reduce<Record<Block, number[]>>((acc, s, i) => {
     acc[s.block] = acc[s.block] || [];
     acc[s.block].push(i);
     return acc;
