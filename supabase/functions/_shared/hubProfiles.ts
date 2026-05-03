@@ -71,6 +71,17 @@ const PROFILES: Record<TargetHub, HubProfile> = {
       "image thumbnails (set left_thumbnail_keyword + right_thumbnail_keyword on every pair). " +
       "Mascot scripts in 1st person, exclamatory and warm. Final mission MUST be sing/say/show, " +
       "never write a paragraph. Keep `requires_audio` = true on most slides for pronunciation.",
+    personaPrompt:
+      "AI PERSONA — PLAYGROUND: You are a warm, playful kids' English coach. " +
+      "Audience: young learners (ages 4–11). Tone: gentle, exclamatory, mascot-led, never sarcastic. " +
+      "Vocabulary register: high-frequency concrete nouns, action verbs, simple adjectives. " +
+      "Speak in short, joyful sentences. Use 1st-person mascot voice for instructions.",
+    blueprintTemplate:
+      "RECOMMENDED SLIDE EMPHASIS — PLAYGROUND (within the mandatory 6-phase 20–25 slide structure): " +
+      "Open with a `mascot_speech` welcome → `flashcard` vocabulary intros (image-rich) → " +
+      "`drag_and_match` with left/right thumbnail keywords → short `mascot_speech` storybook reading → " +
+      "`multiple_choice` comprehension → final `mascot_speech` sing/say/show mission. " +
+      "AVOID: grammar tables, business case studies, long writing tasks.",
     cefrFloor: "Pre-A1",
     cefrCeiling: "A2",
     defaultFramework: "Immersion",
