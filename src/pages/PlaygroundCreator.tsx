@@ -208,6 +208,9 @@ export default function PlaygroundCreator() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button onClick={() => setAiOpen(true)} className="inline-flex items-center gap-2 bg-gradient-to-r from-fuchsia-500 to-orange-500 hover:opacity-90 text-white font-bold rounded-xl px-4 py-2 text-sm shadow-md transition active:scale-95">
+              <Sparkles className="w-4 h-4" /> Generate with AI
+            </button>
             <label className="cursor-pointer inline-flex items-center gap-2 bg-white border-2 border-orange-300 hover:bg-orange-50 text-orange-700 font-bold rounded-xl px-4 py-2 text-sm transition active:scale-95">
               <Upload className="w-4 h-4" /> Import
               <input
