@@ -55,6 +55,7 @@ const InstallPage = lazy(() => import("./pages/InstallPage"));
 const HubConfirmation = lazy(() => import("./pages/HubConfirmation"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const StudentCertificatePage = lazy(() => import("./pages/StudentCertificatePage"));
+const PlaygroundDemo = lazy(() => import("./pages/PlaygroundDemo"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -94,6 +95,7 @@ const App = () => {
                       {/* Public Entry Point - Landing Page */}
                       <Route path="/" element={<HomeGateWrapper />} />
                       <Route path="/about" element={<Suspense fallback={<LoadingFallback />}><AboutPage /></Suspense>} />
+                      <Route path="/playground-demo" element={<Suspense fallback={<LoadingFallback />}><PlaygroundDemo /></Suspense>} />
                       <Route path="/teach-with-us" element={<Navigate to="/for-teachers" replace />} />
                       <Route path="/for-teachers" element={<Suspense fallback={<LoadingFallback />}><ForTeachersPage /></Suspense>} />
                       <Route path="/login" element={<Suspense fallback={<LoadingFallback />}><Login /></Suspense>} />
