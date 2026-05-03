@@ -1,109 +1,87 @@
+## Playground Hub — AI Backend Overhaul + Image Pipeline + Animations
 
-# Academy Hub — Classroom Viewer, Slide Creator & 60-min Lesson
+Three coordinated changes: tighten the AI generator schema, swap emojis for AI-generated images, and add a unified feedback animation system.
 
-Build a teen-focused (12–17, A1–B1) lesson system mirroring the existing Playground architecture but with the mature Academy aesthetic already established at `/academy-demo`.
+---
 
-## What exists today
-- `src/pages/AcademyDemo.tsx` — engine + 19 slide components + 36-slide demo lesson, indigo/purple theme, 7-block progress bar.
-- `src/hooks/useAcademyAudio.ts` — manual-trigger ElevenLabs TTS (Sarah voice).
-- `src/pages/PlaygroundCreator.tsx` — reference architecture for an authoring tool that imports the engine's `SlideRenderer`.
+### Step 1 — AI Backend Overhaul (strict schema + retry)
 
-We will reuse the Academy engine (single source of truth) and add two new pages: a focused classroom viewer and a teacher creator.
+**File:** `supabase/functions/generate-ppp-slides/index.ts` (lines 80–142, the `playground` branch)
 
-## Deliverables
+- Replace the playground system prompt with the exact wording requested:
+  > "You are an expert children's EdTech game designer. Create a highly interactive, fun English lesson. Keep vocabulary very simple. Output ONLY a valid JSON array of slide objects. Do not wrap in markdown or backticks. You MUST use a variety of these exact slide types."
+- Append the strict per-type schema as canonical examples (intro, multiple, truefalse, fill, match, drag) — no `emoji` field; instead each visual slide type takes `image_url: string` (and `match.pairs[].image_url`).
+- Wrap the AI call + `JSON.parse` in a `tryParse()` helper with **up to 2 retries**: on parse/validation failure, send a follow-up message ("Your previous output was not valid JSON. Return ONLY a valid JSON array matching the schema.") before giving up with a 500.
+- Keep the existing `allowed` type filter, but extend validation to require: `voice` object on every slide; `image_url` on `multiple`/`truefalse`/`drag`/`match.pairs[]`.
+- After parsing, collect every required image subject (option labels, statement subject, drag word, match pair words) and call the new `generate-playground-images` function (Step 2) to hydrate `image_url` fields before returning.
 
-### 1. Refactor `AcademyDemo.tsx` to expose the engine
-- Export the `Slide` union type and `SlideRenderer` component (currently internal).
-- Export a `BLOCKS` constant + `BlockProgress` header component so the viewer/creator share it.
-- No visual change to the existing demo route.
+---
 
-### 2. New page: `/academy-classroom` — Classroom Viewer
-File: `src/pages/AcademyClassroom.tsx`
+### Step 2 — Schema + UI refactor (drop emojis, add images)
 
-Layout:
-```text
-┌──────────────────────────────────────────────┐
-│  ENGLEUPHORIA · ACADEMY    [12 / 40]   [⛶]  │  ← top bar
-├──────────────────────────────────────────────┤
-│  ●━━━●━━━●━━━○━━━○━━━○━━━○                  │  ← 7-block progress
-│  Warm  Vocab Read Gram Prac Inter Speak     │
-├──────────────────────────────────────────────┤
-│                                              │
-│         ┌────────────────────────┐           │
-│         │                        │           │
-│         │      SLIDE (75% w)     │           │  ← centered, large
-│         │                        │           │
-│         └────────────────────────┘           │
-│                                              │
-│   [← Prev]   🔊 Listen  🎤 Speak   [Next →] │
-└──────────────────────────────────────────────┘
-```
+**`src/pages/PlaygroundDemo.tsx`** (the canonical `Slide` type — also imported by `PlaygroundCreator`)
 
-- Slide canvas fills 75–85% width, centered, soft purple gradient backdrop.
-- Smooth fade/slide transitions via framer-motion.
-- Conditional toolbar: 🔊 Listen button only when `slide.voice` exists; 🎤 Speak indicator only on speaking-block slides.
-- Keyboard nav: ←/→/Space.
-- Optional fullscreen toggle (Fullscreen API).
-- Reads lesson from URL `?lesson=<id>` or falls back to the preloaded 60-min lesson.
+- Remove emoji-as-target. Update the union:
+  - `multiple` → add `image_url?: string` (kept optional for backward compat); options stay text-only.
+  - `truefalse` → add `image_url?: string`.
+  - `drag` → replace `target: string` with `image_url: string` + `word: string`.
+  - `match` → `pairs: { word: string; image_url: string }[]` (remove `match` field).
+- **`<MatchGame />`** (line 338): render `<img src={pair.image_url} alt={pair.word} className="rounded-lg shadow-sm h-24 w-24 object-cover" />` instead of the emoji string. Keep tap-word → tap-image flow.
+- **`<DragDrop />`** (line 291): the drop zone shows a placeholder illustration (`/playground/placeholder-dropzone.svg` — silhouette + "?" box) until the correct word is dropped, then swaps to `<img src={slide.image_url} />`. The draggable card displays the word on top + small thumbnail of the image.
+- Update the in-file `SLIDES` demo deck to use real `image_url` placeholders.
+- **`PlaygroundCreator.tsx`**: drop the `emoji` column on `SLIDE_TYPES` (use a `lucide-react` icon instead). The "Target (emoji)" field at line 487 becomes "Image URL" with a button "Generate image with AI" (calls `generate-playground-images` for that single subject).
 
-### 3. New page: `/academy-creator` — Teacher Slide Editor
-File: `src/pages/AcademyCreator.tsx`
+---
 
-Three-column layout (mirrors `PlaygroundCreator` but Academy-styled):
-- **Left:** slide list grouped by block (Warm-up → Speaking), reorder/duplicate/delete, "Add slide" picker by type.
-- **Middle:** type-aware property editor with clean form fields:
-  - Common: title, block (dropdown), voice text (optional).
-  - Per type: question/options/answer (quiz), statement/answer (T/F), passage (reading), pattern/rule/examples (grammar), pairs (matching), word bank + answer order (sentence builder), prompt (speaking), scale labels (debate scale), poll options + percentages, etc.
-- **Right:** live mini-preview using the shared `SlideRenderer`.
-- Top bar: Import JSON / Export JSON / raw JSON editor / "Open in Classroom" (jumps to viewer).
-- Lesson metadata: title, level (A1/A2/B1), duration.
+### Step 3 — AI image pipeline
 
-### 4. Preloaded 60-minute lesson — "Social Media & Daily Habits"
-File: `src/data/academyLessons/socialMediaHabits.ts`
+**New edge function:** `supabase/functions/generate-playground-images/index.ts`
 
-~38 slides exported as a `LessonDeck` constant, structured exactly as requested:
+- `POST { subjects: string[] }` → returns `{ images: { subject: string; url: string }[] }`.
+- Uses the **Lovable AI Gateway** with model `google/gemini-2.5-flash-image` (per `<ai-image-generation>` guidance — no extra API keys needed; `LOVABLE_API_KEY` is already set).
+- Style prompt prepended to every subject:
+  > "Style: Highly cheerful, colorful, high-quality cartoon illustration. Suitable for pre-school children. Friendly character design. Clean background, centered subject, soft lighting. Absolutely no mature themes or scary elements."
+- Decode the returned base64 PNG, upload to Supabase Storage bucket `playground_assets` at `ai/{slug(subject)}-{hash}.png`, return the public URL.
+- Cache: before generating, check storage for an existing object with the same hash key and reuse it (cuts repeat costs).
 
-| Block | Slides | Content highlights |
-|---|---|---|
-| Warm-up | 3 | Opinion Q ("Do you use your phone every day?"), poll (hours/day), follow-up discussion |
-| Vocabulary | 5 | scroll, post, spend time, check, upload — each with definition + example; +1 matching, +1 quick quiz |
-| Reading + Listening | 5 | "Hi, I'm Alex…" passage, audio-enabled listening slide (ElevenLabs), 2 comprehension Qs, T/F, opinion |
-| Grammar | 5 | Present Simple (he/she/it): pattern, rule, example, error detection, correction |
-| Controlled Practice | 6 | Fill-blank, MCQ, sentence builder, drag-to-order, matching, quick quiz |
-| Interactive | 8 | Debate scale, timed speed challenge, role-play, real-life scenario, guessing, error-correction game, 1–5 opinion scale, mini speaking |
-| Speaking Output | 4 | Guided speaking, sentence frames, free speaking prompt, reflection |
-| Bonus | 4–6 | Extra debate, fast quiz, group discussion, wrap-up summary |
+**Migration:**
+- Create public bucket `playground_assets` (`insert into storage.buckets (id, name, public) values ('playground_assets', 'playground_assets', true)`).
+- RLS on `storage.objects`: public SELECT for this bucket; INSERT restricted to service role (the edge function uses service role key, so no client-side write policy needed).
 
-Audio (`voice`) attached **only** to: reading passage, listening slide, pronunciation moments. Never on every slide.
+**Frontend hook:** `src/hooks/usePlaygroundImages.ts` — small wrapper around `supabase.functions.invoke('generate-playground-images', { body: { subjects } })` used by both the Creator's per-slide button and the AI generation flow.
 
-### 5. Routes (in `src/App.tsx`)
-```ts
-const AcademyClassroom = lazy(() => import("./pages/AcademyClassroom"));
-const AcademyCreator   = lazy(() => import("./pages/AcademyCreator"));
-// + <Route path="/academy-classroom" .../>
-// + <Route path="/academy-creator"   .../>
-```
+---
 
-## Design system (locked)
-- **Palette:** indigo-600 / purple-700 primary; slate text; soft purple-50 backgrounds; subtle shadow-md.
-- **Typography:** titles 32–44px, body 18–24px, Inter/system sans.
-- **No** confetti, no cartoons, no auto-play audio, ≤1 emoji per slide. Subtle framer-motion fades only.
-- Slide content centered, max-width ~960px, generous whitespace.
+### Step 4 — Kid-friendly animations
 
-## Technical notes
-- Single source of truth: `SlideRenderer` is exported from `AcademyDemo.tsx` and used by Classroom + Creator + the existing demo. Adding a new slide type means editing one file.
-- Lesson decks are typed `{ id, title, level, blocks: Slide[][] }` so the Creator can group by block and the viewer can render the progress bar without recomputation.
-- ElevenLabs voice already wired via existing `elevenlabs-tts` edge function — no backend changes needed.
-- Import/Export uses plain JSON download/upload; no DB persistence in this iteration (can be added later by saving lesson decks to a `curriculum_lessons` row).
+**New hook:** `src/hooks/usePlaygroundAnimation.ts`
 
-## Files touched
-- ✏️ `src/pages/AcademyDemo.tsx` — export `Slide`, `SlideRenderer`, `BLOCKS`, `BlockProgress`
-- ➕ `src/pages/AcademyClassroom.tsx`
-- ➕ `src/pages/AcademyCreator.tsx`
-- ➕ `src/data/academyLessons/socialMediaHabits.ts`
-- ✏️ `src/App.tsx` — register two routes
+- Returns `{ celebrate(), shake(targetRef), state }`.
+- `celebrate()`: fires `canvas-confetti` (already a dep) full-screen burst + sets `state = 'correct'` for 1.2s so the active card animates `scale: [1, 1.2, 1], rotate: [0, 360, 0]`. Triggers `usePlaygroundAudio.play("Great job!")`.
+- `shake(ref)`: animates `x: [-10, 10, -10, 10, -10, 10, 0]` on the passed element + plays `"Try again!"`.
 
-## Out of scope (this iteration)
-- Saving lessons to Supabase (local JSON only).
-- Speech recognition for the 🎤 Speak indicator (visual cue only; can wire to existing speech infra later).
-- Multi-teacher lesson library UI.
+**Wire-in:**
+- In `PlaygroundDemo.tsx`, replace each game's local correct/wrong handler with the hook — Multiple, TrueFalse, Fill, Drag, Match all call `celebrate()` / `shake()`.
+- Wrap the slide renderer in `<AnimatePresence mode="wait">` with `<motion.div key={slideIndex} initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -40, opacity: 0 }} transition={{ duration: 0.3 }}>` for the requested horizontal slide-in/out between slides.
+
+---
+
+### Files touched
+
+- `supabase/functions/generate-ppp-slides/index.ts` — new prompt + retry + image hydration
+- `supabase/functions/generate-playground-images/index.ts` — **new**
+- Migration — new storage bucket + RLS
+- `src/pages/PlaygroundDemo.tsx` — schema, MatchGame, DragDrop, transitions
+- `src/pages/PlaygroundCreator.tsx` — image fields, remove emoji column, "Generate image" button
+- `src/hooks/usePlaygroundAnimation.ts` — **new**
+- `src/hooks/usePlaygroundImages.ts` — **new**
+- `public/playground/placeholder-dropzone.svg` — **new** (simple inline silhouette)
+
+No new npm deps (framer-motion + canvas-confetti already installed).
+
+---
+
+### Notes / risks
+
+- The image generation step inside `generate-ppp-slides` adds latency (~1–3s per image). To keep generation snappy I'll fan out image calls **in parallel** (`Promise.all`) and cap subjects per lesson at ~12.
+- Existing playground decks using `emoji`/`target: '🍎'` will keep rendering because the new fields are added alongside (the renderer falls back to a tiny text label if `image_url` is missing). New AI-generated decks will always have images.
