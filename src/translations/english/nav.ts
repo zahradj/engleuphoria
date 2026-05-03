@@ -19,6 +19,8 @@ export const navTranslations = {
     publishing: "Publishing…",
     trial_creator: "Trial Creator",
     story_creator: "Story Creator",
+    playground_creator: "Playground Creator",
+    academy_creator: "Academy Creator",
     unsaved: "Unsaved",
   },
 };

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Code2, X, Play } from 'lucide-react';
+import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Code2, X, Play, Sparkles, Loader2 } from 'lucide-react';
 import {
   SlideRenderer,
   themeMap,
@@ -10,6 +10,8 @@ import {
   type ClusterActivity,
 } from './AcademyDemo';
 import { SOCIAL_MEDIA_LESSON } from '@/data/academyLessons/socialMediaHabits';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 /**
  * Academy Slide Creator — clean teacher-facing authoring tool.
@@ -104,6 +106,45 @@ export default function AcademyCreator() {
   const [jsonDraft, setJsonDraft] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiTopic, setAiTopic] = useState('Social media habits');
+  const [aiLevel, setAiLevel] = useState('A2');
+  const [aiGrammar, setAiGrammar] = useState('Present simple');
+  const [aiBusy, setAiBusy] = useState(false);
+
+  const generateWithAI = async () => {
+    if (!aiTopic.trim()) return;
+    setAiBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-ppp-slides', {
+        body: {
+          lesson_title: aiTopic.trim(),
+          objective: `60-minute teen Academy lesson on ${aiTopic.trim()}. Target grammar: ${aiGrammar}.`,
+          skill_focus: 'Integrated',
+          cefr_level: aiLevel,
+          hub: 'academy',
+          target_hub: 'academy',
+          hub_type: 'academy',
+        },
+      });
+      if (error) throw error;
+      const academySlides: Slide[] | undefined = data?.academy_slides;
+      if (!academySlides || !Array.isArray(academySlides) || academySlides.length === 0) {
+        throw new Error('AI returned no Academy slides');
+      }
+      setSlides(academySlides);
+      setTitle(aiTopic.trim());
+      setLevel(aiLevel);
+      setSelected(0);
+      setAiOpen(false);
+      toast.success(`Generated ${academySlides.length} slides ✨`);
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || 'AI generation failed');
+    } finally {
+      setAiBusy(false);
+    }
+  };
 
   const t = themeMap.light;
   const current = slides[selected];
@@ -202,6 +243,9 @@ export default function AcademyCreator() {
             <button onClick={() => { setJsonDraft(JSON.stringify(slides, null, 2)); setJsonError(null); setJsonOpen(true); }}
               className="inline-flex items-center gap-2 border border-slate-300 hover:border-indigo-400 text-slate-700 font-semibold rounded-lg px-3 py-2 text-sm transition">
               <Code2 className="w-4 h-4" /> JSON
+            </button>
+            <button onClick={() => setAiOpen(true)} className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:opacity-90 text-white font-semibold rounded-lg px-4 py-2 text-sm shadow-md transition">
+              <Sparkles className="w-4 h-4" /> Generate with AI
             </button>
             <button onClick={openClassroom} className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg px-4 py-2 text-sm shadow-md transition">
               <Play className="w-4 h-4" /> Open in Classroom
@@ -336,6 +380,44 @@ export default function AcademyCreator() {
                   setSlides(p); setSelected(0); setJsonOpen(false);
                 } catch (e: any) { setJsonError(e.message); }
               }} className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow-md">Apply</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI generation modal */}
+      {aiOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-indigo-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-5 text-white">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-6 h-6" />
+                <h3 className="text-xl font-bold">Generate Academy Lesson</h3>
+              </div>
+              <p className="text-sm opacity-90 mt-1">A 60-min, 7-block TEFL deck for teens.</p>
+            </div>
+            <div className="p-5 space-y-4">
+              <label className="block">
+                <span className={labelCls}>Topic</span>
+                <input autoFocus className={inputCls} value={aiTopic} onChange={(e) => setAiTopic(e.target.value)} placeholder="e.g. Social media habits" disabled={aiBusy} />
+              </label>
+              <label className="block">
+                <span className={labelCls}>CEFR Level</span>
+                <select className={inputCls} value={aiLevel} onChange={(e) => setAiLevel(e.target.value)} disabled={aiBusy}>
+                  <option>A1</option><option>A2</option><option>B1</option><option>B2</option>
+                </select>
+              </label>
+              <label className="block">
+                <span className={labelCls}>Target grammar</span>
+                <input className={inputCls} value={aiGrammar} onChange={(e) => setAiGrammar(e.target.value)} placeholder="e.g. Present simple" disabled={aiBusy} />
+              </label>
+              <p className="text-xs text-slate-500">Calls the same AI core as Slide Studio with <code className="bg-indigo-50 text-indigo-700 rounded px-1">hub_type: 'academy'</code>.</p>
+            </div>
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
+              <button disabled={aiBusy} onClick={() => setAiOpen(false)} className="px-4 py-2 rounded-lg border border-slate-300 font-semibold text-slate-600 hover:bg-white disabled:opacity-50">Cancel</button>
+              <button disabled={aiBusy || !aiTopic.trim()} onClick={generateWithAI} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow-md disabled:opacity-50">
+                {aiBusy ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating…</> : <><Sparkles className="w-4 h-4" /> Generate</>}
+              </button>
             </div>
           </div>
         </div>

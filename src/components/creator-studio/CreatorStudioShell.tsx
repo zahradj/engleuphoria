@@ -10,6 +10,7 @@ import { LibraryManager } from './steps/LibraryManager';
 import { TrialCreator } from './steps/TrialCreator';
 import { StoryCreator } from './steps/StoryCreator';
 import PlaygroundCreator from '@/pages/PlaygroundCreator';
+import AcademyCreator from '@/pages/AcademyCreator';
 
 const StudioBody: React.FC = () => {
   const { currentStep, setCurrentStep } = useCreator();
@@ -23,6 +24,7 @@ const StudioBody: React.FC = () => {
     else if (path.endsWith('/trial')) next = 'trial';
     else if (path.endsWith('/story')) next = 'story';
     else if (path.endsWith('/playground-creator')) next = 'playground-creator';
+    else if (path.endsWith('/academy-creator')) next = 'academy-creator';
     else if (path.endsWith('/slide-builder') || path.endsWith('/slides')) next = 'slide-builder';
     if (next && next !== currentStep) setCurrentStep(next);
   }, [currentStep, location.pathname, setCurrentStep]);
@@ -31,6 +33,7 @@ const StudioBody: React.FC = () => {
     currentStep === 'blueprint' ? BlueprintEngine
     : currentStep === 'slide-builder' ? SlideStudio
     : currentStep === 'playground-creator' ? PlaygroundCreator
+    : currentStep === 'academy-creator' ? AcademyCreator
     : currentStep === 'trial' ? TrialCreator
     : currentStep === 'story' ? StoryCreator
     : LibraryManager;
