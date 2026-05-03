@@ -112,6 +112,27 @@ type WorksheetLoadListener = (payload: WorksheetLoadPayload) => void;
 type SlideCompletionListener = (payload: SlideCompletionPayload) => void;
 type GameStateListener = (payload: GameStatePayload) => void;
 
+/** Teacher → all clients leader/follower slide navigation. */
+export interface SlideChangePayload {
+  slideIndex: number;
+  senderId: string;
+  timestamp: number;
+}
+type SlideChangeListener = (payload: SlideChangePayload) => void;
+
+/** Teacher's authoritative snapshot pushed on demand by the "Force Sync" button. */
+export interface ForceSyncPayload {
+  slideIndex: number;
+  stageMode?: StageMode;
+  drawingEnabled?: boolean;
+  iframeUnlocked?: boolean;
+  embeddedUrl?: string | null;
+  activeCanvasTab?: string;
+  senderId: string;
+  timestamp: number;
+}
+type ForceSyncListener = (payload: ForceSyncPayload) => void;
+
 interface RoomChannel {
   channel: ReturnType<typeof supabase.channel>;
   ready: Promise<void>;
@@ -128,6 +149,8 @@ interface RoomChannel {
   worksheetListeners: Set<WorksheetLoadListener>;
   gameStateListeners: Set<GameStateListener>;
   slideCompletionListeners: Set<SlideCompletionListener>;
+  slideChangeListeners: Set<SlideChangeListener>;
+  forceSyncListeners: Set<ForceSyncListener>;
   refCount: number;
 }
 
