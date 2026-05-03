@@ -163,10 +163,24 @@ export function getHubProfile(hub: TargetHub): HubProfile {
   return PROFILES[hub];
 }
 
+/** Build the per-hub PERSONA + recommended blueprint block (used by both generators). */
+export function buildHubPersonaBlock(hub: TargetHub): string {
+  const p = PROFILES[hub];
+  return `
+═══════════════════════════════════════════════════════
+HUB AI PERSONA — ${hub.toUpperCase()}
+═══════════════════════════════════════════════════════
+${p.personaPrompt}
+
+${p.blueprintTemplate}`.trim();
+}
+
 /** System-prompt block for the BLUEPRINT generator — covers source, pedagogy, framework picker. */
 export function buildBlueprintHubBlock(hub: TargetHub, cefr_level: string): string {
   const p = PROFILES[hub];
   return `
+${buildHubPersonaBlock(hub)}
+
 ═══════════════════════════════════════════════════════
 TARGET HUB: ${hub.toUpperCase()}  (CEFR window ${p.cefrFloor}–${p.cefrCeiling})
 ═══════════════════════════════════════════════════════
@@ -186,12 +200,16 @@ ${FRAMEWORK_GUIDE}`.trim();
 export function buildSlideHubBlock(hub: TargetHub, cefr_level: string): string {
   const p = PROFILES[hub];
   return `
+${buildHubPersonaBlock(hub)}
+
 ═══════════════════════════════════════════════════════
 TARGET HUB: ${hub.toUpperCase()}  (CEFR window ${p.cefrFloor}–${p.cefrCeiling})
 ═══════════════════════════════════════════════════════
 ${p.pedagogyRule}
 
-Caller-supplied CEFR: ${cefr_level}. Clamp to ${p.cefrFloor}–${p.cefrCeiling} for this hub.`.trim();
+Caller-supplied CEFR: ${cefr_level}. Clamp to ${p.cefrFloor}–${p.cefrCeiling} for this hub.
+
+SCHEMA INTEGRITY: The hub persona changes the CONTENT and slide_type emphasis only. You MUST still emit the same JSON shape (slide_type, interactive_data, lesson_phase, target_skills, requires_audio) defined in the main system prompt — the frontend renderer parses one schema across all hubs.`.trim();
 }
 
 /** Build the dynamic phase-sequence block for the slide generator from a blueprint.phases array. */
