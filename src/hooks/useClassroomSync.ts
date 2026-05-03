@@ -107,6 +107,8 @@ interface UseClassroomSyncReturn {
   iframeUnlocked: boolean;
   setIframeUnlocked: (unlocked: boolean) => Promise<void>;
   applyRemoteIframeUnlocked: (unlocked: boolean) => void;
+  /** Teacher-only: broadcast a full state snapshot to all clients (no reload). */
+  forceSync: () => Promise<void>;
 }
 
 const deriveStageModeFromSession = (session: ClassroomSession, fallback: StageMode): StageMode => {
