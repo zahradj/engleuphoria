@@ -400,6 +400,57 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 const inputCls = 'w-full border-2 border-orange-200 focus:border-orange-500 rounded-xl px-3 py-2 outline-none text-slate-800 bg-white';
 
+function ImageField({
+  label, url, subject, onChange,
+}: { label: string; url?: string; subject?: string; onChange: (url: string) => void }) {
+  const [busy, setBusy] = useState(false);
+  const generate = async () => {
+    const subj = (subject || '').trim();
+    if (!subj) { toast.error('Set the word first'); return; }
+    setBusy(true);
+    try {
+      const u = await generateOnePlaygroundImage(subj);
+      if (!u) throw new Error('No image returned');
+      onChange(u);
+      toast.success('Image generated');
+    } catch (e: any) {
+      toast.error(e?.message || 'Image generation failed');
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div>
+      <span className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1">{label}</span>
+      <div className="flex gap-2 items-center">
+        {url ? (
+          <img src={url} alt="" className="w-14 h-14 rounded-lg object-cover border-2 border-orange-200 bg-white" />
+        ) : (
+          <div className="w-14 h-14 rounded-lg border-2 border-dashed border-orange-300 bg-orange-50 flex items-center justify-center">
+            <ImageIcon className="w-5 h-5 text-orange-400" />
+          </div>
+        )}
+        <input
+          className={inputCls + ' flex-1 text-xs'}
+          placeholder="https://..."
+          value={url || ''}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        <button
+          type="button"
+          onClick={generate}
+          disabled={busy}
+          className="text-xs font-bold text-white bg-gradient-to-r from-fuchsia-500 to-orange-500 rounded-lg px-3 py-2 inline-flex items-center gap-1 disabled:opacity-50 shadow-sm"
+        >
+          {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+          AI
+        </button>
+      </div>
+    </div>
+  );
+}
+
+
 function SlideEditor({ slide, onChange }: { slide: Slide; onChange: (p: Partial<Slide>) => void }) {
   const voice = (slide as any).voice as Slide['voice'] | undefined;
   const VoiceFields = (
