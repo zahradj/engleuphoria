@@ -584,12 +584,15 @@ export const SlideCanvas: React.FC<Props> = ({
   level,
   unitNumber,
   lessonNumber,
+  hubOverride,
 }) => {
   const phaseKey = normalizePhase(slide.phase as string);
   const style = PHASE_STYLES[phaseKey];
   const [mode, setMode] = useState<ViewMode>('student');
   const { hub, theme } = useHubTheme();
-  const shellHub = toShellHub(hub);
+  const shellHub: PlayerHubType = hubOverride ?? toShellHub(hub);
+  // For descendant components that still expect the studio hub union.
+  const studioHub = hubOverride ? fromShellHub(hubOverride) : hub;
 
   const hasImage = !!(slide.custom_image_url || (slide.visual_keyword || '').trim());
   const isFrontPage = (slide as any).slide_type === 'front_page' || (slide as any).type === 'front_page';
