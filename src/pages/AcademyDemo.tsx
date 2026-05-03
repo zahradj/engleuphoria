@@ -17,9 +17,9 @@ import { useAcademyAudio } from '@/hooks/useAcademyAudio';
  */
 
 // ─── Schema ──────────────────────────────────────────────────────────────────
-type Block = 'warmup' | 'vocab' | 'reading' | 'grammar' | 'practice' | 'interactive' | 'speaking';
+export type Block = 'warmup' | 'vocab' | 'reading' | 'grammar' | 'practice' | 'interactive' | 'speaking';
 
-const BLOCKS: { id: Block; label: string }[] = [
+export const BLOCKS: { id: Block; label: string }[] = [
   { id: 'warmup', label: 'Warm-up' },
   { id: 'vocab', label: 'Vocab' },
   { id: 'reading', label: 'Reading' },
@@ -29,7 +29,7 @@ const BLOCKS: { id: Block; label: string }[] = [
   { id: 'speaking', label: 'Speaking' },
 ];
 
-type Slide =
+export type Slide =
   | { type: 'intro'; block: Block; title: string; subtitle?: string }
   | { type: 'question'; block: Block; prompt: string; placeholder?: string }
   | { type: 'poll'; block: Block; prompt: string; options: { label: string; pct: number }[] }
@@ -126,9 +126,9 @@ const SLIDES: Slide[] = [
 ];
 
 // ─── Theme ───────────────────────────────────────────────────────────────────
-type Theme = 'dark' | 'light';
+export type Theme = 'dark' | 'light';
 
-interface ThemeTokens {
+export interface ThemeTokens {
   bg: string;
   card: string;
   text: string;
@@ -138,7 +138,7 @@ interface ThemeTokens {
   btnGhost: string;
 }
 
-const themeMap: Record<'dark' | 'light', ThemeTokens> = {
+export const themeMap: Record<'dark' | 'light', ThemeTokens> = {
   dark: {
     bg: 'bg-slate-950',
     card: 'bg-slate-900 border-slate-800',
@@ -645,7 +645,7 @@ function ReflectionSlide({ slide, t }: { slide: Extract<Slide, { type: 'reflecti
 }
 
 // ─── Renderer ───────────────────────────────────────────────────────────────
-function SlideRenderer({ slide, t }: { slide: Slide; t: ThemeTokens }) {
+export function SlideRenderer({ slide, t }: { slide: Slide; t: ThemeTokens }) {
   switch (slide.type) {
     case 'intro': return <Intro slide={slide} t={t} />;
     case 'question': return <QuestionSlide slide={slide} t={t} />;
@@ -670,8 +670,8 @@ function SlideRenderer({ slide, t }: { slide: Slide; t: ThemeTokens }) {
 }
 
 // ─── Progress bar ───────────────────────────────────────────────────────────
-function ProgressBar({ currentBlock, slideIndex, t }: { currentBlock: Block; slideIndex: number; t: ThemeTokens }) {
-  const blockSlides = SLIDES.reduce<Record<Block, number[]>>((acc, s, i) => {
+export function ProgressBar({ currentBlock, slideIndex, t, slides = SLIDES }: { currentBlock: Block; slideIndex: number; t: ThemeTokens; slides?: Slide[] }) {
+  const blockSlides = slides.reduce<Record<Block, number[]>>((acc, s, i) => {
     acc[s.block] = acc[s.block] || [];
     acc[s.block].push(i);
     return acc;
