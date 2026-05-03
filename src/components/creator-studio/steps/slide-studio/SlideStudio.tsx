@@ -5,7 +5,8 @@ import { SlideCanvas } from './SlideCanvas';
 import { TeacherControlsPanel } from './TeacherControlsPanel';
 import { StoryStudioCanvas } from './StoryStudioCanvas';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Loader2, Image as ImageIcon, ListChecks, Pencil, Layers } from 'lucide-react';
+import { ArrowRight, Loader2, Image as ImageIcon, ListChecks, Pencil, Layers, Gamepad2, GraduationCap, Briefcase, X } from 'lucide-react';
+import type { HubType as PlayerHubType } from '@/components/admin/lesson-builder/ai-wizard/types';
 import { generateAllMedia } from './mediaGeneration';
 import { toast } from 'sonner';
 import { SlideErrorBoundary } from '@/components/common/SlideErrorBoundary';
@@ -15,6 +16,65 @@ import { cn } from '@/lib/utils';
 import PhaseTracker from '@/components/lesson-player/PhaseTracker';
 import { PHASE_STYLES, normalizePhase } from './phaseTheme';
 
+/**
+ * Compact pill that lets a content creator force the slide-preview
+ * theme into a specific Hub before the lesson is officially assigned.
+ * Selecting a hub publishes its CSS variables (`--hub-accent`, etc.)
+ * via SlideShell, so any descendant using `bg-[var(--hub-accent)]`
+ * recolors instantly. Press × to clear and follow the lesson's hub.
+ */
+const HubOverrideToggle: React.FC<{
+  value: PlayerHubType | null;
+  onChange: (next: PlayerHubType | null) => void;
+}> = ({ value, onChange }) => {
+  const options: Array<{ key: PlayerHubType; label: string; Icon: React.ElementType }> = [
+    { key: 'playground', label: 'Playground', Icon: Gamepad2 },
+    { key: 'academy', label: 'Academy', Icon: GraduationCap },
+    { key: 'professional', label: 'Professional', Icon: Briefcase },
+  ];
+  return (
+    <div
+      className="inline-flex items-center gap-0.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-0.5"
+      title="Preview this slide in another Hub's theme"
+    >
+      <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 px-1.5">
+        Preview
+      </span>
+      {options.map(({ key, Icon, label }) => {
+        const active = value === key;
+        return (
+          <button
+            key={key}
+            type="button"
+            onClick={() => onChange(active ? null : key)}
+            className={cn(
+              'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold transition',
+              active
+                ? 'bg-slate-900 text-white shadow'
+                : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200',
+            )}
+            aria-pressed={active}
+            aria-label={`Preview as ${label} Hub`}
+          >
+            <Icon className="h-3 w-3" />
+            <span className="hidden md:inline">{label}</span>
+          </button>
+        );
+      })}
+      {value && (
+        <button
+          type="button"
+          onClick={() => onChange(null)}
+          className="ml-0.5 inline-flex items-center justify-center h-5 w-5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700"
+          aria-label="Clear hub override"
+          title="Use the lesson's hub"
+        >
+          <X className="h-3 w-3" />
+        </button>
+      )}
+    </div>
+  );
+};
 
 const TYPE_ICON: Record<string, React.ElementType> = {
   text_image: ImageIcon,
@@ -27,6 +87,7 @@ const SlideStudioInner: React.FC = () => {
   const { activeLessonData, updateSlide, setCurrentStep, replaceSlides } = useCreator();
   const [activeSlideId, setActiveSlideId] = useState<string | null>(null);
   const [autoGenerating, setAutoGenerating] = useState(false);
+  const [hubOverride, setHubOverride] = useState<PlayerHubType | null>(null);
   const autoGenTriggered = React.useRef(false);
   const frontPageInjected = React.useRef(false);
   const { theme } = useHubTheme();
@@ -179,6 +240,7 @@ const SlideStudioInner: React.FC = () => {
           </div>
           {!!slides.length && (
             <div className="flex items-center gap-2 shrink-0">
+              <HubOverrideToggle value={hubOverride} onChange={setHubOverride} />
               <span className="text-[10px] text-slate-400 font-mono">
                 {slides.length} slide{slides.length === 1 ? '' : 's'}
               </span>
@@ -232,6 +294,7 @@ const SlideStudioInner: React.FC = () => {
                       (activeLessonData.source_lesson as any)?.lesson_number ??
                       (activeLessonData.source_lesson as any)?.position
                     }
+                    hubOverride={hubOverride}
                   />
                 </SlideErrorBoundary>
               </div>

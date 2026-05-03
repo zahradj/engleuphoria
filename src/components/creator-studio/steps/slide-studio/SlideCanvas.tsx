@@ -29,7 +29,13 @@ interface Props {
   level?: string;
   unitNumber?: number | string;
   lessonNumber?: number | string;
+  /** Manual hub override from the studio's preview switcher. */
+  hubOverride?: PlayerHubType | null;
 }
+
+/** Player hub → studio hub union (`professional` ↔ `success`). */
+const fromShellHub = (h: PlayerHubType): 'playground' | 'academy' | 'success' =>
+  h === 'professional' ? 'success' : h;
 
 const VIEW_KEY: Record<ViewMode, string> = { student: '👁️ Student View', teacher: '🎓 Teacher View' };
 
@@ -578,12 +584,15 @@ export const SlideCanvas: React.FC<Props> = ({
   level,
   unitNumber,
   lessonNumber,
+  hubOverride,
 }) => {
   const phaseKey = normalizePhase(slide.phase as string);
   const style = PHASE_STYLES[phaseKey];
   const [mode, setMode] = useState<ViewMode>('student');
   const { hub, theme } = useHubTheme();
-  const shellHub = toShellHub(hub);
+  const shellHub: PlayerHubType = hubOverride ?? toShellHub(hub);
+  // For descendant components that still expect the studio hub union.
+  const studioHub = hubOverride ? fromShellHub(hubOverride) : hub;
 
   const hasImage = !!(slide.custom_image_url || (slide.visual_keyword || '').trim());
   const isFrontPage = (slide as any).slide_type === 'front_page' || (slide as any).type === 'front_page';
@@ -645,7 +654,7 @@ export const SlideCanvas: React.FC<Props> = ({
                 lessonTitle={(slide as any).title || 'Untitled Lesson'}
                 topic={(slide as any).topic || (slide as any).visual_keyword}
                 level={(slide as any).level || (slide as any).cefr_level || level}
-                hub={hub}
+                hub={studioHub}
                 coverImageUrl={(slide as any).custom_image_url || (slide as any).coverImageUrl}
                 unitNumber={(slide as any).unit_number ?? (slide as any).unitNumber ?? unitNumber}
                 unitTitle={(slide as any).unit_title ?? (slide as any).unitTitle}
@@ -654,13 +663,13 @@ export const SlideCanvas: React.FC<Props> = ({
               <div className={cn('relative space-y-4', theme.font)}>
                 <SlideMedia slide={slide} />
                 <TitleField slide={slide} onChange={onChange} />
-                <InteractiveBlock slide={slide} mode={mode} hub={hub} />
+                <InteractiveBlock slide={slide} mode={mode} hub={studioHub} />
                 {shouldShowAudioButton(slide) && (
                   <div className="flex justify-center pt-1">
                     <PlaySoundButton slide={slide} />
                   </div>
                 )}
-                {hub === 'playground' && slide.slide_type === 'mascot_speech' && (
+                {studioHub === 'playground' && slide.slide_type === 'mascot_speech' && (
                   <div className="absolute -bottom-2 -right-2 text-5xl select-none animate-bounce" aria-hidden>
                     {theme.mascot}
                   </div>
