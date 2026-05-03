@@ -57,6 +57,7 @@ const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const StudentCertificatePage = lazy(() => import("./pages/StudentCertificatePage"));
 const PlaygroundDemo = lazy(() => import("./pages/PlaygroundDemo"));
 const AcademyDemo = lazy(() => import("./pages/AcademyDemo"));
+const PlaygroundCreator = lazy(() => import("./pages/PlaygroundCreator"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
