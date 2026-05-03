@@ -128,7 +128,17 @@ const SLIDES: Slide[] = [
 // ─── Theme ───────────────────────────────────────────────────────────────────
 type Theme = 'dark' | 'light';
 
-const themeMap = {
+interface ThemeTokens {
+  bg: string;
+  card: string;
+  text: string;
+  muted: string;
+  chip: string;
+  inputBg: string;
+  btnGhost: string;
+}
+
+const themeMap: Record<'dark' | 'light', ThemeTokens> = {
   dark: {
     bg: 'bg-slate-950',
     card: 'bg-slate-900 border-slate-800',
@@ -147,7 +157,7 @@ const themeMap = {
     inputBg: 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400',
     btnGhost: 'border border-slate-300 text-slate-700 hover:border-indigo-500 hover:text-indigo-600',
   },
-} as const;
+};
 
 // ─── Audio button (shared by vocab / reading / listening) ────────────────────
 function ListenButton({ text, label = 'Listen', variant = 'pill' }: { text: string; label?: string; variant?: 'pill' | 'block' }) {
