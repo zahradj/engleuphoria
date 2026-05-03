@@ -250,6 +250,7 @@ export const useClassroomSync = ({
     return unsub;
   }, [roomId, userId]);
 
+  const applyRemoteStageMode = useCallback((mode: StageMode) => {
     setStageModeState(mode);
   }, []);
 
