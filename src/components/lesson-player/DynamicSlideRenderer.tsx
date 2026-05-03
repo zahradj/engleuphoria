@@ -295,6 +295,14 @@ interface DynamicSlideRendererProps {
   onCorrectAnswer: () => void;
   onIncorrectAnswer?: () => void;
   onComplete?: () => void;
+  /** Optional metadata for the branded shell. */
+  level?: string;
+  unit?: number | string;
+  lesson?: number | string;
+  slideIndex?: number;
+  totalSlides?: number;
+  /** When true, do not wrap output in the SlideShell (used by host containers that already provide one). */
+  disableShell?: boolean;
 }
 
 export default function DynamicSlideRenderer({
@@ -303,6 +311,12 @@ export default function DynamicSlideRenderer({
   onCorrectAnswer,
   onIncorrectAnswer,
   onComplete,
+  level,
+  unit,
+  lesson,
+  slideIndex,
+  totalSlides,
+  disableShell = false,
 }: DynamicSlideRendererProps) {
   const config = HUB_CONFIGS[hub];
   const animKey = slide.animation || config.defaultAnimation;
@@ -386,7 +400,7 @@ export default function DynamicSlideRenderer({
       return <EditorialHeroMedia slide={slide} />;
     }
     if (directorType === 'vocab_list') {
-      return <EditorialVocabList slide={slide} />;
+      return <VocabFlipGrid slide={slide} />;
     }
     if (directorType === 'grammar_explanation') {
       return <EditorialGrammar slide={slide} />;
@@ -540,6 +554,12 @@ export default function DynamicSlideRenderer({
     }
   };
 
+  const inner = (
+    <SlideErrorBoundary slideId={slide.id} slide={slide}>
+      {renderContent()}
+    </SlideErrorBoundary>
+  );
+
   return (
     <motion.div
       key={slide.id}
@@ -549,9 +569,20 @@ export default function DynamicSlideRenderer({
       transition={{ type: 'spring', stiffness: 260, damping: 20 }}
       className="w-full h-full flex items-center justify-center"
     >
-      <SlideErrorBoundary slideId={slide.id} slide={slide}>
-        {renderContent()}
-      </SlideErrorBoundary>
+      {disableShell ? (
+        inner
+      ) : (
+        <SlideShell
+          hub={hub}
+          level={level}
+          unit={unit}
+          lesson={lesson}
+          slideIndex={slideIndex}
+          totalSlides={totalSlides}
+        >
+          {inner}
+        </SlideShell>
+      )}
     </motion.div>
   );
 }
