@@ -106,6 +106,45 @@ export default function AcademyCreator() {
   const [jsonDraft, setJsonDraft] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiTopic, setAiTopic] = useState('Social media habits');
+  const [aiLevel, setAiLevel] = useState('A2');
+  const [aiGrammar, setAiGrammar] = useState('Present simple');
+  const [aiBusy, setAiBusy] = useState(false);
+
+  const generateWithAI = async () => {
+    if (!aiTopic.trim()) return;
+    setAiBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-ppp-slides', {
+        body: {
+          lesson_title: aiTopic.trim(),
+          objective: `60-minute teen Academy lesson on ${aiTopic.trim()}. Target grammar: ${aiGrammar}.`,
+          skill_focus: 'Integrated',
+          cefr_level: aiLevel,
+          hub: 'academy',
+          target_hub: 'academy',
+          hub_type: 'academy',
+        },
+      });
+      if (error) throw error;
+      const academySlides: Slide[] | undefined = data?.academy_slides;
+      if (!academySlides || !Array.isArray(academySlides) || academySlides.length === 0) {
+        throw new Error('AI returned no Academy slides');
+      }
+      setSlides(academySlides);
+      setTitle(aiTopic.trim());
+      setLevel(aiLevel);
+      setSelected(0);
+      setAiOpen(false);
+      toast.success(`Generated ${academySlides.length} slides ✨`);
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || 'AI generation failed');
+    } finally {
+      setAiBusy(false);
+    }
+  };
 
   const t = themeMap.light;
   const current = slides[selected];
