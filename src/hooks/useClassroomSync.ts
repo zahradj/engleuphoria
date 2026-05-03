@@ -484,6 +484,7 @@ export const useClassroomSync = ({
     applyRemoteDrawingEnabled,
     iframeUnlocked,
     setIframeUnlocked,
-    applyRemoteIframeUnlocked
+    applyRemoteIframeUnlocked,
+    forceSync,
   };
 };
