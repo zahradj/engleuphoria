@@ -28,6 +28,7 @@ const SlideStudioInner: React.FC = () => {
   const { activeLessonData, updateSlide, setCurrentStep, replaceSlides } = useCreator();
   const [activeSlideId, setActiveSlideId] = useState<string | null>(null);
   const [autoGenerating, setAutoGenerating] = useState(false);
+  const [hubOverride, setHubOverride] = useState<PlayerHubType | null>(null);
   const autoGenTriggered = React.useRef(false);
   const frontPageInjected = React.useRef(false);
   const { theme } = useHubTheme();
