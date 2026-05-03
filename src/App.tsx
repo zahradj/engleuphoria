@@ -102,6 +102,8 @@ const App = () => {
                       <Route path="/playground-demo" element={<Suspense fallback={<LoadingFallback />}><PlaygroundDemo /></Suspense>} />
                       <Route path="/academy-demo" element={<Suspense fallback={<LoadingFallback />}><AcademyDemo /></Suspense>} />
                       <Route path="/playground-creator" element={<Suspense fallback={<LoadingFallback />}><PlaygroundCreator /></Suspense>} />
+                      <Route path="/academy-classroom" element={<Suspense fallback={<LoadingFallback />}><AcademyClassroom /></Suspense>} />
+                      <Route path="/academy-creator" element={<Suspense fallback={<LoadingFallback />}><AcademyCreator /></Suspense>} />
                       <Route path="/teach-with-us" element={<Navigate to="/for-teachers" replace />} />
                       <Route path="/for-teachers" element={<Suspense fallback={<LoadingFallback />}><ForTeachersPage /></Suspense>} />
                       <Route path="/login" element={<Suspense fallback={<LoadingFallback />}><Login /></Suspense>} />
