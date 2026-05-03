@@ -97,13 +97,24 @@ OUTPUT RULES (STRICT):
 - Topic: "${effectiveTitle}". ${objective ? `Goal: ${objective}.` : ""}
 - Return RAW JSON ARRAY only.`;
 
-      const aiRes = await aiFetch(apiKey, {
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: playgroundSystem },
-          { role: "user", content: `Generate the Playground deck for topic: "${effectiveTitle}". Output JSON array only.` },
-        ],
+      const aiRes = await aiFetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: playgroundSystem },
+            { role: "user", content: `Generate the Playground deck for topic: "${effectiveTitle}". Output JSON array only.` },
+          ],
+        }),
       });
+      if (!aiRes.ok) {
+        const detail = await aiRes.text();
+        return new Response(JSON.stringify({ error: `AI error ${aiRes.status}: ${detail}` }), {
+          status: 502,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       const aiData = await aiRes.json();
       const raw: string = aiData?.choices?.[0]?.message?.content ?? "";
       // Strip code fences if present.
