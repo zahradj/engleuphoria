@@ -344,6 +344,45 @@ export default function PlaygroundCreator() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* AI generation modal */}
+      <AnimatePresence>
+        {aiOpen && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur flex items-center justify-center p-4"
+          >
+            <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border-4 border-orange-300 overflow-hidden">
+              <div className="bg-gradient-to-r from-fuchsia-500 to-orange-500 p-5 text-white">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-6 h-6" />
+                  <h3 className="text-xl font-extrabold">Generate Playground Lesson</h3>
+                </div>
+                <p className="text-sm opacity-90 mt-1">AI will craft a kid-friendly interactive deck.</p>
+              </div>
+              <div className="p-5 space-y-4">
+                <Field label="Topic">
+                  <input
+                    autoFocus
+                    className={inputCls}
+                    value={aiTopic}
+                    onChange={(e) => setAiTopic(e.target.value)}
+                    placeholder="e.g. Animals, Colors, Greetings"
+                    disabled={aiBusy}
+                  />
+                </Field>
+                <p className="text-xs text-slate-500">Uses the same AI core as the Standard Slide Studio with <code className="bg-orange-50 text-orange-700 rounded px-1">hub_type: 'playground'</code>.</p>
+              </div>
+              <div className="p-4 bg-orange-50 border-t border-orange-200 flex justify-end gap-2">
+                <button disabled={aiBusy} onClick={() => setAiOpen(false)} className="px-4 py-2 rounded-xl border-2 border-slate-200 font-bold text-slate-600 hover:bg-white disabled:opacity-50">Cancel</button>
+                <button disabled={aiBusy || !aiTopic.trim()} onClick={generateWithAI} className="px-5 py-2 rounded-xl bg-gradient-to-r from-fuchsia-500 to-orange-500 text-white font-bold shadow-md disabled:opacity-50 inline-flex items-center gap-2">
+                  {aiBusy ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating…</> : <><Sparkles className="w-4 h-4" /> Generate</>}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
