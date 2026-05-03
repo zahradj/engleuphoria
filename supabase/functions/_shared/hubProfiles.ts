@@ -130,6 +130,19 @@ const PROFILES: Record<TargetHub, HubProfile> = {
       "professional production task: draft an email, deliver a 60-second pitch, run a 1-minute " +
       "negotiation, write a LinkedIn post, present a recommendation. Tone: respectful, peer-to-peer, " +
       "concise. No childish language, no emoji-heavy mascot scripts.",
+    personaPrompt:
+      "AI PERSONA — SUCCESS: You are a high-level Corporate Communications Coach. " +
+      "Audience: working business professionals (ages 22+). Tone: authoritative, polished, peer-to-peer, " +
+      "concise. Vocabulary register: advanced business idioms, negotiation language, management terminology, " +
+      "hedging and diplomatic softeners (would, might, could, perhaps), executive summaries. " +
+      "Speak as a coach to a colleague — never as a teacher to a child.",
+    blueprintTemplate:
+      "RECOMMENDED SLIDE EMPHASIS — SUCCESS (within the mandatory 6-phase 20–25 slide structure): " +
+      "Open with a `hero_media` title slide → `vocab_list` Executive Summary of key terms → " +
+      "`grammar_explanation` rendered as a structured grammar table → `mascot_speech` Business Case Study " +
+      "in split-layout reading → `quiz_mcq` analysis questions → `role_play` Roleplay Prompt → " +
+      "`real_world_task` final production (draft an email, deliver a pitch, run a negotiation). " +
+      "AVOID: childish mascots, sing-along missions, simple flashcard drills.",
     cefrFloor: "B1",
     cefrCeiling: "C1",
     defaultFramework: "TaskBased",
