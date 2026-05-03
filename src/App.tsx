@@ -57,6 +57,7 @@ const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const StudentCertificatePage = lazy(() => import("./pages/StudentCertificatePage"));
 const PlaygroundDemo = lazy(() => import("./pages/PlaygroundDemo"));
 const AcademyDemo = lazy(() => import("./pages/AcademyDemo"));
+const PlaygroundCreator = lazy(() => import("./pages/PlaygroundCreator"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -98,6 +99,7 @@ const App = () => {
                       <Route path="/about" element={<Suspense fallback={<LoadingFallback />}><AboutPage /></Suspense>} />
                       <Route path="/playground-demo" element={<Suspense fallback={<LoadingFallback />}><PlaygroundDemo /></Suspense>} />
                       <Route path="/academy-demo" element={<Suspense fallback={<LoadingFallback />}><AcademyDemo /></Suspense>} />
+                      <Route path="/playground-creator" element={<Suspense fallback={<LoadingFallback />}><PlaygroundCreator /></Suspense>} />
                       <Route path="/teach-with-us" element={<Navigate to="/for-teachers" replace />} />
                       <Route path="/for-teachers" element={<Suspense fallback={<LoadingFallback />}><ForTeachersPage /></Suspense>} />
                       <Route path="/login" element={<Suspense fallback={<LoadingFallback />}><Login /></Suspense>} />
