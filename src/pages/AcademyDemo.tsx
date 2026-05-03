@@ -825,6 +825,7 @@ export function SlideRenderer({ slide, t }: { slide: Slide; t: ThemeTokens }) {
     case 'role_play': return <RolePlaySlide slide={slide} t={t} />;
     case 'speaking_task': return <SpeakingTaskSlide slide={slide} t={t} />;
     case 'reflection': return <ReflectionSlide slide={slide} t={t} />;
+    case 'cluster': return <ClusterSlide slide={slide} t={t} />;
   }
 }
 
