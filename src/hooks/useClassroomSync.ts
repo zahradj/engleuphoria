@@ -220,7 +220,36 @@ export const useClassroomSync = ({
     };
   }, [roomId]);
 
-  const applyRemoteStageMode = useCallback((mode: StageMode) => {
+  // Subscribe to instant slide_change broadcasts (Leader/Follower navigation).
+  useEffect(() => {
+    if (!roomId) return;
+    const unsub = whiteboardService.subscribeToSlideChange(roomId, ({ slideIndex, senderId }) => {
+      if (senderId === userId) return; // ignore our own broadcast
+      setCurrentSlideIndex(slideIndex);
+      setSession(prev => prev ? { ...prev, currentSlideIndex: slideIndex } : prev);
+    });
+    return unsub;
+  }, [roomId, userId]);
+
+  // Subscribe to teacher's "Force Sync" snapshot — applied in-place, no reload.
+  useEffect(() => {
+    if (!roomId) return;
+    const unsub = whiteboardService.subscribeToForceSync(roomId, (snap) => {
+      if (snap.senderId === userId) return;
+      setCurrentSlideIndex(snap.slideIndex);
+      if (snap.stageMode) setStageModeState(snap.stageMode);
+      if (typeof snap.drawingEnabled === 'boolean') setDrawingEnabledState(snap.drawingEnabled);
+      if (typeof snap.iframeUnlocked === 'boolean') setIframeUnlockedState(snap.iframeUnlocked);
+      setSession(prev => prev ? {
+        ...prev,
+        currentSlideIndex: snap.slideIndex,
+        embeddedUrl: snap.embeddedUrl !== undefined ? snap.embeddedUrl : prev.embeddedUrl,
+        activeCanvasTab: snap.activeCanvasTab ?? prev.activeCanvasTab,
+      } : prev);
+    });
+    return unsub;
+  }, [roomId, userId]);
+
     setStageModeState(mode);
   }, []);
 
