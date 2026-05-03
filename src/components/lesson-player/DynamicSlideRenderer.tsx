@@ -372,11 +372,8 @@ export default function DynamicSlideRenderer({
       if (ytEmbed) return <VideoSlide slide={slide} />;
       return <SlideConcept slide={slide} hub={hub} />;
     }
-    if (directorType === 'flashcard') {
-      const payload = (slide as any).interactive_data || (slide as any).content || {};
-      const hasWords = Array.isArray(payload.words) || Array.isArray(payload.vocabulary) || Array.isArray(payload.vocab_list);
-      if (hasWords) return <EditorialVocabList slide={slide} />;
-      return <LiveHeroMediaSlide slide={slide} />;
+    if (directorType === 'flashcard' || directorType === 'vocabulary') {
+      return <VocabFlipGrid slide={slide} />;
     }
     if (directorType === 'text_image') {
       return <LiveHeroMediaSlide slide={slide} />;
