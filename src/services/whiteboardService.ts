@@ -178,6 +178,8 @@ class WhiteboardService {
     const worksheetListeners = new Set<WorksheetLoadListener>();
     const gameStateListeners = new Set<GameStateListener>();
     const slideCompletionListeners = new Set<SlideCompletionListener>();
+    const slideChangeListeners = new Set<SlideChangeListener>();
+    const forceSyncListeners = new Set<ForceSyncListener>();
     const statusListeners = new Set<(status: string) => void>();
 
     const channel = supabase
