@@ -62,6 +62,12 @@ function makeSlide(type: SlideType): Slide {
     case 'role_play': return { type, block, title: 'Role play', lineA: 'Speaker A line.', lineB: 'Speaker B line.' };
     case 'speaking_task': return { type, block, prompt: 'Speak about…', starters: ['I think…', 'In my opinion…'] };
     case 'reflection': return { type, block, prompt: 'Reflect on what you learned.' };
+    case 'cluster': return { type, block, title: 'Quick Drill', content: 'Apply the rule four ways below.', activities: [
+      { type: 'mcq', question: 'She ___ every day.', options: ['use', 'uses', 'using'], answer: 'uses', explanation: "Use 'uses' for she/he/it." },
+      { type: 'fill', text: 'He ___ (use) his phone.', answer: 'uses' },
+      { type: 'tf', statement: 'He use TikTok.', answer: false },
+      { type: 'build', prompt: 'Build the sentence.', words: ['I', 'use', 'my', 'phone'], answer: ['I', 'use', 'my', 'phone'] },
+    ]};
   }
 }
 
