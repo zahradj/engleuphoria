@@ -1,97 +1,109 @@
-## Academy Engine — Teen-Focused 60-Minute Lesson System
 
-A standalone mini-app at `/academy-demo`, completely isolated from `PlaygroundDemo`. Mature visual language, indigo/purple identity, sleek interactions, restrained audio (only on listening/reading/pronunciation slides), and a top progress bar showing the 7 pedagogical blocks.
+# Academy Hub — Classroom Viewer, Slide Creator & 60-min Lesson
 
-### Files to create
+Build a teen-focused (12–17, A1–B1) lesson system mirroring the existing Playground architecture but with the mature Academy aesthetic already established at `/academy-demo`.
 
-1. **`src/pages/AcademyDemo.tsx`** (~600 lines, single-file mini-app)
-2. **`src/hooks/useAcademyAudio.ts`** (manual-trigger ElevenLabs hook — no auto-play)
-3. **`src/App.tsx`** — register `/academy-demo` route with lazy import (one-line addition next to PlaygroundDemo)
+## What exists today
+- `src/pages/AcademyDemo.tsx` — engine + 19 slide components + 36-slide demo lesson, indigo/purple theme, 7-block progress bar.
+- `src/hooks/useAcademyAudio.ts` — manual-trigger ElevenLabs TTS (Sarah voice).
+- `src/pages/PlaygroundCreator.tsx` — reference architecture for an authoring tool that imports the engine's `SlideRenderer`.
 
-No new edge function — reuses the existing `elevenlabs-tts` function (already secure with `ELEVENLABS_API_KEY`).
+We will reuse the Academy engine (single source of truth) and add two new pages: a focused classroom viewer and a teacher creator.
 
-### Slide schema (extended for teen interactions)
+## Deliverables
 
-Discriminated union with these `type` values:
+### 1. Refactor `AcademyDemo.tsx` to expose the engine
+- Export the `Slide` union type and `SlideRenderer` component (currently internal).
+- Export a `BLOCKS` constant + `BlockProgress` header component so the viewer/creator share it.
+- No visual change to the existing demo route.
 
-- `intro` — block-aware title slide
-- `question` — open prompt, optional response box
-- `poll` — clickable bar chart with live percentages
-- `opinion` — agree/disagree/neutral toggle
-- `vocab` — word + definition card with "listen" button (pronunciation)
-- `matching` — word ↔ meaning two-column tap-to-pair
-- `reading_passage` — text passage + listen button (audio enabled)
-- `listening` — audio-first (listen button prominent, then question)
-- `truefalse` — sleek pill toggle
-- `multiple` — A/B/C choice list (compact)
-- `grammar_pattern` — side-by-side pattern card
-- `error_detection` — sentence with clickable words to flag the mistake
-- `correction` — input field to fix a sentence
-- `fill_blank` — single input
-- `sentence_builder` — drag-and-drop word tiles to reorder into correct syntax
-- `debate_scale` — 1–5 rating scale for opinion prompts
-- `role_play` — A/B dialogue prompt with speaking task
-- `speaking_task` — prompt + optional sentence starters
-- `reflection` — final wrap question
+### 2. New page: `/academy-classroom` — Classroom Viewer
+File: `src/pages/AcademyClassroom.tsx`
 
-Each slide carries `block: 'warmup' | 'vocab' | 'reading' | 'grammar' | 'practice' | 'interactive' | 'speaking'` so the progress bar can highlight the active block.
+Layout:
+```text
+┌──────────────────────────────────────────────┐
+│  ENGLEUPHORIA · ACADEMY    [12 / 40]   [⛶]  │  ← top bar
+├──────────────────────────────────────────────┤
+│  ●━━━●━━━●━━━○━━━○━━━○━━━○                  │  ← 7-block progress
+│  Warm  Vocab Read Gram Prac Inter Speak     │
+├──────────────────────────────────────────────┤
+│                                              │
+│         ┌────────────────────────┐           │
+│         │                        │           │
+│         │      SLIDE (75% w)     │           │  ← centered, large
+│         │                        │           │
+│         └────────────────────────┘           │
+│                                              │
+│   [← Prev]   🔊 Listen  🎤 Speak   [Next →] │
+└──────────────────────────────────────────────┘
+```
 
-### The 36-slide lesson (matches the spec)
+- Slide canvas fills 75–85% width, centered, soft purple gradient backdrop.
+- Smooth fade/slide transitions via framer-motion.
+- Conditional toolbar: 🔊 Listen button only when `slide.voice` exists; 🎤 Speak indicator only on speaking-block slides.
+- Keyboard nav: ←/→/Space.
+- Optional fullscreen toggle (Fullscreen API).
+- Reads lesson from URL `?lesson=<id>` or falls back to the preloaded 60-min lesson.
 
-Hardcoded `SLIDES` array implementing the exact 7-block, 36-slide flow the user provided (Phone-use lesson, A1–B1):
-- Warm-up (1–3): question, poll, opinion
-- Vocabulary (4–8): 3 vocab cards, matching, check
-- Reading + Listening (9–13): passage, listening, comprehension Q, T/F, opinion
-- Grammar (14–18): pattern, rule, example, error detection, correction
-- Controlled Practice (19–24): fill blank, MCQ, sentence builder, drag-order, matching, quick quiz
-- Interactive (25–32): debate, speed challenge, role play, real situation, guessing, error game, opinion scale, mini challenge
-- Speaking Output (33–36): task, support, free speaking, reflection
+### 3. New page: `/academy-creator` — Teacher Slide Editor
+File: `src/pages/AcademyCreator.tsx`
 
-### Design system (strict)
+Three-column layout (mirrors `PlaygroundCreator` but Academy-styled):
+- **Left:** slide list grouped by block (Warm-up → Speaking), reorder/duplicate/delete, "Add slide" picker by type.
+- **Middle:** type-aware property editor with clean form fields:
+  - Common: title, block (dropdown), voice text (optional).
+  - Per type: question/options/answer (quiz), statement/answer (T/F), passage (reading), pattern/rule/examples (grammar), pairs (matching), word bank + answer order (sentence builder), prompt (speaking), scale labels (debate scale), poll options + percentages, etc.
+- **Right:** live mini-preview using the shared `SlideRenderer`.
+- Top bar: Import JSON / Export JSON / raw JSON editor / "Open in Classroom" (jumps to viewer).
+- Lesson metadata: title, level (A1/A2/B1), duration.
 
-- **Default:** dark mode first — `bg-slate-950` base with `bg-slate-900` cards and a subtle indigo mesh gradient backdrop. Light-mode toggle button in the header.
-- **Colors:** primary `bg-indigo-600` / `text-indigo-400`, accents `text-sky-400` and `text-pink-400` (used sparingly for highlights only).
-- **Typography:** `font-sans` (Inter via Tailwind default). Titles `text-3xl md:text-4xl font-semibold`. Body `text-lg md:text-xl`. UI labels `text-sm uppercase tracking-wide`.
-- **Buttons:** `rounded-md` sleek pills, no oversized bubble buttons. Primary: `bg-indigo-600 hover:bg-indigo-500`. Ghost: `border border-slate-700 hover:border-indigo-500`.
-- **Animations:** framer-motion `opacity` + tiny `y: 4` slide on slide change ONLY. No confetti, no bounce, no scale-pop. Correct/wrong feedback uses a left-border color shift, not a shake.
-- **Whitespace:** generous `py-12` slide padding, single-goal per slide.
+### 4. Preloaded 60-minute lesson — "Social Media & Daily Habits"
+File: `src/data/academyLessons/socialMediaHabits.ts`
 
-### Restrained audio rules
+~38 slides exported as a `LessonDeck` constant, structured exactly as requested:
 
-- `useAcademyAudio` exposes `playVoice(text)` — never auto-plays.
-- Only slides with `type` in `{ vocab, reading_passage, listening }` render the `<AudioPlayer />` button.
-- Vocab slides show a small "🔊 Listen" pill next to the word (for pronunciation).
-- Reading/listening slides show a prominent player with play/pause and a one-time replay counter.
+| Block | Slides | Content highlights |
+|---|---|---|
+| Warm-up | 3 | Opinion Q ("Do you use your phone every day?"), poll (hours/day), follow-up discussion |
+| Vocabulary | 5 | scroll, post, spend time, check, upload — each with definition + example; +1 matching, +1 quick quiz |
+| Reading + Listening | 5 | "Hi, I'm Alex…" passage, audio-enabled listening slide (ElevenLabs), 2 comprehension Qs, T/F, opinion |
+| Grammar | 5 | Present Simple (he/she/it): pattern, rule, example, error detection, correction |
+| Controlled Practice | 6 | Fill-blank, MCQ, sentence builder, drag-to-order, matching, quick quiz |
+| Interactive | 8 | Debate scale, timed speed challenge, role-play, real-life scenario, guessing, error-correction game, 1–5 opinion scale, mini speaking |
+| Speaking Output | 4 | Guided speaking, sentence frames, free speaking prompt, reflection |
+| Bonus | 4–6 | Extra debate, fast quiz, group discussion, wrap-up summary |
 
-### Top progress bar
+Audio (`voice`) attached **only** to: reading passage, listening slide, pronunciation moments. Never on every slide.
 
-Sticky header showing 7 segments labeled Warm-up · Vocab · Reading · Grammar · Practice · Interactive · Speaking. Active block: filled indigo with white label. Completed blocks: filled `indigo-900`. Upcoming: `slate-800`. A thin progress line fills inside the active segment based on current slide index within that block.
+### 5. Routes (in `src/App.tsx`)
+```ts
+const AcademyClassroom = lazy(() => import("./pages/AcademyClassroom"));
+const AcademyCreator   = lazy(() => import("./pages/AcademyCreator"));
+// + <Route path="/academy-classroom" .../>
+// + <Route path="/academy-creator"   .../>
+```
 
-### Game components (built in-file)
+## Design system (locked)
+- **Palette:** indigo-600 / purple-700 primary; slate text; soft purple-50 backgrounds; subtle shadow-md.
+- **Typography:** titles 32–44px, body 18–24px, Inter/system sans.
+- **No** confetti, no cartoons, no auto-play audio, ≤1 emoji per slide. Subtle framer-motion fades only.
+- Slide content centered, max-width ~960px, generous whitespace.
 
-- `OpinionPoll` — clickable horizontal bars; once voted, animate width to a fake distribution + show user's pick highlighted.
-- `ErrorDetection` — sentence split into clickable word spans; correct word turns green, wrong turns red on click.
-- `SentenceBuilder` — shuffled word tiles; click to append into answer area, click again in answer area to remove. "Check" validates order.
-- `DebateScale` — 5 segmented buttons (Strongly Disagree → Strongly Agree) with selected state highlighted.
-- `Matching`, `MultipleChoice`, `TrueFalse`, `FillBlank`, `Vocab`, `ReadingPassage`, `Listening`, `RolePlay`, `SpeakingTask`, `Reflection`, `GrammarPattern`, `Correction`, `Question`, `Poll`, `Opinion`, `Intro` — each minimal, mature, single-task.
+## Technical notes
+- Single source of truth: `SlideRenderer` is exported from `AcademyDemo.tsx` and used by Classroom + Creator + the existing demo. Adding a new slide type means editing one file.
+- Lesson decks are typed `{ id, title, level, blocks: Slide[][] }` so the Creator can group by block and the viewer can render the progress bar without recomputation.
+- ElevenLabs voice already wired via existing `elevenlabs-tts` edge function — no backend changes needed.
+- Import/Export uses plain JSON download/upload; no DB persistence in this iteration (can be added later by saving lesson decks to a `curriculum_lessons` row).
 
-### Navigation
+## Files touched
+- ✏️ `src/pages/AcademyDemo.tsx` — export `Slide`, `SlideRenderer`, `BLOCKS`, `BlockProgress`
+- ➕ `src/pages/AcademyClassroom.tsx`
+- ➕ `src/pages/AcademyCreator.tsx`
+- ➕ `src/data/academyLessons/socialMediaHabits.ts`
+- ✏️ `src/App.tsx` — register two routes
 
-- Compact footer bar: `← Previous`, current slide indicator (`12 / 36`), block label, `Next →`.
-- Keyboard arrow support.
-- No score/celebration screen — ends with the Reflection slide.
-
-### Out of scope
-
-- No persistence/backend writes — this is a UI/UX engine demo.
-- No integration with `curriculum_lessons` or real auth.
-- No shared components with `PlaygroundDemo` — strict isolation as requested.
-- No new edge function — reuses `elevenlabs-tts`.
-
-### Technical notes
-
-- All slide content lives in a single `SLIDES: AcademySlide[]` array at the top of `AcademyDemo.tsx` so editing the lesson means editing JSON only.
-- Discriminated union typing → autocompleted props in each game component.
-- `framer-motion` `<AnimatePresence mode="wait">` for fade transitions.
-- Tailwind only — no inline styles, no new shadcn components.
-- Accessibility: focus rings on all interactive elements, aria-labels on icon buttons, sufficient contrast in both themes.
+## Out of scope (this iteration)
+- Saving lessons to Supabase (local JSON only).
+- Speech recognition for the 🎤 Speak indicator (visual cue only; can wire to existing speech infra later).
+- Multi-teacher lesson library UI.
