@@ -266,13 +266,17 @@ export const useClassroomSync = ({
   const updateSlide = useCallback(async (index: number) => {
     if (role !== 'teacher') return;
     setCurrentSlideIndex(index);
+    // 1) Instant broadcast (Leader/Follower) — student updates within ~150ms.
+    try { await whiteboardService.sendSlideChange(roomId, index, userId); }
+    catch (error) { console.error('Failed to broadcast slide_change:', error); }
+    // 2) Persist to DB so late joiners hydrate from the row.
     try {
       await classroomSyncService.updateSession(roomId, { currentSlideIndex: index });
       setSession(prev => prev ? { ...prev, currentSlideIndex: index } : null);
     } catch (error) {
       console.error('Failed to update slide:', error);
     }
-  }, [roomId, role]);
+  }, [roomId, role, userId]);
 
   const updateTool = useCallback(async (tool: string) => {
     if (role !== 'teacher') return;
