@@ -165,7 +165,7 @@ function ListenButton({ text, label = 'Listen', variant = 'pill' }: { text: stri
 }
 
 // ─── Slide components ───────────────────────────────────────────────────────
-function Intro({ slide, t }: { slide: Extract<Slide, { type: 'intro' }>; t: typeof themeMap.dark }) {
+function Intro({ slide, t }: { slide: Extract<Slide, { type: 'intro' }>; t: ThemeTokens }) {
   return (
     <div className="space-y-4">
       <div className={`text-xs uppercase tracking-widest ${t.muted}`}>{slide.block}</div>
@@ -175,7 +175,7 @@ function Intro({ slide, t }: { slide: Extract<Slide, { type: 'intro' }>; t: type
   );
 }
 
-function QuestionSlide({ slide, t }: { slide: Extract<Slide, { type: 'question' }>; t: typeof themeMap.dark }) {
+function QuestionSlide({ slide, t }: { slide: Extract<Slide, { type: 'question' }>; t: ThemeTokens }) {
   const [val, setVal] = useState('');
   return (
     <div className="space-y-6 max-w-2xl">
@@ -190,7 +190,7 @@ function QuestionSlide({ slide, t }: { slide: Extract<Slide, { type: 'question' 
   );
 }
 
-function PollSlide({ slide, t }: { slide: Extract<Slide, { type: 'poll' }>; t: typeof themeMap.dark }) {
+function PollSlide({ slide, t }: { slide: Extract<Slide, { type: 'poll' }>; t: ThemeTokens }) {
   const [picked, setPicked] = useState<number | null>(null);
   return (
     <div className="space-y-6 max-w-2xl w-full">
@@ -225,7 +225,7 @@ function PollSlide({ slide, t }: { slide: Extract<Slide, { type: 'poll' }>; t: t
   );
 }
 
-function OpinionSlide({ slide, t }: { slide: Extract<Slide, { type: 'opinion' }>; t: typeof themeMap.dark }) {
+function OpinionSlide({ slide, t }: { slide: Extract<Slide, { type: 'opinion' }>; t: ThemeTokens }) {
   const [picked, setPicked] = useState<string | null>(null);
   const opts = ['Agree', 'Not sure', 'Disagree'];
   return (
@@ -248,7 +248,7 @@ function OpinionSlide({ slide, t }: { slide: Extract<Slide, { type: 'opinion' }>
   );
 }
 
-function VocabSlide({ slide, t }: { slide: Extract<Slide, { type: 'vocab' }>; t: typeof themeMap.dark }) {
+function VocabSlide({ slide, t }: { slide: Extract<Slide, { type: 'vocab' }>; t: ThemeTokens }) {
   return (
     <div className="space-y-6 max-w-2xl w-full">
       <div className={`text-xs uppercase tracking-widest ${t.muted}`}>Vocabulary</div>
@@ -266,7 +266,7 @@ function VocabSlide({ slide, t }: { slide: Extract<Slide, { type: 'vocab' }>; t:
   );
 }
 
-function MatchingSlide({ slide, t }: { slide: Extract<Slide, { type: 'matching' }>; t: typeof themeMap.dark }) {
+function MatchingSlide({ slide, t }: { slide: Extract<Slide, { type: 'matching' }>; t: ThemeTokens }) {
   const rights = useMemo(() => [...slide.pairs].sort(() => Math.random() - 0.5), [slide.pairs]);
   const [selL, setSelL] = useState<string | null>(null);
   const [solved, setSolved] = useState<Record<string, true>>({});
@@ -327,7 +327,7 @@ function MatchingSlide({ slide, t }: { slide: Extract<Slide, { type: 'matching' 
   );
 }
 
-function ReadingSlide({ slide, t }: { slide: Extract<Slide, { type: 'reading_passage' }>; t: typeof themeMap.dark }) {
+function ReadingSlide({ slide, t }: { slide: Extract<Slide, { type: 'reading_passage' }>; t: ThemeTokens }) {
   return (
     <div className="space-y-5 max-w-2xl w-full">
       <div className={`text-xs uppercase tracking-widest ${t.muted}`}>Reading</div>
@@ -338,7 +338,7 @@ function ReadingSlide({ slide, t }: { slide: Extract<Slide, { type: 'reading_pas
   );
 }
 
-function ListeningSlide({ slide, t }: { slide: Extract<Slide, { type: 'listening' }>; t: typeof themeMap.dark }) {
+function ListeningSlide({ slide, t }: { slide: Extract<Slide, { type: 'listening' }>; t: ThemeTokens }) {
   const [showTranscript, setShowTranscript] = useState(false);
   return (
     <div className="space-y-5 max-w-2xl w-full">
@@ -353,7 +353,7 @@ function ListeningSlide({ slide, t }: { slide: Extract<Slide, { type: 'listening
   );
 }
 
-function TrueFalseSlide({ slide, t }: { slide: Extract<Slide, { type: 'truefalse' }>; t: typeof themeMap.dark }) {
+function TrueFalseSlide({ slide, t }: { slide: Extract<Slide, { type: 'truefalse' }>; t: ThemeTokens }) {
   const [picked, setPicked] = useState<boolean | null>(null);
   const correct = picked !== null && picked === slide.answer;
   return (
@@ -378,7 +378,7 @@ function TrueFalseSlide({ slide, t }: { slide: Extract<Slide, { type: 'truefalse
   );
 }
 
-function MultipleSlide({ slide, t }: { slide: Extract<Slide, { type: 'multiple' }>; t: typeof themeMap.dark }) {
+function MultipleSlide({ slide, t }: { slide: Extract<Slide, { type: 'multiple' }>; t: ThemeTokens }) {
   const [picked, setPicked] = useState<string | null>(null);
   return (
     <div className="space-y-6 max-w-2xl w-full">
@@ -406,7 +406,7 @@ function MultipleSlide({ slide, t }: { slide: Extract<Slide, { type: 'multiple' 
   );
 }
 
-function GrammarPatternSlide({ slide, t }: { slide: Extract<Slide, { type: 'grammar_pattern' }>; t: typeof themeMap.dark }) {
+function GrammarPatternSlide({ slide, t }: { slide: Extract<Slide, { type: 'grammar_pattern' }>; t: ThemeTokens }) {
   return (
     <div className="space-y-6 max-w-3xl w-full">
       <div className={`text-xs uppercase tracking-widest ${t.muted}`}>Grammar</div>
@@ -427,7 +427,7 @@ function GrammarPatternSlide({ slide, t }: { slide: Extract<Slide, { type: 'gram
   );
 }
 
-function ErrorDetectionSlide({ slide, t }: { slide: Extract<Slide, { type: 'error_detection' }>; t: typeof themeMap.dark }) {
+function ErrorDetectionSlide({ slide, t }: { slide: Extract<Slide, { type: 'error_detection' }>; t: ThemeTokens }) {
   const words = slide.sentence.split(/\s+/);
   const [picked, setPicked] = useState<number | null>(null);
   return (
@@ -452,7 +452,7 @@ function ErrorDetectionSlide({ slide, t }: { slide: Extract<Slide, { type: 'erro
   );
 }
 
-function CorrectionSlide({ slide, t }: { slide: Extract<Slide, { type: 'correction' }>; t: typeof themeMap.dark }) {
+function CorrectionSlide({ slide, t }: { slide: Extract<Slide, { type: 'correction' }>; t: ThemeTokens }) {
   const [val, setVal] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const correct = submitted && val.trim().toLowerCase().replace(/[.!?]/g, '') === slide.answer.toLowerCase().replace(/[.!?]/g, '');
@@ -481,7 +481,7 @@ function CorrectionSlide({ slide, t }: { slide: Extract<Slide, { type: 'correcti
   );
 }
 
-function FillBlankSlide({ slide, t }: { slide: Extract<Slide, { type: 'fill_blank' }>; t: typeof themeMap.dark }) {
+function FillBlankSlide({ slide, t }: { slide: Extract<Slide, { type: 'fill_blank' }>; t: ThemeTokens }) {
   const [val, setVal] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const correct = submitted && val.trim().toLowerCase() === slide.answer.toLowerCase();
@@ -507,7 +507,7 @@ function FillBlankSlide({ slide, t }: { slide: Extract<Slide, { type: 'fill_blan
   );
 }
 
-function SentenceBuilderSlide({ slide, t }: { slide: Extract<Slide, { type: 'sentence_builder' }>; t: typeof themeMap.dark }) {
+function SentenceBuilderSlide({ slide, t }: { slide: Extract<Slide, { type: 'sentence_builder' }>; t: ThemeTokens }) {
   const shuffled = useMemo(() => [...slide.words].sort(() => Math.random() - 0.5), [slide.words]);
   const [bank, setBank] = useState<string[]>(shuffled);
   const [answer, setAnswer] = useState<string[]>([]);
@@ -556,7 +556,7 @@ function SentenceBuilderSlide({ slide, t }: { slide: Extract<Slide, { type: 'sen
   );
 }
 
-function DebateScaleSlide({ slide, t }: { slide: Extract<Slide, { type: 'debate_scale' }>; t: typeof themeMap.dark }) {
+function DebateScaleSlide({ slide, t }: { slide: Extract<Slide, { type: 'debate_scale' }>; t: ThemeTokens }) {
   const labels = ['Strongly\ndisagree', 'Disagree', 'Neutral', 'Agree', 'Strongly\nagree'];
   const [picked, setPicked] = useState<number | null>(null);
   return (
@@ -579,7 +579,7 @@ function DebateScaleSlide({ slide, t }: { slide: Extract<Slide, { type: 'debate_
   );
 }
 
-function RolePlaySlide({ slide, t }: { slide: Extract<Slide, { type: 'role_play' }>; t: typeof themeMap.dark }) {
+function RolePlaySlide({ slide, t }: { slide: Extract<Slide, { type: 'role_play' }>; t: ThemeTokens }) {
   return (
     <div className="space-y-6 max-w-2xl w-full">
       <div className={`text-xs uppercase tracking-widest ${t.muted}`}>Role play</div>
@@ -598,7 +598,7 @@ function RolePlaySlide({ slide, t }: { slide: Extract<Slide, { type: 'role_play'
   );
 }
 
-function SpeakingTaskSlide({ slide, t }: { slide: Extract<Slide, { type: 'speaking_task' }>; t: typeof themeMap.dark }) {
+function SpeakingTaskSlide({ slide, t }: { slide: Extract<Slide, { type: 'speaking_task' }>; t: ThemeTokens }) {
   return (
     <div className="space-y-6 max-w-2xl w-full">
       <div className={`text-xs uppercase tracking-widest ${t.muted}`}>Speaking</div>
@@ -615,7 +615,7 @@ function SpeakingTaskSlide({ slide, t }: { slide: Extract<Slide, { type: 'speaki
   );
 }
 
-function ReflectionSlide({ slide, t }: { slide: Extract<Slide, { type: 'reflection' }>; t: typeof themeMap.dark }) {
+function ReflectionSlide({ slide, t }: { slide: Extract<Slide, { type: 'reflection' }>; t: ThemeTokens }) {
   const opts = ['Easy', 'Just right', 'Challenging'];
   const [picked, setPicked] = useState<string | null>(null);
   return (
@@ -635,7 +635,7 @@ function ReflectionSlide({ slide, t }: { slide: Extract<Slide, { type: 'reflecti
 }
 
 // ─── Renderer ───────────────────────────────────────────────────────────────
-function SlideRenderer({ slide, t }: { slide: Slide; t: typeof themeMap.dark }) {
+function SlideRenderer({ slide, t }: { slide: Slide; t: ThemeTokens }) {
   switch (slide.type) {
     case 'intro': return <Intro slide={slide} t={t} />;
     case 'question': return <QuestionSlide slide={slide} t={t} />;
@@ -660,7 +660,7 @@ function SlideRenderer({ slide, t }: { slide: Slide; t: typeof themeMap.dark }) 
 }
 
 // ─── Progress bar ───────────────────────────────────────────────────────────
-function ProgressBar({ currentBlock, slideIndex, t }: { currentBlock: Block; slideIndex: number; t: typeof themeMap.dark }) {
+function ProgressBar({ currentBlock, slideIndex, t }: { currentBlock: Block; slideIndex: number; t: ThemeTokens }) {
   const blockSlides = SLIDES.reduce<Record<Block, number[]>>((acc, s, i) => {
     acc[s.block] = acc[s.block] || [];
     acc[s.block].push(i);
