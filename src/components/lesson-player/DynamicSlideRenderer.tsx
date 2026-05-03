@@ -93,6 +93,9 @@ import EditorialBranchingDialogue from './editorial/EditorialBranchingDialogue';
 import FrontPageSlide from './editorial/FrontPageSlide';
 import CelebrationSlide from './editorial/CelebrationSlide';
 import VideoSlide from './editorial/VideoSlide';
+import VocabFlipGrid from './editorial/VocabFlipGrid';
+import TeacherDiscussionFallback from './editorial/TeacherDiscussionFallback';
+import SlideShell from './SlideShell';
 // Slide types
 import SlideHook from './slides/SlideHook';
 import SlideVocabulary from './slides/SlideVocabulary';
