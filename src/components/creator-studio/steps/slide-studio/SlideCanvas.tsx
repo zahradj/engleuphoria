@@ -506,7 +506,7 @@ const TitleField: React.FC<{ slide: PPPSlide; onChange: (p: Partial<PPPSlide>) =
     placeholder="Slide title…"
     className={cn(
       'bg-transparent text-2xl sm:text-3xl font-extrabold tracking-tight outline-none border-0 rounded-md px-1 w-full text-center',
-      'text-white placeholder:text-white/40 focus:bg-white/10',
+      'text-slate-900 dark:text-slate-50 placeholder:text-slate-400 focus:bg-slate-100 dark:focus:bg-slate-800/40',
       FONT_STACK,
     )}
   />
