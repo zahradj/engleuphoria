@@ -472,7 +472,7 @@ function DrawGame({ slide }: { slide: Extract<Slide, { type: 'draw' }> }) {
 }
 
 // ─── Renderer ────────────────────────────────────────────────────────────────
-function SlideRenderer({ slide }: { slide: Slide }) {
+export function SlideRenderer({ slide }: { slide: Slide }) {
   switch (slide.type) {
     case 'intro': return <Intro slide={slide} />;
     case 'multiple': return <MultipleChoice slide={slide} />;
