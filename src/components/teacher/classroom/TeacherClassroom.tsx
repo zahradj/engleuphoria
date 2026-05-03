@@ -155,7 +155,8 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     setStageMode,
     setDrawingEnabled,
     applyRemoteStageMode,
-    applyRemoteDrawingEnabled
+    applyRemoteDrawingEnabled,
+    forceSync,
   } = useClassroomSync({
     roomId: roomName,
     userId: user?.id || (() => {
