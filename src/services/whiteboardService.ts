@@ -112,6 +112,27 @@ type WorksheetLoadListener = (payload: WorksheetLoadPayload) => void;
 type SlideCompletionListener = (payload: SlideCompletionPayload) => void;
 type GameStateListener = (payload: GameStatePayload) => void;
 
+/** Teacher → all clients leader/follower slide navigation. */
+export interface SlideChangePayload {
+  slideIndex: number;
+  senderId: string;
+  timestamp: number;
+}
+type SlideChangeListener = (payload: SlideChangePayload) => void;
+
+/** Teacher's authoritative snapshot pushed on demand by the "Force Sync" button. */
+export interface ForceSyncPayload {
+  slideIndex: number;
+  stageMode?: StageMode;
+  drawingEnabled?: boolean;
+  iframeUnlocked?: boolean;
+  embeddedUrl?: string | null;
+  activeCanvasTab?: string;
+  senderId: string;
+  timestamp: number;
+}
+type ForceSyncListener = (payload: ForceSyncPayload) => void;
+
 interface RoomChannel {
   channel: ReturnType<typeof supabase.channel>;
   ready: Promise<void>;
@@ -128,6 +149,8 @@ interface RoomChannel {
   worksheetListeners: Set<WorksheetLoadListener>;
   gameStateListeners: Set<GameStateListener>;
   slideCompletionListeners: Set<SlideCompletionListener>;
+  slideChangeListeners: Set<SlideChangeListener>;
+  forceSyncListeners: Set<ForceSyncListener>;
   refCount: number;
 }
 
@@ -155,6 +178,8 @@ class WhiteboardService {
     const worksheetListeners = new Set<WorksheetLoadListener>();
     const gameStateListeners = new Set<GameStateListener>();
     const slideCompletionListeners = new Set<SlideCompletionListener>();
+    const slideChangeListeners = new Set<SlideChangeListener>();
+    const forceSyncListeners = new Set<ForceSyncListener>();
     const statusListeners = new Set<(status: string) => void>();
 
     const channel = supabase
@@ -216,6 +241,12 @@ class WhiteboardService {
       })
       .on('broadcast', { event: 'slide_completion' }, (payload) => {
         slideCompletionListeners.forEach((cb) => cb(payload.payload as SlideCompletionPayload));
+      })
+      .on('broadcast', { event: 'slide_change' }, (payload) => {
+        slideChangeListeners.forEach((cb) => cb(payload.payload as SlideChangePayload));
+      })
+      .on('broadcast', { event: 'force_sync' }, (payload) => {
+        forceSyncListeners.forEach((cb) => cb(payload.payload as ForceSyncPayload));
       });
 
     const ready = new Promise<void>((resolve) => {
@@ -242,6 +273,8 @@ class WhiteboardService {
       worksheetListeners,
       gameStateListeners,
       slideCompletionListeners,
+      slideChangeListeners,
+      forceSyncListeners,
       refCount: 0,
     };
     this.rooms.set(channelName, room);
@@ -472,6 +505,42 @@ class WhiteboardService {
     return () => this.release(roomId, () => room.slideCompletionListeners.delete(onComplete));
   }
 
+  /** Teacher → all clients: instant slide jump (Leader/Follower paradigm). */
+  async sendSlideChange(roomId: string, slideIndex: number, senderId: string): Promise<void> {
+    const room = this.getRoom(roomId);
+    await room.ready;
+    await room.channel.send({
+      type: 'broadcast',
+      event: 'slide_change',
+      payload: { slideIndex, senderId, timestamp: Date.now() } satisfies SlideChangePayload,
+    });
+  }
+
+  subscribeToSlideChange(roomId: string, onChange: SlideChangeListener): () => void {
+    const room = this.getRoom(roomId);
+    room.slideChangeListeners.add(onChange);
+    room.refCount += 1;
+    return () => this.release(roomId, () => room.slideChangeListeners.delete(onChange));
+  }
+
+  /** Teacher → all clients: full state snapshot from "Force Sync" button (no page reload). */
+  async sendForceSync(roomId: string, payload: Omit<ForceSyncPayload, 'timestamp'>): Promise<void> {
+    const room = this.getRoom(roomId);
+    await room.ready;
+    await room.channel.send({
+      type: 'broadcast',
+      event: 'force_sync',
+      payload: { ...payload, timestamp: Date.now() } satisfies ForceSyncPayload,
+    });
+  }
+
+  subscribeToForceSync(roomId: string, onSync: ForceSyncListener): () => void {
+    const room = this.getRoom(roomId);
+    room.forceSyncListeners.add(onSync);
+    room.refCount += 1;
+    return () => this.release(roomId, () => room.forceSyncListeners.delete(onSync));
+  }
+
   subscribeToStatus(roomId: string, onStatus: (status: string) => void): () => void {
     const room = this.getRoom(roomId);
     room.statusListeners.add(onStatus);
@@ -499,6 +568,8 @@ class WhiteboardService {
       room.worksheetListeners.size === 0 &&
       room.gameStateListeners.size === 0 &&
       room.slideCompletionListeners.size === 0 &&
+      room.slideChangeListeners.size === 0 &&
+      room.forceSyncListeners.size === 0 &&
       room.statusListeners.size === 0
     ) {
       supabase.removeChannel(room.channel);

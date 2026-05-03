@@ -155,7 +155,8 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     setStageMode,
     setDrawingEnabled,
     applyRemoteStageMode,
-    applyRemoteDrawingEnabled
+    applyRemoteDrawingEnabled,
+    forceSync,
   } = useClassroomSync({
     roomId: roomName,
     userId: user?.id || (() => {
@@ -189,32 +190,16 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   const [channelStatus, setChannelStatus] = useState<'CONNECTING' | 'SUBSCRIBED' | 'CLOSED' | 'CHANNEL_ERROR' | 'TIMED_OUT'>('CONNECTING');
   const pageLoadTime = useRef(Date.now());
 
-  // Force Sync: update force_refresh_timestamp to trigger reload on all clients
+  // Force Sync: broadcast a full state snapshot to all clients (in-place, no reload).
   const handleForceSync = useCallback(async () => {
-    const { supabase } = await import('@/integrations/supabase/client');
-    const now = Date.now();
-    const { error } = await supabase
-      .from('classroom_sessions')
-      .update({ force_refresh_timestamp: now } as any)
-      .eq('room_id', roomName);
-    if (error) {
+    try {
+      await forceSync();
+      toast({ title: '🔄 Force Sync sent', description: 'Student is now mirroring your screen.' });
+    } catch (error: any) {
       console.error('Force sync failed:', error);
-      toast({ title: '❌ Force Sync failed', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: '🔄 Force Sync sent', description: 'Both screens will reload now.' });
-      setTimeout(() => window.location.reload(), 500);
+      toast({ title: '❌ Force Sync failed', description: error?.message ?? 'Unknown error', variant: 'destructive' });
     }
-  }, [roomName, toast]);
-
-  // Listen for force_refresh_timestamp changes via the session subscription
-  useEffect(() => {
-    if (!session) return;
-    const ts = (session as any).force_refresh_timestamp;
-    if (ts && ts > pageLoadTime.current) {
-      console.log('🔄 Force refresh triggered by remote, reloading…');
-      window.location.reload();
-    }
-  }, [(session as any)?.force_refresh_timestamp]);
+  }, [forceSync, toast]);
 
   useEffect(() => {
     if (!roomName || !teacherUserId) return;

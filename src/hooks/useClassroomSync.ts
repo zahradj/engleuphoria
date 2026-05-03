@@ -107,6 +107,8 @@ interface UseClassroomSyncReturn {
   iframeUnlocked: boolean;
   setIframeUnlocked: (unlocked: boolean) => Promise<void>;
   applyRemoteIframeUnlocked: (unlocked: boolean) => void;
+  /** Teacher-only: broadcast a full state snapshot to all clients (no reload). */
+  forceSync: () => Promise<void>;
 }
 
 const deriveStageModeFromSession = (session: ClassroomSession, fallback: StageMode): StageMode => {
@@ -220,6 +222,36 @@ export const useClassroomSync = ({
     };
   }, [roomId]);
 
+  // Subscribe to instant slide_change broadcasts (Leader/Follower navigation).
+  useEffect(() => {
+    if (!roomId) return;
+    const unsub = whiteboardService.subscribeToSlideChange(roomId, ({ slideIndex, senderId }) => {
+      if (senderId === userId) return; // ignore our own broadcast
+      setCurrentSlideIndex(slideIndex);
+      setSession(prev => prev ? { ...prev, currentSlideIndex: slideIndex } : prev);
+    });
+    return unsub;
+  }, [roomId, userId]);
+
+  // Subscribe to teacher's "Force Sync" snapshot — applied in-place, no reload.
+  useEffect(() => {
+    if (!roomId) return;
+    const unsub = whiteboardService.subscribeToForceSync(roomId, (snap) => {
+      if (snap.senderId === userId) return;
+      setCurrentSlideIndex(snap.slideIndex);
+      if (snap.stageMode) setStageModeState(snap.stageMode);
+      if (typeof snap.drawingEnabled === 'boolean') setDrawingEnabledState(snap.drawingEnabled);
+      if (typeof snap.iframeUnlocked === 'boolean') setIframeUnlockedState(snap.iframeUnlocked);
+      setSession(prev => prev ? {
+        ...prev,
+        currentSlideIndex: snap.slideIndex,
+        embeddedUrl: snap.embeddedUrl !== undefined ? snap.embeddedUrl : prev.embeddedUrl,
+        activeCanvasTab: snap.activeCanvasTab ?? prev.activeCanvasTab,
+      } : prev);
+    });
+    return unsub;
+  }, [roomId, userId]);
+
   const applyRemoteStageMode = useCallback((mode: StageMode) => {
     setStageModeState(mode);
   }, []);
@@ -266,13 +298,17 @@ export const useClassroomSync = ({
   const updateSlide = useCallback(async (index: number) => {
     if (role !== 'teacher') return;
     setCurrentSlideIndex(index);
+    // 1) Instant broadcast (Leader/Follower) — student updates within ~150ms.
+    try { await whiteboardService.sendSlideChange(roomId, index, userId); }
+    catch (error) { console.error('Failed to broadcast slide_change:', error); }
+    // 2) Persist to DB so late joiners hydrate from the row.
     try {
       await classroomSyncService.updateSession(roomId, { currentSlideIndex: index });
       setSession(prev => prev ? { ...prev, currentSlideIndex: index } : null);
     } catch (error) {
       console.error('Failed to update slide:', error);
     }
-  }, [roomId, role]);
+  }, [roomId, role, userId]);
 
   const updateTool = useCallback(async (tool: string) => {
     if (role !== 'teacher') return;
@@ -383,6 +419,25 @@ export const useClassroomSync = ({
     }
   }, [roomId, role]);
 
+  // Teacher: push a full state snapshot to all clients (no page reload).
+  const forceSync = useCallback(async () => {
+    if (role !== 'teacher') return;
+    try {
+      await whiteboardService.sendForceSync(roomId, {
+        slideIndex: currentSlideIndex,
+        stageMode,
+        drawingEnabled,
+        iframeUnlocked,
+        embeddedUrl: session?.embeddedUrl ?? null,
+        activeCanvasTab: session?.activeCanvasTab,
+        senderId: userId,
+      });
+    } catch (error) {
+      console.error('Failed to broadcast force_sync:', error);
+      throw error;
+    }
+  }, [role, roomId, userId, currentSlideIndex, stageMode, drawingEnabled, iframeUnlocked, session?.embeddedUrl, session?.activeCanvasTab]);
+
   return {
     session,
     currentSlide: currentSlideIndex,
@@ -431,6 +486,7 @@ export const useClassroomSync = ({
     applyRemoteDrawingEnabled,
     iframeUnlocked,
     setIframeUnlocked,
-    applyRemoteIframeUnlocked
+    applyRemoteIframeUnlocked,
+    forceSync,
   };
 };

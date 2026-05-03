@@ -110,39 +110,10 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
   const [channelStatus, setChannelStatus] = useState<'CONNECTING' | 'SUBSCRIBED' | 'CLOSED' | 'CHANNEL_ERROR' | 'TIMED_OUT'>('CONNECTING');
   const pageLoadTime = useRef(Date.now());
 
-  // Force Refresh listener — reload when teacher triggers force sync
-  useEffect(() => {
-    if (!session) return;
-    const ts = session.force_refresh_timestamp;
-    if (ts && ts > pageLoadTime.current) {
-      console.log('🔄 Force refresh triggered by teacher, reloading…');
-      window.location.reload();
-    }
-  }, [session?.force_refresh_timestamp]);
+  // Slide navigation, stage mode, and Force Sync are all handled in-place by
+  // the realtime broadcast listeners inside useClassroomSync. No page reload,
+  // no DB polling — students stay locked to whatever the teacher broadcasts.
 
-  // Fallback polling — every 3s fetch current_slide_index in case Realtime drops
-  useEffect(() => {
-    if (!roomId) return;
-    const poll = async () => {
-      const { supabase } = await import('@/integrations/supabase/client');
-      const { data } = await supabase
-        .from('classroom_sessions')
-        .select('current_slide_index, force_refresh_timestamp')
-        .eq('room_id', roomId)
-        .maybeSingle();
-      if (data) {
-        if (data.current_slide_index != null && data.current_slide_index !== currentSlide) {
-          console.log('📡 Polling detected slide change:', data.current_slide_index);
-          setCurrentSlideIndex(data.current_slide_index);
-        }
-        if (data.force_refresh_timestamp && (data.force_refresh_timestamp as number) > pageLoadTime.current) {
-          window.location.reload();
-        }
-      }
-    };
-    const id = setInterval(poll, 3000);
-    return () => clearInterval(id);
-  }, [roomId, currentSlide, setCurrentSlideIndex]);
 
   useEffect(() => {
     if (!roomId || !studentId) return;
