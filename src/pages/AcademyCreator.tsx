@@ -36,7 +36,8 @@ const SLIDE_TYPES: { type: SlideType; label: string; defaultBlock: Block }[] = [
   { type: 'debate_scale',     label: 'Debate Scale (1–5)',     defaultBlock: 'interactive' },
   { type: 'role_play',        label: 'Role Play',              defaultBlock: 'interactive' },
   { type: 'speaking_task',    label: 'Speaking Task',          defaultBlock: 'speaking' },
-  { type: 'reflection',       label: 'Reflection',             defaultBlock: 'speaking' },
+  { type: 'reflection',      label: 'Reflection',             defaultBlock: 'speaking' },
+  { type: 'cluster',          label: 'Cluster (multi-task)',   defaultBlock: 'practice' },
 ];
 
 function makeSlide(type: SlideType): Slide {
