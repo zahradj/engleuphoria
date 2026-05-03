@@ -1,52 +1,48 @@
-# Hub-Specific AI Personas + Blueprints for Lesson Generation
+# Playground Engine — Mini Demo App
 
-The frontend already passes `target_hub` ("Playground" | "Academy" | "Success") to both `generate-blueprint` and `generate-ppp-slides`, and we already have `_shared/hubProfiles.ts` with per-hub pedagogy/safety rules. What's missing is an explicit **persona switch** + a **hub-specific slide blueprint template** baked into the LLM system prompt. We'll add those without changing the output JSON schema, so `<SlideRenderer />` keeps parsing the same `Slide[]` shape.
+A self-contained, content-driven Playground-branded slide engine showcasing 7 interactive game types. Lives at `/playground-demo` so it doesn't interfere with the real app. Strictly inline-styled, no dependencies, fully editable JSON content.
 
-## Changes
+## Files
 
-### 1. `supabase/functions/_shared/hubProfiles.ts`
-Extend `HubProfile` with two new fields and populate them for all three hubs:
+### 1. `src/pages/PlaygroundDemo.tsx` (new, ~450 lines)
+Single-file mini-app containing:
+- **Fixed design tokens** (orange `#FE6A2F`, yellow `#FFB703`, cream `#FEFBDD`, pill nav, rounded white card with deep orange shadow) — matches Playground brand from project memory.
+- **Dynamic `SLIDES` array** at the top of the file — only thing creators need to edit to change a lesson.
+- **`<SlideRenderer>`** switch dispatching on `slide.type`.
+- **Game components** (typed via discriminated union):
+  1. `Intro` — title + subtitle
+  2. `MultipleChoice` — pick option, correct/wrong feedback colors
+  3. `TrueFalse` — green/dark buttons + emoji feedback
+  4. `FillBlank` — text input, live validation (case-insensitive)
+  5. `DragDrop` — HTML5 drag word onto target image
+  6. `MatchGame` — two-column tap-to-select matching with shuffled right side
+  7. `MemoryGame` — flip-card pair finder with auto-reveal/reset
+  8. `DrawGame` — HTML5 canvas with mouse + touch drawing and clear button
+- **Nav controls** — pill with prev/next buttons and `n / N` indicator.
 
-- `personaPrompt: string` — identity, audience, tone, vocabulary register.
-- `blueprintTemplate: string` — compact recommended slide flow for that hub.
+### 2. `src/App.tsx` (single-line addition)
+Add a public route inside the existing `<Routes>` block:
+```tsx
+<Route path="/playground-demo" element={<PlaygroundDemo />} />
+```
+With matching `lazy` import alongside the other lazy page imports. No protection wrapper — it's a demo.
 
-Add helpers:
-- `buildHubPersonaBlock(hub)` — returns `=== AI PERSONA ===\n{persona}\n\n=== RECOMMENDED BLUEPRINT ===\n{template}`.
-- Update `buildSlideHubBlock` and `buildBlueprintHubBlock` to prepend the persona block.
+## Design notes
 
-Persona content (per spec):
+- All inline styles (per your spec). No Tailwind utilities, no shadcn dependencies — keeps the mini-app fully portable.
+- Discriminated union typing on `Slide` so each game gets autocompleted props.
+- Memory and Match games shuffle on mount via `useState` initializer (stable across renders).
+- Drawing canvas supports both mouse and touch.
 
-- **Success (Professional)**: "You are a high-level Corporate Communications Coach. Audience: business professionals. Tone: authoritative, polished, peer-to-peer. Vocabulary: advanced business idioms, negotiation, management, hedging." Blueprint hint: Title → Executive Summary → Grammar Table → Business Case Study (split layout) → Roleplay Prompt → Production task.
-- **Academy (Teens/Adults)**: "You are an engaging ESL teacher. Tone: encouraging, relatable, smart-but-not-childish." Blueprint hint: Title → Vocab 3D Flip Grid → Storybook Scene → Matching Game → Fill-in-the-Blank → Speaking discussion.
-- **Playground (Kids)**: "You are a warm, playful kids' English coach. Tone: gentle, exclamatory, mascot-led." Blueprint hint: Title → Mascot intro → Flashcard vocab → Drag-and-Match with images → Sing/Say/Show mission.
+## How to extend later
 
-Note: The 6-phase 20–25-slide structure in `generate-ppp-slides` is non-negotiable, so the hub blueprint is presented as a **slide-type emphasis guide** ("favor these slide_type values within the 6 phases for THIS hub"), not as a replacement for the 6 phases. This keeps the schema and renderer happy.
+1. Add a new variant to the `Slide` union at the top of `PlaygroundDemo.tsx`.
+2. Build a `<YourGame slide={slide} />` component below.
+3. Add a `case 'your_type':` to `SlideRenderer`.
+4. Drop a new entry into the `SLIDES` array.
 
-### 2. `supabase/functions/generate-ppp-slides/index.ts`
-- Replace the existing `buildSlideHubBlock(resolvedHub, cefr_level)` call so the returned string now also includes the persona + blueprint template (handled inside the helper — no caller change required beyond importing the new helper if we split it). Single-line edit at the existing `hubBlock = buildSlideHubBlock(...)` site.
-- No schema changes. JSON-mode contract, slide_type vocabulary, and validator stay as-is.
+## Out of scope
 
-### 3. `supabase/functions/generate-blueprint/index.ts`
-- Same: `buildBlueprintHubBlock` will now include the persona, so the blueprint planner reasons in-character from step one. No caller changes.
-
-### 4. Frontend
-- No changes required. `EmptyState.tsx` already sends `hub` and `target_hub` to both edge functions (verified at lines 159/160 and 201/202).
-
-## Schema Integrity
-
-- Output of `generate-ppp-slides` remains the same `Slide[]` with the existing `slide_type`, `interactive_data`, `lesson_phase`, etc. — so `SlideRenderer` / `DynamicSlideRenderer` parses everything identically.
-- Persona/blueprint changes only influence **content style and slide-type emphasis**, never field names or structure.
-- Existing server-side validator that drops malformed slides is untouched.
-
-## Verification
-
-After deploy:
-1. Generate a Success-hub lesson → expect business case studies, hedging language, role_play / real_world_task as final boss.
-2. Generate an Academy-hub lesson → expect mix of flip-card vocab, storybook reading, match_halves, fill_in_blanks.
-3. Generate a Playground-hub lesson → expect mascot_speech-led intros, drag_and_match with thumbnails, sing/say/show final mission.
-4. In all three cases the renderer must mount without errors (same JSON shape).
-
-Files touched:
-- `supabase/functions/_shared/hubProfiles.ts` (add persona + blueprint fields + helper)
-- `supabase/functions/generate-ppp-slides/index.ts` (use updated hub block)
-- `supabase/functions/generate-blueprint/index.ts` (use updated hub block)
+- No persistence / backend / scoring — pure demo.
+- No integration with real Playground hub auth or curriculum tables.
+- No animations library — uses CSS transitions only.
