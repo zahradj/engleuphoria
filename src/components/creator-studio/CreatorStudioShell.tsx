@@ -26,6 +26,7 @@ const StudioBody: React.FC = () => {
     else if (path.endsWith('/story')) next = 'story';
     else if (path.endsWith('/playground-creator')) next = 'playground-creator';
     else if (path.endsWith('/academy-creator')) next = 'academy-creator';
+    else if (path.endsWith('/success-creator')) next = 'success-creator';
     else if (path.endsWith('/slide-builder') || path.endsWith('/slides')) next = 'slide-builder';
     if (next && next !== currentStep) setCurrentStep(next);
   }, [currentStep, location.pathname, setCurrentStep]);
