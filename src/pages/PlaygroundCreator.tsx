@@ -572,6 +572,13 @@ export default function PlaygroundCreator() {
         loading={history.loading}
         onRestore={handleRestore}
       />
+
+      <AssetVaultDialog
+        open={vaultOpen}
+        onOpenChange={setVaultOpen}
+        hub="playground"
+        onPick={({ url, field }) => update({ [field]: url } as any)}
+      />
     </div>
   );
 }
