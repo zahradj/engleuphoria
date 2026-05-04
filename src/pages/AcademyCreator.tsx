@@ -358,6 +358,15 @@ export default function AcademyCreator() {
                 )}
               </PopoverContent>
             </Popover>
+            <SaveStatusBadge status={autoSave.status} lastSavedAt={autoSave.lastSavedAt} />
+            <button
+              onClick={() => setHistoryOpen(true)}
+              disabled={!lessonHook.lessonId}
+              title={lessonHook.lessonId ? 'Revision history' : 'Save the lesson once to enable history'}
+              className="inline-flex items-center gap-1.5 border border-indigo-300 text-indigo-700 font-semibold rounded-lg px-2.5 py-2 text-sm transition disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <History className="w-4 h-4" />
+            </button>
             <button onClick={handleSaveDraft} disabled={lessonHook.isSaving}
               className="inline-flex items-center gap-2 border border-indigo-400 text-indigo-700 font-semibold rounded-lg px-3 py-2 text-sm transition disabled:opacity-50">
               {lessonHook.isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Draft
