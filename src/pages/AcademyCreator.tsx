@@ -103,6 +103,9 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 export default function AcademyCreator() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialLessonId = searchParams.get('lessonId');
+
   const [slides, setSlides] = useState<Slide[]>(SOCIAL_MEDIA_LESSON.slides);
   const [title, setTitle] = useState(SOCIAL_MEDIA_LESSON.title);
   const [level, setLevel] = useState(SOCIAL_MEDIA_LESSON.level);
@@ -116,6 +119,31 @@ export default function AcademyCreator() {
   const [aiLevel, setAiLevel] = useState('A2');
   const [aiGrammar, setAiGrammar] = useState('Present simple');
   const [aiBusy, setAiBusy] = useState(false);
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+
+  const lessonHook = useCreatorLesson({ hub: 'academy', initialLessonId });
+
+  useEffect(() => {
+    const lesson = lessonHook.lesson;
+    if (!lesson) return;
+    const dbSlides = getLibraryLessonSlides(lesson) as Slide[];
+    if (dbSlides.length > 0) {
+      setSlides(dbSlides);
+      setSelected(0);
+    }
+    if (lesson.title) setTitle(lesson.title);
+    if (lesson.difficulty_level) setLevel(lesson.difficulty_level);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lessonHook.lesson?.id]);
+
+  useEffect(() => {
+    if (lessonHook.lessonId && searchParams.get('lessonId') !== lessonHook.lessonId) {
+      const next = new URLSearchParams(searchParams);
+      next.set('lessonId', lessonHook.lessonId);
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lessonHook.lessonId]);
 
   const generateWithAI = async () => {
     if (!aiTopic.trim()) return;
