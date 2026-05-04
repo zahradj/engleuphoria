@@ -264,37 +264,69 @@ export default function PlaygroundCreator() {
     <div className="min-h-screen bg-gradient-to-br from-orange-100 via-amber-50 to-yellow-100">
       {/* Top bar */}
       <header className="sticky top-0 z-20 bg-white/90 backdrop-blur border-b-4 border-orange-400 shadow-sm">
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-400 flex items-center justify-center text-white text-xl font-bold shadow-md">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3 gap-4">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-400 flex items-center justify-center text-white text-xl font-bold shadow-md flex-shrink-0">
               🎨
             </div>
-            <div>
-              <h1 className="text-xl font-extrabold text-orange-600 leading-tight">Playground Slide Creator</h1>
-              <p className="text-xs text-slate-500">Build dynamic, AI-voiced lessons for kids</p>
+            <div className="min-w-0 flex-1">
+              <div className="text-[11px] font-bold text-orange-600 tracking-wider uppercase">Playground · Slide Creator</div>
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Lesson title…"
+                className="text-lg font-bold text-slate-900 bg-transparent outline-none border-b border-transparent focus:border-orange-400 w-full"
+              />
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => setAiOpen(true)} className="inline-flex items-center gap-2 bg-gradient-to-r from-fuchsia-500 to-orange-500 hover:opacity-90 text-white font-bold rounded-xl px-4 py-2 text-sm shadow-md transition active:scale-95">
-              <Sparkles className="w-4 h-4" /> Generate with AI
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button onClick={() => setAiOpen(true)} className="inline-flex items-center gap-2 bg-gradient-to-r from-fuchsia-500 to-orange-500 hover:opacity-90 text-white font-bold rounded-xl px-3 py-2 text-xs shadow-md transition active:scale-95">
+              <Sparkles className="w-3.5 h-3.5" /> AI
             </button>
-            <label className="cursor-pointer inline-flex items-center gap-2 bg-white border-2 border-orange-300 hover:bg-orange-50 text-orange-700 font-bold rounded-xl px-4 py-2 text-sm transition active:scale-95">
-              <Upload className="w-4 h-4" /> Import
-              <input
-                type="file"
-                accept="application/json"
-                className="hidden"
-                onChange={(e) => e.target.files?.[0] && importJson(e.target.files[0])}
-              />
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="inline-flex items-center gap-2 bg-white border-2 border-orange-300 hover:bg-orange-50 text-orange-700 font-bold rounded-xl px-3 py-2 text-xs transition active:scale-95">
+                  <FolderOpen className="w-3.5 h-3.5" /> Library
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80 p-2 max-h-96 overflow-y-auto">
+                <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wide px-2 py-1">Import from Library</div>
+                {lessonHook.isLoadingLibrary ? (
+                  <div className="p-3 text-xs text-slate-500"><Loader2 className="w-3 h-3 animate-spin inline mr-1" /> Loading…</div>
+                ) : lessonHook.library.length === 0 ? (
+                  <div className="p-3 text-xs text-slate-500">No saved Playground lessons yet.</div>
+                ) : (
+                  lessonHook.library.map((l) => (
+                    <button
+                      key={l.id}
+                      onClick={() => handleImportFromLibrary(l.id)}
+                      className="w-full text-left rounded-lg px-2 py-1.5 hover:bg-orange-50 text-sm"
+                    >
+                      <div className="font-semibold text-slate-800 truncate">{l.title}</div>
+                      <div className="text-[10px] text-slate-500">{l.is_published ? 'Published' : 'Draft'} · {(l.content as any)?.slides?.length ?? 0} slides</div>
+                    </button>
+                  ))
+                )}
+              </PopoverContent>
+            </Popover>
+            <label className="cursor-pointer inline-flex items-center gap-2 bg-white border-2 border-orange-300 hover:bg-orange-50 text-orange-700 font-bold rounded-xl px-3 py-2 text-xs transition active:scale-95">
+              <Upload className="w-3.5 h-3.5" /> JSON
+              <input type="file" accept="application/json" className="hidden" onChange={(e) => e.target.files?.[0] && importJson(e.target.files[0])} />
             </label>
-            <button onClick={exportJson} className="inline-flex items-center gap-2 bg-white border-2 border-orange-300 hover:bg-orange-50 text-orange-700 font-bold rounded-xl px-4 py-2 text-sm transition active:scale-95">
-              <Download className="w-4 h-4" /> Export
+            <button onClick={exportJson} className="inline-flex items-center gap-2 bg-white border-2 border-orange-300 hover:bg-orange-50 text-orange-700 font-bold rounded-xl px-3 py-2 text-xs transition active:scale-95">
+              <Download className="w-3.5 h-3.5" />
             </button>
-            <button onClick={openJsonEditor} className="inline-flex items-center gap-2 bg-white border-2 border-orange-300 hover:bg-orange-50 text-orange-700 font-bold rounded-xl px-4 py-2 text-sm transition active:scale-95">
-              <Code2 className="w-4 h-4" /> JSON
+            <button onClick={openJsonEditor} className="inline-flex items-center gap-2 bg-white border-2 border-orange-300 hover:bg-orange-50 text-orange-700 font-bold rounded-xl px-3 py-2 text-xs transition active:scale-95">
+              <Code2 className="w-3.5 h-3.5" />
             </button>
-            <button onClick={() => setPreviewOpen(true)} className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl px-4 py-2 text-sm shadow-md transition active:scale-95">
-              <Eye className="w-4 h-4" /> Preview
+            <button onClick={() => setPreviewOpen(true)} className="inline-flex items-center gap-2 bg-white border-2 border-orange-400 hover:bg-orange-50 text-orange-700 font-bold rounded-xl px-3 py-2 text-xs transition active:scale-95">
+              <Eye className="w-3.5 h-3.5" /> Preview
+            </button>
+            <button onClick={handleSaveDraft} disabled={lessonHook.isSaving} className="inline-flex items-center gap-2 bg-white border-2 border-orange-400 text-orange-700 font-bold rounded-xl px-3 py-2 text-xs transition active:scale-95 disabled:opacity-50">
+              {lessonHook.isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />} Save Draft
+            </button>
+            <button onClick={handlePublish} disabled={lessonHook.isSaving} className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl px-4 py-2 text-xs shadow-md transition active:scale-95 disabled:opacity-50">
+              {lessonHook.isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />} Publish
             </button>
           </div>
         </div>
