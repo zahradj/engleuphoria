@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Code2, X, Play, Sparkles, Loader2, Save, Send, FolderOpen, History } from 'lucide-react';
+import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Code2, X, Play, Sparkles, Loader2, Save, Send, FolderOpen, History, Wand2, FileUp } from 'lucide-react';
 import {
   SlideRenderer,
   themeMap,
@@ -23,6 +23,8 @@ import { SlideCommentsPanel } from '@/components/creator-studio/shared/SlideComm
 import { BulkActionsMenu } from '@/components/creator-studio/shared/BulkActionsMenu';
 import { BulkAudioDialog } from '@/components/creator-studio/shared/BulkAudioDialog';
 import { findSlidesMissingAudio } from '@/components/creator-studio/shared/slideAudioHelpers';
+import { DifficultyTunerDialog } from '@/components/creator-studio/shared/DifficultyTunerDialog';
+import { ImportFromTextDialog, IMPORTED_LESSON_STORAGE_KEY } from '@/components/creator-studio/shared/ImportFromTextDialog';
 import { useCreatorLesson } from '@/hooks/useCreatorLesson';
 import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
 import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
@@ -135,6 +137,8 @@ export default function AcademyCreator() {
   const [vaultOpen, setVaultOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [bulkAudioOpen, setBulkAudioOpen] = useState(false);
+  const [tunerOpen, setTunerOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const lessonHook = useCreatorLesson({ hub: 'academy', initialLessonId });
 
@@ -159,6 +163,31 @@ export default function AcademyCreator() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonHook.lessonId]);
+
+  // Inject AI-imported lesson (from ImportFromTextDialog on the dashboard)
+  useEffect(() => {
+    if (searchParams.get('imported') !== '1') return;
+    try {
+      const raw = sessionStorage.getItem(IMPORTED_LESSON_STORAGE_KEY);
+      if (!raw) return;
+      const payload = JSON.parse(raw);
+      if (payload.hub && payload.hub !== 'academy') return;
+      if (Array.isArray(payload.slides) && payload.slides.length > 0) {
+        setSlides(payload.slides);
+        setSelected(0);
+        if (payload.title) setTitle(payload.title);
+        if (payload.level) setLevel(payload.level);
+        toast.success(`Loaded ${payload.slides.length} imported slides`);
+      }
+      sessionStorage.removeItem(IMPORTED_LESSON_STORAGE_KEY);
+      const next = new URLSearchParams(searchParams);
+      next.delete('imported');
+      setSearchParams(next, { replace: true });
+    } catch (e) {
+      console.error('Failed to inject imported lesson', e);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const generateWithAI = async () => {
     if (!aiTopic.trim()) return;
@@ -398,6 +427,13 @@ export default function AcademyCreator() {
               missingAudioCount={findSlidesMissingAudio(slides).length}
               onGenerateMissingAudio={() => setBulkAudioOpen(true)}
             />
+            <button
+              onClick={() => setImportOpen(true)}
+              title="Convert raw text into a full lesson"
+              className="inline-flex items-center gap-2 border border-indigo-400 text-indigo-700 font-semibold rounded-lg px-3 py-2 text-sm transition hover:bg-indigo-50"
+            >
+              <FileUp className="w-4 h-4" /> Import from text
+            </button>
             <button onClick={handleSaveDraft} disabled={lessonHook.isSaving}
               className="inline-flex items-center gap-2 border border-indigo-400 text-indigo-700 font-semibold rounded-lg px-3 py-2 text-sm transition disabled:opacity-50">
               {lessonHook.isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Draft
@@ -469,17 +505,26 @@ export default function AcademyCreator() {
         {/* Middle: editor */}
         <section className="col-span-12 lg:col-span-5">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 gap-2">
               <h2 className="text-xs font-bold text-indigo-600 tracking-wider uppercase">
                 Edit · #{selected + 1} · {current.type}
               </h2>
-              <select
-                value={current.block}
-                onChange={(e) => update({ block: e.target.value as Block } as any)}
-                className="text-xs font-semibold border border-slate-300 rounded-md px-2 py-1 bg-white"
-              >
-                {BLOCKS.map((b) => <option key={b.id} value={b.id}>{b.label}</option>)}
-              </select>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setTunerOpen(true)}
+                  title="Rewrite this slide easier or harder for a target CEFR level"
+                  className="inline-flex items-center gap-1 text-xs font-semibold border border-indigo-300 text-indigo-700 rounded-md px-2 py-1 hover:bg-indigo-50"
+                >
+                  <Wand2 className="w-3.5 h-3.5" /> Tune difficulty
+                </button>
+                <select
+                  value={current.block}
+                  onChange={(e) => update({ block: e.target.value as Block } as any)}
+                  className="text-xs font-semibold border border-slate-300 rounded-md px-2 py-1 bg-white"
+                >
+                  {BLOCKS.map((b) => <option key={b.id} value={b.id}>{b.label}</option>)}
+                </select>
+              </div>
             </div>
             <Tabs defaultValue="basic" className="w-full">
               <TabsList className="grid grid-cols-3 w-full">
@@ -660,6 +705,20 @@ export default function AcademyCreator() {
         patchSlide={(idx, patch) =>
           setSlides((p) => p.map((s, i) => (i === idx ? ({ ...s, ...patch } as Slide) : s)))
         }
+      />
+
+      <DifficultyTunerDialog
+        open={tunerOpen}
+        onOpenChange={setTunerOpen}
+        slide={current}
+        onPatch={(patch) => update(patch as Partial<Slide>)}
+        hub="academy"
+      />
+
+      <ImportFromTextDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        defaultHub="academy"
       />
     </div>
   );

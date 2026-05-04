@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Eye, Code2, X, Sparkles, Loader2, Image as ImageIcon, Save, BookOpen, Send, FolderOpen, History } from 'lucide-react';
+import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Eye, Code2, X, Sparkles, Loader2, Image as ImageIcon, Save, BookOpen, Send, FolderOpen, History, Wand2, FileUp } from 'lucide-react';
 import { SlideRenderer, type Slide } from './PlaygroundDemo';
 import { generateOnePlaygroundImage } from '@/hooks/usePlaygroundImages';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,6 +16,8 @@ import { SlideCommentsPanel } from '@/components/creator-studio/shared/SlideComm
 import { BulkActionsMenu } from '@/components/creator-studio/shared/BulkActionsMenu';
 import { BulkAudioDialog } from '@/components/creator-studio/shared/BulkAudioDialog';
 import { findSlidesMissingAudio } from '@/components/creator-studio/shared/slideAudioHelpers';
+import { DifficultyTunerDialog } from '@/components/creator-studio/shared/DifficultyTunerDialog';
+import { ImportFromTextDialog, IMPORTED_LESSON_STORAGE_KEY } from '@/components/creator-studio/shared/ImportFromTextDialog';
 import { useCreatorLesson } from '@/hooks/useCreatorLesson';
 import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
 import { SaveStatusBadge } from '@/components/creator-studio/shared/SaveStatusBadge';
@@ -99,6 +101,8 @@ export default function PlaygroundCreator() {
   const [vaultOpen, setVaultOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [bulkAudioOpen, setBulkAudioOpen] = useState(false);
+  const [tunerOpen, setTunerOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
   const [jsonDraft, setJsonDraft] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
@@ -131,6 +135,30 @@ export default function PlaygroundCreator() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonHook.lessonId]);
+
+  // Inject AI-imported lesson (from ImportFromTextDialog on the dashboard)
+  useEffect(() => {
+    if (searchParams.get('imported') !== '1') return;
+    try {
+      const raw = sessionStorage.getItem(IMPORTED_LESSON_STORAGE_KEY);
+      if (!raw) return;
+      const payload = JSON.parse(raw);
+      if (payload.hub && payload.hub !== 'playground') return;
+      if (Array.isArray(payload.slides) && payload.slides.length > 0) {
+        setSlides(payload.slides);
+        setSelected(0);
+        if (payload.title) setTitle(payload.title);
+        toast.success(`Loaded ${payload.slides.length} imported slides`);
+      }
+      sessionStorage.removeItem(IMPORTED_LESSON_STORAGE_KEY);
+      const next = new URLSearchParams(searchParams);
+      next.delete('imported');
+      setSearchParams(next, { replace: true });
+    } catch (e) {
+      console.error('Failed to inject imported lesson', e);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const current = slides[selected];
   const slideId = `slide-${selected}`;
@@ -390,6 +418,13 @@ export default function PlaygroundCreator() {
               missingAudioCount={findSlidesMissingAudio(slides).length}
               onGenerateMissingAudio={() => setBulkAudioOpen(true)}
             />
+            <button
+              onClick={() => setImportOpen(true)}
+              title="Convert raw text into a full lesson"
+              className="inline-flex items-center gap-2 bg-white border-2 border-orange-400 text-orange-700 font-bold rounded-xl px-3 py-2 text-xs transition active:scale-95"
+            >
+              <FileUp className="w-3.5 h-3.5" /> Import
+            </button>
             <button onClick={handleSaveDraft} disabled={lessonHook.isSaving} className="inline-flex items-center gap-2 bg-white border-2 border-orange-400 text-orange-700 font-bold rounded-xl px-3 py-2 text-xs transition active:scale-95 disabled:opacity-50">
               {lessonHook.isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />} Save Draft
             </button>
@@ -453,7 +488,16 @@ export default function PlaygroundCreator() {
         {/* Editor */}
         <section className="col-span-12 md:col-span-5">
           <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-5">
-            <h2 className="text-sm font-bold text-orange-600 mb-3">EDIT SLIDE #{selected + 1} · {current.type.toUpperCase()}</h2>
+            <div className="flex items-center justify-between mb-3 gap-2">
+              <h2 className="text-sm font-bold text-orange-600">EDIT SLIDE #{selected + 1} · {current.type.toUpperCase()}</h2>
+              <button
+                onClick={() => setTunerOpen(true)}
+                title="Rewrite this slide easier or harder"
+                className="inline-flex items-center gap-1 text-xs font-bold border-2 border-orange-300 text-orange-700 rounded-lg px-2 py-1 hover:bg-orange-50"
+              >
+                <Wand2 className="w-3.5 h-3.5" /> Tune
+              </button>
+            </div>
             <Tabs defaultValue="basic" className="w-full">
               <TabsList className="grid grid-cols-3 w-full">
                 <TabsTrigger value="basic">Basic</TabsTrigger>
@@ -630,6 +674,22 @@ export default function PlaygroundCreator() {
         patchSlide={(idx, patch) =>
           setSlides((prev) => prev.map((s, i) => (i === idx ? ({ ...s, ...patch } as Slide) : s)))
         }
+      />
+
+      <DifficultyTunerDialog
+        open={tunerOpen}
+        onOpenChange={setTunerOpen}
+        slide={current}
+        onPatch={(patch) =>
+          setSlides((prev) => prev.map((s, i) => (i === selected ? ({ ...s, ...patch } as Slide) : s)))
+        }
+        hub="playground"
+      />
+
+      <ImportFromTextDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        defaultHub="playground"
       />
     </div>
   );
