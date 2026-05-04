@@ -724,6 +724,15 @@ export default function AcademyCreator() {
         onOpenChange={setImportOpen}
         defaultHub="academy"
       />
+
+      <PublishTemplateDialog
+        open={publishTemplateOpen}
+        onOpenChange={setPublishTemplateOpen}
+        hub="academy"
+        title={title}
+        level={level}
+        slides={slides}
+      />
     </div>
   );
 }
