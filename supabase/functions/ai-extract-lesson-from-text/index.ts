@@ -61,9 +61,22 @@ Examples:
     const sys = `You are an expert ESL curriculum designer. Convert the user's raw text into a ready-to-teach ${targetHub === 'playground' ? '30-minute KIDS (ages 6-11)' : '60-minute TEENS/ADULTS'} lesson at CEFR ${targetLevel}.
 Output exactly ${count} slides covering: warm-up → vocabulary → reading/listening → practice → production → wrap-up.
 
+🏗️ SEQUENTIAL GENERATION PIPELINE — YOU MUST BUILD THIS LESSON IN STRICT CHRONOLOGICAL ORDER. Do not skip phases. Do not reorder them.
+  Phase 1 — FOUNDATION: Choose 5 target vocabulary words (age & level appropriate) AND 1 core grammar rule (e.g. "Present Simple"). Lock these in _lesson_metadata.
+  Phase 2 — FLESH: Write a single reading passage / dialogue (120-220 words) that HEAVILY USES all 5 vocabulary words from Phase 1 and demonstrates the Phase 1 grammar rule multiple times. Store the full text in _source_text.
+  Phase 3 — JOINTS: Generate the interactive quiz slides (multiple_choice / truefalse / fill-in-the-blank). Every quiz answer MUST be directly verifiable from the Phase 2 _source_text. Never test on facts that are not in the passage.
+  Phase 4 — PAINT: Now write all visual / image descriptions and the voice-over text strings. The slides[] array is generated LAST, pulling from Phases 1-3.
+
 ${targetHub === 'academy' ? academySchema : playgroundSchema}
 
-Return STRICT JSON: { "title": string, "level": "${targetLevel}", "slides": Slide[] }. No prose, no markdown.`;
+Return STRICT JSON in this drafting format (no prose, no markdown):
+{
+  "_lesson_metadata": { "target_vocab": string[5], "core_grammar": string },
+  "_source_text": string,
+  "title": string,
+  "level": "${targetLevel}",
+  "slides": Slide[]
+}`;
 
     const userMsg = `RAW TEXT:\n\n${rawText.slice(0, 8000)}\n\n${title ? `Suggested title: ${title}` : ''}`;
 
