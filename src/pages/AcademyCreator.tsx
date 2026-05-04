@@ -17,6 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { SlideMediaPanel } from '@/components/creator-studio/shared/SlideMediaPanel';
 import { PreviewModeToggle, type PreviewMode } from '@/components/creator-studio/shared/PreviewModeToggle';
 import { PlayablePreviewPane } from '@/components/creator-studio/shared/PlayablePreviewPane';
+import { AssetVaultDialog } from '@/components/creator-studio/shared/AssetVaultDialog';
 import { useCreatorLesson } from '@/hooks/useCreatorLesson';
 import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
 import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
@@ -126,6 +127,7 @@ export default function AcademyCreator() {
   const [aiBusy, setAiBusy] = useState(false);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [previewMode, setPreviewMode] = useState<PreviewMode>('editor');
+  const [vaultOpen, setVaultOpen] = useState(false);
 
   const lessonHook = useCreatorLesson({ hub: 'academy', initialLessonId });
 
