@@ -675,6 +675,22 @@ export default function PlaygroundCreator() {
           setSlides((prev) => prev.map((s, i) => (i === idx ? ({ ...s, ...patch } as Slide) : s)))
         }
       />
+
+      <DifficultyTunerDialog
+        open={tunerOpen}
+        onOpenChange={setTunerOpen}
+        slide={current}
+        onPatch={(patch) =>
+          setSlides((prev) => prev.map((s, i) => (i === selected ? ({ ...s, ...patch } as Slide) : s)))
+        }
+        hub="playground"
+      />
+
+      <ImportFromTextDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        defaultHub="playground"
+      />
     </div>
   );
 }
