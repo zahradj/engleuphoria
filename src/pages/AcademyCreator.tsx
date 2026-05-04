@@ -619,7 +619,7 @@ export default function AcademyCreator() {
         onPick={({ url, field }) => update({ [field]: url } as any)}
       />
 
-      <SlideTemplatesDialog<Slide>
+      <SlideTemplatesDialog
         open={templatesOpen}
         onOpenChange={setTemplatesOpen}
         hub="academy"
