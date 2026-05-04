@@ -15,6 +15,8 @@ import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { SlideMediaPanel } from '@/components/creator-studio/shared/SlideMediaPanel';
+import { PreviewModeToggle, type PreviewMode } from '@/components/creator-studio/shared/PreviewModeToggle';
+import { PlayablePreviewPane } from '@/components/creator-studio/shared/PlayablePreviewPane';
 import { useCreatorLesson } from '@/hooks/useCreatorLesson';
 import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
 import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
@@ -123,6 +125,7 @@ export default function AcademyCreator() {
   const [aiGrammar, setAiGrammar] = useState('Present simple');
   const [aiBusy, setAiBusy] = useState(false);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [previewMode, setPreviewMode] = useState<PreviewMode>('editor');
 
   const lessonHook = useCreatorLesson({ hub: 'academy', initialLessonId });
 
@@ -475,15 +478,26 @@ export default function AcademyCreator() {
         {/* Right: live preview */}
         <section className="col-span-12 lg:col-span-4">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 sticky top-24">
-            <h2 className="text-xs font-bold text-indigo-600 tracking-wider uppercase mb-2 px-2">Live Preview</h2>
-            <div className="rounded-xl bg-slate-50 border border-slate-200 p-5 min-h-[450px] flex items-center justify-center">
-              <div className="w-full">
-                <div className="text-[10px] uppercase tracking-[0.2em] text-indigo-400 font-semibold mb-3 text-center">
-                  {BLOCKS.find((b) => b.id === current.block)?.label}
-                </div>
-                <SlideRenderer slide={current} t={t} />
-              </div>
+            <div className="flex items-center justify-between mb-2 px-2">
+              <h2 className="text-xs font-bold text-indigo-600 tracking-wider uppercase">Live Preview</h2>
+              <PreviewModeToggle value={previewMode} onChange={setPreviewMode} hub="academy" />
             </div>
+            <PlayablePreviewPane
+              mode={previewMode}
+              slides={slides}
+              startIndex={selected}
+              hub="academy"
+              renderSlide={(slide) => (
+                <div className="rounded-xl bg-slate-50 border border-slate-200 p-5 min-h-[450px] flex items-center justify-center">
+                  <div className="w-full">
+                    <div className="text-[10px] uppercase tracking-[0.2em] text-indigo-400 font-semibold mb-3 text-center">
+                      {BLOCKS.find((b) => b.id === (slide as Slide).block)?.label}
+                    </div>
+                    <SlideRenderer slide={slide as Slide} t={t} />
+                  </div>
+                </div>
+              )}
+            />
           </div>
         </section>
       </div>
