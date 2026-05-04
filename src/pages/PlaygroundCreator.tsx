@@ -504,9 +504,9 @@ export default function PlaygroundCreator() {
         </aside>
 
         {/* Editor */}
-        <section className="col-span-12 md:col-span-5">
-          <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-5">
-            <div className="flex items-center justify-between mb-3 gap-2">
+        <section className="min-h-0 flex flex-col">
+          <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-5 flex flex-col flex-1 min-h-0">
+            <div className="flex items-center justify-between mb-3 gap-2 flex-shrink-0">
               <h2 className="text-sm font-bold text-orange-600">EDIT SLIDE #{safeIndex + 1} · {(current?.type ?? 'intro').toString().toUpperCase()}</h2>
               <button
                 onClick={() => setTunerOpen(true)}
@@ -516,16 +516,16 @@ export default function PlaygroundCreator() {
                 <Wand2 className="w-3.5 h-3.5" /> Tune
               </button>
             </div>
-            <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="grid grid-cols-3 w-full">
+            <Tabs defaultValue="basic" className="w-full flex-1 flex flex-col min-h-0">
+              <TabsList className="grid grid-cols-3 w-full flex-shrink-0">
                 <TabsTrigger value="basic">Basic</TabsTrigger>
                 <TabsTrigger value="media">AI Media & Audio</TabsTrigger>
                 <TabsTrigger value="comments">Comments</TabsTrigger>
               </TabsList>
-              <TabsContent value="basic" className="pt-4">
+              <TabsContent value="basic" className="pt-4 flex-1 overflow-y-auto min-h-0">
                 <SlideEditor slide={current} onChange={update} />
               </TabsContent>
-              <TabsContent value="media" className="pt-4">
+              <TabsContent value="media" className="pt-4 flex-1 overflow-y-auto min-h-0">
                 <SlideMediaPanel
                   slide={current as any}
                   onPatch={(patch) => update(patch as Partial<Slide>)}
@@ -535,7 +535,7 @@ export default function PlaygroundCreator() {
                   enableFlashcards={current.type === 'match' || current.type === 'multiple'}
                 />
               </TabsContent>
-              <TabsContent value="comments" className="pt-4">
+              <TabsContent value="comments" className="pt-4 flex-1 overflow-y-auto min-h-0">
                 <SlideCommentsPanel
                   lessonId={lessonHook.lessonId}
                   slideId={slideId}
@@ -547,8 +547,8 @@ export default function PlaygroundCreator() {
         </section>
 
         {/* Live preview */}
-        <section className="col-span-12 md:col-span-4">
-          <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-3 sticky top-24">
+        <section className="min-h-0 flex flex-col">
+          <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-3 flex flex-col flex-1 min-h-0 overflow-y-auto">
             <div className="flex items-center justify-between mb-2 px-2">
               <h2 className="text-sm font-bold text-orange-600">LIVE PREVIEW</h2>
               <PreviewModeToggle value={previewMode} onChange={setPreviewMode} hub="playground" />
