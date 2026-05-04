@@ -13,6 +13,7 @@ const NAV: Array<{ key: CreatorStep; tKey: string; icon: React.ElementType; emoj
   { key: 'slide-builder', tKey: 'nav.slide_studio', icon: Palette, emoji: '🎨' },
   { key: 'playground-creator', tKey: 'nav.playground_creator', icon: Sparkles, emoji: '🧒', fallback: 'Playground' },
   { key: 'academy-creator', tKey: 'nav.academy_creator', icon: GraduationCap, emoji: '🎓', fallback: 'Academy' },
+  { key: 'success-creator', tKey: 'nav.success_creator', icon: Briefcase, emoji: '💼', fallback: 'Success' },
   { key: 'trial', tKey: 'nav.trial_creator', icon: Zap, emoji: '⚡' },
   { key: 'story', tKey: 'nav.story_creator', icon: BookOpen, emoji: '📖' },
   { key: 'library', tKey: 'nav.master_library', icon: Library, emoji: '📚' },
