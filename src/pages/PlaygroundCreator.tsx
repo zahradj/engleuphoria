@@ -8,6 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SlideMediaPanel } from '@/components/creator-studio/shared/SlideMediaPanel';
+import { PreviewModeToggle, type PreviewMode } from '@/components/creator-studio/shared/PreviewModeToggle';
+import { PlayablePreviewPane } from '@/components/creator-studio/shared/PlayablePreviewPane';
 import { useCreatorLesson } from '@/hooks/useCreatorLesson';
 import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
 import { SaveStatusBadge } from '@/components/creator-studio/shared/SaveStatusBadge';
@@ -87,6 +89,7 @@ export default function PlaygroundCreator() {
   const [title, setTitle] = useState<string>('Untitled Playground Lesson');
   const [selected, setSelected] = useState(0);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewMode, setPreviewMode] = useState<PreviewMode>('editor');
   const [jsonOpen, setJsonOpen] = useState(false);
   const [jsonDraft, setJsonDraft] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
@@ -448,14 +451,25 @@ export default function PlaygroundCreator() {
         {/* Live preview */}
         <section className="col-span-12 md:col-span-4">
           <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-3 sticky top-24">
-            <h2 className="text-sm font-bold text-orange-600 mb-2 px-2">LIVE PREVIEW</h2>
-            <div className="rounded-xl bg-gradient-to-br from-orange-400 via-amber-300 to-yellow-200 p-4 min-h-[420px] flex items-center justify-center">
-              <div key={selected + current.type} className="bg-white rounded-2xl shadow-xl w-full p-4 min-h-[380px] flex items-center justify-center">
-                <div className="scale-[0.85] origin-center w-full">
-                  <SlideRenderer slide={current} />
-                </div>
-              </div>
+            <div className="flex items-center justify-between mb-2 px-2">
+              <h2 className="text-sm font-bold text-orange-600">LIVE PREVIEW</h2>
+              <PreviewModeToggle value={previewMode} onChange={setPreviewMode} hub="playground" />
             </div>
+            <PlayablePreviewPane
+              mode={previewMode}
+              slides={slides}
+              startIndex={selected}
+              hub="playground"
+              renderSlide={(slide, idx) => (
+                <div className="rounded-xl bg-gradient-to-br from-orange-400 via-amber-300 to-yellow-200 p-4 min-h-[420px] flex items-center justify-center">
+                  <div key={idx + (slide as Slide).type} className="bg-white rounded-2xl shadow-xl w-full p-4 min-h-[380px] flex items-center justify-center">
+                    <div className="scale-[0.85] origin-center w-full">
+                      <SlideRenderer slide={slide as Slide} />
+                    </div>
+                  </div>
+                </div>
+              )}
+            />
           </div>
         </section>
       </div>
