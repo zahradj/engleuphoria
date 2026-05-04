@@ -120,6 +120,11 @@ export default function AcademyCreator() {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialLessonId = searchParams.get('lessonId');
 
+  const goBack = () => {
+    if (window.history.length > 1) navigate(-1);
+    else navigate('/content-creator');
+  };
+
   const [slides, setSlides] = useState<Slide[]>(SOCIAL_MEDIA_LESSON.slides);
   const [title, setTitle] = useState(SOCIAL_MEDIA_LESSON.title);
   const [level, setLevel] = useState(SOCIAL_MEDIA_LESSON.level);
