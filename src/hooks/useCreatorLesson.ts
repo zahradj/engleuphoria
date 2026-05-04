@@ -83,7 +83,7 @@ export function useCreatorLesson({ hub, initialLessonId }: UseCreatorLessonArgs)
           qc.invalidateQueries({ queryKey: ['creator-lesson', lessonId] });
           qc.invalidateQueries({ queryKey: ['creator-library', hub] });
           qc.invalidateQueries({ queryKey: ['curriculum-lessons-library'] });
-          toast.success(meta.publish ? 'Lesson published ✨' : 'Draft saved');
+          if (!meta.silent) toast.success(meta.publish ? 'Lesson published ✨' : 'Draft saved');
           return lessonId;
         }
 
@@ -107,14 +107,14 @@ export function useCreatorLesson({ hub, initialLessonId }: UseCreatorLessonArgs)
         setLessonId(newId);
         qc.invalidateQueries({ queryKey: ['creator-library', hub] });
         qc.invalidateQueries({ queryKey: ['curriculum-lessons-library'] });
-        toast.success(meta.publish ? 'Lesson published ✨' : 'Draft created');
+        if (!meta.silent) toast.success(meta.publish ? 'Lesson published ✨' : 'Draft created');
         return newId;
       } catch (e: any) {
         console.error('[useCreatorLesson] persist error', e);
-        toast.error(e?.message || 'Failed to save lesson');
+        if (!meta.silent) toast.error(e?.message || 'Failed to save lesson');
         return null;
       } finally {
-        setIsSaving(false);
+        if (!meta.silent) setIsSaving(false);
       }
     },
     [hub, lessonId, qc],
@@ -129,6 +129,12 @@ export function useCreatorLesson({ hub, initialLessonId }: UseCreatorLessonArgs)
   const publish = useCallback(
     (slides: any[], meta: { title: string; level?: string }) =>
       persist(slides, { ...meta, publish: true }),
+    [persist],
+  );
+
+  const silentSaveDraft = useCallback(
+    (slides: any[], meta: { title: string; level?: string }) =>
+      persist(slides, { ...meta, publish: false, silent: true }),
     [persist],
   );
 
