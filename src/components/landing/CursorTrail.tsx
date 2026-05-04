@@ -140,7 +140,9 @@ export function CursorTrail({ themeIndex }: CursorTrailProps = {}) {
       window.removeEventListener("touchstart", onTouch);
       cancelAnimationFrame(rafId.current);
     };
-  }, [resize]);
+  }, [resize, isLightweightDevice]);
+
+  if (isLightweightDevice) return null;
 
   return (
     <canvas
