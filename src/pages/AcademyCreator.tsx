@@ -571,6 +571,14 @@ export default function AcademyCreator() {
           </div>
         </div>
       )}
+
+      <RevisionHistoryModal
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        revisions={history.revisions}
+        loading={history.loading}
+        onRestore={handleRestore}
+      />
     </div>
   );
 }
