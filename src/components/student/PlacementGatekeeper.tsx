@@ -29,11 +29,11 @@ const HUB_THEME = {
   playground: {
     name: 'The Playground',
     cursorIndex: 0 as 0 | 1 | 2,
-    gradient: 'from-orange-500 via-amber-500 to-yellow-400',
-    accent: 'from-orange-400 to-amber-300',
-    accentText: 'text-amber-100',
+    gradient: 'from-orange-100 via-amber-50 to-yellow-50',
+    accent: 'from-orange-300 to-amber-200',
+    accentText: 'text-orange-600',
     button: 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600',
-    glow: 'shadow-[0_0_60px_rgba(254,106,47,0.45)]',
+    glow: 'shadow-[0_0_40px_rgba(254,106,47,0.18)]',
   },
   academy: {
     name: 'The Academy',
