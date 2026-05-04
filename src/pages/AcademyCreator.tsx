@@ -15,6 +15,8 @@ import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { SlideMediaPanel } from '@/components/creator-studio/shared/SlideMediaPanel';
+import { PreviewModeToggle, type PreviewMode } from '@/components/creator-studio/shared/PreviewModeToggle';
+import { PlayablePreviewPane } from '@/components/creator-studio/shared/PlayablePreviewPane';
 import { useCreatorLesson } from '@/hooks/useCreatorLesson';
 import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
 import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
