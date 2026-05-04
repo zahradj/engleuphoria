@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Code2, X, Play, Sparkles, Loader2, Save, Send, FolderOpen } from 'lucide-react';
+import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Code2, X, Play, Sparkles, Loader2, Save, Send, FolderOpen, History } from 'lucide-react';
 import {
   SlideRenderer,
   themeMap,
@@ -17,6 +17,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { SlideMediaPanel } from '@/components/creator-studio/shared/SlideMediaPanel';
 import { useCreatorLesson } from '@/hooks/useCreatorLesson';
 import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
+import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
+import { SaveStatusBadge } from '@/components/creator-studio/shared/SaveStatusBadge';
+import { RevisionHistoryModal } from '@/components/creator-studio/shared/RevisionHistoryModal';
 
 /**
  * Academy Slide Creator — clean teacher-facing authoring tool.
@@ -230,8 +233,33 @@ export default function AcademyCreator() {
     setDragIdx(null);
   };
 
-  const handleSaveDraft = () => lessonHook.saveDraft(slides, { title, level });
-  const handlePublish = () => lessonHook.publish(slides, { title, level });
+  const history = useRevisionHistory(lessonHook.lessonId);
+  const [historyOpen, setHistoryOpen] = useState(false);
+
+  const autoSave = useAutoSave({
+    lessonId: lessonHook.lessonId,
+    slides,
+    title,
+    silentSaveDraft: (s, m) => lessonHook.silentSaveDraft(s, { ...m, level }),
+  });
+
+  const handleSaveDraft = async () => {
+    const id = await lessonHook.saveDraft(slides, { title, level });
+    if (id) history.captureRevision({ title, slides, kind: 'manual' });
+  };
+  const handlePublish = async () => {
+    const id = await lessonHook.publish(slides, { title, level });
+    if (id) history.captureRevision({ title, slides, kind: 'publish' });
+  };
+  const handleRestore = (rev: LessonRevision) => {
+    const restored = Array.isArray(rev.content?.slides) ? rev.content.slides : [];
+    if (restored.length === 0) { toast.error('Snapshot has no slides'); return; }
+    setSlides(restored);
+    setSelected(0);
+    if (rev.title) setTitle(rev.title);
+    setHistoryOpen(false);
+    toast.success('Restored snapshot — remember to Save or Publish');
+  };
   const handleImportFromLibrary = async (id: string) => {
     const lesson = await lessonHook.importLesson(id);
     if (!lesson) return;
