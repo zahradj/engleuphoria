@@ -13,6 +13,9 @@ import { PlayablePreviewPane } from '@/components/creator-studio/shared/Playable
 import { AssetVaultDialog } from '@/components/creator-studio/shared/AssetVaultDialog';
 import { SlideTemplatesDialog } from '@/components/creator-studio/shared/SlideTemplatesDialog';
 import { SlideCommentsPanel } from '@/components/creator-studio/shared/SlideCommentsPanel';
+import { BulkActionsMenu } from '@/components/creator-studio/shared/BulkActionsMenu';
+import { BulkAudioDialog } from '@/components/creator-studio/shared/BulkAudioDialog';
+import { findSlidesMissingAudio } from '@/components/creator-studio/shared/slideAudioHelpers';
 import { useCreatorLesson } from '@/hooks/useCreatorLesson';
 import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
 import { SaveStatusBadge } from '@/components/creator-studio/shared/SaveStatusBadge';
@@ -95,6 +98,7 @@ export default function PlaygroundCreator() {
   const [previewMode, setPreviewMode] = useState<PreviewMode>('editor');
   const [vaultOpen, setVaultOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [bulkAudioOpen, setBulkAudioOpen] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
   const [jsonDraft, setJsonDraft] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
