@@ -22,6 +22,10 @@ project_id = "dcoxpyzoqjvmuuygvlme"
     verify_jwt = false
   [functions.ai-activity-generator]
     verify_jwt = false
+  [functions.ai-rewrite-text]
+    verify_jwt = false
+  [functions.ai-extract-lesson-from-text]
+    verify_jwt = false
   [functions.ai-character-voices]
     verify_jwt = false
   [functions.ai-content-generator]
