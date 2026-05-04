@@ -53,21 +53,37 @@ export const MinimalStudentHeader: React.FC<MinimalStudentHeaderProps> = ({
     .toUpperCase()
     .slice(0, 2);
 
+  // Hub-tinted mobile header gradient (Bold Flat Hub Colors)
+  const mobileHubGradient =
+    hubId === 'playground'
+      ? isDark
+        ? 'bg-gradient-to-r from-orange-950/70 via-amber-950/60 to-orange-950/70 border-orange-500/20'
+        : 'bg-gradient-to-r from-orange-50 via-amber-50 to-yellow-50 border-orange-200/60'
+      : hubId === 'academy'
+        ? isDark
+          ? 'bg-gradient-to-r from-indigo-950/70 via-purple-950/60 to-indigo-950/70 border-indigo-500/20'
+          : 'bg-gradient-to-r from-indigo-50 via-purple-50 to-indigo-50 border-indigo-200/60'
+        : isDark
+          ? 'bg-gradient-to-r from-emerald-950/70 via-teal-950/60 to-emerald-950/70 border-emerald-500/20'
+          : 'bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-emerald-200/60';
+
   return (
     <div className={`sticky top-0 z-10 border-b backdrop-blur-xl transition-colors duration-300 ${
       isDark
         ? 'bg-black/30 border-white/10'
         : 'bg-white/40 border-black/5'
-    }`}>
-      {/* Mobile header: hamburger | logo | bell */}
-      <div className="md:hidden grid grid-cols-3 items-center px-3 py-2.5">
-        <div className="flex justify-start">
-          <SidebarTrigger className={`rounded-lg p-2 ${isDark ? 'text-white/80 hover:bg-white/10' : 'text-slate-700 hover:bg-black/5'}`} />
-        </div>
-        <div className="flex justify-center">
+    } md:bg-none`}>
+      {/* Mobile header: hamburger | logo + name | streak + bell */}
+      <div className={`md:hidden flex items-center gap-2 px-3 py-2.5 border-b-0 ${mobileHubGradient}`}>
+        <SidebarTrigger className={`rounded-lg p-2 shrink-0 ${isDark ? 'text-white/80 hover:bg-white/10' : 'text-slate-700 hover:bg-black/5'}`} />
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           <HubLogo hubId={hubId} size="sm" />
+          <span className={`text-sm font-bold truncate ${isDark ? 'text-white/90' : 'text-slate-800'}`}>
+            {studentName}
+          </span>
         </div>
-        <div className="flex justify-end">
+        <div className="flex items-center gap-1.5 shrink-0">
+          <StreakBadge isDark={isDark} />
           {user && <NotificationBell />}
         </div>
       </div>
