@@ -162,8 +162,9 @@ export default function PlaygroundCreator() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const current = slides[selected];
-  const slideId = `slide-${selected}`;
+  const safeIndex = slides.length === 0 ? 0 : Math.min(Math.max(selected, 0), slides.length - 1);
+  const current = slides[safeIndex] ?? { type: 'intro', title: '', content: '' } as any;
+  const slideId = `slide-${safeIndex}`;
 
   const generateWithAI = async () => {
     if (!aiTopic.trim()) return;
