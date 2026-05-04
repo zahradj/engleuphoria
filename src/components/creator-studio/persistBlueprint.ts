@@ -103,6 +103,8 @@ export async function persistBlueprintAsDrafts(curriculum: CurriculumData) {
         source: 'blueprint-auto-save',
         generated_at: new Date().toISOString(),
         blueprint_ref: lesson,
+        hub: curriculum.hub,
+        cefr_level: curriculum.cefr_level,
       },
     })),
   );
