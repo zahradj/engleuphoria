@@ -20,6 +20,9 @@ import { PlayablePreviewPane } from '@/components/creator-studio/shared/Playable
 import { AssetVaultDialog } from '@/components/creator-studio/shared/AssetVaultDialog';
 import { SlideTemplatesDialog } from '@/components/creator-studio/shared/SlideTemplatesDialog';
 import { SlideCommentsPanel } from '@/components/creator-studio/shared/SlideCommentsPanel';
+import { BulkActionsMenu } from '@/components/creator-studio/shared/BulkActionsMenu';
+import { BulkAudioDialog } from '@/components/creator-studio/shared/BulkAudioDialog';
+import { findSlidesMissingAudio } from '@/components/creator-studio/shared/slideAudioHelpers';
 import { useCreatorLesson } from '@/hooks/useCreatorLesson';
 import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
 import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
@@ -131,6 +134,7 @@ export default function AcademyCreator() {
   const [previewMode, setPreviewMode] = useState<PreviewMode>('editor');
   const [vaultOpen, setVaultOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [bulkAudioOpen, setBulkAudioOpen] = useState(false);
 
   const lessonHook = useCreatorLesson({ hub: 'academy', initialLessonId });
 
