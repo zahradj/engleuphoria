@@ -101,6 +101,8 @@ export default function PlaygroundCreator() {
   const [vaultOpen, setVaultOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [bulkAudioOpen, setBulkAudioOpen] = useState(false);
+  const [tunerOpen, setTunerOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
   const [jsonDraft, setJsonDraft] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
