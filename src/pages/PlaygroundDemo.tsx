@@ -278,6 +278,9 @@ function FillBlank({ slide }: { slide: Extract<Slide, { type: 'fill' }> }) {
       animate={submitted ? (correct ? correctAnim : wrongAnim) : undefined}
       className="flex flex-col items-center gap-8"
     >
+      {(slide as any).image_url && (
+        <img src={(slide as any).image_url} alt="" className="w-44 h-44 rounded-2xl object-cover shadow-md" />
+      )}
       <div className="text-4xl font-bold text-slate-800 flex items-center gap-3 flex-wrap justify-center">
         <span>{parts[0]}</span>
         <input
