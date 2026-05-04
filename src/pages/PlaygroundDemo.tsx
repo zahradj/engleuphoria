@@ -237,6 +237,9 @@ function TrueFalse({ slide }: { slide: Extract<Slide, { type: 'truefalse' }> }) 
       animate={picked !== null ? (correct ? correctAnim : wrongAnim) : undefined}
       className="flex flex-col items-center gap-8"
     >
+      {slide.image_url && (
+        <img src={slide.image_url} alt="" className="w-44 h-44 rounded-2xl object-cover shadow-md" />
+      )}
       <h2 className="text-4xl font-bold text-slate-800 text-center">{slide.statement}</h2>
       <div className="flex gap-6">
         <button
