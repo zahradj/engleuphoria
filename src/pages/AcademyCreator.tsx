@@ -428,6 +428,8 @@ export default function AcademyCreator() {
               hub="academy"
               missingAudioCount={findSlidesMissingAudio(slides).length}
               onGenerateMissingAudio={() => setBulkAudioOpen(true)}
+              onPublishTemplate={() => setPublishTemplateOpen(true)}
+              canPublishTemplate={slides.length >= 8}
             />
             <button
               onClick={() => setImportOpen(true)}
