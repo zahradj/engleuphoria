@@ -365,10 +365,28 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
         <VirtualPetWidget petType={petType} petHappiness={petHappiness} wordsLearnedToday={wordsLearnedToday} wordsGoal={5} />
         <AIPersonalizedLessonCard />
         <WeeklyGoalWidget studentLevel="playground" />
-        <AILessonAgent studentLevel="playground" studentInterests={['animals', 'games', 'cartoons']} cefrLevel="Pre-A1" />
-        <MaterialsGallery track="kids" />
-        <RecentLessonReports hubId="playground" />
-        <RecommendedTeachers hubLevel="playground" />
+
+        {/* Secondary cards: collapsed on mobile to keep the dashboard light */}
+        <div className={cn('flex flex-col gap-3', !mobileShowMore && 'hidden md:flex')}>
+          <AILessonAgent studentLevel="playground" studentInterests={['animals', 'games', 'cartoons']} cefrLevel="Pre-A1" />
+          <MaterialsGallery track="kids" />
+          <RecentLessonReports hubId="playground" />
+          <RecommendedTeachers hubLevel="playground" />
+        </div>
+
+        {/* Mobile-only toggle */}
+        <button
+          type="button"
+          onClick={() => setMobileShowMore(v => !v)}
+          className={cn(
+            'md:hidden w-full py-2.5 rounded-2xl text-sm font-bold transition-colors',
+            isDark
+              ? 'bg-orange-900/40 text-amber-200 border border-orange-500/30 active:bg-orange-900/60'
+              : 'bg-white/70 text-orange-700 border border-orange-200 active:bg-orange-50'
+          )}
+        >
+          {mobileShowMore ? '− Show less' : '+ Show more'}
+        </button>
       </div>
     </div>
   );
