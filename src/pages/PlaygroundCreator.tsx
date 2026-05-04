@@ -419,6 +419,8 @@ export default function PlaygroundCreator() {
               hub="playground"
               missingAudioCount={findSlidesMissingAudio(slides).length}
               onGenerateMissingAudio={() => setBulkAudioOpen(true)}
+              onPublishTemplate={() => setPublishTemplateOpen(true)}
+              canPublishTemplate={slides.length >= 8}
             />
             <button
               onClick={() => setImportOpen(true)}
