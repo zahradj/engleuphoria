@@ -16,6 +16,8 @@ import { SlideCommentsPanel } from '@/components/creator-studio/shared/SlideComm
 import { BulkActionsMenu } from '@/components/creator-studio/shared/BulkActionsMenu';
 import { BulkAudioDialog } from '@/components/creator-studio/shared/BulkAudioDialog';
 import { findSlidesMissingAudio } from '@/components/creator-studio/shared/slideAudioHelpers';
+import { DifficultyTunerDialog } from '@/components/creator-studio/shared/DifficultyTunerDialog';
+import { ImportFromTextDialog, IMPORTED_LESSON_STORAGE_KEY } from '@/components/creator-studio/shared/ImportFromTextDialog';
 import { useCreatorLesson } from '@/hooks/useCreatorLesson';
 import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
 import { SaveStatusBadge } from '@/components/creator-studio/shared/SaveStatusBadge';
