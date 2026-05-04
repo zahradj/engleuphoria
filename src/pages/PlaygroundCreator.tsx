@@ -77,7 +77,11 @@ const STARTER: Slide[] = [
 ];
 
 export default function PlaygroundCreator() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialLessonId = searchParams.get('lessonId');
+
   const [slides, setSlides] = useState<Slide[]>(STARTER);
+  const [title, setTitle] = useState<string>('Untitled Playground Lesson');
   const [selected, setSelected] = useState(0);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
@@ -86,8 +90,35 @@ export default function PlaygroundCreator() {
   const [aiOpen, setAiOpen] = useState(false);
   const [aiTopic, setAiTopic] = useState('Animals');
   const [aiBusy, setAiBusy] = useState(false);
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+
+  const lessonHook = useCreatorLesson({ hub: 'playground', initialLessonId });
+
+  // Hydrate from DB when an existing lesson is loaded.
+  useEffect(() => {
+    const lesson = lessonHook.lesson;
+    if (!lesson) return;
+    const dbSlides = getLibraryLessonSlides(lesson) as Slide[];
+    if (dbSlides.length > 0) {
+      setSlides(dbSlides);
+      setSelected(0);
+    }
+    if (lesson.title) setTitle(lesson.title);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lessonHook.lesson?.id]);
+
+  // Keep ?lessonId= in sync when we create a new draft.
+  useEffect(() => {
+    if (lessonHook.lessonId && searchParams.get('lessonId') !== lessonHook.lessonId) {
+      const next = new URLSearchParams(searchParams);
+      next.set('lessonId', lessonHook.lessonId);
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lessonHook.lessonId]);
 
   const current = slides[selected];
+  const slideId = `slide-${selected}`;
 
   const generateWithAI = async () => {
     if (!aiTopic.trim()) return;
