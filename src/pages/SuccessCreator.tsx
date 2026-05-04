@@ -141,6 +141,7 @@ export default function SuccessCreator() {
   const [aiGrammar, setAiGrammar] = useState('Polite modals (could / would / would you mind)');
   const [aiBusy, setAiBusy] = useState(false);
   const [previewMode, setPreviewMode] = useState<PreviewMode>('editor');
+  const [previewRole, setPreviewRole] = useState<PreviewRole>('teacher');
   const [vaultOpen, setVaultOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [bulkAudioOpen, setBulkAudioOpen] = useState(false);
