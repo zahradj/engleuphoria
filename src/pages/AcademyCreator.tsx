@@ -519,9 +519,9 @@ export default function AcademyCreator() {
         </aside>
 
         {/* Middle: editor */}
-        <section className="col-span-12 lg:col-span-5">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4 gap-2">
+        <section className="min-h-0 flex flex-col">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col flex-1 min-h-0">
+            <div className="flex items-center justify-between mb-4 gap-2 flex-shrink-0">
               <h2 className="text-xs font-bold text-indigo-600 tracking-wider uppercase">
                 Edit · #{selected + 1} · {current.type}
               </h2>
@@ -542,16 +542,16 @@ export default function AcademyCreator() {
                 </select>
               </div>
             </div>
-            <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="grid grid-cols-3 w-full">
+            <Tabs defaultValue="basic" className="w-full flex-1 flex flex-col min-h-0">
+              <TabsList className="grid grid-cols-3 w-full flex-shrink-0">
                 <TabsTrigger value="basic">Basic</TabsTrigger>
                 <TabsTrigger value="media">AI Media & Audio</TabsTrigger>
                 <TabsTrigger value="comments">Comments</TabsTrigger>
               </TabsList>
-              <TabsContent value="basic" className="pt-4">
+              <TabsContent value="basic" className="pt-4 flex-1 overflow-y-auto min-h-0">
                 <SlideEditor slide={current} onChange={update} />
               </TabsContent>
-              <TabsContent value="media" className="pt-4">
+              <TabsContent value="media" className="pt-4 flex-1 overflow-y-auto min-h-0">
                 <SlideMediaPanel
                   slide={current as any}
                   onPatch={(patch) => update(patch as Partial<Slide>)}
@@ -561,7 +561,7 @@ export default function AcademyCreator() {
                   enableFlashcards={current.type === 'vocab' || current.type === 'matching'}
                 />
               </TabsContent>
-              <TabsContent value="comments" className="pt-4">
+              <TabsContent value="comments" className="pt-4 flex-1 overflow-y-auto min-h-0">
                 <SlideCommentsPanel
                   lessonId={lessonHook.lessonId}
                   slideId={slideId}
@@ -573,8 +573,8 @@ export default function AcademyCreator() {
         </section>
 
         {/* Right: live preview */}
-        <section className="col-span-12 lg:col-span-4">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 sticky top-24">
+        <section className="min-h-0 flex flex-col">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 flex flex-col flex-1 min-h-0 overflow-y-auto">
             <div className="flex items-center justify-between mb-2 px-2">
               <h2 className="text-xs font-bold text-indigo-600 tracking-wider uppercase">Live Preview</h2>
               <PreviewModeToggle value={previewMode} onChange={setPreviewMode} hub="academy" />
