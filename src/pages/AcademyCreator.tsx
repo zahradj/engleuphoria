@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Code2, X, Play, Sparkles, Loader2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Code2, X, Play, Sparkles, Loader2, Save, Send, FolderOpen } from 'lucide-react';
 import {
   SlideRenderer,
   themeMap,
@@ -12,6 +12,11 @@ import {
 import { SOCIAL_MEDIA_LESSON } from '@/data/academyLessons/socialMediaHabits';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { SlideMediaPanel } from '@/components/creator-studio/shared/SlideMediaPanel';
+import { useCreatorLesson } from '@/hooks/useCreatorLesson';
+import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
 
 /**
  * Academy Slide Creator — clean teacher-facing authoring tool.
