@@ -468,18 +468,18 @@ export default function AcademyCreator() {
         </div>
       </header>
 
-      <div className="max-w-[1600px] mx-auto grid grid-cols-12 gap-4 p-4">
+      <div className="flex-1 w-full grid grid-cols-1 lg:grid-cols-[260px_1fr_420px] gap-4 p-4 min-h-0">
         {/* Left: slide list grouped by block */}
-        <aside className="col-span-12 lg:col-span-3">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3">
-            <div className="flex items-center justify-between px-2 py-1 mb-2">
+        <aside className="min-h-0 flex flex-col">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 flex flex-col flex-1 min-h-0">
+            <div className="flex items-center justify-between px-2 py-1 mb-2 flex-shrink-0">
               <h2 className="text-xs font-bold text-indigo-600 tracking-wider uppercase">Slides · {slides.length}</h2>
               <button onClick={() => setPickerOpen(true)}
                 className="inline-flex items-center gap-1 text-indigo-600 hover:bg-indigo-50 rounded-md px-2 py-1 text-xs font-bold">
                 <Plus className="w-3.5 h-3.5" /> Add
               </button>
             </div>
-            <div className="space-y-3 max-h-[calc(100vh-180px)] overflow-y-auto pr-1">
+            <div className="space-y-3 flex-1 overflow-y-auto pr-1 min-h-0">
               {BLOCKS.map((b) => {
                 const items = grouped[b.id];
                 if (items.length === 0) return null;
