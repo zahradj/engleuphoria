@@ -660,28 +660,34 @@ export const LibraryManager: React.FC = () => {
       {!!rows?.length && (
         <div className="sticky top-0 z-20 -mx-6 px-6 py-3 mb-5 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800/60">
           <div className="flex flex-col sm:flex-row gap-3">
-            {/* Hub tabs */}
-            <div className="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-              {([
-                { key: 'all', label: 'All', gradient: 'from-slate-600 to-slate-700' },
-                { key: 'playground', label: 'Playground', gradient: HUB_HEADER_GRADIENT.playground },
-                { key: 'academy', label: 'Academy', gradient: HUB_HEADER_GRADIENT.academy },
-                { key: 'success', label: 'Success', gradient: HUB_HEADER_GRADIENT.success },
-              ] as const).map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setHubFilter(tab.key)}
-                  className={cn(
-                    'px-3 py-1.5 rounded-lg text-xs font-bold tracking-wide transition-all',
-                    hubFilter === tab.key
-                      ? `bg-gradient-to-r ${tab.gradient} text-white shadow-sm`
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100',
-                  )}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+            {/* Hub tabs — accessible Tabs with hub-accent underline */}
+            <Tabs
+              value={hubFilter}
+              onValueChange={(v) => setHubFilter(v as typeof hubFilter)}
+              className="shrink-0"
+            >
+              <TabsList className="bg-slate-100 dark:bg-slate-900 p-1 rounded-xl h-auto">
+                {([
+                  { key: 'all', label: 'All Lessons', accent: 'data-[state=active]:after:bg-slate-700' },
+                  { key: 'playground', label: 'Playground (Kids)', accent: 'data-[state=active]:after:bg-orange-500' },
+                  { key: 'academy', label: 'Academy (Teens)', accent: 'data-[state=active]:after:bg-violet-600' },
+                  { key: 'success', label: 'Success (Adults)', accent: 'data-[state=active]:after:bg-emerald-500' },
+                ] as const).map((tab) => (
+                  <TabsTrigger
+                    key={tab.key}
+                    value={tab.key}
+                    className={cn(
+                      'relative px-3 py-1.5 text-xs font-bold tracking-wide rounded-lg',
+                      'data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-sm',
+                      'data-[state=active]:after:absolute data-[state=active]:after:left-3 data-[state=active]:after:right-3 data-[state=active]:after:-bottom-0.5 data-[state=active]:after:h-0.5 data-[state=active]:after:rounded-full',
+                      tab.accent,
+                    )}
+                  >
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
             {/* Search */}
             <div className="relative flex-1 min-w-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
