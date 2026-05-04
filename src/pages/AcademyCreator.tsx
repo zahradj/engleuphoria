@@ -505,17 +505,26 @@ export default function AcademyCreator() {
         {/* Middle: editor */}
         <section className="col-span-12 lg:col-span-5">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 gap-2">
               <h2 className="text-xs font-bold text-indigo-600 tracking-wider uppercase">
                 Edit · #{selected + 1} · {current.type}
               </h2>
-              <select
-                value={current.block}
-                onChange={(e) => update({ block: e.target.value as Block } as any)}
-                className="text-xs font-semibold border border-slate-300 rounded-md px-2 py-1 bg-white"
-              >
-                {BLOCKS.map((b) => <option key={b.id} value={b.id}>{b.label}</option>)}
-              </select>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setTunerOpen(true)}
+                  title="Rewrite this slide easier or harder for a target CEFR level"
+                  className="inline-flex items-center gap-1 text-xs font-semibold border border-indigo-300 text-indigo-700 rounded-md px-2 py-1 hover:bg-indigo-50"
+                >
+                  <Wand2 className="w-3.5 h-3.5" /> Tune difficulty
+                </button>
+                <select
+                  value={current.block}
+                  onChange={(e) => update({ block: e.target.value as Block } as any)}
+                  className="text-xs font-semibold border border-slate-300 rounded-md px-2 py-1 bg-white"
+                >
+                  {BLOCKS.map((b) => <option key={b.id} value={b.id}>{b.label}</option>)}
+                </select>
+              </div>
             </div>
             <Tabs defaultValue="basic" className="w-full">
               <TabsList className="grid grid-cols-3 w-full">
