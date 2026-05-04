@@ -91,7 +91,7 @@ Return STRICT JSON in this drafting format (no prose, no markdown):
         ],
         response_format: { type: 'json_object' },
         temperature: 0.7,
-        max_tokens: 8000,
+        max_tokens: 12000,
       }),
     });
 
