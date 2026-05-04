@@ -16,7 +16,7 @@ import { cefrToDifficulty, hubToTargetSystem, isCefr } from '@/services/lessonHu
  * Master Library reads from). Slides are stored as `content.slides`.
  */
 
-export type CreatorHub = 'playground' | 'academy';
+export type CreatorHub = 'playground' | 'academy' | 'success';
 
 interface UseCreatorLessonArgs {
   hub: CreatorHub;
