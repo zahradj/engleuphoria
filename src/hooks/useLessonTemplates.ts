@@ -73,5 +73,5 @@ export async function cloneTemplateIntoEditor(t: LessonTemplate, navigate: (p: s
   sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   // Fire-and-forget clone count bump
   supabase.rpc('increment_template_clone', { template_id: t.id }).then(() => {});
-  navigate(t.hub === 'playground' ? '/playground-creator?imported=1' : '/academy-creator?imported=1');
+  navigate(t.hub === 'playground' ? '/playground-creator?imported=1' : t.hub === 'success' ? '/success-creator?imported=1' : '/academy-creator?imported=1');
 }
