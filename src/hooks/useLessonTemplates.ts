@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 export interface LessonTemplate {
   id: string;
   created_by: string;
-  hub: 'playground' | 'academy';
+  hub: 'playground' | 'academy' | 'success';
   title: string;
   description: string | null;
   level: string | null;
