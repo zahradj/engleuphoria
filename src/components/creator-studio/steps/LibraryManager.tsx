@@ -279,6 +279,17 @@ export const LibraryManager: React.FC = () => {
     };
     setActiveLessonData(next);
     setDirty(false);
+    // Smart routing: open the hub-specific creator with the lesson preloaded.
+    const hub = targetSystemToHub(row.target_system);
+    if (hub === 'playground') {
+      navigate(`/playground-creator?lessonId=${row.id}`);
+      return;
+    }
+    if (hub === 'academy') {
+      navigate(`/academy-creator?lessonId=${row.id}`);
+      return;
+    }
+    // Success / standard → keep the existing in-shell editor (no dedicated creator yet).
     setCurrentStep('slide-builder');
   };
 
