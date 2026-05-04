@@ -393,6 +393,11 @@ export default function AcademyCreator() {
             >
               <History className="w-4 h-4" />
             </button>
+            <BulkActionsMenu
+              hub="academy"
+              missingAudioCount={findSlidesMissingAudio(slides).length}
+              onGenerateMissingAudio={() => setBulkAudioOpen(true)}
+            />
             <button onClick={handleSaveDraft} disabled={lessonHook.isSaving}
               className="inline-flex items-center gap-2 border border-indigo-400 text-indigo-700 font-semibold rounded-lg px-3 py-2 text-sm transition disabled:opacity-50">
               {lessonHook.isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Draft
