@@ -130,6 +130,8 @@ interface UnitGroup {
 }
 
 export const LibraryManager: React.FC = () => {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { setActiveLessonData, setCurrentStep, setDirty } = useCreator();
   const [rows, setRows] = useState<LessonRow[] | null>(null);
   const [units, setUnits] = useState<UnitRow[]>([]);
@@ -140,7 +142,11 @@ export const LibraryManager: React.FC = () => {
   const [bulkBusy, setBulkBusy] = useState(false);
   const [confirmBulk, setConfirmBulk] = useState<'selected' | 'all' | null>(null);
   // ── Navigation / filter state ────────────────────────────────────
-  const [hubFilter, setHubFilter] = useState<'all' | 'playground' | 'academy' | 'success'>('all');
+  const initialHub = (searchParams.get('hub') as 'all' | 'playground' | 'academy' | 'success') || 'all';
+  const [hubFilter, setHubFilter] = useState<'all' | 'playground' | 'academy' | 'success'>(
+    ['all', 'playground', 'academy', 'success'].includes(initialHub) ? initialHub : 'all',
+  );
+  const [createOpen, setCreateOpen] = useState(false);
   const [kindFilter, setKindFilter] = useState<'all' | 'standard' | 'trial' | 'story'>('all');
   const [search, setSearch] = useState('');
   const [openHubs, setOpenHubs] = useState<Set<string>>(new Set(['playground', 'academy', 'success']));
