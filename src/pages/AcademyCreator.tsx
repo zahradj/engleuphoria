@@ -363,6 +363,13 @@ export default function AcademyCreator() {
                 )}
               </PopoverContent>
             </Popover>
+            <button
+              onClick={() => setVaultOpen(true)}
+              className="inline-flex items-center gap-2 border border-slate-300 hover:border-indigo-400 text-slate-700 font-semibold rounded-lg px-3 py-2 text-sm transition"
+              title="Open Asset Vault"
+            >
+              <FolderOpen className="w-4 h-4" /> Vault
+            </button>
             <SaveStatusBadge status={autoSave.status} lastSavedAt={autoSave.lastSavedAt} />
             <button
               onClick={() => setHistoryOpen(true)}
@@ -594,6 +601,13 @@ export default function AcademyCreator() {
         revisions={history.revisions}
         loading={history.loading}
         onRestore={handleRestore}
+      />
+
+      <AssetVaultDialog
+        open={vaultOpen}
+        onOpenChange={setVaultOpen}
+        hub="academy"
+        onPick={({ url, field }) => update({ [field]: url } as any)}
       />
     </div>
   );
