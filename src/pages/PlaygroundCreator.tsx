@@ -589,7 +589,7 @@ export default function PlaygroundCreator() {
         onPick={({ url, field }) => update({ [field]: url } as any)}
       />
 
-      <SlideTemplatesDialog<Slide>
+      <SlideTemplatesDialog
         open={templatesOpen}
         onOpenChange={setTemplatesOpen}
         hub="playground"
