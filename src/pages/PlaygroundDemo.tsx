@@ -59,7 +59,7 @@ export type Slide =
       voice?: SlideVoice;
       feedback?: SlideFeedback;
     }
-  | { type: 'draw'; prompt: string; voice?: SlideVoice };
+  | { type: 'draw'; prompt: string; image_url?: string; voice?: SlideVoice };
 
 // ─── Dynamic lesson content ──────────────────────────────────────────────────
 const SLIDES: Slide[] = [
