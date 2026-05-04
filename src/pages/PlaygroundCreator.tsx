@@ -541,6 +541,14 @@ export default function PlaygroundCreator() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <RevisionHistoryModal
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        revisions={history.revisions}
+        loading={history.loading}
+        onRestore={handleRestore}
+      />
     </div>
   );
 }
