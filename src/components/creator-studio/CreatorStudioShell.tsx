@@ -36,6 +36,7 @@ const StudioBody: React.FC = () => {
     : currentStep === 'slide-builder' ? SlideStudio
     : currentStep === 'playground-creator' ? PlaygroundCreator
     : currentStep === 'academy-creator' ? AcademyCreator
+    : currentStep === 'success-creator' ? SuccessCreator
     : currentStep === 'trial' ? TrialCreator
     : currentStep === 'story' ? StoryCreator
     : LibraryManager;
