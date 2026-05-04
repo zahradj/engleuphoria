@@ -7,7 +7,7 @@
  * native Slide union.
  */
 
-export type TemplateKind = 'playground' | 'academy';
+export type TemplateKind = 'playground' | 'academy' | 'success';
 
 export interface SlideTemplate<TSlide = any> {
   id: string;
