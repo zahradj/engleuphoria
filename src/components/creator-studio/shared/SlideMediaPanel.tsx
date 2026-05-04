@@ -27,7 +27,7 @@ import { uploadSlideAsset } from '@/components/creator-studio/steps/slide-studio
 export interface SlideMediaPanelProps {
   slide: any;
   onPatch: (patch: Record<string, any>) => void;
-  hub: 'playground' | 'academy';
+  hub: 'playground' | 'academy' | 'success';
   lessonId: string | null;
   slideId: string;
   /** Set true when the current slide type supports flashcard editing. */

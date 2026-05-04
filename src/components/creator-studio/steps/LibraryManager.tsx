@@ -238,7 +238,8 @@ export const LibraryManager: React.FC = () => {
     const target = hub ?? (hubFilter !== 'all' ? hubFilter : null);
     if (target === 'playground') return navigate('/playground-creator');
     if (target === 'academy') return navigate('/academy-creator');
-    // success / all → fall back to in-shell standard slide builder
+    if (target === 'success') return navigate('/success-creator');
+    // all → fall back to in-shell standard slide builder
     setCurrentStep('slide-builder');
   };
   const handleEdit = (row: LessonRow) => {
@@ -289,7 +290,11 @@ export const LibraryManager: React.FC = () => {
       navigate(`/academy-creator?lessonId=${row.id}`);
       return;
     }
-    // Success / standard → keep the existing in-shell editor (no dedicated creator yet).
+    if (hub === 'success') {
+      navigate(`/success-creator?lessonId=${row.id}`);
+      return;
+    }
+    // Standard → keep the existing in-shell editor.
     setCurrentStep('slide-builder');
   };
 

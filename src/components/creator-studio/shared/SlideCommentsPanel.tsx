@@ -6,7 +6,7 @@ import { useSlideComments, type SlideComment } from '@/hooks/useSlideComments';
 interface Props {
   lessonId: string | null;
   slideId: string | null;
-  hub: 'playground' | 'academy';
+  hub: 'playground' | 'academy' | 'success';
 }
 
 function formatTime(iso: string) {

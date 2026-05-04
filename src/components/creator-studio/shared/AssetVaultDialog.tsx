@@ -22,7 +22,7 @@ interface VaultAsset {
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  hub: 'playground' | 'academy';
+  hub: 'playground' | 'academy' | 'success';
   /** Called when the creator picks an asset.
    *  `field` is 'image_url' or 'audio_url'. Parent merges into active slide. */
   onPick: (asset: { url: string; kind: AssetKind; field: 'image_url' | 'audio_url' }) => void;
@@ -34,6 +34,9 @@ const HUB_BUCKETS: Record<Props['hub'], { bucket: string; prefix: string }[]> = 
     { bucket: 'lesson-assets', prefix: 'studio' },
   ],
   academy: [
+    { bucket: 'lesson-assets', prefix: 'studio' },
+  ],
+  success: [
     { bucket: 'lesson-assets', prefix: 'studio' },
   ],
 };

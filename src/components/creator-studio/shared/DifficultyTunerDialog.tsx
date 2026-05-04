@@ -13,7 +13,7 @@ interface Props {
   slide: any;
   /** Patch the slide back into the parent (same signature as `update`). */
   onPatch: (patch: Record<string, any>) => void;
-  hub: 'playground' | 'academy';
+  hub: 'playground' | 'academy' | 'success';
 }
 
 /** Text fields we know how to tune across both creators. */

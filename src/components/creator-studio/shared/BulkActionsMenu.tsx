@@ -11,7 +11,7 @@ import {
 import { cn } from '@/lib/utils';
 
 interface Props {
-  hub: 'playground' | 'academy';
+  hub: 'playground' | 'academy' | 'success';
   onGenerateMissingAudio: () => void;
   /** Count of slides missing audio — for the badge */
   missingAudioCount: number;
