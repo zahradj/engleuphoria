@@ -105,7 +105,7 @@ export function useCreatorLesson({ hub, initialLessonId }: UseCreatorLessonArgs)
           .from('curriculum_lessons')
           .insert({
             title: meta.title,
-            description: `${hub === 'playground' ? 'Playground' : 'Academy'} lesson`,
+            description: `${hub === 'playground' ? 'Playground' : hub === 'success' ? 'Success Hub' : 'Academy'} lesson`,
             target_system: targetSystem,
             difficulty_level: difficulty,
             duration_minutes: hub === 'playground' ? 30 : 60,
