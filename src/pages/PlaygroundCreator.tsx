@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SlideMediaPanel } from '@/components/creator-studio/shared/SlideMediaPanel';
 import { PreviewModeToggle, type PreviewMode } from '@/components/creator-studio/shared/PreviewModeToggle';
 import { PlayablePreviewPane } from '@/components/creator-studio/shared/PlayablePreviewPane';
+import { AssetVaultDialog } from '@/components/creator-studio/shared/AssetVaultDialog';
 import { useCreatorLesson } from '@/hooks/useCreatorLesson';
 import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
 import { SaveStatusBadge } from '@/components/creator-studio/shared/SaveStatusBadge';
@@ -90,6 +91,7 @@ export default function PlaygroundCreator() {
   const [selected, setSelected] = useState(0);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewMode, setPreviewMode] = useState<PreviewMode>('editor');
+  const [vaultOpen, setVaultOpen] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
   const [jsonDraft, setJsonDraft] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
@@ -340,6 +342,13 @@ export default function PlaygroundCreator() {
                 )}
               </PopoverContent>
             </Popover>
+            <button
+              onClick={() => setVaultOpen(true)}
+              className="inline-flex items-center gap-2 bg-white border-2 border-orange-300 hover:bg-orange-50 text-orange-700 font-bold rounded-xl px-3 py-2 text-xs transition active:scale-95"
+              title="Open Asset Vault"
+            >
+              <ImageIcon className="w-3.5 h-3.5" /> Vault
+            </button>
             <label className="cursor-pointer inline-flex items-center gap-2 bg-white border-2 border-orange-300 hover:bg-orange-50 text-orange-700 font-bold rounded-xl px-3 py-2 text-xs transition active:scale-95">
               <Upload className="w-3.5 h-3.5" /> JSON
               <input type="file" accept="application/json" className="hidden" onChange={(e) => e.target.files?.[0] && importJson(e.target.files[0])} />
