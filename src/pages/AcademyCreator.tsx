@@ -706,6 +706,20 @@ export default function AcademyCreator() {
           setSlides((p) => p.map((s, i) => (i === idx ? ({ ...s, ...patch } as Slide) : s)))
         }
       />
+
+      <DifficultyTunerDialog
+        open={tunerOpen}
+        onOpenChange={setTunerOpen}
+        slide={current}
+        onPatch={(patch) => update(patch as Partial<Slide>)}
+        hub="academy"
+      />
+
+      <ImportFromTextDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        defaultHub="academy"
+      />
     </div>
   );
 }
