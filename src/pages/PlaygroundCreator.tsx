@@ -385,8 +385,26 @@ export default function PlaygroundCreator() {
         {/* Editor */}
         <section className="col-span-12 md:col-span-5">
           <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-5">
-            <h2 className="text-sm font-bold text-orange-600 mb-4">EDIT SLIDE #{selected + 1} · {current.type.toUpperCase()}</h2>
-            <SlideEditor slide={current} onChange={update} />
+            <h2 className="text-sm font-bold text-orange-600 mb-3">EDIT SLIDE #{selected + 1} · {current.type.toUpperCase()}</h2>
+            <Tabs defaultValue="basic" className="w-full">
+              <TabsList className="grid grid-cols-2 w-full">
+                <TabsTrigger value="basic">Basic</TabsTrigger>
+                <TabsTrigger value="media">AI Media & Audio</TabsTrigger>
+              </TabsList>
+              <TabsContent value="basic" className="pt-4">
+                <SlideEditor slide={current} onChange={update} />
+              </TabsContent>
+              <TabsContent value="media" className="pt-4">
+                <SlideMediaPanel
+                  slide={current as any}
+                  onPatch={(patch) => update(patch as Partial<Slide>)}
+                  hub="playground"
+                  lessonId={lessonHook.lessonId}
+                  slideId={slideId}
+                  enableFlashcards={current.type === 'match' || current.type === 'multiple'}
+                />
+              </TabsContent>
+            </Tabs>
           </div>
         </section>
 
