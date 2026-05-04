@@ -63,7 +63,7 @@ export const ImportFromTextDialog: React.FC<Props> = ({ open, onOpenChange, defa
         toast.success(`✅ Generated ${data.slides.length} slides — all checks passed`);
       }
       onOpenChange(false);
-      navigate(hub === 'playground' ? '/playground-creator?imported=1' : '/academy-creator?imported=1');
+      navigate(hub === 'playground' ? '/playground-creator?imported=1' : hub === 'success' ? '/success-creator?imported=1' : '/academy-creator?imported=1');
     } catch (e: any) {
       toast.error(e.message || 'Failed to import lesson');
     } finally {
