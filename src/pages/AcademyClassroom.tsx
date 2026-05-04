@@ -30,6 +30,9 @@ const isSpeakingBlock = (s: Slide) =>
   s.block === 'speaking' || s.type === 'speaking_task' || s.type === 'role_play';
 
 export default function AcademyClassroom() {
+  const navigate = useNavigate();
+  const goBack = () => (window.history.length > 1 ? navigate(-1) : navigate('/'));
+
   const deck = useMemo<Slide[]>(() => {
     const custom = (window as any).__ACADEMY_DECK__;
     if (Array.isArray(custom) && custom.length > 0) return custom as Slide[];
