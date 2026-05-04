@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Map, Palette, Library, LogOut, ChevronLeft, ChevronRight, Zap, BookOpen, Sparkles, GraduationCap } from 'lucide-react';
+import { Map, Palette, Library, LogOut, ChevronLeft, ChevronRight, Zap, BookOpen, Sparkles, GraduationCap, Briefcase } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { cn } from '@/lib/utils';
 import { useCreator, CreatorStep } from './CreatorContext';
