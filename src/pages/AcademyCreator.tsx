@@ -18,6 +18,7 @@ import { SlideMediaPanel } from '@/components/creator-studio/shared/SlideMediaPa
 import { PreviewModeToggle, type PreviewMode } from '@/components/creator-studio/shared/PreviewModeToggle';
 import { PlayablePreviewPane } from '@/components/creator-studio/shared/PlayablePreviewPane';
 import { AssetVaultDialog } from '@/components/creator-studio/shared/AssetVaultDialog';
+import { SlideTemplatesDialog } from '@/components/creator-studio/shared/SlideTemplatesDialog';
 import { useCreatorLesson } from '@/hooks/useCreatorLesson';
 import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
 import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
@@ -128,6 +129,7 @@ export default function AcademyCreator() {
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [previewMode, setPreviewMode] = useState<PreviewMode>('editor');
   const [vaultOpen, setVaultOpen] = useState(false);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
 
   const lessonHook = useCreatorLesson({ hub: 'academy', initialLessonId });
 
@@ -370,6 +372,13 @@ export default function AcademyCreator() {
             >
               <FolderOpen className="w-4 h-4" /> Vault
             </button>
+            <button
+              onClick={() => setTemplatesOpen(true)}
+              className="inline-flex items-center gap-2 border border-slate-300 hover:border-indigo-400 text-slate-700 font-semibold rounded-lg px-3 py-2 text-sm transition"
+              title="Insert pre-built slide templates"
+            >
+              <Sparkles className="w-4 h-4" /> Templates
+            </button>
             <SaveStatusBadge status={autoSave.status} lastSavedAt={autoSave.lastSavedAt} />
             <button
               onClick={() => setHistoryOpen(true)}
@@ -608,6 +617,21 @@ export default function AcademyCreator() {
         onOpenChange={setVaultOpen}
         hub="academy"
         onPick={({ url, field }) => update({ [field]: url } as any)}
+      />
+
+      <SlideTemplatesDialog<Slide>
+        open={templatesOpen}
+        onOpenChange={setTemplatesOpen}
+        hub="academy"
+        makeSlide={(t) => makeSlide(t as SlideType)}
+        onInsert={(newSlides, tpl) => {
+          setSlides((p) => {
+            const next = [...p, ...newSlides];
+            setSelected(next.length - newSlides.length);
+            return next;
+          });
+          toast.success(`Added "${tpl.label}" (${newSlides.length} slides)`);
+        }}
       />
     </div>
   );
