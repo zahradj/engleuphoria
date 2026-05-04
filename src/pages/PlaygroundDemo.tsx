@@ -39,6 +39,7 @@ export type Slide =
   | {
       type: 'fill';
       text: string;
+      image_url?: string;
       answer: string;
       voice?: SlideVoice;
       feedback?: SlideFeedback;
@@ -58,7 +59,7 @@ export type Slide =
       voice?: SlideVoice;
       feedback?: SlideFeedback;
     }
-  | { type: 'draw'; prompt: string; voice?: SlideVoice };
+  | { type: 'draw'; prompt: string; image_url?: string; voice?: SlideVoice };
 
 // ─── Dynamic lesson content ──────────────────────────────────────────────────
 const SLIDES: Slide[] = [
@@ -191,6 +192,9 @@ function MultipleChoice({ slide }: { slide: Extract<Slide, { type: 'multiple' }>
       animate={picked ? (correct ? correctAnim : wrongAnim) : undefined}
       className="flex flex-col items-center gap-8 w-full"
     >
+      {slide.image_url && (
+        <img src={slide.image_url} alt="" className="w-44 h-44 rounded-2xl object-cover shadow-md" />
+      )}
       <h2 className="text-4xl font-bold text-slate-800 text-center">{slide.question}</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-2xl">
         {slide.options.map((opt) => {
@@ -233,6 +237,9 @@ function TrueFalse({ slide }: { slide: Extract<Slide, { type: 'truefalse' }> }) 
       animate={picked !== null ? (correct ? correctAnim : wrongAnim) : undefined}
       className="flex flex-col items-center gap-8"
     >
+      {slide.image_url && (
+        <img src={slide.image_url} alt="" className="w-44 h-44 rounded-2xl object-cover shadow-md" />
+      )}
       <h2 className="text-4xl font-bold text-slate-800 text-center">{slide.statement}</h2>
       <div className="flex gap-6">
         <button
@@ -271,6 +278,9 @@ function FillBlank({ slide }: { slide: Extract<Slide, { type: 'fill' }> }) {
       animate={submitted ? (correct ? correctAnim : wrongAnim) : undefined}
       className="flex flex-col items-center gap-8"
     >
+      {(slide as any).image_url && (
+        <img src={(slide as any).image_url} alt="" className="w-44 h-44 rounded-2xl object-cover shadow-md" />
+      )}
       <div className="text-4xl font-bold text-slate-800 flex items-center gap-3 flex-wrap justify-center">
         <span>{parts[0]}</span>
         <input

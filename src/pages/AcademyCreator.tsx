@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Code2, X, Play, Sparkles, Loader2, Save, Send, FolderOpen, History, Wand2, FileUp } from 'lucide-react';
+import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Code2, X, Play, Sparkles, Loader2, Save, Send, FolderOpen, History, Wand2, FileUp, ArrowLeft } from 'lucide-react';
 import {
   SlideRenderer,
   themeMap,
@@ -119,6 +119,11 @@ export default function AcademyCreator() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialLessonId = searchParams.get('lessonId');
+
+  const goBack = () => {
+    if (window.history.length > 1) navigate(-1);
+    else navigate('/content-creator');
+  };
 
   const [slides, setSlides] = useState<Slide[]>(SOCIAL_MEDIA_LESSON.slides);
   const [title, setTitle] = useState(SOCIAL_MEDIA_LESSON.title);
@@ -347,11 +352,18 @@ export default function AcademyCreator() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-slate-100 flex flex-col">
       {/* Top bar */}
       <header className="sticky top-0 z-20 bg-white border-b border-slate-200 shadow-sm">
-        <div className="max-w-[1600px] mx-auto px-6 py-3 flex items-center justify-between gap-4">
+        <div className="w-full px-4 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
+            <button
+              onClick={goBack}
+              title="Back"
+              className="flex items-center gap-1 border border-slate-300 hover:border-indigo-400 text-slate-700 font-semibold rounded-lg px-3 py-2 text-sm transition flex-shrink-0"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back
+            </button>
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-md flex-shrink-0">E</div>
             <div className="min-w-0">
               <div className="text-xs font-bold text-indigo-600 tracking-wider uppercase">Academy · Slide Creator</div>
@@ -456,18 +468,18 @@ export default function AcademyCreator() {
         </div>
       </header>
 
-      <div className="max-w-[1600px] mx-auto grid grid-cols-12 gap-4 p-4">
+      <div className="flex-1 w-full grid grid-cols-1 lg:grid-cols-[260px_1fr_420px] gap-4 p-4 min-h-0">
         {/* Left: slide list grouped by block */}
-        <aside className="col-span-12 lg:col-span-3">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3">
-            <div className="flex items-center justify-between px-2 py-1 mb-2">
+        <aside className="min-h-0 flex flex-col">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 flex flex-col flex-1 min-h-0">
+            <div className="flex items-center justify-between px-2 py-1 mb-2 flex-shrink-0">
               <h2 className="text-xs font-bold text-indigo-600 tracking-wider uppercase">Slides · {slides.length}</h2>
               <button onClick={() => setPickerOpen(true)}
                 className="inline-flex items-center gap-1 text-indigo-600 hover:bg-indigo-50 rounded-md px-2 py-1 text-xs font-bold">
                 <Plus className="w-3.5 h-3.5" /> Add
               </button>
             </div>
-            <div className="space-y-3 max-h-[calc(100vh-180px)] overflow-y-auto pr-1">
+            <div className="space-y-3 flex-1 overflow-y-auto pr-1 min-h-0">
               {BLOCKS.map((b) => {
                 const items = grouped[b.id];
                 if (items.length === 0) return null;
@@ -507,9 +519,9 @@ export default function AcademyCreator() {
         </aside>
 
         {/* Middle: editor */}
-        <section className="col-span-12 lg:col-span-5">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4 gap-2">
+        <section className="min-h-0 flex flex-col">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col flex-1 min-h-0">
+            <div className="flex items-center justify-between mb-4 gap-2 flex-shrink-0">
               <h2 className="text-xs font-bold text-indigo-600 tracking-wider uppercase">
                 Edit · #{selected + 1} · {current.type}
               </h2>
@@ -530,16 +542,16 @@ export default function AcademyCreator() {
                 </select>
               </div>
             </div>
-            <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="grid grid-cols-3 w-full">
+            <Tabs defaultValue="basic" className="w-full flex-1 flex flex-col min-h-0">
+              <TabsList className="grid grid-cols-3 w-full flex-shrink-0">
                 <TabsTrigger value="basic">Basic</TabsTrigger>
                 <TabsTrigger value="media">AI Media & Audio</TabsTrigger>
                 <TabsTrigger value="comments">Comments</TabsTrigger>
               </TabsList>
-              <TabsContent value="basic" className="pt-4">
+              <TabsContent value="basic" className="pt-4 flex-1 overflow-y-auto min-h-0">
                 <SlideEditor slide={current} onChange={update} />
               </TabsContent>
-              <TabsContent value="media" className="pt-4">
+              <TabsContent value="media" className="pt-4 flex-1 overflow-y-auto min-h-0">
                 <SlideMediaPanel
                   slide={current as any}
                   onPatch={(patch) => update(patch as Partial<Slide>)}
@@ -549,7 +561,7 @@ export default function AcademyCreator() {
                   enableFlashcards={current.type === 'vocab' || current.type === 'matching'}
                 />
               </TabsContent>
-              <TabsContent value="comments" className="pt-4">
+              <TabsContent value="comments" className="pt-4 flex-1 overflow-y-auto min-h-0">
                 <SlideCommentsPanel
                   lessonId={lessonHook.lessonId}
                   slideId={slideId}
@@ -561,8 +573,8 @@ export default function AcademyCreator() {
         </section>
 
         {/* Right: live preview */}
-        <section className="col-span-12 lg:col-span-4">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 sticky top-24">
+        <section className="min-h-0 flex flex-col">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 flex flex-col flex-1 min-h-0 overflow-y-auto">
             <div className="flex items-center justify-between mb-2 px-2">
               <h2 className="text-xs font-bold text-indigo-600 tracking-wider uppercase">Live Preview</h2>
               <PreviewModeToggle value={previewMode} onChange={setPreviewMode} hub="academy" />

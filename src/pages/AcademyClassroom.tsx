@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Maximize, Minimize, Volume2, Mic } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Maximize, Minimize, Volume2, Mic, ArrowLeft } from 'lucide-react';
 import {
   SlideRenderer,
   ProgressBar,
@@ -29,6 +30,9 @@ const isSpeakingBlock = (s: Slide) =>
   s.block === 'speaking' || s.type === 'speaking_task' || s.type === 'role_play';
 
 export default function AcademyClassroom() {
+  const navigate = useNavigate();
+  const goBack = () => (window.history.length > 1 ? navigate(-1) : navigate('/'));
+
   const deck = useMemo<Slide[]>(() => {
     const custom = (window as any).__ACADEMY_DECK__;
     if (Array.isArray(custom) && custom.length > 0) return custom as Slide[];
@@ -75,6 +79,13 @@ export default function AcademyClassroom() {
       <header className="border-b border-slate-800/60 bg-slate-950/60 backdrop-blur">
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <button
+              onClick={goBack}
+              title="Back"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-700 hover:border-indigo-500 text-sm transition"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back
+            </button>
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">E</div>
             <div className="leading-tight">
               <div className="text-sm font-bold tracking-wide">ENGLEUPHORIA · ACADEMY</div>

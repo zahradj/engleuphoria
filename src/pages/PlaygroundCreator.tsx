@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Eye, Code2, X, Sparkles, Loader2, Image as ImageIcon, Save, BookOpen, Send, FolderOpen, History, Wand2, FileUp } from 'lucide-react';
+import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Eye, Code2, X, Sparkles, Loader2, Image as ImageIcon, Save, BookOpen, Send, FolderOpen, History, Wand2, FileUp, ArrowLeft } from 'lucide-react';
 import { SlideRenderer, type Slide } from './PlaygroundDemo';
 import { generateOnePlaygroundImage } from '@/hooks/usePlaygroundImages';
 import { supabase } from '@/integrations/supabase/client';
@@ -91,8 +91,14 @@ const STARTER: Slide[] = [
 ];
 
 export default function PlaygroundCreator() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialLessonId = searchParams.get('lessonId');
+
+  const goBack = () => {
+    if (window.history.length > 1) navigate(-1);
+    else navigate('/content-creator');
+  };
 
   const [slides, setSlides] = useState<Slide[]>(STARTER);
   const [title, setTitle] = useState<string>('Untitled Playground Lesson');
@@ -332,11 +338,18 @@ export default function PlaygroundCreator() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-100 via-amber-50 to-yellow-100">
+    <div className="min-h-screen bg-gradient-to-br from-orange-100 via-amber-50 to-yellow-100 flex flex-col">
       {/* Top bar */}
       <header className="sticky top-0 z-20 bg-white/90 backdrop-blur border-b-4 border-orange-400 shadow-sm">
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3 gap-4">
+        <div className="w-full flex items-center justify-between px-4 py-3 gap-3">
           <div className="flex items-center gap-3 min-w-0 flex-1">
+            <button
+              onClick={goBack}
+              title="Back"
+              className="flex items-center gap-1 bg-white border-2 border-orange-300 hover:bg-orange-50 text-orange-700 font-bold rounded-xl px-3 py-2 text-xs transition active:scale-95 flex-shrink-0"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" /> Back
+            </button>
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-400 flex items-center justify-center text-white text-xl font-bold shadow-md flex-shrink-0">
               🎨
             </div>
@@ -440,12 +453,12 @@ export default function PlaygroundCreator() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto grid grid-cols-12 gap-4 p-4">
+      <div className="flex-1 w-full grid grid-cols-1 lg:grid-cols-[260px_1fr_420px] gap-4 p-4 min-h-0">
         {/* Slide list */}
-        <aside className="col-span-12 md:col-span-3">
-          <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-3">
+        <aside className="min-h-0 flex flex-col">
+          <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-3 flex flex-col flex-1 min-h-0">
             <h2 className="text-sm font-bold text-orange-600 px-2 py-1">SLIDES</h2>
-            <div className="space-y-2 max-h-[55vh] overflow-y-auto pr-1">
+            <div className="space-y-2 flex-1 overflow-y-auto pr-1 min-h-0">
               {slides.map((s, i) => (
                 <div
                   key={i}
@@ -491,9 +504,9 @@ export default function PlaygroundCreator() {
         </aside>
 
         {/* Editor */}
-        <section className="col-span-12 md:col-span-5">
-          <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-5">
-            <div className="flex items-center justify-between mb-3 gap-2">
+        <section className="min-h-0 flex flex-col">
+          <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-5 flex flex-col flex-1 min-h-0">
+            <div className="flex items-center justify-between mb-3 gap-2 flex-shrink-0">
               <h2 className="text-sm font-bold text-orange-600">EDIT SLIDE #{safeIndex + 1} · {(current?.type ?? 'intro').toString().toUpperCase()}</h2>
               <button
                 onClick={() => setTunerOpen(true)}
@@ -503,16 +516,16 @@ export default function PlaygroundCreator() {
                 <Wand2 className="w-3.5 h-3.5" /> Tune
               </button>
             </div>
-            <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="grid grid-cols-3 w-full">
+            <Tabs defaultValue="basic" className="w-full flex-1 flex flex-col min-h-0">
+              <TabsList className="grid grid-cols-3 w-full flex-shrink-0">
                 <TabsTrigger value="basic">Basic</TabsTrigger>
                 <TabsTrigger value="media">AI Media & Audio</TabsTrigger>
                 <TabsTrigger value="comments">Comments</TabsTrigger>
               </TabsList>
-              <TabsContent value="basic" className="pt-4">
+              <TabsContent value="basic" className="pt-4 flex-1 overflow-y-auto min-h-0">
                 <SlideEditor slide={current} onChange={update} />
               </TabsContent>
-              <TabsContent value="media" className="pt-4">
+              <TabsContent value="media" className="pt-4 flex-1 overflow-y-auto min-h-0">
                 <SlideMediaPanel
                   slide={current as any}
                   onPatch={(patch) => update(patch as Partial<Slide>)}
@@ -522,7 +535,7 @@ export default function PlaygroundCreator() {
                   enableFlashcards={current.type === 'match' || current.type === 'multiple'}
                 />
               </TabsContent>
-              <TabsContent value="comments" className="pt-4">
+              <TabsContent value="comments" className="pt-4 flex-1 overflow-y-auto min-h-0">
                 <SlideCommentsPanel
                   lessonId={lessonHook.lessonId}
                   slideId={slideId}
@@ -534,8 +547,8 @@ export default function PlaygroundCreator() {
         </section>
 
         {/* Live preview */}
-        <section className="col-span-12 md:col-span-4">
-          <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-3 sticky top-24">
+        <section className="min-h-0 flex flex-col">
+          <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-3 flex flex-col flex-1 min-h-0 overflow-y-auto">
             <div className="flex items-center justify-between mb-2 px-2">
               <h2 className="text-sm font-bold text-orange-600">LIVE PREVIEW</h2>
               <PreviewModeToggle value={previewMode} onChange={setPreviewMode} hub="playground" />
