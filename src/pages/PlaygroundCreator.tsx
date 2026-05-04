@@ -339,15 +339,19 @@ export default function PlaygroundCreator() {
             <h2 className="text-sm font-bold text-orange-600 px-2 py-1">SLIDES</h2>
             <div className="space-y-2 max-h-[55vh] overflow-y-auto pr-1">
               {slides.map((s, i) => (
-                <button
+                <div
                   key={i}
+                  draggable
+                  onDragStart={() => onDragStart(i)}
+                  onDragOver={onDragOver}
+                  onDrop={() => onDrop(i)}
                   onClick={() => setSelected(i)}
-                  className={`w-full text-left rounded-xl p-3 border-2 transition ${
+                  className={`w-full text-left rounded-xl p-3 border-2 transition cursor-pointer ${
                     i === selected ? 'border-orange-500 bg-orange-50 shadow-sm' : 'border-slate-200 hover:border-orange-300 bg-white'
-                  }`}
+                  } ${dragIdx === i ? 'opacity-40' : ''}`}
                 >
                   <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
-                    <span className="font-bold text-orange-600">#{i + 1} · {s.type}</span>
+                    <span className="font-bold text-orange-600">⋮⋮ #{i + 1} · {s.type}</span>
                     <div className="flex gap-1 opacity-70">
                       <span onClick={(e) => { e.stopPropagation(); move(i, -1); }} className="hover:text-orange-600"><ChevronUp className="w-3.5 h-3.5" /></span>
                       <span onClick={(e) => { e.stopPropagation(); move(i, 1); }} className="hover:text-orange-600"><ChevronDown className="w-3.5 h-3.5" /></span>
@@ -356,7 +360,7 @@ export default function PlaygroundCreator() {
                     </div>
                   </div>
                   <div className="text-sm font-semibold text-slate-800 truncate">{slideTitle(s)}</div>
-                </button>
+                </div>
               ))}
             </div>
 
