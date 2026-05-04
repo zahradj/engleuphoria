@@ -186,10 +186,10 @@ export const PlacementGatekeeper = ({
     >
       {/* Same homepage interactive cursor effect, themed to the active hub */}
       <CursorTrail themeIndex={theme.cursorIndex } />
-      {/* Ambient blobs */}
+      {/* Ambient blobs — softer in playground for kid-friendly calm */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className={`absolute -top-20 -left-20 w-96 h-96 rounded-full blur-3xl opacity-30 bg-gradient-to-br ${theme.accent}`} />
-        <div className={`absolute -bottom-20 -right-20 w-96 h-96 rounded-full blur-3xl opacity-20 bg-gradient-to-br ${theme.accent}`} />
+        <div className={`absolute -top-20 -left-20 w-96 h-96 rounded-full blur-3xl ${isPlayground ? 'opacity-40' : 'opacity-30'} bg-gradient-to-br ${theme.accent}`} />
+        <div className={`absolute -bottom-20 -right-20 w-96 h-96 rounded-full blur-3xl ${isPlayground ? 'opacity-30' : 'opacity-20'} bg-gradient-to-br ${theme.accent}`} />
       </div>
 
       <div className="relative w-full max-w-2xl">
