@@ -61,7 +61,11 @@ const SLIDE_TYPES: { type: SlideType; label: string; defaultBlock: Block }[] = [
 ];
 
 function makeSlide(type: SlideType): Slide {
-  const block = SLIDE_TYPES.find((s) => s.type === type)!.defaultBlock;
+  const entry = SLIDE_TYPES.find((s) => s.type === type);
+  if (!entry) {
+    return { type: 'intro', block: 'warmup', title: 'New section', subtitle: '' } as Slide;
+  }
+  const block = entry.defaultBlock;
   switch (type) {
     case 'intro':              return { type, block, title: 'New section', subtitle: '' };
     case 'question':           return { type, block, prompt: 'Open question…', placeholder: '' };
