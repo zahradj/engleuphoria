@@ -7,181 +7,178 @@ interface PlaygroundPlacementPhaseProps {
   onComplete: (results: TestResult[]) => void;
 }
 
+interface PictureOption {
+  image: string;
+  label: string;
+}
+
 interface PictureQuestion {
   prompt: string;
-  audioPrompt: string; // Spoken version for narration / accessibility
-  options: { emoji: string; label: string }[];
+  audioPrompt: string;
+  options: PictureOption[];
   correctIndex: number;
   difficulty: number;
   targetLevel: 'A1' | 'A2' | 'B1';
-  feedback: { correct: string; incorrect: string };
 }
 
 // Picture-based mini quiz for ages 4-9 (Playground Hub).
-// 10 visual questions ordered by gentle progression: colors → animals → actions → simple sentences.
+// Real flat illustrations served from /public/placement/
+const img = (name: string) => `/placement/${name}`;
+
 const PICTURE_QUESTIONS: PictureQuestion[] = [
   {
     prompt: 'Which one is a CAT?',
     audioPrompt: 'Tap the cat',
     options: [
-      { emoji: '🐶', label: 'Dog' },
-      { emoji: '🐱', label: 'Cat' },
-      { emoji: '🐰', label: 'Rabbit' },
-      { emoji: '🐦', label: 'Bird' },
+      { image: img('dog.png'), label: 'Dog' },
+      { image: img('cat.png'), label: 'Cat' },
+      { image: img('rabbit.png'), label: 'Rabbit' },
+      { image: img('bird.png'), label: 'Bird' },
     ],
     correctIndex: 1,
     difficulty: 0.1,
     targetLevel: 'A1',
-    feedback: { correct: 'Yes! Meow! 🐱', incorrect: 'This one is a cat 🐱' },
   },
   {
     prompt: 'Which one is RED?',
     audioPrompt: 'Tap the red one',
     options: [
-      { emoji: '🟦', label: 'Blue' },
-      { emoji: '🟩', label: 'Green' },
-      { emoji: '🟥', label: 'Red' },
-      { emoji: '🟨', label: 'Yellow' },
+      { image: img('blue.png'), label: 'Blue' },
+      { image: img('green.png'), label: 'Green' },
+      { image: img('red.png'), label: 'Red' },
+      { image: img('yellow.png'), label: 'Yellow' },
     ],
     correctIndex: 2,
     difficulty: 0.1,
     targetLevel: 'A1',
-    feedback: { correct: 'Yes! That is red! 🟥', incorrect: 'This one is red 🟥' },
   },
   {
     prompt: 'Which one is an APPLE?',
     audioPrompt: 'Tap the apple',
     options: [
-      { emoji: '🍌', label: 'Banana' },
-      { emoji: '🍎', label: 'Apple' },
-      { emoji: '🍇', label: 'Grapes' },
-      { emoji: '🍊', label: 'Orange' },
+      { image: img('banana.png'), label: 'Banana' },
+      { image: img('apple.png'), label: 'Apple' },
+      { image: img('grapes.png'), label: 'Grapes' },
+      { image: img('orange.png'), label: 'Orange' },
     ],
     correctIndex: 1,
     difficulty: 0.15,
     targetLevel: 'A1',
-    feedback: { correct: 'Yummy! 🍎', incorrect: 'This one is an apple 🍎' },
   },
   {
     prompt: 'Which one is the SUN?',
     audioPrompt: 'Tap the sun',
     options: [
-      { emoji: '🌙', label: 'Moon' },
-      { emoji: '⭐', label: 'Star' },
-      { emoji: '☁️', label: 'Cloud' },
-      { emoji: '☀️', label: 'Sun' },
+      { image: img('moon.png'), label: 'Moon' },
+      { image: img('star.png'), label: 'Star' },
+      { image: img('cloud.png'), label: 'Cloud' },
+      { image: img('sun.png'), label: 'Sun' },
     ],
     correctIndex: 3,
     difficulty: 0.15,
     targetLevel: 'A1',
-    feedback: { correct: 'Bright and warm! ☀️', incorrect: 'This is the sun ☀️' },
   },
   {
     prompt: 'Which one can you DRINK?',
     audioPrompt: 'Tap the one you can drink',
     options: [
-      { emoji: '🍕', label: 'Pizza' },
-      { emoji: '🥛', label: 'Milk' },
-      { emoji: '🍪', label: 'Cookie' },
-      { emoji: '🍞', label: 'Bread' },
+      { image: img('pizza.png'), label: 'Pizza' },
+      { image: img('milk.png'), label: 'Milk' },
+      { image: img('cookie.png'), label: 'Cookie' },
+      { image: img('bread.png'), label: 'Bread' },
     ],
     correctIndex: 1,
     difficulty: 0.25,
     targetLevel: 'A1',
-    feedback: { correct: 'Yes! We drink milk! 🥛', incorrect: 'We drink milk! 🥛' },
   },
   {
     prompt: 'Which one is JUMPING?',
     audioPrompt: 'Tap the one that is jumping',
     options: [
-      { emoji: '🧍', label: 'Standing' },
-      { emoji: '🏃', label: 'Running' },
-      { emoji: '🤸', label: 'Jumping' },
-      { emoji: '😴', label: 'Sleeping' },
+      { image: img('standing.png'), label: 'Standing' },
+      { image: img('running.png'), label: 'Running' },
+      { image: img('jumping.png'), label: 'Jumping' },
+      { image: img('sleeping.png'), label: 'Sleeping' },
     ],
     correctIndex: 2,
     difficulty: 0.35,
     targetLevel: 'A1',
-    feedback: { correct: 'Boing! Jumping high! 🤸', incorrect: 'This one is jumping 🤸' },
   },
   {
-    prompt: 'How many apples? 🍎🍎🍎',
-    audioPrompt: 'Count the apples',
+    prompt: 'How many apples?',
+    audioPrompt: 'Count the apples and tap the right number',
     options: [
-      { emoji: '1️⃣', label: 'One' },
-      { emoji: '2️⃣', label: 'Two' },
-      { emoji: '3️⃣', label: 'Three' },
-      { emoji: '4️⃣', label: 'Four' },
+      { image: img('count-1.png'), label: 'One' },
+      { image: img('count-2.png'), label: 'Two' },
+      { image: img('count-3.png'), label: 'Three' },
+      { image: img('count-4.png'), label: 'Four' },
     ],
     correctIndex: 2,
     difficulty: 0.4,
     targetLevel: 'A1',
-    feedback: { correct: 'Three apples! 🍎🍎🍎', incorrect: 'Count again: 1, 2, 3 🍎🍎🍎' },
   },
   {
     prompt: 'Which sentence is correct?',
     audioPrompt: 'Choose the right sentence',
     options: [
-      { emoji: '🐕', label: 'The dog is happy.' },
-      { emoji: '🐕', label: 'The dog am happy.' },
-      { emoji: '🐕', label: 'The dog be happy.' },
-      { emoji: '🐕', label: 'The dog are happy.' },
+      { image: img('happy-dog.png'), label: 'The dog is happy.' },
+      { image: img('happy-dog.png'), label: 'The dog am happy.' },
+      { image: img('happy-dog.png'), label: 'The dog be happy.' },
+      { image: img('happy-dog.png'), label: 'The dog are happy.' },
     ],
     correctIndex: 0,
     difficulty: 0.55,
     targetLevel: 'A2',
-    feedback: {
-      correct: 'Perfect! "The dog IS happy." ✅',
-      incorrect: 'We say "The dog IS happy." 🐕',
-    },
   },
   {
     prompt: 'Complete: "I ___ ice cream."',
     audioPrompt: 'Choose the right word',
     options: [
-      { emoji: '🍦', label: 'liking' },
-      { emoji: '🍦', label: 'like' },
-      { emoji: '🍦', label: 'likes' },
-      { emoji: '🍦', label: 'liked it' },
+      { image: img('ice-cream.png'), label: 'liking' },
+      { image: img('ice-cream.png'), label: 'like' },
+      { image: img('ice-cream.png'), label: 'likes' },
+      { image: img('ice-cream.png'), label: 'liked it' },
     ],
     correctIndex: 1,
     difficulty: 0.65,
     targetLevel: 'A2',
-    feedback: {
-      correct: 'Yes! "I LIKE ice cream." 🍦',
-      incorrect: 'With "I" we say "like": "I like ice cream." 🍦',
-    },
   },
   {
-    prompt: 'What time is it? 🕒',
-    audioPrompt: 'What time is it on the clock?',
+    prompt: 'Which clock shows THREE o\'clock?',
+    audioPrompt: 'Find the clock that shows three o\'clock',
     options: [
-      { emoji: '🕐', label: 'One o\'clock' },
-      { emoji: '🕑', label: 'Two o\'clock' },
-      { emoji: '🕒', label: 'Three o\'clock' },
-      { emoji: '🕓', label: 'Four o\'clock' },
+      { image: img('clock-1.svg'), label: 'One o\'clock' },
+      { image: img('clock-2.svg'), label: 'Two o\'clock' },
+      { image: img('clock-3.svg'), label: 'Three o\'clock' },
+      { image: img('clock-4.svg'), label: 'Four o\'clock' },
     ],
     correctIndex: 2,
     difficulty: 0.7,
     targetLevel: 'B1',
-    feedback: { correct: 'Three o\'clock! ⏰', incorrect: 'The clock shows three o\'clock 🕒' },
   },
+];
+
+const ENCOURAGEMENTS = [
+  'Great choice! ✨',
+  'Awesome! Keep going! 🌟',
+  'Nice work! 🎉',
+  'You\'re doing great! 💫',
+  'Wonderful! ⭐',
 ];
 
 export const PlaygroundPlacementPhase = ({ onComplete }: PlaygroundPlacementPhaseProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [showFeedback, setShowFeedback] = useState(false);
   const [results, setResults] = useState<TestResult[]>([]);
 
   const current = PICTURE_QUESTIONS[currentIndex];
   const total = PICTURE_QUESTIONS.length;
-  const progress = ((currentIndex + (showFeedback ? 1 : 0)) / total) * 100;
+  const progress = ((currentIndex + (selectedIndex !== null ? 1 : 0)) / total) * 100;
+  const encouragement = ENCOURAGEMENTS[currentIndex % ENCOURAGEMENTS.length];
 
   const handleSelect = (optionIndex: number) => {
     if (selectedIndex !== null) return;
     setSelectedIndex(optionIndex);
-    setShowFeedback(true);
 
     const isCorrect = optionIndex === current.correctIndex;
     const result: TestResult = {
@@ -201,9 +198,8 @@ export const PlaygroundPlacementPhase = ({ onComplete }: PlaygroundPlacementPhas
       } else {
         setCurrentIndex(currentIndex + 1);
         setSelectedIndex(null);
-        setShowFeedback(false);
       }
-    }, 1600);
+    }, 1100);
   };
 
   return (
@@ -216,20 +212,20 @@ export const PlaygroundPlacementPhase = ({ onComplete }: PlaygroundPlacementPhas
               <Star
                 key={i}
                 className={`w-3.5 h-3.5 ${
-                  i < currentIndex || (i === currentIndex && showFeedback)
-                    ? 'text-yellow-400 fill-yellow-400'
-                    : 'text-white/20'
+                  i < currentIndex || (i === currentIndex && selectedIndex !== null)
+                    ? 'text-amber-500 fill-amber-400'
+                    : 'text-amber-200'
                 }`}
               />
             ))}
           </div>
-          <span className="text-white/70 text-xs font-semibold">
+          <span className="text-slate-600 text-xs font-semibold">
             {currentIndex + 1} / {total}
           </span>
         </div>
-        <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+        <div className="h-2 bg-amber-100 rounded-full overflow-hidden">
           <motion.div
-            className="h-full bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-300"
+            className="h-full bg-gradient-to-r from-orange-400 via-amber-400 to-yellow-400"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.4 }}
@@ -237,39 +233,28 @@ export const PlaygroundPlacementPhase = ({ onComplete }: PlaygroundPlacementPhas
         </div>
       </div>
 
-      {/* Question */}
-      <div className="flex-1 flex flex-col px-6 pb-6 overflow-y-auto">
+      {/* Question with horizontal slide between questions */}
+      <div className="flex-1 flex flex-col px-4 sm:px-6 pb-6 overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentIndex}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, x: 100 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -100 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
             className="flex-1 flex flex-col"
           >
             <div className="text-center mt-4 mb-6">
-              <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight mb-2">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-800 leading-tight mb-2">
                 {current.prompt}
               </h2>
-              <p className="text-white/60 text-sm">{current.audioPrompt}</p>
+              <p className="text-slate-500 text-sm">{current.audioPrompt}</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 max-w-md mx-auto w-full">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-md mx-auto w-full">
               {current.options.map((option, idx) => {
                 const isSelected = selectedIndex === idx;
-                const isCorrectAnswer = idx === current.correctIndex;
-                let stateClass =
-                  'bg-white/10 border-white/20 hover:bg-white/15 hover:border-white/30 hover:scale-105';
-                if (showFeedback) {
-                  if (isCorrectAnswer) {
-                    stateClass =
-                      'bg-emerald-400/30 border-emerald-300 ring-4 ring-emerald-300/40 scale-105';
-                  } else if (isSelected) {
-                    stateClass = 'bg-rose-400/20 border-rose-300/60 opacity-60';
-                  } else {
-                    stateClass = 'bg-white/5 border-white/10 opacity-50';
-                  }
-                }
+                const showSelected = isSelected;
 
                 return (
                   <motion.button
@@ -277,20 +262,48 @@ export const PlaygroundPlacementPhase = ({ onComplete }: PlaygroundPlacementPhas
                     type="button"
                     onClick={() => handleSelect(idx)}
                     disabled={selectedIndex !== null}
-                    whileTap={{ scale: 0.95 }}
-                    className={`relative aspect-square rounded-3xl border-2 backdrop-blur-md p-4 flex flex-col items-center justify-center gap-2 transition-all duration-200 ${stateClass}`}
+                    initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{
+                      delay: idx * 0.08,
+                      type: 'spring',
+                      stiffness: 300,
+                      damping: 22,
+                    }}
+                    whileHover={selectedIndex === null ? { scale: 1.05, y: -5 } : undefined}
+                    whileTap={selectedIndex === null ? { scale: 0.95 } : undefined}
+                    aria-label={option.label}
+                    aria-pressed={isSelected}
+                    className={`relative aspect-square rounded-2xl overflow-hidden bg-white border shadow-md transition-shadow duration-200 ${
+                      showSelected
+                        ? 'border-orange-300 ring-4 ring-orange-400 shadow-lg'
+                        : selectedIndex !== null
+                        ? 'border-slate-200 opacity-70'
+                        : 'border-slate-200 hover:shadow-lg'
+                    }`}
                   >
-                    <span className="text-5xl md:text-6xl" role="img" aria-label={option.label}>
-                      {option.emoji}
-                    </span>
-                    <span className="text-white font-semibold text-sm md:text-base text-center">
-                      {option.label}
-                    </span>
-                    {showFeedback && isCorrectAnswer && (
+                    <img
+                      src={option.image}
+                      alt={option.label}
+                      loading="lazy"
+                      width={512}
+                      height={512}
+                      className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
+                      draggable={false}
+                    />
+                    {/* Bottom label pill */}
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%]">
+                      <span className="block bg-white/95 backdrop-blur-sm rounded-full px-3 py-1 text-slate-800 font-semibold text-xs sm:text-sm text-center shadow-sm whitespace-nowrap overflow-hidden text-ellipsis">
+                        {option.label}
+                      </span>
+                    </div>
+                    {/* Pop badge on tap (non-punishing — appears for any selection) */}
+                    {showSelected && (
                       <motion.div
                         initial={{ scale: 0, rotate: -180 }}
                         animate={{ scale: 1, rotate: 0 }}
-                        className="absolute -top-3 -right-3 w-9 h-9 rounded-full bg-emerald-400 flex items-center justify-center shadow-lg"
+                        transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                        className="absolute -top-2 -right-2 w-9 h-9 rounded-full bg-orange-400 flex items-center justify-center shadow-lg"
                       >
                         <Sparkles className="w-5 h-5 text-white" />
                       </motion.div>
@@ -300,24 +313,17 @@ export const PlaygroundPlacementPhase = ({ onComplete }: PlaygroundPlacementPhas
               })}
             </div>
 
+            {/* Non-punishing encouragement — shown for any tap */}
             <AnimatePresence>
-              {showFeedback && (
+              {selectedIndex !== null && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   className="mt-6 mx-auto max-w-sm"
                 >
-                  <div
-                    className={`rounded-2xl px-5 py-3 text-center font-semibold backdrop-blur-md border ${
-                      selectedIndex === current.correctIndex
-                        ? 'bg-emerald-400/20 border-emerald-300/40 text-emerald-100'
-                        : 'bg-amber-400/20 border-amber-300/40 text-amber-100'
-                    }`}
-                  >
-                    {selectedIndex === current.correctIndex
-                      ? current.feedback.correct
-                      : current.feedback.incorrect}
+                  <div className="rounded-2xl px-5 py-3 text-center font-semibold bg-orange-50 border border-orange-200 text-orange-700">
+                    {encouragement}
                   </div>
                 </motion.div>
               )}
