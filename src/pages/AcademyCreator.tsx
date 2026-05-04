@@ -25,6 +25,7 @@ import { BulkAudioDialog } from '@/components/creator-studio/shared/BulkAudioDia
 import { findSlidesMissingAudio } from '@/components/creator-studio/shared/slideAudioHelpers';
 import { DifficultyTunerDialog } from '@/components/creator-studio/shared/DifficultyTunerDialog';
 import { ImportFromTextDialog, IMPORTED_LESSON_STORAGE_KEY } from '@/components/creator-studio/shared/ImportFromTextDialog';
+import { PublishTemplateDialog } from '@/components/creator-studio/marketplace/PublishTemplateDialog';
 import { useCreatorLesson } from '@/hooks/useCreatorLesson';
 import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
 import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
