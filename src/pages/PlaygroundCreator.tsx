@@ -107,6 +107,7 @@ export default function PlaygroundCreator() {
   const [selected, setSelected] = useState(0);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewMode, setPreviewMode] = useState<PreviewMode>('editor');
+  const [previewRole, setPreviewRole] = useState<PreviewRole>('teacher');
   const [vaultOpen, setVaultOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [bulkAudioOpen, setBulkAudioOpen] = useState(false);
