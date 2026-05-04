@@ -62,6 +62,7 @@ const SuccessDemo = lazy(() => import("./pages/SuccessDemo"));
 const PlaygroundCreator = lazy(() => import("./pages/PlaygroundCreator"));
 const AcademyClassroom = lazy(() => import("./pages/AcademyClassroom"));
 const AcademyCreator = lazy(() => import("./pages/AcademyCreator"));
+const SuccessCreator = lazy(() => import("./pages/SuccessCreator"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
