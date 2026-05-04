@@ -267,6 +267,9 @@ export function HeroSection() {
                     alt={theme.alt}
                     className="relative z-[2] w-full h-full object-contain drop-shadow-2xl"
                     loading="eager"
+                    decoding="async"
+                    // @ts-expect-error fetchpriority is a valid HTML attr not yet in React types
+                    fetchpriority="high"
                     width={800}
                     height={1024}
                     initial={{ opacity: 0, scale: 1.05, y: 20 }}
