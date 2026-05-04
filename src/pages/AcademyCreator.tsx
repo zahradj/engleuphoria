@@ -651,6 +651,16 @@ export default function AcademyCreator() {
           toast.success(`Added "${tpl.label}" (${newSlides.length} slides)`);
         }}
       />
+
+      <BulkAudioDialog
+        open={bulkAudioOpen}
+        onOpenChange={setBulkAudioOpen}
+        slides={slides}
+        lessonId={lessonHook.lessonId}
+        patchSlide={(idx, patch) =>
+          setSlides((p) => p.map((s, i) => (i === idx ? ({ ...s, ...patch } as Slide) : s)))
+        }
+      />
     </div>
   );
 }
