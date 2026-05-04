@@ -12,6 +12,7 @@ import { PreviewModeToggle, type PreviewMode } from '@/components/creator-studio
 import { PlayablePreviewPane } from '@/components/creator-studio/shared/PlayablePreviewPane';
 import { AssetVaultDialog } from '@/components/creator-studio/shared/AssetVaultDialog';
 import { SlideTemplatesDialog } from '@/components/creator-studio/shared/SlideTemplatesDialog';
+import { SlideCommentsPanel } from '@/components/creator-studio/shared/SlideCommentsPanel';
 import { useCreatorLesson } from '@/hooks/useCreatorLesson';
 import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
 import { SaveStatusBadge } from '@/components/creator-studio/shared/SaveStatusBadge';
@@ -445,9 +446,10 @@ export default function PlaygroundCreator() {
           <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-5">
             <h2 className="text-sm font-bold text-orange-600 mb-3">EDIT SLIDE #{selected + 1} · {current.type.toUpperCase()}</h2>
             <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="grid grid-cols-2 w-full">
+              <TabsList className="grid grid-cols-3 w-full">
                 <TabsTrigger value="basic">Basic</TabsTrigger>
                 <TabsTrigger value="media">AI Media & Audio</TabsTrigger>
+                <TabsTrigger value="comments">Comments</TabsTrigger>
               </TabsList>
               <TabsContent value="basic" className="pt-4">
                 <SlideEditor slide={current} onChange={update} />
@@ -460,6 +462,13 @@ export default function PlaygroundCreator() {
                   lessonId={lessonHook.lessonId}
                   slideId={slideId}
                   enableFlashcards={current.type === 'match' || current.type === 'multiple'}
+                />
+              </TabsContent>
+              <TabsContent value="comments" className="pt-4">
+                <SlideCommentsPanel
+                  lessonId={lessonHook.lessonId}
+                  slideId={slideId}
+                  hub="playground"
                 />
               </TabsContent>
             </Tabs>

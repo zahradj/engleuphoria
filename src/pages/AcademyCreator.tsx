@@ -19,6 +19,7 @@ import { PreviewModeToggle, type PreviewMode } from '@/components/creator-studio
 import { PlayablePreviewPane } from '@/components/creator-studio/shared/PlayablePreviewPane';
 import { AssetVaultDialog } from '@/components/creator-studio/shared/AssetVaultDialog';
 import { SlideTemplatesDialog } from '@/components/creator-studio/shared/SlideTemplatesDialog';
+import { SlideCommentsPanel } from '@/components/creator-studio/shared/SlideCommentsPanel';
 import { useCreatorLesson } from '@/hooks/useCreatorLesson';
 import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
 import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
@@ -472,9 +473,10 @@ export default function AcademyCreator() {
               </select>
             </div>
             <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="grid grid-cols-2 w-full">
+              <TabsList className="grid grid-cols-3 w-full">
                 <TabsTrigger value="basic">Basic</TabsTrigger>
                 <TabsTrigger value="media">AI Media & Audio</TabsTrigger>
+                <TabsTrigger value="comments">Comments</TabsTrigger>
               </TabsList>
               <TabsContent value="basic" className="pt-4">
                 <SlideEditor slide={current} onChange={update} />
@@ -487,6 +489,13 @@ export default function AcademyCreator() {
                   lessonId={lessonHook.lessonId}
                   slideId={slideId}
                   enableFlashcards={current.type === 'vocab' || current.type === 'matching'}
+                />
+              </TabsContent>
+              <TabsContent value="comments" className="pt-4">
+                <SlideCommentsPanel
+                  lessonId={lessonHook.lessonId}
+                  slideId={slideId}
+                  hub="academy"
                 />
               </TabsContent>
             </Tabs>
