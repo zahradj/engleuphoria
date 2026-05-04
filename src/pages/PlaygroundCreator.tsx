@@ -695,6 +695,14 @@ export default function PlaygroundCreator() {
         onOpenChange={setImportOpen}
         defaultHub="playground"
       />
+
+      <PublishTemplateDialog
+        open={publishTemplateOpen}
+        onOpenChange={setPublishTemplateOpen}
+        hub="playground"
+        title={title}
+        slides={slides}
+      />
     </div>
   );
 }
