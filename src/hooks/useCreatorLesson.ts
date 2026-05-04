@@ -56,9 +56,9 @@ export function useCreatorLesson({ hub, initialLessonId }: UseCreatorLessonArgs)
   const persist = useCallback(
     async (
       slides: any[],
-      meta: { title: string; level?: string; publish: boolean },
+      meta: { title: string; level?: string; publish: boolean; silent?: boolean },
     ): Promise<string | null> => {
-      setIsSaving(true);
+      if (!meta.silent) setIsSaving(true);
       try {
         const { data: userData } = await supabase.auth.getUser();
         const userId = userData?.user?.id ?? null;
