@@ -147,8 +147,8 @@ export function HeroSection() {
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 pt-32 sm:pt-36 pb-12 sm:py-28 lg:py-0">
         <div className="grid lg:grid-cols-2 gap-6 lg:gap-16 items-center min-h-[auto] lg:min-h-[85vh]">
 
-          {/* Left: Content — show first on mobile */}
-          <div className="order-1 lg:order-1">
+          {/* Left: Content — second on mobile (image first), first on desktop */}
+          <div className="order-2 lg:order-1">
 
             {/* Headline with dynamic gradient accent */}
             <motion.h1
@@ -241,9 +241,9 @@ export function HeroSection() {
             </motion.div>
           </div>
 
-          {/* Right: Hero Image — below content on mobile */}
+          {/* Right: Hero Image — first on mobile (sits right under the logo), right column on desktop */}
           <motion.div
-            className="order-2 lg:order-2 relative"
+            className="order-1 lg:order-2 relative"
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
