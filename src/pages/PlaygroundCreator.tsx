@@ -136,6 +136,30 @@ export default function PlaygroundCreator() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonHook.lessonId]);
 
+  // Inject AI-imported lesson (from ImportFromTextDialog on the dashboard)
+  useEffect(() => {
+    if (searchParams.get('imported') !== '1') return;
+    try {
+      const raw = sessionStorage.getItem(IMPORTED_LESSON_STORAGE_KEY);
+      if (!raw) return;
+      const payload = JSON.parse(raw);
+      if (payload.hub && payload.hub !== 'playground') return;
+      if (Array.isArray(payload.slides) && payload.slides.length > 0) {
+        setSlides(payload.slides);
+        setSelected(0);
+        if (payload.title) setTitle(payload.title);
+        toast.success(`Loaded ${payload.slides.length} imported slides`);
+      }
+      sessionStorage.removeItem(IMPORTED_LESSON_STORAGE_KEY);
+      const next = new URLSearchParams(searchParams);
+      next.delete('imported');
+      setSearchParams(next, { replace: true });
+    } catch (e) {
+      console.error('Failed to inject imported lesson', e);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const current = slides[selected];
   const slideId = `slide-${selected}`;
 
