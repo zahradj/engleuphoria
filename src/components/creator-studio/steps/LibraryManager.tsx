@@ -497,6 +497,50 @@ export const LibraryManager: React.FC = () => {
             Your published and draft lessons, grouped by Hub → Level → Unit.
           </p>
         </div>
+        {/* Create New Lesson — smart-routed by active tab */}
+        <Popover open={createOpen} onOpenChange={setCreateOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              size="sm"
+              className="gap-1.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white border-0"
+              onClick={(e) => {
+                if (hubFilter !== 'all') {
+                  e.preventDefault();
+                  setCreateOpen(false);
+                  handleCreateNew();
+                }
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              Create New Lesson
+            </Button>
+          </PopoverTrigger>
+          {hubFilter === 'all' && (
+            <PopoverContent align="end" className="w-56 p-2">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-2 pt-1 pb-2">
+                Choose a hub
+              </p>
+              <button
+                className="w-full text-left px-3 py-2 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-950/30 text-sm font-semibold flex items-center gap-2"
+                onClick={() => { setCreateOpen(false); handleCreateNew('playground'); }}
+              >
+                <Gamepad2 className="h-4 w-4 text-orange-500" /> Playground (Kids)
+              </button>
+              <button
+                className="w-full text-left px-3 py-2 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-950/30 text-sm font-semibold flex items-center gap-2"
+                onClick={() => { setCreateOpen(false); handleCreateNew('academy'); }}
+              >
+                <BookOpen className="h-4 w-4 text-violet-600" /> Academy (Teens)
+              </button>
+              <button
+                className="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-950/30 text-sm font-semibold flex items-center gap-2"
+                onClick={() => { setCreateOpen(false); handleCreateNew('success'); }}
+              >
+                <Library className="h-4 w-4 text-emerald-600" /> Success (Adults)
+              </button>
+            </PopoverContent>
+          )}
+        </Popover>
         <Button variant="outline" size="sm" onClick={fetchRows} disabled={loading}>
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Refresh'}
         </Button>
