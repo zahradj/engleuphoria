@@ -1,114 +1,47 @@
-## Goal
+## Step 2: Playable Preview Toggle
 
-Bring `PlaygroundCreator` and `AcademyCreator` to parity with the rest of the studio:
+Right now both creators have a static "live preview" pane on the right that shows the current slide visually but does not let you actually *play* it (no answer checking, no navigation, no audio playback the way a student experiences it). Users want to flip the preview into a true playable mode — like a mini lesson player — without leaving the editor.
 
-1. A clean tabbed media panel (Image · Audio · Music · Video · Flashcards) in the middle column.
-2. Real persistence to `curriculum_lessons` (the Master Library), with Save Draft, Publish, and Import working.
-3. Slide rail upgrades: keyboard reorder + duplicate + delete already exist; add drag-and-drop and an explicit "lesson title / hub" header.
+### What gets built
 
-## Reality check
+1. **Preview Mode Toggle (shared `PreviewModeToggle.tsx`)**
+   - A small segmented control in the Right Preview column header with two options: **Editor View** (current static slide preview, scoped to the active slide) and **Play Mode** (interactive, deck-aware playback starting from the active slide).
+   - State stored per-creator (`useState`), defaults to Editor View.
+   - Shared in `src/components/creator-studio/shared/PreviewModeToggle.tsx` so both creators reuse it.
 
-- The named components in the brief (`AudioGenerator`, `ImageGenerator`, `VideoEmbedder`, `FlashcardBuilder`) **do not exist as standalone files**. The richest media UI lives inside `creator-studio/.../TeacherControlsPanel.tsx`, but it is tightly coupled to a different `PPPSlide` shape (CreatorContext) and cannot be dropped into the Playground/Academy slide schemas.
-- The reusable backend pieces that **do** exist and we will share:
-  - `generate-slide-image`, `generate-slide-voiceover`, `generate-slide-music` edge functions — wrapped by `src/components/creator-studio/steps/slide-studio/mediaGeneration.ts` (`generateSlideImage`, `generateSlideVoiceover`, `generateSlideMusic`).
-  - `generateOnePlaygroundImage` from `usePlaygroundImages` (already used for kids).
-  - `useLessonEditor` hook + `lessonLibraryService` (`getLibraryLessons`, `getLessonById`, `saveToLibrary`) — the same data layer the Master Library reads from.
-- Both creators currently keep slides only in `useState` — no `.from('curriculum_lessons')` call anywhere. That is the disconnect to fix.
+2. **Playable Preview Pane (shared `PlayablePreviewPane.tsx`)**
+   - Wraps the existing `SlideRenderer` (Playground) / Academy slide renderer in a deck container with:
+     - Prev / Next slide navigation buttons + slide counter (`3 / 12`).
+     - Working answer interactions (uses the renderer's existing onAnswer hooks — no new logic, just routes feedback to a local state).
+     - "Restart deck" button.
+     - Auto-advance on correct answer (optional toggle; off by default to let creators inspect slides).
+     - Audio playback enabled (voice + sfx) using the existing `playSlideAudio` util.
+   - When the user toggles back to Editor View, the pane reverts to the static single-slide preview already present.
 
-## What to build
+3. **Wire-up in `PlaygroundCreator.tsx`**
+   - Replace the existing static-only right column (around lines 448–460) with `<PlayablePreviewPane mode={previewMode} slides={slides} startIndex={currentIndex} />`.
+   - Add `<PreviewModeToggle value={previewMode} onChange={setPreviewMode} hub="playground" />` in that column header.
+   - Keep the existing fullscreen "Preview" button (`FullPreview`) untouched — it already plays the whole deck fullscreen.
 
-### 1. New shared `SlideMediaPanel` component
+4. **Wire-up in `AcademyCreator.tsx`**
+   - Same pattern around line 475 ("Live Preview" header).
+   - Pass Academy's `t` (theme) prop through to the renderer.
+   - Hub-tinted toggle (indigo/purple for Academy, orange/yellow for Playground).
 
-Create `src/components/creator-studio/shared/SlideMediaPanel.tsx`. A self-contained tabbed panel that operates on a generic `slide: any` and an `onPatch(patch)` callback. Tabs:
+5. **No DB / no edge function changes.** Pure client-side UX.
 
-```text
-[ Image ]  [ Audio ]  [ Music ]  [ Video ]  [ Flashcards ]
-```
+### Files
 
-- **Image** — text prompt + "Generate" button (calls `generateSlideImage(prompt, lessonId, slideId, hub)`), URL input, file upload via `uploadSlideAsset`, thumbnail preview. Writes to `slide.image_url` (Playground) or `slide.media.image_url` (Academy — see binding map).
-- **Audio** — text → ElevenLabs TTS via `generateSlideVoiceover`, voice dropdown (Sarah / Roger / Lily / Charlie), preview `<audio>`. Writes to `slide.voice.text` and `slide.voice.audio_url`.
-- **Music** — prompt + duration → `generateSlideMusic`, preview, writes to `slide.music_url`.
-- **Video** — paste YouTube/Vimeo URL, auto-detect ID, write `slide.video_url` + `slide.video_embed_url`.
-- **Flashcards** — only enabled when slide type matches (`vocab` / `matching` / `match`). Inline list of `{ front, back, image_url? }` with add/remove/AI image per card; writes to `slide.flashcards` (or `slide.pairs` for `match`).
+- New: `src/components/creator-studio/shared/PreviewModeToggle.tsx`
+- New: `src/components/creator-studio/shared/PlayablePreviewPane.tsx`
+- Edit: `src/pages/PlaygroundCreator.tsx` (right preview column + state)
+- Edit: `src/pages/AcademyCreator.tsx` (right preview column + state)
 
-Each tab uses the existing UI primitives (`Tabs`, `Input`, `Textarea`, `Button`, `Label`, `Card`) and `sonner` toasts. The panel emits a single `onPatch` so the parent's existing `update()` reducer is reused.
+### Out of scope (saved for later steps)
 
-### 2. New `useCreatorLesson` hook
+- Master Asset Vault (Step 3).
+- AI Slide-from-Prompt generator (Step 4).
+- Collaborative comments (Step 5).
+- Changing the existing FullPreview fullscreen modal — it already works.
 
-Create `src/hooks/useCreatorLesson.ts` (thin wrapper around `useLessonEditor` + `getLibraryLessons` for the Import dropdown):
-
-```text
-useCreatorLesson({ hub })
-  → { lessonId, setLessonId,
-      lesson, isLoading,
-      saveDraft(slides), publish(slides),
-      libraryList, refreshLibrary }
-```
-
-Persistence rules:
-- **Save Draft** → `update curriculum_lessons set content = { slides, hub, updated_at }, is_published = false where id = :lessonId`.
-- **Publish** → same upsert + `is_published = true`.
-- **New lesson** (no `lessonId` yet) → call `saveToLibrary(title, hub, level, slides)` to insert and capture the new id.
-- **Import** → `getLibraryLessons(hub)` for the picker, then `getLessonById(id)` and hydrate `setSlides(content.slides)` + `setLessonId(id)`.
-- All routed through `curriculum_lessons` (canonical table per project memory).
-
-### 3. Refactor `PlaygroundCreator` middle column
-
-Keep all existing per-type fields (intro/multiple/truefalse/fill/drag/match/draw — they ARE the "Basic Text" and "Interactive Data" sections). Wrap them in tabs:
-
-```text
-[ Basic ]  [ AI Media & Audio ]  [ Interactive Data ]
-```
-
-- **Basic** = the current `SlideEditor()` text/option fields (no change).
-- **AI Media & Audio** = mounted `<SlideMediaPanel>` with hub="playground".
-- **Interactive Data** = the existing `match.pairs` / `multiple.options` / `drag` editors that aren't basic text. (For most slide types this tab is hidden.)
-
-Header buttons (top-right): replace the JSON-only set with `Save Draft`, `Publish`, `Import from Library ▾`, `Preview`, `JSON`. Add a **Lesson Title** input + hub badge in the header row. Wire to `useCreatorLesson({ hub: 'playground' })`.
-
-### 4. Refactor `AcademyCreator` middle column
-
-Same pattern with `useCreatorLesson({ hub: 'academy' })`. Academy slides have richer types; the Media tab is enabled on every type, the Flashcards tab is enabled for `vocab` / `matching`.
-
-### 5. Slide rail (left column) parity
-
-Both creators already have move-up / move-down / duplicate / delete. Add:
-- HTML5 drag-and-drop reorder (`onDragStart` / `onDragOver` / `onDrop` on the slide list items) — small inline implementation, no new lib.
-- "+ New from template" stays as-is.
-
-### 6. Routing the Master Library to these creators
-
-In the existing Master Library / Curriculum Manager lesson cards, add an "Edit in Studio" button that links to:
-- `/playground-creator?lessonId=:id` for Playground hub
-- `/academy-creator?lessonId=:id` for Academy hub
-
-Both creators read `?lessonId=` on mount (via `useSearchParams`) and hydrate. This closes the loop: lessons saved here are immediately editable from Master Library and vice versa.
-
-## Technical details
-
-**Slide → DB binding:** payload is stored as `curriculum_lessons.content = { slides: Slide[], hub, updated_at }` to match what `lessonLibraryService.getSlidesArray` already understands.
-
-**File touch list:**
-
-```text
-NEW   src/components/creator-studio/shared/SlideMediaPanel.tsx
-NEW   src/hooks/useCreatorLesson.ts
-EDIT  src/pages/PlaygroundCreator.tsx       — header, tabs, persistence, drag-drop
-EDIT  src/pages/AcademyCreator.tsx          — header, tabs, persistence, drag-drop
-EDIT  src/components/content-creator/CurriculumManager.tsx
-        — add "Edit in Studio" link per lesson card (Playground/Academy only)
-```
-
-**Reused (no edits):**
-- `src/components/creator-studio/steps/slide-studio/mediaGeneration.ts`
-- `src/components/creator-studio/steps/slide-studio/uploadSlideAsset.ts`
-- `src/services/lessonLibraryService.ts`
-- `src/hooks/useLessonEditor.ts`
-- Edge functions: `generate-slide-image`, `generate-slide-voiceover`, `generate-slide-music`
-
-**No DB migration needed** — `curriculum_lessons` already has `content jsonb`, `is_published`, `target_system`, `created_by`.
-
-**Out of scope (not in this pass):**
-- Replacing the Playground/Academy `SlideRenderer` to read the new `slide.voice.audio_url` / `slide.music_url` fields. Today the renderer uses browser TTS for `voice.text`; pre-generated audio URLs will simply sit on the slide JSON ready to be wired in a follow-up.
-- Per-slide `lesson-slides` storage bucket policy changes (uses existing bucket via `uploadSlideAsset`).
-- Cross-hub conversion (a Playground lesson cannot be opened in AcademyCreator — the schemas differ).
+Approve and I will implement.
