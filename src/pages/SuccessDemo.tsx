@@ -54,7 +54,7 @@ export type Slide =
 
 // ─── Lesson content ──────────────────────────────────────────────────────────
 // Topic: "Making Requests at Work" — B1 level, 32 slides, 60 min.
-const SLIDES: Slide[] = [
+export const SLIDES: Slide[] = [
   // BLOCK 1 — Warm-up
   { type: 'intro', block: 'warmup', title: 'Making Requests at Work', subtitle: 'B1 · 60 min · Speak with clarity and confidence in professional settings.' },
   { type: 'question', block: 'warmup', prompt: 'Do you use English at work? In which situations?', placeholder: 'I use English when…' },
