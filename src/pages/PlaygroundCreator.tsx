@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Eye, Code2, X, Sparkles, Loader2, Image as ImageIcon, Save, BookOpen, Send, FolderOpen } from 'lucide-react';
+import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Eye, Code2, X, Sparkles, Loader2, Image as ImageIcon, Save, BookOpen, Send, FolderOpen, History } from 'lucide-react';
 import { SlideRenderer, type Slide } from './PlaygroundDemo';
 import { generateOnePlaygroundImage } from '@/hooks/usePlaygroundImages';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +9,9 @@ import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SlideMediaPanel } from '@/components/creator-studio/shared/SlideMediaPanel';
 import { useCreatorLesson } from '@/hooks/useCreatorLesson';
+import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
+import { SaveStatusBadge } from '@/components/creator-studio/shared/SaveStatusBadge';
+import { RevisionHistoryModal } from '@/components/creator-studio/shared/RevisionHistoryModal';
 import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
 import {
   Popover, PopoverContent, PopoverTrigger,
@@ -204,8 +207,33 @@ export default function PlaygroundCreator() {
     setDragIdx(null);
   };
 
-  const handleSaveDraft = () => lessonHook.saveDraft(slides, { title, level: 'A1' });
-  const handlePublish = () => lessonHook.publish(slides, { title, level: 'A1' });
+  const history = useRevisionHistory(lessonHook.lessonId);
+  const [historyOpen, setHistoryOpen] = useState(false);
+
+  const autoSave = useAutoSave({
+    lessonId: lessonHook.lessonId,
+    slides,
+    title,
+    silentSaveDraft: (s, m) => lessonHook.silentSaveDraft(s, { ...m, level: 'A1' }),
+  });
+
+  const handleSaveDraft = async () => {
+    const id = await lessonHook.saveDraft(slides, { title, level: 'A1' });
+    if (id) history.captureRevision({ title, slides, kind: 'manual' });
+  };
+  const handlePublish = async () => {
+    const id = await lessonHook.publish(slides, { title, level: 'A1' });
+    if (id) history.captureRevision({ title, slides, kind: 'publish' });
+  };
+  const handleRestore = (rev: LessonRevision) => {
+    const restored = Array.isArray(rev.content?.slides) ? rev.content.slides : [];
+    if (restored.length === 0) { toast.error('Snapshot has no slides'); return; }
+    setSlides(restored);
+    setSelected(0);
+    if (rev.title) setTitle(rev.title);
+    setHistoryOpen(false);
+    toast.success('Restored snapshot — remember to Save or Publish');
+  };
   const handleImportFromLibrary = async (id: string) => {
     const lesson = await lessonHook.importLesson(id);
     if (!lesson) return;
