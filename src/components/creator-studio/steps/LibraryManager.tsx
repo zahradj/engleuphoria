@@ -794,8 +794,12 @@ export const LibraryManager: React.FC = () => {
                               {levelGroup.cefr}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-70">CEFR Level</p>
-                              <h4 className="text-base font-extrabold tracking-tight">Level {levelGroup.cefr}</h4>
+                              <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-70">
+                                {levelGroup.hub === 'playground' ? 'Stage' : 'CEFR Level'}
+                              </p>
+                              <h4 className="text-base font-extrabold tracking-tight">
+                                {levelGroup.hub === 'playground' ? `Stage ${levelGroup.cefr}` : `Level ${levelGroup.cefr}`}
+                              </h4>
                             </div>
                             <Badge variant="secondary" className="text-[11px] font-semibold bg-white/30 dark:bg-white/10 border-0 shrink-0">
                               {levelGroup.lessons.length} lesson{levelGroup.lessons.length === 1 ? '' : 's'}
