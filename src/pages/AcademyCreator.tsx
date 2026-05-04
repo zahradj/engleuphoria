@@ -307,6 +307,37 @@ export default function AcademyCreator() {
               className="inline-flex items-center gap-2 border border-slate-300 hover:border-indigo-400 text-slate-700 font-semibold rounded-lg px-3 py-2 text-sm transition">
               <Code2 className="w-4 h-4" /> JSON
             </button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="inline-flex items-center gap-2 border border-slate-300 hover:border-indigo-400 text-slate-700 font-semibold rounded-lg px-3 py-2 text-sm transition">
+                  <FolderOpen className="w-4 h-4" /> Library
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80 p-2 max-h-96 overflow-y-auto">
+                <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wide px-2 py-1">Import from Library</div>
+                {lessonHook.isLoadingLibrary ? (
+                  <div className="p-3 text-xs text-slate-500"><Loader2 className="w-3 h-3 animate-spin inline mr-1" /> Loading…</div>
+                ) : lessonHook.library.length === 0 ? (
+                  <div className="p-3 text-xs text-slate-500">No saved Academy lessons yet.</div>
+                ) : (
+                  lessonHook.library.map((l) => (
+                    <button key={l.id} onClick={() => handleImportFromLibrary(l.id)}
+                      className="w-full text-left rounded-lg px-2 py-1.5 hover:bg-indigo-50 text-sm">
+                      <div className="font-semibold text-slate-800 truncate">{l.title}</div>
+                      <div className="text-[10px] text-slate-500">{l.is_published ? 'Published' : 'Draft'} · {(l.content as any)?.slides?.length ?? 0} slides</div>
+                    </button>
+                  ))
+                )}
+              </PopoverContent>
+            </Popover>
+            <button onClick={handleSaveDraft} disabled={lessonHook.isSaving}
+              className="inline-flex items-center gap-2 border border-indigo-400 text-indigo-700 font-semibold rounded-lg px-3 py-2 text-sm transition disabled:opacity-50">
+              {lessonHook.isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Draft
+            </button>
+            <button onClick={handlePublish} disabled={lessonHook.isSaving}
+              className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg px-4 py-2 text-sm shadow-md transition disabled:opacity-50">
+              {lessonHook.isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Publish
+            </button>
             <button onClick={() => setAiOpen(true)} className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:opacity-90 text-white font-semibold rounded-lg px-4 py-2 text-sm shadow-md transition">
               <Sparkles className="w-4 h-4" /> Generate with AI
             </button>
