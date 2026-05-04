@@ -350,6 +350,15 @@ export default function PlaygroundCreator() {
             <button onClick={() => setPreviewOpen(true)} className="inline-flex items-center gap-2 bg-white border-2 border-orange-400 hover:bg-orange-50 text-orange-700 font-bold rounded-xl px-3 py-2 text-xs transition active:scale-95">
               <Eye className="w-3.5 h-3.5" /> Preview
             </button>
+            <SaveStatusBadge status={autoSave.status} lastSavedAt={autoSave.lastSavedAt} />
+            <button
+              onClick={() => setHistoryOpen(true)}
+              disabled={!lessonHook.lessonId}
+              title={lessonHook.lessonId ? 'Revision history' : 'Save the lesson once to enable history'}
+              className="inline-flex items-center gap-1.5 bg-white border-2 border-orange-300 text-orange-700 font-bold rounded-xl px-2.5 py-2 text-xs transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <History className="w-3.5 h-3.5" />
+            </button>
             <button onClick={handleSaveDraft} disabled={lessonHook.isSaving} className="inline-flex items-center gap-2 bg-white border-2 border-orange-400 text-orange-700 font-bold rounded-xl px-3 py-2 text-xs transition active:scale-95 disabled:opacity-50">
               {lessonHook.isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />} Save Draft
             </button>
