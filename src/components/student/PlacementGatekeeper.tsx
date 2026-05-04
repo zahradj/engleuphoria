@@ -29,11 +29,11 @@ const HUB_THEME = {
   playground: {
     name: 'The Playground',
     cursorIndex: 0 as 0 | 1 | 2,
-    gradient: 'from-orange-500 via-amber-500 to-yellow-400',
-    accent: 'from-orange-400 to-amber-300',
-    accentText: 'text-amber-100',
+    gradient: 'from-orange-100 via-amber-50 to-yellow-50',
+    accent: 'from-orange-300 to-amber-200',
+    accentText: 'text-orange-600',
     button: 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600',
-    glow: 'shadow-[0_0_60px_rgba(254,106,47,0.45)]',
+    glow: 'shadow-[0_0_40px_rgba(254,106,47,0.18)]',
   },
   academy: {
     name: 'The Academy',
@@ -186,10 +186,10 @@ export const PlacementGatekeeper = ({
     >
       {/* Same homepage interactive cursor effect, themed to the active hub */}
       <CursorTrail themeIndex={theme.cursorIndex } />
-      {/* Ambient blobs */}
+      {/* Ambient blobs — softer in playground for kid-friendly calm */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className={`absolute -top-20 -left-20 w-96 h-96 rounded-full blur-3xl opacity-30 bg-gradient-to-br ${theme.accent}`} />
-        <div className={`absolute -bottom-20 -right-20 w-96 h-96 rounded-full blur-3xl opacity-20 bg-gradient-to-br ${theme.accent}`} />
+        <div className={`absolute -top-20 -left-20 w-96 h-96 rounded-full blur-3xl ${isPlayground ? 'opacity-40' : 'opacity-30'} bg-gradient-to-br ${theme.accent}`} />
+        <div className={`absolute -bottom-20 -right-20 w-96 h-96 rounded-full blur-3xl ${isPlayground ? 'opacity-30' : 'opacity-20'} bg-gradient-to-br ${theme.accent}`} />
       </div>
 
       <div className="relative w-full max-w-2xl">

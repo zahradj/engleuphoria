@@ -1,75 +1,92 @@
-# Hybrid Academy Creator — Implementation Plan
+# Playground Placement Test — Image Cards & Gamified Animations
 
-Mirror the Playground Creator pattern to add a fully integrated **Academy Creator** inside the existing Creator Studio Shell. Reuse the shared editor state engine; swap viewport + AI prompt based on the active hub.
+Upgrade the kids' picture quiz to use real images instead of emojis, with playful but non-punishing animations, smoother question transitions, and a calmer background.
 
-## 1. Routing & Navigation
+## What changes
 
-- `CreatorContext.tsx`: extend `CreatorStep` union with `'academy-creator'`.
-- `CreatorStudioShell.tsx`:
-  - Map path `/content-creator/academy-creator` → step `academy-creator`.
-  - Render `<AcademyCreator />` for that step.
-- `StudioSidebar.tsx` & `StudioMobileNav.tsx`:
-  - Add nav entry: key `academy-creator`, icon `GraduationCap`, emoji `🎓`, label "Academy Creator", fallback string.
-  - Active state uses Academy palette (indigo/purple) instead of amber when on this route, via a small per-item accent override.
+**Files touched:**
+- `src/components/placement/PlaygroundPlacementPhase.tsx` — full UI overhaul
+- `src/components/student/PlacementGatekeeper.tsx` — tone down the background only when the active hub is Playground
+- `public/placement/` — new folder containing the image set (committed, not generated at runtime)
 
-## 2. Academy Creator Page (`src/pages/AcademyCreator.tsx`)
+## 1. Image library (40 PNGs, one per answer option)
 
-Refactor existing standalone page to plug into Studio Shell (no own header/sidebar):
+Generate a single batch of square (512×512) flat-illustration PNGs with transparent background and bright kid-friendly colors. Subjects:
 
-- Reuse the same shared slide state hook used by Playground (`slides`, `activeIndex`, add/delete/reorder/duplicate, AI generate modal).
-- Three-pane layout matching Playground Creator:
-  - **Left**: slide list (block badges: Warm-up, Vocab, Reading, Grammar, Practice, Interactive, Speaking).
-  - **Center**: live preview rendered by the **AcademyDemo engine** (same components used in `/academy-demo`), bound to the active slide.
-  - **Right**: contextual editor form for the active slide type.
-- Editor forms per Academy block:
-  - Pedagogical metadata header (CEFR level, target grammar, vocab list, duration).
-  - Warm-up: opinion/poll prompt + options.
-  - Vocabulary: word list + matching pairs (with optional image generation via existing `usePlaygroundImages` reused as a generic asset hook — or a sibling `useAcademyImages` if style differs).
-  - Reading/Listening: passage text, TTS script (non-autoplay), comprehension TF/MCQ.
-  - Grammar: rule explanation + error-detection items.
-  - Practice: fill-in-the-blank, sentence builder.
-  - Interactive: debate/roleplay prompts.
-  - Speaking: free-output prompt + rubric.
-- "Generate with AI" modal: collects topic, CEFR level, target grammar, vocab focus → calls edge function with `hub_type: 'academy'`.
+```
+animals    : dog, cat, rabbit, bird
+colors     : blue-square, green-square, red-square, yellow-square
+fruits     : banana, apple, grapes, orange
+sky        : moon, star, cloud, sun
+food       : pizza, milk, cookie, bread
+actions    : standing, running, jumping, sleeping
+counting   : one-apple, two-apples, three-apples, four-apples
+sentences  : happy-dog (×4 — same image for the 4 grammar variants)
+ice-cream  : ice-cream-cone (×4 for the verb-form question)
+clocks     : clock-1, clock-2, clock-3, clock-4
+```
 
-## 3. AI Generation — Edge Function Update
+Use the existing `ai-image-generation` edge function (Gemini) or `generate-playground-images` to produce them, then commit to `/public/placement/{name}.png`. No runtime fetching — instant load, zero cost per session.
 
-Extend `supabase/functions/generate-ppp-slides/index.ts`:
+## 2. Schema change
 
-- Branch on `hub_type === 'academy'`:
-  - **System prompt**: "You are a Master TEFL/CELTA-trained lesson designer for teenagers. Produce a 60-minute, 7-block academy lesson with rigorous progression, level-appropriate language for the given CEFR, and authentic communicative tasks."
-  - **Strict JSON schema** enforced via tool-calling (`tools` + `tool_choice`):
-    ```
-    { academy_slides: [
-      { block: 'warmup'|'vocabulary'|'reading'|'grammar'|'practice'|'interactive'|'speaking',
-        title, instructions, content: {...block-specific shape} }
-    ]}
-    ```
-  - **Validation**: must contain at least one slide per block, in the order Warm-up → Vocabulary → Reading → Grammar → Practice → Interactive → Speaking.
-  - **2-retry loop**: on schema/order failure, re-prompt with the validator's error message; throw after 2nd retry.
-- Keep existing Playground branch untouched.
-- Return `{ academy_slides }` for academy, `{ slides }` for playground (current).
+Replace `{ emoji, label }` with `{ image: string; label: string }` in `PICTURE_QUESTIONS`. The 10 questions stay the same; only the option representation changes. The grammar/verb questions where all four options shared the same emoji also share the same image — text differentiates them.
 
-## 4. Translations
+## 3. Card redesign
 
-Add `nav.academy_creator` key to `src/translations/english/nav.ts` (and other locales as fallback strings already cover them).
+Each option becomes an Image Card:
+- `aspect-square`, `rounded-2xl`, `shadow-md`, white background `bg-white`
+- Image fills the card via `object-cover`
+- Label sits in a clean white pill (`bg-white/95 rounded-full px-3 py-1 text-slate-800 font-semibold text-sm`) anchored to the bottom of the card with a small margin
+- Border softens to `border border-slate-200` instead of the current translucent white-on-color
 
-## Technical Details
+## 4. Framer Motion gamification
 
-**Files to modify**
-- `src/components/creator-studio/CreatorContext.tsx`
-- `src/components/creator-studio/CreatorStudioShell.tsx`
-- `src/components/creator-studio/StudioSidebar.tsx`
-- `src/components/creator-studio/StudioMobileNav.tsx`
-- `src/pages/AcademyCreator.tsx` (refactor to shell-embedded)
-- `supabase/functions/generate-ppp-slides/index.ts` (academy branch + schema + retry)
-- `src/translations/english/nav.ts`
+```tsx
+<motion.button
+  initial={{ opacity: 0, scale: 0.8, y: 20 }}
+  animate={{ opacity: 1, scale: 1, y: 0 }}
+  transition={{ delay: idx * 0.08, type: 'spring', stiffness: 300, damping: 22 }}
+  whileHover={{ scale: 1.05, y: -5 }}
+  whileTap={{ scale: 0.95 }}
+>
+```
 
-**Reuse**
-- AcademyDemo rendering components for live preview.
-- Same slide-state engine that powers Playground Creator (no fork).
-- Existing `generate-ppp-slides` infrastructure (auth, CORS, hydration helper).
+- Stagger entrance (cards pop in one by one, ~80ms apart)
+- Hover lift + scale (desktop)
+- Tap squish (mobile feels tactile)
+- Question container wrapped in `<AnimatePresence mode="wait">` with horizontal slide:
+  - Exit: `{ x: '-100%', opacity: 0 }`
+  - Enter: `{ x: '100%' } → { x: 0 }`
 
-**Out of scope**
-- New DB tables (uses existing lesson persistence layer).
-- Asset generation pipeline changes (Playground image hydration stays Playground-only unless an Academy slide explicitly requests an image).
+## 5. Non-punishing feedback
+
+- Remove all rose/red "wrong" styling
+- On click: selected card gets `ring-4 ring-orange-400` glow + a `Sparkles` pop badge regardless of correctness
+- Keep correctness logging in `results` for the placement algorithm
+- Replace incorrect feedback wording: instead of "This is X" with amber tone, show neutral encouragement: "Nice try! Let's keep going ✨" — the right answer is silently logged, no shaming
+- Slightly faster auto-advance (1.1s instead of 1.6s) since there's no error to read
+
+## 6. Calmer background
+
+Currently the welcome/quiz wrapper uses `bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-400` (very saturated). Soften it for the playground hub only:
+
+- Change to `bg-gradient-to-br from-orange-100 via-amber-50 to-yellow-50` (pastel)
+- Drop the two ambient blob opacities from `0.30 / 0.20` to `0.15 / 0.10`
+- Header text in the test panel switches from `text-white` to `text-slate-800` for contrast on the new lighter card surface
+- Star progress: change inactive `text-white/20` → `text-amber-200`, active stays gold
+
+Academy/Professional themes remain unchanged.
+
+## Technical details
+
+- The `TestResult` interface and the parent `PlacementGatekeeper` flow stay identical — only visuals change. No DB migration, no scoring changes.
+- Image paths use Vite's `/public` serving (`/placement/cat.png`) so they're cached by the browser/SW after first visit.
+- Total added weight: ~40 PNGs × ~25 KB (flat illustrations) ≈ 1 MB, lazy-loaded per question via `loading="lazy"` so the first question only fetches 4.
+- Accessibility: `<img alt={label}>` and `aria-label` on the button, plus a `role="img"` fallback for the rare `aria-pressed` state.
+
+## Out of scope
+
+- Audio/sound effects (memory says sound system exists; can wire later if you want)
+- The non-Playground TestPhase (this plan only touches the kids' picture quiz)
+- New questions or scoring algorithm changes
