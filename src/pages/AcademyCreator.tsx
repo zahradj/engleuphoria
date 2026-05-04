@@ -413,7 +413,25 @@ export default function AcademyCreator() {
                 {BLOCKS.map((b) => <option key={b.id} value={b.id}>{b.label}</option>)}
               </select>
             </div>
-            <SlideEditor slide={current} onChange={update} />
+            <Tabs defaultValue="basic" className="w-full">
+              <TabsList className="grid grid-cols-2 w-full">
+                <TabsTrigger value="basic">Basic</TabsTrigger>
+                <TabsTrigger value="media">AI Media & Audio</TabsTrigger>
+              </TabsList>
+              <TabsContent value="basic" className="pt-4">
+                <SlideEditor slide={current} onChange={update} />
+              </TabsContent>
+              <TabsContent value="media" className="pt-4">
+                <SlideMediaPanel
+                  slide={current as any}
+                  onPatch={(patch) => update(patch as Partial<Slide>)}
+                  hub="academy"
+                  lessonId={lessonHook.lessonId}
+                  slideId={slideId}
+                  enableFlashcards={current.type === 'vocab' || current.type === 'matching'}
+                />
+              </TabsContent>
+            </Tabs>
           </div>
         </section>
 
