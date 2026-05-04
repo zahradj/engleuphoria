@@ -91,8 +91,14 @@ const STARTER: Slide[] = [
 ];
 
 export default function PlaygroundCreator() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialLessonId = searchParams.get('lessonId');
+
+  const goBack = () => {
+    if (window.history.length > 1) navigate(-1);
+    else navigate('/content-creator');
+  };
 
   const [slides, setSlides] = useState<Slide[]>(STARTER);
   const [title, setTitle] = useState<string>('Untitled Playground Lesson');
