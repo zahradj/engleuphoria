@@ -4998,6 +4998,57 @@ export type Database = {
           },
         ]
       }
+      lesson_templates: {
+        Row: {
+          clone_count: number
+          cover_image_url: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          hub: string
+          id: string
+          is_published: boolean
+          level: string | null
+          payload: Json
+          slide_count: number
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          clone_count?: number
+          cover_image_url?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          hub: string
+          id?: string
+          is_published?: boolean
+          level?: string | null
+          payload: Json
+          slide_count?: number
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          clone_count?: number
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          hub?: string
+          id?: string
+          is_published?: boolean
+          level?: string | null
+          payload?: Json
+          slide_count?: number
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lessons: {
         Row: {
           cancellation_reason: string | null
@@ -10190,6 +10241,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_template_clone: {
+        Args: { template_id: string }
+        Returns: undefined
       }
       is_admin: { Args: never; Returns: boolean }
       is_user_admin: { Args: never; Returns: boolean }
