@@ -54,7 +54,15 @@ export function CursorTrail({ themeIndex }: CursorTrailProps = {}) {
     c.height = window.innerHeight;
   }, []);
 
+  // Skip the canvas particle loop entirely on touch / coarse-pointer devices
+  // and when the user prefers reduced motion. Keeps mobile load light.
+  const isLightweightDevice =
+    typeof window !== "undefined" &&
+    (window.matchMedia?.("(pointer: coarse)").matches ||
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
+
   useEffect(() => {
+    if (isLightweightDevice) return;
     resize();
     window.addEventListener("resize", resize);
 
