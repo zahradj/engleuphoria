@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { HeroThemeProvider } from '@/contexts/HeroThemeContext';
 import {
@@ -7,6 +7,7 @@ import {
   NavHeader,
   CursorTrail,
   TrustLogosBand,
+  StickyMobileCTA,
 } from '@/components/landing';
 
 // Below-the-fold: lazy-load to drastically reduce initial JS on mobile
@@ -30,6 +31,13 @@ const SectionFallback = () => <div className="min-h-[200px]" aria-hidden="true" 
 
 export default function LandingPage() {
   const { user, loading } = useAuth();
+
+  // Reserve space at the bottom of the page for the sticky mobile CTA
+  // so it never overlaps the final sections (handled in index.css).
+  useEffect(() => {
+    document.body.classList.add('has-sticky-cta');
+    return () => document.body.classList.remove('has-sticky-cta');
+  }, []);
 
   if (!loading && user) {
     return <Navigate to="/dashboard" replace />;
@@ -58,6 +66,7 @@ export default function LandingPage() {
           <FooterSection />
           <AutoLanguageToast />
         </Suspense>
+        <StickyMobileCTA />
       </main>
     </HeroThemeProvider>
   );

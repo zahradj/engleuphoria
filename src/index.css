@@ -933,3 +933,112 @@
 .animate-confetti-fall {
   animation: confetti-fall 3s ease-in forwards;
 }
+
+/* ============================================================
+   📱 BOLD FLAT MOBILE OVERHAUL (≤767px)
+   - Kills heavy glass/blur/shadow on mobile (perf + flat 2.0)
+   - Tightens type scale, enforces 44px tap targets
+   - Adds full-bleed hub-color section helpers
+   - Adds bottom safe-area padding so sticky CTA never overlaps
+   ============================================================ */
+@media (max-width: 767px) {
+  /* Flatten glassmorphism on mobile — major perf win */
+  .glass,
+  .glass-light,
+  .glass-strong,
+  .glass-panel {
+    background: hsl(var(--background)) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+    border: 1px solid hsl(var(--border)) !important;
+  }
+
+  /* Disable backdrop-blur utility classes globally on mobile */
+  .backdrop-blur-sm,
+  .backdrop-blur,
+  .backdrop-blur-md,
+  .backdrop-blur-lg,
+  .backdrop-blur-xl,
+  .backdrop-blur-2xl,
+  .backdrop-blur-3xl {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Drop expensive blur filters on decorative glows */
+  [class*="blur-["],
+  .blur-2xl,
+  .blur-3xl {
+    filter: none !important;
+  }
+
+  /* Soften shadows — Bold Flat aesthetic */
+  .shadow-xl,
+  .shadow-2xl {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06) !important;
+  }
+
+  /* Tighter mobile type scale */
+  h1 { font-size: clamp(1.875rem, 8vw, 2.25rem) !important; line-height: 1.1 !important; }
+  h2 { font-size: clamp(1.5rem, 6vw, 1.75rem) !important; line-height: 1.15 !important; }
+
+  /* Min 44px tap targets for accessibility */
+  a, button, [role="button"] {
+    min-height: 44px;
+  }
+  /* Inline tappables (within text, badges) opt out */
+  a.inline,
+  button.inline,
+  .tap-inline a,
+  .tap-inline button {
+    min-height: 0;
+  }
+
+  /* Reserve space for the sticky bottom CTA on landing */
+  body.has-sticky-cta {
+    padding-bottom: 88px;
+  }
+}
+
+/* ============================================================
+   🎨 HUB FULL-BLEED SECTION HELPERS (mobile-first, all viewports)
+   Use on any landing section to instantly apply Bold Flat
+   hub-color band + matching accent.
+   ============================================================ */
+.hub-band-playground {
+  background: #FE6A2F;
+  color: #FFFFFF;
+}
+.hub-band-playground-soft {
+  background: #FEFBDD;
+  color: #2A1A05;
+}
+.hub-band-academy {
+  background: #6B21A8;
+  color: #FFFFFF;
+}
+.hub-band-academy-soft {
+  background: #F5F3FF;
+  color: #1E0B36;
+}
+.hub-band-success {
+  background: #059669;
+  color: #FFFFFF;
+}
+.hub-band-success-soft {
+  background: #F0FDFA;
+  color: #022C22;
+}
+
+/* Section helper: full-bleed flat band with safe inner padding */
+.flat-band {
+  width: 100%;
+  padding: 3rem 1.25rem;
+  border-radius: 0;
+}
+@media (min-width: 768px) {
+  .flat-band {
+    padding: 5rem 2rem;
+  }
+}
