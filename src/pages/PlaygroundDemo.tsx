@@ -39,6 +39,7 @@ export type Slide =
   | {
       type: 'fill';
       text: string;
+      image_url?: string;
       answer: string;
       voice?: SlideVoice;
       feedback?: SlideFeedback;
