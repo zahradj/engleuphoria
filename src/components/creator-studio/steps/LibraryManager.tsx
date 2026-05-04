@@ -290,7 +290,11 @@ export const LibraryManager: React.FC = () => {
       navigate(`/academy-creator?lessonId=${row.id}`);
       return;
     }
-    // Success / standard → keep the existing in-shell editor (no dedicated creator yet).
+    if (hub === 'success') {
+      navigate(`/success-creator?lessonId=${row.id}`);
+      return;
+    }
+    // Standard → keep the existing in-shell editor.
     setCurrentStep('slide-builder');
   };
 
