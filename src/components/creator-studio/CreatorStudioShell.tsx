@@ -11,6 +11,7 @@ import { TrialCreator } from './steps/TrialCreator';
 import { StoryCreator } from './steps/StoryCreator';
 import PlaygroundCreator from '@/pages/PlaygroundCreator';
 import AcademyCreator from '@/pages/AcademyCreator';
+import SuccessCreator from '@/pages/SuccessCreator';
 
 const StudioBody: React.FC = () => {
   const { currentStep, setCurrentStep } = useCreator();
