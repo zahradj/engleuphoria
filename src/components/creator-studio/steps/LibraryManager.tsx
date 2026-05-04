@@ -223,6 +223,24 @@ export const LibraryManager: React.FC = () => {
     fetchRows();
   }, [fetchRows]);
 
+  // Sync hub filter ↔ URL (?hub=playground|academy|success|all)
+  useEffect(() => {
+    const current = searchParams.get('hub') ?? 'all';
+    if (current === hubFilter) return;
+    const next = new URLSearchParams(searchParams);
+    if (hubFilter === 'all') next.delete('hub');
+    else next.set('hub', hubFilter);
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hubFilter]);
+
+  const handleCreateNew = (hub?: 'playground' | 'academy' | 'success') => {
+    const target = hub ?? (hubFilter !== 'all' ? hubFilter : null);
+    if (target === 'playground') return navigate('/playground-creator');
+    if (target === 'academy') return navigate('/academy-creator');
+    // success / all → fall back to in-shell standard slide builder
+    setCurrentStep('slide-builder');
+  };
   const handleEdit = (row: LessonRow) => {
     const slides: PPPSlide[] = Array.isArray(row.content?.slides) ? row.content.slides : [];
     const homework_missions = Array.isArray(row.content?.homework_missions)
