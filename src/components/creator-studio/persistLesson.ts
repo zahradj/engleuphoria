@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { ActiveLessonData, PPPSlide } from './CreatorContext';
+import { cefrToDifficulty, hubToTargetSystem } from '@/services/lessonHubMapping';
 
 /**
  * Persist a lesson (its slides + metadata) to Supabase `curriculum_lessons`.
