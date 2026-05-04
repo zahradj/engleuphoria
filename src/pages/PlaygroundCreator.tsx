@@ -1,10 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Eye, Code2, X, Sparkles, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Eye, Code2, X, Sparkles, Loader2, Image as ImageIcon, Save, BookOpen, Send, FolderOpen } from 'lucide-react';
 import { SlideRenderer, type Slide } from './PlaygroundDemo';
 import { generateOnePlaygroundImage } from '@/hooks/usePlaygroundImages';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SlideMediaPanel } from '@/components/creator-studio/shared/SlideMediaPanel';
+import { useCreatorLesson } from '@/hooks/useCreatorLesson';
+import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
+import {
+  Popover, PopoverContent, PopoverTrigger,
+} from '@/components/ui/popover';
 
 /**
  * Playground Slide Creator
