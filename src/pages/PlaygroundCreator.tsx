@@ -11,6 +11,7 @@ import { SlideMediaPanel } from '@/components/creator-studio/shared/SlideMediaPa
 import { PreviewModeToggle, type PreviewMode } from '@/components/creator-studio/shared/PreviewModeToggle';
 import { PlayablePreviewPane } from '@/components/creator-studio/shared/PlayablePreviewPane';
 import { AssetVaultDialog } from '@/components/creator-studio/shared/AssetVaultDialog';
+import { SlideTemplatesDialog } from '@/components/creator-studio/shared/SlideTemplatesDialog';
 import { useCreatorLesson } from '@/hooks/useCreatorLesson';
 import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
 import { SaveStatusBadge } from '@/components/creator-studio/shared/SaveStatusBadge';
@@ -92,6 +93,7 @@ export default function PlaygroundCreator() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewMode, setPreviewMode] = useState<PreviewMode>('editor');
   const [vaultOpen, setVaultOpen] = useState(false);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
   const [jsonDraft, setJsonDraft] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
@@ -349,6 +351,13 @@ export default function PlaygroundCreator() {
             >
               <ImageIcon className="w-3.5 h-3.5" /> Vault
             </button>
+            <button
+              onClick={() => setTemplatesOpen(true)}
+              className="inline-flex items-center gap-2 bg-white border-2 border-orange-300 hover:bg-orange-50 text-orange-700 font-bold rounded-xl px-3 py-2 text-xs transition active:scale-95"
+              title="Insert pre-built slide templates"
+            >
+              <Sparkles className="w-3.5 h-3.5" /> Templates
+            </button>
             <label className="cursor-pointer inline-flex items-center gap-2 bg-white border-2 border-orange-300 hover:bg-orange-50 text-orange-700 font-bold rounded-xl px-3 py-2 text-xs transition active:scale-95">
               <Upload className="w-3.5 h-3.5" /> JSON
               <input type="file" accept="application/json" className="hidden" onChange={(e) => e.target.files?.[0] && importJson(e.target.files[0])} />
@@ -578,6 +587,21 @@ export default function PlaygroundCreator() {
         onOpenChange={setVaultOpen}
         hub="playground"
         onPick={({ url, field }) => update({ [field]: url } as any)}
+      />
+
+      <SlideTemplatesDialog<Slide>
+        open={templatesOpen}
+        onOpenChange={setTemplatesOpen}
+        hub="playground"
+        makeSlide={(t) => makeSlide(t as SlideType)}
+        onInsert={(newSlides, tpl) => {
+          setSlides((prev) => {
+            const next = [...prev, ...newSlides];
+            setSelected(next.length - newSlides.length);
+            return next;
+          });
+          toast.success(`Added "${tpl.label}" (${newSlides.length} slides)`);
+        }}
       />
     </div>
   );
