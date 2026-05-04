@@ -338,11 +338,18 @@ export default function PlaygroundCreator() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-100 via-amber-50 to-yellow-100">
+    <div className="min-h-screen bg-gradient-to-br from-orange-100 via-amber-50 to-yellow-100 flex flex-col">
       {/* Top bar */}
       <header className="sticky top-0 z-20 bg-white/90 backdrop-blur border-b-4 border-orange-400 shadow-sm">
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3 gap-4">
+        <div className="w-full flex items-center justify-between px-4 py-3 gap-3">
           <div className="flex items-center gap-3 min-w-0 flex-1">
+            <button
+              onClick={goBack}
+              title="Back"
+              className="flex items-center gap-1 bg-white border-2 border-orange-300 hover:bg-orange-50 text-orange-700 font-bold rounded-xl px-3 py-2 text-xs transition active:scale-95 flex-shrink-0"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" /> Back
+            </button>
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-400 flex items-center justify-center text-white text-xl font-bold shadow-md flex-shrink-0">
               🎨
             </div>
