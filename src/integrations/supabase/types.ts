@@ -4921,6 +4921,47 @@ export type Database = {
           },
         ]
       }
+      lesson_revisions: {
+        Row: {
+          content: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: string
+          lesson_id: string
+          note: string | null
+          title: string | null
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          lesson_id: string
+          note?: string | null
+          title?: string | null
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          lesson_id?: string
+          note?: string | null
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_revisions_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
           cancellation_reason: string | null
