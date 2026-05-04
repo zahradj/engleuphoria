@@ -20,6 +20,9 @@ import { PlayablePreviewPane } from '@/components/creator-studio/shared/Playable
 import { AssetVaultDialog } from '@/components/creator-studio/shared/AssetVaultDialog';
 import { SlideTemplatesDialog } from '@/components/creator-studio/shared/SlideTemplatesDialog';
 import { SlideCommentsPanel } from '@/components/creator-studio/shared/SlideCommentsPanel';
+import { BulkActionsMenu } from '@/components/creator-studio/shared/BulkActionsMenu';
+import { BulkAudioDialog } from '@/components/creator-studio/shared/BulkAudioDialog';
+import { findSlidesMissingAudio } from '@/components/creator-studio/shared/slideAudioHelpers';
 import { useCreatorLesson } from '@/hooks/useCreatorLesson';
 import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
 import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
@@ -131,6 +134,7 @@ export default function AcademyCreator() {
   const [previewMode, setPreviewMode] = useState<PreviewMode>('editor');
   const [vaultOpen, setVaultOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [bulkAudioOpen, setBulkAudioOpen] = useState(false);
 
   const lessonHook = useCreatorLesson({ hub: 'academy', initialLessonId });
 
@@ -389,6 +393,11 @@ export default function AcademyCreator() {
             >
               <History className="w-4 h-4" />
             </button>
+            <BulkActionsMenu
+              hub="academy"
+              missingAudioCount={findSlidesMissingAudio(slides).length}
+              onGenerateMissingAudio={() => setBulkAudioOpen(true)}
+            />
             <button onClick={handleSaveDraft} disabled={lessonHook.isSaving}
               className="inline-flex items-center gap-2 border border-indigo-400 text-indigo-700 font-semibold rounded-lg px-3 py-2 text-sm transition disabled:opacity-50">
               {lessonHook.isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Draft
@@ -641,6 +650,16 @@ export default function AcademyCreator() {
           });
           toast.success(`Added "${tpl.label}" (${newSlides.length} slides)`);
         }}
+      />
+
+      <BulkAudioDialog
+        open={bulkAudioOpen}
+        onOpenChange={setBulkAudioOpen}
+        slides={slides}
+        lessonId={lessonHook.lessonId}
+        patchSlide={(idx, patch) =>
+          setSlides((p) => p.map((s, i) => (i === idx ? ({ ...s, ...patch } as Slide) : s)))
+        }
       />
     </div>
   );
