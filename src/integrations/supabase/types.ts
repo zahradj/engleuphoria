@@ -2153,6 +2153,42 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_slide_comments: {
+        Row: {
+          author_name: string | null
+          body: string
+          created_at: string
+          id: string
+          lesson_id: string
+          resolved: boolean
+          slide_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          author_name?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          lesson_id: string
+          resolved?: boolean
+          slide_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          author_name?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          lesson_id?: string
+          resolved?: boolean
+          slide_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       credit_packs: {
         Row: {
           created_at: string
