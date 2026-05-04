@@ -7,6 +7,7 @@ import {
   getLessonById,
   type LibraryLesson,
 } from '@/services/lessonLibraryService';
+import { cefrToDifficulty, hubToTargetSystem, isCefr } from '@/services/lessonHubMapping';
 
 /**
  * Shared persistence hook for the Playground & Academy slide creators.
