@@ -144,12 +144,12 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
         </div>
       )}
 
-      <div className="relative z-10 space-y-4">
-        {/* ═══════════ TOP BAR — GLASSMORPHIC ═══════════ */}
+      <div className="relative z-10 space-y-3 md:space-y-4">
+        {/* ═══════════ TOP BAR — GLASSMORPHIC (desktop/tablet only — mobile uses MinimalStudentHeader) ═══════════ */}
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="glass-card-hub glass-playground flex items-center justify-between px-5 py-3 backdrop-blur-xl"
+          className="hidden md:flex glass-card-hub glass-playground items-center justify-between px-5 py-3 backdrop-blur-xl"
         >
           <HubLogo hubId="playground" size="md" />
           <div className="hidden md:flex items-center gap-2">
@@ -195,22 +195,27 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="glass-card-hub glass-playground p-6 backdrop-blur-md relative overflow-hidden"
+          className="glass-card-hub glass-playground p-4 md:p-6 backdrop-blur-md relative overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-[#FE6A2F]/10 via-[#FEAF15]/10 to-transparent pointer-events-none" />
-          <div className="relative flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#FE6A2F] to-[#FEAF15] bg-clip-text text-transparent">
+          <div className="relative flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-[#FE6A2F] to-[#FEAF15] bg-clip-text text-transparent">
                 {t('sd.welcomeKids', 'Welcome to the Playground!')} 🎪
               </h1>
-              <p className={cn('text-sm mt-1', isDark ? 'text-amber-300/80' : 'text-orange-600/80')}>
+              <p className={cn('text-xs md:text-sm mt-1', isDark ? 'text-amber-300/80' : 'text-orange-600/80')}>
                 {t('sd.subtitleKids', { name: studentName, defaultValue: "Ready for today's English adventure, {{name}}?" })}
               </p>
+              {/* Mobile-only inline stars chip (header shows streak; this surfaces stars) */}
+              <div className="md:hidden mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/60 dark:bg-amber-900/40 text-xs font-bold text-orange-700 dark:text-amber-200">
+                <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                {totalStars} stars
+              </div>
             </div>
             <motion.div
               animate={{ rotate: [0, 5, -5, 0] }}
               transition={{ duration: 4, repeat: Infinity }}
-              className="text-5xl hidden md:block"
+              className="text-4xl md:text-5xl shrink-0"
             >
               🎉
             </motion.div>
