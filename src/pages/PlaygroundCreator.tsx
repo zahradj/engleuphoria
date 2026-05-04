@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SlideMediaPanel } from '@/components/creator-studio/shared/SlideMediaPanel';
 import { PreviewModeToggle, type PreviewMode } from '@/components/creator-studio/shared/PreviewModeToggle';
 import { PlayablePreviewPane } from '@/components/creator-studio/shared/PlayablePreviewPane';
+import { PreviewRoleToggle, type PreviewRole } from '@/components/creator-studio/shared/PreviewRoleToggle';
+import { TeacherNotesField } from '@/components/creator-studio/shared/TeacherNotesField';
 import { AssetVaultDialog } from '@/components/creator-studio/shared/AssetVaultDialog';
 import { SlideTemplatesDialog } from '@/components/creator-studio/shared/SlideTemplatesDialog';
 import { SlideCommentsPanel } from '@/components/creator-studio/shared/SlideCommentsPanel';
@@ -105,6 +107,7 @@ export default function PlaygroundCreator() {
   const [selected, setSelected] = useState(0);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewMode, setPreviewMode] = useState<PreviewMode>('editor');
+  const [previewRole, setPreviewRole] = useState<PreviewRole>('teacher');
   const [vaultOpen, setVaultOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [bulkAudioOpen, setBulkAudioOpen] = useState(false);
@@ -549,15 +552,20 @@ export default function PlaygroundCreator() {
         {/* Live preview */}
         <section className="min-h-0 flex flex-col">
           <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-3 flex flex-col flex-1 min-h-0 overflow-y-auto">
-            <div className="flex items-center justify-between mb-2 px-2">
+            <div className="flex items-center justify-between mb-2 px-2 gap-2 flex-wrap">
               <h2 className="text-sm font-bold text-orange-600">LIVE PREVIEW</h2>
-              <PreviewModeToggle value={previewMode} onChange={setPreviewMode} hub="playground" />
+              <div className="flex items-center gap-2">
+                <PreviewRoleToggle value={previewRole} onChange={setPreviewRole} hub="playground" />
+                <PreviewModeToggle value={previewMode} onChange={setPreviewMode} hub="playground" />
+              </div>
             </div>
             <PlayablePreviewPane
               mode={previewMode}
               slides={slides}
               startIndex={selected}
               hub="playground"
+              previewRole={previewRole}
+              getTeacherNotes={(s) => (s as any).teacher_notes}
               renderSlide={(slide, idx) => (
                 <div className="rounded-xl bg-gradient-to-br from-orange-400 via-amber-300 to-yellow-200 p-4 min-h-[420px] flex items-center justify-center">
                   <div key={idx + (slide as Slide).type} className="bg-white rounded-2xl shadow-xl w-full p-4 min-h-[380px] flex items-center justify-center">
@@ -568,6 +576,13 @@ export default function PlaygroundCreator() {
                 </div>
               )}
             />
+            {/* Teacher notes editor for the selected slide */}
+            {slides[selected] && (
+              <TeacherNotesField
+                value={(slides[selected] as any).teacher_notes}
+                onChange={(next) => update({ teacher_notes: next } as any)}
+              />
+            )}
           </div>
         </section>
       </div>
