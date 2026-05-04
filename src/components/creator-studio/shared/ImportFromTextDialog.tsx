@@ -50,10 +50,18 @@ export const ImportFromTextDialog: React.FC<Props> = ({ open, onOpenChange, defa
         level: data.level,
         slides: data.slides,
         hub: data.hub,
+        validation: data.validation,
         importedAt: Date.now(),
       };
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-      toast.success(`Generated ${data.slides.length} slides — opening editor…`);
+      const v = data.validation;
+      if (v?.warnings?.length) {
+        toast.warning(`Generated ${data.slides.length} slides with ${v.warnings.length} warning(s)`, {
+          description: `Vocab ${v.vocabCoverage} · Quiz ${v.quizVerified} · ${v.retries} retry round(s)`,
+        });
+      } else {
+        toast.success(`✅ Generated ${data.slides.length} slides — all checks passed`);
+      }
       onOpenChange(false);
       navigate(hub === 'playground' ? '/playground-creator?imported=1' : '/academy-creator?imported=1');
     } catch (e: any) {
