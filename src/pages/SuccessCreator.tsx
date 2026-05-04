@@ -548,15 +548,20 @@ export default function SuccessCreator() {
         {/* Right: live preview */}
         <section className="min-h-0 flex flex-col">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 flex flex-col flex-1 min-h-0 overflow-y-auto">
-            <div className="flex items-center justify-between mb-2 px-2">
+            <div className="flex items-center justify-between mb-2 px-2 gap-2 flex-wrap">
               <h2 className="text-xs font-bold text-emerald-600 tracking-wider uppercase">Live Preview</h2>
-              <PreviewModeToggle value={previewMode} onChange={setPreviewMode} hub="success" />
+              <div className="flex items-center gap-2">
+                <PreviewRoleToggle value={previewRole} onChange={setPreviewRole} hub="success" />
+                <PreviewModeToggle value={previewMode} onChange={setPreviewMode} hub="success" />
+              </div>
             </div>
             <PlayablePreviewPane
               mode={previewMode}
               slides={slides}
               startIndex={selected}
               hub="success"
+              previewRole={previewRole}
+              getTeacherNotes={(s) => (s as any).teacher_notes}
               renderSlide={(slide) => (
                 <div className="rounded-xl bg-slate-50 border border-slate-200 p-5 min-h-[450px] flex items-center justify-center">
                   <div className="w-full">
@@ -568,6 +573,12 @@ export default function SuccessCreator() {
                 </div>
               )}
             />
+            {slides[selected] && (
+              <TeacherNotesField
+                value={(slides[selected] as any).teacher_notes}
+                onChange={(next) => update({ teacher_notes: next } as any)}
+              />
+            )}
           </div>
         </section>
       </div>
