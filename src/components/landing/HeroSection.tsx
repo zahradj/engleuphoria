@@ -128,18 +128,18 @@ export function HeroSection() {
   return (
     <section
       ref={sectionRef}
-      className={`relative min-h-screen flex items-center overflow-hidden transition-colors duration-300 ${
+      className={`relative min-h-[100svh] md:min-h-screen flex items-center overflow-hidden transition-colors duration-300 ${
         isDark ? 'bg-[#09090B]' : 'bg-gradient-to-br from-slate-50 via-white to-indigo-50/30'
       }`}
     >
-      {/* Decorative glows — colored per active group */}
+      {/* Decorative glows — desktop only (perf + flat 2.0 on mobile) */}
       <div
-        className={`absolute bottom-0 left-0 w-96 h-96 rounded-full blur-[120px] transition-colors duration-700 ${theme.glowColor} ${
+        className={`hidden md:block absolute bottom-0 left-0 w-96 h-96 rounded-full blur-[120px] transition-colors duration-700 ${theme.glowColor} ${
           isDark ? 'opacity-[0.08]' : 'opacity-[0.06]'
         }`}
       />
       <div
-        className={`absolute top-20 right-20 w-72 h-72 rounded-full blur-[100px] transition-colors duration-700 ${theme.glowColorAlt} ${
+        className={`hidden md:block absolute top-20 right-20 w-72 h-72 rounded-full blur-[100px] transition-colors duration-700 ${theme.glowColorAlt} ${
           isDark ? 'opacity-[0.06]' : 'opacity-[0.05]'
         }`}
       />
