@@ -159,6 +159,7 @@ export function useCreatorLesson({ hub, initialLessonId }: UseCreatorLessonArgs)
     refreshLibrary: () => qc.invalidateQueries({ queryKey: ['creator-library', hub] }),
     saveDraft,
     publish,
+    silentSaveDraft,
     isSaving,
     importLesson,
   };
