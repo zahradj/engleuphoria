@@ -79,6 +79,13 @@ export default function AcademyClassroom() {
       <header className="border-b border-slate-800/60 bg-slate-950/60 backdrop-blur">
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <button
+              onClick={goBack}
+              title="Back"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-700 hover:border-indigo-500 text-sm transition"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back
+            </button>
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">E</div>
             <div className="leading-tight">
               <div className="text-sm font-bold tracking-wide">ENGLEUPHORIA · ACADEMY</div>
