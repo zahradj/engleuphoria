@@ -190,6 +190,33 @@ export default function PlaygroundCreator() {
     setSelected(i + 1);
   };
 
+  const onDragStart = (i: number) => setDragIdx(i);
+  const onDragOver = (e: React.DragEvent) => e.preventDefault();
+  const onDrop = (i: number) => {
+    if (dragIdx === null || dragIdx === i) { setDragIdx(null); return; }
+    setSlides((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(dragIdx, 1);
+      next.splice(i, 0, moved);
+      return next;
+    });
+    setSelected(i);
+    setDragIdx(null);
+  };
+
+  const handleSaveDraft = () => lessonHook.saveDraft(slides, { title, level: 'A1' });
+  const handlePublish = () => lessonHook.publish(slides, { title, level: 'A1' });
+  const handleImportFromLibrary = async (id: string) => {
+    const lesson = await lessonHook.importLesson(id);
+    if (!lesson) return;
+    const dbSlides = getLibraryLessonSlides(lesson) as Slide[];
+    if (dbSlides.length === 0) { toast.error('That lesson has no slides yet'); return; }
+    setSlides(dbSlides);
+    setTitle(lesson.title || 'Imported lesson');
+    setSelected(0);
+    toast.success(`Loaded "${lesson.title}"`);
+  };
+
   const exportJson = () => {
     const blob = new Blob([JSON.stringify(slides, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
