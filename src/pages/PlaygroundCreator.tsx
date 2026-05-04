@@ -453,12 +453,12 @@ export default function PlaygroundCreator() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto grid grid-cols-12 gap-4 p-4">
+      <div className="flex-1 w-full grid grid-cols-1 lg:grid-cols-[260px_1fr_420px] gap-4 p-4 min-h-0">
         {/* Slide list */}
-        <aside className="col-span-12 md:col-span-3">
-          <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-3">
+        <aside className="min-h-0 flex flex-col">
+          <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-3 flex flex-col flex-1 min-h-0">
             <h2 className="text-sm font-bold text-orange-600 px-2 py-1">SLIDES</h2>
-            <div className="space-y-2 max-h-[55vh] overflow-y-auto pr-1">
+            <div className="space-y-2 flex-1 overflow-y-auto pr-1 min-h-0">
               {slides.map((s, i) => (
                 <div
                   key={i}
