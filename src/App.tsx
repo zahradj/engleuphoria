@@ -235,6 +235,15 @@ const App = () => {
                         </ImprovedProtectedRoute>
                       } />
 
+                      {/* Lesson Template Marketplace — any authenticated creator/teacher/admin */}
+                      <Route path="/template-marketplace" element={
+                        <ImprovedProtectedRoute>
+                          <Suspense fallback={<LoadingFallback />}>
+                            <TemplateMarketplace />
+                          </Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
+
                       {/* Parent Dashboard - Protected */}
                       <Route path="/parent/*" element={
                         <ImprovedProtectedRoute requiredRole="parent">
