@@ -385,6 +385,11 @@ export default function PlaygroundCreator() {
             >
               <History className="w-3.5 h-3.5" />
             </button>
+            <BulkActionsMenu
+              hub="playground"
+              missingAudioCount={findSlidesMissingAudio(slides).length}
+              onGenerateMissingAudio={() => setBulkAudioOpen(true)}
+            />
             <button onClick={handleSaveDraft} disabled={lessonHook.isSaving} className="inline-flex items-center gap-2 bg-white border-2 border-orange-400 text-orange-700 font-bold rounded-xl px-3 py-2 text-xs transition active:scale-95 disabled:opacity-50">
               {lessonHook.isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />} Save Draft
             </button>
