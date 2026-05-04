@@ -494,7 +494,7 @@ export default function PlaygroundCreator() {
         <section className="col-span-12 md:col-span-5">
           <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-5">
             <div className="flex items-center justify-between mb-3 gap-2">
-              <h2 className="text-sm font-bold text-orange-600">EDIT SLIDE #{selected + 1} · {current.type.toUpperCase()}</h2>
+              <h2 className="text-sm font-bold text-orange-600">EDIT SLIDE #{safeIndex + 1} · {(current?.type ?? 'intro').toString().toUpperCase()}</h2>
               <button
                 onClick={() => setTunerOpen(true)}
                 title="Rewrite this slide easier or harder"
