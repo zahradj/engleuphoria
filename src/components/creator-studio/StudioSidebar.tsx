@@ -98,6 +98,27 @@ export const StudioSidebar: React.FC = () => {
             </button>
           );
         })}
+
+        {/* External link — Template Marketplace */}
+        <button
+          onClick={() => navigate('/template-marketplace')}
+          title={collapsed ? 'Template Marketplace' : undefined}
+          className={cn(
+            'w-full flex items-center rounded-lg text-sm font-medium transition-all text-start mt-2 border border-dashed border-slate-700',
+            collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2.5',
+            'text-emerald-300 hover:bg-emerald-900/20 hover:text-emerald-200',
+          )}
+        >
+          {collapsed ? (
+            <Sparkles className="h-5 w-5" />
+          ) : (
+            <>
+              <span className="text-base leading-none">🛒</span>
+              <Sparkles className="h-4 w-4" />
+              <span className="truncate">Marketplace</span>
+            </>
+          )}
+        </button>
       </nav>
 
       {/* Language switcher */}

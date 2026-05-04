@@ -18,6 +18,7 @@ import { BulkAudioDialog } from '@/components/creator-studio/shared/BulkAudioDia
 import { findSlidesMissingAudio } from '@/components/creator-studio/shared/slideAudioHelpers';
 import { DifficultyTunerDialog } from '@/components/creator-studio/shared/DifficultyTunerDialog';
 import { ImportFromTextDialog, IMPORTED_LESSON_STORAGE_KEY } from '@/components/creator-studio/shared/ImportFromTextDialog';
+import { PublishTemplateDialog } from '@/components/creator-studio/marketplace/PublishTemplateDialog';
 import { useCreatorLesson } from '@/hooks/useCreatorLesson';
 import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
 import { SaveStatusBadge } from '@/components/creator-studio/shared/SaveStatusBadge';
@@ -103,6 +104,7 @@ export default function PlaygroundCreator() {
   const [bulkAudioOpen, setBulkAudioOpen] = useState(false);
   const [tunerOpen, setTunerOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [publishTemplateOpen, setPublishTemplateOpen] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
   const [jsonDraft, setJsonDraft] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
@@ -417,6 +419,8 @@ export default function PlaygroundCreator() {
               hub="playground"
               missingAudioCount={findSlidesMissingAudio(slides).length}
               onGenerateMissingAudio={() => setBulkAudioOpen(true)}
+              onPublishTemplate={() => setPublishTemplateOpen(true)}
+              canPublishTemplate={slides.length >= 8}
             />
             <button
               onClick={() => setImportOpen(true)}
@@ -690,6 +694,14 @@ export default function PlaygroundCreator() {
         open={importOpen}
         onOpenChange={setImportOpen}
         defaultHub="playground"
+      />
+
+      <PublishTemplateDialog
+        open={publishTemplateOpen}
+        onOpenChange={setPublishTemplateOpen}
+        hub="playground"
+        title={title}
+        slides={slides}
       />
     </div>
   );

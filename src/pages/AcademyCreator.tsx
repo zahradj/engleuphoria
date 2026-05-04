@@ -25,6 +25,7 @@ import { BulkAudioDialog } from '@/components/creator-studio/shared/BulkAudioDia
 import { findSlidesMissingAudio } from '@/components/creator-studio/shared/slideAudioHelpers';
 import { DifficultyTunerDialog } from '@/components/creator-studio/shared/DifficultyTunerDialog';
 import { ImportFromTextDialog, IMPORTED_LESSON_STORAGE_KEY } from '@/components/creator-studio/shared/ImportFromTextDialog';
+import { PublishTemplateDialog } from '@/components/creator-studio/marketplace/PublishTemplateDialog';
 import { useCreatorLesson } from '@/hooks/useCreatorLesson';
 import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
 import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
@@ -139,6 +140,7 @@ export default function AcademyCreator() {
   const [bulkAudioOpen, setBulkAudioOpen] = useState(false);
   const [tunerOpen, setTunerOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [publishTemplateOpen, setPublishTemplateOpen] = useState(false);
 
   const lessonHook = useCreatorLesson({ hub: 'academy', initialLessonId });
 
@@ -426,6 +428,8 @@ export default function AcademyCreator() {
               hub="academy"
               missingAudioCount={findSlidesMissingAudio(slides).length}
               onGenerateMissingAudio={() => setBulkAudioOpen(true)}
+              onPublishTemplate={() => setPublishTemplateOpen(true)}
+              canPublishTemplate={slides.length >= 8}
             />
             <button
               onClick={() => setImportOpen(true)}
@@ -719,6 +723,15 @@ export default function AcademyCreator() {
         open={importOpen}
         onOpenChange={setImportOpen}
         defaultHub="academy"
+      />
+
+      <PublishTemplateDialog
+        open={publishTemplateOpen}
+        onOpenChange={setPublishTemplateOpen}
+        hub="academy"
+        title={title}
+        level={level}
+        slides={slides}
       />
     </div>
   );

@@ -26,6 +26,7 @@ const SignUp = lazy(() => import("./pages/SignUp"));
 const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
 const TeacherDashboard = lazy(() => import("./pages/TeacherDashboard"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const TemplateMarketplace = lazy(() => import("./pages/TemplateMarketplace"));
 const StudentSignUp = lazy(() => import("./pages/StudentSignUp"));
 const StudentApplication = lazy(() => import("./pages/StudentApplication"));
 const EmailVerification = lazy(() => import("./pages/EmailVerification"));
@@ -230,6 +231,15 @@ const App = () => {
                         <ImprovedProtectedRoute requiredRole="content_creator">
                           <Suspense fallback={<LoadingFallback />}>
                             <CreatorStudioShell />
+                          </Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
+
+                      {/* Lesson Template Marketplace — any authenticated creator/teacher/admin */}
+                      <Route path="/template-marketplace" element={
+                        <ImprovedProtectedRoute>
+                          <Suspense fallback={<LoadingFallback />}>
+                            <TemplateMarketplace />
                           </Suspense>
                         </ImprovedProtectedRoute>
                       } />
