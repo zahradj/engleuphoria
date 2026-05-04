@@ -130,5 +130,5 @@ export const ImportFromTextDialog: React.FC<Props> = ({ open, onOpenChange, defa
   );
 };
 
-ImportFromTextDialog.STORAGE_KEY = STORAGE_KEY as any;
 export const IMPORTED_LESSON_STORAGE_KEY = STORAGE_KEY;
+
