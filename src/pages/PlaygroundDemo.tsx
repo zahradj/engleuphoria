@@ -192,6 +192,9 @@ function MultipleChoice({ slide }: { slide: Extract<Slide, { type: 'multiple' }>
       animate={picked ? (correct ? correctAnim : wrongAnim) : undefined}
       className="flex flex-col items-center gap-8 w-full"
     >
+      {slide.image_url && (
+        <img src={slide.image_url} alt="" className="w-44 h-44 rounded-2xl object-cover shadow-md" />
+      )}
       <h2 className="text-4xl font-bold text-slate-800 text-center">{slide.question}</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-2xl">
         {slide.options.map((opt) => {
