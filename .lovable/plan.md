@@ -1,74 +1,147 @@
 ## Goal
 
-Restructure the three creators (Playground, Academy, Success) into a professional 3-column workspace, fix the AI image not appearing on slides, and add a "Back" escape hatch.
+Fix the urgent Success Creator crash, then ship five upgrades: Teacher Notes + Role Simulator, Visual Flashcards, Excel-style dynamic activity builder, Success Hub corporate AI structure with Buffer slides, and a Lesson Summary "Trophy/Review" slide.
 
-## Findings
+## P0 — Crash fix (do first, ships standalone)
 
-- All three creator pages share the same shell pattern: a sticky header with toolbar + a `max-w-7xl grid grid-cols-12` body split 3/5/4 (Slide list / Editor / Live preview). This caps width at ~1280px with `p-4` padding, making the editor feel cramped on 1076px viewports and below.
-- The image binding flow is already correct: `SlideMediaPanel.generateImage()` calls `onPatch({ image_url, image_prompt })`, and parent `update()` in each creator does `setSlides(prev => prev.map((s, i) => i === selected ? {...s, ...patch} : s))`. **However** Playground's `SlideRenderer` for several slide types (`intro`, `multiple`, `truefalse`, `fill`) does not actually read `slide.image_url`, so the generated image is saved to state but never rendered — that's the "image doesn't appear on screen" symptom.
-- There is no global "Back" button anywhere in the creator headers — once a teacher enters `/playground-creator`, `/academy-creator`, `/success-creator`, or `/classroom/:id` there is no nav out except the browser back button.
+`SuccessCreator.makeSlide()` calls `SLIDE_TYPES.find(...)!.defaultBlock` and crashes when an old/imported revision has a slide type that isn't in the current `SLIDE_TYPES` table (console: `Cannot read properties of undefined (reading 'defaultBlock')` from RevisionHistoryModal restore path).
 
-## Plan
+Fix: lookup with safe fallback.
 
-### 1. Layout — true 3-column grid (all 3 creators)
-
-Replace the current `max-w-7xl grid-cols-12` body with a full-width CSS grid:
-
-```text
-┌──────────────────────────────────────────────────────────────┐
-│  Header (sticky, full width, Back · Title · Toolbar)         │
-├────────────┬────────────────────────────────┬────────────────┤
-│  260px     │   1fr (editor — flex column)   │   420px        │
-│  Slides    │   Tabs: Basic / Media / Cmts   │   Live Preview │
-│  + Add     │   Scrollable inner area        │   Sticky       │
-└────────────┴────────────────────────────────┴────────────────┘
+```ts
+function makeSlide(type: SlideType): Slide {
+  const entry = SLIDE_TYPES.find((s) => s.type === type);
+  if (!entry) return { type: 'intro', block: 'warmup', title: 'New section', subtitle: '' } as Slide;
+  const block = entry.defaultBlock;
+  switch (type) { /* unchanged */ }
+}
 ```
 
-- Wrapper: `grid grid-cols-[260px_1fr_420px] gap-4 p-4 h-[calc(100vh-72px)]` (no max-w cap).
-- Each column: `min-h-0 overflow-y-auto` so internal scrolling works independently.
-- Mobile fallback: `lg:grid-cols-[260px_1fr_420px] grid-cols-1` — collapses to stacked single column under `lg`.
-- Slide list column: drop `max-h-[55vh]` (now bounded by column height); keep "Add Slide" pinned at bottom with `mt-auto`.
-- Live preview column: remove `sticky top-24`, the column itself owns its scroll.
+Same defensive lookup added to `AcademyCreator.makeSlide()` and `PlaygroundCreator.makeSlide()` for parity.
 
-### 2. Header — add Back button + restructure toolbar
+## 1. Teacher Notes + Role Simulator
 
-In each creator's `<header>`:
+**Schema**
+- `PlaygroundDemo.Slide`: add `teacher_notes?: string` to every union member (single-line edit on each variant).
+- `AcademyDemo.Slide` and `SuccessDemo.Slide`: same.
 
-- Add at the very left, before the icon badge: a `← Back` button that calls `navigate(-1)` (or `navigate('/content-creator')` if `window.history.length <= 1`). Hub-themed (orange / purple / emerald outline).
-- Same change in `FullPreview` deck modal (already has a Back button for slide nav — leave it; add a separate `× Close` already present via `X` button).
-- Add Back button to `/classroom/:id` route headers as well (Academy, Success, Demo classrooms) — top-left fixed, white pill with backdrop-blur, navigates to teacher dashboard.
+**Editor (right column → moves to bottom of editor card)**
+- New `<TeacherNotesField>` component rendered under the slide form (in the Editor column, below the tabs — not the preview column, since preview is a viewer not an editor). Amber background (`bg-amber-50 border-amber-300`) + "📝 Teacher Script / Notes (Hidden from Student)" label, bound to `slide.teacher_notes` via `update({ teacher_notes })`.
 
-### 3. Image binding — make `image_url` actually render
+**Role Simulator (top of Live Preview column)**
+- Segment toggle `[👨‍🏫 Teacher View] [🎓 Student View]`, default `teacher`.
+- New `previewRole` state passed to `PlayablePreviewPane` as a prop, then forwarded to `renderSlide(slide, idx, { previewRole })`.
+- Behaviour:
+  - **Student**: hide Next/Back arrows, hide "Force Sync" / sync chrome, do NOT render `teacher_notes`.
+  - **Teacher**: full chrome + a floating bottom panel showing `slide.teacher_notes` ("📝 Teacher Script") with amber accent.
+- `PlayablePreviewPane.tsx`: add optional `previewRole` prop, pass through to renderSlide and conditionally render its built-in nav controls.
 
-In `src/pages/PlaygroundDemo.tsx` `SlideRenderer`, for each slide type that doesn't currently render media, prepend:
+**AI prompt update**
+- Edge function `generate-ppp-slides` (and any per-hub variants): append to system prompt:
+  > "For every slide, populate `teacher_notes` with one short sentence telling the live teacher how to deliver this slide (e.g. 'Ask the student to read the sentence aloud before playing the audio.'). Never reveal teacher_notes to the student."
+- Add `teacher_notes: { type: "string" }` to the structured-output JSON schema.
 
-```tsx
-{slide.image_url && (
-  <img src={slide.image_url} alt="" className="rounded-2xl max-h-48 mx-auto mb-3 object-contain" />
-)}
+## 2. Visual Flashcards (Playground + Academy)
+
+**Schema (`flashcards` field already on slides via SlideMediaPanel)**
+```ts
+type FlashcardItem = { id: string; word: string; image_url?: string; audio_url?: string; definition?: string };
 ```
 
-Apply to: `intro`, `multiple`, `truefalse`, `fill`, `draw` (drag/match already use images via their own fields).
+**Playground UI** (`PlaygroundDemo` + new `Flashcard` slide variant if not present, otherwise update existing renderer):
+- Card: `aspect-[3/4] rounded-3xl overflow-hidden`. Top 75% = `<img class="w-full h-full object-cover">` (no emoji fallback — show neutral placeholder if missing). Bottom 25% = bold word pill + circular "▶ Audio" button.
 
-Verify Academy/Success demos (`AcademyDemo.tsx`, `SuccessDemo.tsx`) — if their `SlideRenderer` ignores `image_url` on text-heavy slide types, add the same conditional render so the AI-generated image shows through in the live preview pane.
+**Academy UI** (split layout):
+- `grid grid-cols-2 min-h-[420px]`. Left: image (`object-cover`). Right: `<h3 class="text-3xl font-bold">{word}</h3>` + `<p class="text-base">{definition}</p>` + Audio button.
 
-### 4. Scoped polish
+**Editor integration**
+- `SlideMediaPanel` already has flashcard editing (per earlier scan). Update each row to include:
+  - `word` input (existing `front`)
+  - `definition` input (new)
+  - "🪄 AI Generate Image" button per row → calls `ai-image-generation` with prompt `"Vocabulary illustration for: {word}, clean flat style, white background"` and patches that row's `image_url`.
+  - "🔊 Generate Audio" → calls existing TTS endpoint, sets `audio_url`.
 
-- Slide list cards: tighten padding to `p-2.5` so 260px fits the action icons without wrapping.
-- Editor column: wrap `<Tabs>` content in a `flex-1 overflow-y-auto` so long forms scroll without pushing the page.
-- Toolbar: on viewports <1280px, group secondary buttons (JSON / Export / Code / History) inside a single "More" popover to prevent overflow at the new full-width header.
+## 3. Excel-style Dynamic Activity Builder
 
-## Files to edit
+For interactive slide types in the Right/Editor column whose data is an array (`fill_blank`, `multiple`, `matching`, `drag`, `cluster.activities`, `opinion.options`, `functional_pattern.examples`):
 
-- `src/pages/PlaygroundCreator.tsx` — layout grid, Back button, More popover.
-- `src/pages/AcademyCreator.tsx` — same.
-- `src/pages/SuccessCreator.tsx` — same.
-- `src/pages/PlaygroundDemo.tsx` — render `image_url` in `SlideRenderer`.
-- `src/pages/AcademyDemo.tsx`, `src/pages/SuccessDemo.tsx` — same conditional image render where missing.
-- Classroom pages (`AcademyClassroom.tsx` and `/classroom/:id` wrapper) — fixed top-left Back button.
+- Render rows via `.map()`.
+- Below the list: full-width dashed button **`+ Add New Item`** that pushes an empty template onto the array.
+- Each row gets a small `<Trash2>` icon (right side) that splices it out.
+- Auto-scroll: each row gets `data-item-index={i}`. The Live Preview's `renderSlide` wraps each item with `onClick={() => editorRef.current?.querySelector('[data-item-index="${i}"]')?.scrollIntoView({behavior:'smooth', block:'center'})}` and a momentary `ring-2 ring-orange-400` highlight. A shared `useEditorScrollSync(hub)` hook coordinates the ref.
+
+This is implemented inside each creator's `SlideEditor` switch arms (PlaygroundCreator + AcademyCreator + SuccessCreator).
+
+## 4. Success Hub — Corporate AI + Buffer Block
+
+**Routing alias**
+- Add `<Route path="/dashboard/success-creator" element={<SuccessCreator />} />` alongside the existing `/success-creator` route.
+
+**Corporate UI polish (SuccessDemo)**
+- Confirm/upgrade theme: dark navy `bg-slate-900` for "teacher view" of slide canvas, white inner card, serif headings (`font-serif text-slate-900`), emerald accent kept minimal. Already mostly in place — only add serif to slide titles.
+
+**AI prompt (edge function `generate-ppp-slides` branch `hub === 'success'`)**
+Replace the system prompt with the Master Corporate English Trainer brief, output blocks in this exact order with these counts:
+
+| Block | Slides |
+|---|---|
+| `warmup` (Business Context) | 2 |
+| `vocab` (Idioms / Phrasal Verbs) | 3 |
+| `context` (Reading or Listening — case study / email) | 2 |
+| `functional` (Grammar in Use — formal vs informal) | 3 |
+| `practice` (Negotiation / rewrite / fill) | 3 |
+| `output` (Speaking / Presentation) | 2 |
+| **`buffer` (Buffer & Review)** | **3–4 EXTRA optional slides** |
+
+- Add `'buffer'` to `Block` union in `SuccessDemo.tsx` + add a `BLOCKS` entry `{ id: 'buffer', label: 'Buffer & Review' }`.
+- In `PlayablePreviewPane` and `SuccessClassroom` rendering, when `slide.block === 'buffer'`, show a small badge `🕒 Extra Time` (top-right of slide canvas).
+- AI must include `is_buffer: true` flag on those slides for clarity.
+
+## 5. Lesson Summary "Trophy / Review" Slide (bonus)
+
+**New slide type** `lesson_summary` (auto-appended by the AI, also addable manually):
+```ts
+{ type: 'lesson_summary', block: 'output', vocab_recap: string[], grammar_recap: string, takeaway: string, teacher_notes?: string }
+```
+
+**Renderers**
+- **Playground**: Big confetti burst on enter (`fireConfetti`), trophy icon, "🏆 Level Complete!", list of words mastered (max 5) as colourful chips, "Great job!" CTA.
+- **Academy / Success**: Clean white "Review Sheet" — Title "📋 Lesson Recap" + sectioned cards: Vocabulary (5 chips), Grammar Rule (single sentence), Your Takeaway, with a small "📸 Screenshot-friendly" hint.
+
+**AI**
+- Edge function appends one `lesson_summary` slide as the final slide of every Academy/Success/Playground generation, populated from the actual vocab/grammar/objective fields produced earlier in the deck.
+
+## Files to create/edit
+
+**Create**
+- `src/components/creator-studio/shared/TeacherNotesField.tsx`
+- `src/components/creator-studio/shared/PreviewRoleToggle.tsx`
+- `src/components/creator-studio/shared/DynamicListEditor.tsx` (reusable add-row + trash + scroll-into-view helper)
+- `src/components/creator-studio/shared/FlashcardEditor.tsx` (per-row word/def/AI image/audio controls)
+- `src/components/lesson-summary/PlaygroundSummary.tsx`
+- `src/components/lesson-summary/AcademySummary.tsx` (shared with Success, themed by prop)
+
+**Edit**
+- `src/pages/SuccessCreator.tsx` — crash fix, teacher notes field, preview role toggle, dynamic list editors, summary slide, buffer block.
+- `src/pages/AcademyCreator.tsx` — defensive `makeSlide`, teacher notes, preview role toggle, dynamic list editors, summary slide.
+- `src/pages/PlaygroundCreator.tsx` — defensive `makeSlide`, teacher notes, preview role toggle, dynamic list editors, summary slide.
+- `src/pages/PlaygroundDemo.tsx` — `teacher_notes` on Slide union, `lesson_summary` renderer, image-centric Flashcard renderer.
+- `src/pages/AcademyDemo.tsx` — same: union, summary, image+definition flashcard.
+- `src/pages/SuccessDemo.tsx` — union, summary, `buffer` block + 🕒 badge, serif title polish.
+- `src/components/creator-studio/shared/PlayablePreviewPane.tsx` — `previewRole` prop, conditional chrome, floating teacher notes panel, badge support.
+- `src/components/creator-studio/shared/SlideMediaPanel.tsx` — wire new FlashcardEditor for `flashcards` field.
+- `src/App.tsx` — add `/dashboard/success-creator` alias.
+- `supabase/functions/generate-ppp-slides/index.ts` — add `teacher_notes` schema field, branch on `hub === 'success'` for corporate structure + buffer block, append `lesson_summary` slide.
 
 ## Out of scope
 
-- No DB migrations.
-- No new shared layout component (kept inline per-creator since each has hub-specific theming, refactor can come later).
-- No changes to AI generation logic — only the render path.
+- Reworking the live `/classroom/:id` real-time sync engine to honour `previewRole` (separate flow — only the creator's preview pane is updated).
+- Migrating saved lessons in the DB to backfill `teacher_notes` (new field is optional).
+- Audio generation pipeline changes — flashcards reuse the existing TTS endpoint.
+
+## Validation
+
+- Open `/success-creator` → no crash, can add slides normally.
+- Toggle "Student View" in preview → arrows hidden, no notes panel.
+- Add a Fill-in-the-Blank slide → click "+ Add New Item" → new row appears in editor and on canvas; trash deletes it.
+- Generate Success lesson via AI → 7 blocks present, last block tagged 🕒, final slide is a `lesson_summary`.
