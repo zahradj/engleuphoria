@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { ActiveLessonData, PPPSlide } from './CreatorContext';
+import { cefrToDifficulty, hubToTargetSystem } from '@/services/lessonHubMapping';
 
 /**
  * Persist a lesson (its slides + metadata) to Supabase `curriculum_lessons`.
@@ -23,28 +24,6 @@ export async function persistLesson(
   const userId = userData.user?.id;
   if (!userId) return { ok: false, error: 'You must be signed in to save.' };
 
-  // Map CEFR (A1..C2) → allowed difficulty_level enum (beginner|intermediate|advanced).
-  const cefrToDifficulty = (cefr?: string | null): 'beginner' | 'intermediate' | 'advanced' => {
-    const v = String(cefr ?? '').trim().toUpperCase();
-    if (v === 'A1' || v === 'A2') return 'beginner';
-    if (v === 'B1' || v === 'B2') return 'intermediate';
-    if (v === 'C1' || v === 'C2') return 'advanced';
-    const lower = v.toLowerCase();
-    if (lower === 'beginner' || lower === 'intermediate' || lower === 'advanced') {
-      return lower as 'beginner' | 'intermediate' | 'advanced';
-    }
-    return 'beginner';
-  };
-
-  // DB CHECK constraint: target_system ∈ ('kids' | 'teen' | 'adult').
-  // Map studio hubs (playground/academy/success) → allowed values.
-  const hubToTargetSystem = (hub: string): 'kids' | 'teen' | 'adult' => {
-    const h = (hub || '').toLowerCase();
-    if (h === 'playground' || h === 'kids') return 'kids';
-    if (h === 'academy' || h === 'teen' || h === 'teens') return 'teen';
-    return 'adult'; // success / professional / adults
-  };
-
   const basePayload: Record<string, any> = {
     title: lesson.lesson_title,
     description: lesson.target_goal ?? null,
@@ -57,6 +36,8 @@ export async function persistLesson(
       kind,
       generated_at: new Date().toISOString(),
       blueprint_ref: lesson.source_lesson ?? null,
+      hub: lesson.hub,
+      cefr_level: lesson.cefr_level,
       ...(extraMetadata ?? {}),
     },
     is_published: isPublished,

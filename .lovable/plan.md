@@ -1,89 +1,75 @@
-## Part A — Harden the Lesson Importer (`ai-extract-lesson-from-text`)
+# Master Library ↔ Creators: Two-Way Binding & Hub Tabs
 
-Make the 4-phase generator self-correcting before any slides reach the editor.
+## What we have today (verified)
 
-### A1. Vocabulary coverage check
-After parsing the AI response, verify each of the 5 `_lesson_metadata.target_vocab` words appears (case-insensitive, word-boundary match) in `_source_text`.
-- Pass → continue.
-- Fail → record `missing_vocab[]` and trigger a **Phase 2 re-run** (see A3).
+- `curriculum_lessons` is the canonical lessons table. Hub is stored as `target_system` (`kids`/`teen`/`adult`) — there is **no** `hub_type` column. Mapping helpers (`targetSystemToHub` / `HUB_TO_TARGET_SYSTEM`) already exist in `LibraryManager.tsx`, `useCreatorLesson.ts`, and `persistLesson.ts`.
+- `LibraryManager.tsx` is the Master Library. It already groups by Hub → Level → Unit, has a hub filter row (`All / Playground / Academy / Success`), bulk delete, search, and a kind filter. **Edit** today calls `setActiveLessonData()` + `setCurrentStep('slide-builder')` — it does **not** smart-route to the hub-specific creators.
+- `AcademyCreator.tsx` and `PlaygroundCreator.tsx` already:
+  - read `?lessonId=` from `useSearchParams`
+  - call `useCreatorLesson({ hub, initialLessonId })` which fetches the row and exposes `saveDraft` / `publish` (upsert against `curriculum_lessons`)
+  - inject the lesson title / level / slides into editor state
+- Blueprint persistence (`persistBlueprint.ts`) already inserts lesson rows tagged with the right `target_system` per module hub.
+- Routes: `/playground-creator`, `/academy-creator` (also nested under `/content-creator/*`).
 
-### A2. Quiz answer verification
-Walk every quiz slide (`multiple`, `truefalse`, `multiple_choice`, fill-in-the-blank). For each:
-- `multiple` / `multiple_choice`: confirm `options[correctIndex]` (or its key noun) is found in `_source_text`.
-- `truefalse`: ask the AI in a tiny verifier call (cheap JSON, gemini-flash) whether the statement is supported by `_source_text` and matches `answer`.
-- Fill-in-the-blank: confirm the answer string appears in `_source_text`.
-Collect failures into `bad_quiz_slides[]` with their slide indices.
+## Decision: keep `target_system` as the source of truth
 
-### A3. Regenerate-failed-phases retry mechanism
-New helper `regeneratePhase(phase, context)` reuses the same model with a focused prompt:
-- **Phase 2 retry** (vocab not covered): "Rewrite ONLY `_source_text` so that ALL of these words appear naturally: [...]. Keep title, vocab, grammar identical."
-- **Phase 3 retry** (bad quiz slides): "Regenerate ONLY these slide indices: [...]. Every correct answer must be directly derivable from this passage: <_source_text>."
-Up to **2 retry rounds**. After round 2, return whatever passes plus a `validationWarnings[]` field the UI can surface.
+Adding a duplicate `hub_type` column would diverge from every existing hook, RLS policy, and query. Instead we treat **`hub_type` as a derived alias** of `target_system` everywhere the user spec mentions it (`kids→playground`, `teen→academy`, `adult→success`). No migration required.
 
-### A4. Response shape
-```
-{ title, level, hub, slides, validation: { vocabCoverage: 5/5, quizVerified: 18/18, retries: 1, warnings: [] } }
-```
+## Part 1 — Smart routing from the Master Library
 
-### A5. UI surfacing
-`ImportFromTextDialog` shows a small validation badge after generation (✅ "All checks passed" or ⚠️ "2 warnings — review highlighted slides"). Warned slide indices are passed via `sessionStorage` and the creator marks those slide thumbnails with an amber dot.
+In `src/components/creator-studio/steps/LibraryManager.tsx`:
 
----
+- Replace `handleEdit(row)` so it routes by hub instead of switching the inner step:
+  - `playground` → `navigate('/playground-creator?lessonId=' + row.id)`
+  - `academy`    → `navigate('/academy-creator?lessonId=' + row.id)`
+  - `success` / other → keep the existing in-shell `slide-builder` flow (no dedicated Success creator yet) and pre-load `setActiveLessonData` as today.
+- Use `react-router-dom`'s `useNavigate`. Keep the existing `setActiveLessonData` call as a fallback for the success/standard branch only.
 
-## Part B — Step 9: Template Marketplace
+## Part 2 — Tabbed Master Library with dynamic columns
 
-Let creators publish a finished lesson as a **public template** and let other creators clone it into their own editor with one click.
+Still in `LibraryManager.tsx`:
 
-### B1. Database (migration)
-New table `lesson_templates`:
-- `id uuid pk`, `created_by uuid` (auth.users), `hub text` ('playground'|'academy'), `title text`, `description text`, `level text`, `cover_image_url text`, `tags text[]`, `slide_count int`, `payload jsonb` (full slides array + metadata), `clone_count int default 0`, `is_published bool default true`, `created_at`, `updated_at`.
-- RLS:
-  - SELECT: anyone authenticated (public marketplace).
-  - INSERT/UPDATE/DELETE: `created_by = auth.uid()` OR `has_role(auth.uid(),'admin')`.
-- Index on `(hub, level)` and a GIN index on `tags`.
+- Promote the current pill row to a proper **Tabs** bar directly under the page title (using existing `@/components/ui/tabs` for accessibility):
+  - `All Lessons · Playground (Kids) · Academy (Teens) · Success (Adults)`
+  - Active tab gets the hub accent underline (`HUB_HEADER_GRADIENT[hub]`); inactive tabs are muted.
+- Drive the existing `hubFilter` state from the Tabs `value`. Persist filter selection in URL (`?hub=playground`) via `useSearchParams` so deep links work.
+- **Hub-specific columns / chips on the lesson cards:**
+  - Academy & Success: show the CEFR badge (`A1…C2`) — already rendered, keep as-is.
+  - Playground: hide the CEFR chip on the card and the level grouping label (the lesson card stays clean — only the unit + lesson number show).
+- **"Create New Lesson" smart routing**: add a primary CTA in the header bar. When clicked:
+  - if `hubFilter === 'playground'` → `navigate('/playground-creator')`
+  - if `hubFilter === 'academy'` → `navigate('/academy-creator')`
+  - if `hubFilter === 'success'` → in-shell `slide-builder` (Success uses the standard studio)
+  - if `hubFilter === 'all'` → small popover offering the three hub choices.
 
-New RPC `increment_template_clone(template_id uuid)` — security definer, +1 to `clone_count`.
+## Part 3 — Tighten data binding in the creators
 
-### B2. Edge function — `publish-lesson-template`
-Takes the current creator's slides + metadata, validates (≥8 slides, title required), inserts into `lesson_templates`. Returns the new id.
+`useCreatorLesson.ts` already does the upsert, but a few gaps to close:
 
-### B3. New page — `/template-marketplace`
-- Hub-themed grid (Playground orange / Academy purple).
-- Filters: hub, CEFR level, tag chips, search.
-- Each card: cover image, title, level badge, slide count, clone count, "by {creator}".
-- Card actions: **Preview** (modal slide-deck preview, read-only) and **Clone into editor**.
+- On insert, also write `ai_metadata.hub` and `ai_metadata.cefr_level` so the Library's `resolveCefr()` shows the correct CEFR (today only `difficulty_level` is set, which downgrades CEFR display).
+- After `publish` / `saveDraft`, change the toast copy to `"✅ Saved to Master Library"` to match the spec.
+- After insert, mirror the new `lessonId` into `?lessonId=` (already done in both creators) and also invalidate `['curriculum-lessons-library']` (already done) — no change needed.
+- Standardize: when `meta.level` is a CEFR code (`A1…C2`), store it both in `difficulty_level` (mapped to enum via the same `cefrToDifficulty` used by `persistLesson.ts`) and in `ai_metadata.cefr_level`. Today the hook writes the raw CEFR string into `difficulty_level`, which violates the enum check on some rows — extracting the existing helper into a small shared util (`src/services/lessonHubMapping.ts`) and reusing it from both `persistLesson.ts` and `useCreatorLesson.ts`.
 
-### B4. "Clone into editor" flow
-Reuses the existing `IMPORTED_LESSON_STORAGE_KEY` pattern:
-1. Fetch full `payload` from `lesson_templates`.
-2. Stash `{ title, level, slides, hub }` into `sessionStorage`.
-3. Navigate to `/playground-creator?imported=1` or `/academy-creator?imported=1`.
-4. Existing mount-time effect injects slides — zero new wiring in the creators.
-5. Call `increment_template_clone` RPC.
+## Part 4 — Blueprint → Library guarantee
 
-### B5. Publish entry point in creators
-Add a "Publish as Template" item to the existing `BulkActionsMenu` dropdown in both `AcademyCreator.tsx` and `PlaygroundCreator.tsx`. Opens a small dialog: title, description, tags (comma input), cover image (auto-grab from first slide with imageUrl, or upload). Confirm → calls `publish-lesson-template`.
+`persistBlueprint.ts` already tags each generated lesson with the module's hub via `target_system`. We'll add an `ai_metadata.hub` mirror to the insert payload so the new Library tabs filter blueprint-generated lessons correctly without relying on the enum mapping alone.
 
-### B6. Discovery surface
-- New tile on `/content-creator` dashboard: **"Browse Template Marketplace"** with a count of available templates per hub.
-- Sidebar nav entry under Creator section.
+## Files touched
 
-### Files to create
-- `supabase/migrations/<ts>_lesson_templates.sql`
-- `supabase/functions/publish-lesson-template/index.ts`
-- `src/pages/TemplateMarketplace.tsx`
-- `src/components/creator-studio/marketplace/TemplateCard.tsx`
-- `src/components/creator-studio/marketplace/TemplatePreviewDialog.tsx`
-- `src/components/creator-studio/marketplace/PublishTemplateDialog.tsx`
-- `src/hooks/useLessonTemplates.ts`
+- `src/components/creator-studio/steps/LibraryManager.tsx` — smart routing in `handleEdit`, Tabs UI, URL-synced `hubFilter`, dynamic CEFR column, "Create New" CTA.
+- `src/hooks/useCreatorLesson.ts` — write `ai_metadata.hub` + `cefr_level`, normalize `difficulty_level`, updated toast copy.
+- `src/services/lessonHubMapping.ts` *(new, tiny)* — single source for `hubToTargetSystem`, `targetSystemToHub`, `cefrToDifficulty`.
+- `src/components/creator-studio/persistLesson.ts` — import helpers from the new mapping module.
+- `src/components/creator-studio/persistBlueprint.ts` — add `ai_metadata.hub` mirror on lesson inserts.
 
-### Files to edit
-- `supabase/functions/ai-extract-lesson-from-text/index.ts` (Part A)
-- `src/components/creator-studio/shared/ImportFromTextDialog.tsx` (validation badge)
-- `src/components/creator-studio/shared/BulkActionsMenu.tsx` (Publish as Template)
-- `src/pages/AcademyCreator.tsx` & `src/pages/PlaygroundCreator.tsx` (warned-slide badges, publish dialog mount)
-- `src/App.tsx` (add `/template-marketplace` route)
-- `supabase/config.toml` (expose `publish-lesson-template`)
+No DB migration. No breaking changes to existing rows; older lessons without `ai_metadata.hub` still resolve via `target_system`.
 
-### Out of scope (future)
-Ratings/reviews, paid templates, version forking. Marketplace ships as free + clone-count only.
+## Acceptance checks
+
+1. Edit a `kids` lesson from the Library → lands on `/playground-creator?lessonId=…` with title, level, and slides preloaded.
+2. Edit a `teen` lesson → lands on `/academy-creator?lessonId=…`.
+3. Save Draft / Publish in either creator → row updates in place, toast reads "✅ Saved to Master Library", and the Library list refreshes.
+4. Tabs filter correctly; CEFR column hidden on Playground tab.
+5. "Create New Lesson" inside Playground tab opens `/playground-creator` with no `lessonId`.
+6. Blueprint-generated lessons appear under the correct Hub tab immediately.

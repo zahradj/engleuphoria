@@ -7,6 +7,7 @@ import {
   getLessonById,
   type LibraryLesson,
 } from '@/services/lessonLibraryService';
+import { cefrToDifficulty, hubToTargetSystem, isCefr } from '@/services/lessonHubMapping';
 
 /**
  * Shared persistence hook for the Playground & Academy slide creators.
@@ -16,11 +17,6 @@ import {
  */
 
 export type CreatorHub = 'playground' | 'academy';
-
-const HUB_TO_TARGET_SYSTEM: Record<CreatorHub, string> = {
-  playground: 'kids',
-  academy: 'teen',
-};
 
 interface UseCreatorLessonArgs {
   hub: CreatorHub;
@@ -62,28 +58,46 @@ export function useCreatorLesson({ hub, initialLessonId }: UseCreatorLessonArgs)
       try {
         const { data: userData } = await supabase.auth.getUser();
         const userId = userData?.user?.id ?? null;
-        const targetSystem = HUB_TO_TARGET_SYSTEM[hub];
+        const targetSystem = hubToTargetSystem(hub);
+        const levelRaw = (meta.level || '').trim();
+        const cefr = isCefr(levelRaw) ? levelRaw.toUpperCase() : null;
+        const difficulty = cefr ? cefrToDifficulty(cefr) : cefrToDifficulty(levelRaw || 'A1');
         const content = {
           slides,
           hub,
           updated_at: new Date().toISOString(),
         };
+        const successToast = '✅ Saved to Master Library';
 
         if (lessonId) {
+          // Preserve existing ai_metadata while merging hub/cefr fields.
+          const { data: existing } = await supabase
+            .from('curriculum_lessons')
+            .select('ai_metadata')
+            .eq('id', lessonId)
+            .maybeSingle();
+          const mergedMeta = {
+            ...(existing?.ai_metadata as Record<string, any> | null ?? {}),
+            hub,
+            ...(cefr ? { cefr_level: cefr } : {}),
+            slideCount: slides.length,
+          };
           const { error } = await supabase
             .from('curriculum_lessons')
             .update({
               title: meta.title,
               content,
               is_published: meta.publish,
-              difficulty_level: meta.level || undefined,
+              difficulty_level: difficulty,
+              target_system: targetSystem,
+              ai_metadata: mergedMeta,
             })
             .eq('id', lessonId);
           if (error) throw error;
           qc.invalidateQueries({ queryKey: ['creator-lesson', lessonId] });
           qc.invalidateQueries({ queryKey: ['creator-library', hub] });
           qc.invalidateQueries({ queryKey: ['curriculum-lessons-library'] });
-          if (!meta.silent) toast.success(meta.publish ? 'Lesson published ✨' : 'Draft saved');
+          if (!meta.silent) toast.success(successToast);
           return lessonId;
         }
 
@@ -93,12 +107,12 @@ export function useCreatorLesson({ hub, initialLessonId }: UseCreatorLessonArgs)
             title: meta.title,
             description: `${hub === 'playground' ? 'Playground' : 'Academy'} lesson`,
             target_system: targetSystem,
-            difficulty_level: meta.level || 'A1',
+            difficulty_level: difficulty,
             duration_minutes: hub === 'playground' ? 30 : 60,
             content,
             is_published: meta.publish,
             created_by: userId,
-            ai_metadata: { hub, slideCount: slides.length },
+            ai_metadata: { hub, cefr_level: cefr ?? undefined, slideCount: slides.length },
           } as any)
           .select('id')
           .single();
@@ -107,7 +121,7 @@ export function useCreatorLesson({ hub, initialLessonId }: UseCreatorLessonArgs)
         setLessonId(newId);
         qc.invalidateQueries({ queryKey: ['creator-library', hub] });
         qc.invalidateQueries({ queryKey: ['curriculum-lessons-library'] });
-        if (!meta.silent) toast.success(meta.publish ? 'Lesson published ✨' : 'Draft created');
+        if (!meta.silent) toast.success(successToast);
         return newId;
       } catch (e: any) {
         console.error('[useCreatorLesson] persist error', e);

@@ -1,7 +1,10 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Library, Loader2, FileText, CheckCircle2, Pencil, Trash2, X, Lock, BookOpen, Gamepad2, Search, ChevronDown } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Library, Loader2, FileText, CheckCircle2, Pencil, Trash2, X, Lock, BookOpen, Gamepad2, Search, ChevronDown, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -127,6 +130,8 @@ interface UnitGroup {
 }
 
 export const LibraryManager: React.FC = () => {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { setActiveLessonData, setCurrentStep, setDirty } = useCreator();
   const [rows, setRows] = useState<LessonRow[] | null>(null);
   const [units, setUnits] = useState<UnitRow[]>([]);
@@ -137,7 +142,11 @@ export const LibraryManager: React.FC = () => {
   const [bulkBusy, setBulkBusy] = useState(false);
   const [confirmBulk, setConfirmBulk] = useState<'selected' | 'all' | null>(null);
   // ── Navigation / filter state ────────────────────────────────────
-  const [hubFilter, setHubFilter] = useState<'all' | 'playground' | 'academy' | 'success'>('all');
+  const initialHub = (searchParams.get('hub') as 'all' | 'playground' | 'academy' | 'success') || 'all';
+  const [hubFilter, setHubFilter] = useState<'all' | 'playground' | 'academy' | 'success'>(
+    ['all', 'playground', 'academy', 'success'].includes(initialHub) ? initialHub : 'all',
+  );
+  const [createOpen, setCreateOpen] = useState(false);
   const [kindFilter, setKindFilter] = useState<'all' | 'standard' | 'trial' | 'story'>('all');
   const [search, setSearch] = useState('');
   const [openHubs, setOpenHubs] = useState<Set<string>>(new Set(['playground', 'academy', 'success']));
@@ -214,6 +223,24 @@ export const LibraryManager: React.FC = () => {
     fetchRows();
   }, [fetchRows]);
 
+  // Sync hub filter ↔ URL (?hub=playground|academy|success|all)
+  useEffect(() => {
+    const current = searchParams.get('hub') ?? 'all';
+    if (current === hubFilter) return;
+    const next = new URLSearchParams(searchParams);
+    if (hubFilter === 'all') next.delete('hub');
+    else next.set('hub', hubFilter);
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hubFilter]);
+
+  const handleCreateNew = (hub?: 'playground' | 'academy' | 'success') => {
+    const target = hub ?? (hubFilter !== 'all' ? hubFilter : null);
+    if (target === 'playground') return navigate('/playground-creator');
+    if (target === 'academy') return navigate('/academy-creator');
+    // success / all → fall back to in-shell standard slide builder
+    setCurrentStep('slide-builder');
+  };
   const handleEdit = (row: LessonRow) => {
     const slides: PPPSlide[] = Array.isArray(row.content?.slides) ? row.content.slides : [];
     const homework_missions = Array.isArray(row.content?.homework_missions)
@@ -252,6 +279,17 @@ export const LibraryManager: React.FC = () => {
     };
     setActiveLessonData(next);
     setDirty(false);
+    // Smart routing: open the hub-specific creator with the lesson preloaded.
+    const hub = targetSystemToHub(row.target_system);
+    if (hub === 'playground') {
+      navigate(`/playground-creator?lessonId=${row.id}`);
+      return;
+    }
+    if (hub === 'academy') {
+      navigate(`/academy-creator?lessonId=${row.id}`);
+      return;
+    }
+    // Success / standard → keep the existing in-shell editor (no dedicated creator yet).
     setCurrentStep('slide-builder');
   };
 
@@ -459,6 +497,50 @@ export const LibraryManager: React.FC = () => {
             Your published and draft lessons, grouped by Hub → Level → Unit.
           </p>
         </div>
+        {/* Create New Lesson — smart-routed by active tab */}
+        <Popover open={createOpen} onOpenChange={setCreateOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              size="sm"
+              className="gap-1.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white border-0"
+              onClick={(e) => {
+                if (hubFilter !== 'all') {
+                  e.preventDefault();
+                  setCreateOpen(false);
+                  handleCreateNew();
+                }
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              Create New Lesson
+            </Button>
+          </PopoverTrigger>
+          {hubFilter === 'all' && (
+            <PopoverContent align="end" className="w-56 p-2">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-2 pt-1 pb-2">
+                Choose a hub
+              </p>
+              <button
+                className="w-full text-left px-3 py-2 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-950/30 text-sm font-semibold flex items-center gap-2"
+                onClick={() => { setCreateOpen(false); handleCreateNew('playground'); }}
+              >
+                <Gamepad2 className="h-4 w-4 text-orange-500" /> Playground (Kids)
+              </button>
+              <button
+                className="w-full text-left px-3 py-2 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-950/30 text-sm font-semibold flex items-center gap-2"
+                onClick={() => { setCreateOpen(false); handleCreateNew('academy'); }}
+              >
+                <BookOpen className="h-4 w-4 text-violet-600" /> Academy (Teens)
+              </button>
+              <button
+                className="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-950/30 text-sm font-semibold flex items-center gap-2"
+                onClick={() => { setCreateOpen(false); handleCreateNew('success'); }}
+              >
+                <Library className="h-4 w-4 text-emerald-600" /> Success (Adults)
+              </button>
+            </PopoverContent>
+          )}
+        </Popover>
         <Button variant="outline" size="sm" onClick={fetchRows} disabled={loading}>
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Refresh'}
         </Button>
@@ -578,28 +660,34 @@ export const LibraryManager: React.FC = () => {
       {!!rows?.length && (
         <div className="sticky top-0 z-20 -mx-6 px-6 py-3 mb-5 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800/60">
           <div className="flex flex-col sm:flex-row gap-3">
-            {/* Hub tabs */}
-            <div className="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-              {([
-                { key: 'all', label: 'All', gradient: 'from-slate-600 to-slate-700' },
-                { key: 'playground', label: 'Playground', gradient: HUB_HEADER_GRADIENT.playground },
-                { key: 'academy', label: 'Academy', gradient: HUB_HEADER_GRADIENT.academy },
-                { key: 'success', label: 'Success', gradient: HUB_HEADER_GRADIENT.success },
-              ] as const).map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setHubFilter(tab.key)}
-                  className={cn(
-                    'px-3 py-1.5 rounded-lg text-xs font-bold tracking-wide transition-all',
-                    hubFilter === tab.key
-                      ? `bg-gradient-to-r ${tab.gradient} text-white shadow-sm`
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100',
-                  )}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+            {/* Hub tabs — accessible Tabs with hub-accent underline */}
+            <Tabs
+              value={hubFilter}
+              onValueChange={(v) => setHubFilter(v as typeof hubFilter)}
+              className="shrink-0"
+            >
+              <TabsList className="bg-slate-100 dark:bg-slate-900 p-1 rounded-xl h-auto">
+                {([
+                  { key: 'all', label: 'All Lessons', accent: 'data-[state=active]:after:bg-slate-700' },
+                  { key: 'playground', label: 'Playground (Kids)', accent: 'data-[state=active]:after:bg-orange-500' },
+                  { key: 'academy', label: 'Academy (Teens)', accent: 'data-[state=active]:after:bg-violet-600' },
+                  { key: 'success', label: 'Success (Adults)', accent: 'data-[state=active]:after:bg-emerald-500' },
+                ] as const).map((tab) => (
+                  <TabsTrigger
+                    key={tab.key}
+                    value={tab.key}
+                    className={cn(
+                      'relative px-3 py-1.5 text-xs font-bold tracking-wide rounded-lg',
+                      'data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-sm',
+                      'data-[state=active]:after:absolute data-[state=active]:after:left-3 data-[state=active]:after:right-3 data-[state=active]:after:-bottom-0.5 data-[state=active]:after:h-0.5 data-[state=active]:after:rounded-full',
+                      tab.accent,
+                    )}
+                  >
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
             {/* Search */}
             <div className="relative flex-1 min-w-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
@@ -706,8 +794,12 @@ export const LibraryManager: React.FC = () => {
                               {levelGroup.cefr}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-70">CEFR Level</p>
-                              <h4 className="text-base font-extrabold tracking-tight">Level {levelGroup.cefr}</h4>
+                              <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-70">
+                                {levelGroup.hub === 'playground' ? 'Stage' : 'CEFR Level'}
+                              </p>
+                              <h4 className="text-base font-extrabold tracking-tight">
+                                {levelGroup.hub === 'playground' ? `Stage ${levelGroup.cefr}` : `Level ${levelGroup.cefr}`}
+                              </h4>
                             </div>
                             <Badge variant="secondary" className="text-[11px] font-semibold bg-white/30 dark:bg-white/10 border-0 shrink-0">
                               {levelGroup.lessons.length} lesson{levelGroup.lessons.length === 1 ? '' : 's'}
