@@ -18,11 +18,6 @@ import { cefrToDifficulty, hubToTargetSystem, isCefr } from '@/services/lessonHu
 
 export type CreatorHub = 'playground' | 'academy';
 
-const HUB_TO_TARGET_SYSTEM: Record<CreatorHub, string> = {
-  playground: 'kids',
-  academy: 'teen',
-};
-
 interface UseCreatorLessonArgs {
   hub: CreatorHub;
   initialLessonId?: string | null;
