@@ -488,7 +488,16 @@ export default function PlaygroundCreator() {
         {/* Editor */}
         <section className="col-span-12 md:col-span-5">
           <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-5">
-            <h2 className="text-sm font-bold text-orange-600 mb-3">EDIT SLIDE #{selected + 1} · {current.type.toUpperCase()}</h2>
+            <div className="flex items-center justify-between mb-3 gap-2">
+              <h2 className="text-sm font-bold text-orange-600">EDIT SLIDE #{selected + 1} · {current.type.toUpperCase()}</h2>
+              <button
+                onClick={() => setTunerOpen(true)}
+                title="Rewrite this slide easier or harder"
+                className="inline-flex items-center gap-1 text-xs font-bold border-2 border-orange-300 text-orange-700 rounded-lg px-2 py-1 hover:bg-orange-50"
+              >
+                <Wand2 className="w-3.5 h-3.5" /> Tune
+              </button>
+            </div>
             <Tabs defaultValue="basic" className="w-full">
               <TabsList className="grid grid-cols-3 w-full">
                 <TabsTrigger value="basic">Basic</TabsTrigger>
