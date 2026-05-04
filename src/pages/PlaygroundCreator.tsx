@@ -621,6 +621,16 @@ export default function PlaygroundCreator() {
           toast.success(`Added "${tpl.label}" (${newSlides.length} slides)`);
         }}
       />
+
+      <BulkAudioDialog
+        open={bulkAudioOpen}
+        onOpenChange={setBulkAudioOpen}
+        slides={slides}
+        lessonId={lessonHook.lessonId}
+        patchSlide={(idx, patch) =>
+          setSlides((prev) => prev.map((s, i) => (i === idx ? ({ ...s, ...patch } as Slide) : s)))
+        }
+      />
     </div>
   );
 }
