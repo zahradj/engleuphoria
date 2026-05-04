@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 interface Props {
   open: boolean;
   onOpenChange: (o: boolean) => void;
-  hub: 'playground' | 'academy';
+  hub: 'playground' | 'academy' | 'success';
   title: string;
   level?: string;
   slides: any[];

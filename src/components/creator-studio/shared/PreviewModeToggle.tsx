@@ -6,7 +6,7 @@ export type PreviewMode = 'editor' | 'play';
 interface Props {
   value: PreviewMode;
   onChange: (mode: PreviewMode) => void;
-  hub: 'playground' | 'academy';
+  hub: 'playground' | 'academy' | 'success';
 }
 
 /**

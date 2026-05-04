@@ -14,7 +14,7 @@ interface Props<TSlide> {
    *  can pass any required props (theme, etc.) to the underlying
    *  SlideRenderer. */
   renderSlide: (slide: TSlide, index: number) => ReactNode;
-  hub: 'playground' | 'academy';
+  hub: 'playground' | 'academy' | 'success';
 }
 
 /**

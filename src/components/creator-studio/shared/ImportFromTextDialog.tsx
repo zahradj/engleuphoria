@@ -12,7 +12,7 @@ interface Props {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   /** Optional pre-selected hub. If omitted, user picks. */
-  defaultHub?: 'playground' | 'academy';
+  defaultHub?: 'playground' | 'academy' | 'success';
 }
 
 const STORAGE_KEY = 'engl_imported_lesson_payload';
@@ -24,7 +24,7 @@ const STORAGE_KEY = 'engl_imported_lesson_payload';
  */
 export const ImportFromTextDialog: React.FC<Props> = ({ open, onOpenChange, defaultHub }) => {
   const navigate = useNavigate();
-  const [hub, setHub] = useState<'playground' | 'academy'>(defaultHub || 'academy');
+  const [hub, setHub] = useState<'playground' | 'academy' | 'success'>(defaultHub || 'academy');
   const [level, setLevel] = useState('B1');
   const [title, setTitle] = useState('');
   const [rawText, setRawText] = useState('');
