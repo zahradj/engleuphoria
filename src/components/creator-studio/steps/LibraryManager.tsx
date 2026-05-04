@@ -238,7 +238,8 @@ export const LibraryManager: React.FC = () => {
     const target = hub ?? (hubFilter !== 'all' ? hubFilter : null);
     if (target === 'playground') return navigate('/playground-creator');
     if (target === 'academy') return navigate('/academy-creator');
-    // success / all → fall back to in-shell standard slide builder
+    if (target === 'success') return navigate('/success-creator');
+    // all → fall back to in-shell standard slide builder
     setCurrentStep('slide-builder');
   };
   const handleEdit = (row: LessonRow) => {
