@@ -116,6 +116,11 @@ export default function SuccessCreator() {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialLessonId = searchParams.get('lessonId');
 
+  const goBack = () => {
+    if (window.history.length > 1) navigate(-1);
+    else navigate('/content-creator');
+  };
+
   const [slides, setSlides] = useState<Slide[]>(MAKING_REQUESTS_AT_WORK.slides);
   const [title, setTitle] = useState(MAKING_REQUESTS_AT_WORK.title);
   const [level, setLevel] = useState(MAKING_REQUESTS_AT_WORK.level);
