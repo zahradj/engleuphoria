@@ -140,6 +140,7 @@ export default function AcademyCreator() {
   const [bulkAudioOpen, setBulkAudioOpen] = useState(false);
   const [tunerOpen, setTunerOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [publishTemplateOpen, setPublishTemplateOpen] = useState(false);
 
   const lessonHook = useCreatorLesson({ hub: 'academy', initialLessonId });
 
