@@ -17,6 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { SlideMediaPanel } from '@/components/creator-studio/shared/SlideMediaPanel';
 import { PreviewModeToggle, type PreviewMode } from '@/components/creator-studio/shared/PreviewModeToggle';
 import { PlayablePreviewPane } from '@/components/creator-studio/shared/PlayablePreviewPane';
+import { AssetVaultDialog } from '@/components/creator-studio/shared/AssetVaultDialog';
 import { useCreatorLesson } from '@/hooks/useCreatorLesson';
 import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
 import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
@@ -126,6 +127,7 @@ export default function AcademyCreator() {
   const [aiBusy, setAiBusy] = useState(false);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [previewMode, setPreviewMode] = useState<PreviewMode>('editor');
+  const [vaultOpen, setVaultOpen] = useState(false);
 
   const lessonHook = useCreatorLesson({ hub: 'academy', initialLessonId });
 
@@ -361,6 +363,13 @@ export default function AcademyCreator() {
                 )}
               </PopoverContent>
             </Popover>
+            <button
+              onClick={() => setVaultOpen(true)}
+              className="inline-flex items-center gap-2 border border-slate-300 hover:border-indigo-400 text-slate-700 font-semibold rounded-lg px-3 py-2 text-sm transition"
+              title="Open Asset Vault"
+            >
+              <FolderOpen className="w-4 h-4" /> Vault
+            </button>
             <SaveStatusBadge status={autoSave.status} lastSavedAt={autoSave.lastSavedAt} />
             <button
               onClick={() => setHistoryOpen(true)}
@@ -592,6 +601,13 @@ export default function AcademyCreator() {
         revisions={history.revisions}
         loading={history.loading}
         onRestore={handleRestore}
+      />
+
+      <AssetVaultDialog
+        open={vaultOpen}
+        onOpenChange={setVaultOpen}
+        hub="academy"
+        onPick={({ url, field }) => update({ [field]: url } as any)}
       />
     </div>
   );
