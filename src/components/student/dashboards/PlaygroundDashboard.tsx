@@ -51,6 +51,7 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [mobileShowMore, setMobileShowMore] = useState(false);
   const [nextLessonRoomLink, setNextLessonRoomLink] = useState<string | null>(null);
   const [nextLessonTitle, setNextLessonTitle] = useState<string | undefined>(undefined);
   const liveStatus = useLiveClassroomStatus('student');
