@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Code2, X, Play, Sparkles, Loader2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Code2, X, Play, Sparkles, Loader2, Save, Send, FolderOpen } from 'lucide-react';
 import {
   SlideRenderer,
   themeMap,
@@ -12,6 +12,11 @@ import {
 import { SOCIAL_MEDIA_LESSON } from '@/data/academyLessons/socialMediaHabits';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { SlideMediaPanel } from '@/components/creator-studio/shared/SlideMediaPanel';
+import { useCreatorLesson } from '@/hooks/useCreatorLesson';
+import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
 
 /**
  * Academy Slide Creator — clean teacher-facing authoring tool.
@@ -98,6 +103,9 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 export default function AcademyCreator() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialLessonId = searchParams.get('lessonId');
+
   const [slides, setSlides] = useState<Slide[]>(SOCIAL_MEDIA_LESSON.slides);
   const [title, setTitle] = useState(SOCIAL_MEDIA_LESSON.title);
   const [level, setLevel] = useState(SOCIAL_MEDIA_LESSON.level);
@@ -111,6 +119,31 @@ export default function AcademyCreator() {
   const [aiLevel, setAiLevel] = useState('A2');
   const [aiGrammar, setAiGrammar] = useState('Present simple');
   const [aiBusy, setAiBusy] = useState(false);
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+
+  const lessonHook = useCreatorLesson({ hub: 'academy', initialLessonId });
+
+  useEffect(() => {
+    const lesson = lessonHook.lesson;
+    if (!lesson) return;
+    const dbSlides = getLibraryLessonSlides(lesson) as Slide[];
+    if (dbSlides.length > 0) {
+      setSlides(dbSlides);
+      setSelected(0);
+    }
+    if (lesson.title) setTitle(lesson.title);
+    if (lesson.difficulty_level) setLevel(lesson.difficulty_level);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lessonHook.lesson?.id]);
+
+  useEffect(() => {
+    if (lessonHook.lessonId && searchParams.get('lessonId') !== lessonHook.lessonId) {
+      const next = new URLSearchParams(searchParams);
+      next.set('lessonId', lessonHook.lessonId);
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lessonHook.lessonId]);
 
   const generateWithAI = async () => {
     if (!aiTopic.trim()) return;
@@ -183,6 +216,36 @@ export default function AcademyCreator() {
     setSelected((s) => Math.max(0, Math.min(s, slides.length - 2)));
   };
 
+  const onDragStart = (i: number) => setDragIdx(i);
+  const onDragOver = (e: React.DragEvent) => e.preventDefault();
+  const onDrop = (i: number) => {
+    if (dragIdx === null || dragIdx === i) { setDragIdx(null); return; }
+    setSlides((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(dragIdx, 1);
+      next.splice(i, 0, moved);
+      return next;
+    });
+    setSelected(i);
+    setDragIdx(null);
+  };
+
+  const handleSaveDraft = () => lessonHook.saveDraft(slides, { title, level });
+  const handlePublish = () => lessonHook.publish(slides, { title, level });
+  const handleImportFromLibrary = async (id: string) => {
+    const lesson = await lessonHook.importLesson(id);
+    if (!lesson) return;
+    const dbSlides = getLibraryLessonSlides(lesson) as Slide[];
+    if (dbSlides.length === 0) { toast.error('That lesson has no slides yet'); return; }
+    setSlides(dbSlides);
+    setTitle(lesson.title || 'Imported lesson');
+    if (lesson.difficulty_level) setLevel(lesson.difficulty_level);
+    setSelected(0);
+    toast.success(`Loaded "${lesson.title}"`);
+  };
+
+  const slideId = `slide-${selected}`;
+
   const exportJson = () => {
     const payload = { id: 'custom-' + Date.now(), title, level, durationMin: 60, slides };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -243,6 +306,37 @@ export default function AcademyCreator() {
             <button onClick={() => { setJsonDraft(JSON.stringify(slides, null, 2)); setJsonError(null); setJsonOpen(true); }}
               className="inline-flex items-center gap-2 border border-slate-300 hover:border-indigo-400 text-slate-700 font-semibold rounded-lg px-3 py-2 text-sm transition">
               <Code2 className="w-4 h-4" /> JSON
+            </button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="inline-flex items-center gap-2 border border-slate-300 hover:border-indigo-400 text-slate-700 font-semibold rounded-lg px-3 py-2 text-sm transition">
+                  <FolderOpen className="w-4 h-4" /> Library
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80 p-2 max-h-96 overflow-y-auto">
+                <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wide px-2 py-1">Import from Library</div>
+                {lessonHook.isLoadingLibrary ? (
+                  <div className="p-3 text-xs text-slate-500"><Loader2 className="w-3 h-3 animate-spin inline mr-1" /> Loading…</div>
+                ) : lessonHook.library.length === 0 ? (
+                  <div className="p-3 text-xs text-slate-500">No saved Academy lessons yet.</div>
+                ) : (
+                  lessonHook.library.map((l) => (
+                    <button key={l.id} onClick={() => handleImportFromLibrary(l.id)}
+                      className="w-full text-left rounded-lg px-2 py-1.5 hover:bg-indigo-50 text-sm">
+                      <div className="font-semibold text-slate-800 truncate">{l.title}</div>
+                      <div className="text-[10px] text-slate-500">{l.is_published ? 'Published' : 'Draft'} · {(l.content as any)?.slides?.length ?? 0} slides</div>
+                    </button>
+                  ))
+                )}
+              </PopoverContent>
+            </Popover>
+            <button onClick={handleSaveDraft} disabled={lessonHook.isSaving}
+              className="inline-flex items-center gap-2 border border-indigo-400 text-indigo-700 font-semibold rounded-lg px-3 py-2 text-sm transition disabled:opacity-50">
+              {lessonHook.isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Draft
+            </button>
+            <button onClick={handlePublish} disabled={lessonHook.isSaving}
+              className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg px-4 py-2 text-sm shadow-md transition disabled:opacity-50">
+              {lessonHook.isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Publish
             </button>
             <button onClick={() => setAiOpen(true)} className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:opacity-90 text-white font-semibold rounded-lg px-4 py-2 text-sm shadow-md transition">
               <Sparkles className="w-4 h-4" /> Generate with AI
@@ -319,7 +413,25 @@ export default function AcademyCreator() {
                 {BLOCKS.map((b) => <option key={b.id} value={b.id}>{b.label}</option>)}
               </select>
             </div>
-            <SlideEditor slide={current} onChange={update} />
+            <Tabs defaultValue="basic" className="w-full">
+              <TabsList className="grid grid-cols-2 w-full">
+                <TabsTrigger value="basic">Basic</TabsTrigger>
+                <TabsTrigger value="media">AI Media & Audio</TabsTrigger>
+              </TabsList>
+              <TabsContent value="basic" className="pt-4">
+                <SlideEditor slide={current} onChange={update} />
+              </TabsContent>
+              <TabsContent value="media" className="pt-4">
+                <SlideMediaPanel
+                  slide={current as any}
+                  onPatch={(patch) => update(patch as Partial<Slide>)}
+                  hub="academy"
+                  lessonId={lessonHook.lessonId}
+                  slideId={slideId}
+                  enableFlashcards={current.type === 'vocab' || current.type === 'matching'}
+                />
+              </TabsContent>
+            </Tabs>
           </div>
         </section>
 

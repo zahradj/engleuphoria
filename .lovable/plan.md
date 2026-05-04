@@ -1,92 +1,114 @@
-# Playground Placement Test — Image Cards & Gamified Animations
+## Goal
 
-Upgrade the kids' picture quiz to use real images instead of emojis, with playful but non-punishing animations, smoother question transitions, and a calmer background.
+Bring `PlaygroundCreator` and `AcademyCreator` to parity with the rest of the studio:
 
-## What changes
+1. A clean tabbed media panel (Image · Audio · Music · Video · Flashcards) in the middle column.
+2. Real persistence to `curriculum_lessons` (the Master Library), with Save Draft, Publish, and Import working.
+3. Slide rail upgrades: keyboard reorder + duplicate + delete already exist; add drag-and-drop and an explicit "lesson title / hub" header.
 
-**Files touched:**
-- `src/components/placement/PlaygroundPlacementPhase.tsx` — full UI overhaul
-- `src/components/student/PlacementGatekeeper.tsx` — tone down the background only when the active hub is Playground
-- `public/placement/` — new folder containing the image set (committed, not generated at runtime)
+## Reality check
 
-## 1. Image library (40 PNGs, one per answer option)
+- The named components in the brief (`AudioGenerator`, `ImageGenerator`, `VideoEmbedder`, `FlashcardBuilder`) **do not exist as standalone files**. The richest media UI lives inside `creator-studio/.../TeacherControlsPanel.tsx`, but it is tightly coupled to a different `PPPSlide` shape (CreatorContext) and cannot be dropped into the Playground/Academy slide schemas.
+- The reusable backend pieces that **do** exist and we will share:
+  - `generate-slide-image`, `generate-slide-voiceover`, `generate-slide-music` edge functions — wrapped by `src/components/creator-studio/steps/slide-studio/mediaGeneration.ts` (`generateSlideImage`, `generateSlideVoiceover`, `generateSlideMusic`).
+  - `generateOnePlaygroundImage` from `usePlaygroundImages` (already used for kids).
+  - `useLessonEditor` hook + `lessonLibraryService` (`getLibraryLessons`, `getLessonById`, `saveToLibrary`) — the same data layer the Master Library reads from.
+- Both creators currently keep slides only in `useState` — no `.from('curriculum_lessons')` call anywhere. That is the disconnect to fix.
 
-Generate a single batch of square (512×512) flat-illustration PNGs with transparent background and bright kid-friendly colors. Subjects:
+## What to build
 
-```
-animals    : dog, cat, rabbit, bird
-colors     : blue-square, green-square, red-square, yellow-square
-fruits     : banana, apple, grapes, orange
-sky        : moon, star, cloud, sun
-food       : pizza, milk, cookie, bread
-actions    : standing, running, jumping, sleeping
-counting   : one-apple, two-apples, three-apples, four-apples
-sentences  : happy-dog (×4 — same image for the 4 grammar variants)
-ice-cream  : ice-cream-cone (×4 for the verb-form question)
-clocks     : clock-1, clock-2, clock-3, clock-4
-```
+### 1. New shared `SlideMediaPanel` component
 
-Use the existing `ai-image-generation` edge function (Gemini) or `generate-playground-images` to produce them, then commit to `/public/placement/{name}.png`. No runtime fetching — instant load, zero cost per session.
+Create `src/components/creator-studio/shared/SlideMediaPanel.tsx`. A self-contained tabbed panel that operates on a generic `slide: any` and an `onPatch(patch)` callback. Tabs:
 
-## 2. Schema change
-
-Replace `{ emoji, label }` with `{ image: string; label: string }` in `PICTURE_QUESTIONS`. The 10 questions stay the same; only the option representation changes. The grammar/verb questions where all four options shared the same emoji also share the same image — text differentiates them.
-
-## 3. Card redesign
-
-Each option becomes an Image Card:
-- `aspect-square`, `rounded-2xl`, `shadow-md`, white background `bg-white`
-- Image fills the card via `object-cover`
-- Label sits in a clean white pill (`bg-white/95 rounded-full px-3 py-1 text-slate-800 font-semibold text-sm`) anchored to the bottom of the card with a small margin
-- Border softens to `border border-slate-200` instead of the current translucent white-on-color
-
-## 4. Framer Motion gamification
-
-```tsx
-<motion.button
-  initial={{ opacity: 0, scale: 0.8, y: 20 }}
-  animate={{ opacity: 1, scale: 1, y: 0 }}
-  transition={{ delay: idx * 0.08, type: 'spring', stiffness: 300, damping: 22 }}
-  whileHover={{ scale: 1.05, y: -5 }}
-  whileTap={{ scale: 0.95 }}
->
+```text
+[ Image ]  [ Audio ]  [ Music ]  [ Video ]  [ Flashcards ]
 ```
 
-- Stagger entrance (cards pop in one by one, ~80ms apart)
-- Hover lift + scale (desktop)
-- Tap squish (mobile feels tactile)
-- Question container wrapped in `<AnimatePresence mode="wait">` with horizontal slide:
-  - Exit: `{ x: '-100%', opacity: 0 }`
-  - Enter: `{ x: '100%' } → { x: 0 }`
+- **Image** — text prompt + "Generate" button (calls `generateSlideImage(prompt, lessonId, slideId, hub)`), URL input, file upload via `uploadSlideAsset`, thumbnail preview. Writes to `slide.image_url` (Playground) or `slide.media.image_url` (Academy — see binding map).
+- **Audio** — text → ElevenLabs TTS via `generateSlideVoiceover`, voice dropdown (Sarah / Roger / Lily / Charlie), preview `<audio>`. Writes to `slide.voice.text` and `slide.voice.audio_url`.
+- **Music** — prompt + duration → `generateSlideMusic`, preview, writes to `slide.music_url`.
+- **Video** — paste YouTube/Vimeo URL, auto-detect ID, write `slide.video_url` + `slide.video_embed_url`.
+- **Flashcards** — only enabled when slide type matches (`vocab` / `matching` / `match`). Inline list of `{ front, back, image_url? }` with add/remove/AI image per card; writes to `slide.flashcards` (or `slide.pairs` for `match`).
 
-## 5. Non-punishing feedback
+Each tab uses the existing UI primitives (`Tabs`, `Input`, `Textarea`, `Button`, `Label`, `Card`) and `sonner` toasts. The panel emits a single `onPatch` so the parent's existing `update()` reducer is reused.
 
-- Remove all rose/red "wrong" styling
-- On click: selected card gets `ring-4 ring-orange-400` glow + a `Sparkles` pop badge regardless of correctness
-- Keep correctness logging in `results` for the placement algorithm
-- Replace incorrect feedback wording: instead of "This is X" with amber tone, show neutral encouragement: "Nice try! Let's keep going ✨" — the right answer is silently logged, no shaming
-- Slightly faster auto-advance (1.1s instead of 1.6s) since there's no error to read
+### 2. New `useCreatorLesson` hook
 
-## 6. Calmer background
+Create `src/hooks/useCreatorLesson.ts` (thin wrapper around `useLessonEditor` + `getLibraryLessons` for the Import dropdown):
 
-Currently the welcome/quiz wrapper uses `bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-400` (very saturated). Soften it for the playground hub only:
+```text
+useCreatorLesson({ hub })
+  → { lessonId, setLessonId,
+      lesson, isLoading,
+      saveDraft(slides), publish(slides),
+      libraryList, refreshLibrary }
+```
 
-- Change to `bg-gradient-to-br from-orange-100 via-amber-50 to-yellow-50` (pastel)
-- Drop the two ambient blob opacities from `0.30 / 0.20` to `0.15 / 0.10`
-- Header text in the test panel switches from `text-white` to `text-slate-800` for contrast on the new lighter card surface
-- Star progress: change inactive `text-white/20` → `text-amber-200`, active stays gold
+Persistence rules:
+- **Save Draft** → `update curriculum_lessons set content = { slides, hub, updated_at }, is_published = false where id = :lessonId`.
+- **Publish** → same upsert + `is_published = true`.
+- **New lesson** (no `lessonId` yet) → call `saveToLibrary(title, hub, level, slides)` to insert and capture the new id.
+- **Import** → `getLibraryLessons(hub)` for the picker, then `getLessonById(id)` and hydrate `setSlides(content.slides)` + `setLessonId(id)`.
+- All routed through `curriculum_lessons` (canonical table per project memory).
 
-Academy/Professional themes remain unchanged.
+### 3. Refactor `PlaygroundCreator` middle column
+
+Keep all existing per-type fields (intro/multiple/truefalse/fill/drag/match/draw — they ARE the "Basic Text" and "Interactive Data" sections). Wrap them in tabs:
+
+```text
+[ Basic ]  [ AI Media & Audio ]  [ Interactive Data ]
+```
+
+- **Basic** = the current `SlideEditor()` text/option fields (no change).
+- **AI Media & Audio** = mounted `<SlideMediaPanel>` with hub="playground".
+- **Interactive Data** = the existing `match.pairs` / `multiple.options` / `drag` editors that aren't basic text. (For most slide types this tab is hidden.)
+
+Header buttons (top-right): replace the JSON-only set with `Save Draft`, `Publish`, `Import from Library ▾`, `Preview`, `JSON`. Add a **Lesson Title** input + hub badge in the header row. Wire to `useCreatorLesson({ hub: 'playground' })`.
+
+### 4. Refactor `AcademyCreator` middle column
+
+Same pattern with `useCreatorLesson({ hub: 'academy' })`. Academy slides have richer types; the Media tab is enabled on every type, the Flashcards tab is enabled for `vocab` / `matching`.
+
+### 5. Slide rail (left column) parity
+
+Both creators already have move-up / move-down / duplicate / delete. Add:
+- HTML5 drag-and-drop reorder (`onDragStart` / `onDragOver` / `onDrop` on the slide list items) — small inline implementation, no new lib.
+- "+ New from template" stays as-is.
+
+### 6. Routing the Master Library to these creators
+
+In the existing Master Library / Curriculum Manager lesson cards, add an "Edit in Studio" button that links to:
+- `/playground-creator?lessonId=:id` for Playground hub
+- `/academy-creator?lessonId=:id` for Academy hub
+
+Both creators read `?lessonId=` on mount (via `useSearchParams`) and hydrate. This closes the loop: lessons saved here are immediately editable from Master Library and vice versa.
 
 ## Technical details
 
-- The `TestResult` interface and the parent `PlacementGatekeeper` flow stay identical — only visuals change. No DB migration, no scoring changes.
-- Image paths use Vite's `/public` serving (`/placement/cat.png`) so they're cached by the browser/SW after first visit.
-- Total added weight: ~40 PNGs × ~25 KB (flat illustrations) ≈ 1 MB, lazy-loaded per question via `loading="lazy"` so the first question only fetches 4.
-- Accessibility: `<img alt={label}>` and `aria-label` on the button, plus a `role="img"` fallback for the rare `aria-pressed` state.
+**Slide → DB binding:** payload is stored as `curriculum_lessons.content = { slides: Slide[], hub, updated_at }` to match what `lessonLibraryService.getSlidesArray` already understands.
 
-## Out of scope
+**File touch list:**
 
-- Audio/sound effects (memory says sound system exists; can wire later if you want)
-- The non-Playground TestPhase (this plan only touches the kids' picture quiz)
-- New questions or scoring algorithm changes
+```text
+NEW   src/components/creator-studio/shared/SlideMediaPanel.tsx
+NEW   src/hooks/useCreatorLesson.ts
+EDIT  src/pages/PlaygroundCreator.tsx       — header, tabs, persistence, drag-drop
+EDIT  src/pages/AcademyCreator.tsx          — header, tabs, persistence, drag-drop
+EDIT  src/components/content-creator/CurriculumManager.tsx
+        — add "Edit in Studio" link per lesson card (Playground/Academy only)
+```
+
+**Reused (no edits):**
+- `src/components/creator-studio/steps/slide-studio/mediaGeneration.ts`
+- `src/components/creator-studio/steps/slide-studio/uploadSlideAsset.ts`
+- `src/services/lessonLibraryService.ts`
+- `src/hooks/useLessonEditor.ts`
+- Edge functions: `generate-slide-image`, `generate-slide-voiceover`, `generate-slide-music`
+
+**No DB migration needed** — `curriculum_lessons` already has `content jsonb`, `is_published`, `target_system`, `created_by`.
+
+**Out of scope (not in this pass):**
+- Replacing the Playground/Academy `SlideRenderer` to read the new `slide.voice.audio_url` / `slide.music_url` fields. Today the renderer uses browser TTS for `voice.text`; pre-generated audio URLs will simply sit on the slide JSON ready to be wired in a follow-up.
+- Per-slide `lesson-slides` storage bucket policy changes (uses existing bucket via `uploadSlideAsset`).
+- Cross-hub conversion (a Playground lesson cannot be opened in AcademyCreator — the schemas differ).
