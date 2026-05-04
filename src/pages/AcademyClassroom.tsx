@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Maximize, Minimize, Volume2, Mic } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Maximize, Minimize, Volume2, Mic, ArrowLeft } from 'lucide-react';
 import {
   SlideRenderer,
   ProgressBar,
