@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronDown, Zap, Mic } from 'lucide-react';
+import { ChevronDown, Zap, Mic, Upload } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,10 +15,12 @@ interface Props {
   onGenerateMissingAudio: () => void;
   /** Count of slides missing audio — for the badge */
   missingAudioCount: number;
+  onPublishTemplate?: () => void;
+  canPublishTemplate?: boolean;
 }
 
 export const BulkActionsMenu: React.FC<Props> = ({
-  hub, onGenerateMissingAudio, missingAudioCount,
+  hub, onGenerateMissingAudio, missingAudioCount, onPublishTemplate, canPublishTemplate = true,
 }) => {
   const trigger =
     hub === 'playground'
@@ -52,6 +54,25 @@ export const BulkActionsMenu: React.FC<Props> = ({
             </div>
           </div>
         </DropdownMenuItem>
+
+        {onPublishTemplate && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={onPublishTemplate}
+              disabled={!canPublishTemplate}
+              className="cursor-pointer"
+            >
+              <Upload className="w-4 h-4 mr-2 text-emerald-600" />
+              <div className="flex-1">
+                <div className="text-sm font-semibold">Publish as Template</div>
+                <div className="text-[10px] text-slate-500">
+                  {canPublishTemplate ? 'Share with the marketplace' : 'Need 8+ slides to publish'}
+                </div>
+              </div>
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
