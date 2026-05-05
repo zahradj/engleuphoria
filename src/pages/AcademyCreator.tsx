@@ -882,9 +882,9 @@ function SlideEditor({ slide, onChange, blueprint, hub = 'academy', cefrLevel = 
     case 'vocab':
       return (
         <div className="space-y-3">
-          <Field label="Word"><input className={inputCls} value={slide.word} onChange={(e) => onChange({ word: e.target.value } as any)} /></Field>
-          <Field label="Definition"><input className={inputCls} value={slide.definition} onChange={(e) => onChange({ definition: e.target.value } as any)} /></Field>
-          <Field label="Example"><input className={inputCls} value={slide.example || ''} onChange={(e) => onChange({ example: e.target.value } as any)} /></Field>
+          <Field label="Word">{row(<input className={inputCls} value={slide.word} onChange={(e) => onChange({ word: e.target.value } as any)} />, wand('word', slide.word, (v) => onChange({ word: v } as any)))}</Field>
+          <Field label="Definition">{row(<input className={inputCls} value={slide.definition} onChange={(e) => onChange({ definition: e.target.value } as any)} />, wand('definition', slide.definition, (v) => onChange({ definition: v } as any)))}</Field>
+          <Field label="Example">{row(<input className={inputCls} value={slide.example || ''} onChange={(e) => onChange({ example: e.target.value } as any)} />, wand('example', slide.example || '', (v) => onChange({ example: v } as any)))}</Field>
         </div>
       );
 
