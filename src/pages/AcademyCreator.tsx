@@ -35,6 +35,7 @@ import { SaveStatusBadge } from '@/components/creator-studio/shared/SaveStatusBa
 import { RevisionHistoryModal } from '@/components/creator-studio/shared/RevisionHistoryModal';
 import { CanvasElementEditor } from '@/components/creator-studio/shared/CanvasElementEditor';
 import { ScaffoldedMediaEditor } from '@/components/creator-studio/shared/ScaffoldedMediaEditor';
+import { LessonBlueprintPanel, type LessonBlueprint } from '@/components/creator-studio/shared/LessonBlueprintPanel';
 
 /**
  * Academy Slide Creator — clean teacher-facing authoring tool.
@@ -162,6 +163,7 @@ export default function AcademyCreator() {
   const [aiLevel, setAiLevel] = useState('A2');
   const [aiGrammar, setAiGrammar] = useState('Present simple');
   const [aiBusy, setAiBusy] = useState(false);
+  const [blueprint, setBlueprint] = useState<LessonBlueprint | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [previewMode, setPreviewMode] = useState<PreviewMode>('editor');
   const [previewRole, setPreviewRole] = useState<PreviewRole>('teacher');
@@ -182,6 +184,8 @@ export default function AcademyCreator() {
     setSelected(0);
     if (lesson.title) setTitle(lesson.title);
     if (lesson.difficulty_level) setLevel(lesson.difficulty_level);
+    const meta: any = (lesson as any).ai_metadata;
+    if (meta?.lesson_blueprint) setBlueprint(meta.lesson_blueprint as LessonBlueprint);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonHook.lesson?.id]);
 
@@ -223,15 +227,26 @@ export default function AcademyCreator() {
     if (!aiTopic.trim()) return;
     setAiBusy(true);
     try {
+      toast.message('Planning lesson blueprint…');
+      const planRes = await supabase.functions.invoke('plan-lesson-blueprint', {
+        body: { topic: aiTopic.trim(), cefr_level: aiLevel, hub: 'academy' },
+      });
+      if (planRes.error) throw planRes.error;
+      const bp = planRes.data as LessonBlueprint;
+      setBlueprint(bp);
+
       const { data, error } = await supabase.functions.invoke('generate-ppp-slides', {
         body: {
           lesson_title: aiTopic.trim(),
-          objective: `60-minute teen Academy lesson on ${aiTopic.trim()}. Target grammar: ${aiGrammar}.`,
+          objective: `60-minute teen Academy lesson on ${aiTopic.trim()}. Target vocabulary: ${bp.vocabulary.join(', ')}. Target grammar: ${bp.grammar}.`,
           skill_focus: 'Integrated',
           cefr_level: aiLevel,
           hub: 'academy',
           target_hub: 'academy',
           hub_type: 'academy',
+          target_vocabulary: bp.vocabulary,
+          grammar_focus: bp.grammar,
+          blueprint: { lesson_title: aiTopic.trim(), target_vocabulary: bp.vocabulary, grammar_focus: bp.grammar, target_hub: 'academy' },
         },
       });
       if (error) throw error;
@@ -311,15 +326,15 @@ export default function AcademyCreator() {
     lessonId: lessonHook.lessonId,
     slides,
     title,
-    silentSaveDraft: (s, m) => lessonHook.silentSaveDraft(s, { ...m, level }),
+    silentSaveDraft: (s, m) => lessonHook.silentSaveDraft(s, { ...m, level, blueprint }),
   });
 
   const handleSaveDraft = async () => {
-    const id = await lessonHook.saveDraft(slides, { title, level });
+    const id = await lessonHook.saveDraft(slides, { title, level, blueprint });
     if (id) history.captureRevision({ title, slides, kind: 'manual' });
   };
   const handlePublish = async () => {
-    const id = await lessonHook.publish(slides, { title, level });
+    const id = await lessonHook.publish(slides, { title, level, blueprint });
     if (id) history.captureRevision({ title, slides, kind: 'publish' });
   };
   const handleRestore = (rev: LessonRevision) => {
@@ -494,6 +509,14 @@ export default function AcademyCreator() {
       <div className="flex-1 w-full grid grid-cols-1 lg:grid-cols-[240px_1fr_380px] gap-4 p-4 min-h-0">
         {/* Left: slide list grouped by block */}
         <aside className="min-h-0 flex flex-col order-1">
+          <LessonBlueprintPanel
+            hub="academy"
+            blueprint={blueprint}
+            onChange={setBlueprint}
+            slides={slides}
+            onSyncedSlides={(s) => { setSlides(s as Slide[]); setSelected(0); }}
+            cefrLevel={aiLevel}
+          />
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 flex flex-col flex-1 min-h-0">
             <div className="flex items-center justify-between px-2 py-1 mb-2 flex-shrink-0">
               <h2 className="text-xs font-bold text-indigo-600 tracking-wider uppercase">Slides · {slides.length}</h2>

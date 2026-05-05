@@ -29,6 +29,7 @@ import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
 import { StorybookEditor } from '@/components/creator-studio/shared/StorybookEditor';
 import { MediaAnalyzerModal } from '@/components/creator-studio/shared/MediaAnalyzerModal';
 import { mapAIQuizSlides } from '@/components/creator-studio/shared/aiQuizMapper';
+import { LessonBlueprintPanel, EMPTY_BLUEPRINT, type LessonBlueprint } from '@/components/creator-studio/shared/LessonBlueprintPanel';
 import { CanvasElementEditor } from '@/components/creator-studio/shared/CanvasElementEditor';
 import { ScaffoldedMediaEditor } from '@/components/creator-studio/shared/ScaffoldedMediaEditor';
 import { Headphones } from 'lucide-react';
@@ -179,9 +180,11 @@ export default function PlaygroundCreator() {
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [aiOpen, setAiOpen] = useState(false);
   const [aiTopic, setAiTopic] = useState('Animals');
+  const [aiLevel, setAiLevel] = useState('A1');
   const [aiBusy, setAiBusy] = useState(false);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [mediaModalOpen, setMediaModalOpen] = useState(false);
+  const [blueprint, setBlueprint] = useState<LessonBlueprint | null>(null);
 
   // Insert quiz slides directly after the current slide (before any trailing lesson_summary).
   const insertAfterCurrent = (extra: Slide[]) => {
@@ -202,6 +205,8 @@ export default function PlaygroundCreator() {
     setSlides(dbSlides);
     setSelected(0);
     if (lesson.title) setTitle(lesson.title);
+    const meta: any = (lesson as any).ai_metadata;
+    if (meta?.lesson_blueprint) setBlueprint(meta.lesson_blueprint as LessonBlueprint);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonHook.lesson?.id]);
 
@@ -247,15 +252,28 @@ export default function PlaygroundCreator() {
     if (!aiTopic.trim()) return;
     setAiBusy(true);
     try {
+      // Step 1 — Plan the blueprint (5 vocab + 1 grammar)
+      toast.message('Planning lesson blueprint…');
+      const planRes = await supabase.functions.invoke('plan-lesson-blueprint', {
+        body: { topic: aiTopic.trim(), cefr_level: aiLevel, hub: 'playground' },
+      });
+      if (planRes.error) throw planRes.error;
+      const bp = planRes.data as LessonBlueprint;
+      setBlueprint(bp);
+
+      // Step 2 — Generate slides forced to use that blueprint
       const { data, error } = await supabase.functions.invoke('generate-ppp-slides', {
         body: {
           lesson_title: aiTopic.trim(),
-          objective: `Fun interactive Playground lesson about ${aiTopic.trim()}`,
+          objective: `Fun interactive Playground lesson about ${aiTopic.trim()}. Target vocabulary: ${bp.vocabulary.join(', ')}. Target grammar: ${bp.grammar}.`,
           skill_focus: 'Vocabulary',
-          cefr_level: 'A1',
+          cefr_level: aiLevel,
           hub: 'playground',
           target_hub: 'playground',
           hub_type: 'playground',
+          target_vocabulary: bp.vocabulary,
+          grammar_focus: bp.grammar,
+          blueprint: { lesson_title: aiTopic.trim(), target_vocabulary: bp.vocabulary, grammar_focus: bp.grammar, target_hub: 'playground' },
         },
       });
       if (error) throw error;
@@ -334,15 +352,15 @@ export default function PlaygroundCreator() {
     lessonId: lessonHook.lessonId,
     slides,
     title,
-    silentSaveDraft: (s, m) => lessonHook.silentSaveDraft(s, { ...m, level: 'A1' }),
+    silentSaveDraft: (s, m) => lessonHook.silentSaveDraft(s, { ...m, level: 'A1', blueprint }),
   });
 
   const handleSaveDraft = async () => {
-    const id = await lessonHook.saveDraft(slides, { title, level: 'A1' });
+    const id = await lessonHook.saveDraft(slides, { title, level: 'A1', blueprint });
     if (id) history.captureRevision({ title, slides, kind: 'manual' });
   };
   const handlePublish = async () => {
-    const id = await lessonHook.publish(slides, { title, level: 'A1' });
+    const id = await lessonHook.publish(slides, { title, level: 'A1', blueprint });
     if (id) history.captureRevision({ title, slides, kind: 'publish' });
   };
   const handleRestore = (rev: LessonRevision) => {
@@ -527,6 +545,14 @@ export default function PlaygroundCreator() {
       <div className="flex-1 w-full grid grid-cols-1 lg:grid-cols-[240px_1fr_380px] gap-4 p-4 min-h-0">
         {/* Slide list */}
         <aside className="min-h-0 flex flex-col order-1">
+          <LessonBlueprintPanel
+            hub="playground"
+            blueprint={blueprint}
+            onChange={setBlueprint}
+            slides={slides}
+            onSyncedSlides={(s) => { setSlides(s as Slide[]); setSelected(0); }}
+            cefrLevel={'A1'}
+          />
           <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-3 flex flex-col flex-1 min-h-0">
             <h2 className="text-sm font-bold text-orange-600 px-2 py-1">SLIDES</h2>
             <div className="space-y-2 flex-1 overflow-y-auto pr-1 min-h-0">
@@ -757,7 +783,12 @@ export default function PlaygroundCreator() {
                     disabled={aiBusy}
                   />
                 </Field>
-                <p className="text-xs text-slate-500">Uses the same AI core as the Standard Slide Studio with <code className="bg-orange-50 text-orange-700 rounded px-1">hub_type: 'playground'</code>.</p>
+                <Field label="CEFR Level">
+                  <select className={inputCls} value={aiLevel} onChange={(e) => setAiLevel(e.target.value)} disabled={aiBusy}>
+                    {['A1','A2','B1'].map((l) => <option key={l} value={l}>{l}</option>)}
+                  </select>
+                </Field>
+                <p className="text-xs text-slate-500">The AI will pick 5 vocabulary words and 1 grammar structure for you — you can edit them in the Lesson Blueprint panel.</p>
               </div>
               <div className="p-4 bg-orange-50 border-t border-orange-200 flex justify-end gap-2">
                 <button disabled={aiBusy} onClick={() => setAiOpen(false)} className="px-4 py-2 rounded-xl border-2 border-slate-200 font-bold text-slate-600 hover:bg-white disabled:opacity-50">Cancel</button>

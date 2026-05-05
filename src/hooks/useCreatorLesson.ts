@@ -52,7 +52,7 @@ export function useCreatorLesson({ hub, initialLessonId }: UseCreatorLessonArgs)
   const persist = useCallback(
     async (
       slides: any[],
-      meta: { title: string; level?: string; publish: boolean; silent?: boolean },
+      meta: { title: string; level?: string; publish: boolean; silent?: boolean; blueprint?: any },
     ): Promise<string | null> => {
       if (!meta.silent) setIsSaving(true);
       try {
@@ -85,6 +85,7 @@ export function useCreatorLesson({ hub, initialLessonId }: UseCreatorLessonArgs)
             hub,
             ...(cefr ? { cefr_level: cefr } : {}),
             slideCount: slides.length,
+            ...(meta.blueprint ? { lesson_blueprint: meta.blueprint } : {}),
           };
           const { error } = await supabase
             .from('curriculum_lessons')
@@ -123,7 +124,7 @@ export function useCreatorLesson({ hub, initialLessonId }: UseCreatorLessonArgs)
             content,
             is_published: meta.publish,
             created_by: userId,
-            ai_metadata: { hub, cefr_level: cefr ?? undefined, slideCount: slides.length },
+            ai_metadata: { hub, cefr_level: cefr ?? undefined, slideCount: slides.length, ...(meta.blueprint ? { lesson_blueprint: meta.blueprint } : {}) },
           } as any)
           .select('id')
           .single();
@@ -146,19 +147,19 @@ export function useCreatorLesson({ hub, initialLessonId }: UseCreatorLessonArgs)
   );
 
   const saveDraft = useCallback(
-    (slides: any[], meta: { title: string; level?: string }) =>
+    (slides: any[], meta: { title: string; level?: string; blueprint?: any }) =>
       persist(slides, { ...meta, publish: false }),
     [persist],
   );
 
   const publish = useCallback(
-    (slides: any[], meta: { title: string; level?: string }) =>
+    (slides: any[], meta: { title: string; level?: string; blueprint?: any }) =>
       persist(slides, { ...meta, publish: true }),
     [persist],
   );
 
   const silentSaveDraft = useCallback(
-    (slides: any[], meta: { title: string; level?: string }) =>
+    (slides: any[], meta: { title: string; level?: string; blueprint?: any }) =>
       persist(slides, { ...meta, publish: false, silent: true }),
     [persist],
   );
