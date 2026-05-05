@@ -257,7 +257,10 @@ export default function SuccessCreator() {
       if (!successSlides || !Array.isArray(successSlides) || successSlides.length === 0) {
         throw new Error('AI returned no Success slides');
       }
-      setSlides(successSlides);
+      const finalSlides = successSlides.some((s: any) => s.type === 'lesson_summary')
+        ? successSlides
+        : [...successSlides, makeSlide('lesson_summary')];
+      setSlides(finalSlides);
       setTitle(aiTopic.trim());
       setLevel(aiLevel);
       setSelected(0);

@@ -263,7 +263,10 @@ export default function AcademyCreator() {
       if (!academySlides || !Array.isArray(academySlides) || academySlides.length === 0) {
         throw new Error('AI returned no Academy slides');
       }
-      setSlides(academySlides);
+      const finalSlides = academySlides.some((s: any) => s.type === 'lesson_summary')
+        ? academySlides
+        : [...academySlides, makeSlide('lesson_summary')];
+      setSlides(finalSlides);
       setTitle(aiTopic.trim());
       setLevel(aiLevel);
       setSelected(0);
