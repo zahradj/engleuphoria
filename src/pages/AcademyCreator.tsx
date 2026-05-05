@@ -162,10 +162,8 @@ export default function AcademyCreator() {
     const lesson = lessonHook.lesson;
     if (!lesson) return;
     const dbSlides = getLibraryLessonSlides(lesson) as Slide[];
-    if (dbSlides.length > 0) {
-      setSlides(dbSlides);
-      setSelected(0);
-    }
+    setSlides(dbSlides);
+    setSelected(0);
     if (lesson.title) setTitle(lesson.title);
     if (lesson.difficulty_level) setLevel(lesson.difficulty_level);
     // eslint-disable-next-line react-hooks/exhaustive-deps
