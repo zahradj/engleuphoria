@@ -8,11 +8,17 @@ export interface LessonBlueprint {
   vocabulary: string[]; // exactly 5
   grammar: string;
   rationale?: string;
+  /** Creative anchor — comma-separated topics the student loves. */
+  interests?: string;
+  /** Free-text accommodations / goals (e.g. "shy speaker, exam prep"). */
+  specific_needs?: string;
 }
 
 export const EMPTY_BLUEPRINT: LessonBlueprint = {
   vocabulary: ['', '', '', '', ''],
   grammar: '',
+  interests: '',
+  specific_needs: '',
 };
 
 interface Props {
