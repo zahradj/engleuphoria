@@ -331,7 +331,12 @@ PEDAGOGICAL RULES:
 - Use teen-appropriate, modern, culturally inclusive examples. Keep sentences level-appropriate (${cefr_level}).
 - For EVERY slide, include a "teacher_notes" string (≤140 chars) telling the live teacher how to deliver the slide. Never reveal it to the student.
 - The FINAL slide MUST be a "lesson_summary" auto-recapping the 5 vocab words taught + the grammar rule + a one-line takeaway.
-- Return RAW JSON ARRAY only.`;
+- Return RAW JSON ARRAY only.${phonicsAcademyBlock}
+
+ADDITIONAL ALLOWED TYPES (when phonics layer is required):
+{ "type":"phonics_focus","block":"vocab","phoneme":"/v/","grapheme":"v","sound_ipa":"/v/","label":"/v/ vs /w/","example_words":["VAN","VERY","VISIT"] }
+{ "type":"listen_repeat","block":"practice","prompt":"Listen and repeat. Notice the /v/ sound.","target_word":"VERY","comparison_audio_url":"" }
+`;
 
       const callAcademy = async (extra?: string): Promise<any[]> => {
         const messages: any[] = [
