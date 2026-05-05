@@ -251,6 +251,10 @@ export const PlaygroundPlacementPhase = ({ onComplete }: PlaygroundPlacementPhas
               <p className="text-slate-500 text-sm">{current.audioPrompt}</p>
             </div>
 
+            {(() => {
+              const uniqueImages = new Set(current.options.map(o => o.image));
+              const showLabels = uniqueImages.size < current.options.length;
+              return (
             <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-md mx-auto w-full">
               {current.options.map((option, idx) => {
                 const isSelected = selectedIndex === idx;
