@@ -147,19 +147,19 @@ export function useCreatorLesson({ hub, initialLessonId }: UseCreatorLessonArgs)
   );
 
   const saveDraft = useCallback(
-    (slides: any[], meta: { title: string; level?: string }) =>
+    (slides: any[], meta: { title: string; level?: string; blueprint?: any }) =>
       persist(slides, { ...meta, publish: false }),
     [persist],
   );
 
   const publish = useCallback(
-    (slides: any[], meta: { title: string; level?: string }) =>
+    (slides: any[], meta: { title: string; level?: string; blueprint?: any }) =>
       persist(slides, { ...meta, publish: true }),
     [persist],
   );
 
   const silentSaveDraft = useCallback(
-    (slides: any[], meta: { title: string; level?: string }) =>
+    (slides: any[], meta: { title: string; level?: string; blueprint?: any }) =>
       persist(slides, { ...meta, publish: false, silent: true }),
     [persist],
   );
