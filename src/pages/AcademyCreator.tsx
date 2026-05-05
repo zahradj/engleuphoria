@@ -33,6 +33,7 @@ import { DifficultyTunerDialog } from '@/components/creator-studio/shared/Diffic
 import { ImportFromTextDialog, IMPORTED_LESSON_STORAGE_KEY } from '@/components/creator-studio/shared/ImportFromTextDialog';
 import { PublishTemplateDialog } from '@/components/creator-studio/marketplace/PublishTemplateDialog';
 import { useCreatorLesson } from '@/hooks/useCreatorLesson';
+import { detectLessonHub, creatorPathFor, deriveCefrLevel } from '@/utils/creatorHydration';
 import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
 import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
 import { SaveStatusBadge } from '@/components/creator-studio/shared/SaveStatusBadge';
