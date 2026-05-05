@@ -92,6 +92,17 @@ export type Slide =
       audio_url?: string;
       voice?: SlideVoice;
     }
+  | {
+      type: 'phonics_focus';
+      phoneme?: string;
+      grapheme?: string;
+      sound_ipa?: string;
+      label?: string;
+      example_words?: string[];
+      audio_url?: string;
+      example_audio?: Record<string, string>;
+      voice?: SlideVoice;
+    }
   | (CanvasGameSlide & { voice?: SlideVoice })
   | (LivingCanvasSlide & { voice?: SlideVoice })
   | (ScaffoldedMediaSlide & { voice?: SlideVoice });
@@ -535,6 +546,7 @@ import { MediaPlayerRenderer } from '@/components/creator-studio/shared/MediaPla
 import { LivingCanvas } from '@/components/creator-studio/shared/LivingCanvas';
 import { ScaffoldedPlayer } from '@/components/creator-studio/shared/ScaffoldedPlayer';
 import { VisualFlashcard } from '@/components/creator-studio/shared/VisualFlashcard';
+import { PhonicsFocusCard } from '@/components/creator-studio/shared/PhonicsFocusCard';
 
 export function SlideRenderer({ slide, onStorybookComplete, onCanvasSolved, onMediaPassed }: {
   slide: Slide;
@@ -559,6 +571,8 @@ export function SlideRenderer({ slide, onStorybookComplete, onCanvasSolved, onMe
       return <ScaffoldedPlayer slide={slide as any} hub="playground" onAllSegmentsPassed={onMediaPassed} />;
     case 'vocab_solo':
       return <VisualFlashcard slide={slide as any} hub="playground" />;
+    case 'phonics_focus':
+      return <PhonicsFocusCard slide={slide as any} hub="playground" />;
     case 'lesson_summary': return <PlaygroundSummary slide={slide} />;
   }
 }
