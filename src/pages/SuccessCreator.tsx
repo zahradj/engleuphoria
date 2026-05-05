@@ -560,7 +560,9 @@ export default function SuccessCreator() {
                     <div className="text-[10px] uppercase tracking-[0.2em] text-emerald-500 font-semibold mb-3 text-center">
                       {BLOCKS.find((b) => b.id === (slide as Slide).block)?.label}
                     </div>
-                    <SlideRenderer slide={slide as Slide} t={t} />
+                    <UniversalMediaShell slide={slide as any} hub="success">
+                      <SlideRenderer slide={slide as Slide} t={t} />
+                    </UniversalMediaShell>
                   </div>
                 </div>
               )}
