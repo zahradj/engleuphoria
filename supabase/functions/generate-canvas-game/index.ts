@@ -13,6 +13,8 @@ interface ReqBody {
   hub: 'playground' | 'academy' | 'success';
   mode?: 'drag' | 'reveal' | 'mixed';
   target_vocab?: string[];
+  interests?: string;
+  specific_needs?: string;
 }
 
 const HUB_DIRECTIVES: Record<string, string> = {
@@ -36,6 +38,10 @@ Deno.serve(async (req) => {
 
     const hub = body.hub || 'playground';
     const mode = body.mode || 'drag';
+    const anchor = [
+      body.interests ? `🎯 CREATIVE ANCHOR — bias element themes toward student interests: ${body.interests}.` : '',
+      body.specific_needs ? `🛠 SPECIFIC NEEDS: ${body.specific_needs}.` : '',
+    ].filter(Boolean).join('\n');
 
     const system = `You are a Level Designer for an ESL educational game canvas.
 The canvas is a 16:9 box; ALL coordinates are PERCENTAGES from 0 to 100.
@@ -48,6 +54,7 @@ Layout rules:
 - Element width should be 8-22% of canvas; height auto.
 - Provide an "instruction" sentence the student will hear.
 ${HUB_DIRECTIVES[hub]}
+${anchor}
 Mode: ${mode}.
 Return ONLY valid structured data via the tool call.`;
 
