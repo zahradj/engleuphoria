@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SlideMediaPanel } from '@/components/creator-studio/shared/SlideMediaPanel';
 import { PreviewModeToggle, type PreviewMode } from '@/components/creator-studio/shared/PreviewModeToggle';
 import { PlayablePreviewPane } from '@/components/creator-studio/shared/PlayablePreviewPane';
+import { UniversalMediaShell } from '@/components/creator-studio/shared/UniversalMediaShell';
+import { SoloVocabCard } from '@/components/creator-studio/shared/SoloVocabCard';
 import { PreviewRoleToggle, type PreviewRole } from '@/components/creator-studio/shared/PreviewRoleToggle';
 import { TeacherNotesField } from '@/components/creator-studio/shared/TeacherNotesField';
 import { AssetVaultDialog } from '@/components/creator-studio/shared/AssetVaultDialog';
@@ -629,15 +631,26 @@ export default function PlaygroundCreator() {
               hub="playground"
               previewRole={previewRole}
               getTeacherNotes={(s) => (s as any).teacher_notes}
-              renderSlide={(slide, idx) => (
-                <div className="rounded-xl bg-gradient-to-br from-orange-400 via-amber-300 to-yellow-200 p-4 min-h-[420px] flex items-center justify-center">
-                  <div key={idx + (slide as Slide).type} className="bg-white rounded-2xl shadow-xl w-full p-4 min-h-[380px] flex items-center justify-center">
-                    <div className="scale-[0.85] origin-center w-full">
-                      <SlideRenderer slide={slide as Slide} />
+              renderSlide={(slide, idx) => {
+                const s: any = slide;
+                const flashcards = Array.isArray(s.flashcards) ? s.flashcards : [];
+                const isSoloVocab = flashcards.length > 0;
+                return (
+                  <div className="rounded-xl bg-gradient-to-br from-orange-400 via-amber-300 to-yellow-200 p-4 min-h-[420px] flex items-center justify-center">
+                    <div key={idx + (slide as Slide).type} className="bg-white rounded-2xl shadow-xl w-full p-4 min-h-[380px] flex items-center justify-center">
+                      <div className="scale-[0.85] origin-center w-full">
+                        <UniversalMediaShell slide={s} hub="playground" suppressImage={isSoloVocab}>
+                          {isSoloVocab ? (
+                            <SoloVocabCard card={flashcards[0]} hub="playground" />
+                          ) : (
+                            <SlideRenderer slide={slide as Slide} />
+                          )}
+                        </UniversalMediaShell>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                );
+              }}
             />
             {slides[selected] && (
               <TeacherNotesField

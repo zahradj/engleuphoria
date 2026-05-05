@@ -17,6 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { SlideMediaPanel } from '@/components/creator-studio/shared/SlideMediaPanel';
 import { PreviewModeToggle, type PreviewMode } from '@/components/creator-studio/shared/PreviewModeToggle';
 import { PlayablePreviewPane } from '@/components/creator-studio/shared/PlayablePreviewPane';
+import { UniversalMediaShell } from '@/components/creator-studio/shared/UniversalMediaShell';
 import { PreviewRoleToggle, type PreviewRole } from '@/components/creator-studio/shared/PreviewRoleToggle';
 import { TeacherNotesField } from '@/components/creator-studio/shared/TeacherNotesField';
 import { AssetVaultDialog } from '@/components/creator-studio/shared/AssetVaultDialog';
@@ -595,7 +596,9 @@ export default function AcademyCreator() {
                     <div className="text-[10px] uppercase tracking-[0.2em] text-indigo-400 font-semibold mb-3 text-center">
                       {BLOCKS.find((b) => b.id === (slide as Slide).block)?.label}
                     </div>
-                    <SlideRenderer slide={slide as Slide} t={t} />
+                    <UniversalMediaShell slide={slide as any} hub="academy">
+                      <SlideRenderer slide={slide as Slide} t={t} />
+                    </UniversalMediaShell>
                   </div>
                 </div>
               )}
