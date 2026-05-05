@@ -255,7 +255,7 @@ export const PlaygroundPlacementPhase = ({ onComplete }: PlaygroundPlacementPhas
               const uniqueImages = new Set(current.options.map(o => o.image));
               const showLabels = uniqueImages.size < current.options.length;
               return (
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-md mx-auto w-full">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-md mx-auto w-full" key="opts">
               {current.options.map((option, idx) => {
                 const isSelected = selectedIndex === idx;
                 const showSelected = isSelected;
