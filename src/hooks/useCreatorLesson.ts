@@ -124,7 +124,7 @@ export function useCreatorLesson({ hub, initialLessonId }: UseCreatorLessonArgs)
             content,
             is_published: meta.publish,
             created_by: userId,
-            ai_metadata: { hub, cefr_level: cefr ?? undefined, slideCount: slides.length },
+            ai_metadata: { hub, cefr_level: cefr ?? undefined, slideCount: slides.length, ...(meta.blueprint ? { lesson_blueprint: meta.blueprint } : {}) },
           } as any)
           .select('id')
           .single();
