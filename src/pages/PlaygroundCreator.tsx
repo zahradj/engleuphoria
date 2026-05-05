@@ -78,6 +78,10 @@ function makeSlide(type: SlideType): Slide {
       return { type: 'draw', prompt: 'Draw your favourite animal!', voice: { text: 'Draw something!', autoPlay: true } };
     case 'lesson_summary':
       return { type: 'lesson_summary', title: 'Level Complete!', vocab_recap: [], takeaway: 'You did amazing!', voice: { text: 'Great job! Level complete!', autoPlay: true } };
+    case 'storybook':
+      return { type: 'storybook', title: 'New Story', topic: '', pages: [{ page_number: 1, text: 'Once upon a time…', image_url: '', audio_url: '' }], voice: { text: 'Story time!', autoPlay: false } };
+    case 'media_player':
+      return { type: 'media_player', title: 'Listening Exercise', media_url: '', media_kind: 'youtube', transcript: '' };
   }
 }
 
