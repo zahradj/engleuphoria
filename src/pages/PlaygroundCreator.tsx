@@ -532,6 +532,12 @@ export default function PlaygroundCreator() {
                   </button>
                 ))}
               </div>
+              <button
+                onClick={() => setMediaModalOpen(true)}
+                className="mt-2 w-full text-xs font-bold text-white bg-gradient-to-r from-fuchsia-500 to-orange-500 rounded-lg p-2 inline-flex items-center justify-center gap-2 active:scale-95"
+              >
+                <Headphones className="w-3.5 h-3.5" /> Add Listening Exercise
+              </button>
             </div>
           </div>
         </aside>
