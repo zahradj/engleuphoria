@@ -60,6 +60,7 @@ const SLIDE_TYPES: { type: SlideType; label: string; defaultBlock: Block }[] = [
   { type: 'role_play',          label: 'Role Play',              defaultBlock: 'simulation' },
   { type: 'speaking_task',      label: 'Speaking Task',          defaultBlock: 'output' },
   { type: 'reflection',         label: 'Reflection',             defaultBlock: 'output' },
+  { type: 'lesson_summary',     label: 'Lesson Summary 📋',      defaultBlock: 'buffer' },
 ];
 
 function makeSlide(type: SlideType): Slide {
@@ -91,6 +92,7 @@ function makeSlide(type: SlideType): Slide {
     case 'role_play':          return { type, block, title: 'Role play', roleA: 'Manager', roleB: 'Employee', lineA: 'Could you give me a quick update?', lineB: 'Of course. We are on track.' };
     case 'speaking_task':      return { type, block, prompt: 'Speak about a recent workplace situation.', starters: ['When you have a moment…', 'Would you mind…'] };
     case 'reflection':         return { type, block, prompt: 'How confident do you feel using this language at work now?' };
+    case 'lesson_summary':     return { type, block, title: 'Review Sheet', vocab_recap: [], grammar_recap: '', takeaway: '' };
   }
 }
 
