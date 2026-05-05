@@ -456,9 +456,9 @@ export default function PlaygroundCreator() {
         </div>
       </header>
 
-      <div className="flex-1 w-full grid grid-cols-1 lg:grid-cols-[260px_1fr_420px] gap-4 p-4 min-h-0">
+      <div className="flex-1 w-full grid grid-cols-1 lg:grid-cols-[240px_1fr_380px] gap-4 p-4 min-h-0">
         {/* Slide list */}
-        <aside className="min-h-0 flex flex-col">
+        <aside className="min-h-0 flex flex-col order-1">
           <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-3 flex flex-col flex-1 min-h-0">
             <h2 className="text-sm font-bold text-orange-600 px-2 py-1">SLIDES</h2>
             <div className="space-y-2 flex-1 overflow-y-auto pr-1 min-h-0">
@@ -506,8 +506,44 @@ export default function PlaygroundCreator() {
           </div>
         </aside>
 
-        {/* Editor */}
-        <section className="min-h-0 flex flex-col">
+        {/* Live preview (CENTER) */}
+        <section className="min-h-0 flex flex-col order-2">
+          <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-3 flex flex-col flex-1 min-h-0 overflow-y-auto">
+            <div className="flex items-center justify-between mb-2 px-2 gap-2 flex-wrap">
+              <h2 className="text-sm font-bold text-orange-600">LIVE PREVIEW</h2>
+              <div className="flex items-center gap-2">
+                <PreviewRoleToggle value={previewRole} onChange={setPreviewRole} hub="playground" />
+                <PreviewModeToggle value={previewMode} onChange={setPreviewMode} hub="playground" />
+              </div>
+            </div>
+            <PlayablePreviewPane
+              mode={previewMode}
+              slides={slides}
+              startIndex={selected}
+              hub="playground"
+              previewRole={previewRole}
+              getTeacherNotes={(s) => (s as any).teacher_notes}
+              renderSlide={(slide, idx) => (
+                <div className="rounded-xl bg-gradient-to-br from-orange-400 via-amber-300 to-yellow-200 p-4 min-h-[420px] flex items-center justify-center">
+                  <div key={idx + (slide as Slide).type} className="bg-white rounded-2xl shadow-xl w-full p-4 min-h-[380px] flex items-center justify-center">
+                    <div className="scale-[0.85] origin-center w-full">
+                      <SlideRenderer slide={slide as Slide} />
+                    </div>
+                  </div>
+                </div>
+              )}
+            />
+            {slides[selected] && (
+              <TeacherNotesField
+                value={(slides[selected] as any).teacher_notes}
+                onChange={(next) => update({ teacher_notes: next } as any)}
+              />
+            )}
+          </div>
+        </section>
+
+        {/* Editor (RIGHT) */}
+        <section className="min-h-0 flex flex-col order-3">
           <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-5 flex flex-col flex-1 min-h-0">
             <div className="flex items-center justify-between mb-3 gap-2 flex-shrink-0">
               <h2 className="text-sm font-bold text-orange-600">EDIT SLIDE #{safeIndex + 1} · {(current?.type ?? 'intro').toString().toUpperCase()}</h2>
@@ -546,43 +582,6 @@ export default function PlaygroundCreator() {
                 />
               </TabsContent>
             </Tabs>
-          </div>
-        </section>
-
-        {/* Live preview */}
-        <section className="min-h-0 flex flex-col">
-          <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-3 flex flex-col flex-1 min-h-0 overflow-y-auto">
-            <div className="flex items-center justify-between mb-2 px-2 gap-2 flex-wrap">
-              <h2 className="text-sm font-bold text-orange-600">LIVE PREVIEW</h2>
-              <div className="flex items-center gap-2">
-                <PreviewRoleToggle value={previewRole} onChange={setPreviewRole} hub="playground" />
-                <PreviewModeToggle value={previewMode} onChange={setPreviewMode} hub="playground" />
-              </div>
-            </div>
-            <PlayablePreviewPane
-              mode={previewMode}
-              slides={slides}
-              startIndex={selected}
-              hub="playground"
-              previewRole={previewRole}
-              getTeacherNotes={(s) => (s as any).teacher_notes}
-              renderSlide={(slide, idx) => (
-                <div className="rounded-xl bg-gradient-to-br from-orange-400 via-amber-300 to-yellow-200 p-4 min-h-[420px] flex items-center justify-center">
-                  <div key={idx + (slide as Slide).type} className="bg-white rounded-2xl shadow-xl w-full p-4 min-h-[380px] flex items-center justify-center">
-                    <div className="scale-[0.85] origin-center w-full">
-                      <SlideRenderer slide={slide as Slide} />
-                    </div>
-                  </div>
-                </div>
-              )}
-            />
-            {/* Teacher notes editor for the selected slide */}
-            {slides[selected] && (
-              <TeacherNotesField
-                value={(slides[selected] as any).teacher_notes}
-                onChange={(next) => update({ teacher_notes: next } as any)}
-              />
-            )}
           </div>
         </section>
       </div>
