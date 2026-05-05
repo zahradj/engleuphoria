@@ -294,7 +294,10 @@ export default function PlaygroundCreator() {
       if (!playgroundSlides || !Array.isArray(playgroundSlides) || playgroundSlides.length === 0) {
         throw new Error('AI returned no Playground slides');
       }
-      setSlides(playgroundSlides);
+      const finalSlides = playgroundSlides.some((s: any) => s.type === 'lesson_summary')
+        ? playgroundSlides
+        : [...playgroundSlides, makeSlide('lesson_summary')];
+      setSlides(finalSlides);
       setSelected(0);
       setAiOpen(false);
       toast.success(`Generated ${playgroundSlides.length} slides ✨`);
