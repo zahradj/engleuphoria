@@ -169,8 +169,8 @@ export const SlideMediaPanel: React.FC<SlideMediaPanelProps> = ({
     const text = c.word || c.front;
     if (!text) { toast.error('Enter the word first'); return; }
     try {
-      const res = await generateSlideVoiceover(text, voiceId, safeLesson, `${slideId}-card-${i}`, hub);
-      updateCard(i, { audio_url: res.audio_url });
+      const res = await generateSlideVoiceover(text, safeLesson, `${slideId}-card-${i}`, voiceId);
+      updateCard(i, { audio_url: res.url });
       toast.success('Audio generated');
     } catch (e: any) {
       toast.error(e?.message || 'Audio generation failed');
