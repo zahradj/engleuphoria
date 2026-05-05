@@ -82,7 +82,10 @@ export type Slide =
       grammar_recap?: string;
       takeaway?: string;
       voice?: SlideVoice;
-    };
+    }
+  | (CanvasGameSlide & { voice?: SlideVoice })
+  | (LivingCanvasSlide & { voice?: SlideVoice })
+  | (ScaffoldedMediaSlide & { voice?: SlideVoice });
 
 // ─── Dynamic lesson content ──────────────────────────────────────────────────
 const SLIDES: Slide[] = [
