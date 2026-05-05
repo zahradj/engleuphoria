@@ -139,25 +139,41 @@ export const SlideMediaPanel: React.FC<SlideMediaPanelProps> = ({
   };
 
   // ── Flashcards tab ─────────────────────────────────────────────────────
-  const cards: Array<{ front: string; back: string; image_url?: string }> =
-    Array.isArray(slide?.flashcards) ? slide.flashcards : [];
+  // Schema upgraded: { word, definition, image_url, audio_url } (legacy `front`/`back` still read)
+  type Card = { word?: string; definition?: string; front?: string; back?: string; image_url?: string; audio_url?: string };
+  const cards: Card[] = Array.isArray(slide?.flashcards) ? slide.flashcards : [];
 
-  const setCards = (next: typeof cards) => onPatch({ flashcards: next });
+  const setCards = (next: Card[]) => onPatch({ flashcards: next });
 
-  const addCard = () => setCards([...cards, { front: '', back: '' }]);
-  const updateCard = (i: number, patch: Partial<typeof cards[number]>) =>
+  const addCard = () => setCards([...cards, { word: '', definition: '' }]);
+  const updateCard = (i: number, patch: Partial<Card>) =>
     setCards(cards.map((c, idx) => idx === i ? { ...c, ...patch } : c));
   const removeCard = (i: number) => setCards(cards.filter((_, idx) => idx !== i));
   const generateCardImage = async (i: number) => {
     const c = cards[i];
-    const p = c.front || c.back;
-    if (!p) { toast.error('Enter the card front first'); return; }
+    const p = c.word || c.front || c.definition || c.back;
+    if (!p) { toast.error('Enter the word first'); return; }
     try {
-      const res = await generateSlideImage(p, safeLesson, `${slideId}-card-${i}`, hub);
+      const res = await generateSlideImage(
+        `Vocabulary illustration for: ${p}, clean flat vector, white background, no text`,
+        safeLesson, `${slideId}-card-${i}`, hub,
+      );
       updateCard(i, { image_url: res.url });
       toast.success('Card image generated');
     } catch (e: any) {
       toast.error(e?.message || 'Image generation failed');
+    }
+  };
+  const generateCardAudio = async (i: number) => {
+    const c = cards[i];
+    const text = c.word || c.front;
+    if (!text) { toast.error('Enter the word first'); return; }
+    try {
+      const res = await generateSlideVoiceover(text, safeLesson, `${slideId}-card-${i}`, voiceId);
+      updateCard(i, { audio_url: res.url });
+      toast.success('Audio generated');
+    } catch (e: any) {
+      toast.error(e?.message || 'Audio generation failed');
     }
   };
 
@@ -340,36 +356,45 @@ export const SlideMediaPanel: React.FC<SlideMediaPanelProps> = ({
                 <Plus className="w-3.5 h-3.5" /> Add card
               </Button>
             </div>
-            <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
-              {cards.map((c, i) => (
-                <div key={i} className="grid grid-cols-12 gap-2 border rounded-lg p-2 items-start">
-                  <div className="col-span-5">
-                    <Label className="text-[10px]">Front</Label>
-                    <Input value={c.front} onChange={(e) => updateCard(i, { front: e.target.value })} />
-                  </div>
-                  <div className="col-span-5">
-                    <Label className="text-[10px]">Back</Label>
-                    <Input value={c.back} onChange={(e) => updateCard(i, { back: e.target.value })} />
-                  </div>
-                  <div className="col-span-2 flex flex-col items-end gap-1">
+            <div className="space-y-2 max-h-[360px] overflow-y-auto pr-1">
+              {cards.map((c, i) => {
+                const word = c.word ?? c.front ?? '';
+                const definition = c.definition ?? c.back ?? '';
+                return (
+                <div key={i} className="grid grid-cols-12 gap-2 border rounded-lg p-2 items-start bg-card">
+                  <div className="col-span-3">
                     {c.image_url ? (
-                      <img src={c.image_url} className="w-12 h-12 rounded object-cover border" alt="" />
+                      <img src={c.image_url} className="w-full aspect-square rounded object-cover border" alt={word} />
                     ) : (
-                      <div className="w-12 h-12 rounded border-2 border-dashed flex items-center justify-center">
+                      <div className="w-full aspect-square rounded border-2 border-dashed flex items-center justify-center bg-muted/30">
                         <ImageIcon className="w-5 h-5 text-muted-foreground" />
                       </div>
                     )}
-                    <div className="flex gap-1">
-                      <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => generateCardImage(i)}>
-                        <Sparkles className="w-3 h-3" />
-                      </Button>
-                      <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => removeCard(i)}>
-                        <Trash2 className="w-3 h-3 text-destructive" />
-                      </Button>
+                  </div>
+                  <div className="col-span-7 space-y-1.5">
+                    <div>
+                      <Label className="text-[10px]">Word</Label>
+                      <Input value={word} onChange={(e) => updateCard(i, { word: e.target.value, front: e.target.value })} placeholder="apple" />
                     </div>
+                    <div>
+                      <Label className="text-[10px]">Definition</Label>
+                      <Input value={definition} onChange={(e) => updateCard(i, { definition: e.target.value, back: e.target.value })} placeholder="A round red or green fruit." />
+                    </div>
+                    {c.audio_url && <audio controls src={c.audio_url} className="h-7 w-full" />}
+                  </div>
+                  <div className="col-span-2 flex flex-col items-end gap-1">
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => generateCardImage(i)} title="🪄 AI image">
+                      <Sparkles className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => generateCardAudio(i)} title="🔊 Generate audio">
+                      <Mic className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => removeCard(i)}>
+                      <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                    </Button>
                   </div>
                 </div>
-              ))}
+              );})}
             </div>
           </>
         )}

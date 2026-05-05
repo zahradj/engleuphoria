@@ -90,13 +90,14 @@ Allowed types and required shape:
 { "type": "drag", "instruction": "Drag the word onto the picture", "word": "APPLE", "image_url": "AI:shiny red apple", "voice": {...} }
 
 RULES:
-- Output 8-12 slides. Start with ONE "intro". End with a celebratory "intro".
+- Output 8-12 slides. Start with ONE "intro". End with a "lesson_summary" slide: { "type": "lesson_summary", "title": "Level Complete!", "vocab_recap": ["...","..."], "takeaway": "..." } that lists up to 5 words taught.
 - Use at least 4 different interactive types in between. No two same types back-to-back.
 - For every "AI:<subject>" placeholder, write a clear, kid-friendly subject ≤ 6 words.
+- For EVERY slide include a short "teacher_notes" (≤120 chars) for the live teacher. Never shown to the student.
 - Topic: "${effectiveTitle}". ${objective ? `Goal: ${objective}.` : ""}
 - Return RAW JSON ARRAY only.`;
 
-      const allowed = new Set(["intro", "multiple", "truefalse", "fill", "drag", "match", "draw"]);
+      const allowed = new Set(["intro", "multiple", "truefalse", "fill", "drag", "match", "draw", "lesson_summary"]);
 
       const callModel = async (extraUserMsg?: string): Promise<any[]> => {
         const messages: any[] = [
@@ -202,7 +203,7 @@ RULES:
       const allowedTypes = new Set([
         "intro","question","poll","opinion","vocab","matching","reading_passage","listening",
         "truefalse","multiple","grammar_pattern","error_detection","correction","fill_blank",
-        "sentence_builder","debate_scale","role_play","speaking_task","reflection","cluster",
+        "sentence_builder","debate_scale","role_play","speaking_task","reflection","cluster","lesson_summary",
       ]);
 
       const academySystem = `You are a Master TEFL/CELTA-trained ESL lesson designer for TEENAGERS.
@@ -248,12 +249,15 @@ Allowed types and required minimal shapes (omit any irrelevant key):
 { "type":"role_play","block":"interactive","title":"...","lineA":"...","lineB":"..." }
 { "type":"speaking_task","block":"speaking","prompt":"...","starters":["I think…"] }
 { "type":"reflection","block":"speaking","prompt":"..." }
+{ "type":"lesson_summary","block":"speaking","title":"Review Sheet","vocab_recap":["...","..."],"grammar_recap":"...","takeaway":"..." }
 
 PEDAGOGICAL RULES:
 - Vocabulary taught in block "vocab" MUST appear inside the "reading" passage AND in the "practice" cluster.
 - Grammar pattern in block "grammar" MUST be required by the "speaking" prompts.
 - Total 18-25 slides. Block order is STRICT: never interleave blocks out of order.
 - Use teen-appropriate, modern, culturally inclusive examples. Keep sentences level-appropriate (${cefr_level}).
+- For EVERY slide, include a "teacher_notes" string (≤140 chars) telling the live teacher how to deliver the slide. Never reveal it to the student.
+- The FINAL slide MUST be a "lesson_summary" auto-recapping the 5 vocab words taught + the grammar rule + a one-line takeaway.
 - Return RAW JSON ARRAY only.`;
 
       const callAcademy = async (extra?: string): Promise<any[]> => {
@@ -340,6 +344,11 @@ PEDAGOGICAL RULES:
     const systemPrompt = `You are the EXPERT CURRICULUM DESIGNER for Engleuphoria — an elite ESL platform.
 You design ONE classroom-ready 1-HOUR (≈60 minute) deeply COHESIVE interactive lesson as a 20–25 slide deck.
 Total slide count MUST be between 20 and 25 inclusive — never fewer than 20.
+
+UNIVERSAL ADD-ONS (apply to EVERY slide unless impossible):
+• Include a "teacher_notes" string (≤140 chars) — a single sentence telling the live teacher how to deliver this slide. Never shown to the student.
+• The FINAL slide MUST be { "type": "lesson_summary", ... } recapping up to 5 vocabulary words taught + the grammar rule + a one-sentence takeaway.
+• If hub === "success" / Business English: include 7 ordered blocks (warmup, vocab, context, functional, practice, simulation, output) AND append 3–4 EXTRA slides tagged "block": "buffer" with "is_buffer": true — these are optional review/extension activities the teacher uses if time remains.
 
 You think like a chess master 5 moves ahead. The vocabulary you teach in Phase 1 MUST appear in
 the reading passage in Phase 2. The grammar rule you extract in Phase 4 MUST be required in

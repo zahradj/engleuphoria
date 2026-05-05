@@ -50,6 +50,7 @@ const SLIDE_TYPES: { type: SlideType; label: string; emoji: string }[] = [
   { type: 'drag', label: 'Drag & Drop', emoji: '🖱️' },
   { type: 'match', label: 'Matching', emoji: '🔗' },
   { type: 'draw', label: 'Drawing', emoji: '🎨' },
+  { type: 'lesson_summary', label: 'Lesson Summary', emoji: '🏆' },
 ];
 
 function makeSlide(type: SlideType): Slide {
@@ -73,6 +74,8 @@ function makeSlide(type: SlideType): Slide {
       };
     case 'draw':
       return { type: 'draw', prompt: 'Draw your favourite animal!', voice: { text: 'Draw something!', autoPlay: true } };
+    case 'lesson_summary':
+      return { type: 'lesson_summary', title: 'Level Complete!', vocab_recap: [], takeaway: 'You did amazing!', voice: { text: 'Great job! Level complete!', autoPlay: true } };
   }
 }
 
@@ -85,6 +88,7 @@ function slideTitle(slide: Slide): string {
     case 'drag': return slide.instruction;
     case 'match': return slide.instruction;
     case 'draw': return slide.prompt;
+    case 'lesson_summary': return slide.title || 'Lesson Summary';
   }
 }
 
@@ -948,6 +952,18 @@ function SlideEditor({ slide, onChange }: { slide: Slide; onChange: (p: Partial<
       return (
         <div className="space-y-3">
           <Field label="Prompt"><input className={inputCls} value={slide.prompt} onChange={(e) => onChange({ prompt: e.target.value } as any)} /></Field>
+          {VoiceFields}
+        </div>
+      );
+    case 'lesson_summary':
+      return (
+        <div className="space-y-3">
+          <Field label="Title"><input className={inputCls} value={(slide as any).title || ''} onChange={(e) => onChange({ title: e.target.value } as any)} /></Field>
+          <Field label="Vocabulary recap (one word per line)">
+            <textarea className={inputCls + ' h-24'} value={(slide as any).vocab_recap?.join('\n') || ''}
+              onChange={(e) => onChange({ vocab_recap: e.target.value.split('\n').map((s: string) => s.trim()).filter(Boolean) } as any)} />
+          </Field>
+          <Field label="Takeaway"><input className={inputCls} value={(slide as any).takeaway || ''} onChange={(e) => onChange({ takeaway: e.target.value } as any)} /></Field>
           {VoiceFields}
         </div>
       );

@@ -60,6 +60,7 @@ const SLIDE_TYPES: { type: SlideType; label: string; defaultBlock: Block }[] = [
   { type: 'role_play',          label: 'Role Play',              defaultBlock: 'simulation' },
   { type: 'speaking_task',      label: 'Speaking Task',          defaultBlock: 'output' },
   { type: 'reflection',         label: 'Reflection',             defaultBlock: 'output' },
+  { type: 'lesson_summary',     label: 'Lesson Summary 📋',      defaultBlock: 'buffer' },
 ];
 
 function makeSlide(type: SlideType): Slide {
@@ -91,6 +92,7 @@ function makeSlide(type: SlideType): Slide {
     case 'role_play':          return { type, block, title: 'Role play', roleA: 'Manager', roleB: 'Employee', lineA: 'Could you give me a quick update?', lineB: 'Of course. We are on track.' };
     case 'speaking_task':      return { type, block, prompt: 'Speak about a recent workplace situation.', starters: ['When you have a moment…', 'Would you mind…'] };
     case 'reflection':         return { type, block, prompt: 'How confident do you feel using this language at work now?' };
+    case 'lesson_summary':     return { type, block, title: 'Review Sheet', vocab_recap: [], grammar_recap: '', takeaway: '' };
   }
 }
 
@@ -235,7 +237,7 @@ export default function SuccessCreator() {
   const current = slides[selected];
 
   const grouped = useMemo(() => {
-    const m: Record<Block, { slide: Slide; idx: number }[]> = { warmup: [], vocab: [], context: [], functional: [], practice: [], simulation: [], output: [] };
+    const m: Record<Block, { slide: Slide; idx: number }[]> = { warmup: [], vocab: [], context: [], functional: [], practice: [], simulation: [], output: [], buffer: [] };
     slides.forEach((s, idx) => m[s.block].push({ slide: s, idx }));
     return m;
   }, [slides]);
@@ -983,5 +985,17 @@ function SlideEditor({ slide, onChange }: { slide: Slide; onChange: (p: Partial<
         </div>
       );
     }
+    case 'lesson_summary':
+      return (
+        <div className="space-y-3">
+          <Field label="Title"><input className={inputCls} value={(slide as any).title || ''} onChange={(e) => onChange({ title: e.target.value } as any)} /></Field>
+          <Field label="Vocabulary recap (one word per line)">
+            <textarea className={inputCls + ' h-24'} value={(slide as any).vocab_recap?.join('\n') || ''}
+              onChange={(e) => onChange({ vocab_recap: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) } as any)} />
+          </Field>
+          <Field label="Grammar rule"><input className={inputCls} value={(slide as any).grammar_recap || ''} onChange={(e) => onChange({ grammar_recap: e.target.value } as any)} /></Field>
+          <Field label="Takeaway"><textarea className={inputCls + ' h-20'} value={(slide as any).takeaway || ''} onChange={(e) => onChange({ takeaway: e.target.value } as any)} /></Field>
+        </div>
+      );
   }
 }

@@ -62,6 +62,7 @@ const SLIDE_TYPES: { type: SlideType; label: string; defaultBlock: Block }[] = [
   { type: 'speaking_task',    label: 'Speaking Task',          defaultBlock: 'speaking' },
   { type: 'reflection',      label: 'Reflection',             defaultBlock: 'speaking' },
   { type: 'cluster',          label: 'Cluster (multi-task)',   defaultBlock: 'practice' },
+  { type: 'lesson_summary',   label: 'Lesson Summary 📋',      defaultBlock: 'speaking' },
 ];
 
 function makeSlide(type: SlideType): Slide {
@@ -96,6 +97,7 @@ function makeSlide(type: SlideType): Slide {
       { type: 'tf', statement: 'He use TikTok.', answer: false },
       { type: 'build', prompt: 'Build the sentence.', words: ['I', 'use', 'my', 'phone'], answer: ['I', 'use', 'my', 'phone'] },
     ]};
+    case 'lesson_summary': return { type, block, title: 'Review Sheet', vocab_recap: [], grammar_recap: '', takeaway: '' };
   }
 }
 
@@ -1061,5 +1063,17 @@ function SlideEditor({ slide, onChange }: { slide: Slide; onChange: (p: Partial<
         </div>
       );
     }
+    case 'lesson_summary':
+      return (
+        <div className="space-y-3">
+          <Field label="Title"><input className={inputCls} value={(slide as any).title || ''} onChange={(e) => onChange({ title: e.target.value } as any)} /></Field>
+          <Field label="Vocabulary recap (one word per line)">
+            <textarea className={inputCls + ' h-24'} value={(slide as any).vocab_recap?.join('\n') || ''}
+              onChange={(e) => onChange({ vocab_recap: e.target.value.split('\n').map((s: string) => s.trim()).filter(Boolean) } as any)} />
+          </Field>
+          <Field label="Grammar rule"><input className={inputCls} value={(slide as any).grammar_recap || ''} onChange={(e) => onChange({ grammar_recap: e.target.value } as any)} /></Field>
+          <Field label="Takeaway"><textarea className={inputCls + ' h-20'} value={(slide as any).takeaway || ''} onChange={(e) => onChange({ takeaway: e.target.value } as any)} /></Field>
+        </div>
+      );
   }
 }

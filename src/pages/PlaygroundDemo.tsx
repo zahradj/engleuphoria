@@ -59,7 +59,15 @@ export type Slide =
       voice?: SlideVoice;
       feedback?: SlideFeedback;
     }
-  | { type: 'draw'; prompt: string; image_url?: string; voice?: SlideVoice };
+  | { type: 'draw'; prompt: string; image_url?: string; voice?: SlideVoice }
+  | {
+      type: 'lesson_summary';
+      title?: string;
+      vocab_recap: string[];
+      grammar_recap?: string;
+      takeaway?: string;
+      voice?: SlideVoice;
+    };
 
 // ─── Dynamic lesson content ──────────────────────────────────────────────────
 const SLIDES: Slide[] = [
@@ -504,7 +512,38 @@ export function SlideRenderer({ slide }: { slide: Slide }) {
     case 'drag': return <DragDrop slide={slide} />;
     case 'match': return <MatchGame slide={slide} />;
     case 'draw': return <DrawGame slide={slide} />;
+    case 'lesson_summary': return <PlaygroundSummary slide={slide} />;
   }
+}
+
+function PlaygroundSummary({ slide }: { slide: Extract<Slide, { type: 'lesson_summary' }> }) {
+  useEffect(() => {
+    const t = setTimeout(() => {
+      confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+    }, 200);
+    return () => clearTimeout(t);
+  }, []);
+  return (
+    <div className="flex flex-col items-center text-center gap-6 w-full">
+      <div className="text-8xl">🏆</div>
+      <h1 className="text-4xl md:text-5xl font-extrabold text-orange-600">{slide.title || 'Level Complete!'}</h1>
+      {slide.vocab_recap?.length > 0 && (
+        <div className="flex flex-wrap justify-center gap-3 max-w-2xl">
+          {slide.vocab_recap.slice(0, 5).map((w, i) => (
+            <span
+              key={w}
+              className="px-5 py-2.5 rounded-full text-lg font-extrabold text-white shadow-lg"
+              style={{ background: ['#FE6A2F', '#F59E0B', '#10B981', '#3B82F6', '#A855F7'][i % 5] }}
+            >
+              {w}
+            </span>
+          ))}
+        </div>
+      )}
+      {slide.takeaway && <p className="text-xl text-slate-700 font-bold">{slide.takeaway}</p>}
+      <div className="text-3xl font-extrabold text-amber-600">Great job! 🎉</div>
+    </div>
+  );
 }
 
 // ─── Main page ───────────────────────────────────────────────────────────────
