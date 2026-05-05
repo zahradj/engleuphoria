@@ -15,7 +15,7 @@ import { useSuccessAudio } from '@/hooks/useSuccessAudio';
  */
 
 // ─── Schema ──────────────────────────────────────────────────────────────────
-export type Block = 'warmup' | 'vocab' | 'context' | 'functional' | 'practice' | 'simulation' | 'output';
+export type Block = 'warmup' | 'vocab' | 'context' | 'functional' | 'practice' | 'simulation' | 'output' | 'buffer';
 
 export const BLOCKS: { id: Block; label: string }[] = [
   { id: 'warmup', label: 'Warm-up' },
@@ -25,6 +25,7 @@ export const BLOCKS: { id: Block; label: string }[] = [
   { id: 'practice', label: 'Practice' },
   { id: 'simulation', label: 'Simulation' },
   { id: 'output', label: 'Output' },
+  { id: 'buffer', label: 'Buffer & Review' },
 ];
 
 export type ClusterActivity =
@@ -50,7 +51,8 @@ export type Slide =
   | { type: 'email_task'; block: Block; subject: string; brief: string; sample: string }
   | { type: 'role_play'; block: Block; title: string; roleA: string; roleB: string; lineA: string; lineB: string }
   | { type: 'speaking_task'; block: Block; prompt: string; starters?: string[] }
-  | { type: 'reflection'; block: Block; prompt: string };
+  | { type: 'reflection'; block: Block; prompt: string }
+  | { type: 'lesson_summary'; block: Block; title?: string; vocab_recap: string[]; grammar_recap?: string; takeaway?: string };
 
 // ─── Lesson content ──────────────────────────────────────────────────────────
 // Topic: "Making Requests at Work" — B1 level, 32 slides, 60 min.
