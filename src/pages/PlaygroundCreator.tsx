@@ -26,6 +26,10 @@ import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/us
 import { SaveStatusBadge } from '@/components/creator-studio/shared/SaveStatusBadge';
 import { RevisionHistoryModal } from '@/components/creator-studio/shared/RevisionHistoryModal';
 import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
+import { StorybookEditor } from '@/components/creator-studio/shared/StorybookEditor';
+import { MediaAnalyzerModal } from '@/components/creator-studio/shared/MediaAnalyzerModal';
+import { mapAIQuizSlides } from '@/components/creator-studio/shared/aiQuizMapper';
+import { Headphones } from 'lucide-react';
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from '@/components/ui/popover';
@@ -50,6 +54,8 @@ const SLIDE_TYPES: { type: SlideType; label: string; emoji: string }[] = [
   { type: 'drag', label: 'Drag & Drop', emoji: '🖱️' },
   { type: 'match', label: 'Matching', emoji: '🔗' },
   { type: 'draw', label: 'Drawing', emoji: '🎨' },
+  { type: 'storybook', label: 'Storybook', emoji: '📖' },
+  { type: 'media_player', label: 'Listening', emoji: '🎧' },
   { type: 'lesson_summary', label: 'Lesson Summary', emoji: '🏆' },
 ];
 
@@ -76,6 +82,10 @@ function makeSlide(type: SlideType): Slide {
       return { type: 'draw', prompt: 'Draw your favourite animal!', voice: { text: 'Draw something!', autoPlay: true } };
     case 'lesson_summary':
       return { type: 'lesson_summary', title: 'Level Complete!', vocab_recap: [], takeaway: 'You did amazing!', voice: { text: 'Great job! Level complete!', autoPlay: true } };
+    case 'storybook':
+      return { type: 'storybook', title: 'New Story', topic: '', pages: [{ page_number: 1, text: 'Once upon a time…', image_url: '', audio_url: '' }], voice: { text: 'Story time!', autoPlay: false } };
+    case 'media_player':
+      return { type: 'media_player', title: 'Listening Exercise', media_url: '', media_kind: 'youtube', transcript: '' };
   }
 }
 
@@ -88,6 +98,8 @@ function slideTitle(slide: Slide): string {
     case 'drag': return slide.instruction;
     case 'match': return slide.instruction;
     case 'draw': return slide.prompt;
+    case 'storybook': return slide.title || 'Storybook';
+    case 'media_player': return slide.title || 'Listening Exercise';
     case 'lesson_summary': return slide.title || 'Lesson Summary';
   }
 }
@@ -125,6 +137,16 @@ export default function PlaygroundCreator() {
   const [aiTopic, setAiTopic] = useState('Animals');
   const [aiBusy, setAiBusy] = useState(false);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [mediaModalOpen, setMediaModalOpen] = useState(false);
+
+  // Insert quiz slides directly after the current slide (before any trailing lesson_summary).
+  const insertAfterCurrent = (extra: Slide[]) => {
+    setSlides((prev) => {
+      const at = Math.min(selected + 1, prev.length);
+      const next = [...prev.slice(0, at), ...extra, ...prev.slice(at)];
+      return next;
+    });
+  };
 
   const lessonHook = useCreatorLesson({ hub: 'playground', initialLessonId });
 
@@ -510,6 +532,12 @@ export default function PlaygroundCreator() {
                   </button>
                 ))}
               </div>
+              <button
+                onClick={() => setMediaModalOpen(true)}
+                className="mt-2 w-full text-xs font-bold text-white bg-gradient-to-r from-fuchsia-500 to-orange-500 rounded-lg p-2 inline-flex items-center justify-center gap-2 active:scale-95"
+              >
+                <Headphones className="w-3.5 h-3.5" /> Add Listening Exercise
+              </button>
             </div>
           </div>
         </aside>
@@ -570,7 +598,18 @@ export default function PlaygroundCreator() {
                 <TabsTrigger value="comments">Comments</TabsTrigger>
               </TabsList>
               <TabsContent value="basic" className="pt-4 flex-1 overflow-y-auto min-h-0">
-                <SlideEditor slide={current} onChange={update} />
+                {current.type === 'storybook' ? (
+                  <StorybookEditor
+                    slide={current as any}
+                    hub="playground"
+                    cefrLevel="A1"
+                    targetVocab={[]}
+                    onPatch={(patch) => update(patch as Partial<Slide>)}
+                    onAppendQuiz={(quiz) => insertAfterCurrent(mapAIQuizSlides(quiz, 'playground') as Slide[])}
+                  />
+                ) : (
+                  <SlideEditor slide={current} onChange={update} />
+                )}
               </TabsContent>
               <TabsContent value="media" className="pt-4 flex-1 overflow-y-auto min-h-0">
                 <SlideMediaPanel
@@ -730,6 +769,22 @@ export default function PlaygroundCreator() {
         open={importOpen}
         onOpenChange={setImportOpen}
         defaultHub="playground"
+      />
+
+      <MediaAnalyzerModal
+        open={mediaModalOpen}
+        onOpenChange={setMediaModalOpen}
+        hub="playground"
+        cefrLevel="A1"
+        onCreate={(mediaSlide, quiz) => {
+          const mapped = mapAIQuizSlides(quiz, 'playground') as Slide[];
+          setSlides((prev) => {
+            const at = Math.min(selected + 1, prev.length);
+            const next = [...prev.slice(0, at), mediaSlide as unknown as Slide, ...mapped, ...prev.slice(at)];
+            setSelected(at);
+            return next;
+          });
+        }}
       />
 
       <PublishTemplateDialog
@@ -971,10 +1026,18 @@ function SlideEditor({ slide, onChange }: { slide: Slide; onChange: (p: Partial<
           {VoiceFields}
         </div>
       );
+    case 'storybook':
+      return <div className="text-sm text-slate-600">Use the Storybook editor (auto-shown above). 📖</div>;
+    case 'media_player':
+      return (
+        <div className="space-y-3">
+          <Field label="Title"><input className={inputCls} value={(slide as any).title || ''} onChange={(e) => onChange({ title: e.target.value } as any)} /></Field>
+          <Field label="Media URL"><input className={inputCls} value={(slide as any).media_url || ''} onChange={(e) => onChange({ media_url: e.target.value } as any)} /></Field>
+          <Field label="Transcript"><textarea className={inputCls + ' h-24'} value={(slide as any).transcript || ''} onChange={(e) => onChange({ transcript: e.target.value } as any)} /></Field>
+        </div>
+      );
   }
 }
-
-// ─── Fullscreen preview deck ─────────────────────────────────────────────────
 function FullPreview({ slides }: { slides: Slide[] }) {
   const [i, setI] = useState(0);
   const slide = slides[i];
