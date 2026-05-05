@@ -203,7 +203,7 @@ RULES:
       const allowedTypes = new Set([
         "intro","question","poll","opinion","vocab","matching","reading_passage","listening",
         "truefalse","multiple","grammar_pattern","error_detection","correction","fill_blank",
-        "sentence_builder","debate_scale","role_play","speaking_task","reflection","cluster",
+        "sentence_builder","debate_scale","role_play","speaking_task","reflection","cluster","lesson_summary",
       ]);
 
       const academySystem = `You are a Master TEFL/CELTA-trained ESL lesson designer for TEENAGERS.
