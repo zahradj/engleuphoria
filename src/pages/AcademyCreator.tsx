@@ -502,21 +502,29 @@ export default function AcademyCreator() {
                             idx === selected ? 'border-indigo-500 bg-indigo-50' : 'border-transparent hover:bg-slate-50'
                           }`}>
                           <div className="flex items-center justify-between text-[10px] text-slate-400 mb-0.5">
-                            <span className="font-semibold text-indigo-500">#{idx + 1} · {s.type}</span>
-                            <div className="flex gap-0.5 opacity-0 group-hover:opacity-100">
-                              <span onClick={(e) => { e.stopPropagation(); move(idx, -1); }} className="hover:text-indigo-600 cursor-pointer"><ChevronUp className="w-3 h-3" /></span>
-                              <span onClick={(e) => { e.stopPropagation(); move(idx, 1); }} className="hover:text-indigo-600 cursor-pointer"><ChevronDown className="w-3 h-3" /></span>
-                              <span onClick={(e) => { e.stopPropagation(); dup(idx); }} className="hover:text-indigo-600 cursor-pointer"><Copy className="w-3 h-3" /></span>
-                              <span onClick={(e) => { e.stopPropagation(); del(idx); }} className="hover:text-red-500 cursor-pointer"><Trash2 className="w-3 h-3" /></span>
+                            <span className="font-semibold text-indigo-500">
+                              {s.type === 'lesson_summary' ? `🔒 #${idx + 1} · auto-summary` : `#${idx + 1} · ${s.type}`}
+                            </span>
+                            {s.type !== 'lesson_summary' && (
+                              <div className="flex gap-0.5 opacity-0 group-hover:opacity-100">
+                                <span onClick={(e) => { e.stopPropagation(); move(idx, -1); }} className="hover:text-indigo-600 cursor-pointer"><ChevronUp className="w-3 h-3" /></span>
+                                <span onClick={(e) => { e.stopPropagation(); move(idx, 1); }} className="hover:text-indigo-600 cursor-pointer"><ChevronDown className="w-3 h-3" /></span>
+                                <span onClick={(e) => { e.stopPropagation(); dup(idx); }} className="hover:text-indigo-600 cursor-pointer"><Copy className="w-3 h-3" /></span>
+                                <span onClick={(e) => { e.stopPropagation(); del(idx); }} className="hover:text-red-500 cursor-pointer"><Trash2 className="w-3 h-3" /></span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-xs text-slate-700 truncate font-medium">
+                            {s.type === 'lesson_summary' ? 'Auto-Summary (system)' : slideTitle(s)}
+                          </div>
+                          {s.type !== 'lesson_summary' && (
+                            <div className="flex gap-1 mt-1">
+                              <button onClick={(e) => { e.stopPropagation(); move(idx, -1); }} className="text-slate-400 hover:text-indigo-600"><ChevronUp className="w-3 h-3" /></button>
+                              <button onClick={(e) => { e.stopPropagation(); move(idx, 1); }} className="text-slate-400 hover:text-indigo-600"><ChevronDown className="w-3 h-3" /></button>
+                              <button onClick={(e) => { e.stopPropagation(); dup(idx); }} className="text-slate-400 hover:text-indigo-600"><Copy className="w-3 h-3" /></button>
+                              <button onClick={(e) => { e.stopPropagation(); del(idx); }} className="text-slate-400 hover:text-red-500"><Trash2 className="w-3 h-3" /></button>
                             </div>
-                          </div>
-                          <div className="text-xs text-slate-700 truncate font-medium">{slideTitle(s)}</div>
-                          <div className="flex gap-1 mt-1">
-                            <button onClick={(e) => { e.stopPropagation(); move(idx, -1); }} className="text-slate-400 hover:text-indigo-600"><ChevronUp className="w-3 h-3" /></button>
-                            <button onClick={(e) => { e.stopPropagation(); move(idx, 1); }} className="text-slate-400 hover:text-indigo-600"><ChevronDown className="w-3 h-3" /></button>
-                            <button onClick={(e) => { e.stopPropagation(); dup(idx); }} className="text-slate-400 hover:text-indigo-600"><Copy className="w-3 h-3" /></button>
-                            <button onClick={(e) => { e.stopPropagation(); del(idx); }} className="text-slate-400 hover:text-red-500"><Trash2 className="w-3 h-3" /></button>
-                          </div>
+                          )}
                         </button>
                       ))}
                     </div>
