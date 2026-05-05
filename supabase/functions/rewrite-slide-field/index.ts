@@ -13,7 +13,7 @@ interface Body {
   slide_type?: string;
   hub?: 'playground' | 'academy' | 'success';
   cefr_level?: string;
-  blueprint?: { vocabulary?: string[]; grammar?: string };
+  blueprint?: { vocabulary?: string[]; grammar?: string; interests?: string; specific_needs?: string };
   instruction?: string;
 }
 
@@ -40,12 +40,16 @@ Deno.serve(async (req) => {
 
     const vocab = (blueprint.vocabulary || []).join(', ') || '—';
     const grammar = blueprint.grammar || '—';
+    const interests = blueprint.interests?.trim();
+    const needs = blueprint.specific_needs?.trim();
 
     const prompt = `You are a senior ESL curriculum designer.
 Rewrite ONLY the "${field}" of a ${hub} slide (type: ${slide_type}) at CEFR ${cefr_level}.
 Keep alignment with this lesson blueprint:
 - Target vocabulary: ${vocab}
 - Target grammar: ${grammar}
+${interests ? `- 🎯 Creative anchor (student interests): ${interests}` : ''}
+${needs ? `- 🛠 Specific needs / goals: ${needs}` : ''}
 
 Current value:
 """${current_value}"""
@@ -56,6 +60,7 @@ Constraints:
 - Match the original length within ±25%.
 - Keep the same field type (a question stays a question, a single word stays a single word).
 - Use natural, age-appropriate language for the ${hub} hub.
+- When natural, weave in the student interests above so the example feels personal.
 - Return strict JSON: {"value": "<new text>"}`;
 
     const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
