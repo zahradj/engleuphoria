@@ -50,6 +50,8 @@ const SLIDE_TYPES: { type: SlideType; label: string; emoji: string }[] = [
   { type: 'drag', label: 'Drag & Drop', emoji: '🖱️' },
   { type: 'match', label: 'Matching', emoji: '🔗' },
   { type: 'draw', label: 'Drawing', emoji: '🎨' },
+  { type: 'storybook', label: 'Storybook', emoji: '📖' },
+  { type: 'media_player', label: 'Listening', emoji: '🎧' },
   { type: 'lesson_summary', label: 'Lesson Summary', emoji: '🏆' },
 ];
 
