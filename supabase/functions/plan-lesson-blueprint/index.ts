@@ -22,6 +22,13 @@ Deno.serve(async (req) => {
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
 
+    const phonicsGuidance =
+      hub === "playground"
+        ? `Choose a SYNTHETIC PHONICS focus that is directly derivable from the chosen vocabulary (e.g., vocab "cat / bat / hat" → "Short /a/"; vocab "cake / bake / lake" → "Magic e / long /eɪ/"; "ship / chip" → "/ʃ/ vs /tʃ/ digraph"). Provide both a kid-friendly focus label AND the IPA symbol.`
+        : hub === "success"
+        ? `Choose an EXECUTIVE PRONUNCIATION focus tied to the vocabulary — word stress patterns (e.g. "Stress on -tion endings"), connected speech, or business intonation. Avoid kids' phonics.`
+        : `Choose a PRONUNCIATION ACCURACY focus tied to the vocabulary — common teen problem sounds (e.g. "/v/ vs /w/", "th- digraph", "schwa in unstressed syllables").`;
+
     const audience =
       hub === "playground"
         ? "young children (ages 5-10), playful and concrete"
@@ -38,9 +45,14 @@ Deno.serve(async (req) => {
 Given a TOPIC and a CEFR level, you select:
   • exactly 5 target vocabulary words (single words or 2-word collocations)
   • exactly 1 target grammar structure (e.g. "Simple Past", "Present Continuous", "Modal: should")
+  • exactly 1 target phonics / pronunciation focus
 The selection MUST be appropriate for ${audience} at CEFR ${cefr_level}.
 Vocabulary must be tightly themed to the topic — not generic filler.
 Grammar must be one a teacher could plausibly drill in 30-60 minutes alongside that vocabulary.
+
+PHONICS RULES:
+${phonicsGuidance}
+The phonics focus MUST be derivable from the chosen vocabulary; pick 2-3 of those vocabulary words as "example_words" that contain the target sound.
 ${anchor ? `\nWhen choosing vocabulary, gently bias toward terms that resonate with the following:\n${anchor}` : ""}
 Return ONLY via the supplied function tool.`;
 
@@ -69,9 +81,24 @@ Return ONLY via the supplied function tool.`;
                     maxItems: 5,
                   },
                   grammar: { type: "string" },
+                  target_phonics: {
+                    type: "object",
+                    properties: {
+                      focus: { type: "string", description: "Kid/teacher-friendly label, e.g. 'Short /a/' or 'Word stress on -tion'." },
+                      sound_ipa: { type: "string", description: "IPA symbol(s), e.g. '/æ/' or '/ʃ/ vs /tʃ/'." },
+                      grapheme: { type: "string", description: "Letter or pattern shown on screen, e.g. 'a', 'sh', 'magic e'." },
+                      example_words: {
+                        type: "array",
+                        items: { type: "string" },
+                        minItems: 2,
+                        maxItems: 3,
+                      },
+                    },
+                    required: ["focus", "example_words"],
+                  },
                   rationale: { type: "string" },
                 },
-                required: ["vocabulary", "grammar"],
+                required: ["vocabulary", "grammar", "target_phonics"],
                 additionalProperties: false,
               },
             },
