@@ -85,6 +85,7 @@ export function useCreatorLesson({ hub, initialLessonId }: UseCreatorLessonArgs)
             hub,
             ...(cefr ? { cefr_level: cefr } : {}),
             slideCount: slides.length,
+            ...(meta.blueprint ? { lesson_blueprint: meta.blueprint } : {}),
           };
           const { error } = await supabase
             .from('curriculum_lessons')
