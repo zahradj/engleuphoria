@@ -137,6 +137,16 @@ export default function PlaygroundCreator() {
   const [aiTopic, setAiTopic] = useState('Animals');
   const [aiBusy, setAiBusy] = useState(false);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [mediaModalOpen, setMediaModalOpen] = useState(false);
+
+  // Insert quiz slides directly after the current slide (before any trailing lesson_summary).
+  const insertAfterCurrent = (extra: Slide[]) => {
+    setSlides((prev) => {
+      const at = Math.min(selected + 1, prev.length);
+      const next = [...prev.slice(0, at), ...extra, ...prev.slice(at)];
+      return next;
+    });
+  };
 
   const lessonHook = useCreatorLesson({ hub: 'playground', initialLessonId });
 
