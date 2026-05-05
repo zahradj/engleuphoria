@@ -704,7 +704,17 @@ export default function AcademyCreator() {
                 <TabsTrigger value="ai">AI Tools</TabsTrigger>
               </TabsList>
               <TabsContent value="basic" className="pt-4 flex-1 overflow-y-auto min-h-0">
-                {current.type === 'canvas_game' || current.type === 'living_canvas' ? (
+                {(current as any).type === 'storybook' ? (
+                  <StorybookEditor
+                    slide={current as any}
+                    hub="academy"
+                    cefrLevel={level}
+                    targetVocab={blueprint?.vocabulary || []}
+                    grammarFocus={blueprint?.grammar || ''}
+                    onPatch={(patch) => update(patch as Partial<Slide>)}
+                    onAppendQuiz={(quiz) => insertAfterCurrent(mapAIQuizSlides(quiz, 'academy') as Slide[])}
+                  />
+                ) : current.type === 'canvas_game' || current.type === 'living_canvas' ? (
                   <CanvasElementEditor slide={current as any} hub="academy" onChange={(next) => update(next as Partial<Slide>)} />
                 ) : current.type === 'scaffolded_media' ? (
                   <ScaffoldedMediaEditor slide={current as any} hub="academy" onChange={(next) => update(next as Partial<Slide>)} />
