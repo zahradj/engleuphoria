@@ -1594,6 +1594,42 @@ export type Database = {
         }
         Relationships: []
       }
+      classroom_states: {
+        Row: {
+          active_media_state: Json
+          created_at: string
+          current_slide_index: number
+          id: string
+          lesson_id: string | null
+          session_id: string
+          student_rewards: number
+          teacher_id: string
+          updated_at: string
+        }
+        Insert: {
+          active_media_state?: Json
+          created_at?: string
+          current_slide_index?: number
+          id?: string
+          lesson_id?: string | null
+          session_id: string
+          student_rewards?: number
+          teacher_id: string
+          updated_at?: string
+        }
+        Update: {
+          active_media_state?: Json
+          created_at?: string
+          current_slide_index?: number
+          id?: string
+          lesson_id?: string | null
+          session_id?: string
+          student_rewards?: number
+          teacher_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       classroom_timeline_events: {
         Row: {
           actor_id: string | null

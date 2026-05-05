@@ -27,6 +27,7 @@ const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
 const TeacherDashboard = lazy(() => import("./pages/TeacherDashboard"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const TemplateMarketplace = lazy(() => import("./pages/TemplateMarketplace"));
+const LiveClassroom = lazy(() => import("./pages/LiveClassroom"));
 const StudentSignUp = lazy(() => import("./pages/StudentSignUp"));
 const StudentApplication = lazy(() => import("./pages/StudentApplication"));
 const EmailVerification = lazy(() => import("./pages/EmailVerification"));
@@ -199,6 +200,14 @@ const App = () => {
                         </ImprovedProtectedRoute>
                       } />
 
+                      {/* Real-Time Live Classroom (sync + annotation overlay) */}
+                      <Route path="/live-classroom/:sessionId" element={
+                        <ImprovedProtectedRoute>
+                          <Suspense fallback={<LoadingFallback />}>
+                            <LiveClassroom />
+                          </Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
                       {/* Legacy student-classroom route redirects to unified */}
                       <Route path="/student-classroom/:id" element={
                         <ImprovedProtectedRoute>
