@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { slides, vocabulary, grammar, hub = "academy", cefr_level = "A1" } =
+    const { slides, vocabulary, grammar, hub = "academy", cefr_level = "A1", interests, specific_needs } =
       await req.json().catch(() => ({}));
 
     if (!Array.isArray(slides) || slides.length === 0) {
@@ -31,10 +31,16 @@ Deno.serve(async (req) => {
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
 
+    const anchor = [
+      interests ? `🎯 CREATIVE ANCHOR — weave the student's interests into examples and stories: ${interests}.` : "",
+      specific_needs ? `🛠 SPECIFIC NEEDS — adapt tone/scaffolding for: ${specific_needs}.` : "",
+    ].filter(Boolean).join("\n");
+
     const system = `You are a Senior ESL Editor for the Engleuphoria platform (${hub} hub, CEFR ${cefr_level}).
 You will receive an array of lesson slides as JSON. Rewrite their text-bearing fields so that:
   • Every slide uses ONLY these target vocabulary words: ${vocabulary.join(", ")}
   • Every grammatically structured sentence uses this grammar: "${grammar}"
+${anchor}
 HARD RULES:
   • Preserve each slide's "type" exactly.
   • Preserve array lengths (e.g. options/pairs arity stays the same).
