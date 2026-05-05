@@ -771,7 +771,21 @@ export default function PlaygroundCreator() {
         defaultHub="playground"
       />
 
-      <PublishTemplateDialog
+      <MediaAnalyzerModal
+        open={mediaModalOpen}
+        onOpenChange={setMediaModalOpen}
+        hub="playground"
+        cefrLevel="A1"
+        onCreate={(mediaSlide, quiz) => {
+          const mapped = mapAIQuizSlides(quiz, 'playground') as Slide[];
+          setSlides((prev) => {
+            const at = Math.min(selected + 1, prev.length);
+            const next = [...prev.slice(0, at), mediaSlide as unknown as Slide, ...mapped, ...prev.slice(at)];
+            setSelected(at);
+            return next;
+          });
+        }}
+      />
         open={publishTemplateOpen}
         onOpenChange={setPublishTemplateOpen}
         hub="playground"
