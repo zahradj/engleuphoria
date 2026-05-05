@@ -159,6 +159,7 @@ export default function SuccessCreator() {
   const [aiLevel, setAiLevel] = useState('B1');
   const [aiGrammar, setAiGrammar] = useState('Polite modals (could / would / would you mind)');
   const [aiBusy, setAiBusy] = useState(false);
+  const [blueprint, setBlueprint] = useState<LessonBlueprint | null>(null);
   const [previewMode, setPreviewMode] = useState<PreviewMode>('editor');
   const [previewRole, setPreviewRole] = useState<PreviewRole>('teacher');
   const [vaultOpen, setVaultOpen] = useState(false);
