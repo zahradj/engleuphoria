@@ -10,8 +10,8 @@ import { RewardFx } from '@/components/live-classroom/RewardFx';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Star, Loader2, Wifi, WifiOff } from 'lucide-react';
 import { SlideRenderer as PlaygroundRenderer, type Slide as PlaygroundSlide } from '@/pages/PlaygroundDemo';
-import { SlideRenderer as AcademyRenderer, type Slide as AcademySlide } from '@/pages/AcademyDemo';
-import { SlideRenderer as SuccessRenderer, type Slide as SuccessSlide } from '@/pages/SuccessDemo';
+import { SlideRenderer as AcademyRenderer, type Slide as AcademySlide, themeMap as academyThemeMap } from '@/pages/AcademyDemo';
+import { SlideRenderer as SuccessRenderer, type Slide as SuccessSlide, themeMap as successThemeMap } from '@/pages/SuccessDemo';
 
 type AnyHub = 'playground' | 'academy' | 'success';
 type AnySlide = PlaygroundSlide | AcademySlide | SuccessSlide;
