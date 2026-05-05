@@ -115,7 +115,7 @@ export function ScaffoldedPlayer({ slide, hub, onAllSegmentsPassed }: Props) {
   const submitAnswer = () => {
     if (activeSeg == null || pickedAnswer == null) return;
     const seg = segments[activeSeg];
-    if (pickedAnswer === seg.answer) {
+    if (pickedAnswer === seg.question.answer) {
       setFeedback('correct');
       setTimeout(() => {
         setPassed(p => new Set(p).add(activeSeg));
