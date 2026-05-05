@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { Volume2 } from 'lucide-react';
 import { usePlaygroundAudio } from '@/hooks/usePlaygroundAudio';
+import type { CanvasGameSlide, LivingCanvasSlide, ScaffoldedMediaSlide } from '@/components/creator-studio/shared/canvasSchema';
 
 /**
  * Playground Engine — content-driven, AI-enhanced mini app.
