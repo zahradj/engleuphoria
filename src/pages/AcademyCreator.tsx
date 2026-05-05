@@ -42,6 +42,9 @@ import { ScaffoldedMediaEditor } from '@/components/creator-studio/shared/Scaffo
 import { LessonBlueprintPanel, type LessonBlueprint } from '@/components/creator-studio/shared/LessonBlueprintPanel';
 import { WandFieldButton } from '@/components/creator-studio/shared/WandFieldButton';
 import { AIToolsPanel } from '@/components/creator-studio/shared/AIToolsPanel';
+import { StorybookEditor } from '@/components/creator-studio/shared/StorybookEditor';
+import { StorybookRenderer } from '@/components/creator-studio/shared/StorybookRenderer';
+import { mapAIQuizSlides } from '@/components/creator-studio/shared/aiQuizMapper';
 
 /**
  * Academy Slide Creator — clean teacher-facing authoring tool.
@@ -77,7 +80,15 @@ const SLIDE_TYPES: { type: SlideType; label: string; defaultBlock: Block }[] = [
   { type: 'lesson_summary',   label: 'Lesson Summary 📋',      defaultBlock: 'speaking' },
 ];
 
-function makeSlide(type: SlideType): Slide {
+function makeSlide(type: SlideType | 'storybook'): Slide {
+  if (type === 'storybook') {
+    return ({
+      type: 'storybook', block: 'reading',
+      title: 'New Story', topic: '', layout_mode: 'comic', theme: 'school',
+      pages: [{ page_number: 1, text: 'Once…', image_url: '', audio_url: '' }],
+      highlight_words: [],
+    } as unknown) as Slide;
+  }
   const entry = SLIDE_TYPES.find((s) => s.type === type);
   if (!entry) {
     return { type: 'intro', block: 'warmup', title: 'New section', subtitle: '' } as Slide;
@@ -300,6 +311,14 @@ export default function AcademyCreator() {
       return next;
     });
     setPickerOpen(false);
+  };
+
+  // Insert quiz slides directly after the current slide
+  const insertAfterCurrent = (extra: Slide[]) => {
+    setSlides((prev) => {
+      const at = Math.min(selected + 1, prev.length);
+      return [...prev.slice(0, at), ...extra, ...prev.slice(at)];
+    });
   };
 
   const move = (i: number, dir: -1 | 1) => {
@@ -622,7 +641,9 @@ export default function AcademyCreator() {
               previewRole={previewRole}
               getTeacherNotes={(s) => (s as any).teacher_notes}
               renderSlide={(slide) => {
-                const isPhonics = (slide as any).type === 'phonics_focus';
+                const sType = (slide as any).type;
+                const isPhonics = sType === 'phonics_focus';
+                const isStorybook = sType === 'storybook';
                 return (
                   <div className="rounded-xl bg-slate-50 border border-slate-200 p-5 min-h-[450px] flex items-center justify-center">
                     <div className="w-full">
@@ -631,6 +652,8 @@ export default function AcademyCreator() {
                       </div>
                       {isPhonics ? (
                         <PhonicsFocusCard slide={slide as any} hub="academy" />
+                      ) : isStorybook ? (
+                        <StorybookRenderer slide={slide as any} hub="academy" />
                       ) : (
                         <UniversalMediaShell slide={slide as any} hub="academy">
                           <SlideRenderer slide={slide as Slide} t={t} />
@@ -681,7 +704,17 @@ export default function AcademyCreator() {
                 <TabsTrigger value="ai">AI Tools</TabsTrigger>
               </TabsList>
               <TabsContent value="basic" className="pt-4 flex-1 overflow-y-auto min-h-0">
-                {current.type === 'canvas_game' || current.type === 'living_canvas' ? (
+                {(current as any).type === 'storybook' ? (
+                  <StorybookEditor
+                    slide={current as any}
+                    hub="academy"
+                    cefrLevel={level}
+                    targetVocab={blueprint?.vocabulary || []}
+                    grammarFocus={blueprint?.grammar || ''}
+                    onPatch={(patch) => update(patch as unknown as Partial<Slide>)}
+                    onAppendQuiz={(quiz) => insertAfterCurrent(mapAIQuizSlides(quiz, 'academy') as Slide[])}
+                  />
+                ) : current.type === 'canvas_game' || current.type === 'living_canvas' ? (
                   <CanvasElementEditor slide={current as any} hub="academy" onChange={(next) => update(next as Partial<Slide>)} />
                 ) : current.type === 'scaffolded_media' ? (
                   <ScaffoldedMediaEditor slide={current as any} hub="academy" onChange={(next) => update(next as Partial<Slide>)} />

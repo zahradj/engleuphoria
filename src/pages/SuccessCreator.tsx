@@ -42,6 +42,9 @@ import { ScaffoldedMediaEditor } from '@/components/creator-studio/shared/Scaffo
 import { LessonBlueprintPanel, type LessonBlueprint } from '@/components/creator-studio/shared/LessonBlueprintPanel';
 import { WandFieldButton } from '@/components/creator-studio/shared/WandFieldButton';
 import { AIToolsPanel } from '@/components/creator-studio/shared/AIToolsPanel';
+import { StorybookEditor } from '@/components/creator-studio/shared/StorybookEditor';
+import { StorybookRenderer } from '@/components/creator-studio/shared/StorybookRenderer';
+import { mapAIQuizSlides } from '@/components/creator-studio/shared/aiQuizMapper';
 
 /**
  * Success Slide Creator — adult Business English authoring tool.
@@ -75,7 +78,15 @@ const SLIDE_TYPES: { type: SlideType; label: string; defaultBlock: Block }[] = [
   { type: 'lesson_summary',     label: 'Lesson Summary 📋',      defaultBlock: 'buffer' },
 ];
 
-function makeSlide(type: SlideType): Slide {
+function makeSlide(type: SlideType | 'storybook'): Slide {
+  if (type === 'storybook') {
+    return ({
+      type: 'storybook', block: 'context',
+      title: 'New Case Study', topic: '', layout_mode: 'case_study', theme: 'business_trip',
+      pages: [{ page_number: 1, text: 'Background…', image_url: '', audio_url: '' }],
+      highlight_words: [],
+    } as unknown) as Slide;
+  }
   const entry = SLIDE_TYPES.find((s) => s.type === type);
   if (!entry) {
     return { type: 'intro', block: 'warmup', title: 'New section', subtitle: '' } as Slide;
@@ -294,6 +305,13 @@ export default function SuccessCreator() {
       return next;
     });
     setPickerOpen(false);
+  };
+
+  const insertAfterCurrent = (extra: Slide[]) => {
+    setSlides((prev) => {
+      const at = Math.min(selected + 1, prev.length);
+      return [...prev.slice(0, at), ...extra, ...prev.slice(at)];
+    });
   };
 
   const move = (i: number, dir: -1 | 1) => {
@@ -586,7 +604,9 @@ export default function SuccessCreator() {
               previewRole={previewRole}
               getTeacherNotes={(s) => (s as any).teacher_notes}
               renderSlide={(slide) => {
-                const isPhonics = (slide as any).type === 'phonics_focus';
+                const sType = (slide as any).type;
+                const isPhonics = sType === 'phonics_focus';
+                const isStorybook = sType === 'storybook';
                 return (
                   <div className="rounded-xl bg-slate-50 border border-slate-200 p-5 min-h-[450px] flex items-center justify-center">
                     <div className="w-full">
@@ -595,6 +615,8 @@ export default function SuccessCreator() {
                       </div>
                       {isPhonics ? (
                         <PhonicsFocusCard slide={slide as any} hub="success" />
+                      ) : isStorybook ? (
+                        <StorybookRenderer slide={slide as any} hub="success" />
                       ) : (
                         <UniversalMediaShell slide={slide as any} hub="success">
                           <SlideRenderer slide={slide as Slide} t={t} />
@@ -645,7 +667,17 @@ export default function SuccessCreator() {
                 <TabsTrigger value="ai">AI Tools</TabsTrigger>
               </TabsList>
               <TabsContent value="basic" className="pt-4 flex-1 overflow-y-auto min-h-0">
-                {current.type === 'canvas_game' || current.type === 'living_canvas' ? (
+                {(current as any).type === 'storybook' ? (
+                  <StorybookEditor
+                    slide={current as any}
+                    hub="success"
+                    cefrLevel={level}
+                    targetVocab={blueprint?.vocabulary || []}
+                    grammarFocus={blueprint?.grammar || ''}
+                    onPatch={(patch) => update(patch as unknown as Partial<Slide>)}
+                    onAppendQuiz={(quiz) => insertAfterCurrent(mapAIQuizSlides(quiz, 'success') as Slide[])}
+                  />
+                ) : current.type === 'canvas_game' || current.type === 'living_canvas' ? (
                   <CanvasElementEditor slide={current as any} hub="success" onChange={(next) => update(next as Partial<Slide>)} />
                 ) : current.type === 'scaffolded_media' ? (
                   <ScaffoldedMediaEditor slide={current as any} hub="success" onChange={(next) => update(next as Partial<Slide>)} />

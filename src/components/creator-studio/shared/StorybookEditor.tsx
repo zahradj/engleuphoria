@@ -3,7 +3,7 @@ import { Sparkles, Loader2, Plus, Trash2, ImageIcon, Volume2 } from 'lucide-reac
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { generateOnePlaygroundImage } from '@/hooks/usePlaygroundImages';
-import type { StorybookSlideShape, StorybookPage } from './StorybookRenderer';
+import type { StorybookSlideShape, StorybookPage, StorybookLayoutMode, StorybookTheme } from './StorybookRenderer';
 
 type Hub = 'playground' | 'academy' | 'success';
 
@@ -12,11 +12,33 @@ interface Props {
   hub: Hub;
   cefrLevel?: string;
   targetVocab?: string[];
+  grammarFocus?: string;
   /** patches THIS storybook slide */
   onPatch: (patch: Partial<StorybookSlideShape>) => void;
   /** appends auto-generated comprehension quiz slides immediately after this storybook */
   onAppendQuiz?: (quizSlides: any[]) => void;
 }
+
+const DEFAULT_LAYOUT: Record<Hub, StorybookLayoutMode> = {
+  playground: 'classic',
+  academy: 'comic',
+  success: 'case_study',
+};
+
+const THEME_OPTIONS: { value: StorybookTheme; label: string }[] = [
+  { value: 'adventure', label: '🗺️ Adventure' },
+  { value: 'school', label: '🎒 School Day' },
+  { value: 'mystery', label: '🔍 Mystery' },
+  { value: 'business_trip', label: '✈️ Business Trip' },
+  { value: 'negotiation', label: '🤝 Negotiation' },
+  { value: 'custom', label: '✨ Custom' },
+];
+
+const LAYOUT_OPTIONS: { value: StorybookLayoutMode; label: string }[] = [
+  { value: 'classic', label: 'Classic (image + text)' },
+  { value: 'comic', label: 'Comic (panels)' },
+  { value: 'case_study', label: 'Case Study (vertical)' },
+];
 
 const HUB_TONE: Record<Hub, string> = {
   playground: 'border-orange-200 focus:border-orange-500 ring-orange-100',
@@ -30,13 +52,15 @@ const HUB_BTN: Record<Hub, string> = {
   success: 'from-emerald-600 to-teal-600',
 };
 
-export function StorybookEditor({ slide, hub, cefrLevel, targetVocab = [], onPatch, onAppendQuiz }: Props) {
+export function StorybookEditor({ slide, hub, cefrLevel, targetVocab = [], grammarFocus, onPatch, onAppendQuiz }: Props) {
   const [busy, setBusy] = useState(false);
   const [imgBusyIdx, setImgBusyIdx] = useState<number | null>(null);
   const [audBusyIdx, setAudBusyIdx] = useState<number | null>(null);
 
   const pages = slide.pages || [];
   const inputCls = `w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 ${HUB_TONE[hub]}`;
+  const layoutMode: StorybookLayoutMode = slide.layout_mode || DEFAULT_LAYOUT[hub];
+  const themeChoice: StorybookTheme = slide.theme || (hub === 'success' ? 'business_trip' : hub === 'academy' ? 'school' : 'adventure');
 
   const generate = async () => {
     const topic = (slide.topic || '').trim();
@@ -47,6 +71,9 @@ export function StorybookEditor({ slide, hub, cefrLevel, targetVocab = [], onPat
         body: {
           prompt: topic,
           target_vocab: targetVocab,
+          grammar_focus: grammarFocus || '',
+          theme: themeChoice,
+          layout_mode: layoutMode,
           cefr_level: cefrLevel || (hub === 'playground' ? 'A1' : hub === 'academy' ? 'B1' : 'B2'),
           hub_type: hub,
         },
@@ -59,7 +86,16 @@ export function StorybookEditor({ slide, hub, cefrLevel, targetVocab = [], onPat
         image_url: '',
         audio_url: '',
       }));
-      onPatch({ title: data?.title || slide.title || topic, pages: newPages });
+      const highlight: string[] = Array.isArray(data?.highlight_words) && data.highlight_words.length
+        ? data.highlight_words
+        : targetVocab;
+      onPatch({
+        title: data?.title || slide.title || topic,
+        pages: newPages,
+        layout_mode: (data?.layout_mode as StorybookLayoutMode) || layoutMode,
+        theme: (data?.theme as StorybookTheme) || themeChoice,
+        highlight_words: highlight,
+      });
       if (Array.isArray(data?.quiz_slides) && data.quiz_slides.length > 0 && onAppendQuiz) {
         onAppendQuiz(data.quiz_slides);
       }
@@ -153,9 +189,30 @@ export function StorybookEditor({ slide, hub, cefrLevel, targetVocab = [], onPat
           placeholder="Describe what the story should be about, e.g. 'A child learning to share toys at school' (3-5 pages)"
           onChange={(e) => onPatch({ topic: e.target.value })}
         />
+        <div className="grid grid-cols-2 gap-2 mt-2">
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-600 mb-1">Story Theme</label>
+            <select className={inputCls + ' text-xs'} value={themeChoice}
+              onChange={(e) => onPatch({ theme: e.target.value as StorybookTheme })}>
+              {THEME_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-600 mb-1">Layout Style</label>
+            <select className={inputCls + ' text-xs'} value={layoutMode}
+              onChange={(e) => onPatch({ layout_mode: e.target.value as StorybookLayoutMode })}>
+              {LAYOUT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </div>
+        </div>
         {targetVocab.length > 0 && (
           <div className="mt-2 text-[11px] text-slate-500">
             Target vocab to weave in: <span className="font-semibold text-slate-700">{targetVocab.slice(0, 8).join(', ')}</span>
+          </div>
+        )}
+        {grammarFocus && (
+          <div className="mt-1 text-[11px] text-slate-500">
+            Grammar focus: <span className="font-semibold text-slate-700">{grammarFocus}</span>
           </div>
         )}
         <button
