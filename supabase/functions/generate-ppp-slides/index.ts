@@ -248,12 +248,15 @@ Allowed types and required minimal shapes (omit any irrelevant key):
 { "type":"role_play","block":"interactive","title":"...","lineA":"...","lineB":"..." }
 { "type":"speaking_task","block":"speaking","prompt":"...","starters":["I think…"] }
 { "type":"reflection","block":"speaking","prompt":"..." }
+{ "type":"lesson_summary","block":"speaking","title":"Review Sheet","vocab_recap":["...","..."],"grammar_recap":"...","takeaway":"..." }
 
 PEDAGOGICAL RULES:
 - Vocabulary taught in block "vocab" MUST appear inside the "reading" passage AND in the "practice" cluster.
 - Grammar pattern in block "grammar" MUST be required by the "speaking" prompts.
 - Total 18-25 slides. Block order is STRICT: never interleave blocks out of order.
 - Use teen-appropriate, modern, culturally inclusive examples. Keep sentences level-appropriate (${cefr_level}).
+- For EVERY slide, include a "teacher_notes" string (≤140 chars) telling the live teacher how to deliver the slide. Never reveal it to the student.
+- The FINAL slide MUST be a "lesson_summary" auto-recapping the 5 vocab words taught + the grammar rule + a one-line takeaway.
 - Return RAW JSON ARRAY only.`;
 
       const callAcademy = async (extra?: string): Promise<any[]> => {
