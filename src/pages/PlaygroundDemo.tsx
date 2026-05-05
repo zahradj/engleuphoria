@@ -61,6 +61,21 @@ export type Slide =
     }
   | { type: 'draw'; prompt: string; image_url?: string; voice?: SlideVoice }
   | {
+      type: 'storybook';
+      title?: string;
+      topic?: string;
+      pages: { page_number: number; text: string; image_url?: string; audio_url?: string; image_prompt?: string }[];
+      voice?: SlideVoice;
+    }
+  | {
+      type: 'media_player';
+      title?: string;
+      media_url: string;
+      media_kind: 'youtube' | 'audio' | 'video';
+      transcript?: string;
+      voice?: SlideVoice;
+    }
+  | {
       type: 'lesson_summary';
       title?: string;
       vocab_recap: string[];
