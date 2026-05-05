@@ -12,6 +12,8 @@ export interface LessonBlueprint {
   interests?: string;
   /** Free-text accommodations / goals (e.g. "shy speaker, exam prep"). */
   specific_needs?: string;
+  /** Target Phonics / Sound focus (e.g. "Short /a/", "Magic e", "Th- digraph", "Word stress"). */
+  target_phonics?: string;
 }
 
 export const EMPTY_BLUEPRINT: LessonBlueprint = {
@@ -19,6 +21,7 @@ export const EMPTY_BLUEPRINT: LessonBlueprint = {
   grammar: '',
   interests: '',
   specific_needs: '',
+  target_phonics: '',
 };
 
 interface Props {
@@ -95,6 +98,7 @@ export function LessonBlueprintPanel({
           grammar: bp.grammar.trim(),
           interests: bp.interests?.trim() || undefined,
           specific_needs: bp.specific_needs?.trim() || undefined,
+          target_phonics: bp.target_phonics?.trim() || undefined,
           hub,
           cefr_level: cefrLevel,
         },
@@ -158,6 +162,17 @@ export function LessonBlueprintPanel({
                   value={bp.grammar}
                   onChange={(e) => updateGrammar(e.target.value)}
                   placeholder="e.g. Simple Past"
+                  className={`w-full text-xs rounded-md border ${t.border} px-2 py-1 outline-none focus:ring-2 ${t.ring}`}
+                />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">
+                  🔊 Target Phonics / Sound <span className="text-slate-400 font-normal lowercase">(auto-suggested)</span>
+                </p>
+                <input
+                  value={bp.target_phonics || ''}
+                  onChange={(e) => onChange({ ...bp, target_phonics: e.target.value })}
+                  placeholder={hub === 'success' ? 'e.g. Word stress on -tion endings' : hub === 'academy' ? 'e.g. /v/ vs /w/, Th- digraph' : 'e.g. Short /a/, Magic e'}
                   className={`w-full text-xs rounded-md border ${t.border} px-2 py-1 outline-none focus:ring-2 ${t.ring}`}
                 />
               </div>

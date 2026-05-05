@@ -91,17 +91,38 @@ Deno.serve(async (req) => {
         body?.grammar_focus || blueprint?.grammar_focus || blueprint?.grammar || "";
       const vocabCount = Math.max(1, targetVocab.length);
 
+      // ── Target phonics (Synthetic Phonics for kids) ─────────────────────
+      const phonics = body?.target_phonics || blueprint?.target_phonics || null;
+      const phonicsFocus: string =
+        (typeof phonics === "string" ? phonics : phonics?.focus) || "";
+      const phonicsIPA: string = phonics?.sound_ipa || phonics?.phoneme || "";
+      const phonicsGrapheme: string = phonics?.grapheme || "";
+      const phonicsExamples: string[] = Array.isArray(phonics?.example_words)
+        ? phonics.example_words
+        : [];
+      const hasPhonics = !!phonicsFocus;
+
+      const phonicsBlock = hasPhonics ? `
+
+PHONICS LAYER (MANDATORY for Playground — Synthetic Phonics):
+TARGET PHONICS FOCUS: "${phonicsFocus}"${phonicsIPA ? ` (IPA: ${phonicsIPA})` : ""}${phonicsGrapheme ? ` (grapheme: "${phonicsGrapheme}")` : ""}.
+EXAMPLE WORDS (must come from the target vocabulary): ${JSON.stringify(phonicsExamples)}.
+You MUST insert (in this exact order):
+  • EXACTLY 1 "phonics_focus" slide IMMEDIATELY AFTER the "intro" slide and BEFORE any "vocab_solo" slides — display the grapheme + IPA, isolated sound + 3 example words.
+  • EXACTLY 2 EXTRA "multiple" or "match" Phonemic Awareness mini-games inside Phase 2 — these are IN ADDITION to the existing 3 practice slides. Question patterns: "Click the words that start with ${phonicsIPA || phonicsFocus}." or "Tap the picture whose name has the ${phonicsFocus} sound."
+` : "";
+
       const blueprintBlock = `
 TARGET VOCABULARY (exact list — do NOT add or remove words): ${JSON.stringify(targetVocab)}
 TARGET GRAMMAR: "${grammarFocus}"
-
+${phonicsBlock}
 STRICT PPP COUNTS — your output MUST contain EXACTLY:
-  • Phase 1 PRESENTATION: 1 "intro" + ${vocabCount} "vocab_solo" slides — one per word, in the order listed above. The "word" field of each vocab_solo MUST exactly equal the corresponding target word (uppercase OK).
-  • Phase 2 PRACTICE: EXACTLY 3 interactive slides drilling those same words ("multiple" with image options, "match" image↔word, or "drag"). No new vocabulary.
+  • Phase 1 PRESENTATION: 1 "intro"${hasPhonics ? ` + 1 "phonics_focus"` : ""} + ${vocabCount} "vocab_solo" slides — one per word, in the order listed above. The "word" field of each vocab_solo MUST exactly equal the corresponding target word (uppercase OK).
+  • Phase 2 PRACTICE: EXACTLY ${hasPhonics ? "5 (3 vocab drills + 2 phonemic-awareness games)" : "3"} interactive slides drilling those same words ("multiple" with image options, "match" image↔word, or "drag"). No new vocabulary.
   • Phase 3 GRAMMAR: EXACTLY 2 slides ("fill" or "multiple") that USE the target grammar pattern with the target vocabulary (e.g., "The duck is _______").
   • Phase 4 PRODUCTION: EXACTLY 1 "storybook" (2–3 pages) recycling every target word in a simple narrative.
   • End with EXACTLY 1 "lesson_summary" recapping the target words.
-Total slides: ${1 + vocabCount + 3 + 2 + 1 + 1}.`;
+Total slides: ${1 + (hasPhonics ? 1 : 0) + vocabCount + (hasPhonics ? 5 : 3) + 2 + 1 + 1}.`;
 
       const preA1Directive = isPreA1 ? `
 
@@ -119,6 +140,7 @@ STRICT SCHEMA (per type) — every slide MUST include a "voice" object { "text":
 
 Allowed types and required shape:
 { "type": "intro", "title": "...", "text": "...", "image_url": "AI:<subject>", "voice": { "text": "...", "autoPlay": true } }
+{ "type": "phonics_focus", "phoneme": "/æ/", "grapheme": "a", "sound_ipa": "/æ/", "label": "Listen to the sound", "example_words": ["CAT","BAT","HAT"], "voice": { "text": "short a", "autoPlay": true } }
 { "type": "vocab_solo", "word": "APPLE", "definition": "A red fruit.", "image_url": "AI:shiny red apple", "voice": { "text": "apple", "autoPlay": true } }
 { "type": "multiple", "question": "...", "options": ["a","b","c"], "answer": "<one of options>", "image_url": "AI:<subject>", "voice": {...} }
 { "type": "truefalse", "statement": "...", "answer": true|false, "image_url": "AI:<subject>", "voice": {...} }
@@ -136,7 +158,7 @@ RULES:
 - Topic: "${effectiveTitle}". ${objective ? `Goal: ${objective}.` : ""}
 - Return RAW JSON ARRAY only.${preA1Directive}`;
 
-      const allowed = new Set(["intro", "vocab_solo", "multiple", "truefalse", "fill", "drag", "match", "storybook", "draw", "lesson_summary"]);
+      const allowed = new Set(["intro", "phonics_focus", "vocab_solo", "multiple", "truefalse", "fill", "drag", "match", "storybook", "draw", "lesson_summary"]);
 
       const callModel = async (extraUserMsg?: string): Promise<any[]> => {
         const messages: any[] = [
@@ -248,7 +270,14 @@ RULES:
         "intro","question","poll","opinion","vocab","matching","reading_passage","listening",
         "truefalse","multiple","grammar_pattern","error_detection","correction","fill_blank",
         "sentence_builder","debate_scale","role_play","speaking_task","reflection","cluster","lesson_summary",
+        "phonics_focus","listen_repeat",
       ]);
+
+      const phonicsAcademy = blueprint?.target_phonics || body?.target_phonics || null;
+      const phonicsAcademyFocus = (typeof phonicsAcademy === "string" ? phonicsAcademy : phonicsAcademy?.focus) || "";
+      const phonicsAcademyBlock = phonicsAcademyFocus ? `
+
+PRONUNCIATION LAYER (MANDATORY): The lesson MUST include EXACTLY 1 "phonics_focus" slide inside the "vocab" block (after the matching slide) framed as PRONUNCIATION ACCURACY for "${phonicsAcademyFocus}"${phonicsAcademy?.sound_ipa ? ` (IPA: ${phonicsAcademy.sound_ipa})` : ""}, with example_words drawn from the target vocabulary. Also include EXACTLY 1 "listen_repeat" slide inside the "practice" block providing a comparison_audio prompt drilling that same sound. Both slides MUST set "block": "vocab" or "block": "practice" respectively.` : "";
 
       const academySystem = `You are a Master TEFL/CELTA-trained ESL lesson designer for TEENAGERS.
 Output ONLY a valid raw JSON array of slide objects (no markdown, no prose, no backticks).
@@ -302,7 +331,12 @@ PEDAGOGICAL RULES:
 - Use teen-appropriate, modern, culturally inclusive examples. Keep sentences level-appropriate (${cefr_level}).
 - For EVERY slide, include a "teacher_notes" string (≤140 chars) telling the live teacher how to deliver the slide. Never reveal it to the student.
 - The FINAL slide MUST be a "lesson_summary" auto-recapping the 5 vocab words taught + the grammar rule + a one-line takeaway.
-- Return RAW JSON ARRAY only.`;
+- Return RAW JSON ARRAY only.${phonicsAcademyBlock}
+
+ADDITIONAL ALLOWED TYPES (when phonics layer is required):
+{ "type":"phonics_focus","block":"vocab","phoneme":"/v/","grapheme":"v","sound_ipa":"/v/","label":"/v/ vs /w/","example_words":["VAN","VERY","VISIT"] }
+{ "type":"listen_repeat","block":"practice","prompt":"Listen and repeat. Notice the /v/ sound.","target_word":"VERY","comparison_audio_url":"" }
+`;
 
       const callAcademy = async (extra?: string): Promise<any[]> => {
         const messages: any[] = [

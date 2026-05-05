@@ -13,6 +13,7 @@ import { PlayablePreviewPane } from '@/components/creator-studio/shared/Playable
 import { UniversalMediaShell } from '@/components/creator-studio/shared/UniversalMediaShell';
 import { SoloVocabCard } from '@/components/creator-studio/shared/SoloVocabCard';
 import { VisualFlashcard } from '@/components/creator-studio/shared/VisualFlashcard';
+import { PhonicsFocusCard } from '@/components/creator-studio/shared/PhonicsFocusCard';
 import { WandFieldButton } from '@/components/creator-studio/shared/WandFieldButton';
 import { AIToolsPanel } from '@/components/creator-studio/shared/AIToolsPanel';
 import { slideIcon } from '@/components/creator-studio/shared/slideIcons';
@@ -70,6 +71,7 @@ const SLIDE_TYPES: { type: SlideType; label: string; emoji: string }[] = [
   { type: 'living_canvas', label: 'Click-to-Reveal', emoji: '✨' },
   { type: 'scaffolded_media', label: 'Scaffolded Media', emoji: '🎬' },
   { type: 'vocab_solo', label: 'Solo Vocab Card', emoji: '🃏' },
+  { type: 'phonics_focus', label: 'Phonics Focus', emoji: '🔊' },
   { type: 'lesson_summary', label: 'Lesson Summary', emoji: '🏆' },
 ];
 
@@ -96,6 +98,8 @@ function makeSlide(type: SlideType): Slide {
       return { type: 'draw', prompt: 'Draw your favourite animal!', voice: { text: 'Draw something!', autoPlay: true } };
     case 'vocab_solo':
       return { type: 'vocab_solo', word: 'APPLE', definition: 'A round red or green fruit.', image_url: '', audio_url: '', voice: { text: 'apple', autoPlay: true } } as Slide;
+    case 'phonics_focus':
+      return { type: 'phonics_focus', phoneme: '/æ/', grapheme: 'a', sound_ipa: '/æ/', label: 'Listen to the sound', example_words: ['CAT', 'BAT', 'HAT'], audio_url: '', voice: { text: 'short a', autoPlay: true } } as unknown as Slide;
     case 'lesson_summary':
       return { type: 'lesson_summary', title: 'Level Complete!', vocab_recap: [], takeaway: 'You did amazing!', voice: { text: 'Great job! Level complete!', autoPlay: true } };
     case 'storybook':
@@ -585,6 +589,7 @@ export default function PlaygroundCreator() {
                           { type: 'scaffolded_media', label: 'Media Analyzer', emoji: '🎬' },
                           { type: 'canvas_game', label: 'Canvas Game', emoji: '🎮' },
                           { type: 'vocab_solo', label: 'Vocab Card', emoji: '✨' },
+                          { type: 'phonics_focus', label: 'Phonics Focus', emoji: '🔊' },
                         ]}
                         onInsert={(t) => { setSlides((p) => { const n = [...p]; n.splice(i, 0, makeSlide(t as SlideType)); return n; }); setSelected(i); }}
                       />
@@ -666,14 +671,17 @@ export default function PlaygroundCreator() {
               renderSlide={(slide, idx) => {
                 const s: any = slide;
                 const isVocab = s.type === 'vocab_solo';
+                const isPhonics = s.type === 'phonics_focus';
                 const flashcards = Array.isArray(s.flashcards) ? s.flashcards : [];
-                const legacySolo = !isVocab && flashcards.length > 0;
+                const legacySolo = !isVocab && !isPhonics && flashcards.length > 0;
                 return (
                   <div className="rounded-xl bg-gradient-to-br from-orange-400 via-amber-300 to-yellow-200 p-4 min-h-[420px] flex items-center justify-center">
                     <div key={idx + (slide as Slide).type} className="bg-white rounded-2xl shadow-xl w-full p-4 min-h-[380px] flex items-center justify-center">
                       <div className="scale-[0.85] origin-center w-full">
                         {isVocab ? (
                           <VisualFlashcard slide={s} hub="playground" />
+                        ) : isPhonics ? (
+                          <PhonicsFocusCard slide={s} hub="playground" />
                         ) : (
                           <UniversalMediaShell slide={s} hub="playground" suppressImage={legacySolo}>
                             {legacySolo ? (
@@ -1150,6 +1158,46 @@ function SlideEditor({ slide, onChange, blueprint, hub = 'playground' }: { slide
           {VoiceFields}
         </div>
       );
+
+    case 'phonics_focus': {
+      const ps: any = slide;
+      const examples: string[] = Array.isArray(ps.example_words) ? ps.example_words : [];
+      const setExample = (i: number, v: string) => {
+        const next = [...examples];
+        next[i] = v;
+        onChange({ example_words: next.filter((_, idx) => idx < 3 || next[idx]?.trim()) } as any);
+      };
+      while (examples.length < 3) examples.push('');
+      return (
+        <div className="space-y-3">
+          <Field label="Grapheme / Letter (large display)">
+            <input className={inputCls} value={ps.grapheme || ''} onChange={(e) => onChange({ grapheme: e.target.value } as any)} placeholder="a" />
+          </Field>
+          <Field label="Phoneme (IPA)">
+            <input className={inputCls} value={ps.phoneme || ''} onChange={(e) => onChange({ phoneme: e.target.value, sound_ipa: e.target.value } as any)} placeholder="/æ/" />
+          </Field>
+          <Field label="Headline (optional)">
+            <input className={inputCls} value={ps.label || ''} onChange={(e) => onChange({ label: e.target.value } as any)} placeholder="Listen to the sound" />
+          </Field>
+          <div>
+            <span className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Example Words (3, from your vocabulary)</span>
+            <div className="space-y-1.5">
+              {[0, 1, 2].map((i) => (
+                <input
+                  key={i}
+                  className={inputCls}
+                  placeholder={`example ${i + 1}`}
+                  value={examples[i] || ''}
+                  onChange={(e) => setExample(i, e.target.value.toUpperCase())}
+                />
+              ))}
+            </div>
+          </div>
+          <p className="text-[11px] text-slate-500">Generate the isolated sound in the <b>AI Media & Audio</b> tab — it binds to the 🔊 button.</p>
+          {VoiceFields}
+        </div>
+      );
+    }
 
     case 'match':
       return (

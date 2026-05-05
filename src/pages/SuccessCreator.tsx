@@ -20,6 +20,7 @@ import { InsertSlideButton } from '@/components/creator-studio/shared/InsertSlid
 import { PreviewModeToggle, type PreviewMode } from '@/components/creator-studio/shared/PreviewModeToggle';
 import { PlayablePreviewPane } from '@/components/creator-studio/shared/PlayablePreviewPane';
 import { UniversalMediaShell } from '@/components/creator-studio/shared/UniversalMediaShell';
+import { PhonicsFocusCard } from '@/components/creator-studio/shared/PhonicsFocusCard';
 import { PreviewRoleToggle, type PreviewRole } from '@/components/creator-studio/shared/PreviewRoleToggle';
 import { TeacherNotesField } from '@/components/creator-studio/shared/TeacherNotesField';
 import { AssetVaultDialog } from '@/components/creator-studio/shared/AssetVaultDialog';
@@ -529,6 +530,7 @@ export default function SuccessCreator() {
                                 { type: 'scaffolded_media', label: 'Media Analyzer', emoji: '🎬' },
                                 { type: 'canvas_game', label: 'Canvas Game', emoji: '🎮' },
                                 { type: 'vocab_solo', label: 'Vocab Card', emoji: '✨' },
+                                { type: 'phonics_focus', label: 'Phonics Focus', emoji: '🔊' },
                               ]}
                               onInsert={(t) => { setSlides((p) => { const n = [...p]; n.splice(idx, 0, makeSlide(t as SlideType)); return n; }); setSelected(idx); }}
                             />
@@ -583,18 +585,25 @@ export default function SuccessCreator() {
               hub="success"
               previewRole={previewRole}
               getTeacherNotes={(s) => (s as any).teacher_notes}
-              renderSlide={(slide) => (
-                <div className="rounded-xl bg-slate-50 border border-slate-200 p-5 min-h-[450px] flex items-center justify-center">
-                  <div className="w-full">
-                    <div className="text-[10px] uppercase tracking-[0.2em] text-emerald-500 font-semibold mb-3 text-center">
-                      {BLOCKS.find((b) => b.id === (slide as Slide).block)?.label}
+              renderSlide={(slide) => {
+                const isPhonics = (slide as any).type === 'phonics_focus';
+                return (
+                  <div className="rounded-xl bg-slate-50 border border-slate-200 p-5 min-h-[450px] flex items-center justify-center">
+                    <div className="w-full">
+                      <div className="text-[10px] uppercase tracking-[0.2em] text-emerald-500 font-semibold mb-3 text-center">
+                        {BLOCKS.find((b) => b.id === (slide as Slide).block)?.label}
+                      </div>
+                      {isPhonics ? (
+                        <PhonicsFocusCard slide={slide as any} hub="success" />
+                      ) : (
+                        <UniversalMediaShell slide={slide as any} hub="success">
+                          <SlideRenderer slide={slide as Slide} t={t} />
+                        </UniversalMediaShell>
+                      )}
                     </div>
-                    <UniversalMediaShell slide={slide as any} hub="success">
-                      <SlideRenderer slide={slide as Slide} t={t} />
-                    </UniversalMediaShell>
                   </div>
-                </div>
-              )}
+                );
+              }}
             />
             {slides[selected] && (
               <TeacherNotesField
