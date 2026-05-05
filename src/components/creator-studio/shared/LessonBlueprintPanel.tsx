@@ -182,6 +182,7 @@ export function LessonBlueprintPanel({
                   placeholder="e.g. shy speaker, exam prep, dyslexic"
                   className={`w-full text-xs rounded-md border ${t.border} px-2 py-1 outline-none focus:ring-2 ${t.ring}`}
                 />
+              </div>
               <button
                 onClick={sync}
                 disabled={syncing}
