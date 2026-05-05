@@ -615,7 +615,13 @@ export default function AcademyCreator() {
                 <TabsTrigger value="comments">Comments</TabsTrigger>
               </TabsList>
               <TabsContent value="basic" className="pt-4 flex-1 overflow-y-auto min-h-0">
-                <SlideEditor slide={current} onChange={update} />
+                {current.type === 'canvas_game' || current.type === 'living_canvas' ? (
+                  <CanvasElementEditor slide={current as any} hub="academy" onChange={(next) => update(next as Partial<Slide>)} />
+                ) : current.type === 'scaffolded_media' ? (
+                  <ScaffoldedMediaEditor slide={current as any} hub="academy" onChange={(next) => update(next as Partial<Slide>)} />
+                ) : (
+                  <SlideEditor slide={current} onChange={update} />
+                )}
               </TabsContent>
               <TabsContent value="media" className="pt-4 flex-1 overflow-y-auto min-h-0">
                 <SlideMediaPanel
