@@ -641,7 +641,9 @@ export default function AcademyCreator() {
               previewRole={previewRole}
               getTeacherNotes={(s) => (s as any).teacher_notes}
               renderSlide={(slide) => {
-                const isPhonics = (slide as any).type === 'phonics_focus';
+                const sType = (slide as any).type;
+                const isPhonics = sType === 'phonics_focus';
+                const isStorybook = sType === 'storybook';
                 return (
                   <div className="rounded-xl bg-slate-50 border border-slate-200 p-5 min-h-[450px] flex items-center justify-center">
                     <div className="w-full">
@@ -650,6 +652,8 @@ export default function AcademyCreator() {
                       </div>
                       {isPhonics ? (
                         <PhonicsFocusCard slide={slide as any} hub="academy" />
+                      ) : isStorybook ? (
+                        <StorybookRenderer slide={slide as any} hub="academy" />
                       ) : (
                         <UniversalMediaShell slide={slide as any} hub="academy">
                           <SlideRenderer slide={slide as Slide} t={t} />
