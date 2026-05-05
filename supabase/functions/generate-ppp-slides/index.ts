@@ -127,15 +127,10 @@ Allowed types and required shape:
 { "type": "drag", "instruction": "Drag the word onto the picture", "word": "APPLE", "image_url": "AI:shiny red apple", "voice": {...} }
 { "type": "storybook", "title": "...", "topic": "...", "pages": [ { "page_number": 1, "text": "Short kid sentence", "image_url": "AI:<subject>" } ], "voice": {...} }
 
-KID-FRIENDLY 4-STAGE FLOW (REQUIRED ORDER):
-  1) PRESENTATION — exactly ONE "intro", then 5–8 "vocab_solo" slides (one per target word).
-  2) PRACTICE     — 2–3 "match" and/or "drag" slides (image ↔ word).
-  3) GRAMMAR      — 1–2 "fill" or "multiple" slides using a tiny frame like "I see a ____".
-  4) PRODUCTION   — 1 "storybook" recycling all words.
-  5) END with a "lesson_summary": { "type": "lesson_summary", "title": "Level Complete!", "vocab_recap": ["...","..."], "takeaway": "..." }
+${blueprintBlock}
 
 RULES:
-- Output 12–18 slides total. NEVER deviate from the stage order above.
+- Follow the STRICT PPP COUNTS above EXACTLY. Do not invent extra slides or skip phases.
 - For every "AI:<subject>" placeholder, write a clear, kid-friendly subject ≤ 6 words.
 - For EVERY slide include a short "teacher_notes" (≤120 chars) for the live teacher. Never shown to the student.
 - Topic: "${effectiveTitle}". ${objective ? `Goal: ${objective}.` : ""}
