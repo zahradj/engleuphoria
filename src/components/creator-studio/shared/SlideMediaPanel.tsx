@@ -65,26 +65,26 @@ export const SlideMediaPanel: React.FC<SlideMediaPanelProps> = ({
     const p = imgPrompt.trim();
     if (!p) { toast.error('Add an image prompt first'); return; }
     setImgBusy(true);
-    onPatch({ image_loading: true });
+    onPatch({ image_loading: true, image_error: null, image_prompt: p });
     try {
       const res = await generateSlideImage(p, safeLesson, slideId, hub);
-      onPatch({ image_url: res.url, image_prompt: p, image_loading: false });
+      onPatch({ image_url: res.url, image_prompt: p, image_loading: false, image_error: null });
       toast.success('Image generated');
     } catch (e: any) {
-      onPatch({ image_loading: false });
+      onPatch({ image_loading: false, image_error: e?.message || 'Image generation failed' });
       toast.error(e?.message || 'Image generation failed');
     } finally { setImgBusy(false); }
   };
 
   const handleUpload = async (file: File) => {
     setUploadBusy(true);
-    onPatch({ image_loading: true });
+    onPatch({ image_loading: true, image_error: null });
     try {
       const res = await uploadSlideAsset(file, safeLesson);
-      onPatch({ image_url: res.url, image_loading: false });
+      onPatch({ image_url: res.url, image_loading: false, image_error: null });
       toast.success('Image uploaded');
     } catch (e: any) {
-      onPatch({ image_loading: false });
+      onPatch({ image_loading: false, image_error: e?.message || 'Upload failed' });
       toast.error(e?.message || 'Upload failed');
     } finally { setUploadBusy(false); }
   };
