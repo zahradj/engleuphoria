@@ -37,6 +37,8 @@ import { RevisionHistoryModal } from '@/components/creator-studio/shared/Revisio
 import { CanvasElementEditor } from '@/components/creator-studio/shared/CanvasElementEditor';
 import { ScaffoldedMediaEditor } from '@/components/creator-studio/shared/ScaffoldedMediaEditor';
 import { LessonBlueprintPanel, type LessonBlueprint } from '@/components/creator-studio/shared/LessonBlueprintPanel';
+import { WandFieldButton } from '@/components/creator-studio/shared/WandFieldButton';
+import { AIToolsPanel } from '@/components/creator-studio/shared/AIToolsPanel';
 
 /**
  * Success Slide Creator — adult Business English authoring tool.
