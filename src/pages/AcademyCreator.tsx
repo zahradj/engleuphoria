@@ -35,6 +35,7 @@ import { SaveStatusBadge } from '@/components/creator-studio/shared/SaveStatusBa
 import { RevisionHistoryModal } from '@/components/creator-studio/shared/RevisionHistoryModal';
 import { CanvasElementEditor } from '@/components/creator-studio/shared/CanvasElementEditor';
 import { ScaffoldedMediaEditor } from '@/components/creator-studio/shared/ScaffoldedMediaEditor';
+import { LessonBlueprintPanel, type LessonBlueprint } from '@/components/creator-studio/shared/LessonBlueprintPanel';
 
 /**
  * Academy Slide Creator — clean teacher-facing authoring tool.
