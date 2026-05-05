@@ -786,6 +786,8 @@ export default function PlaygroundCreator() {
           });
         }}
       />
+
+      <PublishTemplateDialog
         open={publishTemplateOpen}
         onOpenChange={setPublishTemplateOpen}
         hub="playground"
