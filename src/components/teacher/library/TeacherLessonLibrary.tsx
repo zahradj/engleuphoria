@@ -84,7 +84,8 @@ export const TeacherLessonLibrary: React.FC = () => {
             return (
               <Card
                 key={lesson.id}
-                className="group relative overflow-hidden border-border/50 hover:border-primary/30 transition-all duration-300"
+                onClick={() => navigate(`${hub.creatorPath}?lessonId=${lesson.id}`)}
+                className="group relative overflow-hidden border-border/50 hover:border-primary/30 transition-all duration-300 cursor-pointer"
               >
                 {/* Thumbnail placeholder */}
                 <div className="h-36 bg-gradient-to-br from-primary/10 via-accent/5 to-muted flex items-center justify-center">
@@ -118,7 +119,7 @@ export const TeacherLessonLibrary: React.FC = () => {
                     size="sm"
                     variant="outline"
                     className="gap-1.5"
-                    onClick={() => navigate(`/content-creator?edit=${lesson.id}`)}
+                    onClick={(e) => { e.stopPropagation(); navigate(`${hub.creatorPath}?lessonId=${lesson.id}`); }}
                   >
                     <Pencil className="w-3.5 h-3.5" />
                     Edit
