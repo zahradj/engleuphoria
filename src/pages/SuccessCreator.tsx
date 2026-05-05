@@ -306,15 +306,15 @@ export default function SuccessCreator() {
     lessonId: lessonHook.lessonId,
     slides,
     title,
-    silentSaveDraft: (s, m) => lessonHook.silentSaveDraft(s, { ...m, level }),
+    silentSaveDraft: (s, m) => lessonHook.silentSaveDraft(s, { ...m, level, blueprint }),
   });
 
   const handleSaveDraft = async () => {
-    const id = await lessonHook.saveDraft(slides, { title, level });
+    const id = await lessonHook.saveDraft(slides, { title, level, blueprint });
     if (id) history.captureRevision({ title, slides, kind: 'manual' });
   };
   const handlePublish = async () => {
-    const id = await lessonHook.publish(slides, { title, level });
+    const id = await lessonHook.publish(slides, { title, level, blueprint });
     if (id) history.captureRevision({ title, slides, kind: 'publish' });
   };
   const handleRestore = (rev: LessonRevision) => {
