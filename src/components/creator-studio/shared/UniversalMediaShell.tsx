@@ -21,6 +21,7 @@ import { usePlaygroundAudio } from '@/hooks/usePlaygroundAudio';
 export interface SlideMediaShape {
   image_url?: string;
   image_loading?: boolean;
+  image_error?: string | null;
   audio_url?: string;
   video_url?: string;
   video_embed_url?: string;
@@ -35,6 +36,8 @@ interface Props {
   autoPlayDefault?: boolean;
   /** Hide the hero image strip (for slides that draw their own image). */
   suppressImage?: boolean;
+  /** Optional retry handler shown when image_error is set. */
+  onRetryImage?: () => void;
   children: ReactNode;
 }
 
@@ -49,6 +52,7 @@ export function UniversalMediaShell({
   hub,
   autoPlayDefault,
   suppressImage,
+  onRetryImage,
   children,
 }: Props) {
   const a = accent[hub];
@@ -168,6 +172,20 @@ export function UniversalMediaShell({
               <div className="flex flex-col items-center gap-2 text-muted-foreground">
                 <ImageIcon className="w-8 h-8" />
                 <span className="text-xs">Image placeholder</span>
+              </div>
+            )}
+            {slide.image_error && !slide.image_loading && (
+              <div className="absolute inset-x-0 bottom-0 bg-red-600/90 text-white text-[11px] px-2 py-1 flex items-center justify-between gap-2">
+                <span className="truncate">⚠ {slide.image_error}</span>
+                {onRetryImage && (
+                  <button
+                    type="button"
+                    onClick={onRetryImage}
+                    className="bg-white/20 hover:bg-white/30 rounded px-2 py-0.5 font-bold"
+                  >
+                    Retry
+                  </button>
+                )}
               </div>
             )}
           </div>
