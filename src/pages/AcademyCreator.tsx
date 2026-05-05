@@ -80,7 +80,15 @@ const SLIDE_TYPES: { type: SlideType; label: string; defaultBlock: Block }[] = [
   { type: 'lesson_summary',   label: 'Lesson Summary 📋',      defaultBlock: 'speaking' },
 ];
 
-function makeSlide(type: SlideType): Slide {
+function makeSlide(type: SlideType | 'storybook'): Slide {
+  if (type === 'storybook') {
+    return ({
+      type: 'storybook', block: 'reading',
+      title: 'New Story', topic: '', layout_mode: 'comic', theme: 'school',
+      pages: [{ page_number: 1, text: 'Once…', image_url: '', audio_url: '' }],
+      highlight_words: [],
+    } as unknown) as Slide;
+  }
   const entry = SLIDE_TYPES.find((s) => s.type === type);
   if (!entry) {
     return { type: 'intro', block: 'warmup', title: 'New section', subtitle: '' } as Slide;
