@@ -518,7 +518,10 @@ function DrawGame({ slide }: { slide: Extract<Slide, { type: 'draw' }> }) {
 }
 
 // ─── Renderer ────────────────────────────────────────────────────────────────
-export function SlideRenderer({ slide }: { slide: Slide }) {
+import { StorybookRenderer } from '@/components/creator-studio/shared/StorybookRenderer';
+import { MediaPlayerRenderer } from '@/components/creator-studio/shared/MediaPlayerRenderer';
+
+export function SlideRenderer({ slide, onStorybookComplete }: { slide: Slide; onStorybookComplete?: () => void }) {
   switch (slide.type) {
     case 'intro': return <Intro slide={slide} />;
     case 'multiple': return <MultipleChoice slide={slide} />;
@@ -527,6 +530,8 @@ export function SlideRenderer({ slide }: { slide: Slide }) {
     case 'drag': return <DragDrop slide={slide} />;
     case 'match': return <MatchGame slide={slide} />;
     case 'draw': return <DrawGame slide={slide} />;
+    case 'storybook': return <StorybookRenderer slide={slide as any} hub="playground" onComplete={onStorybookComplete} />;
+    case 'media_player': return <MediaPlayerRenderer slide={slide as any} hub="playground" />;
     case 'lesson_summary': return <PlaygroundSummary slide={slide} />;
   }
 }
