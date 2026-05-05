@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Eye, Code2, X, Sparkles, Loader2, Image as ImageIcon, Save, BookOpen, Send, FolderOpen, History, Wand2, FileUp, ArrowLeft } from 'lucide-react';
 import { SlideRenderer, type Slide } from './PlaygroundDemo';
+import { detectLessonHub, creatorPathFor, deriveCefrLevel } from '@/utils/creatorHydration';
 import { generateOnePlaygroundImage } from '@/hooks/usePlaygroundImages';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -215,10 +216,21 @@ export default function PlaygroundCreator() {
   useEffect(() => {
     const lesson = lessonHook.lesson;
     if (!lesson) return;
+    // Hub-mismatch redirect: if this lesson was authored for a different hub,
+    // bounce to its native creator so Pre-A1 / visual logic stays correct.
+    const detected = detectLessonHub(lesson);
+    if (detected && detected !== 'playground') {
+      navigate(`${creatorPathFor(detected)}?lessonId=${lesson.id}`, { replace: true });
+      return;
+    }
     const dbSlides = getLibraryLessonSlides(lesson) as Slide[];
     setSlides(dbSlides);
     setSelected(0);
-    if (lesson.title) setTitle(lesson.title);
+    if (lesson.title) {
+      setTitle(lesson.title);
+      setAiTopic(lesson.title);
+    }
+    setAiLevel(deriveCefrLevel(lesson, 'playground'));
     const meta: any = (lesson as any).ai_metadata;
     if (meta?.lesson_blueprint) setBlueprint(meta.lesson_blueprint as LessonBlueprint);
     // eslint-disable-next-line react-hooks/exhaustive-deps

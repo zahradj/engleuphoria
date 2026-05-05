@@ -10,10 +10,10 @@ import { AssignLessonModal } from './AssignLessonModal';
 import { useNavigate } from 'react-router-dom';
 import { getLibraryLessons, toLibraryLessonCard, type LibraryLessonCard } from '@/services/lessonLibraryService';
 
-const HUB_META: Record<LibraryLessonCard['hub'], { label: string; color: string }> = {
-  playground: { label: 'Playground', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' },
-  academy: { label: 'Academy', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' },
-  professional: { label: 'Success Hub', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' },
+const HUB_META: Record<LibraryLessonCard['hub'], { label: string; color: string; creatorPath: string }> = {
+  playground: { label: 'Playground', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300', creatorPath: '/playground-creator' },
+  academy: { label: 'Academy', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300', creatorPath: '/academy-creator' },
+  professional: { label: 'Success Hub', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300', creatorPath: '/success-creator' },
 };
 
 export const TeacherLessonLibrary: React.FC = () => {
@@ -84,7 +84,8 @@ export const TeacherLessonLibrary: React.FC = () => {
             return (
               <Card
                 key={lesson.id}
-                className="group relative overflow-hidden border-border/50 hover:border-primary/30 transition-all duration-300"
+                onClick={() => navigate(`${hub.creatorPath}?lessonId=${lesson.id}`)}
+                className="group relative overflow-hidden border-border/50 hover:border-primary/30 transition-all duration-300 cursor-pointer"
               >
                 {/* Thumbnail placeholder */}
                 <div className="h-36 bg-gradient-to-br from-primary/10 via-accent/5 to-muted flex items-center justify-center">
@@ -118,7 +119,7 @@ export const TeacherLessonLibrary: React.FC = () => {
                     size="sm"
                     variant="outline"
                     className="gap-1.5"
-                    onClick={() => navigate(`/content-creator?edit=${lesson.id}`)}
+                    onClick={(e) => { e.stopPropagation(); navigate(`${hub.creatorPath}?lessonId=${lesson.id}`); }}
                   >
                     <Pencil className="w-3.5 h-3.5" />
                     Edit
@@ -127,7 +128,7 @@ export const TeacherLessonLibrary: React.FC = () => {
                     size="sm"
                     variant="outline"
                     className="gap-1.5"
-                    onClick={() => navigate(`/lesson/${lesson.id}`)}
+                    onClick={(e) => { e.stopPropagation(); navigate(`/lesson/${lesson.id}`); }}
                   >
                     <Eye className="w-3.5 h-3.5" />
                     Preview
@@ -135,7 +136,7 @@ export const TeacherLessonLibrary: React.FC = () => {
                   <Button
                     size="sm"
                     className="gap-1.5"
-                    onClick={() => setAssignLesson(lesson)}
+                    onClick={(e) => { e.stopPropagation(); setAssignLesson(lesson); }}
                   >
                     <Rocket className="w-3.5 h-3.5" />
                     Assign

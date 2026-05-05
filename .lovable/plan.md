@@ -1,115 +1,57 @@
-## Real-Time Live Classroom Sync + Annotation Layer
+## Auto-Hydrate Hub Creators from Master Library
 
-A new `/live-classroom/:sessionId` route gives teacher and student a synchronized view of any Playground/Academy/Success lesson, with a transparent annotation canvas overlaid on the existing `SlideRenderer`. Slide navigation, drawing strokes, laser-pointer position, and reward stars all broadcast through Supabase Realtime so both sides stay in lock-step.
+When a teacher clicks a lesson in the Master Library, route them straight into the matching Hub Creator (Playground / Academy / Success) with the Lesson Blueprint already filled in — so they only need to tweak a field and hit ✨ Generate.
 
-### 1. Database (one migration)
+### 1. Library card → correct Hub Creator
 
-New table `classroom_states` (persistent state, distinct from existing `classroom_sessions`):
+`src/components/teacher/library/TeacherLessonLibrary.tsx`
 
-```text
-id              uuid pk
-session_id      text unique         -- the URL :sessionId (booking id or ad-hoc room)
-lesson_id       uuid                -- which lesson is loaded
-teacher_id      uuid
-current_slide_index  int default 0
-active_media_state   jsonb default '{"playing":false,"position":0}'
-student_rewards      int default 0
-updated_at      timestamptz
-```
+- Extend `HUB_META` with a `creatorPath` per hub:
+  - `playground` → `/playground-creator`
+  - `academy` → `/academy-creator`
+  - `professional` → `/success-creator`
+- Make the whole card clickable (and keep the Edit button) — both navigate to `${creatorPath}?lessonId=${lesson.id}`. The existing `?lessonId=` URL param is already what `useCreatorLesson` reads, so no new route shape is required.
+- The current "Edit" button currently points at the deprecated `/content-creator?edit=…`. Replace it with the hub-specific path so Pre-A1 lessons always re-open in the Playground (visual / audio-first), Academy lessons in Academy, etc.
 
-- RLS: teacher (auth.uid = teacher_id) can `update`; both teacher and any authenticated user with the session row can `select`. Insert restricted to teacher.
-- Add table to `supabase_realtime` publication and `REPLICA IDENTITY FULL` so postgres_changes fires.
-- Strokes / laser / reward bursts are **not persisted** — they go through the Realtime broadcast channel only (cheap, ephemeral).
+### 2. Hydration in the three Hub Creators
 
-### 2. New hook: `useLiveClassroom`
+All three creators (`PlaygroundCreator.tsx`, `AcademyCreator.tsx`, `SuccessCreator.tsx`) already:
+- Read `lessonId` from `useSearchParams`
+- Pass it to `useCreatorLesson({ initialLessonId })` which fetches the row
+- Have a `useEffect` on `lessonHook.lesson?.id` that hydrates `slides`, `title`, and `blueprint` from `ai_metadata.lesson_blueprint`
 
-`src/hooks/useLiveClassroom.ts`
+What's missing — extend that same effect so the **Lesson Blueprint sidebar** is fully primed:
 
-Responsibilities:
-- Subscribe to channel `live-classroom:{sessionId}`.
-- `postgres_changes` listener on `classroom_states` row → exposes `currentSlideIndex`, `activeMediaState`, `studentRewards`.
-- `broadcast` listeners for events: `stroke`, `stroke_end`, `clear`, `laser`, `reward`.
-- Presence (teacher / student) for "connected" indicator.
-- Returns `{ state, peers, isTeacher, setSlideIndex(i), sendStroke(p), sendLaser(p), clearStrokes(), sendReward() }`.
-- `setSlideIndex` performs an `update` on `classroom_states` (RLS blocks students automatically); other writes are broadcast-only.
+- `setAiTopic(lesson.title)` — so the topic input shows the imported title.
+- `setAiLevel(...)` — derive from `ai_metadata.cefr_level` first, otherwise from `lesson.difficulty_level` mapped to the closest CEFR (`beginner→A1`, `intermediate→B1`, `advanced→C1`). Default per hub if unknown (Playground=A1, Academy=A2, Success=B1).
+- If `meta.lesson_blueprint` exists, also push its `target_vocabulary`, `grammar_focus`, `interests`, `specific_needs` into the `blueprint` state (already happens through `setBlueprint(meta.lesson_blueprint)` — verify shape matches `LessonBlueprint` type and back-fill missing fields with empty defaults so the inputs render rather than being undefined).
 
-### 3. New page: `/live-classroom/:sessionId`
+This is purely **additive lines** inside the existing hydrate `useEffect` — no new hook needed.
 
-`src/pages/LiveClassroom.tsx` registered in `src/App.tsx` under `ImprovedProtectedRoute`.
+### 3. UI ready-state
 
-Layout:
-```text
-┌──────────────────────────────────────────────────────────┐
-│  Header: lesson title · presence dots · ⭐ count          │
-├──┬──────────────────────────────────────────────────┬────┤
-│T │                                                  │ S  │
-│o │   <SlideRenderer slide={slides[idx]} />          │ l  │
-│o │   <AnnotationOverlay />  (absolute, full canvas) │ i  │
-│l │   <LaserDot x y />                                │ d  │
-│b │                                                  │ e  │
-│a │                                                  │ s  │
-│r │                                                  │    │
-└──┴──────────────────────────────────────────────────┴────┘
-```
+The ✨ Generate button is already enabled whenever `aiTopic.trim()` is non-empty (see `disabled={aiBusy || !aiTopic.trim()}`). Because step 2 sets `aiTopic` on hydrate, the button is automatically active immediately after navigation — no extra wiring required. We just need to ensure the hydrate effect runs **before** the user can interact (it does, since `useCreatorLesson` resolves the row on mount and React re-renders synchronously after state set).
 
-- Loads lesson + slides via existing lesson loader (same source as `PlaygroundDemo`/`AcademyDemo`).
-- Reuses `SlideRenderer` from those demo modules → no duplicated slide code.
-- Teacher sees Prev/Next buttons → `setSlideIndex`. Student's Prev/Next are hidden; their view auto-snaps via the `postgres_changes` subscription.
-- Right-side slide list is read-only for student, clickable for teacher.
+### 4. Hub detection
 
-### 4. Annotation overlay
+Hub detection is implicit in the routing: the Master Library card already knows the lesson's hub (from `lesson.hub`), so it sends the user to the correct creator route. Each creator hard-codes its own `hub: 'playground' | 'academy' | 'success'` in `useCreatorLesson`, so there is no risk of cross-hub bleed.
 
-`src/components/live-classroom/AnnotationOverlay.tsx` — wraps a transparent `<canvas>` sized to the slide container.
+Edge case to handle: if a user manually pastes a Playground lesson's `?lessonId=` into `/academy-creator`, hydration would still try to load it. Add a soft guard in the hydrate effect — if `content.hub` (or `ai_metadata.hub`) does not match the creator's hub, redirect via `navigate(`${correctCreatorPath}?lessonId=${id}`, { replace: true })`. This guarantees Pre-A1 / visual logic always opens in Playground.
 
-- Pointer events captured locally; each stroke segment broadcast as `{ event: 'stroke', x, y, prevX, prevY, color, width, role }` (throttled to ~30 fps with rAF).
-- Remote strokes drawn immediately on the same canvas.
-- `Clear All` broadcasts `clear`; both sides wipe canvas.
-- Tool palette (`AnnotationToolbar.tsx`):
-  - Teacher: Laser Pointer, Pen (color picker: black/red/blue), Eraser-style Clear All.
-  - Student: Pen only (single color).
-- Laser pointer: while active, mousemove broadcasts `laser` events at ~20 Hz; remote side renders an absolutely-positioned red dot that fades out 800 ms after the last update. Laser is **not** drawn into the canvas.
-- We use a hand-rolled canvas (no `react-sketch-canvas` dependency) to keep bundle small and to share the same canvas for remote strokes — but if the user prefers, we can swap in `react-sketch-canvas`.
+### 5. Files touched
 
-### 5. Reward star + confetti
-
-- Teacher toolbar has a ⭐ button → `sendReward()` increments `student_rewards` (DB update for persistence + broadcast `reward` for instant FX).
-- On `reward` event, both sides:
-  - Trigger `canvas-confetti` burst (already a small dep — add if missing).
-  - Play `/sounds/tada.mp3` (add asset; use existing audio gate utility so autoplay rules are respected).
-- Star count badge in header reflects `student_rewards`.
-
-### 6. Routing & access
-
-- Add `/live-classroom/:sessionId` to `src/App.tsx` inside `ImprovedProtectedRoute` (allowed roles: `teacher`, `student`).
-- Page detects role from `useAuth` + checks `teacher_id` on `classroom_states`. If user is the teacher → teacher tools render; otherwise student tools.
-
-### 7. Component reuse summary
-
-| New file | Purpose |
+| File | Change |
 |---|---|
-| `supabase/migrations/<ts>_classroom_states.sql` | Table, RLS, realtime publication |
-| `src/hooks/useLiveClassroom.ts` | Realtime state + broadcast API |
-| `src/pages/LiveClassroom.tsx` | The route |
-| `src/components/live-classroom/AnnotationOverlay.tsx` | Canvas + remote stroke renderer |
-| `src/components/live-classroom/AnnotationToolbar.tsx` | Tool palette (teacher vs student) |
-| `src/components/live-classroom/LaserDot.tsx` | Fading laser cursor |
-| `src/components/live-classroom/RewardFx.tsx` | Confetti + tada sound |
-| `public/sounds/tada.mp3` | Reward sound (placeholder asset) |
+| `src/components/teacher/library/TeacherLessonLibrary.tsx` | Add `creatorPath` to HUB_META; route Edit + card click to `${creatorPath}?lessonId=…` |
+| `src/pages/PlaygroundCreator.tsx` | Extend hydrate effect: setAiTopic + setAiLevel + hub-mismatch redirect |
+| `src/pages/AcademyCreator.tsx` | Same |
+| `src/pages/SuccessCreator.tsx` | Same |
 
-Edited:
-- `src/App.tsx` — route registration.
-- `package.json` — add `canvas-confetti` if not present.
+No new routes, no new hooks, no DB changes. The infrastructure is already there — this plan just connects the wires.
 
-### 8. Out of scope (v1)
+### 6. Manual verification
 
-- Persisting drawings between sessions (strokes are ephemeral).
-- Multi-student rooms (single student model — matches existing 1-on-1 booking design).
-- Audio/video — handled by existing call infrastructure.
-
-### 9. Manual verification (after deploy)
-
-1. Open `/live-classroom/<sessionId>` in two browsers, sign in as teacher in one, student in the other.
-2. Teacher clicks Next → student snaps forward.
-3. Teacher draws → student sees strokes; student draws → teacher sees them.
-4. Teacher activates Laser → student sees red dot tracking.
-5. Teacher clicks ⭐ → student screen erupts with confetti + "Ta-da!", star count increments on both sides.
+1. Open `/teacher/library`, click an Academy lesson → lands on `/academy-creator?lessonId=<id>` with Topic, Level, Vocab, Grammar all pre-filled.
+2. Click ✨ Generate immediately → produces a fresh variant of the same lesson.
+3. Click a Playground card → opens `/playground-creator` (not Academy), Pre-A1 visual-first UI active.
+4. Manually paste a Playground id into `/academy-creator?lessonId=…` → auto-redirects to `/playground-creator?lessonId=…`.
