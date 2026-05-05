@@ -200,6 +200,14 @@ const App = () => {
                         </ImprovedProtectedRoute>
                       } />
 
+                      {/* Real-Time Live Classroom (sync + annotation overlay) */}
+                      <Route path="/live-classroom/:sessionId" element={
+                        <ImprovedProtectedRoute>
+                          <Suspense fallback={<LoadingFallback />}>
+                            <LiveClassroom />
+                          </Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
                       {/* Legacy student-classroom route redirects to unified */}
                       <Route path="/student-classroom/:id" element={
                         <ImprovedProtectedRoute>
