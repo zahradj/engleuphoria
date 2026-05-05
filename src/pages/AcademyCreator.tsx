@@ -930,7 +930,7 @@ function SlideEditor({ slide, onChange, blueprint, hub = 'academy', cefrLevel = 
     case 'multiple':
       return (
         <div className="space-y-3">
-          <Field label="Question"><input className={inputCls} value={slide.question} onChange={(e) => onChange({ question: e.target.value } as any)} /></Field>
+          <Field label="Question">{row(<input className={inputCls} value={slide.question} onChange={(e) => onChange({ question: e.target.value } as any)} />, wand('question', slide.question, (v) => onChange({ question: v } as any)))}</Field>
           <Field label="Options (one per line)">
             <textarea className={inputCls + ' h-24'} value={slide.options.join('\n')}
               onChange={(e) => onChange({ options: e.target.value.split('\n').filter(Boolean) } as any)} />
