@@ -56,6 +56,9 @@ const SLIDE_TYPES: { type: SlideType; label: string; emoji: string }[] = [
   { type: 'draw', label: 'Drawing', emoji: '🎨' },
   { type: 'storybook', label: 'Storybook', emoji: '📖' },
   { type: 'media_player', label: 'Listening', emoji: '🎧' },
+  { type: 'canvas_game', label: 'Canvas Game', emoji: '🎯' },
+  { type: 'living_canvas', label: 'Click-to-Reveal', emoji: '✨' },
+  { type: 'scaffolded_media', label: 'Scaffolded Media', emoji: '🎬' },
   { type: 'lesson_summary', label: 'Lesson Summary', emoji: '🏆' },
 ];
 
@@ -86,6 +89,42 @@ function makeSlide(type: SlideType): Slide {
       return { type: 'storybook', title: 'New Story', topic: '', pages: [{ page_number: 1, text: 'Once upon a time…', image_url: '', audio_url: '' }], voice: { text: 'Story time!', autoPlay: false } };
     case 'media_player':
       return { type: 'media_player', title: 'Listening Exercise', media_url: '', media_kind: 'youtube', transcript: '' };
+    case 'canvas_game':
+      return {
+        type: 'canvas_game',
+        title: 'Sort the Fruit',
+        instruction: 'Drag the fruit into the basket!',
+        instruction_audio: 'Drag the fruit into the basket!',
+        elements: [
+          { id: 'basket', type: 'shape', x: 70, y: 35, width: 18, z_index: 1, interaction: 'target', color: '#a7f3d0', text: 'BASKET' } as any,
+          { id: 'apple', type: 'text', text: '🍎', x: 15, y: 80, width: 12, z_index: 3, interaction: 'draggable', target_x: 70, target_y: 35, snap_tolerance: 12, success_sfx: 'Yum!' } as any,
+          { id: 'banana', type: 'text', text: '🍌', x: 35, y: 80, width: 12, z_index: 3, interaction: 'draggable', target_x: 70, target_y: 35, snap_tolerance: 12, success_sfx: 'Tasty!' } as any,
+        ],
+        voice: { text: 'Drag the fruit into the basket!', autoPlay: true },
+      } as Slide;
+    case 'living_canvas':
+      return {
+        type: 'living_canvas',
+        title: 'Find the Sun',
+        instruction: 'Tap the cloud to find the sun!',
+        instruction_audio: 'Tap the cloud to find the sun!',
+        elements: [
+          { id: 'sun', type: 'text', text: '🌞', x: 50, y: 40, width: 18, z_index: 1, interaction: 'none', color: 'transparent' } as any,
+          { id: 'cloud', type: 'text', text: '☁️', x: 50, y: 40, width: 22, z_index: 5, interaction: 'reveal', reveal_anim: 'fly', reveal_sfx: 'The sun is shining!' } as any,
+        ],
+        voice: { text: 'Tap the cloud!', autoPlay: true },
+      } as Slide;
+    case 'scaffolded_media':
+      return {
+        type: 'scaffolded_media',
+        title: 'Listening Checkpoint',
+        media_url: '',
+        media_kind: 'youtube',
+        segments: [
+          { start_time: 0, end_time: 30, question: { prompt: 'What did the speaker say?', options: ['Option A', 'Option B', 'Option C'], answer: 'Option A' } },
+        ],
+        voice: { text: 'Listen carefully!', autoPlay: false },
+      } as Slide;
   }
 }
 
@@ -100,6 +139,9 @@ function slideTitle(slide: Slide): string {
     case 'draw': return slide.prompt;
     case 'storybook': return slide.title || 'Storybook';
     case 'media_player': return slide.title || 'Listening Exercise';
+    case 'canvas_game': return slide.title || 'Canvas Game';
+    case 'living_canvas': return slide.title || 'Click-to-Reveal';
+    case 'scaffolded_media': return slide.title || 'Scaffolded Media';
     case 'lesson_summary': return slide.title || 'Lesson Summary';
   }
 }
