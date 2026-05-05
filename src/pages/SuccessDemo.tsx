@@ -630,6 +630,38 @@ function ReflectionSlide({ slide, t }: { slide: Extract<Slide, { type: 'reflecti
   );
 }
 
+function LessonSummarySlide({ slide, t }: { slide: Extract<Slide, { type: 'lesson_summary' }>; t: ThemeTokens }) {
+  return (
+    <div className="space-y-6 max-w-2xl w-full">
+      <div className={`text-xs uppercase tracking-[0.2em] ${t.muted}`}>📋 Lesson Recap</div>
+      <h2 className={`text-3xl md:text-4xl font-serif font-semibold ${t.text}`}>{slide.title || 'Review Sheet'}</h2>
+      {slide.vocab_recap?.length > 0 && (
+        <div className={`rounded-md border ${t.border} ${t.surface} p-4 space-y-2`}>
+          <div className="text-xs uppercase tracking-widest text-emerald-700">Vocabulary mastered</div>
+          <div className="flex flex-wrap gap-2">
+            {slide.vocab_recap.slice(0, 5).map((w) => (
+              <span key={w} className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-sm font-medium border border-emerald-200">{w}</span>
+            ))}
+          </div>
+        </div>
+      )}
+      {slide.grammar_recap && (
+        <div className={`rounded-md border ${t.border} ${t.surface} p-4 space-y-1`}>
+          <div className="text-xs uppercase tracking-widest text-emerald-700">Grammar rule</div>
+          <p className={`text-base ${t.text}`}>{slide.grammar_recap}</p>
+        </div>
+      )}
+      {slide.takeaway && (
+        <div className={`rounded-md border border-emerald-500 bg-emerald-50/50 p-4 space-y-1`}>
+          <div className="text-xs uppercase tracking-widest text-emerald-700">Your takeaway</div>
+          <p className="text-slate-900">{slide.takeaway}</p>
+        </div>
+      )}
+      <p className={`text-xs ${t.muted}`}>📸 Tip: screenshot this for review later.</p>
+    </div>
+  );
+}
+
 // ─── Renderer ───────────────────────────────────────────────────────────────
 export function SlideRenderer({ slide, t }: { slide: Slide; t: ThemeTokens }) {
   switch (slide.type) {
@@ -651,6 +683,7 @@ export function SlideRenderer({ slide, t }: { slide: Slide; t: ThemeTokens }) {
     case 'role_play': return <RolePlaySlide slide={slide} t={t} />;
     case 'speaking_task': return <SpeakingTaskSlide slide={slide} t={t} />;
     case 'reflection': return <ReflectionSlide slide={slide} t={t} />;
+    case 'lesson_summary': return <LessonSummarySlide slide={slide} t={t} />;
   }
 }
 
