@@ -1,103 +1,200 @@
-## Storybook Slide + Auto-Comprehension + Media Analyzer
+# Coordinate Canvas + Scaffolded Media — Engine Upgrade
 
-Three connected upgrades that share one backend pattern (AI generates a content block + automatically appends scaled comprehension quiz slides) and one frontend pattern (a new sidebar template button + a new center-canvas renderer).
+Bring Talk-Cloud–style spatial games and stop-and-go media to Playground / Academy / Success. Three new slide types, one shared engine, three hub creators wired up.
 
 ---
 
-### 1. Storybook Slide Type
+## 1. New shared engine — `LivingCanvas`
 
-**Schema (shared)** — extend the slide union in `PlaygroundCreator.tsx`, `AcademyCreator.tsx`, `SuccessCreator.tsx`:
+File: `src/components/creator-studio/shared/LivingCanvas.tsx`
+
+A 16:9 `aspect-[16/9]` container, `position: relative`, `overflow-hidden`. Every child is absolutely positioned with `top/left` in **percent** so it scales identically on phone, iPad and 4K monitor.
+
+Renders an array of `CanvasElement`:
+
 ```ts
-{
-  type: 'storybook',
-  title: string,
-  topic: string,
-  pages: [{ page_number: 1, text: '', image_url: '', audio_url: '' }, ...]
-}
+type CanvasElement = {
+  id: string;
+  type: 'image' | 'text' | 'target';
+  src?: string;            // image url (or text content)
+  text?: string;
+  x: number; y: number;    // 0–100 percent
+  width: number;           // percent
+  z_index?: number;
+  rotation?: number;
+  animation_in?: 'fade' | 'pop' | 'slide-up' | 'none';
+
+  // Interaction
+  interaction?: 'none' | 'draggable' | 'reveal';
+
+  // Drag-and-drop
+  target_x?: number; target_y?: number;   // snap point (% within canvas)
+  snap_tolerance?: number;                // default 10 (percent)
+  success_sfx?: string;                   // url or short phrase for TTS
+  fail_sfx?: string;
+
+  // Click-to-reveal
+  reveal_sfx?: string;                    // tts text or audio url
+  reveal_anim?: 'fade' | 'lift' | 'shrink' | 'fly';
+};
 ```
 
-**Add Slide menu** — append `{ type: 'storybook', label: '📖 Storybook', emoji: '📖' }` to `SLIDE_TYPES` in all three creators. `makeSlide('storybook')` returns an empty 1-page skeleton.
+Behaviors:
+- **`draggable`** wraps the element in `motion.div` with `drag`. On drag end, if the centre is within `snap_tolerance` of `target_x/target_y`, snap (animate to target), play `success_sfx`, mark element as locked, fire `onElementSolved`. Otherwise spring back to original `x/y` (Framer Motion `dragSnapToOrigin`).
+- **`reveal`** elements have `onClick` → animate exit (`opacity: 0` + `scale: 0` / `y: -100%`) and play `reveal_sfx`. Lower-`z_index` elements behind become visible.
+- **Slide-level**: `instruction_audio` autoplays on mount via existing `elevenlabs-tts` edge function.
+- **Reset button** (bottom-right, `🔄`): restores all elements to original coordinates and re-mounts revealed elements.
+- Optional `onAllSolved` → fires confetti and unlocks the slide's "Next" button (so the demo only advances when the game is actually completed).
 
-**Right Sidebar — Mini Story Generator** (new component `src/components/creator-studio/shared/StorybookEditor.tsx`):
-- "Story Prompt / Topic" textarea
-- Read-only preview of target vocab pulled from lesson metadata
-- "✨ AI Generate Story Sequence" button → calls new edge function `generate-storybook`
-- Per-page editor list (text, image, audio) with regenerate buttons reusing existing `<ImageGenerator />` and `<AudioGenerator />`
-
-When the active slide is `storybook`, the existing inspector swaps to this editor.
-
-**Center Canvas Renderer** — new `src/components/creator-studio/shared/StorybookRenderer.tsx`:
-- Self-contained carousel with internal page index state
-- Hub variants via prop:
-  - `playground`: full-bleed picture-book, large round arrow buttons, oversized text
-  - `academy`: graphic-novel split layout (image left, text right), thin chrome
-  - `success`: case-study card with "Page X of Y" header and serif body
-- Exposes `onComplete()` when last page reached
-
-**Lesson navigation gating** — in all three Demo/Renderer pages (`PlaygroundDemo.tsx`, `AcademyDemo.tsx`, `SuccessDemo.tsx`):
-- Track `storybookCompleted[slideIndex]` in state
-- Disable the global "Next Slide" button while on a storybook slide until its `onComplete()` fires
+Helper hook `useCanvasGameState` keeps original positions, solved set, revealed set.
 
 ---
 
-### 2. Auto-Comprehension Scaling (Edge Function)
+## 2. New slide types
 
-New edge function `supabase/functions/generate-storybook/index.ts`:
+Append to the union in **all three** `*Demo.tsx` files (`Playground/Academy/Success`):
 
-**Input:** `{ prompt, target_vocab, cefr_level, hub_type }`
+```ts
+| {
+    type: 'canvas_game';            // drag-and-drop / sorting
+    title?: string;
+    instruction?: string;
+    instruction_audio?: string;
+    background_image?: string;
+    elements: CanvasElement[];
+    voice?: SlideVoice;
+  }
+| {
+    type: 'living_canvas';          // layered click-to-reveal + drag mix
+    title?: string;
+    instruction?: string;
+    instruction_audio?: string;
+    background_image?: string;
+    elements: CanvasElement[];      // each may use 'reveal' or 'draggable'
+    voice?: SlideVoice;
+  }
+| {
+    type: 'scaffolded_media';       // smart video/audio with mid-playback questions
+    title?: string;
+    media_url: string;
+    media_kind: 'youtube' | 'audio' | 'video';
+    transcript?: string;
+    segments: {
+      start_time: number;           // seconds
+      end_time: number;
+      question: {
+        prompt: string;
+        options: string[];
+        answer: string;
+        replay_hint?: string;
+      };
+    }[];
+    voice?: SlideVoice;
+  };
+```
 
-**System prompt rules:**
-- Output strict JSON via tool-calling: `{ pages: [...], quiz_slides: [...] }`
-- 3–5 pages, each 1–3 sentences, embedding target vocab naturally
-- Quiz scaling:
-  - `playground` / Pre-A1–A1 → 2 slides (`multiple` or `match` with images)
-  - `academy` / A1–B2 → 3–4 slides (`truefalse` + `fill`)
-  - `success` / B2–C2 → 4–5 slides (`multiple` analytical + open-ended `discussion`)
-- Answers must be derivable from story text (anti-hallucination guard)
-
-**Frontend handler** (in each creator):
-1. Insert the storybook slide
-2. Append returned `quiz_slides` immediately after it
-3. Fire-and-forget batch image/audio generation per page using existing `ai-image-generation` and ElevenLabs flow (calls live in `useEffect` queue, results patched back into the page objects)
+`SlideRenderer` in each demo gets three new cases that delegate to `LivingCanvas` and `ScaffoldedPlayer`.
 
 ---
 
-### 3. Media Analyzer (Listening Comprehension)
+## 3. `ScaffoldedPlayer`
 
-**Left Panel template button** (added to template list in each creator): `🎧 Add Listening Exercise` opens a new modal `src/components/creator-studio/shared/MediaAnalyzerModal.tsx`.
+File: `src/components/creator-studio/shared/ScaffoldedPlayer.tsx`
 
-**Modal fields:**
-- Media URL (YouTube or direct audio/video file)
-- Optional pasted transcript
-- "Generate Comprehension" button
-
-**Flow:**
-1. Insert a new slide `{ type: 'media_player', media_url, media_kind: 'youtube'|'audio'|'video', transcript }` — renderer uses existing video/audio player components, with a YouTube embed iframe for `youtube.com`/`youtu.be` URLs
-2. Call new edge function `supabase/functions/analyze-media/index.ts` with `{ transcript, cefr_level, hub_type }`
-3. If no transcript provided, the edge function returns 400 with "transcript required" (YouTube transcript fetching is out of scope for this iteration — clear toast shown)
-4. Same scaling matrix as Storybook (2 / 3–4 / 4–5 quiz slides) appended directly after the media player slide
-
-**Schema additions:** `media_player` added to `SLIDE_TYPES` and renderer switch in all three demos.
+- Wraps a `<video>` / `<audio>` element (or a YouTube iframe through the YT IFrame API for time tracking).
+- A `requestAnimationFrame` loop watches `currentTime`. When it crosses a segment's `end_time` and that segment isn't already passed, the player **auto-pauses** and overlays the segment's question.
+- The "Resume" button is **disabled** until the student answers correctly. Wrong answer → shake + show explanation.
+- A small **"🔂 Replay last 30s"** button sets `currentTime = max(0, end_time - 30)` and resumes briefly, then re-pauses at `end_time`.
+- A timeline strip below the player shows segment markers (filled = passed, empty = upcoming).
+- For YouTube, embed via the YT IFrame API and listen to `onStateChange` + a poll for `getCurrentTime()`.
 
 ---
 
-### Technical Details
+## 4. AI generators (Edge Functions)
 
-**Files created:**
-- `src/components/creator-studio/shared/StorybookEditor.tsx`
-- `src/components/creator-studio/shared/StorybookRenderer.tsx`
-- `src/components/creator-studio/shared/MediaAnalyzerModal.tsx`
-- `src/components/creator-studio/shared/MediaPlayerRenderer.tsx`
-- `supabase/functions/generate-storybook/index.ts`
-- `supabase/functions/analyze-media/index.ts`
+### 4a. `generate-canvas-game` (new)
 
-**Files edited:**
-- `src/pages/PlaygroundCreator.tsx`, `AcademyCreator.tsx`, `SuccessCreator.tsx` — add slide types, makeSlide cases, sidebar inspector branching, template buttons, modal mounting
-- `src/pages/PlaygroundDemo.tsx`, `AcademyDemo.tsx`, `SuccessDemo.tsx` — add render cases for `storybook` and `media_player`, gate next-slide control on storybook completion
-- `supabase/config.toml` — register the two new functions (verify_jwt = false, public — auth checked in code via JWT pattern already used elsewhere)
+Input: `{ topic, hub, target_vocab?, mode: 'drag'|'reveal'|'mixed' }`.
 
-**AI Gateway:** both new edge functions use Lovable AI Gateway (`google/gemini-3-flash-preview`) via tool-calling for structured output (pages + quiz_slides arrays). Image/audio enrichment runs from the client through the existing `ai-image-generation` function and ElevenLabs audio flow already in `SlideMediaPanel`.
+System prompt extracts:
 
-**Hub-aware quiz mapping:** the `quiz_slides` returned by the edge function already conform to existing slide types (`multiple`, `truefalse`, `fill`, `match`, `discussion`) — no new renderers needed for quiz items, only for `storybook` and `media_player`.
+> You are a Level Designer for an ESL game canvas. Generate JSON only. The canvas is 100×100 percent. Place draggable items along the bottom edge (y between 75 and 90); place targets in the upper half (y between 20 and 50). Width should be 8–18 percent for kids, 6–12 for teens/adults. For each draggable, set a target_x/target_y matching its correct slot and snap_tolerance: 10. For reveal slides, place the "hider" at the same x/y as the hidden element with a higher z_index. Always provide instruction_audio in the lesson's target language.
 
-**Auto-Summary preservation:** new appended slides are inserted *before* the trailing `lesson_summary` slide so the locked auto-summary remains the final slide.
+Output validated with Zod against the `CanvasElement` schema; rejects elements outside 0–100, missing `target_x` for draggables, etc. — falls back to a deterministic skeleton if validation fails.
+
+### 4b. `analyze-media` (extend the existing function)
+
+Add to its prompt:
+
+> You are a media curriculum designer. Identify 3–5 logical breakpoints in this transcript (every 30–60 seconds). Return `segments: [{ start_time, end_time, question: { prompt, options, answer } }]`. Each question must be answerable using ONLY the audio between start_time and end_time. Scale: Playground=2, Academy=3–4, Success=4–5 questions.
+
+Output is folded into a single `scaffolded_media` slide rather than a chain of separate quiz slides.
+
+### 4c. `generate-ppp-slides` (extend)
+
+When the AI proposes a "warm-up" or "practice" slide for Playground, allow it to emit `type: 'canvas_game'` or `type: 'living_canvas'` directly using the same schema, so the AI lesson generator can mint full canvas games end-to-end.
+
+---
+
+## 5. Creator dashboard wiring (Playground / Academy / Success)
+
+For each of `PlaygroundCreator.tsx`, `AcademyCreator.tsx`, `SuccessCreator.tsx`:
+
+1. Add `canvas_game`, `living_canvas`, `scaffolded_media` to `SLIDE_TYPES` with emojis 🎯, ✨, 🎬.
+2. `makeSlide()` returns sensible 2-element starters (one draggable + one target, or one hider + one reveal).
+3. **Right sidebar element editor** when a canvas slide is selected:
+   - List of elements with delete / duplicate / "↑ z-index" / "↓ z-index".
+   - For each element: type dropdown, image picker (re-uses `AssetVaultDialog`), `x/y/width/rotation` sliders (0–100), interaction dropdown, and conditional fields (target coords for draggables, reveal_sfx for reveals).
+   - "Generate with AI" button → calls `generate-canvas-game` and replaces the slide's `elements`.
+4. **Scaffolded Media editor**: re-uses `MediaAnalyzerModal` but writes a `scaffolded_media` slide (single slide with `segments`) instead of appending separate quiz slides. A small "Timeline" sub-editor lets the creator drag pause markers along a 0–100% bar.
+5. Live preview pane re-renders `LivingCanvas` / `ScaffoldedPlayer` exactly as the student sees it.
+
+---
+
+## 6. Demo / student wiring
+
+In `PlaygroundDemo.tsx`, `AcademyDemo.tsx`, `SuccessDemo.tsx`:
+
+- `SlideRenderer` adds the three new cases.
+- The "Next" button gating already used for storybook is extended: for `canvas_game` and `scaffolded_media` the Next button is disabled until the slide's `onAllSolved` / `onAllSegmentsPassed` callback fires.
+
+---
+
+## 7. Files touched
+
+```
+NEW  src/components/creator-studio/shared/LivingCanvas.tsx
+NEW  src/components/creator-studio/shared/ScaffoldedPlayer.tsx
+NEW  src/components/creator-studio/shared/CanvasElementEditor.tsx
+NEW  src/components/creator-studio/shared/canvasSchema.ts        (Zod + types)
+NEW  supabase/functions/generate-canvas-game/index.ts
+
+EDIT supabase/functions/analyze-media/index.ts                   (segments output)
+EDIT supabase/functions/generate-ppp-slides/index.ts             (allow canvas types)
+EDIT supabase/config.toml                                        (register new fn)
+
+EDIT src/pages/PlaygroundDemo.tsx                                (Slide union + renderer + gating)
+EDIT src/pages/AcademyDemo.tsx                                   (same)
+EDIT src/pages/SuccessDemo.tsx                                   (same)
+
+EDIT src/pages/PlaygroundCreator.tsx                             (slide types, sidebar, AI)
+EDIT src/pages/AcademyCreator.tsx                                (same)
+EDIT src/pages/SuccessCreator.tsx                                (same)
+```
+
+---
+
+## 8. Hub flavor (visual only)
+
+Same engine, hub-tinted shells:
+- **Playground**: orange/amber border, springy "pop" animations, big snap radius (12%), confetti bursts.
+- **Academy**: indigo/violet border, subtle slide-in, snap radius 10%.
+- **Success**: emerald/teal border, minimal motion, snap radius 8%, no confetti.
+
+---
+
+## 9. Out of scope (suggested follow-ups)
+
+- Multi-touch / pinch-to-zoom on canvas.
+- Recording teacher-drawn "ink" overlays on top of the canvas.
+- Persisting in-progress canvas state to `student_progress` between sessions.
