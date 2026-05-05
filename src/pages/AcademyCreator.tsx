@@ -62,6 +62,7 @@ const SLIDE_TYPES: { type: SlideType; label: string; defaultBlock: Block }[] = [
   { type: 'speaking_task',    label: 'Speaking Task',          defaultBlock: 'speaking' },
   { type: 'reflection',      label: 'Reflection',             defaultBlock: 'speaking' },
   { type: 'cluster',          label: 'Cluster (multi-task)',   defaultBlock: 'practice' },
+  { type: 'lesson_summary',   label: 'Lesson Summary 📋',      defaultBlock: 'speaking' },
 ];
 
 function makeSlide(type: SlideType): Slide {
@@ -96,6 +97,7 @@ function makeSlide(type: SlideType): Slide {
       { type: 'tf', statement: 'He use TikTok.', answer: false },
       { type: 'build', prompt: 'Build the sentence.', words: ['I', 'use', 'my', 'phone'], answer: ['I', 'use', 'my', 'phone'] },
     ]};
+    case 'lesson_summary': return { type, block, title: 'Review Sheet', vocab_recap: [], grammar_recap: '', takeaway: '' };
   }
 }
 
