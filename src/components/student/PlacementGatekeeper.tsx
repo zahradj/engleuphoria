@@ -259,11 +259,16 @@ export const PlacementGatekeeper = ({
               initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.97 }}
-              className={`backdrop-blur-2xl bg-white/10 border border-white/20 rounded-3xl overflow-hidden h-[80vh] flex flex-col ${theme.glow}`}
+              className={`backdrop-blur-2xl ${isPlayground ? 'bg-white/85 border-orange-200' : 'bg-white/10 border-white/20'} border rounded-3xl overflow-hidden h-[80vh] flex flex-col ${theme.glow}`}
             >
-              <div className="px-6 py-3 sm:py-4 border-b border-white/10 flex flex-col items-center gap-1">
-                <Logo size="medium" variant="white" className="pointer-events-none [&_img]:h-7 sm:[&_img]:h-9" />
-                <p className="text-white/60 text-[11px] sm:text-xs">
+              <div className={`px-6 py-3 sm:py-4 border-b ${isPlayground ? 'border-orange-100' : 'border-white/10'} flex flex-col items-center gap-1`}>
+                <img
+                  src={isPlayground ? logoDark : logoWhite}
+                  alt="EnglEuphoria"
+                  className="h-7 sm:h-9 w-auto object-contain pointer-events-none select-none"
+                  draggable={false}
+                />
+                <p className={`${isPlayground ? 'text-slate-500' : 'text-white/60'} text-[11px] sm:text-xs`}>
                   {theme.name} Placement · {isPlayground ? 'Tap the right picture!' : 'Find your perfect level'}
                 </p>
               </div>
@@ -303,7 +308,7 @@ export const PlacementGatekeeper = ({
                       exit={{ opacity: 0 }}
                       className="h-full"
                     >
-                      <ProcessingPhase onComplete={handleProcessingComplete} />
+                      <ProcessingPhase onComplete={handleProcessingComplete} isPlayground={isPlayground} />
                     </motion.div>
                   )}
                 </AnimatePresence>
