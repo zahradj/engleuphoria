@@ -10,10 +10,10 @@ import { AssignLessonModal } from './AssignLessonModal';
 import { useNavigate } from 'react-router-dom';
 import { getLibraryLessons, toLibraryLessonCard, type LibraryLessonCard } from '@/services/lessonLibraryService';
 
-const HUB_META: Record<LibraryLessonCard['hub'], { label: string; color: string }> = {
-  playground: { label: 'Playground', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' },
-  academy: { label: 'Academy', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' },
-  professional: { label: 'Success Hub', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' },
+const HUB_META: Record<LibraryLessonCard['hub'], { label: string; color: string; creatorPath: string }> = {
+  playground: { label: 'Playground', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300', creatorPath: '/playground-creator' },
+  academy: { label: 'Academy', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300', creatorPath: '/academy-creator' },
+  professional: { label: 'Success Hub', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300', creatorPath: '/success-creator' },
 };
 
 export const TeacherLessonLibrary: React.FC = () => {
