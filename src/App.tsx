@@ -27,6 +27,7 @@ const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
 const TeacherDashboard = lazy(() => import("./pages/TeacherDashboard"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const TemplateMarketplace = lazy(() => import("./pages/TemplateMarketplace"));
+const LiveClassroom = lazy(() => import("./pages/LiveClassroom"));
 const StudentSignUp = lazy(() => import("./pages/StudentSignUp"));
 const StudentApplication = lazy(() => import("./pages/StudentApplication"));
 const EmailVerification = lazy(() => import("./pages/EmailVerification"));
