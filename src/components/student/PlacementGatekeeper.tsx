@@ -132,7 +132,7 @@ export const PlacementGatekeeper = ({
 
   const handleProcessingComplete = useCallback(async () => {
     try {
-      await completeTest(age, testResults, interests);
+      await completeTest(age, testResults, interests, learningReason);
       // Read back the assigned level for the celebration screen
       const { data } = await supabase
         .from('student_profiles')
@@ -148,7 +148,7 @@ export const PlacementGatekeeper = ({
       toast.error('Something went wrong. Please try again.');
       setPhase('welcome');
     }
-  }, [age, testResults, interests, completeTest, user]);
+  }, [age, testResults, interests, learningReason, completeTest, user]);
 
   const handleUnlock = useCallback(() => {
     setNeedsPlacement(false);
