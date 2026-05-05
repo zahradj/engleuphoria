@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import TypewriterText from './TypewriterText';
 import logoWhite from '@/assets/logo-white.png';
+import logoDark from '@/assets/logo-dark.png';
 
 interface ProcessingPhaseProps {
   onComplete: () => void;
+  isPlayground?: boolean;
 }
 
-const ProcessingPhase = ({ onComplete }: ProcessingPhaseProps) => {
+const ProcessingPhase = ({ onComplete, isPlayground = false }: ProcessingPhaseProps) => {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
@@ -30,44 +32,44 @@ const ProcessingPhase = ({ onComplete }: ProcessingPhaseProps) => {
     return () => clearInterval(timer);
   }, [onComplete]);
 
+  const ringColor = isPlayground
+    ? 'shadow-[0_0_40px_rgba(254,106,47,0.35)] border-orange-200 bg-white'
+    : 'shadow-[0_0_40px_rgba(139,92,246,0.4)] border-white/20 bg-white/10';
+
   return (
     <div className="flex flex-col items-center justify-center h-full gap-8 p-8">
-      {/* Animated brand mark — matches the Welcome / Completion modals */}
       <motion.div
         animate={{ scale: [1, 1.08, 1] }}
         transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
         className="relative"
       >
-        <div className="w-24 h-24 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-[0_0_40px_rgba(139,92,246,0.4)]">
+        <div className={`w-24 h-24 rounded-full backdrop-blur-xl border flex items-center justify-center ${ringColor}`}>
           <img
-            src={logoWhite}
+            src={isPlayground ? logoDark : logoWhite}
             alt="EnglEuphoria"
             className="h-10 w-auto"
           />
         </div>
-        {/* Glow ring */}
         <motion.div
           animate={{ scale: [1, 1.5], opacity: [0.5, 0] }}
           transition={{ duration: 1.5, repeat: Infinity }}
-          className="absolute inset-0 rounded-full border-2 border-violet-400 pointer-events-none"
+          className={`absolute inset-0 rounded-full border-2 ${isPlayground ? 'border-orange-400' : 'border-violet-400'} pointer-events-none`}
         />
       </motion.div>
 
-      {/* Text */}
-      <div className="text-center text-white text-lg">
+      <div className={`text-center text-lg ${isPlayground ? 'text-slate-700' : 'text-white'}`}>
         <TypewriterText text="Generating your personalized learning path..." speed={40} />
       </div>
 
-      {/* Progress bar */}
       <div className="w-full max-w-sm">
-        <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-full h-3 overflow-hidden">
+        <div className={`backdrop-blur-xl border rounded-full h-3 overflow-hidden ${isPlayground ? 'bg-orange-100 border-orange-200' : 'bg-white/10 border-white/20'}`}>
           <motion.div
-            className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full"
+            className={`h-full rounded-full ${isPlayground ? 'bg-gradient-to-r from-orange-500 to-amber-500' : 'bg-gradient-to-r from-violet-500 to-fuchsia-500'}`}
             style={{ width: `${progress}%` }}
             transition={{ ease: 'linear' }}
           />
         </div>
-        <p className="text-white/50 text-xs text-center mt-2">{Math.round(progress)}%</p>
+        <p className={`text-xs text-center mt-2 ${isPlayground ? 'text-slate-500' : 'text-white/50'}`}>{Math.round(progress)}%</p>
       </div>
     </div>
   );
