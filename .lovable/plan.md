@@ -1,88 +1,63 @@
-## Final Architecture Sync — Plan
+## Playground Hub Refactor — Pre-A1, Visual Flashcards, Ordered Flow
 
-Work is grouped by area. Each item lists files + behavior.
+### 1. Pre-A1 / B2 Level Selector
+**File:** `src/pages/PlaygroundCreator.tsx` (line 833)
+- Replace `['A1','A2','B1']` with `['Pre-A1','A1','A2','B1','B2']` in the AI Wizard CEFR `<select>`.
+- Default `aiLevel` stays `'A1'`. Persisted `level` field on save/publish currently hardcoded to `'A1'` — switch it to use `aiLevel` so Pre-A1 lessons round-trip correctly.
 
-### 1. Student Interests / Specific Needs (Creative Anchor)
+### 2. Pre-A1 AI Mode (Listen & Choose Bias)
+**File:** `supabase/functions/generate-ppp-slides/index.ts` (Playground branch, ~line 79)
+- Add a `isPreA1 = cefr_level === 'Pre-A1'` flag. When true, append a strict directive to `playgroundSystem`:
+  - "Pre-A1 students cannot read. Minimize on-screen text. EVERY slide must include audio via the `voice` object. Bias the deck toward `multiple` and `match` where the prompt is delivered by audio and the choices are images. Use `image_url` placeholders heavily; avoid `fill` slides entirely."
+- Force `voice.autoPlay = true` server-side on every Playground slide regardless of level (post-process loop near line 188).
 
-- Extend `LessonBlueprint` with optional `interests: string` and `specific_needs: string`.
-  - File: `src/components/creator-studio/shared/LessonBlueprintPanel.tsx`
-  - Add two new textarea-style inputs under Grammar Focus: "Student Interests" (e.g. "football, Pokemon") and "Specific Needs" (e.g. "shy speaker, dyslexic, exam prep").
-  - Persisted via existing `onChange(blueprint)` → already saved to `lesson_metadata` through `useCreatorLesson.saveDraft`.
+### 3. Dedicated VisualFlashcard Component (No Duplicate Images)
+**New file:** `src/components/creator-studio/shared/VisualFlashcard.tsx`
+- Strict 50/50 grid: left = full-bleed AI image, right = single huge word in primary-school typography (Fredoka/Poppins ExtraBold), plus a large 🔊 Play button.
+- This is essentially a hardened wrapper around the existing `SoloVocabCard` but **owns its own image** — no outer media shell renders an image alongside it.
 
-- Plumb `interests` + `specific_needs` into all generation/rewrite functions:
-  - `supabase/functions/plan-lesson-blueprint/index.ts` — accept `interests`, return blueprint biased toward those topics.
-  - `supabase/functions/sync-slides-to-blueprint/index.ts` — accept and inject as a "Creative Anchor" instruction in the system prompt.
-  - `supabase/functions/rewrite-slide-field/index.ts` — same.
-  - `supabase/functions/generate-canvas-game/index.ts` — same.
-  - Frontend: update `WandFieldButton` props to forward `interests`/`needs` from the blueprint (already passed) — no API change.
-  - In `PlaygroundCreator`, `AcademyCreator`, `SuccessCreator` `generateWithAI`, include `interests` and `specific_needs` in the `ai-lesson-content-generator` payload (creative anchor field).
+**Integration:**
+- `PlaygroundCreator.tsx` preview renderer (line 665–684): when `slide.type === 'vocab_solo'`, render `<VisualFlashcard …/>` directly, **without** the outer `UniversalMediaShell`'s hero strip. Already passes `suppressImage`, but legacy logic also reads `slide.flashcards[0]` — switch to reading the slide's own `word`/`image_url` fields so a single source of truth exists.
+- `PlaygroundDemo.tsx` `case 'vocab_solo'` (line 560): replace `SoloVocabCard` with `VisualFlashcard`.
+- `makeSlide('vocab_solo')` (line 96) already produces a single-image shape — confirm the editor in `PlaygroundCreator` (line 1126) does NOT render a second `ImageField`. Currently it renders one image — keep it; remove any duplicate hero image rendering in the preview path.
 
-### 2. Smart Sidebar Logic
+### 4. Kid-Friendly Lesson Sequence (AI Flow Order)
+**File:** `supabase/functions/generate-ppp-slides/index.ts` Playground branch
+- Rewrite the `playgroundSystem` "RULES" section to enforce a 4-stage arc:
+  1. **Presentation:** 5–8 `vocab_solo` slides (one per target word).
+  2. **Practice:** 2–3 `match` and `drag` slides (image↔word).
+  3. **Grammar Stimulation:** 1–2 `fill` or `multiple` slides using a simple frame ("I see a ____").
+  4. **Production:** 1 `storybook` or `canvas_game` recycling all words.
+  5. End with `lesson_summary`.
+- Add `vocab_solo`, `storybook`, `canvas_game` to the `allowed` set (line 100).
+- Post-generation: validate the order; if missing a stage, log and continue (don't fail).
 
-- File: each `*Creator.tsx` left column ("Slide Navigator").
-- Blueprint pinned to top (already true). Below it, redesign the slide list:
-  - Add a `slideIcon(type)` helper in a new `src/components/creator-studio/shared/slideIcons.tsx`:
-    - storybook → `BookOpenText`, canvas_game/living_canvas → `Gamepad2`, vocab/vocab_solo → `Sparkles`, scaffolded_media → `Film`, multiple/truefalse/fill → `CheckSquare`, intro/lesson_summary → `Flag`, default → `Square`.
-  - Render the icon inline before the slide title in each thumbnail row.
-- Add an "insert between" affordance:
-  - New component `src/components/creator-studio/shared/InsertSlideButton.tsx` — a thin `+` chip that appears on hover between two slides; opens a small popover (Storybook, Media Analyzer, Canvas Game, Blank).
-  - Wire to the existing `makeSlide(type)` helpers in each creator and `setSlides((p) => insertAt(p, index, newSlide))`.
+### 5. Audio-Visual Synchronization (Auto-Play)
+- Already supported by `UniversalMediaShell` (`autoPlay = voice.autoPlay ?? (hub === 'playground')`).
+- Server-side: ensure every generated slide carries `voice.autoPlay = true` (post-process loop, see #2).
+- `VisualFlashcard`: auto-play `audio_url` (or TTS fallback) on mount via `useEffect`.
 
-### 3. Component Polish
+### 6. UI Cleanup — Image-First Editor
+**File:** `src/pages/PlaygroundCreator.tsx` SlideEditor (lines ~1090–1145)
+- For interactive types `multiple`, `truefalse`, `drag`, `match`, `fill`: hide the "Title"/"Subtitle" fields when present; keep only the pedagogically essential fields (question/instruction + image + answer + voice).
+- The `intro` and `lesson_summary` slides keep their titles.
 
-- **Solo Vocab default**: in each creator's `addSlide` and `makeSlide`, when the user picks `vocab` for Playground default to `vocab_solo`. For Academy/Success, expose `vocab_solo` in the `SLIDE_TYPES` picker (Playground already does) and migrate any legacy `vocab` slide rendering to `SoloVocabCard` via the existing `UniversalMediaShell` wrapper in `*Demo.tsx`.
+### 7. Pre-A1 Feedback Loop (Pro Tip)
+**Files:** existing answer handlers in `PlaygroundDemo.tsx` interactive renderers
+- On correct: trigger existing confetti + play a short "star" SFX (`/sounds/star.mp3` placeholder asset path; user adds file later).
+- On wrong: play a soft "boing" SFX and visually spring back the dragged element (CSS `transition` + `transform: scale(0.95)` flash). Implement only if file references exist; otherwise stub the asset paths and document.
 
-- **Success "Executive" styling**:
-  - `src/components/creator-studio/shared/hubTheme.ts` — confirm Success uses dark navy background + serif heading (already configured); verify `PlayablePreviewPane` and `SoloVocabCard` consume `HUB_THEME.success`.
-  - In `SuccessCreator` left/right rails, switch labels and chips from emerald-only to navy + amber accent for the "executive" feel.
-  - **Time Buffer slots**: in `SuccessCreator` after `generateWithAI` and after `publish`, ensure final slide is a `time_buffer` block (3 min wrap-up). Add a `time_buffer` slide type to `SuccessDemo.tsx` slides + renderer if missing.
+---
 
-- **Takeaway / Recap slide**: ensure every generated lesson ends with `lesson_summary` (Academy/Success) or a celebratory `cool_off` slide (Playground).
-  - In each creator's post-generate normalization step (after AI returns slides), if last slide isn't `lesson_summary`/`cool_off`, append one auto-built from blueprint vocabulary + grammar.
+### Files Created
+- `src/components/creator-studio/shared/VisualFlashcard.tsx`
 
-### 4. Media Error Handling — Retry button
+### Files Edited
+- `src/pages/PlaygroundCreator.tsx` — level options, persist `aiLevel`, swap to `VisualFlashcard`, hide title fields on interactive editors
+- `src/pages/PlaygroundDemo.tsx` — render `VisualFlashcard` for `vocab_solo`, add SFX hooks
+- `supabase/functions/generate-ppp-slides/index.ts` — Pre-A1 directive, force `autoPlay`, allow vocab_solo/storybook/canvas_game, ordered 4-stage arc
+- `supabase/functions/plan-lesson-blueprint/index.ts` — accept `Pre-A1` and `B2` levels (currently just passes through; verify no whitelist exists)
 
-- File: `src/components/creator-studio/shared/UniversalMediaShell.tsx`.
-  - Track `image_error?: string` and `audio_error?: string` on the slide via `onPatch`.
-  - On image/audio generation failure (caught in `SlideMediaPanel`), set the error flag.
-  - In the preview overlay, when `image_error` or `audio_error` exists, render a "⚠ Generation failed — Retry" button that re-invokes the same generator with the same args.
-- File: `src/components/creator-studio/shared/SlideMediaPanel.tsx` — expose a `retry()` function via a small registry stored on `window.__creatorRetry[slideId]` OR (cleaner) accept a `retryRef` prop and forward it to the shell. We'll go with a `useRetryRegistry` hook in `shared/useRetryRegistry.ts`.
-
-### 5. Navigation & Save Verification
-
-- "Back to Dashboard" already exists in all three creators (`ArrowLeft` button at top-left → `/content-creator`). Audit each creator for visibility on small viewports; make button always visible by adding `flex-shrink-0`.
-- Save Draft already pushes `{ slides, metadata: { title, level, blueprint } }` via `useCreatorLesson.saveDraft`. Extend `useCreatorLesson` to also persist `interests` + `specific_needs` (already covered when blueprint contains them — no extra work).
-- Add a smoke test: after Save Draft, re-fetch the lesson and assert `metadata.lesson_blueprint.interests === entered value`. Done via a one-shot `console.assert` in dev mode in `useCreatorLesson` (gated by `import.meta.env.DEV`).
-
-## Technical Notes
-
-- **No DB migration required** — `lessons.content`/`metadata` are JSONB; new fields piggy-back on existing columns.
-- **Edge functions affected**: `plan-lesson-blueprint`, `sync-slides-to-blueprint`, `rewrite-slide-field`, `generate-canvas-game`, `ai-lesson-content-generator` — all updated to accept and forward the Creative Anchor (`interests`, `specific_needs`).
-- **No hardcoded prompts on the client** — all AI prompt assembly stays in the edge functions.
-- **Backwards compatible**: missing `interests`/`specific_needs` falls back to current behavior.
-
-## Files To Create
-
-- `src/components/creator-studio/shared/slideIcons.tsx`
-- `src/components/creator-studio/shared/InsertSlideButton.tsx`
-- `src/components/creator-studio/shared/useRetryRegistry.ts`
-
-## Files To Edit
-
-- `src/components/creator-studio/shared/LessonBlueprintPanel.tsx`
-- `src/components/creator-studio/shared/UniversalMediaShell.tsx`
-- `src/components/creator-studio/shared/SlideMediaPanel.tsx`
-- `src/components/creator-studio/shared/hubTheme.ts`
-- `src/pages/PlaygroundCreator.tsx`, `AcademyCreator.tsx`, `SuccessCreator.tsx`
-- `src/pages/SuccessDemo.tsx` (add `time_buffer` if missing)
-- `src/hooks/useCreatorLesson.ts` (DEV-only assertion)
-- `supabase/functions/plan-lesson-blueprint/index.ts`
-- `supabase/functions/sync-slides-to-blueprint/index.ts`
-- `supabase/functions/rewrite-slide-field/index.ts`
-- `supabase/functions/generate-canvas-game/index.ts`
-- `supabase/functions/ai-lesson-content-generator/index.ts` (if it accepts blueprint, add interests passthrough)
-
-## Out Of Scope
-
-- No new tables or RLS changes.
-- No changes to student-facing players (only the Creator Studio + edge functions).
+### Out of Scope
+- Adding new SFX audio files to the repo (will reference paths only).
+- Rewriting `SoloVocabCard` — kept as legacy alias re-exporting `VisualFlashcard` to avoid breaking other hubs.
