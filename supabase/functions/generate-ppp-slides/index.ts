@@ -97,7 +97,7 @@ RULES:
 - Topic: "${effectiveTitle}". ${objective ? `Goal: ${objective}.` : ""}
 - Return RAW JSON ARRAY only.`;
 
-      const allowed = new Set(["intro", "multiple", "truefalse", "fill", "drag", "match", "draw"]);
+      const allowed = new Set(["intro", "multiple", "truefalse", "fill", "drag", "match", "draw", "lesson_summary"]);
 
       const callModel = async (extraUserMsg?: string): Promise<any[]> => {
         const messages: any[] = [
