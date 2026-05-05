@@ -93,6 +93,8 @@ export function LessonBlueprintPanel({
           slides,
           vocabulary: bp.vocabulary.filter((v) => v.trim()),
           grammar: bp.grammar.trim(),
+          interests: bp.interests?.trim() || undefined,
+          specific_needs: bp.specific_needs?.trim() || undefined,
           hub,
           cefr_level: cefrLevel,
         },
