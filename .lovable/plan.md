@@ -1,88 +1,79 @@
-# Phonics & Phonology Layer — Integration Plan
+# Contextual Story & Quiz Engine
 
-Adds a "Target Phonics/Sound" focus to the lesson Blueprint, drives hub-specific phonics behavior in the AI generators, and introduces a new `phonics_focus` slide type rendered consistently across Creator/Demo previews.
+Upgrade the existing Storybook + auto-quiz pipeline (already live in Playground) to a true cross-hub engine with hub-specific layouts, vocab highlighting, scaled comprehension types, and a dedicated Story tab in every Creator.
 
-## 1. Blueprint Upgrade (The Brain)
+## 1. StorybookRenderer — three real layout modes
 
-**Type changes** — `src/components/creator-studio/steps/slide-studio/blueprintTypes.ts`
-- Add `target_phonics?: { focus: string; example_words: string[]; sound_ipa?: string }` to `LessonBlueprint`.
-- Loosen `isBlueprintReady` to keep phonics optional (auto-derived if omitted).
+`src/components/creator-studio/shared/StorybookRenderer.tsx`
 
-**Sidebar UI** — `src/components/creator-studio/shared/LessonBlueprintPanel.tsx`
-- New field "Target Phonics / Sound" rendered under Target Grammar.
-- Free-text input (e.g., "Short /a/", "Magic e", "Th- digraph") + auto-suggest button that calls the blueprint planner.
-- Pinned to top alongside other blueprint fields (no scroll changes).
+- Extend `StorybookSlideShape` with:
+  - `layout_mode?: 'classic' | 'comic' | 'case_study'` (defaults: playground=classic, academy=comic, success=case_study)
+  - `theme?: 'adventure' | 'school' | 'mystery' | 'business_trip' | 'negotiation' | 'custom'`
+  - `highlight_words?: string[]` (target vocab to bold inline)
+- Add `<HighlightedText text words />` helper that wraps any matched target word (case-insensitive, word-boundary) in `<mark class="bg-yellow-200/70 font-extrabold rounded px-0.5">…</mark>`.
+- Replace the current hub-keyed rendering with `layout_mode`-keyed rendering:
+  - **Classic** (Playground default): full-bleed image top, large text bottom, page dots.
+  - **Comic** (Academy default): 2-up panel grid per page (image panel + speech-bubble text panel) with rounded comic borders.
+  - **Case Study** (Success default): vertical clean layout, serif body, "Scenario / Page X of Y" header, optional sidebar bullet of "Key terms" pulled from `highlight_words`.
+- Keep existing `onComplete` and audio behaviour.
 
-**Auto-generation** — `supabase/functions/plan-lesson-blueprint/index.ts`
-- Extend the `emit_blueprint` tool schema with `target_phonics: { focus, example_words[], sound_ipa }`.
-- Update the system prompt: phonics focus MUST be derivable from the chosen vocabulary (Cat/Bat/Hat → Short /a/). For Academy/Success, bias toward articulation pairs (v/w, th, word stress, business intonation).
-- Hub-aware prompt branch:
-  - Playground → synthetic phonics (single phoneme + grapheme).
-  - Academy → phonetic accuracy (problem sound for teen learners).
-  - Success → "Executive Pronunciation": word stress / connected speech / business intonation.
+## 2. Edge Function — `generate-storybook` upgrade
 
-## 2. Hub-Specific Phonics Application in PPP Generator
+`supabase/functions/generate-storybook/index.ts`
 
-**File** — `supabase/functions/generate-ppp-slides/index.ts`
-- Pass `blueprint.target_phonics` into the system prompt and into every slide-generation call.
-- Hub branches:
-  - **Playground (Intensive Phonics)** — force this insertion order:
-    1. Warm-up
-    2. NEW `phonics_focus` slide (isolated sound + grapheme + autoPlay audio)
-    3. Vocab flashcards (existing 4-stage arc)
-    4. **2 phonemic-awareness mini-games** added to Phase 2 (`multiple` "Click the words that start with /b/" + `match`/`drag` segmenting game) — counted *in addition to* the existing 3 practice slides.
-    5. Existing grammar / production / summary
-  - **Academy** — exactly 1 `phonics_focus` slide (pronunciation pair) + 1 `listen_repeat` interactive in Phase 2.
-  - **Success** — `phonics_focus` slide reframed as "Executive Pronunciation" (word stress notation, connected-speech example) + 1 `listen_repeat` drilling business intonation.
-- Server-side: every generated `phonics_focus` and `listen_repeat` slide gets `voice.autoPlay = true` and a TTS-ready `audio_url` placeholder.
+- Accept new fields: `theme`, `layout_mode`, `grammar_focus`.
+- Inject **sentence-length rules** into the system prompt:
+  - Playground: max 5–7 words per sentence, 1 sentence per page, must use 4–6 of the target vocab across the story.
+  - Academy: 1–3 sentences, must use the grammar pattern at least twice.
+  - Success: complex multi-clause corporate narrative, embed at least one quote and one decision point.
+- Story text: instruct the model to emit each target vocab word **verbatim** so the renderer can highlight it (return them in `highlight_words`).
+- **Comprehension Loop — scaled by hub** (replace today's flat quiz block):
+  - Playground (Pre-A1/A1) → 3 slides: 1 visual `clickimage` ("Where is the …?"), 1 `multiple` literal, 1 `truefalse` literal.
+  - Academy (A2–B1) → 4 slides: 1 literal `multiple`, 1 inference `multiple` ("Why did …?"), 1 vocabulary-in-context `fill`, 1 `truefalse`.
+  - Success (B2–C2) → 5 slides: 1 literal `multiple`, 1 inference `multiple`, 1 vocab-in-context `multiple`, 1 strategic `discussion` ("How could … better?"), 1 `discussion` debate prompt.
+- Tag each quiz item with `comprehension_kind: 'literal' | 'inference' | 'vocab_in_context' | 'visual' | 'strategic'` so the editor can label them.
+- Return `layout_mode`, `theme`, `highlight_words` in the response so the caller can patch the storybook slide.
 
-## 3. New Slide Type: `phonics_focus`
+## 3. StorybookEditor — Story tab UI
 
-**Component** — `src/components/creator-studio/shared/PhonicsFocusCard.tsx` (new)
-- Layout: massive centered phoneme/grapheme (Poppins, 12rem), IPA label below, large 🔊 play button.
-- Click anywhere on the phoneme replays the isolated sound.
-- Below: row of up to 3 example words pulled from `blueprint.target_vocabulary` that contain the sound — each clickable to play its own audio.
-- Owns its own audio (no `UniversalMediaShell` wrapper) — same no-duplicate pattern as `VisualFlashcard`.
+`src/components/creator-studio/shared/StorybookEditor.tsx`
 
-**Wiring**
-- `src/components/creator-studio/shared/slideIcons.tsx` → add `phonics_focus: Volume2` (or `Megaphone`).
-- `src/pages/PlaygroundCreator.tsx`, `AcademyCreator.tsx`, `SuccessCreator.tsx` previews → render `<PhonicsFocusCard>` for `slide.type === 'phonics_focus'`.
-- `src/pages/PlaygroundDemo.tsx` → add `case 'phonics_focus'` rendering the same component.
-- `InsertSlideButton` → expose Phonics Focus as a manual insertion option.
-- SlideEditor → expose only `phoneme`, `grapheme`, `sound_ipa`, `example_words[]`, `audio_url`.
+- Add two selects above the prompt:
+  - **Story Theme** — Adventure, School Day, Mystery, Business Trip, Negotiation, Custom.
+  - **Layout Style** — Classic / Comic / Case Study (default chosen by hub).
+- Pass `theme`, `layout_mode`, `grammar_focus` (read from blueprint) into the `generate-storybook` invoke body.
+- After generation, patch the storybook slide with returned `layout_mode`, `theme`, `highlight_words`, and call `onAppendQuiz` so the quiz block is inserted in the same click (already works in Playground).
 
-**`listen_repeat` (Academy/Success)** — minimal addition: reuse existing speaking/voice slide shape, just guarantee a `comparison_audio_url` field. No new component required for v1.
+## 4. Wire Story tab into Academy + Success
 
-## 4. AI Media Analyzer flags Phonics
+`src/pages/AcademyCreator.tsx`, `src/pages/SuccessCreator.tsx`
 
-**File** — `supabase/functions/sync-slides-to-blueprint/index.ts` (and any media-analysis call site that consumes blueprint context)
-- Pass `blueprint.target_phonics.focus` into the analyzer prompt.
-- Ask the model to emit `phonics_hits: [{ timestamp, word, sound }]` whenever the target sound appears in narration/video transcripts; surface those as inline highlights on the affected slide.
+Currently both list `storybook` in the slide-type menu but render nothing for it in the right-sidebar editor. Mirror Playground's pattern:
 
-## 5. Persistence
+- Import `StorybookEditor` and `StorybookRenderer`.
+- Add a `📖 Story` tab in the right sidebar that mounts `StorybookEditor` when `current.type === 'storybook'`, passing `hub`, `cefrLevel`, `targetVocab`, `grammarFocus` from the blueprint, and `onAppendQuiz={(quiz) => insertAfterCurrent(mapAIQuizSlides(quiz, hub))}`.
+- Render `<StorybookRenderer slide={current} hub="academy|success" />` in the central preview for `storybook` slides.
+- Default `layout_mode` to `comic` for Academy and `case_study` for Success when a new storybook slide is created.
 
-- `lessons.metadata` (already JSON) stores `target_phonics` alongside existing blueprint fields — no schema migration required.
-- `handleSaveDraft` / `handlePublish` in all three Creator pages already serialize the full blueprint; just include the new field.
+## 5. Question Editor (already mostly free)
 
-## Files Touched
+The auto-appended comprehension slides become normal `multiple` / `truefalse` / `fill` / `discussion` / `clickimage` slides that already use the existing per-type editors — teachers can click any of them and edit the question, options, or correct answer just like any other slide. We only need to:
 
-**New**
-- `src/components/creator-studio/shared/PhonicsFocusCard.tsx`
+- Surface the `comprehension_kind` tag in `SlideEditor` as a small badge ("Literal", "Inference", "Vocabulary in Context", "Strategic", "Visual") so the teacher knows the pedagogical role of each question.
+
+## 6. Out of scope (v1)
+
+- Storing per-student comprehension scores into a new table.
+- AI image generation styled differently per layout (comic vs case-study illustration style) — current single-style image pipeline is reused.
+
+## Files
 
 **Edited**
-- `src/components/creator-studio/steps/slide-studio/blueprintTypes.ts`
-- `src/components/creator-studio/shared/LessonBlueprintPanel.tsx`
-- `src/components/creator-studio/shared/slideIcons.tsx`
-- `src/components/creator-studio/shared/InsertSlideButton.tsx`
-- `src/pages/PlaygroundCreator.tsx`
+- `src/components/creator-studio/shared/StorybookRenderer.tsx`
+- `src/components/creator-studio/shared/StorybookEditor.tsx`
+- `src/components/creator-studio/shared/SlideEditor.tsx` (badge only)
 - `src/pages/AcademyCreator.tsx`
 - `src/pages/SuccessCreator.tsx`
-- `src/pages/PlaygroundDemo.tsx`
-- `supabase/functions/plan-lesson-blueprint/index.ts`
-- `supabase/functions/generate-ppp-slides/index.ts`
-- `supabase/functions/sync-slides-to-blueprint/index.ts`
+- `supabase/functions/generate-storybook/index.ts`
 
-## Out of Scope (v1)
-
-- Tracking phoneme mastery into `student_phonics_progress` from these new slides (existing Map-of-Sounds pipeline can be wired in a follow-up).
-- Real-time speech grading on `listen_repeat` (uses existing phonetic-mimic engine when student opens classroom).
+**No new files, no DB migration** — `theme`, `layout_mode`, `highlight_words`, `comprehension_kind` all live inside the slide JSON already persisted in `lessons.metadata`.
