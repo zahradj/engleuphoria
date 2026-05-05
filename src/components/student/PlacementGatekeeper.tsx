@@ -200,10 +200,10 @@ export const PlacementGatekeeper = ({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className={`backdrop-blur-2xl bg-white/10 border border-white/20 rounded-3xl p-10 ${theme.glow}`}
+              className={`backdrop-blur-2xl ${isPlayground ? 'bg-white/80 border-orange-200' : 'bg-white/10 border-white/20'} border rounded-3xl p-10 ${theme.glow}`}
             >
               <div className="flex justify-center mb-6">
-                <div className={`w-24 h-24 rounded-2xl bg-white/10 backdrop-blur-md ring-1 ring-white/20 flex items-center justify-center px-4`}>
+                <div className={`w-24 h-24 rounded-2xl ${isPlayground ? 'bg-gradient-to-br from-orange-500 to-amber-500' : 'bg-white/10'} backdrop-blur-md ring-1 ring-white/20 flex items-center justify-center px-4`}>
                   <img
                     src={logoWhite}
                     alt="EnglEuphoria"
@@ -218,14 +218,14 @@ export const PlacementGatekeeper = ({
                   Welcome Assessment
                 </span>
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold text-white text-center mb-4 leading-tight">
+              <h1 className={`text-4xl md:text-5xl font-bold text-center mb-4 leading-tight ${isPlayground ? 'text-slate-800' : 'text-white'}`}>
                 {isPlayground
                   ? `Hi ${studentName.split(' ')[0]}! Let's play! 🎉`
                   : `Welcome to ${theme.name}, ${studentName.split(' ')[0]}!`}
               </h1>
-              <p className="text-white/80 text-center text-lg mb-8 max-w-lg mx-auto">
+              <p className={`text-center text-lg mb-8 max-w-lg mx-auto ${isPlayground ? 'text-slate-600' : 'text-white/80'}`}>
                 {isPlayground
-                  ? <>Tap the right pictures to show what you know. <span className="text-white font-semibold">Just 10 fun questions!</span></>
+                  ? <>Tap the right pictures to show what you know. <span className={`${isPlayground ? 'text-slate-900' : 'text-white'} font-semibold`}>Just 10 fun questions!</span></>
                   : <>Before we open your dashboard, let's find your <span className="text-white font-semibold">perfect starting point</span>. A short, joyful assessment so every lesson fits you exactly.</>}
               </p>
               <div className="grid grid-cols-3 gap-3 mb-8">
@@ -235,9 +235,9 @@ export const PlacementGatekeeper = ({
                 ).map((label) => (
                   <div
                     key={label}
-                    className="bg-white/10 border border-white/20 rounded-xl py-3 px-2 text-center"
+                    className={`${isPlayground ? 'bg-orange-50 border-orange-200' : 'bg-white/10 border-white/20'} border rounded-xl py-3 px-2 text-center`}
                   >
-                    <p className="text-white/90 text-sm font-medium">{label}</p>
+                    <p className={`${isPlayground ? 'text-slate-700' : 'text-white/90'} text-sm font-medium`}>{label}</p>
                   </div>
                 ))}
               </div>

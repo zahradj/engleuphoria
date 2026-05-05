@@ -251,7 +251,11 @@ export const PlaygroundPlacementPhase = ({ onComplete }: PlaygroundPlacementPhas
               <p className="text-slate-500 text-sm">{current.audioPrompt}</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-md mx-auto w-full">
+            {(() => {
+              const uniqueImages = new Set(current.options.map(o => o.image));
+              const showLabels = uniqueImages.size < current.options.length;
+              return (
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-md mx-auto w-full" key="opts">
               {current.options.map((option, idx) => {
                 const isSelected = selectedIndex === idx;
                 const showSelected = isSelected;
@@ -288,16 +292,16 @@ export const PlaygroundPlacementPhase = ({ onComplete }: PlaygroundPlacementPhas
                       loading="lazy"
                       width={512}
                       height={512}
-                      className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
+                      className="absolute inset-0 w-full h-full object-contain p-4 select-none pointer-events-none"
                       draggable={false}
                     />
-                    {/* Bottom label pill */}
-                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%]">
-                      <span className="block bg-white/95 backdrop-blur-sm rounded-full px-3 py-1 text-slate-800 font-semibold text-xs sm:text-sm text-center shadow-sm whitespace-nowrap overflow-hidden text-ellipsis">
-                        {option.label}
-                      </span>
-                    </div>
-                    {/* Pop badge on tap (non-punishing — appears for any selection) */}
+                    {showLabels && (
+                      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%]">
+                        <span className="block bg-white/95 backdrop-blur-sm rounded-full px-3 py-1 text-slate-800 font-semibold text-xs sm:text-sm text-center shadow-sm whitespace-nowrap overflow-hidden text-ellipsis">
+                          {option.label}
+                        </span>
+                      </div>
+                    )}
                     {showSelected && (
                       <motion.div
                         initial={{ scale: 0, rotate: -180 }}
@@ -312,6 +316,8 @@ export const PlaygroundPlacementPhase = ({ onComplete }: PlaygroundPlacementPhas
                 );
               })}
             </div>
+              );
+            })()}
 
             {/* Non-punishing encouragement — shown for any tap */}
             <AnimatePresence>

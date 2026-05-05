@@ -479,15 +479,21 @@ export default function PlaygroundCreator() {
                   } ${dragIdx === i ? 'opacity-40' : ''}`}
                 >
                   <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
-                    <span className="font-bold text-orange-600">⋮⋮ #{i + 1} · {s.type}</span>
-                    <div className="flex gap-1 opacity-70">
-                      <span onClick={(e) => { e.stopPropagation(); move(i, -1); }} className="hover:text-orange-600"><ChevronUp className="w-3.5 h-3.5" /></span>
-                      <span onClick={(e) => { e.stopPropagation(); move(i, 1); }} className="hover:text-orange-600"><ChevronDown className="w-3.5 h-3.5" /></span>
-                      <span onClick={(e) => { e.stopPropagation(); duplicate(i); }} className="hover:text-orange-600"><Copy className="w-3.5 h-3.5" /></span>
-                      <span onClick={(e) => { e.stopPropagation(); deleteSlide(i); }} className="hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></span>
-                    </div>
+                    <span className="font-bold text-orange-600">
+                      {s.type === 'lesson_summary' ? `🔒 #${i + 1} · auto-summary` : `⋮⋮ #${i + 1} · ${s.type}`}
+                    </span>
+                    {s.type !== 'lesson_summary' && (
+                      <div className="flex gap-1 opacity-70">
+                        <span onClick={(e) => { e.stopPropagation(); move(i, -1); }} className="hover:text-orange-600"><ChevronUp className="w-3.5 h-3.5" /></span>
+                        <span onClick={(e) => { e.stopPropagation(); move(i, 1); }} className="hover:text-orange-600"><ChevronDown className="w-3.5 h-3.5" /></span>
+                        <span onClick={(e) => { e.stopPropagation(); duplicate(i); }} className="hover:text-orange-600"><Copy className="w-3.5 h-3.5" /></span>
+                        <span onClick={(e) => { e.stopPropagation(); deleteSlide(i); }} className="hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></span>
+                      </div>
+                    )}
                   </div>
-                  <div className="text-sm font-semibold text-slate-800 truncate">{slideTitle(s)}</div>
+                  <div className="text-sm font-semibold text-slate-800 truncate">
+                    {s.type === 'lesson_summary' ? 'Auto-Summary (system)' : slideTitle(s)}
+                  </div>
                 </div>
               ))}
             </div>
