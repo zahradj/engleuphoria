@@ -52,13 +52,15 @@ const HUB_BTN: Record<Hub, string> = {
   success: 'from-emerald-600 to-teal-600',
 };
 
-export function StorybookEditor({ slide, hub, cefrLevel, targetVocab = [], onPatch, onAppendQuiz }: Props) {
+export function StorybookEditor({ slide, hub, cefrLevel, targetVocab = [], grammarFocus, onPatch, onAppendQuiz }: Props) {
   const [busy, setBusy] = useState(false);
   const [imgBusyIdx, setImgBusyIdx] = useState<number | null>(null);
   const [audBusyIdx, setAudBusyIdx] = useState<number | null>(null);
 
   const pages = slide.pages || [];
   const inputCls = `w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 ${HUB_TONE[hub]}`;
+  const layoutMode: StorybookLayoutMode = slide.layout_mode || DEFAULT_LAYOUT[hub];
+  const themeChoice: StorybookTheme = slide.theme || (hub === 'success' ? 'business_trip' : hub === 'academy' ? 'school' : 'adventure');
 
   const generate = async () => {
     const topic = (slide.topic || '').trim();
@@ -69,6 +71,9 @@ export function StorybookEditor({ slide, hub, cefrLevel, targetVocab = [], onPat
         body: {
           prompt: topic,
           target_vocab: targetVocab,
+          grammar_focus: grammarFocus || '',
+          theme: themeChoice,
+          layout_mode: layoutMode,
           cefr_level: cefrLevel || (hub === 'playground' ? 'A1' : hub === 'academy' ? 'B1' : 'B2'),
           hub_type: hub,
         },
@@ -81,7 +86,16 @@ export function StorybookEditor({ slide, hub, cefrLevel, targetVocab = [], onPat
         image_url: '',
         audio_url: '',
       }));
-      onPatch({ title: data?.title || slide.title || topic, pages: newPages });
+      const highlight: string[] = Array.isArray(data?.highlight_words) && data.highlight_words.length
+        ? data.highlight_words
+        : targetVocab;
+      onPatch({
+        title: data?.title || slide.title || topic,
+        pages: newPages,
+        layout_mode: (data?.layout_mode as StorybookLayoutMode) || layoutMode,
+        theme: (data?.theme as StorybookTheme) || themeChoice,
+        highlight_words: highlight,
+      });
       if (Array.isArray(data?.quiz_slides) && data.quiz_slides.length > 0 && onAppendQuiz) {
         onAppendQuiz(data.quiz_slides);
       }
