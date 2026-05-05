@@ -524,8 +524,15 @@ function DrawGame({ slide }: { slide: Extract<Slide, { type: 'draw' }> }) {
 // ─── Renderer ────────────────────────────────────────────────────────────────
 import { StorybookRenderer } from '@/components/creator-studio/shared/StorybookRenderer';
 import { MediaPlayerRenderer } from '@/components/creator-studio/shared/MediaPlayerRenderer';
+import { LivingCanvas } from '@/components/creator-studio/shared/LivingCanvas';
+import { ScaffoldedPlayer } from '@/components/creator-studio/shared/ScaffoldedPlayer';
 
-export function SlideRenderer({ slide, onStorybookComplete }: { slide: Slide; onStorybookComplete?: () => void }) {
+export function SlideRenderer({ slide, onStorybookComplete, onCanvasSolved, onMediaPassed }: {
+  slide: Slide;
+  onStorybookComplete?: () => void;
+  onCanvasSolved?: () => void;
+  onMediaPassed?: () => void;
+}) {
   switch (slide.type) {
     case 'intro': return <Intro slide={slide} />;
     case 'multiple': return <MultipleChoice slide={slide} />;
@@ -536,6 +543,11 @@ export function SlideRenderer({ slide, onStorybookComplete }: { slide: Slide; on
     case 'draw': return <DrawGame slide={slide} />;
     case 'storybook': return <StorybookRenderer slide={slide as any} hub="playground" onComplete={onStorybookComplete} />;
     case 'media_player': return <MediaPlayerRenderer slide={slide as any} hub="playground" />;
+    case 'canvas_game':
+    case 'living_canvas':
+      return <LivingCanvas slide={slide as any} hub="playground" onAllSolved={onCanvasSolved} />;
+    case 'scaffolded_media':
+      return <ScaffoldedPlayer slide={slide as any} hub="playground" onAllSegmentsPassed={onMediaPassed} />;
     case 'lesson_summary': return <PlaygroundSummary slide={slide} />;
   }
 }
@@ -574,9 +586,17 @@ function PlaygroundSummary({ slide }: { slide: Extract<Slide, { type: 'lesson_su
 export default function PlaygroundDemo() {
   const [i, setI] = useState(0);
   const [storybookDone, setStorybookDone] = useState<Record<number, boolean>>({});
+  const [canvasDone, setCanvasDone] = useState<Record<number, boolean>>({});
+  const [mediaDone, setMediaDone] = useState<Record<number, boolean>>({});
   const slide = SLIDES[i];
   const isStorybook = slide.type === 'storybook';
-  const nextDisabled = i === SLIDES.length - 1 || (isStorybook && !storybookDone[i]);
+  const isCanvas = slide.type === 'canvas_game' || slide.type === 'living_canvas';
+  const isScaffMedia = slide.type === 'scaffolded_media';
+  const nextDisabled =
+    i === SLIDES.length - 1 ||
+    (isStorybook && !storybookDone[i]) ||
+    (isCanvas && !canvasDone[i]) ||
+    (isScaffMedia && !mediaDone[i]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-5 p-6 bg-gradient-to-br from-orange-400 via-amber-400 to-yellow-200">
@@ -590,7 +610,12 @@ export default function PlaygroundDemo() {
           className="relative bg-white rounded-3xl shadow-xl w-[95%] max-w-5xl min-h-[70vh] p-10 flex items-center justify-center"
         >
           <VoiceButton text={slide.voice?.text} />
-          <SlideRenderer slide={slide} onStorybookComplete={() => setStorybookDone((s) => ({ ...s, [i]: true }))} />
+          <SlideRenderer
+            slide={slide}
+            onStorybookComplete={() => setStorybookDone((s) => ({ ...s, [i]: true }))}
+            onCanvasSolved={() => setCanvasDone((s) => ({ ...s, [i]: true }))}
+            onMediaPassed={() => setMediaDone((s) => ({ ...s, [i]: true }))}
+          />
         </motion.div>
       </AnimatePresence>
 
@@ -608,7 +633,12 @@ export default function PlaygroundDemo() {
         <button
           onClick={() => setI((n) => Math.min(SLIDES.length - 1, n + 1))}
           disabled={nextDisabled}
-          title={isStorybook && !storybookDone[i] ? 'Read all storybook pages first' : undefined}
+          title={
+            isStorybook && !storybookDone[i] ? 'Read all storybook pages first'
+            : isCanvas && !canvasDone[i] ? 'Finish the activity first'
+            : isScaffMedia && !mediaDone[i] ? 'Pass every checkpoint first'
+            : undefined
+          }
           className="bg-orange-500 hover:bg-orange-600 disabled:opacity-40 text-white font-bold rounded-full px-5 py-2 active:scale-95 transition"
         >
           Next →
