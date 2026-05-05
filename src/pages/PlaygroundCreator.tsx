@@ -261,11 +261,13 @@ export default function PlaygroundCreator() {
     try {
       // Step 1 — Plan the blueprint (5 vocab + 1 grammar)
       toast.message('Planning lesson blueprint…');
+      const interests = blueprint?.interests?.trim();
+      const specific_needs = blueprint?.specific_needs?.trim();
       const planRes = await supabase.functions.invoke('plan-lesson-blueprint', {
-        body: { topic: aiTopic.trim(), cefr_level: aiLevel, hub: 'playground' },
+        body: { topic: aiTopic.trim(), cefr_level: aiLevel, hub: 'playground', interests, specific_needs },
       });
       if (planRes.error) throw planRes.error;
-      const bp = planRes.data as LessonBlueprint;
+      const bp = { ...(planRes.data as LessonBlueprint), interests, specific_needs };
       setBlueprint(bp);
 
       // Step 2 — Generate slides forced to use that blueprint
@@ -280,7 +282,9 @@ export default function PlaygroundCreator() {
           hub_type: 'playground',
           target_vocabulary: bp.vocabulary,
           grammar_focus: bp.grammar,
-          blueprint: { lesson_title: aiTopic.trim(), target_vocabulary: bp.vocabulary, grammar_focus: bp.grammar, target_hub: 'playground' },
+          interests,
+          specific_needs,
+          blueprint: { lesson_title: aiTopic.trim(), target_vocabulary: bp.vocabulary, grammar_focus: bp.grammar, target_hub: 'playground', interests, specific_needs },
         },
       });
       if (error) throw error;
