@@ -660,7 +660,7 @@ function ProgressBar({ currentBlock, slideIndex, t }: { currentBlock: Block; sli
     acc[s.block] = acc[s.block] || [];
     acc[s.block].push(i);
     return acc;
-  }, { warmup: [], vocab: [], context: [], functional: [], practice: [], simulation: [], output: [] });
+  }, { warmup: [], vocab: [], context: [], functional: [], practice: [], simulation: [], output: [], buffer: [] });
 
   const currentBlockIdx = BLOCKS.findIndex((b) => b.id === currentBlock);
   const slidesInBlock = blockSlides[currentBlock] ?? [];
