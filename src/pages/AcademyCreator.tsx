@@ -196,11 +196,20 @@ export default function AcademyCreator() {
   useEffect(() => {
     const lesson = lessonHook.lesson;
     if (!lesson) return;
+    const detected = detectLessonHub(lesson);
+    if (detected && detected !== 'academy') {
+      navigate(`${creatorPathFor(detected)}?lessonId=${lesson.id}`, { replace: true });
+      return;
+    }
     const dbSlides = getLibraryLessonSlides(lesson) as Slide[];
     setSlides(dbSlides);
     setSelected(0);
-    if (lesson.title) setTitle(lesson.title);
+    if (lesson.title) {
+      setTitle(lesson.title);
+      setAiTopic(lesson.title);
+    }
     if (lesson.difficulty_level) setLevel(lesson.difficulty_level);
+    setAiLevel(deriveCefrLevel(lesson, 'academy'));
     const meta: any = (lesson as any).ai_metadata;
     if (meta?.lesson_blueprint) setBlueprint(meta.lesson_blueprint as LessonBlueprint);
     // eslint-disable-next-line react-hooks/exhaustive-deps
