@@ -119,6 +119,7 @@ export const PlacementGatekeeper = ({
     (result: { age: number; goal: string; interests: string[] }) => {
       setAge(result.age);
       setInterests(result.interests);
+      setLearningReason(result.goal);
       setPhase('test');
     },
     []
