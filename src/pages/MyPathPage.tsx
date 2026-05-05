@@ -20,6 +20,10 @@ type ProfileSlice = {
   cefr_level: string | null;
   lesson_duration: number | null;
   weekly_goal: string | null;
+  interests: string[] | null;
+  age: number | null;
+  learning_reason: string | null;
+  placement_test_score: number | null;
 };
 
 const CEFR_LADDER = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] as const;
@@ -36,7 +40,7 @@ function MyPathInner() {
     (async () => {
       const { data, error } = await supabase
         .from('student_profiles')
-        .select('hub_type, cefr_level, lesson_duration, weekly_goal, student_level')
+        .select('hub_type, cefr_level, lesson_duration, weekly_goal, student_level, interests, age, learning_reason, placement_test_score')
         .eq('user_id', user.id)
         .maybeSingle();
       if (cancelled) return;
@@ -46,6 +50,10 @@ function MyPathInner() {
         cefr_level: (data as any)?.cefr_level ?? 'A1',
         lesson_duration: (data as any)?.lesson_duration ?? null,
         weekly_goal: (data as any)?.weekly_goal ?? null,
+        interests: (data as any)?.interests ?? null,
+        age: (data as any)?.age ?? null,
+        learning_reason: (data as any)?.learning_reason ?? null,
+        placement_test_score: (data as any)?.placement_test_score ?? null,
       });
       setLoading(false);
     })();
