@@ -30,6 +30,7 @@ import { StorybookEditor } from '@/components/creator-studio/shared/StorybookEdi
 import { MediaAnalyzerModal } from '@/components/creator-studio/shared/MediaAnalyzerModal';
 import { mapAIQuizSlides } from '@/components/creator-studio/shared/aiQuizMapper';
 import { CanvasElementEditor } from '@/components/creator-studio/shared/CanvasElementEditor';
+import { ScaffoldedMediaEditor } from '@/components/creator-studio/shared/ScaffoldedMediaEditor';
 import { Headphones } from 'lucide-react';
 import {
   Popover, PopoverContent, PopoverTrigger,
