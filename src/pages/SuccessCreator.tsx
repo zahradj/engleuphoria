@@ -179,6 +179,8 @@ export default function SuccessCreator() {
     setSelected(0);
     if (lesson.title) setTitle(lesson.title);
     if (lesson.difficulty_level) setLevel(lesson.difficulty_level);
+    const meta: any = (lesson as any).ai_metadata;
+    if (meta?.lesson_blueprint) setBlueprint(meta.lesson_blueprint as LessonBlueprint);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonHook.lesson?.id]);
 
