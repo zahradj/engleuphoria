@@ -71,6 +71,7 @@ export const PlacementGatekeeper = ({
   const [phase, setPhase] = useState<Phase>('welcome');
   const [age, setAge] = useState(0);
   const [interests, setInterests] = useState<string[]>([]);
+  const [learningReason, setLearningReason] = useState<string>('');
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [resolvedLevel, setResolvedLevel] = useState<string>('');
 
