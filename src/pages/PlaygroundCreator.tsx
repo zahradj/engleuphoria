@@ -592,7 +592,18 @@ export default function PlaygroundCreator() {
                 <TabsTrigger value="comments">Comments</TabsTrigger>
               </TabsList>
               <TabsContent value="basic" className="pt-4 flex-1 overflow-y-auto min-h-0">
-                <SlideEditor slide={current} onChange={update} />
+                {current.type === 'storybook' ? (
+                  <StorybookEditor
+                    slide={current as any}
+                    hub="playground"
+                    cefrLevel="A1"
+                    targetVocab={[]}
+                    onPatch={(patch) => update(patch as Partial<Slide>)}
+                    onAppendQuiz={(quiz) => insertAfterCurrent(mapAIQuizSlides(quiz, 'playground') as Slide[])}
+                  />
+                ) : (
+                  <SlideEditor slide={current} onChange={update} />
+                )}
               </TabsContent>
               <TabsContent value="media" className="pt-4 flex-1 overflow-y-auto min-h-0">
                 <SlideMediaPanel
