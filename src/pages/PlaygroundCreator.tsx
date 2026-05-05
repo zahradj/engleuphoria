@@ -963,8 +963,19 @@ function ImageField({
 }
 
 
-function SlideEditor({ slide, onChange }: { slide: Slide; onChange: (p: Partial<Slide>) => void }) {
+function SlideEditor({ slide, onChange, blueprint, hub = 'playground' }: { slide: Slide; onChange: (p: Partial<Slide>) => void; blueprint?: LessonBlueprint | null; hub?: 'playground' | 'academy' | 'success' }) {
   const voice = (slide as any).voice as Slide['voice'] | undefined;
+  const wandFor = (field: string, currentValue: string, apply: (v: string) => void) => (
+    <WandFieldButton
+      field={field}
+      currentValue={currentValue}
+      slideType={slide.type}
+      hub={hub}
+      cefrLevel="A1"
+      blueprint={blueprint}
+      onResult={apply}
+    />
+  );
   const VoiceFields = (
     <div className="grid grid-cols-3 gap-3 pt-3 mt-3 border-t border-orange-100">
       <div className="col-span-2">
