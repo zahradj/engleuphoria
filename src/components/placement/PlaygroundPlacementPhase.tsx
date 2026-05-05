@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Star } from 'lucide-react';
+import { Sparkles, Star, Volume2, Trophy, ArrowRight } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
 import type { TestResult } from './TestPhase';
 
 interface PlaygroundPlacementPhaseProps {
@@ -19,13 +21,14 @@ interface PictureQuestion {
   correctIndex: number;
   difficulty: number;
   targetLevel: 'A1' | 'A2' | 'B1';
+  /** When true, plays ElevenLabs narration on mount (visual alone is not enough). */
+  listening?: boolean;
 }
 
-// Picture-based mini quiz for ages 4-9 (Playground Hub).
-// Real flat illustrations served from /public/placement/
 const img = (name: string) => `/placement/${name}`;
 
-const PICTURE_QUESTIONS: PictureQuestion[] = [
+// SECTION 1 — Beginner / Starter (every kid takes this).
+const SECTION_1: PictureQuestion[] = [
   {
     prompt: 'Which one is a CAT?',
     audioPrompt: 'Tap the cat',
@@ -79,6 +82,24 @@ const PICTURE_QUESTIONS: PictureQuestion[] = [
     targetLevel: 'A1',
   },
   {
+    prompt: 'Listen: How many apples?',
+    audioPrompt: 'Listen carefully. How many apples? Tap the right number.',
+    options: [
+      { image: img('count-1.png'), label: 'One' },
+      { image: img('count-2.png'), label: 'Two' },
+      { image: img('count-3.png'), label: 'Three' },
+      { image: img('count-4.png'), label: 'Four' },
+    ],
+    correctIndex: 2,
+    difficulty: 0.4,
+    targetLevel: 'A1',
+    listening: true,
+  },
+];
+
+// SECTION 2 — Unlocked only when student gets ≥80% on Section 1.
+const SECTION_2: PictureQuestion[] = [
+  {
     prompt: 'Which one can you DRINK?',
     audioPrompt: 'Tap the one you can drink',
     options: [
@@ -105,21 +126,8 @@ const PICTURE_QUESTIONS: PictureQuestion[] = [
     targetLevel: 'A1',
   },
   {
-    prompt: 'How many apples?',
-    audioPrompt: 'Count the apples and tap the right number',
-    options: [
-      { image: img('count-1.png'), label: 'One' },
-      { image: img('count-2.png'), label: 'Two' },
-      { image: img('count-3.png'), label: 'Three' },
-      { image: img('count-4.png'), label: 'Four' },
-    ],
-    correctIndex: 2,
-    difficulty: 0.4,
-    targetLevel: 'A1',
-  },
-  {
     prompt: 'Which sentence is correct?',
-    audioPrompt: 'Choose the right sentence',
+    audioPrompt: 'Listen and choose the right sentence.',
     options: [
       { image: img('happy-dog.png'), label: 'The dog is happy.' },
       { image: img('happy-dog.png'), label: 'The dog am happy.' },
@@ -129,10 +137,11 @@ const PICTURE_QUESTIONS: PictureQuestion[] = [
     correctIndex: 0,
     difficulty: 0.55,
     targetLevel: 'A2',
+    listening: true,
   },
   {
     prompt: 'Complete: "I ___ ice cream."',
-    audioPrompt: 'Choose the right word',
+    audioPrompt: 'I blank ice cream. Choose the right word.',
     options: [
       { image: img('ice-cream.png'), label: 'liking' },
       { image: img('ice-cream.png'), label: 'like' },
@@ -142,6 +151,7 @@ const PICTURE_QUESTIONS: PictureQuestion[] = [
     correctIndex: 1,
     difficulty: 0.65,
     targetLevel: 'A2',
+    listening: true,
   },
   {
     prompt: 'Which clock shows THREE o\'clock?',
@@ -166,15 +176,76 @@ const ENCOURAGEMENTS = [
   'Wonderful! ⭐',
 ];
 
+const SECTION_1_PASS_THRESHOLD = 0.8; // 80% to unlock Section 2
+
+// Friendly child voice (Lily) for placement narration.
+const PLAYGROUND_VOICE_ID = 'pFZP5JQG7iQjIQuC4Bku';
+
+async function speak(text: string): Promise<HTMLAudioElement | null> {
+  try {
+    const { data, error } = await supabase.functions.invoke('elevenlabs-tts', {
+      body: { text, voiceId: PLAYGROUND_VOICE_ID, speed: 0.9 },
+    });
+    if (error) throw error;
+    // Edge function returns audio/mpeg ArrayBuffer / Blob.
+    const blob =
+      data instanceof Blob
+        ? data
+        : new Blob([data as ArrayBuffer], { type: 'audio/mpeg' });
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    audio.onended = () => URL.revokeObjectURL(url);
+    await audio.play().catch(() => {});
+    return audio;
+  } catch (e) {
+    console.warn('[placement] TTS failed:', e);
+    return null;
+  }
+}
+
 export const PlaygroundPlacementPhase = ({ onComplete }: PlaygroundPlacementPhaseProps) => {
+  const [section, setSection] = useState<1 | 2>(1);
+  const [showSectionCard, setShowSectionCard] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [results, setResults] = useState<TestResult[]>([]);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const current = PICTURE_QUESTIONS[currentIndex];
-  const total = PICTURE_QUESTIONS.length;
+  const questions = section === 1 ? SECTION_1 : SECTION_2;
+  const current = questions[currentIndex];
+  const total = questions.length;
   const progress = ((currentIndex + (selectedIndex !== null ? 1 : 0)) / total) * 100;
   const encouragement = ENCOURAGEMENTS[currentIndex % ENCOURAGEMENTS.length];
+
+  // Auto-narrate questions flagged as listening tasks.
+  useEffect(() => {
+    if (showSectionCard) return;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    if (current?.listening) {
+      let cancelled = false;
+      (async () => {
+        const a = await speak(current.audioPrompt);
+        if (cancelled && a) a.pause();
+        else audioRef.current = a;
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex, section, showSectionCard]);
+
+  const replay = async () => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(() => {});
+      return;
+    }
+    audioRef.current = await speak(current.audioPrompt);
+  };
 
   const handleSelect = (optionIndex: number) => {
     if (selectedIndex !== null) return;
@@ -182,7 +253,7 @@ export const PlaygroundPlacementPhase = ({ onComplete }: PlaygroundPlacementPhas
 
     const isCorrect = optionIndex === current.correctIndex;
     const result: TestResult = {
-      questionIndex: currentIndex,
+      questionIndex: section === 1 ? currentIndex : SECTION_1.length + currentIndex,
       selectedOption: optionIndex,
       correctOption: current.correctIndex,
       isCorrect,
@@ -194,13 +265,61 @@ export const PlaygroundPlacementPhase = ({ onComplete }: PlaygroundPlacementPhas
 
     setTimeout(() => {
       if (currentIndex + 1 >= total) {
-        onComplete(updatedResults);
+        // End of current section
+        if (section === 1) {
+          const sec1 = updatedResults.slice(0, SECTION_1.length);
+          const correct = sec1.filter((r) => r.isCorrect).length;
+          const ratio = correct / SECTION_1.length;
+          if (ratio >= SECTION_1_PASS_THRESHOLD) {
+            setShowSectionCard(true);
+          } else {
+            // Stop at Section 1 — beginner placement.
+            onComplete(updatedResults);
+          }
+        } else {
+          onComplete(updatedResults);
+        }
       } else {
         setCurrentIndex(currentIndex + 1);
         setSelectedIndex(null);
       }
     }, 1100);
   };
+
+  const beginSection2 = () => {
+    setShowSectionCard(false);
+    setSection(2);
+    setCurrentIndex(0);
+    setSelectedIndex(null);
+  };
+
+  // Inter-section celebration card.
+  if (showSectionCard) {
+    return (
+      <div className="h-full flex items-center justify-center px-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.92 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white border border-orange-200 rounded-3xl p-8 max-w-md w-full text-center shadow-xl"
+        >
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-400 to-amber-400 flex items-center justify-center">
+            <Trophy className="w-10 h-10 text-white" />
+          </div>
+          <h3 className="text-2xl font-bold text-slate-800 mb-2">Amazing! 🎉</h3>
+          <p className="text-slate-600 mb-6">
+            You aced the first section! Ready for some bigger challenges?
+          </p>
+          <Button
+            size="lg"
+            onClick={beginSection2}
+            className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold rounded-xl w-full h-12"
+          >
+            Start Section 2 <ArrowRight className="ml-2 w-5 h-5" />
+          </Button>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col">
@@ -220,7 +339,7 @@ export const PlaygroundPlacementPhase = ({ onComplete }: PlaygroundPlacementPhas
             ))}
           </div>
           <span className="text-slate-600 text-xs font-semibold">
-            {currentIndex + 1} / {total}
+            Section {section} · {currentIndex + 1} / {total}
           </span>
         </div>
         <div className="h-2 bg-amber-100 rounded-full overflow-hidden">
@@ -233,11 +352,11 @@ export const PlaygroundPlacementPhase = ({ onComplete }: PlaygroundPlacementPhas
         </div>
       </div>
 
-      {/* Question with horizontal slide between questions */}
+      {/* Question */}
       <div className="flex-1 flex flex-col px-4 sm:px-6 pb-6 overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.div
-            key={currentIndex}
+            key={`${section}-${currentIndex}`}
             initial={{ opacity: 0, x: 100 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -100 }}
@@ -248,78 +367,90 @@ export const PlaygroundPlacementPhase = ({ onComplete }: PlaygroundPlacementPhas
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-800 leading-tight mb-2">
                 {current.prompt}
               </h2>
-              <p className="text-slate-500 text-sm">{current.audioPrompt}</p>
+              <div className="flex items-center justify-center gap-2">
+                <p className="text-slate-500 text-sm">{current.audioPrompt}</p>
+                <button
+                  type="button"
+                  onClick={replay}
+                  aria-label="Play audio"
+                  className="w-8 h-8 rounded-full bg-orange-100 hover:bg-orange-200 text-orange-600 flex items-center justify-center transition-colors"
+                >
+                  <Volume2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             {(() => {
-              const uniqueImages = new Set(current.options.map(o => o.image));
+              const uniqueImages = new Set(current.options.map((o) => o.image));
               const showLabels = uniqueImages.size < current.options.length;
               return (
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-md mx-auto w-full" key="opts">
-              {current.options.map((option, idx) => {
-                const isSelected = selectedIndex === idx;
-                const showSelected = isSelected;
+                <div
+                  className="grid grid-cols-2 gap-3 sm:gap-4 max-w-md mx-auto w-full"
+                  key="opts"
+                >
+                  {current.options.map((option, idx) => {
+                    const isSelected = selectedIndex === idx;
+                    const showSelected = isSelected;
 
-                return (
-                  <motion.button
-                    key={idx}
-                    type="button"
-                    onClick={() => handleSelect(idx)}
-                    disabled={selectedIndex !== null}
-                    initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{
-                      delay: idx * 0.08,
-                      type: 'spring',
-                      stiffness: 300,
-                      damping: 22,
-                    }}
-                    whileHover={selectedIndex === null ? { scale: 1.05, y: -5 } : undefined}
-                    whileTap={selectedIndex === null ? { scale: 0.95 } : undefined}
-                    aria-label={option.label}
-                    aria-pressed={isSelected}
-                    className={`relative aspect-square rounded-2xl overflow-hidden bg-white border shadow-md transition-shadow duration-200 ${
-                      showSelected
-                        ? 'border-orange-300 ring-4 ring-orange-400 shadow-lg'
-                        : selectedIndex !== null
-                        ? 'border-slate-200 opacity-70'
-                        : 'border-slate-200 hover:shadow-lg'
-                    }`}
-                  >
-                    <img
-                      src={option.image}
-                      alt={option.label}
-                      loading="lazy"
-                      width={512}
-                      height={512}
-                      className="absolute inset-0 w-full h-full object-contain p-4 select-none pointer-events-none"
-                      draggable={false}
-                    />
-                    {showLabels && (
-                      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%]">
-                        <span className="block bg-white/95 backdrop-blur-sm rounded-full px-3 py-1 text-slate-800 font-semibold text-xs sm:text-sm text-center shadow-sm whitespace-nowrap overflow-hidden text-ellipsis">
-                          {option.label}
-                        </span>
-                      </div>
-                    )}
-                    {showSelected && (
-                      <motion.div
-                        initial={{ scale: 0, rotate: -180 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-                        className="absolute -top-2 -right-2 w-9 h-9 rounded-full bg-orange-400 flex items-center justify-center shadow-lg"
+                    return (
+                      <motion.button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleSelect(idx)}
+                        disabled={selectedIndex !== null}
+                        initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        transition={{
+                          delay: idx * 0.08,
+                          type: 'spring',
+                          stiffness: 300,
+                          damping: 22,
+                        }}
+                        whileHover={selectedIndex === null ? { scale: 1.05, y: -5 } : undefined}
+                        whileTap={selectedIndex === null ? { scale: 0.95 } : undefined}
+                        aria-label={option.label}
+                        aria-pressed={isSelected}
+                        className={`relative aspect-square rounded-2xl overflow-hidden bg-white border shadow-md transition-shadow duration-200 ${
+                          showSelected
+                            ? 'border-orange-300 ring-4 ring-orange-400 shadow-lg'
+                            : selectedIndex !== null
+                            ? 'border-slate-200 opacity-70'
+                            : 'border-slate-200 hover:shadow-lg'
+                        }`}
                       >
-                        <Sparkles className="w-5 h-5 text-white" />
-                      </motion.div>
-                    )}
-                  </motion.button>
-                );
-              })}
-            </div>
+                        <img
+                          src={option.image}
+                          alt={option.label}
+                          loading="lazy"
+                          width={512}
+                          height={512}
+                          className="absolute inset-0 w-full h-full object-contain p-4 select-none pointer-events-none"
+                          draggable={false}
+                        />
+                        {showLabels && (
+                          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%]">
+                            <span className="block bg-white/95 backdrop-blur-sm rounded-full px-3 py-1 text-slate-800 font-semibold text-xs sm:text-sm text-center shadow-sm whitespace-nowrap overflow-hidden text-ellipsis">
+                              {option.label}
+                            </span>
+                          </div>
+                        )}
+                        {showSelected && (
+                          <motion.div
+                            initial={{ scale: 0, rotate: -180 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                            className="absolute -top-2 -right-2 w-9 h-9 rounded-full bg-orange-400 flex items-center justify-center shadow-lg"
+                          >
+                            <Sparkles className="w-5 h-5 text-white" />
+                          </motion.div>
+                        )}
+                      </motion.button>
+                    );
+                  })}
+                </div>
               );
             })()}
 
-            {/* Non-punishing encouragement — shown for any tap */}
             <AnimatePresence>
               {selectedIndex !== null && (
                 <motion.div
