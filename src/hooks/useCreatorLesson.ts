@@ -110,12 +110,7 @@ export function useCreatorLesson({ hub, initialLessonId }: UseCreatorLessonArgs)
           hub,
           updated_at: new Date().toISOString(),
         };
-          qc.invalidateQueries({ queryKey: ['creator-lesson', lessonId] });
-          qc.invalidateQueries({ queryKey: ['creator-library', hub] });
-          qc.invalidateQueries({ queryKey: ['curriculum-lessons-library'] });
-          if (!meta.silent) toast.success(successToast);
-          return lessonId;
-        }
+
 
         const { data, error } = await supabase
           .from('curriculum_lessons')
