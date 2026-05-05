@@ -200,11 +200,3 @@ function CenterMsg({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Minimal theme tokens for Academy / Success renderers (mirrors their demo defaults)
-const ACADEMY_THEME: any = {
-  // The renderer uses Tailwind classes already; theme tokens are mostly accents.
-  primary: 'text-violet-700', accent: 'bg-violet-100', surface: 'bg-card', text: 'text-foreground',
-};
-const SUCCESS_THEME: any = {
-  primary: 'text-emerald-700', accent: 'bg-emerald-100', surface: 'bg-card', text: 'text-foreground',
-};
