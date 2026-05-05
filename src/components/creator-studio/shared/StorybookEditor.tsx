@@ -3,7 +3,7 @@ import { Sparkles, Loader2, Plus, Trash2, ImageIcon, Volume2 } from 'lucide-reac
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { generateOnePlaygroundImage } from '@/hooks/usePlaygroundImages';
-import type { StorybookSlideShape, StorybookPage } from './StorybookRenderer';
+import type { StorybookSlideShape, StorybookPage, StorybookLayoutMode, StorybookTheme } from './StorybookRenderer';
 
 type Hub = 'playground' | 'academy' | 'success';
 
@@ -12,11 +12,33 @@ interface Props {
   hub: Hub;
   cefrLevel?: string;
   targetVocab?: string[];
+  grammarFocus?: string;
   /** patches THIS storybook slide */
   onPatch: (patch: Partial<StorybookSlideShape>) => void;
   /** appends auto-generated comprehension quiz slides immediately after this storybook */
   onAppendQuiz?: (quizSlides: any[]) => void;
 }
+
+const DEFAULT_LAYOUT: Record<Hub, StorybookLayoutMode> = {
+  playground: 'classic',
+  academy: 'comic',
+  success: 'case_study',
+};
+
+const THEME_OPTIONS: { value: StorybookTheme; label: string }[] = [
+  { value: 'adventure', label: '🗺️ Adventure' },
+  { value: 'school', label: '🎒 School Day' },
+  { value: 'mystery', label: '🔍 Mystery' },
+  { value: 'business_trip', label: '✈️ Business Trip' },
+  { value: 'negotiation', label: '🤝 Negotiation' },
+  { value: 'custom', label: '✨ Custom' },
+];
+
+const LAYOUT_OPTIONS: { value: StorybookLayoutMode; label: string }[] = [
+  { value: 'classic', label: 'Classic (image + text)' },
+  { value: 'comic', label: 'Comic (panels)' },
+  { value: 'case_study', label: 'Case Study (vertical)' },
+];
 
 const HUB_TONE: Record<Hub, string> = {
   playground: 'border-orange-200 focus:border-orange-500 ring-orange-100',
