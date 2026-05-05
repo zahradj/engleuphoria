@@ -705,7 +705,7 @@ export default function PlaygroundCreator() {
                     onChange={(next) => update(next as Partial<Slide>)}
                   />
                 ) : (
-                  <SlideEditor slide={current} onChange={update} />
+                  <SlideEditor slide={current} onChange={update} blueprint={blueprint} hub="playground" />
                 )}
               </TabsContent>
               <TabsContent value="media" className="pt-4 flex-1 overflow-y-auto min-h-0">
