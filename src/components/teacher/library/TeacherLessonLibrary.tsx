@@ -128,7 +128,7 @@ export const TeacherLessonLibrary: React.FC = () => {
                     size="sm"
                     variant="outline"
                     className="gap-1.5"
-                    onClick={() => navigate(`/lesson/${lesson.id}`)}
+                    onClick={(e) => { e.stopPropagation(); navigate(`/lesson/${lesson.id}`); }}
                   >
                     <Eye className="w-3.5 h-3.5" />
                     Preview
@@ -136,7 +136,7 @@ export const TeacherLessonLibrary: React.FC = () => {
                   <Button
                     size="sm"
                     className="gap-1.5"
-                    onClick={() => setAssignLesson(lesson)}
+                    onClick={(e) => { e.stopPropagation(); setAssignLesson(lesson); }}
                   >
                     <Rocket className="w-3.5 h-3.5" />
                     Assign
