@@ -90,9 +90,10 @@ Allowed types and required shape:
 { "type": "drag", "instruction": "Drag the word onto the picture", "word": "APPLE", "image_url": "AI:shiny red apple", "voice": {...} }
 
 RULES:
-- Output 8-12 slides. Start with ONE "intro". End with a celebratory "intro".
+- Output 8-12 slides. Start with ONE "intro". End with a "lesson_summary" slide: { "type": "lesson_summary", "title": "Level Complete!", "vocab_recap": ["...","..."], "takeaway": "..." } that lists up to 5 words taught.
 - Use at least 4 different interactive types in between. No two same types back-to-back.
 - For every "AI:<subject>" placeholder, write a clear, kid-friendly subject ≤ 6 words.
+- For EVERY slide include a short "teacher_notes" (≤120 chars) for the live teacher. Never shown to the student.
 - Topic: "${effectiveTitle}". ${objective ? `Goal: ${objective}.` : ""}
 - Return RAW JSON ARRAY only.`;
 
