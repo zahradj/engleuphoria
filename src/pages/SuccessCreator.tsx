@@ -221,15 +221,26 @@ export default function SuccessCreator() {
     if (!aiTopic.trim()) return;
     setAiBusy(true);
     try {
+      toast.message('Planning lesson blueprint…');
+      const planRes = await supabase.functions.invoke('plan-lesson-blueprint', {
+        body: { topic: aiTopic.trim(), cefr_level: aiLevel, hub: 'success' },
+      });
+      if (planRes.error) throw planRes.error;
+      const bp = planRes.data as LessonBlueprint;
+      setBlueprint(bp);
+
       const { data, error } = await supabase.functions.invoke('generate-ppp-slides', {
         body: {
           lesson_title: aiTopic.trim(),
-          objective: `60-minute Business English Success lesson on ${aiTopic.trim()}. Target language: ${aiGrammar}.`,
+          objective: `60-minute Business English Success lesson on ${aiTopic.trim()}. Target vocabulary: ${bp.vocabulary.join(', ')}. Target grammar: ${bp.grammar}.`,
           skill_focus: 'Professional Communication',
           cefr_level: aiLevel,
           hub: 'success',
           target_hub: 'success',
           hub_type: 'success',
+          target_vocabulary: bp.vocabulary,
+          grammar_focus: bp.grammar,
+          blueprint: { lesson_title: aiTopic.trim(), target_vocabulary: bp.vocabulary, grammar_focus: bp.grammar, target_hub: 'success' },
         },
       });
       if (error) throw error;
