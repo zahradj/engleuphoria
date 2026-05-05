@@ -42,6 +42,9 @@ import { ScaffoldedMediaEditor } from '@/components/creator-studio/shared/Scaffo
 import { LessonBlueprintPanel, type LessonBlueprint } from '@/components/creator-studio/shared/LessonBlueprintPanel';
 import { WandFieldButton } from '@/components/creator-studio/shared/WandFieldButton';
 import { AIToolsPanel } from '@/components/creator-studio/shared/AIToolsPanel';
+import { StorybookEditor } from '@/components/creator-studio/shared/StorybookEditor';
+import { StorybookRenderer } from '@/components/creator-studio/shared/StorybookRenderer';
+import { mapAIQuizSlides } from '@/components/creator-studio/shared/aiQuizMapper';
 
 /**
  * Success Slide Creator — adult Business English authoring tool.
