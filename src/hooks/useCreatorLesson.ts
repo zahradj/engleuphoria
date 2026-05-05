@@ -52,7 +52,7 @@ export function useCreatorLesson({ hub, initialLessonId }: UseCreatorLessonArgs)
   const persist = useCallback(
     async (
       slides: any[],
-      meta: { title: string; level?: string; publish: boolean; silent?: boolean },
+      meta: { title: string; level?: string; publish: boolean; silent?: boolean; blueprint?: any },
     ): Promise<string | null> => {
       if (!meta.silent) setIsSaving(true);
       try {
