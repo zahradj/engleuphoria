@@ -64,6 +64,7 @@ const SLIDE_TYPES: { type: SlideType; label: string; emoji: string }[] = [
   { type: 'canvas_game', label: 'Canvas Game', emoji: '🎯' },
   { type: 'living_canvas', label: 'Click-to-Reveal', emoji: '✨' },
   { type: 'scaffolded_media', label: 'Scaffolded Media', emoji: '🎬' },
+  { type: 'vocab_solo', label: 'Solo Vocab Card', emoji: '🃏' },
   { type: 'lesson_summary', label: 'Lesson Summary', emoji: '🏆' },
 ];
 
@@ -88,6 +89,8 @@ function makeSlide(type: SlideType): Slide {
       };
     case 'draw':
       return { type: 'draw', prompt: 'Draw your favourite animal!', voice: { text: 'Draw something!', autoPlay: true } };
+    case 'vocab_solo':
+      return { type: 'vocab_solo', word: 'APPLE', definition: 'A round red or green fruit.', image_url: '', audio_url: '', voice: { text: 'apple', autoPlay: true } } as Slide;
     case 'lesson_summary':
       return { type: 'lesson_summary', title: 'Level Complete!', vocab_recap: [], takeaway: 'You did amazing!', voice: { text: 'Great job! Level complete!', autoPlay: true } };
     case 'storybook':
