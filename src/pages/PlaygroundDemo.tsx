@@ -84,6 +84,14 @@ export type Slide =
       takeaway?: string;
       voice?: SlideVoice;
     }
+  | {
+      type: 'vocab_solo';
+      word: string;
+      definition?: string;
+      image_url?: string;
+      audio_url?: string;
+      voice?: SlideVoice;
+    }
   | (CanvasGameSlide & { voice?: SlideVoice })
   | (LivingCanvasSlide & { voice?: SlideVoice })
   | (ScaffoldedMediaSlide & { voice?: SlideVoice });
