@@ -252,15 +252,28 @@ export default function PlaygroundCreator() {
     if (!aiTopic.trim()) return;
     setAiBusy(true);
     try {
+      // Step 1 — Plan the blueprint (5 vocab + 1 grammar)
+      toast.message('Planning lesson blueprint…');
+      const planRes = await supabase.functions.invoke('plan-lesson-blueprint', {
+        body: { topic: aiTopic.trim(), cefr_level: aiLevel, hub: 'playground' },
+      });
+      if (planRes.error) throw planRes.error;
+      const bp = planRes.data as LessonBlueprint;
+      setBlueprint(bp);
+
+      // Step 2 — Generate slides forced to use that blueprint
       const { data, error } = await supabase.functions.invoke('generate-ppp-slides', {
         body: {
           lesson_title: aiTopic.trim(),
-          objective: `Fun interactive Playground lesson about ${aiTopic.trim()}`,
+          objective: `Fun interactive Playground lesson about ${aiTopic.trim()}. Target vocabulary: ${bp.vocabulary.join(', ')}. Target grammar: ${bp.grammar}.`,
           skill_focus: 'Vocabulary',
-          cefr_level: 'A1',
+          cefr_level: aiLevel,
           hub: 'playground',
           target_hub: 'playground',
           hub_type: 'playground',
+          target_vocabulary: bp.vocabulary,
+          grammar_focus: bp.grammar,
+          blueprint: { lesson_title: aiTopic.trim(), target_vocabulary: bp.vocabulary, grammar_focus: bp.grammar, target_hub: 'playground' },
         },
       });
       if (error) throw error;
