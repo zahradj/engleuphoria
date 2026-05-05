@@ -88,8 +88,8 @@ export default function LiveClassroom() {
   }
 
   const SlideComponent = (() => {
-    if (hub === 'academy') return <AcademyRenderer slide={currentSlide as AcademySlide} t={ACADEMY_THEME} />;
-    if (hub === 'success') return <SuccessRenderer slide={currentSlide as SuccessSlide} t={SUCCESS_THEME} />;
+    if (hub === 'academy') return <AcademyRenderer slide={currentSlide as AcademySlide} t={academyThemeMap.light} />;
+    if (hub === 'success') return <SuccessRenderer slide={currentSlide as SuccessSlide} t={successThemeMap.light} />;
     return <PlaygroundRenderer slide={currentSlide as PlaygroundSlide} />;
   })();
 
