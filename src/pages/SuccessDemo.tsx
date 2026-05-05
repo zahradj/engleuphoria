@@ -689,6 +689,11 @@ export function SlideRenderer({ slide, t }: { slide: Slide; t: ThemeTokens }) {
     case 'role_play': return <RolePlaySlide slide={slide} t={t} />;
     case 'speaking_task': return <SpeakingTaskSlide slide={slide} t={t} />;
     case 'reflection': return <ReflectionSlide slide={slide} t={t} />;
+    case 'canvas_game':
+    case 'living_canvas':
+      return <LivingCanvas slide={slide as any} hub="success" />;
+    case 'scaffolded_media':
+      return <ScaffoldedPlayer slide={slide as any} hub="success" />;
     case 'lesson_summary': return <LessonSummarySlide slide={slide} t={t} />;
   }
 }
