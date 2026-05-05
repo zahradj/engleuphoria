@@ -525,8 +525,45 @@ export default function AcademyCreator() {
           </div>
         </aside>
 
-        {/* Middle: editor */}
-        <section className="min-h-0 flex flex-col">
+        {/* Middle: live preview (CENTER) */}
+        <section className="min-h-0 flex flex-col order-2">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 flex flex-col flex-1 min-h-0 overflow-y-auto">
+            <div className="flex items-center justify-between mb-2 px-2 gap-2 flex-wrap">
+              <h2 className="text-xs font-bold text-indigo-600 tracking-wider uppercase">Live Preview</h2>
+              <div className="flex items-center gap-2">
+                <PreviewRoleToggle value={previewRole} onChange={setPreviewRole} hub="academy" />
+                <PreviewModeToggle value={previewMode} onChange={setPreviewMode} hub="academy" />
+              </div>
+            </div>
+            <PlayablePreviewPane
+              mode={previewMode}
+              slides={slides}
+              startIndex={selected}
+              hub="academy"
+              previewRole={previewRole}
+              getTeacherNotes={(s) => (s as any).teacher_notes}
+              renderSlide={(slide) => (
+                <div className="rounded-xl bg-slate-50 border border-slate-200 p-5 min-h-[450px] flex items-center justify-center">
+                  <div className="w-full">
+                    <div className="text-[10px] uppercase tracking-[0.2em] text-indigo-400 font-semibold mb-3 text-center">
+                      {BLOCKS.find((b) => b.id === (slide as Slide).block)?.label}
+                    </div>
+                    <SlideRenderer slide={slide as Slide} t={t} />
+                  </div>
+                </div>
+              )}
+            />
+            {slides[selected] && (
+              <TeacherNotesField
+                value={(slides[selected] as any).teacher_notes}
+                onChange={(next) => update({ teacher_notes: next } as any)}
+              />
+            )}
+          </div>
+        </section>
+
+        {/* Right: editor */}
+        <section className="min-h-0 flex flex-col order-3">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col flex-1 min-h-0">
             <div className="flex items-center justify-between mb-4 gap-2 flex-shrink-0">
               <h2 className="text-xs font-bold text-indigo-600 tracking-wider uppercase">
@@ -576,43 +613,6 @@ export default function AcademyCreator() {
                 />
               </TabsContent>
             </Tabs>
-          </div>
-        </section>
-
-        {/* Right: live preview */}
-        <section className="min-h-0 flex flex-col">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 flex flex-col flex-1 min-h-0 overflow-y-auto">
-            <div className="flex items-center justify-between mb-2 px-2 gap-2 flex-wrap">
-              <h2 className="text-xs font-bold text-indigo-600 tracking-wider uppercase">Live Preview</h2>
-              <div className="flex items-center gap-2">
-                <PreviewRoleToggle value={previewRole} onChange={setPreviewRole} hub="academy" />
-                <PreviewModeToggle value={previewMode} onChange={setPreviewMode} hub="academy" />
-              </div>
-            </div>
-            <PlayablePreviewPane
-              mode={previewMode}
-              slides={slides}
-              startIndex={selected}
-              hub="academy"
-              previewRole={previewRole}
-              getTeacherNotes={(s) => (s as any).teacher_notes}
-              renderSlide={(slide) => (
-                <div className="rounded-xl bg-slate-50 border border-slate-200 p-5 min-h-[450px] flex items-center justify-center">
-                  <div className="w-full">
-                    <div className="text-[10px] uppercase tracking-[0.2em] text-indigo-400 font-semibold mb-3 text-center">
-                      {BLOCKS.find((b) => b.id === (slide as Slide).block)?.label}
-                    </div>
-                    <SlideRenderer slide={slide as Slide} t={t} />
-                  </div>
-                </div>
-              )}
-            />
-            {slides[selected] && (
-              <TeacherNotesField
-                value={(slides[selected] as any).teacher_notes}
-                onChange={(next) => update({ teacher_notes: next } as any)}
-              />
-            )}
           </div>
         </section>
       </div>
