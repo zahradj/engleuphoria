@@ -15,6 +15,8 @@ import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { SlideMediaPanel } from '@/components/creator-studio/shared/SlideMediaPanel';
+import { slideIcon } from '@/components/creator-studio/shared/slideIcons';
+import { InsertSlideButton } from '@/components/creator-studio/shared/InsertSlideButton';
 import { PreviewModeToggle, type PreviewMode } from '@/components/creator-studio/shared/PreviewModeToggle';
 import { PlayablePreviewPane } from '@/components/creator-studio/shared/PlayablePreviewPane';
 import { UniversalMediaShell } from '@/components/creator-studio/shared/UniversalMediaShell';
