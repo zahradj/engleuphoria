@@ -133,10 +133,8 @@ export default function PlaygroundCreator() {
     const lesson = lessonHook.lesson;
     if (!lesson) return;
     const dbSlides = getLibraryLessonSlides(lesson) as Slide[];
-    if (dbSlides.length > 0) {
-      setSlides(dbSlides);
-      setSelected(0);
-    }
+    setSlides(dbSlides);
+    setSelected(0);
     if (lesson.title) setTitle(lesson.title);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonHook.lesson?.id]);
