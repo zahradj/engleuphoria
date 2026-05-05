@@ -596,7 +596,9 @@ export default function AcademyCreator() {
                     <div className="text-[10px] uppercase tracking-[0.2em] text-indigo-400 font-semibold mb-3 text-center">
                       {BLOCKS.find((b) => b.id === (slide as Slide).block)?.label}
                     </div>
-                    <SlideRenderer slide={slide as Slide} t={t} />
+                    <UniversalMediaShell slide={slide as any} hub="academy">
+                      <SlideRenderer slide={slide as Slide} t={t} />
+                    </UniversalMediaShell>
                   </div>
                 </div>
               )}
