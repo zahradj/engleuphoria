@@ -13,6 +13,7 @@ import { PlayablePreviewPane } from '@/components/creator-studio/shared/Playable
 import { UniversalMediaShell } from '@/components/creator-studio/shared/UniversalMediaShell';
 import { SoloVocabCard } from '@/components/creator-studio/shared/SoloVocabCard';
 import { VisualFlashcard } from '@/components/creator-studio/shared/VisualFlashcard';
+import { PhonicsFocusCard } from '@/components/creator-studio/shared/PhonicsFocusCard';
 import { WandFieldButton } from '@/components/creator-studio/shared/WandFieldButton';
 import { AIToolsPanel } from '@/components/creator-studio/shared/AIToolsPanel';
 import { slideIcon } from '@/components/creator-studio/shared/slideIcons';
@@ -70,6 +71,7 @@ const SLIDE_TYPES: { type: SlideType; label: string; emoji: string }[] = [
   { type: 'living_canvas', label: 'Click-to-Reveal', emoji: '✨' },
   { type: 'scaffolded_media', label: 'Scaffolded Media', emoji: '🎬' },
   { type: 'vocab_solo', label: 'Solo Vocab Card', emoji: '🃏' },
+  { type: 'phonics_focus', label: 'Phonics Focus', emoji: '🔊' },
   { type: 'lesson_summary', label: 'Lesson Summary', emoji: '🏆' },
 ];
 
@@ -96,6 +98,8 @@ function makeSlide(type: SlideType): Slide {
       return { type: 'draw', prompt: 'Draw your favourite animal!', voice: { text: 'Draw something!', autoPlay: true } };
     case 'vocab_solo':
       return { type: 'vocab_solo', word: 'APPLE', definition: 'A round red or green fruit.', image_url: '', audio_url: '', voice: { text: 'apple', autoPlay: true } } as Slide;
+    case 'phonics_focus':
+      return { type: 'phonics_focus', phoneme: '/æ/', grapheme: 'a', sound_ipa: '/æ/', label: 'Listen to the sound', example_words: ['CAT', 'BAT', 'HAT'], audio_url: '', voice: { text: 'short a', autoPlay: true } } as unknown as Slide;
     case 'lesson_summary':
       return { type: 'lesson_summary', title: 'Level Complete!', vocab_recap: [], takeaway: 'You did amazing!', voice: { text: 'Great job! Level complete!', autoPlay: true } };
     case 'storybook':
@@ -585,6 +589,7 @@ export default function PlaygroundCreator() {
                           { type: 'scaffolded_media', label: 'Media Analyzer', emoji: '🎬' },
                           { type: 'canvas_game', label: 'Canvas Game', emoji: '🎮' },
                           { type: 'vocab_solo', label: 'Vocab Card', emoji: '✨' },
+                          { type: 'phonics_focus', label: 'Phonics Focus', emoji: '🔊' },
                         ]}
                         onInsert={(t) => { setSlides((p) => { const n = [...p]; n.splice(i, 0, makeSlide(t as SlideType)); return n; }); setSelected(i); }}
                       />
@@ -666,14 +671,17 @@ export default function PlaygroundCreator() {
               renderSlide={(slide, idx) => {
                 const s: any = slide;
                 const isVocab = s.type === 'vocab_solo';
+                const isPhonics = s.type === 'phonics_focus';
                 const flashcards = Array.isArray(s.flashcards) ? s.flashcards : [];
-                const legacySolo = !isVocab && flashcards.length > 0;
+                const legacySolo = !isVocab && !isPhonics && flashcards.length > 0;
                 return (
                   <div className="rounded-xl bg-gradient-to-br from-orange-400 via-amber-300 to-yellow-200 p-4 min-h-[420px] flex items-center justify-center">
                     <div key={idx + (slide as Slide).type} className="bg-white rounded-2xl shadow-xl w-full p-4 min-h-[380px] flex items-center justify-center">
                       <div className="scale-[0.85] origin-center w-full">
                         {isVocab ? (
                           <VisualFlashcard slide={s} hub="playground" />
+                        ) : isPhonics ? (
+                          <PhonicsFocusCard slide={s} hub="playground" />
                         ) : (
                           <UniversalMediaShell slide={s} hub="playground" suppressImage={legacySolo}>
                             {legacySolo ? (
