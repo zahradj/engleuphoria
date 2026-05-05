@@ -8,11 +8,17 @@ export interface LessonBlueprint {
   vocabulary: string[]; // exactly 5
   grammar: string;
   rationale?: string;
+  /** Creative anchor — comma-separated topics the student loves. */
+  interests?: string;
+  /** Free-text accommodations / goals (e.g. "shy speaker, exam prep"). */
+  specific_needs?: string;
 }
 
 export const EMPTY_BLUEPRINT: LessonBlueprint = {
   vocabulary: ['', '', '', '', ''],
   grammar: '',
+  interests: '',
+  specific_needs: '',
 };
 
 interface Props {
@@ -87,6 +93,8 @@ export function LessonBlueprintPanel({
           slides,
           vocabulary: bp.vocabulary.filter((v) => v.trim()),
           grammar: bp.grammar.trim(),
+          interests: bp.interests?.trim() || undefined,
+          specific_needs: bp.specific_needs?.trim() || undefined,
           hub,
           cefr_level: cefrLevel,
         },
@@ -150,6 +158,28 @@ export function LessonBlueprintPanel({
                   value={bp.grammar}
                   onChange={(e) => updateGrammar(e.target.value)}
                   placeholder="e.g. Simple Past"
+                  className={`w-full text-xs rounded-md border ${t.border} px-2 py-1 outline-none focus:ring-2 ${t.ring}`}
+                />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">
+                  🎯 Student Interests <span className="text-slate-400 font-normal lowercase">(creative anchor)</span>
+                </p>
+                <input
+                  value={bp.interests || ''}
+                  onChange={(e) => onChange({ ...bp, interests: e.target.value })}
+                  placeholder="e.g. football, Pokemon, K-pop"
+                  className={`w-full text-xs rounded-md border ${t.border} px-2 py-1 outline-none focus:ring-2 ${t.ring}`}
+                />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">
+                  🛠 Specific Needs / Goals
+                </p>
+                <input
+                  value={bp.specific_needs || ''}
+                  onChange={(e) => onChange({ ...bp, specific_needs: e.target.value })}
+                  placeholder="e.g. shy speaker, exam prep, dyslexic"
                   className={`w-full text-xs rounded-md border ${t.border} px-2 py-1 outline-none focus:ring-2 ${t.ring}`}
                 />
               </div>

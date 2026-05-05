@@ -14,6 +14,8 @@ import { UniversalMediaShell } from '@/components/creator-studio/shared/Universa
 import { SoloVocabCard } from '@/components/creator-studio/shared/SoloVocabCard';
 import { WandFieldButton } from '@/components/creator-studio/shared/WandFieldButton';
 import { AIToolsPanel } from '@/components/creator-studio/shared/AIToolsPanel';
+import { slideIcon } from '@/components/creator-studio/shared/slideIcons';
+import { InsertSlideButton } from '@/components/creator-studio/shared/InsertSlideButton';
 import { PreviewRoleToggle, type PreviewRole } from '@/components/creator-studio/shared/PreviewRoleToggle';
 import { TeacherNotesField } from '@/components/creator-studio/shared/TeacherNotesField';
 import { AssetVaultDialog } from '@/components/creator-studio/shared/AssetVaultDialog';
@@ -261,11 +263,13 @@ export default function PlaygroundCreator() {
     try {
       // Step 1 — Plan the blueprint (5 vocab + 1 grammar)
       toast.message('Planning lesson blueprint…');
+      const interests = blueprint?.interests?.trim();
+      const specific_needs = blueprint?.specific_needs?.trim();
       const planRes = await supabase.functions.invoke('plan-lesson-blueprint', {
-        body: { topic: aiTopic.trim(), cefr_level: aiLevel, hub: 'playground' },
+        body: { topic: aiTopic.trim(), cefr_level: aiLevel, hub: 'playground', interests, specific_needs },
       });
       if (planRes.error) throw planRes.error;
-      const bp = planRes.data as LessonBlueprint;
+      const bp = { ...(planRes.data as LessonBlueprint), interests, specific_needs };
       setBlueprint(bp);
 
       // Step 2 — Generate slides forced to use that blueprint
@@ -280,7 +284,9 @@ export default function PlaygroundCreator() {
           hub_type: 'playground',
           target_vocabulary: bp.vocabulary,
           grammar_focus: bp.grammar,
-          blueprint: { lesson_title: aiTopic.trim(), target_vocabulary: bp.vocabulary, grammar_focus: bp.grammar, target_hub: 'playground' },
+          interests,
+          specific_needs,
+          blueprint: { lesson_title: aiTopic.trim(), target_vocabulary: bp.vocabulary, grammar_focus: bp.grammar, target_hub: 'playground', interests, specific_needs },
         },
       });
       if (error) throw error;
@@ -562,37 +568,54 @@ export default function PlaygroundCreator() {
           />
           <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-3 flex flex-col flex-1 min-h-0">
             <h2 className="text-sm font-bold text-orange-600 px-2 py-1">SLIDES</h2>
-            <div className="space-y-2 flex-1 overflow-y-auto pr-1 min-h-0">
-              {slides.map((s, i) => (
-                <div
-                  key={i}
-                  draggable
-                  onDragStart={() => onDragStart(i)}
-                  onDragOver={onDragOver}
-                  onDrop={() => onDrop(i)}
-                  onClick={() => setSelected(i)}
-                  className={`w-full text-left rounded-xl p-3 border-2 transition cursor-pointer ${
-                    i === selected ? 'border-orange-500 bg-orange-50 shadow-sm' : 'border-slate-200 hover:border-orange-300 bg-white'
-                  } ${dragIdx === i ? 'opacity-40' : ''}`}
-                >
-                  <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
-                    <span className="font-bold text-orange-600">
-                      {s.type === 'lesson_summary' ? `🔒 #${i + 1} · auto-summary` : `⋮⋮ #${i + 1} · ${s.type}`}
-                    </span>
-                    {s.type !== 'lesson_summary' && (
-                      <div className="flex gap-1 opacity-70">
-                        <span onClick={(e) => { e.stopPropagation(); move(i, -1); }} className="hover:text-orange-600"><ChevronUp className="w-3.5 h-3.5" /></span>
-                        <span onClick={(e) => { e.stopPropagation(); move(i, 1); }} className="hover:text-orange-600"><ChevronDown className="w-3.5 h-3.5" /></span>
-                        <span onClick={(e) => { e.stopPropagation(); duplicate(i); }} className="hover:text-orange-600"><Copy className="w-3.5 h-3.5" /></span>
-                        <span onClick={(e) => { e.stopPropagation(); deleteSlide(i); }} className="hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></span>
-                      </div>
+            <div className="space-y-1 flex-1 overflow-y-auto pr-1 min-h-0">
+              {slides.map((s, i) => {
+                const Icon = slideIcon((s as any).type);
+                return (
+                  <div key={i}>
+                    {i > 0 && (
+                      <InsertSlideButton
+                        hub="playground"
+                        options={[
+                          { type: 'storybook', label: 'Storybook', emoji: '📖' },
+                          { type: 'scaffolded_media', label: 'Media Analyzer', emoji: '🎬' },
+                          { type: 'canvas_game', label: 'Canvas Game', emoji: '🎮' },
+                          { type: 'vocab_solo', label: 'Vocab Card', emoji: '✨' },
+                        ]}
+                        onInsert={(t) => { setSlides((p) => { const n = [...p]; n.splice(i, 0, makeSlide(t as SlideType)); return n; }); setSelected(i); }}
+                      />
                     )}
+                    <div
+                      draggable
+                      onDragStart={() => onDragStart(i)}
+                      onDragOver={onDragOver}
+                      onDrop={() => onDrop(i)}
+                      onClick={() => setSelected(i)}
+                      className={`w-full text-left rounded-xl p-3 border-2 transition cursor-pointer ${
+                        i === selected ? 'border-orange-500 bg-orange-50 shadow-sm' : 'border-slate-200 hover:border-orange-300 bg-white'
+                      } ${dragIdx === i ? 'opacity-40' : ''}`}
+                    >
+                      <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+                        <span className="font-bold text-orange-600 inline-flex items-center gap-1.5">
+                          <Icon className="w-3.5 h-3.5" />
+                          {s.type === 'lesson_summary' ? `🔒 #${i + 1}` : `#${i + 1} · ${s.type}`}
+                        </span>
+                        {s.type !== 'lesson_summary' && (
+                          <div className="flex gap-1 opacity-70">
+                            <span onClick={(e) => { e.stopPropagation(); move(i, -1); }} className="hover:text-orange-600"><ChevronUp className="w-3.5 h-3.5" /></span>
+                            <span onClick={(e) => { e.stopPropagation(); move(i, 1); }} className="hover:text-orange-600"><ChevronDown className="w-3.5 h-3.5" /></span>
+                            <span onClick={(e) => { e.stopPropagation(); duplicate(i); }} className="hover:text-orange-600"><Copy className="w-3.5 h-3.5" /></span>
+                            <span onClick={(e) => { e.stopPropagation(); deleteSlide(i); }} className="hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-sm font-semibold text-slate-800 truncate">
+                        {s.type === 'lesson_summary' ? 'Auto-Summary (system)' : slideTitle(s)}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-sm font-semibold text-slate-800 truncate">
-                    {s.type === 'lesson_summary' ? 'Auto-Summary (system)' : slideTitle(s)}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="mt-3 pt-3 border-t border-orange-100">
