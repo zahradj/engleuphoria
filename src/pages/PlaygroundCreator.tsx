@@ -29,6 +29,7 @@ import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
 import { StorybookEditor } from '@/components/creator-studio/shared/StorybookEditor';
 import { MediaAnalyzerModal } from '@/components/creator-studio/shared/MediaAnalyzerModal';
 import { mapAIQuizSlides } from '@/components/creator-studio/shared/aiQuizMapper';
+import { CanvasElementEditor } from '@/components/creator-studio/shared/CanvasElementEditor';
 import { Headphones } from 'lucide-react';
 import {
   Popover, PopoverContent, PopoverTrigger,
@@ -648,6 +649,17 @@ export default function PlaygroundCreator() {
                     targetVocab={[]}
                     onPatch={(patch) => update(patch as Partial<Slide>)}
                     onAppendQuiz={(quiz) => insertAfterCurrent(mapAIQuizSlides(quiz, 'playground') as Slide[])}
+                  />
+                ) : current.type === 'canvas_game' || current.type === 'living_canvas' ? (
+                  <CanvasElementEditor
+                    slide={current as any}
+                    hub="playground"
+                    onChange={(next) => update(next as Partial<Slide>)}
+                  />
+                ) : current.type === 'scaffolded_media' ? (
+                  <ScaffoldedMediaEditor
+                    slide={current as any}
+                    onChange={(next) => update(next as Partial<Slide>)}
                   />
                 ) : (
                   <SlideEditor slide={current} onChange={update} />
