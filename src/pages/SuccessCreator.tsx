@@ -60,6 +60,9 @@ const SLIDE_TYPES: { type: SlideType; label: string; defaultBlock: Block }[] = [
   { type: 'role_play',          label: 'Role Play',              defaultBlock: 'simulation' },
   { type: 'speaking_task',      label: 'Speaking Task',          defaultBlock: 'output' },
   { type: 'reflection',         label: 'Reflection',             defaultBlock: 'output' },
+  { type: 'canvas_game',        label: 'Canvas Game 🎯',          defaultBlock: 'simulation' },
+  { type: 'living_canvas',      label: 'Click-to-Reveal ✨',      defaultBlock: 'simulation' },
+  { type: 'scaffolded_media',   label: 'Scaffolded Media 🎬',     defaultBlock: 'context' },
   { type: 'lesson_summary',     label: 'Lesson Summary 📋',      defaultBlock: 'buffer' },
 ];
 
@@ -92,6 +95,17 @@ function makeSlide(type: SlideType): Slide {
     case 'role_play':          return { type, block, title: 'Role play', roleA: 'Manager', roleB: 'Employee', lineA: 'Could you give me a quick update?', lineB: 'Of course. We are on track.' };
     case 'speaking_task':      return { type, block, prompt: 'Speak about a recent workplace situation.', starters: ['When you have a moment…', 'Would you mind…'] };
     case 'reflection':         return { type, block, prompt: 'How confident do you feel using this language at work now?' };
+    case 'canvas_game':        return { type, block, title: 'Sort the Items', instruction: 'Drag each item to the right column.', instruction_audio: 'Drag each item to the right column.', elements: [
+      { id: 'box', type: 'shape', x: 70, y: 35, width: 18, z_index: 1, interaction: 'target', color: '#a7f3d0', text: 'TARGET' } as any,
+      { id: 'item1', type: 'text', text: 'Item 1', x: 20, y: 80, width: 12, z_index: 3, interaction: 'draggable', target_x: 70, target_y: 35, snap_tolerance: 8, success_sfx: 'Correct!' } as any,
+    ] } as any;
+    case 'living_canvas':      return { type, block, title: 'Reveal the data', instruction: 'Tap to reveal the answer.', instruction_audio: 'Tap to reveal.', elements: [
+      { id: 'data', type: 'text', text: 'KPI: 42%', x: 50, y: 45, width: 30, z_index: 1, interaction: 'none', color: '#d1fae5' } as any,
+      { id: 'cover', type: 'shape', x: 50, y: 45, width: 30, z_index: 5, interaction: 'reveal', reveal_anim: 'lift', color: '#0f172a', text: 'TAP', reveal_sfx: 'Here is the figure' } as any,
+    ] } as any;
+    case 'scaffolded_media':   return { type, block, title: 'Listening Checkpoints', media_url: '', media_kind: 'youtube', segments: [
+      { start_time: 0, end_time: 45, question: { prompt: 'What was the speakers main point?', options: ['A', 'B', 'C'], answer: 'A' } },
+    ] } as any;
     case 'lesson_summary':     return { type, block, title: 'Review Sheet', vocab_recap: [], grammar_recap: '', takeaway: '' };
   }
 }
