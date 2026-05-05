@@ -94,6 +94,8 @@ function slideTitle(slide: Slide): string {
     case 'drag': return slide.instruction;
     case 'match': return slide.instruction;
     case 'draw': return slide.prompt;
+    case 'storybook': return slide.title || 'Storybook';
+    case 'media_player': return slide.title || 'Listening Exercise';
     case 'lesson_summary': return slide.title || 'Lesson Summary';
   }
 }
