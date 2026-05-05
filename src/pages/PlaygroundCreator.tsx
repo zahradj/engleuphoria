@@ -369,15 +369,15 @@ export default function PlaygroundCreator() {
     lessonId: lessonHook.lessonId,
     slides,
     title,
-    silentSaveDraft: (s, m) => lessonHook.silentSaveDraft(s, { ...m, level: 'A1', blueprint }),
+    silentSaveDraft: (s, m) => lessonHook.silentSaveDraft(s, { ...m, level: aiLevel, blueprint }),
   });
 
   const handleSaveDraft = async () => {
-    const id = await lessonHook.saveDraft(slides, { title, level: 'A1', blueprint });
+    const id = await lessonHook.saveDraft(slides, { title, level: aiLevel, blueprint });
     if (id) history.captureRevision({ title, slides, kind: 'manual' });
   };
   const handlePublish = async () => {
-    const id = await lessonHook.publish(slides, { title, level: 'A1', blueprint });
+    const id = await lessonHook.publish(slides, { title, level: aiLevel, blueprint });
     if (id) history.captureRevision({ title, slides, kind: 'publish' });
   };
   const handleRestore = (rev: LessonRevision) => {
