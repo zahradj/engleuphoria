@@ -163,6 +163,7 @@ export default function AcademyCreator() {
   const [aiLevel, setAiLevel] = useState('A2');
   const [aiGrammar, setAiGrammar] = useState('Present simple');
   const [aiBusy, setAiBusy] = useState(false);
+  const [blueprint, setBlueprint] = useState<LessonBlueprint | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [previewMode, setPreviewMode] = useState<PreviewMode>('editor');
   const [previewRole, setPreviewRole] = useState<PreviewRole>('teacher');
