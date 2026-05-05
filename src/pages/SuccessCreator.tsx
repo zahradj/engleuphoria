@@ -514,13 +514,29 @@ export default function SuccessCreator() {
                   <div key={b.id}>
                     <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase px-2 mb-1">{b.label}</div>
                     <div className="space-y-1">
-                      {items.map(({ slide: s, idx }) => (
-                        <button key={idx} onClick={() => setSelected(idx)}
+                      {items.map(({ slide: s, idx }) => {
+                        const Icon = slideIcon((s as any).type);
+                        return (
+                        <div key={idx}>
+                          {(idx > 0) && (
+                            <InsertSlideButton
+                              hub="success"
+                              options={[
+                                { type: 'storybook', label: 'Storybook', emoji: '📖' },
+                                { type: 'scaffolded_media', label: 'Media Analyzer', emoji: '🎬' },
+                                { type: 'canvas_game', label: 'Canvas Game', emoji: '🎮' },
+                                { type: 'vocab_solo', label: 'Vocab Card', emoji: '✨' },
+                              ]}
+                              onInsert={(t) => { setSlides((p) => { const n = [...p]; n.splice(idx, 0, makeSlide(t as SlideType)); return n; }); setSelected(idx); }}
+                            />
+                          )}
+                          <button onClick={() => setSelected(idx)}
                           className={`w-full text-left rounded-lg p-2 border transition ${
                             idx === selected ? 'border-emerald-500 bg-emerald-50' : 'border-transparent hover:bg-slate-50'
                           }`}>
                           <div className="flex items-center justify-between text-[10px] text-slate-400 mb-0.5">
-                            <span className="font-semibold text-emerald-600">
+                            <span className="font-semibold text-emerald-600 inline-flex items-center gap-1.5">
+                              <Icon className="w-3 h-3" />
                               {s.type === 'lesson_summary' ? `🔒 #${idx + 1} · auto-summary` : `#${idx + 1} · ${s.type}`}
                             </span>
                           </div>
@@ -536,7 +552,9 @@ export default function SuccessCreator() {
                             </div>
                           )}
                         </button>
-                      ))}
+                        </div>
+                        );
+                      })}
                     </div>
                   </div>
                 );
