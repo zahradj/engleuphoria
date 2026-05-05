@@ -13,6 +13,7 @@ import { PlayablePreviewPane } from '@/components/creator-studio/shared/Playable
 import { UniversalMediaShell } from '@/components/creator-studio/shared/UniversalMediaShell';
 import { SoloVocabCard } from '@/components/creator-studio/shared/SoloVocabCard';
 import { WandFieldButton } from '@/components/creator-studio/shared/WandFieldButton';
+import { AIToolsPanel } from '@/components/creator-studio/shared/AIToolsPanel';
 import { PreviewRoleToggle, type PreviewRole } from '@/components/creator-studio/shared/PreviewRoleToggle';
 import { TeacherNotesField } from '@/components/creator-studio/shared/TeacherNotesField';
 import { AssetVaultDialog } from '@/components/creator-studio/shared/AssetVaultDialog';
