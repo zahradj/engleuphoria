@@ -838,21 +838,21 @@ function SlideEditor({ slide, onChange, blueprint, hub = 'academy', cefrLevel = 
     case 'intro':
       return (
         <div className="space-y-3">
-          <Field label="Title"><input className={inputCls} value={slide.title} onChange={(e) => onChange({ title: e.target.value } as any)} /></Field>
-          <Field label="Subtitle"><input className={inputCls} value={slide.subtitle || ''} onChange={(e) => onChange({ subtitle: e.target.value } as any)} /></Field>
+          <Field label="Title">{row(<input className={inputCls} value={slide.title} onChange={(e) => onChange({ title: e.target.value } as any)} />, wand('title', slide.title, (v) => onChange({ title: v } as any)))}</Field>
+          <Field label="Subtitle">{row(<input className={inputCls} value={slide.subtitle || ''} onChange={(e) => onChange({ subtitle: e.target.value } as any)} />, wand('subtitle', slide.subtitle || '', (v) => onChange({ subtitle: v } as any)))}</Field>
         </div>
       );
     case 'question':
       return (
         <div className="space-y-3">
-          <Field label="Prompt"><input className={inputCls} value={slide.prompt} onChange={(e) => onChange({ prompt: e.target.value } as any)} /></Field>
+          <Field label="Prompt">{row(<input className={inputCls} value={slide.prompt} onChange={(e) => onChange({ prompt: e.target.value } as any)} />, wand('prompt', slide.prompt, (v) => onChange({ prompt: v } as any)))}</Field>
           <Field label="Placeholder"><input className={inputCls} value={slide.placeholder || ''} onChange={(e) => onChange({ placeholder: e.target.value } as any)} /></Field>
         </div>
       );
     case 'opinion':
     case 'reflection':
     case 'debate_scale':
-      return <Field label="Prompt"><textarea className={inputCls + ' h-24'} value={slide.prompt} onChange={(e) => onChange({ prompt: e.target.value } as any)} /></Field>;
+      return <Field label="Prompt">{row(<textarea className={inputCls + ' h-24'} value={slide.prompt} onChange={(e) => onChange({ prompt: e.target.value } as any)} />, wand('prompt', slide.prompt, (v) => onChange({ prompt: v } as any)))}</Field>;
 
     case 'poll':
       return (
