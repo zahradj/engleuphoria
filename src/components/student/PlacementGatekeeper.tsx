@@ -14,6 +14,7 @@ import type { StudentLevel } from '@/hooks/useStudentLevel';
 import { Logo } from '@/components/Logo';
 import { CursorTrail } from '@/components/landing/CursorTrail';
 import logoWhite from '@/assets/logo-white.png';
+import logoDark from '@/assets/logo-dark.png';
 
 type Phase = 'welcome' | 'demographics' | 'test' | 'processing' | 'celebrate';
 
