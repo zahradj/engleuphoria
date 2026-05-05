@@ -227,15 +227,26 @@ export default function AcademyCreator() {
     if (!aiTopic.trim()) return;
     setAiBusy(true);
     try {
+      toast.message('Planning lesson blueprint…');
+      const planRes = await supabase.functions.invoke('plan-lesson-blueprint', {
+        body: { topic: aiTopic.trim(), cefr_level: aiLevel, hub: 'academy' },
+      });
+      if (planRes.error) throw planRes.error;
+      const bp = planRes.data as LessonBlueprint;
+      setBlueprint(bp);
+
       const { data, error } = await supabase.functions.invoke('generate-ppp-slides', {
         body: {
           lesson_title: aiTopic.trim(),
-          objective: `60-minute teen Academy lesson on ${aiTopic.trim()}. Target grammar: ${aiGrammar}.`,
+          objective: `60-minute teen Academy lesson on ${aiTopic.trim()}. Target vocabulary: ${bp.vocabulary.join(', ')}. Target grammar: ${bp.grammar}.`,
           skill_focus: 'Integrated',
           cefr_level: aiLevel,
           hub: 'academy',
           target_hub: 'academy',
           hub_type: 'academy',
+          target_vocabulary: bp.vocabulary,
+          grammar_focus: bp.grammar,
+          blueprint: { lesson_title: aiTopic.trim(), target_vocabulary: bp.vocabulary, grammar_focus: bp.grammar, target_hub: 'academy' },
         },
       });
       if (error) throw error;
