@@ -1004,10 +1004,18 @@ function SlideEditor({ slide, onChange }: { slide: Slide; onChange: (p: Partial<
           {VoiceFields}
         </div>
       );
+    case 'storybook':
+      return <div className="text-sm text-slate-600">Use the Storybook editor (auto-shown above). 📖</div>;
+    case 'media_player':
+      return (
+        <div className="space-y-3">
+          <Field label="Title"><input className={inputCls} value={(slide as any).title || ''} onChange={(e) => onChange({ title: e.target.value } as any)} /></Field>
+          <Field label="Media URL"><input className={inputCls} value={(slide as any).media_url || ''} onChange={(e) => onChange({ media_url: e.target.value } as any)} /></Field>
+          <Field label="Transcript"><textarea className={inputCls + ' h-24'} value={(slide as any).transcript || ''} onChange={(e) => onChange({ transcript: e.target.value } as any)} /></Field>
+        </div>
+      );
   }
 }
-
-// ─── Fullscreen preview deck ─────────────────────────────────────────────────
 function FullPreview({ slides }: { slides: Slide[] }) {
   const [i, setI] = useState(0);
   const slide = slides[i];
