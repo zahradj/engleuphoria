@@ -668,7 +668,7 @@ function ProgressBar({ currentBlock, slideIndex, t }: { currentBlock: Block; sli
   const localPct = slidesInBlock.length > 0 ? ((localPos + 1) / slidesInBlock.length) * 100 : 0;
 
   return (
-    <div className="w-full grid grid-cols-7 gap-1">
+    <div className="w-full grid grid-cols-8 gap-1">
       {BLOCKS.map((b, i) => {
         const isCurrent = b.id === currentBlock;
         const isDone = i < currentBlockIdx;
