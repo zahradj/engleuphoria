@@ -210,6 +210,11 @@ RULES:
         if (Array.isArray(s.pairs)) {
           s.pairs = s.pairs.map((p: any) => ({ ...p, image_url: swap(p?.image_url) }));
         }
+        // Force autoplay audio so non-readers always hear the prompt.
+        s.voice = { ...(s.voice || {}), autoPlay: true };
+        if (!s.voice.text) {
+          s.voice.text = s.question || s.statement || s.instruction || s.word || s.title || "";
+        }
       }
 
       return new Response(JSON.stringify({ playground_slides }), {
