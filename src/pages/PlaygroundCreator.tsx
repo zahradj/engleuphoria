@@ -26,6 +26,10 @@ import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/us
 import { SaveStatusBadge } from '@/components/creator-studio/shared/SaveStatusBadge';
 import { RevisionHistoryModal } from '@/components/creator-studio/shared/RevisionHistoryModal';
 import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
+import { StorybookEditor } from '@/components/creator-studio/shared/StorybookEditor';
+import { MediaAnalyzerModal } from '@/components/creator-studio/shared/MediaAnalyzerModal';
+import { mapAIQuizSlides } from '@/components/creator-studio/shared/aiQuizMapper';
+import { Headphones } from 'lucide-react';
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from '@/components/ui/popover';
