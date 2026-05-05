@@ -161,6 +161,27 @@ export function LessonBlueprintPanel({
                   className={`w-full text-xs rounded-md border ${t.border} px-2 py-1 outline-none focus:ring-2 ${t.ring}`}
                 />
               </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">
+                  🎯 Student Interests <span className="text-slate-400 font-normal lowercase">(creative anchor)</span>
+                </p>
+                <input
+                  value={bp.interests || ''}
+                  onChange={(e) => onChange({ ...bp, interests: e.target.value })}
+                  placeholder="e.g. football, Pokemon, K-pop"
+                  className={`w-full text-xs rounded-md border ${t.border} px-2 py-1 outline-none focus:ring-2 ${t.ring}`}
+                />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">
+                  🛠 Specific Needs / Goals
+                </p>
+                <input
+                  value={bp.specific_needs || ''}
+                  onChange={(e) => onChange({ ...bp, specific_needs: e.target.value })}
+                  placeholder="e.g. shy speaker, exam prep, dyslexic"
+                  className={`w-full text-xs rounded-md border ${t.border} px-2 py-1 outline-none focus:ring-2 ${t.ring}`}
+                />
               <button
                 onClick={sync}
                 disabled={syncing}
