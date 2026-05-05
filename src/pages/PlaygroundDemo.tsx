@@ -534,7 +534,7 @@ import { StorybookRenderer } from '@/components/creator-studio/shared/StorybookR
 import { MediaPlayerRenderer } from '@/components/creator-studio/shared/MediaPlayerRenderer';
 import { LivingCanvas } from '@/components/creator-studio/shared/LivingCanvas';
 import { ScaffoldedPlayer } from '@/components/creator-studio/shared/ScaffoldedPlayer';
-import { SoloVocabCard } from '@/components/creator-studio/shared/SoloVocabCard';
+import { VisualFlashcard } from '@/components/creator-studio/shared/VisualFlashcard';
 
 export function SlideRenderer({ slide, onStorybookComplete, onCanvasSolved, onMediaPassed }: {
   slide: Slide;
@@ -558,7 +558,7 @@ export function SlideRenderer({ slide, onStorybookComplete, onCanvasSolved, onMe
     case 'scaffolded_media':
       return <ScaffoldedPlayer slide={slide as any} hub="playground" onAllSegmentsPassed={onMediaPassed} />;
     case 'vocab_solo':
-      return <SoloVocabCard hub="playground" ttsFallback={(slide as any).voice?.text || (slide as any).word} card={{ word: (slide as any).word, definition: (slide as any).definition, image_url: (slide as any).image_url, audio_url: (slide as any).audio_url || (slide as any).voice?.audio_url }} />;
+      return <VisualFlashcard slide={slide as any} hub="playground" />;
     case 'lesson_summary': return <PlaygroundSummary slide={slide} />;
   }
 }
