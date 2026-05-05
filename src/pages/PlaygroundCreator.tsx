@@ -180,9 +180,11 @@ export default function PlaygroundCreator() {
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [aiOpen, setAiOpen] = useState(false);
   const [aiTopic, setAiTopic] = useState('Animals');
+  const [aiLevel, setAiLevel] = useState('A1');
   const [aiBusy, setAiBusy] = useState(false);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [mediaModalOpen, setMediaModalOpen] = useState(false);
+  const [blueprint, setBlueprint] = useState<LessonBlueprint | null>(null);
 
   // Insert quiz slides directly after the current slide (before any trailing lesson_summary).
   const insertAfterCurrent = (extra: Slide[]) => {
