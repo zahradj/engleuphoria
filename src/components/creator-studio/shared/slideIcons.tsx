@@ -1,6 +1,7 @@
 import {
   BookOpenText, Gamepad2, Sparkles, Film, CheckSquare, Flag, Square,
   Headphones, MessageSquare, Image as ImageIcon, Type, Move, ListChecks,
+  Megaphone,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -30,6 +31,7 @@ const MAP: Record<string, LucideIcon> = {
   role_play: MessageSquare,
   image: ImageIcon,
   text: Type,
+  phonics_focus: Megaphone,
 };
 
 export function slideIcon(type: string): LucideIcon {
