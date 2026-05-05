@@ -1002,12 +1002,22 @@ function SlideEditor({ slide, onChange, blueprint, hub = 'playground' }: { slide
     </div>
   );
 
+  const wandRow = (children: React.ReactNode, wand: React.ReactNode) => (
+    <div className="flex gap-2 items-center">{children}{wand}</div>
+  );
+
   switch (slide.type) {
     case 'intro':
       return (
         <div className="space-y-3">
-          <Field label="Title"><input className={inputCls} value={slide.title} onChange={(e) => onChange({ title: e.target.value } as any)} /></Field>
-          <Field label="Text"><input className={inputCls} value={slide.text || ''} onChange={(e) => onChange({ text: e.target.value } as any)} /></Field>
+          <Field label="Title">{wandRow(
+            <input className={inputCls} value={slide.title} onChange={(e) => onChange({ title: e.target.value } as any)} />,
+            wandFor('title', slide.title, (v) => onChange({ title: v } as any)),
+          )}</Field>
+          <Field label="Text">{wandRow(
+            <input className={inputCls} value={slide.text || ''} onChange={(e) => onChange({ text: e.target.value } as any)} />,
+            wandFor('text', slide.text || '', (v) => onChange({ text: v } as any)),
+          )}</Field>
           {VoiceFields}
         </div>
       );
@@ -1015,7 +1025,10 @@ function SlideEditor({ slide, onChange, blueprint, hub = 'playground' }: { slide
     case 'multiple':
       return (
         <div className="space-y-3">
-          <Field label="Question"><input className={inputCls} value={slide.question} onChange={(e) => onChange({ question: e.target.value } as any)} /></Field>
+          <Field label="Question">{wandRow(
+            <input className={inputCls} value={slide.question} onChange={(e) => onChange({ question: e.target.value } as any)} />,
+            wandFor('question', slide.question, (v) => onChange({ question: v } as any)),
+          )}</Field>
           <Field label="Options (one per line)">
             <textarea
               className={inputCls + ' h-24'}
@@ -1035,7 +1048,10 @@ function SlideEditor({ slide, onChange, blueprint, hub = 'playground' }: { slide
     case 'truefalse':
       return (
         <div className="space-y-3">
-          <Field label="Statement"><input className={inputCls} value={slide.statement} onChange={(e) => onChange({ statement: e.target.value } as any)} /></Field>
+          <Field label="Statement">{wandRow(
+            <input className={inputCls} value={slide.statement} onChange={(e) => onChange({ statement: e.target.value } as any)} />,
+            wandFor('statement', slide.statement, (v) => onChange({ statement: v } as any)),
+          )}</Field>
           <Field label="Correct Answer">
             <select className={inputCls} value={slide.answer ? 'true' : 'false'} onChange={(e) => onChange({ answer: e.target.value === 'true' } as any)}>
               <option value="true">True</option>
@@ -1049,7 +1065,10 @@ function SlideEditor({ slide, onChange, blueprint, hub = 'playground' }: { slide
     case 'fill':
       return (
         <div className="space-y-3">
-          <Field label="Sentence (use ____ for blank)"><input className={inputCls} value={slide.text} onChange={(e) => onChange({ text: e.target.value } as any)} /></Field>
+          <Field label="Sentence (use ____ for blank)">{wandRow(
+            <input className={inputCls} value={slide.text} onChange={(e) => onChange({ text: e.target.value } as any)} />,
+            wandFor('sentence', slide.text, (v) => onChange({ text: v } as any)),
+          )}</Field>
           <Field label="Answer"><input className={inputCls} value={slide.answer} onChange={(e) => onChange({ answer: e.target.value } as any)} /></Field>
           {VoiceFields}
         </div>
@@ -1058,8 +1077,14 @@ function SlideEditor({ slide, onChange, blueprint, hub = 'playground' }: { slide
     case 'drag':
       return (
         <div className="space-y-3">
-          <Field label="Instruction"><input className={inputCls} value={slide.instruction} onChange={(e) => onChange({ instruction: e.target.value } as any)} /></Field>
-          <Field label="Word"><input className={inputCls} value={slide.word} onChange={(e) => onChange({ word: e.target.value } as any)} /></Field>
+          <Field label="Instruction">{wandRow(
+            <input className={inputCls} value={slide.instruction} onChange={(e) => onChange({ instruction: e.target.value } as any)} />,
+            wandFor('instruction', slide.instruction, (v) => onChange({ instruction: v } as any)),
+          )}</Field>
+          <Field label="Word">{wandRow(
+            <input className={inputCls} value={slide.word} onChange={(e) => onChange({ word: e.target.value } as any)} />,
+            wandFor('word', slide.word, (v) => onChange({ word: v } as any)),
+          )}</Field>
           <ImageField
             label="Image (AI-generated)"
             url={slide.image_url}
@@ -1070,10 +1095,35 @@ function SlideEditor({ slide, onChange, blueprint, hub = 'playground' }: { slide
         </div>
       );
 
+    case 'vocab_solo':
+      return (
+        <div className="space-y-3">
+          <Field label="Word">{wandRow(
+            <input className={inputCls} value={(slide as any).word} onChange={(e) => onChange({ word: e.target.value } as any)} />,
+            wandFor('word', (slide as any).word, (v) => onChange({ word: v } as any)),
+          )}</Field>
+          <Field label="Definition">{wandRow(
+            <input className={inputCls} value={(slide as any).definition || ''} onChange={(e) => onChange({ definition: e.target.value } as any)} />,
+            wandFor('definition', (slide as any).definition || '', (v) => onChange({ definition: v } as any)),
+          )}</Field>
+          <ImageField
+            label="Image (AI-generated)"
+            url={(slide as any).image_url}
+            subject={(slide as any).word}
+            onChange={(url) => onChange({ image_url: url } as any)}
+          />
+          <p className="text-[11px] text-slate-500">Generate audio in the <b>AI Media & Audio</b> tab → it auto-binds to the 🔊 Play button.</p>
+          {VoiceFields}
+        </div>
+      );
+
     case 'match':
       return (
         <div className="space-y-3">
-          <Field label="Instruction"><input className={inputCls} value={slide.instruction} onChange={(e) => onChange({ instruction: e.target.value } as any)} /></Field>
+          <Field label="Instruction">{wandRow(
+            <input className={inputCls} value={slide.instruction} onChange={(e) => onChange({ instruction: e.target.value } as any)} />,
+            wandFor('instruction', slide.instruction, (v) => onChange({ instruction: v } as any)),
+          )}</Field>
           <div>
             <span className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Pairs</span>
             <div className="space-y-2">
@@ -1124,7 +1174,10 @@ function SlideEditor({ slide, onChange, blueprint, hub = 'playground' }: { slide
     case 'draw':
       return (
         <div className="space-y-3">
-          <Field label="Prompt"><input className={inputCls} value={slide.prompt} onChange={(e) => onChange({ prompt: e.target.value } as any)} /></Field>
+          <Field label="Prompt">{wandRow(
+            <input className={inputCls} value={slide.prompt} onChange={(e) => onChange({ prompt: e.target.value } as any)} />,
+            wandFor('prompt', slide.prompt, (v) => onChange({ prompt: v } as any)),
+          )}</Field>
           {VoiceFields}
         </div>
       );
