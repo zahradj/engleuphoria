@@ -5,24 +5,66 @@ const corsHeaders = {
     'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const HUB_RULES: Record<string, { quizMin: number; quizMax: number; types: string[]; tone: string }> = {
+type Hub = 'playground' | 'academy' | 'success';
+
+const DEFAULT_LAYOUT: Record<Hub, string> = {
+  playground: 'classic',
+  academy: 'comic',
+  success: 'case_study',
+};
+
+const HUB_RULES: Record<Hub, {
+  sentenceRule: string;
+  pageRule: string;
+  toneRule: string;
+  vocabRule: string;
+  comprehension: string;
+  quizSchemaTypes: string[];
+}> = {
   playground: {
-    quizMin: 2,
-    quizMax: 2,
-    types: ['multiple', 'truefalse'],
-    tone: 'Playful, age 5-9, simple A1 words, very short sentences (max 8 words). Use emojis and concrete imagery.',
+    sentenceRule: 'Each sentence MUST be 5-7 words maximum. Use simple A1 words. Concrete imagery, no idioms.',
+    pageRule: '4 pages. Exactly 1 sentence per page.',
+    toneRule: 'Playful, age 5-9. Use a clear narrative arc (setup, problem, fix, smile).',
+    vocabRule: 'You MUST use 4-6 of the target vocab words verbatim across the story.',
+    comprehension: [
+      'Generate EXACTLY 3 comprehension slides scaled for Pre-A1/A1:',
+      '  1) type "clickimage" — visual literal question, e.g. "Where is the [target word]?". Provide a "prompt" and an array of "hotspots" with at least one item {label, correct: true} that names the target object.',
+      '  2) type "multiple" — literal "What happened?" with 3 short options.',
+      '  3) type "truefalse" — simple literal statement from the story.',
+      'Tag each item with comprehension_kind in {visual, literal, literal}.',
+    ].join('\n'),
+    quizSchemaTypes: ['multiple', 'truefalse', 'clickimage'],
   },
   academy: {
-    quizMin: 3,
-    quizMax: 4,
-    types: ['truefalse', 'fill', 'multiple'],
-    tone: 'Teen voice, A2-B2, 1-3 sentences per page, relatable scenarios.',
+    sentenceRule: '1-3 sentences per page. A2-B1 register. Relatable teen scenarios.',
+    pageRule: '4-5 pages with a clear arc and an emotional turn.',
+    toneRule: 'Teen voice, contemporary, slightly humorous.',
+    vocabRule: 'You MUST use the target vocab words verbatim. You MUST use the target grammar pattern at least TWICE.',
+    comprehension: [
+      'Generate EXACTLY 4 comprehension slides scaled for A2-B1:',
+      '  1) type "multiple" — LITERAL ("What did Sarah do after class?")',
+      '  2) type "multiple" — INFERENCE ("Why was Sarah upset?")',
+      '  3) type "fill" — VOCAB IN CONTEXT — sentence from the story with one target vocab word blanked.',
+      '  4) type "truefalse" — INFERENCE statement.',
+      'Tag each item with comprehension_kind in {literal, inference, vocab_in_context, inference}.',
+    ].join('\n'),
+    quizSchemaTypes: ['multiple', 'truefalse', 'fill'],
   },
   success: {
-    quizMin: 4,
-    quizMax: 5,
-    types: ['multiple', 'discussion'],
-    tone: 'Adult/professional, B2-C2, case-study style, analytical questions, real-world workplace scenarios.',
+    sentenceRule: 'Multi-clause complex sentences. B2-C2 corporate register. Embed at least one quoted line of dialogue and one decision point.',
+    pageRule: '4-5 pages, case-study arc (situation → tension → action → outcome).',
+    toneRule: 'Professional, analytical, real-world workplace scenario.',
+    vocabRule: 'You MUST use the target vocab words verbatim and naturally weave the target grammar/functional pattern at least twice.',
+    comprehension: [
+      'Generate EXACTLY 5 comprehension slides scaled for B2-C2:',
+      '  1) type "multiple" — LITERAL detail check.',
+      '  2) type "multiple" — INFERENCE about motivation or risk.',
+      '  3) type "multiple" — VOCAB IN CONTEXT (which option captures the meaning of the target word in this sentence).',
+      '  4) type "discussion" — STRATEGIC ("How could the manager have handled this negotiation better?"). answer="" required.',
+      '  5) type "discussion" — DEBATE prompt referencing two stakeholders. answer="" required.',
+      'Tag each item with comprehension_kind in {literal, inference, vocab_in_context, strategic, strategic}.',
+    ].join('\n'),
+    quizSchemaTypes: ['multiple', 'truefalse', 'fill', 'discussion', 'clickimage'],
   },
 };
 
@@ -30,7 +72,15 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    const { prompt, target_vocab = [], cefr_level = 'A1', hub_type = 'playground' } = await req.json();
+    const {
+      prompt,
+      target_vocab = [],
+      grammar_focus = '',
+      theme = 'custom',
+      layout_mode,
+      cefr_level = 'A1',
+      hub_type = 'playground',
+    } = await req.json();
     if (!prompt || typeof prompt !== 'string') {
       return new Response(JSON.stringify({ error: 'prompt is required' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -40,17 +90,26 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
 
-    const rules = HUB_RULES[hub_type] || HUB_RULES.playground;
+    const hub = (HUB_RULES[hub_type as Hub] ? hub_type : 'playground') as Hub;
+    const rules = HUB_RULES[hub];
+    const resolvedLayout = layout_mode || DEFAULT_LAYOUT[hub];
     const vocabList = Array.isArray(target_vocab) ? target_vocab.filter(Boolean).slice(0, 12) : [];
 
     const systemPrompt = [
-      `You are an English curriculum author. Generate a short illustrated story for the ${hub_type.toUpperCase()} hub at CEFR ${cefr_level}.`,
-      `Tone: ${rules.tone}`,
-      `Story rules: 3-5 pages, each page 1-3 sentences, narrative arc with a small problem and resolution.`,
-      vocabList.length ? `You MUST naturally weave in these vocabulary words: ${vocabList.join(', ')}.` : '',
-      `Then produce ${rules.quizMin}-${rules.quizMax} comprehension quiz slides using ONLY these types: ${rules.types.join(', ')}.`,
-      `For each quiz item, the answer MUST be derivable directly from the story text. Do NOT invent facts.`,
-      `For 'discussion' (open-ended), set answer to "" and provide a "prompt" that references story events.`,
+      `You are an English curriculum author. Generate a contextual story for the ${hub.toUpperCase()} hub at CEFR ${cefr_level}.`,
+      `Story theme: ${theme}. Layout: ${resolvedLayout}.`,
+      `Tone: ${rules.toneRule}`,
+      `Page rule: ${rules.pageRule}`,
+      `Sentence rule: ${rules.sentenceRule}`,
+      vocabList.length ? `Target vocabulary: ${vocabList.join(', ')}. ${rules.vocabRule} Return the actually-used words in highlight_words (verbatim, in the case they appear).` : '',
+      grammar_focus ? `Target grammar / functional focus: ${grammar_focus}. Use it naturally.` : '',
+      '',
+      'COMPREHENSION LOOP:',
+      rules.comprehension,
+      'For every quiz item, the answer MUST be derivable directly from the story. Do NOT invent facts.',
+      'For "discussion" items, set answer="" and put the question in "prompt".',
+      'For "fill" items, place the target vocab word as the missing word; put the full sentence in "text" with "____" where the blank goes; put the answer in "answer".',
+      'For "clickimage" items, set "prompt" plus "hotspots" array of {label, correct} with one correct.',
     ].filter(Boolean).join('\n');
 
     const aiRes = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -66,11 +125,14 @@ Deno.serve(async (req) => {
           type: 'function',
           function: {
             name: 'emit_storybook',
-            description: 'Return the storybook pages and comprehension quiz slides',
+            description: 'Return the storybook pages and scaled comprehension quiz slides',
             parameters: {
               type: 'object',
               properties: {
                 title: { type: 'string' },
+                layout_mode: { type: 'string', enum: ['classic', 'comic', 'case_study'] },
+                theme: { type: 'string' },
+                highlight_words: { type: 'array', items: { type: 'string' } },
                 pages: {
                   type: 'array',
                   items: {
@@ -88,20 +150,32 @@ Deno.serve(async (req) => {
                   items: {
                     type: 'object',
                     properties: {
-                      type: { type: 'string', enum: ['multiple', 'truefalse', 'fill', 'discussion'] },
+                      type: { type: 'string', enum: rules.quizSchemaTypes },
+                      comprehension_kind: { type: 'string', enum: ['literal', 'inference', 'vocab_in_context', 'visual', 'strategic'] },
                       question: { type: 'string' },
                       statement: { type: 'string' },
                       text: { type: 'string' },
                       prompt: { type: 'string' },
                       options: { type: 'array', items: { type: 'string' } },
+                      hotspots: {
+                        type: 'array',
+                        items: {
+                          type: 'object',
+                          properties: {
+                            label: { type: 'string' },
+                            correct: { type: 'boolean' },
+                          },
+                          required: ['label', 'correct'],
+                        },
+                      },
                       answer: { type: 'string' },
                       answer_bool: { type: 'boolean' },
                     },
-                    required: ['type'],
+                    required: ['type', 'comprehension_kind'],
                   },
                 },
               },
-              required: ['title', 'pages', 'quiz_slides'],
+              required: ['title', 'pages', 'quiz_slides', 'highlight_words'],
             },
           },
         }],
@@ -132,6 +206,11 @@ Deno.serve(async (req) => {
 
     return new Response(JSON.stringify({
       title: args.title || 'Story',
+      layout_mode: args.layout_mode || resolvedLayout,
+      theme: args.theme || theme,
+      highlight_words: Array.isArray(args.highlight_words) && args.highlight_words.length
+        ? args.highlight_words
+        : vocabList,
       pages,
       quiz_slides: args.quiz_slides || [],
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
