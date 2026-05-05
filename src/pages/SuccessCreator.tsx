@@ -33,6 +33,8 @@ import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
 import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
 import { SaveStatusBadge } from '@/components/creator-studio/shared/SaveStatusBadge';
 import { RevisionHistoryModal } from '@/components/creator-studio/shared/RevisionHistoryModal';
+import { CanvasElementEditor } from '@/components/creator-studio/shared/CanvasElementEditor';
+import { ScaffoldedMediaEditor } from '@/components/creator-studio/shared/ScaffoldedMediaEditor';
 
 /**
  * Success Slide Creator — adult Business English authoring tool.
@@ -579,7 +581,13 @@ export default function SuccessCreator() {
                 <TabsTrigger value="comments">Comments</TabsTrigger>
               </TabsList>
               <TabsContent value="basic" className="pt-4 flex-1 overflow-y-auto min-h-0">
-                <SlideEditor slide={current} onChange={update} />
+                {current.type === 'canvas_game' || current.type === 'living_canvas' ? (
+                  <CanvasElementEditor slide={current as any} hub="success" onChange={(next) => update(next as Partial<Slide>)} />
+                ) : current.type === 'scaffolded_media' ? (
+                  <ScaffoldedMediaEditor slide={current as any} hub="success" onChange={(next) => update(next as Partial<Slide>)} />
+                ) : (
+                  <SlideEditor slide={current} onChange={update} />
+                )}
               </TabsContent>
               <TabsContent value="media" className="pt-4 flex-1 overflow-y-auto min-h-0">
                 <SlideMediaPanel
