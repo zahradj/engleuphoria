@@ -569,7 +569,10 @@ function PlaygroundSummary({ slide }: { slide: Extract<Slide, { type: 'lesson_su
 // ─── Main page ───────────────────────────────────────────────────────────────
 export default function PlaygroundDemo() {
   const [i, setI] = useState(0);
+  const [storybookDone, setStorybookDone] = useState<Record<number, boolean>>({});
   const slide = SLIDES[i];
+  const isStorybook = slide.type === 'storybook';
+  const nextDisabled = i === SLIDES.length - 1 || (isStorybook && !storybookDone[i]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-5 p-6 bg-gradient-to-br from-orange-400 via-amber-400 to-yellow-200">
@@ -583,7 +586,7 @@ export default function PlaygroundDemo() {
           className="relative bg-white rounded-3xl shadow-xl w-[95%] max-w-5xl min-h-[70vh] p-10 flex items-center justify-center"
         >
           <VoiceButton text={slide.voice?.text} />
-          <SlideRenderer slide={slide} />
+          <SlideRenderer slide={slide} onStorybookComplete={() => setStorybookDone((s) => ({ ...s, [i]: true }))} />
         </motion.div>
       </AnimatePresence>
 
@@ -600,7 +603,8 @@ export default function PlaygroundDemo() {
         </span>
         <button
           onClick={() => setI((n) => Math.min(SLIDES.length - 1, n + 1))}
-          disabled={i === SLIDES.length - 1}
+          disabled={nextDisabled}
+          title={isStorybook && !storybookDone[i] ? 'Read all storybook pages first' : undefined}
           className="bg-orange-500 hover:bg-orange-600 disabled:opacity-40 text-white font-bold rounded-full px-5 py-2 active:scale-95 transition"
         >
           Next →
