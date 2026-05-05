@@ -189,9 +189,30 @@ export function StorybookEditor({ slide, hub, cefrLevel, targetVocab = [], gramm
           placeholder="Describe what the story should be about, e.g. 'A child learning to share toys at school' (3-5 pages)"
           onChange={(e) => onPatch({ topic: e.target.value })}
         />
+        <div className="grid grid-cols-2 gap-2 mt-2">
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-600 mb-1">Story Theme</label>
+            <select className={inputCls + ' text-xs'} value={themeChoice}
+              onChange={(e) => onPatch({ theme: e.target.value as StorybookTheme })}>
+              {THEME_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-600 mb-1">Layout Style</label>
+            <select className={inputCls + ' text-xs'} value={layoutMode}
+              onChange={(e) => onPatch({ layout_mode: e.target.value as StorybookLayoutMode })}>
+              {LAYOUT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </div>
+        </div>
         {targetVocab.length > 0 && (
           <div className="mt-2 text-[11px] text-slate-500">
             Target vocab to weave in: <span className="font-semibold text-slate-700">{targetVocab.slice(0, 8).join(', ')}</span>
+          </div>
+        )}
+        {grammarFocus && (
+          <div className="mt-1 text-[11px] text-slate-500">
+            Grammar focus: <span className="font-semibold text-slate-700">{grammarFocus}</span>
           </div>
         )}
         <button
