@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Volume2, Loader2, ChevronLeft, ChevronRight, Sun, Moon, Check, X, Briefcase } from 'lucide-react';
 import { useSuccessAudio } from '@/hooks/useSuccessAudio';
+import type { CanvasGameSlide, LivingCanvasSlide, ScaffoldedMediaSlide } from '@/components/creator-studio/shared/canvasSchema';
+import { LivingCanvas } from '@/components/creator-studio/shared/LivingCanvas';
+import { ScaffoldedPlayer } from '@/components/creator-studio/shared/ScaffoldedPlayer';
 
 /**
  * Success Hub Engine — adult-focused (18+, A2–C1), 60-minute, 7-block
@@ -52,6 +55,9 @@ export type Slide =
   | { type: 'role_play'; block: Block; title: string; roleA: string; roleB: string; lineA: string; lineB: string }
   | { type: 'speaking_task'; block: Block; prompt: string; starters?: string[] }
   | { type: 'reflection'; block: Block; prompt: string }
+  | (CanvasGameSlide & { block: Block })
+  | (LivingCanvasSlide & { block: Block })
+  | (ScaffoldedMediaSlide & { block: Block })
   | { type: 'lesson_summary'; block: Block; title?: string; vocab_recap: string[]; grammar_recap?: string; takeaway?: string };
 
 // ─── Lesson content ──────────────────────────────────────────────────────────
@@ -683,6 +689,11 @@ export function SlideRenderer({ slide, t }: { slide: Slide; t: ThemeTokens }) {
     case 'role_play': return <RolePlaySlide slide={slide} t={t} />;
     case 'speaking_task': return <SpeakingTaskSlide slide={slide} t={t} />;
     case 'reflection': return <ReflectionSlide slide={slide} t={t} />;
+    case 'canvas_game':
+    case 'living_canvas':
+      return <LivingCanvas slide={slide as any} hub="success" />;
+    case 'scaffolded_media':
+      return <ScaffoldedPlayer slide={slide as any} hub="success" />;
     case 'lesson_summary': return <LessonSummarySlide slide={slide} t={t} />;
   }
 }

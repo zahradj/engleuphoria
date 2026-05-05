@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Volume2, Loader2, ChevronLeft, ChevronRight, Sun, Moon, Check, X } from 'lucide-react';
 import { useAcademyAudio } from '@/hooks/useAcademyAudio';
+import type { CanvasGameSlide, LivingCanvasSlide, ScaffoldedMediaSlide } from '@/components/creator-studio/shared/canvasSchema';
+import { LivingCanvas } from '@/components/creator-studio/shared/LivingCanvas';
+import { ScaffoldedPlayer } from '@/components/creator-studio/shared/ScaffoldedPlayer';
 
 /**
  * Academy Engine — teen-focused (12–17, A1–B1), 60-minute, 7-block lesson system.
@@ -61,6 +64,9 @@ export type Slide =
   | { type: 'speaking_task'; block: Block; prompt: string; starters?: string[] }
   | { type: 'reflection'; block: Block; prompt: string }
   | { type: 'cluster'; block: Block; title: string; content?: string; activities: ClusterActivity[] }
+  | (CanvasGameSlide & { block: Block })
+  | (LivingCanvasSlide & { block: Block })
+  | (ScaffoldedMediaSlide & { block: Block })
   | { type: 'lesson_summary'; block: Block; title?: string; vocab_recap: string[]; grammar_recap?: string; takeaway?: string };
 
 // ─── Lesson content (edit only this) ─────────────────────────────────────────
@@ -827,6 +833,11 @@ export function SlideRenderer({ slide, t }: { slide: Slide; t: ThemeTokens }) {
     case 'speaking_task': return <SpeakingTaskSlide slide={slide} t={t} />;
     case 'reflection': return <ReflectionSlide slide={slide} t={t} />;
     case 'cluster': return <ClusterSlide slide={slide} t={t} />;
+    case 'canvas_game':
+    case 'living_canvas':
+      return <LivingCanvas slide={slide as any} hub="academy" />;
+    case 'scaffolded_media':
+      return <ScaffoldedPlayer slide={slide as any} hub="academy" />;
     case 'lesson_summary': return <AcademyLessonSummary slide={slide} t={t} />;
   }
 }

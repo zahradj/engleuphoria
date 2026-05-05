@@ -33,6 +33,8 @@ import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
 import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
 import { SaveStatusBadge } from '@/components/creator-studio/shared/SaveStatusBadge';
 import { RevisionHistoryModal } from '@/components/creator-studio/shared/RevisionHistoryModal';
+import { CanvasElementEditor } from '@/components/creator-studio/shared/CanvasElementEditor';
+import { ScaffoldedMediaEditor } from '@/components/creator-studio/shared/ScaffoldedMediaEditor';
 
 /**
  * Academy Slide Creator — clean teacher-facing authoring tool.
@@ -62,6 +64,9 @@ const SLIDE_TYPES: { type: SlideType; label: string; defaultBlock: Block }[] = [
   { type: 'speaking_task',    label: 'Speaking Task',          defaultBlock: 'speaking' },
   { type: 'reflection',      label: 'Reflection',             defaultBlock: 'speaking' },
   { type: 'cluster',          label: 'Cluster (multi-task)',   defaultBlock: 'practice' },
+  { type: 'canvas_game',      label: 'Canvas Game 🎯',          defaultBlock: 'interactive' },
+  { type: 'living_canvas',    label: 'Click-to-Reveal ✨',      defaultBlock: 'interactive' },
+  { type: 'scaffolded_media', label: 'Scaffolded Media 🎬',     defaultBlock: 'reading' },
   { type: 'lesson_summary',   label: 'Lesson Summary 📋',      defaultBlock: 'speaking' },
 ];
 
@@ -97,6 +102,17 @@ function makeSlide(type: SlideType): Slide {
       { type: 'tf', statement: 'He use TikTok.', answer: false },
       { type: 'build', prompt: 'Build the sentence.', words: ['I', 'use', 'my', 'phone'], answer: ['I', 'use', 'my', 'phone'] },
     ]};
+    case 'canvas_game': return { type, block, title: 'Sort the Items', instruction: 'Drag each item to the correct box.', instruction_audio: 'Drag each item to the correct box.', elements: [
+      { id: 'box', type: 'shape', x: 70, y: 35, width: 18, z_index: 1, interaction: 'target', color: '#c7d2fe', text: 'TARGET' } as any,
+      { id: 'item1', type: 'text', text: 'Item 1', x: 20, y: 80, width: 14, z_index: 3, interaction: 'draggable', target_x: 70, target_y: 35, snap_tolerance: 10, success_sfx: 'Correct!' } as any,
+    ] } as any;
+    case 'living_canvas': return { type, block, title: 'Reveal the answer', instruction: 'Tap to reveal.', instruction_audio: 'Tap to reveal.', elements: [
+      { id: 'answer', type: 'text', text: 'ANSWER', x: 50, y: 45, width: 30, z_index: 1, interaction: 'none', color: '#dbeafe' } as any,
+      { id: 'cover', type: 'shape', x: 50, y: 45, width: 30, z_index: 5, interaction: 'reveal', reveal_anim: 'lift', color: '#1e293b', text: 'TAP', reveal_sfx: 'Here is the answer' } as any,
+    ] } as any;
+    case 'scaffolded_media': return { type, block, title: 'Listening Checkpoints', media_url: '', media_kind: 'youtube', segments: [
+      { start_time: 0, end_time: 30, question: { prompt: 'What did the speaker say?', options: ['A', 'B', 'C'], answer: 'A' } },
+    ] } as any;
     case 'lesson_summary': return { type, block, title: 'Review Sheet', vocab_recap: [], grammar_recap: '', takeaway: '' };
   }
 }
@@ -601,7 +617,13 @@ export default function AcademyCreator() {
                 <TabsTrigger value="comments">Comments</TabsTrigger>
               </TabsList>
               <TabsContent value="basic" className="pt-4 flex-1 overflow-y-auto min-h-0">
-                <SlideEditor slide={current} onChange={update} />
+                {current.type === 'canvas_game' || current.type === 'living_canvas' ? (
+                  <CanvasElementEditor slide={current as any} hub="academy" onChange={(next) => update(next as Partial<Slide>)} />
+                ) : current.type === 'scaffolded_media' ? (
+                  <ScaffoldedMediaEditor slide={current as any} hub="academy" onChange={(next) => update(next as Partial<Slide>)} />
+                ) : (
+                  <SlideEditor slide={current} onChange={update} />
+                )}
               </TabsContent>
               <TabsContent value="media" className="pt-4 flex-1 overflow-y-auto min-h-0">
                 <SlideMediaPanel
