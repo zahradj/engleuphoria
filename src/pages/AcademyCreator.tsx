@@ -640,9 +640,9 @@ export default function AcademyCreator() {
             </div>
             <Tabs defaultValue="basic" className="w-full flex-1 flex flex-col min-h-0">
               <TabsList className="grid grid-cols-3 w-full flex-shrink-0">
-                <TabsTrigger value="basic">Basic</TabsTrigger>
-                <TabsTrigger value="media">AI Media & Audio</TabsTrigger>
-                <TabsTrigger value="comments">Comments</TabsTrigger>
+                <TabsTrigger value="basic">Content</TabsTrigger>
+                <TabsTrigger value="media">Media</TabsTrigger>
+                <TabsTrigger value="ai">AI Tools</TabsTrigger>
               </TabsList>
               <TabsContent value="basic" className="pt-4 flex-1 overflow-y-auto min-h-0">
                 {current.type === 'canvas_game' || current.type === 'living_canvas' ? (
@@ -650,7 +650,7 @@ export default function AcademyCreator() {
                 ) : current.type === 'scaffolded_media' ? (
                   <ScaffoldedMediaEditor slide={current as any} hub="academy" onChange={(next) => update(next as Partial<Slide>)} />
                 ) : (
-                  <SlideEditor slide={current} onChange={update} />
+                  <SlideEditor slide={current} onChange={update} blueprint={blueprint} hub="academy" cefrLevel={level} />
                 )}
               </TabsContent>
               <TabsContent value="media" className="pt-4 flex-1 overflow-y-auto min-h-0">
@@ -663,11 +663,12 @@ export default function AcademyCreator() {
                   enableFlashcards={current.type === 'vocab' || current.type === 'matching'}
                 />
               </TabsContent>
-              <TabsContent value="comments" className="pt-4 flex-1 overflow-y-auto min-h-0">
-                <SlideCommentsPanel
+              <TabsContent value="ai" className="pt-4 flex-1 overflow-y-auto min-h-0">
+                <AIToolsPanel
+                  hub="academy"
                   lessonId={lessonHook.lessonId}
                   slideId={slideId}
-                  hub="academy"
+                  onTuneDifficulty={() => setTunerOpen(true)}
                 />
               </TabsContent>
             </Tabs>
