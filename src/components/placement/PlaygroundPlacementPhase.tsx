@@ -288,15 +288,9 @@ export const PlaygroundPlacementPhase = ({ onComplete }: PlaygroundPlacementPhas
                       loading="lazy"
                       width={512}
                       height={512}
-                      className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
+                      className="absolute inset-0 w-full h-full object-contain p-4 select-none pointer-events-none"
                       draggable={false}
                     />
-                    {/* Bottom label pill */}
-                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%]">
-                      <span className="block bg-white/95 backdrop-blur-sm rounded-full px-3 py-1 text-slate-800 font-semibold text-xs sm:text-sm text-center shadow-sm whitespace-nowrap overflow-hidden text-ellipsis">
-                        {option.label}
-                      </span>
-                    </div>
                     {/* Pop badge on tap (non-punishing — appears for any selection) */}
                     {showSelected && (
                       <motion.div
