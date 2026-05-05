@@ -837,7 +837,7 @@ function AcademyLessonSummary({ slide, t }: { slide: Extract<Slide, { type: 'les
       <div className={`text-xs uppercase tracking-[0.2em] ${t.muted}`}>📋 Lesson Recap</div>
       <h2 className={`text-3xl md:text-4xl font-semibold ${t.text}`}>{slide.title || 'Review Sheet'}</h2>
       {slide.vocab_recap?.length > 0 && (
-        <div className={`rounded-md border ${t.border} p-4 space-y-2`}>
+        <div className={`rounded-md border border-slate-700/50 p-4 space-y-2`}>
           <div className="text-xs uppercase tracking-widest text-indigo-400">Vocabulary mastered</div>
           <div className="flex flex-wrap gap-2">
             {slide.vocab_recap.slice(0, 5).map((w) => (
@@ -847,7 +847,7 @@ function AcademyLessonSummary({ slide, t }: { slide: Extract<Slide, { type: 'les
         </div>
       )}
       {slide.grammar_recap && (
-        <div className={`rounded-md border ${t.border} p-4 space-y-1`}>
+        <div className={`rounded-md border border-slate-700/50 p-4 space-y-1`}>
           <div className="text-xs uppercase tracking-widest text-indigo-400">Grammar rule</div>
           <p className={`text-base ${t.text}`}>{slide.grammar_recap}</p>
         </div>
