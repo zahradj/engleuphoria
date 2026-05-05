@@ -783,7 +783,12 @@ export default function PlaygroundCreator() {
                     disabled={aiBusy}
                   />
                 </Field>
-                <p className="text-xs text-slate-500">Uses the same AI core as the Standard Slide Studio with <code className="bg-orange-50 text-orange-700 rounded px-1">hub_type: 'playground'</code>.</p>
+                <Field label="CEFR Level">
+                  <select className={inputCls} value={aiLevel} onChange={(e) => setAiLevel(e.target.value)} disabled={aiBusy}>
+                    {['A1','A2','B1'].map((l) => <option key={l} value={l}>{l}</option>)}
+                  </select>
+                </Field>
+                <p className="text-xs text-slate-500">The AI will pick 5 vocabulary words and 1 grammar structure for you — you can edit them in the Lesson Blueprint panel.</p>
               </div>
               <div className="p-4 bg-orange-50 border-t border-orange-200 flex justify-end gap-2">
                 <button disabled={aiBusy} onClick={() => setAiOpen(false)} className="px-4 py-2 rounded-xl border-2 border-slate-200 font-bold text-slate-600 hover:bg-white disabled:opacity-50">Cancel</button>
