@@ -1,79 +1,115 @@
-# Contextual Story & Quiz Engine
+## Real-Time Live Classroom Sync + Annotation Layer
 
-Upgrade the existing Storybook + auto-quiz pipeline (already live in Playground) to a true cross-hub engine with hub-specific layouts, vocab highlighting, scaled comprehension types, and a dedicated Story tab in every Creator.
+A new `/live-classroom/:sessionId` route gives teacher and student a synchronized view of any Playground/Academy/Success lesson, with a transparent annotation canvas overlaid on the existing `SlideRenderer`. Slide navigation, drawing strokes, laser-pointer position, and reward stars all broadcast through Supabase Realtime so both sides stay in lock-step.
 
-## 1. StorybookRenderer — three real layout modes
+### 1. Database (one migration)
 
-`src/components/creator-studio/shared/StorybookRenderer.tsx`
+New table `classroom_states` (persistent state, distinct from existing `classroom_sessions`):
 
-- Extend `StorybookSlideShape` with:
-  - `layout_mode?: 'classic' | 'comic' | 'case_study'` (defaults: playground=classic, academy=comic, success=case_study)
-  - `theme?: 'adventure' | 'school' | 'mystery' | 'business_trip' | 'negotiation' | 'custom'`
-  - `highlight_words?: string[]` (target vocab to bold inline)
-- Add `<HighlightedText text words />` helper that wraps any matched target word (case-insensitive, word-boundary) in `<mark class="bg-yellow-200/70 font-extrabold rounded px-0.5">…</mark>`.
-- Replace the current hub-keyed rendering with `layout_mode`-keyed rendering:
-  - **Classic** (Playground default): full-bleed image top, large text bottom, page dots.
-  - **Comic** (Academy default): 2-up panel grid per page (image panel + speech-bubble text panel) with rounded comic borders.
-  - **Case Study** (Success default): vertical clean layout, serif body, "Scenario / Page X of Y" header, optional sidebar bullet of "Key terms" pulled from `highlight_words`.
-- Keep existing `onComplete` and audio behaviour.
+```text
+id              uuid pk
+session_id      text unique         -- the URL :sessionId (booking id or ad-hoc room)
+lesson_id       uuid                -- which lesson is loaded
+teacher_id      uuid
+current_slide_index  int default 0
+active_media_state   jsonb default '{"playing":false,"position":0}'
+student_rewards      int default 0
+updated_at      timestamptz
+```
 
-## 2. Edge Function — `generate-storybook` upgrade
+- RLS: teacher (auth.uid = teacher_id) can `update`; both teacher and any authenticated user with the session row can `select`. Insert restricted to teacher.
+- Add table to `supabase_realtime` publication and `REPLICA IDENTITY FULL` so postgres_changes fires.
+- Strokes / laser / reward bursts are **not persisted** — they go through the Realtime broadcast channel only (cheap, ephemeral).
 
-`supabase/functions/generate-storybook/index.ts`
+### 2. New hook: `useLiveClassroom`
 
-- Accept new fields: `theme`, `layout_mode`, `grammar_focus`.
-- Inject **sentence-length rules** into the system prompt:
-  - Playground: max 5–7 words per sentence, 1 sentence per page, must use 4–6 of the target vocab across the story.
-  - Academy: 1–3 sentences, must use the grammar pattern at least twice.
-  - Success: complex multi-clause corporate narrative, embed at least one quote and one decision point.
-- Story text: instruct the model to emit each target vocab word **verbatim** so the renderer can highlight it (return them in `highlight_words`).
-- **Comprehension Loop — scaled by hub** (replace today's flat quiz block):
-  - Playground (Pre-A1/A1) → 3 slides: 1 visual `clickimage` ("Where is the …?"), 1 `multiple` literal, 1 `truefalse` literal.
-  - Academy (A2–B1) → 4 slides: 1 literal `multiple`, 1 inference `multiple` ("Why did …?"), 1 vocabulary-in-context `fill`, 1 `truefalse`.
-  - Success (B2–C2) → 5 slides: 1 literal `multiple`, 1 inference `multiple`, 1 vocab-in-context `multiple`, 1 strategic `discussion` ("How could … better?"), 1 `discussion` debate prompt.
-- Tag each quiz item with `comprehension_kind: 'literal' | 'inference' | 'vocab_in_context' | 'visual' | 'strategic'` so the editor can label them.
-- Return `layout_mode`, `theme`, `highlight_words` in the response so the caller can patch the storybook slide.
+`src/hooks/useLiveClassroom.ts`
 
-## 3. StorybookEditor — Story tab UI
+Responsibilities:
+- Subscribe to channel `live-classroom:{sessionId}`.
+- `postgres_changes` listener on `classroom_states` row → exposes `currentSlideIndex`, `activeMediaState`, `studentRewards`.
+- `broadcast` listeners for events: `stroke`, `stroke_end`, `clear`, `laser`, `reward`.
+- Presence (teacher / student) for "connected" indicator.
+- Returns `{ state, peers, isTeacher, setSlideIndex(i), sendStroke(p), sendLaser(p), clearStrokes(), sendReward() }`.
+- `setSlideIndex` performs an `update` on `classroom_states` (RLS blocks students automatically); other writes are broadcast-only.
 
-`src/components/creator-studio/shared/StorybookEditor.tsx`
+### 3. New page: `/live-classroom/:sessionId`
 
-- Add two selects above the prompt:
-  - **Story Theme** — Adventure, School Day, Mystery, Business Trip, Negotiation, Custom.
-  - **Layout Style** — Classic / Comic / Case Study (default chosen by hub).
-- Pass `theme`, `layout_mode`, `grammar_focus` (read from blueprint) into the `generate-storybook` invoke body.
-- After generation, patch the storybook slide with returned `layout_mode`, `theme`, `highlight_words`, and call `onAppendQuiz` so the quiz block is inserted in the same click (already works in Playground).
+`src/pages/LiveClassroom.tsx` registered in `src/App.tsx` under `ImprovedProtectedRoute`.
 
-## 4. Wire Story tab into Academy + Success
+Layout:
+```text
+┌──────────────────────────────────────────────────────────┐
+│  Header: lesson title · presence dots · ⭐ count          │
+├──┬──────────────────────────────────────────────────┬────┤
+│T │                                                  │ S  │
+│o │   <SlideRenderer slide={slides[idx]} />          │ l  │
+│o │   <AnnotationOverlay />  (absolute, full canvas) │ i  │
+│l │   <LaserDot x y />                                │ d  │
+│b │                                                  │ e  │
+│a │                                                  │ s  │
+│r │                                                  │    │
+└──┴──────────────────────────────────────────────────┴────┘
+```
 
-`src/pages/AcademyCreator.tsx`, `src/pages/SuccessCreator.tsx`
+- Loads lesson + slides via existing lesson loader (same source as `PlaygroundDemo`/`AcademyDemo`).
+- Reuses `SlideRenderer` from those demo modules → no duplicated slide code.
+- Teacher sees Prev/Next buttons → `setSlideIndex`. Student's Prev/Next are hidden; their view auto-snaps via the `postgres_changes` subscription.
+- Right-side slide list is read-only for student, clickable for teacher.
 
-Currently both list `storybook` in the slide-type menu but render nothing for it in the right-sidebar editor. Mirror Playground's pattern:
+### 4. Annotation overlay
 
-- Import `StorybookEditor` and `StorybookRenderer`.
-- Add a `📖 Story` tab in the right sidebar that mounts `StorybookEditor` when `current.type === 'storybook'`, passing `hub`, `cefrLevel`, `targetVocab`, `grammarFocus` from the blueprint, and `onAppendQuiz={(quiz) => insertAfterCurrent(mapAIQuizSlides(quiz, hub))}`.
-- Render `<StorybookRenderer slide={current} hub="academy|success" />` in the central preview for `storybook` slides.
-- Default `layout_mode` to `comic` for Academy and `case_study` for Success when a new storybook slide is created.
+`src/components/live-classroom/AnnotationOverlay.tsx` — wraps a transparent `<canvas>` sized to the slide container.
 
-## 5. Question Editor (already mostly free)
+- Pointer events captured locally; each stroke segment broadcast as `{ event: 'stroke', x, y, prevX, prevY, color, width, role }` (throttled to ~30 fps with rAF).
+- Remote strokes drawn immediately on the same canvas.
+- `Clear All` broadcasts `clear`; both sides wipe canvas.
+- Tool palette (`AnnotationToolbar.tsx`):
+  - Teacher: Laser Pointer, Pen (color picker: black/red/blue), Eraser-style Clear All.
+  - Student: Pen only (single color).
+- Laser pointer: while active, mousemove broadcasts `laser` events at ~20 Hz; remote side renders an absolutely-positioned red dot that fades out 800 ms after the last update. Laser is **not** drawn into the canvas.
+- We use a hand-rolled canvas (no `react-sketch-canvas` dependency) to keep bundle small and to share the same canvas for remote strokes — but if the user prefers, we can swap in `react-sketch-canvas`.
 
-The auto-appended comprehension slides become normal `multiple` / `truefalse` / `fill` / `discussion` / `clickimage` slides that already use the existing per-type editors — teachers can click any of them and edit the question, options, or correct answer just like any other slide. We only need to:
+### 5. Reward star + confetti
 
-- Surface the `comprehension_kind` tag in `SlideEditor` as a small badge ("Literal", "Inference", "Vocabulary in Context", "Strategic", "Visual") so the teacher knows the pedagogical role of each question.
+- Teacher toolbar has a ⭐ button → `sendReward()` increments `student_rewards` (DB update for persistence + broadcast `reward` for instant FX).
+- On `reward` event, both sides:
+  - Trigger `canvas-confetti` burst (already a small dep — add if missing).
+  - Play `/sounds/tada.mp3` (add asset; use existing audio gate utility so autoplay rules are respected).
+- Star count badge in header reflects `student_rewards`.
 
-## 6. Out of scope (v1)
+### 6. Routing & access
 
-- Storing per-student comprehension scores into a new table.
-- AI image generation styled differently per layout (comic vs case-study illustration style) — current single-style image pipeline is reused.
+- Add `/live-classroom/:sessionId` to `src/App.tsx` inside `ImprovedProtectedRoute` (allowed roles: `teacher`, `student`).
+- Page detects role from `useAuth` + checks `teacher_id` on `classroom_states`. If user is the teacher → teacher tools render; otherwise student tools.
 
-## Files
+### 7. Component reuse summary
 
-**Edited**
-- `src/components/creator-studio/shared/StorybookRenderer.tsx`
-- `src/components/creator-studio/shared/StorybookEditor.tsx`
-- `src/components/creator-studio/shared/SlideEditor.tsx` (badge only)
-- `src/pages/AcademyCreator.tsx`
-- `src/pages/SuccessCreator.tsx`
-- `supabase/functions/generate-storybook/index.ts`
+| New file | Purpose |
+|---|---|
+| `supabase/migrations/<ts>_classroom_states.sql` | Table, RLS, realtime publication |
+| `src/hooks/useLiveClassroom.ts` | Realtime state + broadcast API |
+| `src/pages/LiveClassroom.tsx` | The route |
+| `src/components/live-classroom/AnnotationOverlay.tsx` | Canvas + remote stroke renderer |
+| `src/components/live-classroom/AnnotationToolbar.tsx` | Tool palette (teacher vs student) |
+| `src/components/live-classroom/LaserDot.tsx` | Fading laser cursor |
+| `src/components/live-classroom/RewardFx.tsx` | Confetti + tada sound |
+| `public/sounds/tada.mp3` | Reward sound (placeholder asset) |
 
-**No new files, no DB migration** — `theme`, `layout_mode`, `highlight_words`, `comprehension_kind` all live inside the slide JSON already persisted in `lessons.metadata`.
+Edited:
+- `src/App.tsx` — route registration.
+- `package.json` — add `canvas-confetti` if not present.
+
+### 8. Out of scope (v1)
+
+- Persisting drawings between sessions (strokes are ephemeral).
+- Multi-student rooms (single student model — matches existing 1-on-1 booking design).
+- Audio/video — handled by existing call infrastructure.
+
+### 9. Manual verification (after deploy)
+
+1. Open `/live-classroom/<sessionId>` in two browsers, sign in as teacher in one, student in the other.
+2. Teacher clicks Next → student snaps forward.
+3. Teacher draws → student sees strokes; student draws → teacher sees them.
+4. Teacher activates Laser → student sees red dot tracking.
+5. Teacher clicks ⭐ → student screen erupts with confetti + "Ta-da!", star count increments on both sides.
