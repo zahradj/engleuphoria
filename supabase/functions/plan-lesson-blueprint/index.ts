@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { topic, cefr_level = "A1", hub = "academy" } = await req.json().catch(() => ({}));
+    const { topic, cefr_level = "A1", hub = "academy", interests, specific_needs } = await req.json().catch(() => ({}));
     if (!topic || typeof topic !== "string") {
       return new Response(JSON.stringify({ error: "topic is required" }), {
         status: 400,
@@ -29,6 +29,11 @@ Deno.serve(async (req) => {
         ? "adult professionals, business / workplace context"
         : "teenagers (ages 11-17), modern and relatable";
 
+    const anchor = [
+      interests ? `STUDENT INTERESTS (creative anchor): ${interests}` : "",
+      specific_needs ? `SPECIFIC NEEDS / GOALS: ${specific_needs}` : "",
+    ].filter(Boolean).join("\n");
+
     const system = `You are a Senior ESL Curriculum Designer.
 Given a TOPIC and a CEFR level, you select:
   • exactly 5 target vocabulary words (single words or 2-word collocations)
@@ -36,6 +41,7 @@ Given a TOPIC and a CEFR level, you select:
 The selection MUST be appropriate for ${audience} at CEFR ${cefr_level}.
 Vocabulary must be tightly themed to the topic — not generic filler.
 Grammar must be one a teacher could plausibly drill in 30-60 minutes alongside that vocabulary.
+${anchor ? `\nWhen choosing vocabulary, gently bias toward terms that resonate with the following:\n${anchor}` : ""}
 Return ONLY via the supplied function tool.`;
 
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -45,7 +51,7 @@ Return ONLY via the supplied function tool.`;
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: system },
-          { role: "user", content: `TOPIC: ${topic}\nCEFR LEVEL: ${cefr_level}\nHUB: ${hub}` },
+          { role: "user", content: `TOPIC: ${topic}\nCEFR LEVEL: ${cefr_level}\nHUB: ${hub}\n${anchor}` },
         ],
         tools: [
           {
