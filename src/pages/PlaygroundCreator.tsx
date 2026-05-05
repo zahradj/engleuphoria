@@ -50,6 +50,7 @@ const SLIDE_TYPES: { type: SlideType; label: string; emoji: string }[] = [
   { type: 'drag', label: 'Drag & Drop', emoji: '🖱️' },
   { type: 'match', label: 'Matching', emoji: '🔗' },
   { type: 'draw', label: 'Drawing', emoji: '🎨' },
+  { type: 'lesson_summary', label: 'Lesson Summary', emoji: '🏆' },
 ];
 
 function makeSlide(type: SlideType): Slide {
@@ -73,6 +74,8 @@ function makeSlide(type: SlideType): Slide {
       };
     case 'draw':
       return { type: 'draw', prompt: 'Draw your favourite animal!', voice: { text: 'Draw something!', autoPlay: true } };
+    case 'lesson_summary':
+      return { type: 'lesson_summary', title: 'Level Complete!', vocab_recap: [], takeaway: 'You did amazing!', voice: { text: 'Great job! Level complete!', autoPlay: true } };
   }
 }
 
@@ -85,6 +88,7 @@ function slideTitle(slide: Slide): string {
     case 'drag': return slide.instruction;
     case 'match': return slide.instruction;
     case 'draw': return slide.prompt;
+    case 'lesson_summary': return slide.title || 'Lesson Summary';
   }
 }
 
