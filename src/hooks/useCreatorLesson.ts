@@ -62,20 +62,24 @@ export function useCreatorLesson({ hub, initialLessonId }: UseCreatorLessonArgs)
         const levelRaw = (meta.level || '').trim();
         const cefr = isCefr(levelRaw) ? levelRaw.toUpperCase() : null;
         const difficulty = cefr ? cefrToDifficulty(cefr) : cefrToDifficulty(levelRaw || 'A1');
-        const content = {
-          slides,
-          hub,
-          updated_at: new Date().toISOString(),
-        };
         const successToast = '✅ Saved to Master Library';
 
         if (lessonId) {
-          // Preserve existing ai_metadata while merging hub/cefr fields.
+          // Preserve existing content (blueprint metadata: objectives,
+          // vocabularyTheme, ai_wizard_manifest, mediaAssets, homework_missions, etc.)
+          // and existing ai_metadata while merging the new slides + hub/cefr.
           const { data: existing } = await supabase
             .from('curriculum_lessons')
-            .select('ai_metadata')
+            .select('content, ai_metadata')
             .eq('id', lessonId)
             .maybeSingle();
+          const prevContent = (existing?.content as Record<string, any> | null) ?? {};
+          const mergedContent = {
+            ...prevContent,
+            slides,
+            hub,
+            updated_at: new Date().toISOString(),
+          };
           const mergedMeta = {
             ...(existing?.ai_metadata as Record<string, any> | null ?? {}),
             hub,
@@ -86,7 +90,7 @@ export function useCreatorLesson({ hub, initialLessonId }: UseCreatorLessonArgs)
             .from('curriculum_lessons')
             .update({
               title: meta.title,
-              content,
+              content: mergedContent,
               is_published: meta.publish,
               difficulty_level: difficulty,
               target_system: targetSystem,
@@ -100,6 +104,13 @@ export function useCreatorLesson({ hub, initialLessonId }: UseCreatorLessonArgs)
           if (!meta.silent) toast.success(successToast);
           return lessonId;
         }
+
+        const content = {
+          slides,
+          hub,
+          updated_at: new Date().toISOString(),
+        };
+
 
         const { data, error } = await supabase
           .from('curriculum_lessons')
