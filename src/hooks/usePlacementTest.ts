@@ -44,7 +44,8 @@ export function usePlacementTest() {
   const completeTest = async (
     age: number,
     results: TestResult[],
-    interests: string[] = []
+    interests: string[] = [],
+    learningReason: string = ''
   ): Promise<string> => {
     if (!user?.id) throw new Error('User not authenticated');
 
@@ -64,11 +65,16 @@ export function usePlacementTest() {
       cefr_level: cefrLevel,
       onboarding_completed: true,
       placement_test_score: score,
+      placement_test_total: total,
       placement_test_completed_at: completedAt,
+      age: age || null,
     };
 
     if (interests.length > 0) {
       upsertData.interests = interests;
+    }
+    if (learningReason) {
+      upsertData.learning_reason = learningReason;
     }
 
     // Use upsert so this works even if the signup row was never created
