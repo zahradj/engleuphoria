@@ -79,6 +79,30 @@ Deno.serve(async (req) => {
     if (hub_type === "playground" || normalizeHub(target_hub ?? hub) === "playground") {
       const isPreA1 = String(cefr_level).toLowerCase() === "pre-a1";
 
+      // Pull the canonical target vocabulary + grammar from the blueprint or top-level body.
+      const targetVocab: string[] = Array.isArray(body?.target_vocabulary)
+        ? body.target_vocabulary
+        : Array.isArray(blueprint?.target_vocabulary)
+          ? blueprint.target_vocabulary
+          : Array.isArray(blueprint?.vocabulary)
+            ? blueprint.vocabulary
+            : [];
+      const grammarFocus: string =
+        body?.grammar_focus || blueprint?.grammar_focus || blueprint?.grammar || "";
+      const vocabCount = Math.max(1, targetVocab.length);
+
+      const blueprintBlock = `
+TARGET VOCABULARY (exact list — do NOT add or remove words): ${JSON.stringify(targetVocab)}
+TARGET GRAMMAR: "${grammarFocus}"
+
+STRICT PPP COUNTS — your output MUST contain EXACTLY:
+  • Phase 1 PRESENTATION: 1 "intro" + ${vocabCount} "vocab_solo" slides — one per word, in the order listed above. The "word" field of each vocab_solo MUST exactly equal the corresponding target word (uppercase OK).
+  • Phase 2 PRACTICE: EXACTLY 3 interactive slides drilling those same words ("multiple" with image options, "match" image↔word, or "drag"). No new vocabulary.
+  • Phase 3 GRAMMAR: EXACTLY 2 slides ("fill" or "multiple") that USE the target grammar pattern with the target vocabulary (e.g., "The duck is _______").
+  • Phase 4 PRODUCTION: EXACTLY 1 "storybook" (2–3 pages) recycling every target word in a simple narrative.
+  • End with EXACTLY 1 "lesson_summary" recapping the target words.
+Total slides: ${1 + vocabCount + 3 + 2 + 1 + 1}.`;
+
       const preA1Directive = isPreA1 ? `
 
 ⚠️ PRE-A1 NON-READER MODE — STRICT
@@ -103,15 +127,10 @@ Allowed types and required shape:
 { "type": "drag", "instruction": "Drag the word onto the picture", "word": "APPLE", "image_url": "AI:shiny red apple", "voice": {...} }
 { "type": "storybook", "title": "...", "topic": "...", "pages": [ { "page_number": 1, "text": "Short kid sentence", "image_url": "AI:<subject>" } ], "voice": {...} }
 
-KID-FRIENDLY 4-STAGE FLOW (REQUIRED ORDER):
-  1) PRESENTATION — exactly ONE "intro", then 5–8 "vocab_solo" slides (one per target word).
-  2) PRACTICE     — 2–3 "match" and/or "drag" slides (image ↔ word).
-  3) GRAMMAR      — 1–2 "fill" or "multiple" slides using a tiny frame like "I see a ____".
-  4) PRODUCTION   — 1 "storybook" recycling all words.
-  5) END with a "lesson_summary": { "type": "lesson_summary", "title": "Level Complete!", "vocab_recap": ["...","..."], "takeaway": "..." }
+${blueprintBlock}
 
 RULES:
-- Output 12–18 slides total. NEVER deviate from the stage order above.
+- Follow the STRICT PPP COUNTS above EXACTLY. Do not invent extra slides or skip phases.
 - For every "AI:<subject>" placeholder, write a clear, kid-friendly subject ≤ 6 words.
 - For EVERY slide include a short "teacher_notes" (≤120 chars) for the live teacher. Never shown to the student.
 - Topic: "${effectiveTitle}". ${objective ? `Goal: ${objective}.` : ""}
