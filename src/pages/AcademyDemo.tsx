@@ -61,6 +61,9 @@ export type Slide =
   | { type: 'speaking_task'; block: Block; prompt: string; starters?: string[] }
   | { type: 'reflection'; block: Block; prompt: string }
   | { type: 'cluster'; block: Block; title: string; content?: string; activities: ClusterActivity[] }
+  | (CanvasGameSlide & { block: Block })
+  | (LivingCanvasSlide & { block: Block })
+  | (ScaffoldedMediaSlide & { block: Block })
   | { type: 'lesson_summary'; block: Block; title?: string; vocab_recap: string[]; grammar_recap?: string; takeaway?: string };
 
 // ─── Lesson content (edit only this) ─────────────────────────────────────────
