@@ -79,6 +79,30 @@ Deno.serve(async (req) => {
     if (hub_type === "playground" || normalizeHub(target_hub ?? hub) === "playground") {
       const isPreA1 = String(cefr_level).toLowerCase() === "pre-a1";
 
+      // Pull the canonical target vocabulary + grammar from the blueprint or top-level body.
+      const targetVocab: string[] = Array.isArray(body?.target_vocabulary)
+        ? body.target_vocabulary
+        : Array.isArray(blueprint?.target_vocabulary)
+          ? blueprint.target_vocabulary
+          : Array.isArray(blueprint?.vocabulary)
+            ? blueprint.vocabulary
+            : [];
+      const grammarFocus: string =
+        body?.grammar_focus || blueprint?.grammar_focus || blueprint?.grammar || "";
+      const vocabCount = Math.max(1, targetVocab.length);
+
+      const blueprintBlock = `
+TARGET VOCABULARY (exact list — do NOT add or remove words): ${JSON.stringify(targetVocab)}
+TARGET GRAMMAR: "${grammarFocus}"
+
+STRICT PPP COUNTS — your output MUST contain EXACTLY:
+  • Phase 1 PRESENTATION: 1 "intro" + ${vocabCount} "vocab_solo" slides — one per word, in the order listed above. The "word" field of each vocab_solo MUST exactly equal the corresponding target word (uppercase OK).
+  • Phase 2 PRACTICE: EXACTLY 3 interactive slides drilling those same words ("multiple" with image options, "match" image↔word, or "drag"). No new vocabulary.
+  • Phase 3 GRAMMAR: EXACTLY 2 slides ("fill" or "multiple") that USE the target grammar pattern with the target vocabulary (e.g., "The duck is _______").
+  • Phase 4 PRODUCTION: EXACTLY 1 "storybook" (2–3 pages) recycling every target word in a simple narrative.
+  • End with EXACTLY 1 "lesson_summary" recapping the target words.
+Total slides: ${1 + vocabCount + 3 + 2 + 1 + 1}.`;
+
       const preA1Directive = isPreA1 ? `
 
 ⚠️ PRE-A1 NON-READER MODE — STRICT
