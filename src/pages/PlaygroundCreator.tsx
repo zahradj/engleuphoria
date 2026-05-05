@@ -29,6 +29,7 @@ import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
 import { StorybookEditor } from '@/components/creator-studio/shared/StorybookEditor';
 import { MediaAnalyzerModal } from '@/components/creator-studio/shared/MediaAnalyzerModal';
 import { mapAIQuizSlides } from '@/components/creator-studio/shared/aiQuizMapper';
+import { LessonBlueprintPanel, EMPTY_BLUEPRINT, type LessonBlueprint } from '@/components/creator-studio/shared/LessonBlueprintPanel';
 import { CanvasElementEditor } from '@/components/creator-studio/shared/CanvasElementEditor';
 import { ScaffoldedMediaEditor } from '@/components/creator-studio/shared/ScaffoldedMediaEditor';
 import { Headphones } from 'lucide-react';
