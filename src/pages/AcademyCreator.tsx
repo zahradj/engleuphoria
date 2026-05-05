@@ -946,7 +946,7 @@ function SlideEditor({ slide, onChange, blueprint, hub = 'academy', cefrLevel = 
     case 'truefalse':
       return (
         <div className="space-y-3">
-          <Field label="Statement"><input className={inputCls} value={slide.statement} onChange={(e) => onChange({ statement: e.target.value } as any)} /></Field>
+          <Field label="Statement">{row(<input className={inputCls} value={slide.statement} onChange={(e) => onChange({ statement: e.target.value } as any)} />, wand('statement', slide.statement, (v) => onChange({ statement: v } as any)))}</Field>
           <Field label="Answer">
             <select className={inputCls} value={slide.answer ? 'true' : 'false'} onChange={(e) => onChange({ answer: e.target.value === 'true' } as any)}>
               <option value="true">True</option><option value="false">False</option>
