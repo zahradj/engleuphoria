@@ -12,6 +12,7 @@ import { PreviewModeToggle, type PreviewMode } from '@/components/creator-studio
 import { PlayablePreviewPane } from '@/components/creator-studio/shared/PlayablePreviewPane';
 import { UniversalMediaShell } from '@/components/creator-studio/shared/UniversalMediaShell';
 import { SoloVocabCard } from '@/components/creator-studio/shared/SoloVocabCard';
+import { VisualFlashcard } from '@/components/creator-studio/shared/VisualFlashcard';
 import { WandFieldButton } from '@/components/creator-studio/shared/WandFieldButton';
 import { AIToolsPanel } from '@/components/creator-studio/shared/AIToolsPanel';
 import { slideIcon } from '@/components/creator-studio/shared/slideIcons';
@@ -664,19 +665,24 @@ export default function PlaygroundCreator() {
               getTeacherNotes={(s) => (s as any).teacher_notes}
               renderSlide={(slide, idx) => {
                 const s: any = slide;
+                const isVocab = s.type === 'vocab_solo';
                 const flashcards = Array.isArray(s.flashcards) ? s.flashcards : [];
-                const isSoloVocab = flashcards.length > 0;
+                const legacySolo = !isVocab && flashcards.length > 0;
                 return (
                   <div className="rounded-xl bg-gradient-to-br from-orange-400 via-amber-300 to-yellow-200 p-4 min-h-[420px] flex items-center justify-center">
                     <div key={idx + (slide as Slide).type} className="bg-white rounded-2xl shadow-xl w-full p-4 min-h-[380px] flex items-center justify-center">
                       <div className="scale-[0.85] origin-center w-full">
-                        <UniversalMediaShell slide={s} hub="playground" suppressImage={isSoloVocab}>
-                          {isSoloVocab ? (
-                            <SoloVocabCard card={flashcards[0]} hub="playground" />
-                          ) : (
-                            <SlideRenderer slide={slide as Slide} />
-                          )}
-                        </UniversalMediaShell>
+                        {isVocab ? (
+                          <VisualFlashcard slide={s} hub="playground" />
+                        ) : (
+                          <UniversalMediaShell slide={s} hub="playground" suppressImage={legacySolo}>
+                            {legacySolo ? (
+                              <SoloVocabCard card={flashcards[0]} hub="playground" />
+                            ) : (
+                              <SlideRenderer slide={slide as Slide} />
+                            )}
+                          </UniversalMediaShell>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -830,7 +836,7 @@ export default function PlaygroundCreator() {
                 </Field>
                 <Field label="CEFR Level">
                   <select className={inputCls} value={aiLevel} onChange={(e) => setAiLevel(e.target.value)} disabled={aiBusy}>
-                    {['A1','A2','B1'].map((l) => <option key={l} value={l}>{l}</option>)}
+                    {['Pre-A1','A1','A2','B1','B2'].map((l) => <option key={l} value={l}>{l}</option>)}
                   </select>
                 </Field>
                 <p className="text-xs text-slate-500">The AI will pick 5 vocabulary words and 1 grammar structure for you — you can edit them in the Lesson Blueprint panel.</p>
