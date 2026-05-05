@@ -160,3 +160,7 @@ project_id = "dcoxpyzoqjvmuuygvlme"
     verify_jwt = true
   [functions.generate-slide-music]
     verify_jwt = true
+  [functions.generate-storybook]
+    verify_jwt = false
+  [functions.analyze-media]
+    verify_jwt = false
