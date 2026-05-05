@@ -322,13 +322,13 @@ export const PlacementGatekeeper = ({
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className={`backdrop-blur-2xl bg-white/10 border border-white/20 rounded-3xl p-12 text-center ${theme.glow}`}
+              className={`backdrop-blur-2xl ${isPlayground ? 'bg-white/90 border-orange-200' : 'bg-white/10 border-white/20'} border rounded-3xl p-12 text-center ${theme.glow}`}
             >
               <motion.div
                 initial={{ scale: 0, rotate: -10 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ type: 'spring', duration: 0.8 }}
-                className={`w-28 h-28 mx-auto mb-6 rounded-full bg-white/10 backdrop-blur-md ring-1 ring-white/20 flex items-center justify-center px-5`}
+                className={`w-28 h-28 mx-auto mb-6 rounded-full ${isPlayground ? 'bg-gradient-to-br from-orange-500 to-amber-500' : 'bg-white/10'} backdrop-blur-md ring-1 ring-white/20 flex items-center justify-center px-5`}
               >
                 <img
                   src={logoWhite}
@@ -340,8 +340,8 @@ export const PlacementGatekeeper = ({
               <p className={`text-sm uppercase tracking-widest font-semibold ${theme.accentText} mb-2`}>
                 Your Level
               </p>
-              <h2 className="text-5xl font-bold text-white mb-4">{resolvedLevel}</h2>
-              <p className="text-white/70 text-lg mb-8">
+              <h2 className={`text-5xl font-bold mb-4 ${isPlayground ? 'text-slate-800' : 'text-white'}`}>{resolvedLevel}</h2>
+              <p className={`text-lg mb-8 ${isPlayground ? 'text-slate-600' : 'text-white/70'}`}>
                 Your dashboard is now tuned to your exact level. Let's begin.
               </p>
               <Button
