@@ -711,7 +711,7 @@ export default function AcademyCreator() {
                     cefrLevel={level}
                     targetVocab={blueprint?.vocabulary || []}
                     grammarFocus={blueprint?.grammar || ''}
-                    onPatch={(patch) => update(patch as Partial<Slide>)}
+                    onPatch={(patch) => update(patch as unknown as Partial<Slide>)}
                     onAppendQuiz={(quiz) => insertAfterCurrent(mapAIQuizSlides(quiz, 'academy') as Slide[])}
                   />
                 ) : current.type === 'canvas_game' || current.type === 'living_canvas' ? (
