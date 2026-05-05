@@ -509,6 +509,14 @@ export default function AcademyCreator() {
       <div className="flex-1 w-full grid grid-cols-1 lg:grid-cols-[240px_1fr_380px] gap-4 p-4 min-h-0">
         {/* Left: slide list grouped by block */}
         <aside className="min-h-0 flex flex-col order-1">
+          <LessonBlueprintPanel
+            hub="academy"
+            blueprint={blueprint}
+            onChange={setBlueprint}
+            slides={slides}
+            onSyncedSlides={(s) => { setSlides(s as Slide[]); setSelected(0); }}
+            cefrLevel={aiLevel}
+          />
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 flex flex-col flex-1 min-h-0">
             <div className="flex items-center justify-between px-2 py-1 mb-2 flex-shrink-0">
               <h2 className="text-xs font-bold text-indigo-600 tracking-wider uppercase">Slides · {slides.length}</h2>
