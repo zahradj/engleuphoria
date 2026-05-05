@@ -177,6 +177,50 @@ function MyPathInner() {
           </p>
         </section>
 
+        {/* Onboarding snapshot — shows the data the student gave us */}
+        {(profile.interests?.length || profile.age || profile.learning_reason || profile.placement_test_score != null) && (
+          <section className="mt-6 rounded-2xl border bg-card p-5 shadow-sm">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+              Your profile
+            </h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {profile.age != null && (
+                <div className="flex items-center justify-between rounded-xl bg-muted/50 px-3 py-2">
+                  <span className="text-xs text-muted-foreground">Age</span>
+                  <span className="text-sm font-semibold text-foreground">{profile.age}</span>
+                </div>
+              )}
+              {profile.learning_reason && (
+                <div className="flex items-center justify-between rounded-xl bg-muted/50 px-3 py-2">
+                  <span className="text-xs text-muted-foreground">Why I'm learning</span>
+                  <span className="text-sm font-semibold text-foreground">{profile.learning_reason}</span>
+                </div>
+              )}
+              {profile.placement_test_score != null && (
+                <div className="flex items-center justify-between rounded-xl bg-muted/50 px-3 py-2">
+                  <span className="text-xs text-muted-foreground">Placement score</span>
+                  <span className="text-sm font-semibold text-foreground">{profile.placement_test_score}%</span>
+                </div>
+              )}
+              {profile.interests?.length ? (
+                <div className="sm:col-span-2 rounded-xl bg-muted/50 px-3 py-2">
+                  <div className="text-xs text-muted-foreground mb-1.5">Interests</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {profile.interests.map((i) => (
+                      <span
+                        key={i}
+                        className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${brand.textClass} bg-background`}
+                      >
+                        {i}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </section>
+        )}
+
         {/* Existing visual roadmap */}
         <section className="mt-8">
           <LearningPathTab />
