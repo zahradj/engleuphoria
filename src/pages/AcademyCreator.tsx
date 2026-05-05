@@ -33,6 +33,8 @@ import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
 import { useAutoSave, useRevisionHistory, type LessonRevision } from '@/hooks/useAutoSaveAndHistory';
 import { SaveStatusBadge } from '@/components/creator-studio/shared/SaveStatusBadge';
 import { RevisionHistoryModal } from '@/components/creator-studio/shared/RevisionHistoryModal';
+import { CanvasElementEditor } from '@/components/creator-studio/shared/CanvasElementEditor';
+import { ScaffoldedMediaEditor } from '@/components/creator-studio/shared/ScaffoldedMediaEditor';
 
 /**
  * Academy Slide Creator — clean teacher-facing authoring tool.
