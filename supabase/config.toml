@@ -170,3 +170,5 @@ project_id = "dcoxpyzoqjvmuuygvlme"
     verify_jwt = false
   [functions.sync-slides-to-blueprint]
     verify_jwt = false
+  [functions.rewrite-slide-field]
+    verify_jwt = false

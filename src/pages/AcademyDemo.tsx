@@ -5,6 +5,7 @@ import { useAcademyAudio } from '@/hooks/useAcademyAudio';
 import type { CanvasGameSlide, LivingCanvasSlide, ScaffoldedMediaSlide } from '@/components/creator-studio/shared/canvasSchema';
 import { LivingCanvas } from '@/components/creator-studio/shared/LivingCanvas';
 import { ScaffoldedPlayer } from '@/components/creator-studio/shared/ScaffoldedPlayer';
+import { SoloVocabCard } from '@/components/creator-studio/shared/SoloVocabCard';
 
 /**
  * Academy Engine — teen-focused (12–17, A1–B1), 60-minute, 7-block lesson system.
@@ -67,6 +68,7 @@ export type Slide =
   | (CanvasGameSlide & { block: Block })
   | (LivingCanvasSlide & { block: Block })
   | (ScaffoldedMediaSlide & { block: Block })
+  | { type: 'vocab_solo'; block: Block; word: string; definition?: string; image_url?: string; audio_url?: string }
   | { type: 'lesson_summary'; block: Block; title?: string; vocab_recap: string[]; grammar_recap?: string; takeaway?: string };
 
 // ─── Lesson content (edit only this) ─────────────────────────────────────────
@@ -838,6 +840,10 @@ export function SlideRenderer({ slide, t }: { slide: Slide; t: ThemeTokens }) {
       return <LivingCanvas slide={slide as any} hub="academy" />;
     case 'scaffolded_media':
       return <ScaffoldedPlayer slide={slide as any} hub="academy" />;
+    case 'vocab_solo': {
+      const s: any = slide;
+      return <SoloVocabCard hub="academy" card={{ word: s.word, definition: s.definition, image_url: s.image_url, audio_url: s.audio_url }} />;
+    }
     case 'lesson_summary': return <AcademyLessonSummary slide={slide} t={t} />;
   }
 }
