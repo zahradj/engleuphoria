@@ -77,27 +77,47 @@ Deno.serve(async (req) => {
     // Playground Engine's slide schema exactly so the WYSIWYG renderer can
     // consume it without translation.
     if (hub_type === "playground" || normalizeHub(target_hub ?? hub) === "playground") {
+      const isPreA1 = String(cefr_level).toLowerCase() === "pre-a1";
+
+      const preA1Directive = isPreA1 ? `
+
+⚠️ PRE-A1 NON-READER MODE — STRICT
+- The student CANNOT read in any language. Minimize on-screen text everywhere.
+- EVERY slide MUST have a "voice" object whose "text" is the spoken instruction (1 short sentence, ≤6 words).
+- Bias the deck toward "multiple" (image-based options spoken aloud) and "match"/"drag" (image ↔ word).
+- DO NOT generate "fill" slides. Avoid long sentences. Avoid sub-titles.
+- Every interactive prompt should be answerable purely by listening + looking at images.
+` : "";
+
       const playgroundSystem = `You are an expert children's EdTech game designer. Create a highly interactive, fun English lesson. Keep vocabulary very simple. Output ONLY a valid JSON array of slide objects. Do not wrap in markdown or backticks. You MUST use a variety of these exact slide types.
 
 STRICT SCHEMA (per type) — every slide MUST include a "voice" object { "text": string, "autoPlay": true }. Use simple 1-2 syllable words. NEVER include emojis in image fields — use the literal placeholder string "AI:<short subject>" anywhere an image is needed and the server will replace it with an AI-generated cartoon URL.
 
 Allowed types and required shape:
 { "type": "intro", "title": "...", "text": "...", "image_url": "AI:<subject>", "voice": { "text": "...", "autoPlay": true } }
+{ "type": "vocab_solo", "word": "APPLE", "definition": "A red fruit.", "image_url": "AI:shiny red apple", "voice": { "text": "apple", "autoPlay": true } }
 { "type": "multiple", "question": "...", "options": ["a","b","c"], "answer": "<one of options>", "image_url": "AI:<subject>", "voice": {...} }
 { "type": "truefalse", "statement": "...", "answer": true|false, "image_url": "AI:<subject>", "voice": {...} }
 { "type": "fill", "text": "I see a ____", "answer": "<word>", "voice": {...} }
 { "type": "match", "instruction": "...", "pairs": [ { "word": "DOG", "image_url": "AI:friendly puppy" }, { "word": "CAT", "image_url": "AI:cute kitten" } ], "voice": {...} }
 { "type": "drag", "instruction": "Drag the word onto the picture", "word": "APPLE", "image_url": "AI:shiny red apple", "voice": {...} }
+{ "type": "storybook", "title": "...", "topic": "...", "pages": [ { "page_number": 1, "text": "Short kid sentence", "image_url": "AI:<subject>" } ], "voice": {...} }
+
+KID-FRIENDLY 4-STAGE FLOW (REQUIRED ORDER):
+  1) PRESENTATION — exactly ONE "intro", then 5–8 "vocab_solo" slides (one per target word).
+  2) PRACTICE     — 2–3 "match" and/or "drag" slides (image ↔ word).
+  3) GRAMMAR      — 1–2 "fill" or "multiple" slides using a tiny frame like "I see a ____".
+  4) PRODUCTION   — 1 "storybook" recycling all words.
+  5) END with a "lesson_summary": { "type": "lesson_summary", "title": "Level Complete!", "vocab_recap": ["...","..."], "takeaway": "..." }
 
 RULES:
-- Output 8-12 slides. Start with ONE "intro". End with a "lesson_summary" slide: { "type": "lesson_summary", "title": "Level Complete!", "vocab_recap": ["...","..."], "takeaway": "..." } that lists up to 5 words taught.
-- Use at least 4 different interactive types in between. No two same types back-to-back.
+- Output 12–18 slides total. NEVER deviate from the stage order above.
 - For every "AI:<subject>" placeholder, write a clear, kid-friendly subject ≤ 6 words.
 - For EVERY slide include a short "teacher_notes" (≤120 chars) for the live teacher. Never shown to the student.
 - Topic: "${effectiveTitle}". ${objective ? `Goal: ${objective}.` : ""}
-- Return RAW JSON ARRAY only.`;
+- Return RAW JSON ARRAY only.${preA1Directive}`;
 
-      const allowed = new Set(["intro", "multiple", "truefalse", "fill", "drag", "match", "draw", "lesson_summary"]);
+      const allowed = new Set(["intro", "vocab_solo", "multiple", "truefalse", "fill", "drag", "match", "storybook", "draw", "lesson_summary"]);
 
       const callModel = async (extraUserMsg?: string): Promise<any[]> => {
         const messages: any[] = [
