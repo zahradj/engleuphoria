@@ -166,3 +166,7 @@ project_id = "dcoxpyzoqjvmuuygvlme"
     verify_jwt = false
   [functions.generate-canvas-game]
     verify_jwt = false
+  [functions.plan-lesson-blueprint]
+    verify_jwt = false
+  [functions.sync-slides-to-blueprint]
+    verify_jwt = false
