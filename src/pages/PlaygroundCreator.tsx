@@ -955,6 +955,18 @@ function SlideEditor({ slide, onChange }: { slide: Slide; onChange: (p: Partial<
           {VoiceFields}
         </div>
       );
+    case 'lesson_summary':
+      return (
+        <div className="space-y-3">
+          <Field label="Title"><input className={inputCls} value={(slide as any).title || ''} onChange={(e) => onChange({ title: e.target.value } as any)} /></Field>
+          <Field label="Vocabulary recap (one word per line)">
+            <textarea className={inputCls + ' h-24'} value={(slide as any).vocab_recap?.join('\n') || ''}
+              onChange={(e) => onChange({ vocab_recap: e.target.value.split('\n').map((s: string) => s.trim()).filter(Boolean) } as any)} />
+          </Field>
+          <Field label="Takeaway"><input className={inputCls} value={(slide as any).takeaway || ''} onChange={(e) => onChange({ takeaway: e.target.value } as any)} /></Field>
+          {VoiceFields}
+        </div>
+      );
   }
 }
 
