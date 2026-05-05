@@ -60,7 +60,8 @@ export type Slide =
   | { type: 'role_play'; block: Block; title: string; lineA: string; lineB: string }
   | { type: 'speaking_task'; block: Block; prompt: string; starters?: string[] }
   | { type: 'reflection'; block: Block; prompt: string }
-  | { type: 'cluster'; block: Block; title: string; content?: string; activities: ClusterActivity[] };
+  | { type: 'cluster'; block: Block; title: string; content?: string; activities: ClusterActivity[] }
+  | { type: 'lesson_summary'; block: Block; title?: string; vocab_recap: string[]; grammar_recap?: string; takeaway?: string };
 
 // ─── Lesson content (edit only this) ─────────────────────────────────────────
 // Topic: "How much time do you spend on your phone?" — A2 level, 36 slides.
@@ -826,7 +827,40 @@ export function SlideRenderer({ slide, t }: { slide: Slide; t: ThemeTokens }) {
     case 'speaking_task': return <SpeakingTaskSlide slide={slide} t={t} />;
     case 'reflection': return <ReflectionSlide slide={slide} t={t} />;
     case 'cluster': return <ClusterSlide slide={slide} t={t} />;
+    case 'lesson_summary': return <AcademyLessonSummary slide={slide} t={t} />;
   }
+}
+
+function AcademyLessonSummary({ slide, t }: { slide: Extract<Slide, { type: 'lesson_summary' }>; t: ThemeTokens }) {
+  return (
+    <div className="space-y-6 max-w-2xl w-full">
+      <div className={`text-xs uppercase tracking-[0.2em] ${t.muted}`}>📋 Lesson Recap</div>
+      <h2 className={`text-3xl md:text-4xl font-semibold ${t.text}`}>{slide.title || 'Review Sheet'}</h2>
+      {slide.vocab_recap?.length > 0 && (
+        <div className={`rounded-md border ${t.border} p-4 space-y-2`}>
+          <div className="text-xs uppercase tracking-widest text-indigo-400">Vocabulary mastered</div>
+          <div className="flex flex-wrap gap-2">
+            {slide.vocab_recap.slice(0, 5).map((w) => (
+              <span key={w} className="px-3 py-1 rounded-full bg-indigo-500/15 text-indigo-300 text-sm font-medium border border-indigo-500/30">{w}</span>
+            ))}
+          </div>
+        </div>
+      )}
+      {slide.grammar_recap && (
+        <div className={`rounded-md border ${t.border} p-4 space-y-1`}>
+          <div className="text-xs uppercase tracking-widest text-indigo-400">Grammar rule</div>
+          <p className={`text-base ${t.text}`}>{slide.grammar_recap}</p>
+        </div>
+      )}
+      {slide.takeaway && (
+        <div className={`rounded-md border border-indigo-500/40 p-4 space-y-1`}>
+          <div className="text-xs uppercase tracking-widest text-indigo-400">Your takeaway</div>
+          <p className={`text-base ${t.text}`}>{slide.takeaway}</p>
+        </div>
+      )}
+      <p className={`text-xs ${t.muted}`}>📸 Tip: screenshot this for review later.</p>
+    </div>
+  );
 }
 
 // ─── Progress bar ───────────────────────────────────────────────────────────
