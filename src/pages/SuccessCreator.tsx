@@ -307,6 +307,13 @@ export default function SuccessCreator() {
     setPickerOpen(false);
   };
 
+  const insertAfterCurrent = (extra: Slide[]) => {
+    setSlides((prev) => {
+      const at = Math.min(selected + 1, prev.length);
+      return [...prev.slice(0, at), ...extra, ...prev.slice(at)];
+    });
+  };
+
   const move = (i: number, dir: -1 | 1) => {
     const j = i + dir;
     if (j < 0 || j >= slides.length) return;
