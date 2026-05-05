@@ -1,200 +1,104 @@
-# Coordinate Canvas + Scaffolded Media — Engine Upgrade
+## Goal
 
-Bring Talk-Cloud–style spatial games and stop-and-go media to Playground / Academy / Success. Three new slide types, one shared engine, three hub creators wired up.
+Refactor the three Creator pages (Playground, Academy, Success) into a consistent professional 3-column workspace, replace the flashcard grid with a Solo Visual Flashcard, theme each hub's canvas, and add per-field AI rewrite buttons.
 
----
+## 1. 3-Column Layout (shared shell)
 
-## 1. New shared engine — `LivingCanvas`
+Create `src/components/creator-studio/shared/CreatorLayout.tsx` — a reusable 3-column grid:
 
-File: `src/components/creator-studio/shared/LivingCanvas.tsx`
-
-A 16:9 `aspect-[16/9]` container, `position: relative`, `overflow-hidden`. Every child is absolutely positioned with `top/left` in **percent** so it scales identically on phone, iPad and 4K monitor.
-
-Renders an array of `CanvasElement`:
-
-```ts
-type CanvasElement = {
-  id: string;
-  type: 'image' | 'text' | 'target';
-  src?: string;            // image url (or text content)
-  text?: string;
-  x: number; y: number;    // 0–100 percent
-  width: number;           // percent
-  z_index?: number;
-  rotation?: number;
-  animation_in?: 'fade' | 'pop' | 'slide-up' | 'none';
-
-  // Interaction
-  interaction?: 'none' | 'draggable' | 'reveal';
-
-  // Drag-and-drop
-  target_x?: number; target_y?: number;   // snap point (% within canvas)
-  snap_tolerance?: number;                // default 10 (percent)
-  success_sfx?: string;                   // url or short phrase for TTS
-  fail_sfx?: string;
-
-  // Click-to-reveal
-  reveal_sfx?: string;                    // tts text or audio url
-  reveal_anim?: 'fade' | 'lift' | 'shrink' | 'fly';
-};
+```text
+┌──────────────┬───────────────────────────┬──────────────┐
+│ NAVIGATOR    │        HERO CANVAS        │  INSPECTOR   │
+│ (260px)      │      (flex, centered)     │   (360px)    │
+│              │                           │              │
+│ Blueprint    │  ┌───────────────────┐    │  [Content]   │
+│  (sticky)    │  │  16:9 slide       │    │  [Media]     │
+│ ───────────  │  │  drop-shadow      │    │  [AI Tools]  │
+│ Slide 1      │  └───────────────────┘    │              │
+│ Slide 2 ●    │   ◀  3 / 12  ▶            │  fields…     │
+│ Slide 3      │                           │              │
+└──────────────┴───────────────────────────┴──────────────┘
 ```
 
-Behaviors:
-- **`draggable`** wraps the element in `motion.div` with `drag`. On drag end, if the centre is within `snap_tolerance` of `target_x/target_y`, snap (animate to target), play `success_sfx`, mark element as locked, fire `onElementSolved`. Otherwise spring back to original `x/y` (Framer Motion `dragSnapToOrigin`).
-- **`reveal`** elements have `onClick` → animate exit (`opacity: 0` + `scale: 0` / `y: -100%`) and play `reveal_sfx`. Lower-`z_index` elements behind become visible.
-- **Slide-level**: `instruction_audio` autoplays on mount via existing `elevenlabs-tts` edge function.
-- **Reset button** (bottom-right, `🔄`): restores all elements to original coordinates and re-mounts revealed elements.
-- Optional `onAllSolved` → fires confetti and unlocks the slide's "Next" button (so the demo only advances when the game is actually completed).
+Behavior:
+- Left column: collapsible Blueprint at top (uses existing `LessonBlueprintPanel`), then a vertical thumbnail list driven by `slides[]`. Active item highlighted with hub accent.
+- Center: a 16:9 aspect-ratio frame (`aspect-video max-w-[920px] mx-auto rounded-2xl shadow-2xl`) hosting `PlayablePreviewPane` + `UniversalMediaShell`. Prev / index / Next controls below.
+- Right: tab bar `[Content] [Media] [AI Tools]`. Content = current `SlideEditor` / specialised editors. Media = existing `SlideMediaPanel`. AI Tools = `DifficultyTunerDialog` trigger, "Sync to Blueprint", "Regenerate slide" buttons.
 
-Helper hook `useCanvasGameState` keeps original positions, solved set, revealed set.
+The three page files (`PlaygroundCreator.tsx`, `AcademyCreator.tsx`, `SuccessCreator.tsx`) get their middle/right markup replaced by `<CreatorLayout hub={…}>`. Existing state (slides, selected, blueprint, update, generation handlers) is passed as props — no business-logic changes.
 
----
+## 2. Solo Visual Flashcard
 
-## 2. New slide types
+Already scaffolded `SoloVocabCard.tsx` — upgrade to true 50/50 split:
+- Left: full-bleed `image_url` (16:9 inside the canvas, but card is square-ish via `aspect-square md:aspect-auto`).
+- Right: word in massive type (`text-7xl md:text-8xl font-extrabold`), optional definition, large rounded `🔊 Play Audio` pill bound to `card.audio_url` (TTS fallback to `voice.text`).
+- Hub-themed palette already wired.
 
-Append to the union in **all three** `*Demo.tsx` files (`Playground/Academy/Success`):
+Slide engine changes:
+- Add new slide type `'vocab_solo'` with `{ word, definition?, image_url?, audio_url?, voice? }`.
+- `SlideRenderer` in all three Demo files routes `vocab_solo` → `SoloVocabCard`.
+- `SlideMediaPanel` flashcard tab: when `slide.type === 'vocab_solo'`, hide the multi-card list and show a single editor (Word, Definition, Generate Image, Generate Audio).
+- Migration helper: when an old multi-flashcard slide is opened, offer "Split into Solo cards" (one new slide per card). The previously added Playground "first-card" preview (UniversalMediaShell branch) stays as a transitional render.
 
-```ts
-| {
-    type: 'canvas_game';            // drag-and-drop / sorting
-    title?: string;
-    instruction?: string;
-    instruction_audio?: string;
-    background_image?: string;
-    elements: CanvasElement[];
-    voice?: SlideVoice;
-  }
-| {
-    type: 'living_canvas';          // layered click-to-reveal + drag mix
-    title?: string;
-    instruction?: string;
-    instruction_audio?: string;
-    background_image?: string;
-    elements: CanvasElement[];      // each may use 'reveal' or 'draggable'
-    voice?: SlideVoice;
-  }
-| {
-    type: 'scaffolded_media';       // smart video/audio with mid-playback questions
-    title?: string;
-    media_url: string;
-    media_kind: 'youtube' | 'audio' | 'video';
-    transcript?: string;
-    segments: {
-      start_time: number;           // seconds
-      end_time: number;
-      question: {
-        prompt: string;
-        options: string[];
-        answer: string;
-        replay_hint?: string;
-      };
-    }[];
-    voice?: SlideVoice;
-  };
+## 3. Hub-Specific Canvas Styling
+
+Add a `hubTheme` map consumed by `CreatorLayout` + `PlayablePreviewPane`:
+
+| Hub        | Canvas bg                        | Font (canvas)         | Accent   | Corners |
+|------------|----------------------------------|-----------------------|----------|---------|
+| Playground | warm gradient orange→yellow      | rounded display (Fredoka / Baloo) | orange   | rounded-3xl |
+| Academy    | subtle off-white grid            | Inter                 | indigo   | rounded-xl |
+| Success    | dark navy (`#0B1220`) + serif    | Playfair / Lora head, Inter body | gold-on-navy | rounded-lg |
+
+Implemented via Tailwind classes (semantic tokens) and a single `font-*` class injected on the canvas root. No new global font files unless missing — rely on the existing Inter/Fredoka/Playfair imports in `index.css` (verify and add via `@import` if absent).
+
+## 4. Magic-Wand Field Rewrites
+
+New tiny component `WandFieldButton.tsx`:
+
+```tsx
+<WandFieldButton field="title" slide={slide} blueprint={blueprint}
+                 onResult={(text) => update({ title: text })} />
 ```
 
-`SlideRenderer` in each demo gets three new cases that delegate to `LivingCanvas` and `ScaffoldedPlayer`.
+It calls a new edge function `rewrite-slide-field` with `{ field, current_value, slide_type, blueprint, hub, cefr_level }` returning `{ value: string }`. Function uses Lovable AI Gateway (Gemini Flash) with a tight prompt: "Rewrite ONLY the {field} for a {hub} slide aligned to vocabulary={…} and grammar={…}. Return JSON {value}."
 
----
+Mounted next to each text Input/Textarea inside `SlideEditor` and the Solo Vocab editor (Title, Question, Statement, Word, Definition, Instruction, Prompt). Loader spinner on the wand icon while running; toast on success/failure.
 
-## 3. `ScaffoldedPlayer`
+## 5. Slide Transitions (answering your last question — recommended ON)
 
-File: `src/components/creator-studio/shared/ScaffoldedPlayer.tsx`
+Yes — adding subtle motion massively lifts perceived quality.
 
-- Wraps a `<video>` / `<audio>` element (or a YouTube iframe through the YT IFrame API for time tracking).
-- A `requestAnimationFrame` loop watches `currentTime`. When it crosses a segment's `end_time` and that segment isn't already passed, the player **auto-pauses** and overlays the segment's question.
-- The "Resume" button is **disabled** until the student answers correctly. Wrong answer → shake + show explanation.
-- A small **"🔂 Replay last 30s"** button sets `currentTime = max(0, end_time - 30)` and resumes briefly, then re-pauses at `end_time`.
-- A timeline strip below the player shows segment markers (filled = passed, empty = upcoming).
-- For YouTube, embed via the YT IFrame API and listen to `onStateChange` + a poll for `getCurrentTime()`.
+- Wrap the active slide inside `PlayablePreviewPane` with `<AnimatePresence mode="wait">` + `motion.div key={playIndex}`.
+- Variants:
+  - `initial: { opacity: 0, x: 40 }`
+  - `animate: { opacity: 1, x: 0, transition: { duration: 0.25, ease: 'easeOut' } }`
+  - `exit:    { opacity: 0, x: -40, transition: { duration: 0.18, ease: 'easeIn' } }`
+- Direction-aware: store last navigation direction so Prev slides in from the left.
+- Respect `prefers-reduced-motion` (skip transform, keep fade).
 
----
+## Technical Details
 
-## 4. AI generators (Edge Functions)
+- New files
+  - `src/components/creator-studio/shared/CreatorLayout.tsx`
+  - `src/components/creator-studio/shared/WandFieldButton.tsx`
+  - `src/components/creator-studio/shared/hubTheme.ts`
+  - `supabase/functions/rewrite-slide-field/index.ts` (+ `supabase/config.toml` entry, `verify_jwt = false`)
+- Edited files
+  - `src/pages/PlaygroundCreator.tsx`, `AcademyCreator.tsx`, `SuccessCreator.tsx` — swap middle/right markup for `CreatorLayout`, pass props.
+  - `src/components/creator-studio/shared/PlayablePreviewPane.tsx` — 16:9 frame, AnimatePresence transitions, hub theming.
+  - `src/components/creator-studio/shared/SoloVocabCard.tsx` — strict 50/50 layout, larger type, audio pill.
+  - `src/components/creator-studio/shared/SlideMediaPanel.tsx` — vocab_solo single-card editor branch.
+  - `src/pages/PlaygroundDemo.tsx`, `AcademyDemo.tsx`, `SuccessDemo.tsx` — register `vocab_solo` slide type in `Slide` union and `SlideRenderer` switch.
+  - `src/components/creator-studio/shared/SlideTemplatesDialog.tsx` (or equivalent) — add "Solo Vocab Card" template.
+  - `index.css` / `tailwind.config.ts` — register Fredoka + Playfair font families if not already imported, add `font-display-rounded`, `font-serif-premium` semantic tokens.
 
-### 4a. `generate-canvas-game` (new)
+- Backwards compatibility: old `match` / multi-flashcard slides keep working; vocab_solo is additive.
 
-Input: `{ topic, hub, target_vocab?, mode: 'drag'|'reveal'|'mixed' }`.
+- Edge function call uses `supabase.functions.invoke('rewrite-slide-field', { body })`; response shape `{ value }`. Failure → keep existing field, toast error.
 
-System prompt extracts:
+## Out of Scope
 
-> You are a Level Designer for an ESL game canvas. Generate JSON only. The canvas is 100×100 percent. Place draggable items along the bottom edge (y between 75 and 90); place targets in the upper half (y between 20 and 50). Width should be 8–18 percent for kids, 6–12 for teens/adults. For each draggable, set a target_x/target_y matching its correct slot and snap_tolerance: 10. For reveal slides, place the "hider" at the same x/y as the hidden element with a higher z_index. Always provide instruction_audio in the lesson's target language.
-
-Output validated with Zod against the `CanvasElement` schema; rejects elements outside 0–100, missing `target_x` for draggables, etc. — falls back to a deterministic skeleton if validation fails.
-
-### 4b. `analyze-media` (extend the existing function)
-
-Add to its prompt:
-
-> You are a media curriculum designer. Identify 3–5 logical breakpoints in this transcript (every 30–60 seconds). Return `segments: [{ start_time, end_time, question: { prompt, options, answer } }]`. Each question must be answerable using ONLY the audio between start_time and end_time. Scale: Playground=2, Academy=3–4, Success=4–5 questions.
-
-Output is folded into a single `scaffolded_media` slide rather than a chain of separate quiz slides.
-
-### 4c. `generate-ppp-slides` (extend)
-
-When the AI proposes a "warm-up" or "practice" slide for Playground, allow it to emit `type: 'canvas_game'` or `type: 'living_canvas'` directly using the same schema, so the AI lesson generator can mint full canvas games end-to-end.
-
----
-
-## 5. Creator dashboard wiring (Playground / Academy / Success)
-
-For each of `PlaygroundCreator.tsx`, `AcademyCreator.tsx`, `SuccessCreator.tsx`:
-
-1. Add `canvas_game`, `living_canvas`, `scaffolded_media` to `SLIDE_TYPES` with emojis 🎯, ✨, 🎬.
-2. `makeSlide()` returns sensible 2-element starters (one draggable + one target, or one hider + one reveal).
-3. **Right sidebar element editor** when a canvas slide is selected:
-   - List of elements with delete / duplicate / "↑ z-index" / "↓ z-index".
-   - For each element: type dropdown, image picker (re-uses `AssetVaultDialog`), `x/y/width/rotation` sliders (0–100), interaction dropdown, and conditional fields (target coords for draggables, reveal_sfx for reveals).
-   - "Generate with AI" button → calls `generate-canvas-game` and replaces the slide's `elements`.
-4. **Scaffolded Media editor**: re-uses `MediaAnalyzerModal` but writes a `scaffolded_media` slide (single slide with `segments`) instead of appending separate quiz slides. A small "Timeline" sub-editor lets the creator drag pause markers along a 0–100% bar.
-5. Live preview pane re-renders `LivingCanvas` / `ScaffoldedPlayer` exactly as the student sees it.
-
----
-
-## 6. Demo / student wiring
-
-In `PlaygroundDemo.tsx`, `AcademyDemo.tsx`, `SuccessDemo.tsx`:
-
-- `SlideRenderer` adds the three new cases.
-- The "Next" button gating already used for storybook is extended: for `canvas_game` and `scaffolded_media` the Next button is disabled until the slide's `onAllSolved` / `onAllSegmentsPassed` callback fires.
-
----
-
-## 7. Files touched
-
-```
-NEW  src/components/creator-studio/shared/LivingCanvas.tsx
-NEW  src/components/creator-studio/shared/ScaffoldedPlayer.tsx
-NEW  src/components/creator-studio/shared/CanvasElementEditor.tsx
-NEW  src/components/creator-studio/shared/canvasSchema.ts        (Zod + types)
-NEW  supabase/functions/generate-canvas-game/index.ts
-
-EDIT supabase/functions/analyze-media/index.ts                   (segments output)
-EDIT supabase/functions/generate-ppp-slides/index.ts             (allow canvas types)
-EDIT supabase/config.toml                                        (register new fn)
-
-EDIT src/pages/PlaygroundDemo.tsx                                (Slide union + renderer + gating)
-EDIT src/pages/AcademyDemo.tsx                                   (same)
-EDIT src/pages/SuccessDemo.tsx                                   (same)
-
-EDIT src/pages/PlaygroundCreator.tsx                             (slide types, sidebar, AI)
-EDIT src/pages/AcademyCreator.tsx                                (same)
-EDIT src/pages/SuccessCreator.tsx                                (same)
-```
-
----
-
-## 8. Hub flavor (visual only)
-
-Same engine, hub-tinted shells:
-- **Playground**: orange/amber border, springy "pop" animations, big snap radius (12%), confetti bursts.
-- **Academy**: indigo/violet border, subtle slide-in, snap radius 10%.
-- **Success**: emerald/teal border, minimal motion, snap radius 8%, no confetti.
-
----
-
-## 9. Out of scope (suggested follow-ups)
-
-- Multi-touch / pinch-to-zoom on canvas.
-- Recording teacher-drawn "ink" overlays on top of the canvas.
-- Persisting in-progress canvas state to `student_progress` between sessions.
+- Drag-to-reorder thumbnails (existing chevron buttons remain).
+- Storing per-hub font preferences in DB (theme is hard-coded by hub).
+- Real-time collaboration cursors.
