@@ -5,6 +5,7 @@ import { useAcademyAudio } from '@/hooks/useAcademyAudio';
 import type { CanvasGameSlide, LivingCanvasSlide, ScaffoldedMediaSlide } from '@/components/creator-studio/shared/canvasSchema';
 import { LivingCanvas } from '@/components/creator-studio/shared/LivingCanvas';
 import { ScaffoldedPlayer } from '@/components/creator-studio/shared/ScaffoldedPlayer';
+import { SoloVocabCard } from '@/components/creator-studio/shared/SoloVocabCard';
 
 /**
  * Academy Engine — teen-focused (12–17, A1–B1), 60-minute, 7-block lesson system.
