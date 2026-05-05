@@ -791,7 +791,13 @@ export default function SuccessCreator() {
 }
 
 // ─── Type-aware editor ─────────────────────────────────────────────────────
-function SlideEditor({ slide, onChange }: { slide: Slide; onChange: (p: Partial<Slide>) => void }) {
+function SlideEditor({ slide, onChange, blueprint, hub = 'success', cefrLevel = 'B1' }: { slide: Slide; onChange: (p: Partial<Slide>) => void; blueprint?: LessonBlueprint | null; hub?: 'playground' | 'academy' | 'success'; cefrLevel?: string }) {
+  const wand = (field: string, current: string, apply: (v: string) => void) => (
+    <WandFieldButton field={field} currentValue={current} slideType={slide.type} hub={hub} cefrLevel={cefrLevel} blueprint={blueprint} onResult={apply} />
+  );
+  const row = (children: React.ReactNode, w: React.ReactNode) => (
+    <div className="flex gap-2 items-center">{children}{w}</div>
+  );
   switch (slide.type) {
     case 'intro':
       return (
