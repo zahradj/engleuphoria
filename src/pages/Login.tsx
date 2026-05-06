@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { LogIn, Loader2 } from 'lucide-react';
+import { LogIn, Loader2, AlertCircle } from 'lucide-react';
 import { AuthPageLayout } from '@/components/auth/AuthPageLayout';
 import { SimpleAuthForm } from '@/components/auth/SimpleAuthForm';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,7 +13,7 @@ const Login = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const redirectedRef = useRef(false);
-  const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [roleTimeout, setRoleTimeout] = useState(false);
 
   useEffect(() => {
     if (searchParams.get('reason') === 'access_denied') {
@@ -24,8 +24,7 @@ const Login = () => {
     }
   }, [searchParams]);
 
-  // Safety net: redirect authenticated users based on role.
-  // If role doesn't resolve in 3s, fall back to metadata-based hub routing.
+  // Strict role-gated redirect: never navigate until role is confirmed.
   useEffect(() => {
     if (loading || !user || redirectedRef.current) return;
 
@@ -49,33 +48,40 @@ const Login = () => {
       return;
     }
 
-    // No role yet — arm a 3s metadata fallback so we never freeze.
-    if (!fallbackTimerRef.current) {
-      fallbackTimerRef.current = setTimeout(() => {
-        if (redirectedRef.current) return;
-        const { route, source } = resolveHubRoute({ metadata: (user as any).user_metadata });
-        console.warn(`⏱️ [Login] role timeout — routing from ${source} →`, route);
-        doRedirect(route);
-      }, 3000);
-    }
-
-    return () => {
-      if (fallbackTimerRef.current) {
-        clearTimeout(fallbackTimerRef.current);
-        fallbackTimerRef.current = null;
-      }
-    };
+    // No role yet — wait, but show a warning after 8s instead of silently redirecting.
+    const t = setTimeout(() => setRoleTimeout(true), 8000);
+    return () => clearTimeout(t);
   }, [loading, user, navigate]);
 
   if (loading || user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-foreground text-lg font-medium">
-            {user ? 'Redirecting to your dashboard...' : 'Loading...'}
-          </p>
-          <p className="text-muted-foreground text-sm mt-2">Please wait</p>
+        <div className="text-center max-w-md px-6">
+          {roleTimeout ? (
+            <>
+              <AlertCircle className="h-12 w-12 mx-auto mb-4 text-destructive" />
+              <p className="text-foreground text-lg font-medium">
+                We couldn't verify your role.
+              </p>
+              <p className="text-muted-foreground text-sm mt-2">
+                Please refresh the page or contact support if this persists.
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-4 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90"
+              >
+                Refresh
+              </button>
+            </>
+          ) : (
+            <>
+              <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
+              <p className="text-foreground text-lg font-medium">
+                {user ? 'Verifying role…' : 'Loading...'}
+              </p>
+              <p className="text-muted-foreground text-sm mt-2">Please wait</p>
+            </>
+          )}
         </div>
       </div>
     );
