@@ -34,7 +34,7 @@ export default function LibraryDrawer({ open, onClose, onSelectLesson, slideForm
   useEffect(() => {
     if (!open) return;
     setLoading(true);
-    getLibraryLessons()
+    getLibraryLessons(undefined, { includeDrafts: true })
       .then((data) => setLessons(data.map(toLibraryLessonCard)))
       .catch((error) => {
         console.warn('LibraryDrawer fetch error:', error);
