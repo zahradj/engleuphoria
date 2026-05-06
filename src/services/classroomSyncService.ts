@@ -93,25 +93,43 @@ class ClassroomSyncService {
       // Clean up stale sessions before any room lookup
       await this.cleanupStaleSessions();
 
-      // Upsert by room_id to avoid race conditions when both teacher and student
-      // attempt to create the same session simultaneously (23505 unique violation).
+      // If a session already exists for this room, KEEP its lesson_slides /
+      // lesson_title / current_slide_index intact — otherwise loading a lesson
+      // from the Library and then re-mounting the classroom would overwrite
+      // the real slides with the placeholder seed and they'd "disappear".
+      const { data: existing } = await supabase
+        .from('classroom_sessions')
+        .select('*')
+        .eq('room_id', roomId)
+        .maybeSingle();
+
+      const hasExistingSlides =
+        Array.isArray((existing as any)?.lesson_slides) &&
+        (existing as any).lesson_slides.length > 0;
+
+      const upsertPayload: Record<string, any> = {
+        room_id: roomId,
+        teacher_id: teacherId,
+        session_status: 'active',
+        ended_at: null,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (!existing) {
+        upsertPayload.lesson_title = lessonData.title;
+        upsertPayload.lesson_slides = lessonData.slides;
+        upsertPayload.current_slide_index = 0;
+        upsertPayload.active_tool = 'pointer';
+        upsertPayload.student_can_draw = false;
+      } else if (!hasExistingSlides) {
+        // Existing row but no slides yet → safe to seed.
+        upsertPayload.lesson_title = lessonData.title;
+        upsertPayload.lesson_slides = lessonData.slides;
+      }
+
       const { data, error } = await supabase
         .from('classroom_sessions')
-        .upsert(
-          {
-            room_id: roomId,
-            teacher_id: teacherId,
-            lesson_title: lessonData.title,
-            lesson_slides: lessonData.slides,
-            current_slide_index: 0,
-            active_tool: 'pointer',
-            student_can_draw: false,
-            session_status: 'active',
-            ended_at: null,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: 'room_id' }
-        )
+        .upsert(upsertPayload, { onConflict: 'room_id' })
         .select()
         .single();
 
