@@ -204,7 +204,9 @@ export default function AcademyCreator() {
     }
     const dbSlides = getLibraryLessonSlides(lesson) as Slide[];
     setSlides(dbSlides);
-    setSelected(0);
+    // If a Storybook slide exists, auto-select it so the editor opens on it.
+    const storyIdx = dbSlides.findIndex((s: any) => s?.type === 'storybook');
+    setSelected(storyIdx >= 0 ? storyIdx : 0);
     if (lesson.title) {
       setTitle(lesson.title);
       setAiTopic(lesson.title);
