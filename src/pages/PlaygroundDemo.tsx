@@ -243,9 +243,10 @@ function MultipleChoice({ slide }: { slide: Extract<Slide, { type: 'multiple' }>
       )}
       <h2 className="text-4xl font-bold text-slate-800 text-center">{slide.question}</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-2xl">
-        {slide.options.map((opt) => {
+        {slide.options.map((opt, i) => {
           const isPicked = picked === opt;
           const isAnswer = opt === slide.answer;
+          const optImg = (slide as any).option_images?.[i] as string | undefined;
           let cls = 'bg-orange-500 hover:bg-orange-600';
           if (picked && isAnswer) cls = 'bg-green-500';
           else if (isPicked && !isAnswer) cls = 'bg-red-500';
@@ -254,9 +255,12 @@ function MultipleChoice({ slide }: { slide: Extract<Slide, { type: 'multiple' }>
             <button
               key={opt}
               onClick={() => handle(opt)}
-              className={`${cls} text-white text-2xl font-bold rounded-2xl shadow-md p-6 transition-all active:scale-95`}
+              className={`${cls} text-white font-bold rounded-2xl shadow-md p-4 transition-all active:scale-95 flex flex-col items-center gap-2`}
             >
-              {opt}
+              {optImg && (
+                <img src={optImg} alt={opt} className="w-24 h-24 rounded-xl object-cover bg-white/20" />
+              )}
+              <span className="text-2xl">{opt}</span>
             </button>
           );
         })}
