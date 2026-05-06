@@ -813,7 +813,24 @@ function ClusterSlide({ slide, t }: { slide: Extract<Slide, { type: 'cluster' }>
 }
 
 // ─── Renderer ───────────────────────────────────────────────────────────────
-export function SlideRenderer({ slide, t }: { slide: Slide; t: ThemeTokens }) {
+function SlideMediaHeader({ slide }: { slide: Slide }) {
+  const url = (slide as any).image_url as string | undefined;
+  const video = (slide as any).video_embed_url as string | undefined;
+  if (!url && !video) return null;
+  return (
+    <div className="w-full max-w-2xl mb-4 flex justify-center">
+      {video ? (
+        <div className="aspect-video w-full rounded-lg overflow-hidden border border-slate-700/50">
+          <iframe src={video} className="w-full h-full" allowFullScreen title="Slide video" />
+        </div>
+      ) : (
+        <img src={url} alt="" className="max-h-64 w-auto rounded-lg object-contain border border-slate-700/40" />
+      )}
+    </div>
+  );
+}
+
+function renderSlideInner({ slide, t }: { slide: Slide; t: ThemeTokens }) {
   switch (slide.type) {
     case 'intro': return <Intro slide={slide} t={t} />;
     case 'question': return <QuestionSlide slide={slide} t={t} />;
@@ -846,6 +863,16 @@ export function SlideRenderer({ slide, t }: { slide: Slide; t: ThemeTokens }) {
     }
     case 'lesson_summary': return <AcademyLessonSummary slide={slide} t={t} />;
   }
+}
+
+export function SlideRenderer({ slide, t }: { slide: Slide; t: ThemeTokens }) {
+  const skipHeader = ['canvas_game', 'living_canvas', 'scaffolded_media', 'vocab_solo'].includes(slide.type as string);
+  return (
+    <>
+      {!skipHeader && <SlideMediaHeader slide={slide} />}
+      {renderSlideInner({ slide, t })}
+    </>
+  );
 }
 
 function AcademyLessonSummary({ slide, t }: { slide: Extract<Slide, { type: 'lesson_summary' }>; t: ThemeTokens }) {
