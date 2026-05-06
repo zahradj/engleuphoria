@@ -671,7 +671,24 @@ function LessonSummarySlide({ slide, t }: { slide: Extract<Slide, { type: 'lesso
 }
 
 // ─── Renderer ───────────────────────────────────────────────────────────────
-export function SlideRenderer({ slide, t }: { slide: Slide; t: ThemeTokens }) {
+function SlideMediaHeader({ slide }: { slide: Slide }) {
+  const url = (slide as any).image_url as string | undefined;
+  const video = (slide as any).video_embed_url as string | undefined;
+  if (!url && !video) return null;
+  return (
+    <div className="w-full max-w-2xl mb-4 flex justify-center">
+      {video ? (
+        <div className="aspect-video w-full rounded-lg overflow-hidden border border-emerald-200">
+          <iframe src={video} className="w-full h-full" allowFullScreen title="Slide video" />
+        </div>
+      ) : (
+        <img src={url} alt="" className="max-h-64 w-auto rounded-lg object-contain border border-emerald-200" />
+      )}
+    </div>
+  );
+}
+
+function renderSlideInner({ slide, t }: { slide: Slide; t: ThemeTokens }) {
   switch (slide.type) {
     case 'intro': return <Intro slide={slide} t={t} />;
     case 'question': return <QuestionSlide slide={slide} t={t} />;
