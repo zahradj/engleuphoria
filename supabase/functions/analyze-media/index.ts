@@ -14,7 +14,13 @@ const HUB_RULES: Record<string, { quizMin: number; quizMax: number; types: strin
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   try {
-    const { transcript, cefr_level = 'A2', hub_type = 'academy', media_url = '' } = await req.json();
+    const body = await req.json();
+    const transcript = body.transcript;
+    const cefr_level = body.cefr_level || 'A2';
+    const hub_type = body.hub_type || body.hub || 'academy';
+    const media_url = body.media_url || '';
+    const media_kind = body.media_kind || 'youtube';
+
     if (!transcript || typeof transcript !== 'string' || transcript.trim().length < 30) {
       return new Response(JSON.stringify({ error: 'A transcript (at least ~30 chars) is required for analysis.' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
