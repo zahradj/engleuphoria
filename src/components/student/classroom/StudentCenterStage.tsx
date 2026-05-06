@@ -146,7 +146,9 @@ export const StudentCenterStage: React.FC<StudentCenterStageProps> = ({
             <div className="w-full h-full overflow-y-auto flex items-center justify-center">
               <DynamicSlideRenderer
                 slide={premiumSlide}
-                hub="academy"
+                hub={(((currentSlide as any)?.hub === 'playground' || (currentSlide as any)?.hub === 'success' || (currentSlide as any)?.hub === 'professional')
+                  ? (currentSlide as any).hub
+                  : 'academy') as any}
                 onCorrectAnswer={() => {}}
                 onIncorrectAnswer={() => {}}
                 onComplete={() => {}}
