@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { WhiteboardStroke, StageMode } from '@/services/whiteboardService';
+import React, { useState, useCallback, useRef } from 'react';
+import { WhiteboardStroke, StageMode, whiteboardService } from '@/services/whiteboardService';
 import { MainStage } from '@/components/classroom/stage/MainStage';
 import { StudentMiniDock } from '@/components/classroom/stage/StudentMiniDock';
 import { StudentQuizView } from './StudentQuizView';
@@ -152,8 +152,46 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
     );
   }
 
+  // Bi-directional sync: capture interactive clicks bubbling up from the
+  // CreatorSlideRenderer / DynamicSlideRenderer and broadcast a compact
+  // payload so the teacher's screen highlights what the student selected.
+  const lastBroadcastRef = useRef<{ key: string; ts: number } | null>(null);
+  const handleStageClickCapture = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement | null;
+    if (!target) return;
+    const interactive = target.closest(
+      'button, [role="button"], [role="option"], [role="radio"], [role="checkbox"], [data-option], [data-answer], [data-draggable], [data-droppable], li[tabindex], label[for]'
+    ) as HTMLElement | null;
+    if (!interactive) return;
+    // Skip the student's own dock controls
+    if (interactive.closest('[data-student-dock]')) return;
+    const label =
+      interactive.getAttribute('aria-label') ||
+      interactive.getAttribute('data-answer') ||
+      interactive.getAttribute('data-option') ||
+      (interactive.textContent || '').trim().slice(0, 80);
+    if (!label) return;
+    const slide = slides[currentSlideIndex];
+    const key = `${currentSlideIndex}:${label}`;
+    const now = Date.now();
+    // Debounce identical events within 300ms
+    if (lastBroadcastRef.current?.key === key && now - lastBroadcastRef.current.ts < 300) return;
+    lastBroadcastRef.current = { key, ts: now };
+    void whiteboardService.sendStudentAction(roomId, {
+      slideId: String(slide?.id ?? currentSlideIndex),
+      slideIndex: currentSlideIndex,
+      label: `Selected: ${label}`,
+      data: { text: label },
+      senderId: userId,
+      senderName: userName,
+    }).catch(() => {});
+  }, [slides, currentSlideIndex, roomId, userId, userName]);
+
   return (
-    <div className="flex-1 flex flex-col bg-muted/20 relative overflow-hidden">
+    <div
+      className="flex-1 flex flex-col bg-muted/20 relative overflow-hidden"
+      onClickCapture={handleStageClickCapture}
+    >
       <TargetWordsOverlay sessionContext={sessionContext} isTeacher={false} />
       <SmartSummaryTip sessionContext={sessionContext} />
 
@@ -176,13 +214,15 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
         onAddStroke={onAddStroke}
       />
 
-      <StudentMiniDock
-        drawingEnabled={canStudentDraw}
-        activeTool={studentTool}
-        onToolChange={setStudentTool}
-        activeColor={studentColor}
-        onColorChange={setStudentColor}
-      />
+      <div data-student-dock>
+        <StudentMiniDock
+          drawingEnabled={canStudentDraw}
+          activeTool={studentTool}
+          onToolChange={setStudentTool}
+          activeColor={studentColor}
+          onColorChange={setStudentColor}
+        />
+      </div>
     </div>
   );
 };

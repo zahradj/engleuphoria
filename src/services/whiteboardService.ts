@@ -57,6 +57,20 @@ export interface GameStatePayload {
   timestamp: number;
 }
 
+/** Live student interaction (button click, option select, drag drop, etc.) */
+export interface StudentActionPayload {
+  /** Stable slide id (or fallback to index). */
+  slideId: string;
+  slideIndex: number;
+  /** Short, human-readable label of what the student did (e.g. "Selected: Apple"). */
+  label: string;
+  /** Optional structured payload — answer index, option text, etc. */
+  data?: Record<string, any>;
+  senderId: string;
+  senderName?: string;
+  timestamp: number;
+}
+
 export interface SlideCompletionPayload {
   slideIndex: number;
   slideId: string;
@@ -111,6 +125,7 @@ type ChatListener = (payload: ChatBroadcastPayload) => void;
 type WorksheetLoadListener = (payload: WorksheetLoadPayload) => void;
 type SlideCompletionListener = (payload: SlideCompletionPayload) => void;
 type GameStateListener = (payload: GameStatePayload) => void;
+type StudentActionListener = (payload: StudentActionPayload) => void;
 
 /** Teacher → all clients leader/follower slide navigation. */
 export interface SlideChangePayload {
@@ -151,6 +166,7 @@ interface RoomChannel {
   slideCompletionListeners: Set<SlideCompletionListener>;
   slideChangeListeners: Set<SlideChangeListener>;
   forceSyncListeners: Set<ForceSyncListener>;
+  studentActionListeners: Set<StudentActionListener>;
   refCount: number;
 }
 
@@ -180,6 +196,7 @@ class WhiteboardService {
     const slideCompletionListeners = new Set<SlideCompletionListener>();
     const slideChangeListeners = new Set<SlideChangeListener>();
     const forceSyncListeners = new Set<ForceSyncListener>();
+    const studentActionListeners = new Set<StudentActionListener>();
     const statusListeners = new Set<(status: string) => void>();
 
     const channel = supabase
@@ -247,6 +264,9 @@ class WhiteboardService {
       })
       .on('broadcast', { event: 'force_sync' }, (payload) => {
         forceSyncListeners.forEach((cb) => cb(payload.payload as ForceSyncPayload));
+      })
+      .on('broadcast', { event: 'student_action' }, (payload) => {
+        studentActionListeners.forEach((cb) => cb(payload.payload as StudentActionPayload));
       });
 
     const ready = new Promise<void>((resolve) => {
@@ -275,6 +295,7 @@ class WhiteboardService {
       slideCompletionListeners,
       slideChangeListeners,
       forceSyncListeners,
+      studentActionListeners,
       refCount: 0,
     };
     this.rooms.set(channelName, room);
@@ -541,6 +562,30 @@ class WhiteboardService {
     return () => this.release(roomId, () => room.forceSyncListeners.delete(onSync));
   }
 
+  /** Student → all clients: live action broadcast (option click, drag drop…) */
+  async sendStudentAction(
+    roomId: string,
+    payload: Omit<StudentActionPayload, 'timestamp'>,
+  ): Promise<void> {
+    const room = this.getRoom(roomId);
+    await room.ready;
+    await room.channel.send({
+      type: 'broadcast',
+      event: 'student_action',
+      payload: { ...payload, timestamp: Date.now() } satisfies StudentActionPayload,
+    });
+  }
+
+  subscribeToStudentActions(
+    roomId: string,
+    onAction: StudentActionListener,
+  ): () => void {
+    const room = this.getRoom(roomId);
+    room.studentActionListeners.add(onAction);
+    room.refCount += 1;
+    return () => this.release(roomId, () => room.studentActionListeners.delete(onAction));
+  }
+
   subscribeToStatus(roomId: string, onStatus: (status: string) => void): () => void {
     const room = this.getRoom(roomId);
     room.statusListeners.add(onStatus);
@@ -570,6 +615,7 @@ class WhiteboardService {
       room.slideCompletionListeners.size === 0 &&
       room.slideChangeListeners.size === 0 &&
       room.forceSyncListeners.size === 0 &&
+      room.studentActionListeners.size === 0 &&
       room.statusListeners.size === 0
     ) {
       supabase.removeChannel(room.channel);
