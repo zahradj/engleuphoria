@@ -281,10 +281,10 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     : [{ id: '1', title: 'Waiting for teacher...' }];
 
   const hubBg = hubType === 'playground'
-    ? 'bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50'
+    ? 'bg-gradient-to-br from-orange-50/40 via-white to-amber-50/40'
     : hubType === 'professional'
-    ? 'bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50'
-    : 'bg-gradient-to-br from-indigo-50 via-blue-50 to-violet-50';
+    ? 'bg-gradient-to-br from-emerald-50/40 via-white to-teal-50/40'
+    : 'bg-gradient-to-br from-slate-50 via-white to-blue-50/40';
 
   const showDebug = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug');
 
