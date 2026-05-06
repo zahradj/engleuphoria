@@ -138,7 +138,8 @@ export const CenterStage: React.FC<CenterStageProps> = ({
   onCanvasTabChange,
   embeddedUrl,
   onCloseEmbed,
-  sessionContext = {}
+  sessionContext = {},
+  hubType = 'academy'
 }) => {
   const currentSlide = slides[currentSlideIndex];
   const isQuizSlide = currentSlide?.type === 'quiz';
@@ -191,11 +192,15 @@ export const CenterStage: React.FC<CenterStageProps> = ({
     }
     const premiumSlide = toPremiumSlide(currentSlide, currentSlideIndex);
     if (!premiumSlide) return <div className="w-full h-full bg-white" />;
+    const slideHub = (currentSlide as any)?.hub;
+    const resolvedHub = (slideHub === 'playground' || slideHub === 'success' || slideHub === 'professional')
+      ? slideHub
+      : (hubType ?? 'academy');
     return (
       <div className="w-full h-full overflow-y-auto flex items-center justify-center">
         <DynamicSlideRenderer
           slide={premiumSlide}
-          hub="academy"
+          hub={resolvedHub as any}
           onCorrectAnswer={() => {}}
           onIncorrectAnswer={() => {}}
           onComplete={() => {}}
