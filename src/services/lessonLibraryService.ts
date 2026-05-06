@@ -153,12 +153,15 @@ export async function saveToLibrary(
 /**
  * Fetch all published lessons from the library.
  */
-export async function getLibraryLessons(hubFilter?: string) {
+export async function getLibraryLessons(hubFilter?: string, opts?: { includeDrafts?: boolean }) {
   let query = supabase
     .from('curriculum_lessons')
     .select('*')
-    .eq('is_published', true)
     .order('created_at', { ascending: false });
+
+  if (!opts?.includeDrafts) {
+    query = query.eq('is_published', true);
+  }
 
   if (hubFilter && hubFilter !== 'all') {
     query = query.eq('target_system', HUB_TO_TARGET_SYSTEM[hubFilter] || hubFilter);

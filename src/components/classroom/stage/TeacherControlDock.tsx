@@ -45,7 +45,23 @@ interface TeacherControlDockProps {
   onRollDice?: () => void;
   onSendSticker?: (emoji: string) => void;
   onOpenLibrary?: () => void;
+  hubType?: 'playground' | 'academy' | 'professional';
 }
+
+const HUB_ACCENT_CLASSES = {
+  playground: {
+    primary: 'bg-orange-500 hover:bg-orange-600 text-white',
+    outline: 'border-orange-300 text-orange-800 hover:bg-orange-50',
+  },
+  academy: {
+    primary: 'bg-[#6B21A8] hover:bg-[#581C87] text-white',
+    outline: 'border-purple-300 text-purple-800 hover:bg-purple-50',
+  },
+  professional: {
+    primary: 'bg-emerald-600 hover:bg-emerald-700 text-white',
+    outline: 'border-emerald-300 text-emerald-800 hover:bg-emerald-50',
+  },
+} as const;
 
 /**
  * Floating glassmorphic control dock for the teacher. Manages stage mode,
@@ -74,10 +90,12 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
   onRollDice,
   onSendSticker,
   onOpenLibrary,
+  hubType = 'academy',
 }) => {
   const [urlDraft, setUrlDraft] = useState(embeddedUrl ?? '');
   const [coPlayLoading, setCoPlayLoading] = useState(false);
   const { toast } = useToast();
+  const accent = HUB_ACCENT_CLASSES[hubType] ?? HUB_ACCENT_CLASSES.academy;
 
   const isCoPlay = !!embeddedUrl && /\.hyperbeam\.com\//i.test(embeddedUrl);
 
@@ -262,7 +280,7 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
           size="sm"
           variant={drawingEnabled ? 'default' : 'outline'}
           onClick={() => onToggleDrawing(!drawingEnabled)}
-          className={`h-9 gap-1.5 text-sm ${drawingEnabled ? 'bg-[#6B21A8] hover:bg-[#581C87] text-white' : 'border-purple-300 text-purple-800 hover:bg-purple-50'}`}
+          className={`h-9 gap-1.5 text-sm ${drawingEnabled ? accent.primary : accent.outline}`}
           title={drawingEnabled ? 'Drawing ON — clicks draw on the overlay' : 'Drawing OFF — clicks pass through to content'}
         >
           <Hand className="h-3.5 w-3.5" />
@@ -278,7 +296,7 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
           <div className="pl-2 ml-1 border-l border-border">
             <Popover>
               <PopoverTrigger asChild>
-                <Button size="sm" variant="default" className="h-9 gap-1.5 text-sm bg-[#6B21A8] hover:bg-[#581C87] text-white" title="Classroom Tools">
+                <Button size="sm" variant="default" className={`h-9 gap-1.5 text-sm ${accent.primary}`} title="Classroom Tools">
                   <Sparkles className="h-3.5 w-3.5" />
                   Tools
                 </Button>
@@ -336,7 +354,7 @@ export const TeacherControlDock: React.FC<TeacherControlDockProps> = ({
         {/* Library quick-load */}
         {onOpenLibrary && (
           <div className="pl-2 ml-1 border-l border-border">
-            <Button size="sm" variant="outline" className="h-9 gap-1.5 text-sm border-purple-300 text-purple-800 hover:bg-purple-50" onClick={onOpenLibrary} title="Open Lesson Library">
+            <Button size="sm" variant="outline" className={`h-9 gap-1.5 text-sm ${accent.outline}`} onClick={onOpenLibrary} title="Open Lesson Library">
               <BookOpen className="h-3.5 w-3.5" />
               Library
             </Button>

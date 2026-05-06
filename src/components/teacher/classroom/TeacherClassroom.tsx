@@ -44,6 +44,8 @@ interface TeacherClassroomProps {
   lessonId?: string;
   teacherName?: string;
   hubType?: HubType;
+  /** Pre-resolved Master Library slides (raw curriculum_lessons.content.slides) */
+  initialSlides?: any[];
 }
 
 export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
@@ -53,7 +55,8 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   lessonTitle = "Magic Forest: Lesson 1",
   lessonId,
   teacherName = "Teacher",
-  hubType = "academy"
+  hubType = "academy",
+  initialSlides,
 }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -90,8 +93,9 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   // Library drawer for live lesson injection
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
-  // Raw GeneratedSlide[] for premium rendering in the stage
-  const [rawSlides, setRawSlides] = useState<any[]>([]);
+  // Raw GeneratedSlide[] for premium rendering in the stage — seeded from the
+  // resolved Master Library lesson when one is linked to this booking.
+  const [rawSlides, setRawSlides] = useState<any[]>(() => initialSlides ?? []);
 
   // Smart timer for Professional Buffer
   const sessionDuration: 25 | 55 = 25; // TODO: derive from booking data
@@ -111,7 +115,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   const webrtcRoom = `engleuphoria-${classId}`;
   
 
-  const slides = React.useMemo(() => ([
+  const placeholderSlides = React.useMemo(() => ([
     { id: '1', title: 'Welcome to the Lesson' },
     { id: '2', title: 'Vocabulary: Animals' },
     { id: '3', title: 'Practice: Matching Game' },
@@ -120,6 +124,20 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     { id: '6', title: 'Quiz Time!' },
     { id: '7', title: 'Great Job! Summary' },
   ]), []);
+
+  // Prefer real Master Library slides when present.
+  const slides = React.useMemo(() => {
+    if (initialSlides && initialSlides.length > 0) {
+      return initialSlides.map((s: any, i: number) => ({
+        ...s,
+        id: String(s?.id ?? i + 1),
+        title: String(s?.title || s?.content?.title || `Slide ${i + 1}`),
+        imageUrl: s?.imageUrl || s?.image_url || s?.generated_image_url || s?.media_url || s?.content?.imageUrl,
+      }));
+    }
+    return placeholderSlides;
+  }, [initialSlides, placeholderSlides]);
+
   const lessonData = React.useMemo(
     () => ({ title: lessonTitle, slides }),
     [lessonTitle, slides]
@@ -185,6 +203,29 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
       });
     }
   }, [studentContext, isConnected]);
+
+  // When the booking has a linked Master Library lesson, push the real slides
+  // into the shared session once on connect — replacing any stale placeholder
+  // (e.g. "Magic Forest: Lesson 1") that earlier sessions wrote.
+  const pushedLibraryRef = React.useRef(false);
+  useEffect(() => {
+    if (pushedLibraryRef.current) return;
+    if (!isConnected) return;
+    if (!initialSlides || initialSlides.length === 0) return;
+    pushedLibraryRef.current = true;
+    const mapped = initialSlides.map((s: any, i: number) => ({
+      ...s,
+      id: String(s?.id ?? i + 1),
+      title: String(s?.title || s?.content?.title || `Slide ${i + 1}`),
+      imageUrl: s?.imageUrl || s?.image_url || s?.generated_image_url || s?.media_url || s?.content?.imageUrl,
+    }));
+    setRawSlides(mapped);
+    void updateSharedDisplay({
+      lessonSlides: mapped,
+      lessonTitle: lessonTitle,
+      embeddedUrl: null,
+    });
+  }, [isConnected, initialSlides, lessonTitle, updateSharedDisplay]);
 
   const teacherUserId = user?.id || sessionStorage.getItem('demo-teacher-id') || 'teacher';
   const [channelStatus, setChannelStatus] = useState<'CONNECTING' | 'SUBSCRIBED' | 'CLOSED' | 'CHANNEL_ERROR' | 'TIMED_OUT'>('CONNECTING');
@@ -435,7 +476,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     ? 'bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50'
     : hubType === 'professional'
     ? 'bg-gradient-to-br from-emerald-50 via-teal-50 to-mint-50'
-    : 'bg-gradient-to-br from-purple-50 via-violet-50 to-fuchsia-50';
+    : 'bg-gradient-to-br from-indigo-50 via-blue-50 to-violet-50';
 
   const showDebug = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug');
 
@@ -634,6 +675,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             onRollDice={handleRollDice}
             onSendSticker={handleSendSticker}
             onOpenLibrary={() => setIsLibraryOpen(true)}
+            hubType={hubType}
           />
         </div>
 

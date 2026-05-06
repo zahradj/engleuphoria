@@ -1,96 +1,53 @@
-## Goal
+## Diagnosis
 
-Make Engleuphoria feel like ONE product across Playground / Academy / Success by collapsing 3 parallel slide systems into:
+The classroom is still purple because the active bookings in `class_bookings` are saved with `hub_type = 'academy'`, and the classroom falls back to Academy whenever it cannot infer a hub from the actual lesson. The live stage also still contains hardcoded purple styles in the teacher dock.
 
-**ONE Slide Engine + ONE Creator + 3 Hub Themes**
+The lessons are not reliably visible in the classroom because bookings point to `class_bookings.lesson_id -> public.lessons`, while the real Master Library lives in `public.curriculum_lessons`. The classroom seeds a placeholder lesson (`Magic Forest: Lesson 1`) and only loads Master Library content after the teacher manually opens the Library drawer. Also, the drawer only reads `is_published = true`, so draft creator lessons such as the currently open Playground lesson are hidden.
 
-Plus fix two concrete bugs:
-1. Classroom is locked to Academy purple regardless of lesson hub.
-2. Academy & Success creators can't insert images.
+## Plan
 
----
+1. Create one classroom lesson resolver
+   - Add a shared resolver that accepts a booking and returns:
+     - canonical hub: `playground | academy | professional`
+     - lesson title
+     - raw slide array from `curriculum_lessons.content.slides`
+     - lesson id when available
+   - Resolution order:
+     1. `classroom_sessions.lesson_id` if it points to a Master Library row
+     2. `lessons.curriculum_lesson_id`
+     3. best matching `curriculum_lessons` by hub/title when no direct link exists
+     4. booking hub only as fallback
 
-## Architecture (target)
+2. Auto-link the Master Library into `/classroom/:bookingId`
+   - Update `UnifiedClassroomPage` to fetch the linked Master Library lesson together with the booking.
+   - Pass `lessonId`, `lessonTitle`, `lessonSlides`, and resolved `hubType` into `TeacherClassroom` and `StudentClassroom`.
+   - Stop relying on the placeholder `Magic Forest` lesson when real library slides exist.
 
-```text
-SlideEngine (single)
- ├── SlideShell        — layout: Header / MainContent / ActivityPanel
- ├── ActivityRegistry  — MCQ, Drag&Drop, Match, Quiz, Speak, etc.
- ├── Navigation        — prev/next/progress (shared)
- └── HubThemeProvider  — injects tokens (bg, slideBg, primary, radius, fontScale, vibe)
+3. Fix classroom sync so real lesson content persists
+   - Extend `useClassroomSync` / `classroomSyncService` to store `lesson_id` when seeding a session.
+   - Only preserve existing session slides if they belong to the same lesson; otherwise replace stale placeholder slides with the current Master Library lesson.
+   - When the teacher loads a lesson from the Library drawer, persist both `lesson_id` and raw slides.
 
-UnifiedCreator (single, /content-creator)
- ├── HubModeSwitch     — Playground | Academy | Success
- ├── SlideTypePalette  — filtered by hub-permitted activities
- ├── EditorCanvas      — same SlideShell as the player
- └── MediaPicker       — AI generate (Gemini) | Library | URL paste
+4. Make the Library drawer show the real Master Library
+   - Change `LibraryDrawer` to support classroom mode where teachers can see published lessons plus their own draft/creator lessons when allowed by RLS.
+   - Add hub filtering from the active classroom hub but keep an “All hubs” option/search so lessons do not appear missing.
+   - Return the selected lesson id along with slides and title.
 
-Classroom (single)
- └── reads lesson.hub → fallback user.activeHub → applies HubTheme
-```
+5. Remove the purple frame and hardcoded purple controls
+   - Replace Academy fallback styling in `TeacherClassroom`, `StudentClassroom`, `StageContent`, and `TeacherControlDock` with hub-aware semantic tokens.
+   - Playground uses orange/yellow, Academy uses purple only when the lesson really is Academy, Success uses emerald/mint.
+   - Remove hardcoded `bg-[#6B21A8]`, `border-purple-*`, and purple classroom background defaults from the shared classroom shell.
 
-Three hub themes are pure data (no duplicated components):
+6. Validate from the root
+   - Query live booking/session/library rows after changes to confirm session rows carry `lesson_id` and non-placeholder slides.
+   - Open the classroom route and verify:
+     - no purple frame for Playground/Success lessons
+     - the slide count/title matches `curriculum_lessons`
+     - Library opens inside the classroom and lists Master Library lessons
+     - selecting a lesson changes the live stage and sync payload
 
-```ts
-playground: { bg, slideBg:#fff, primary:#FE6A2F, radius:'20px', fontScale:'large',   vibe:'playful' }
-academy:    { bg:#0f172a, slideBg:#1e293b, primary:#6B21A8, radius:'14px', fontScale:'medium', vibe:'focused' }
-success:    { bg:#f8fafc, slideBg:#fff,   primary:#059669, radius:'10px', fontScale:'compact',vibe:'professional' }
-```
+## Technical notes
 
----
-
-## Work plan
-
-### Phase 1 — Theme unification (foundation)
-1. Create `src/lib/hubThemes.ts` — single source of truth (3 token objects above), reconciling `hubTheme.ts`, `hubConfig.ts`, `hubTheme.ts (creator)`, `phaseTheme.ts`, `SlideHubContext.tsx`. Keep names but re-export from one file.
-2. Add `<HubThemeProvider hub={...}>` that sets CSS vars (`--hub-bg`, `--hub-slide-bg`, `--hub-primary`, `--hub-radius`, `--hub-font-scale`).
-3. Replace all hard-coded hub colors in slide/classroom components with these CSS vars.
-
-### Phase 2 — Unified Slide Engine
-4. Promote `SlideShell` to enforce 3 zones: `<Header/> <MainContent/> <ActivityPanel/>`. Add `ActivityPanel` slot (currently missing — this is what makes slides feel "alive").
-5. Make `DynamicSlideRenderer` fully theme-driven: button padding/radius/font sizes derived from theme.vibe, not from hub-specific JSX branches.
-6. Audit `slides/` and `activities/` folders — delete any hub-duplicated components; keep one component per slide type, styled by tokens.
-
-### Phase 3 — Classroom fix
-7. `UnifiedClassroomPage` / `TeacherClassroomPage` / `StudentClassroomPage` / `AcademyClassroom`: 
-   - Resolve hub: `lesson.hub ?? booking.hub ?? userActiveHub ?? 'academy'`.
-   - Wrap classroom in `<HubThemeProvider>`.
-   - Remove the hardcoded purple frame.
-8. Delete `AcademyClassroom.tsx` if redundant after unification (route → `UnifiedClassroomPage`).
-
-### Phase 4 — Unified Creator + image upload fix
-9. Build `UnifiedCreator` from `PlaygroundCreator` (richest one, 1385 lines) as the base. Add `hub` prop driven by HubModeSwitch.
-10. Extract `MediaPicker` component reused by all slide types in all hubs:
-    - **AI generate** → calls existing `ai-image-generation` edge function
-    - **Library** → lists previously generated assets from `lesson-slides` bucket
-    - **URL paste** → validates and embeds
-11. Replace `AcademyCreator` and `SuccessCreator` routes with thin wrappers that mount `UnifiedCreator` with a preset hub (or redirect). Then delete the duplicated 1140 + 1223 lines.
-12. Fix root cause of "no image insert" in Academy/Success: their `EditorCanvas`/slide-type registry was missing the image action — now solved by sharing `MediaPicker`.
-
-### Phase 5 — Cleanup & verify
-13. Remove dead exports from `hubTheme.ts`, `hubConfig.ts`, `phaseTheme.ts`, `SlideHubContext.tsx` after the consolidation.
-14. Smoke test: open one lesson per hub in classroom → verify theme. Insert image in each creator hub → verify upload.
-15. Update memory: "One Slide Engine + Three Themes" rule, "lesson.hub drives classroom theme".
-
----
-
-## What gets deleted
-- `src/pages/AcademyCreator.tsx` (1223 lines) → wrapper
-- `src/pages/SuccessCreator.tsx` (1140 lines) → wrapper  
-- `src/pages/PlaygroundCreator.tsx` (1385 lines) → becomes `UnifiedCreator`
-- `src/pages/AcademyClassroom.tsx` (168 lines) → routes to `UnifiedClassroomPage`
-- Hub-specific slide variants in `lesson-player/slides/` (if any duplicates exist)
-
-Net: ~3000 lines removed, ~600 lines added. One source of truth for theme, engine, and creator.
-
----
-
-## Risks & mitigations
-- **Risk**: Existing lessons authored in Playground may render differently after token migration.  
-  **Mitigation**: Keep Playground tokens identical to current hardcoded values; visual diff one lesson per hub before deleting old creators.
-- **Risk**: Classroom hub resolution fails for legacy bookings without `hub` field.  
-  **Mitigation**: Fallback chain ends at user's active hub, then `'academy'` default.
-- **Risk**: Image upload regression in Playground.  
-  **Mitigation**: `MediaPicker` is extracted FROM Playground's working code, not rewritten.
-
-No DB migrations required — `lessons.hub` and `bookings.hub` already exist per memory.
+- No new lesson table will be introduced. `curriculum_lessons` remains the canonical Master Library.
+- I will not write curriculum content into `public.lessons`; that table is only used for booked session scheduling/back-compat links.
+- If a DB schema link is required, I will add it via a migration rather than asking you to run SQL manually.

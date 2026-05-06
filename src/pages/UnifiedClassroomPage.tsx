@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, ShieldOff, Bug } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SoundSettingsLauncher } from '@/components/classroom/settings/SoundSettingsLauncher';
+import { resolveBookingLesson } from '@/services/classroomLessonResolver';
 
 /**
  * Unified Classroom Page
@@ -158,15 +159,37 @@ const UnifiedClassroomPage: React.FC = () => {
 
   // Admin "God Mode" — admin enters as teacher view by default
   const classroomRole: 'teacher' | 'student' = isTeacher || (isAdmin && !isStudent) ? 'teacher' : 'student';
-  const hubType = (booking as any)?.hub_type || 'academy';
+
+  // Resolve the Master Library lesson + canonical hub for this booking.
+  const { data: resolved, isLoading: lessonLoading } = useQuery({
+    queryKey: ['classroom-resolved-lesson', booking.id],
+    queryFn: () => resolveBookingLesson({
+      id: booking.id,
+      lesson_id: (booking as any).lesson_id,
+      hub_type: (booking as any).hub_type,
+    }),
+  });
+
+  const normalizedHub: 'playground' | 'academy' | 'professional' = resolved?.hubType ?? 'academy';
 
   if (!preFlightPassed) {
     return (
       <PreFlightCheck
         onComplete={() => setPreFlightPassed(true)}
-        hubType={hubType}
+        hubType={normalizedHub}
         role={classroomRole}
       />
+    );
+  }
+
+  if (lessonLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+          <p className="text-foreground text-lg font-medium">Loading lesson…</p>
+        </div>
+      </div>
     );
   }
 
@@ -179,14 +202,6 @@ const UnifiedClassroomPage: React.FC = () => {
   const studentFullName =
     studentRow?.full_name || studentRow?.email?.split('@')[0] || 'Student';
 
-  // Normalize hub type for downstream components
-  const normalizedHub: 'playground' | 'academy' | 'professional' =
-    hubType === 'success' || hubType === 'professional'
-      ? 'professional'
-      : hubType === 'playground'
-      ? 'playground'
-      : 'academy';
-
   if (classroomRole === 'teacher') {
     return (
       <>
@@ -196,6 +211,9 @@ const UnifiedClassroomPage: React.FC = () => {
           studentName={studentFullName}
           studentId={booking.student_id}
           hubType={normalizedHub}
+          lessonId={resolved?.lessonId ?? undefined}
+          lessonTitle={resolved?.lessonTitle ?? undefined}
+          initialSlides={resolved?.slides ?? []}
         />
         <SoundSettingsLauncher />
       </>
