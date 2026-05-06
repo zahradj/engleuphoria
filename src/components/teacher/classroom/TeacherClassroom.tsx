@@ -632,6 +632,21 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
         {/* Center: Unified Main Stage */}
         <div className="flex-1 relative min-h-0 overflow-hidden">
+          {/* Live Student Action Indicator — bi-directional sync feedback */}
+          {(() => {
+            const slideKey = String(displayedSlides[currentSlide]?.id ?? currentSlide);
+            const live = liveStudentAnswers[slideKey];
+            if (!live) return null;
+            return (
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
+                <div className="flex items-center gap-2 rounded-full bg-primary/95 text-primary-foreground px-4 py-1.5 shadow-lg ring-1 ring-primary/40 backdrop-blur-md">
+                  <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
+                  <span className="text-xs font-semibold">{studentName}:</span>
+                  <span className="text-xs">{live.label}</span>
+                </div>
+              </div>
+            );
+          })()}
           <MainStage
             mode={stageMode}
             slides={displayedSlides}
