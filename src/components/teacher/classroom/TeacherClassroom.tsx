@@ -204,6 +204,29 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     }
   }, [studentContext, isConnected]);
 
+  // When the booking has a linked Master Library lesson, push the real slides
+  // into the shared session once on connect — replacing any stale placeholder
+  // (e.g. "Magic Forest: Lesson 1") that earlier sessions wrote.
+  const pushedLibraryRef = React.useRef(false);
+  useEffect(() => {
+    if (pushedLibraryRef.current) return;
+    if (!isConnected) return;
+    if (!initialSlides || initialSlides.length === 0) return;
+    pushedLibraryRef.current = true;
+    const mapped = initialSlides.map((s: any, i: number) => ({
+      ...s,
+      id: String(s?.id ?? i + 1),
+      title: String(s?.title || s?.content?.title || `Slide ${i + 1}`),
+      imageUrl: s?.imageUrl || s?.image_url || s?.generated_image_url || s?.media_url || s?.content?.imageUrl,
+    }));
+    setRawSlides(mapped);
+    void updateSharedDisplay({
+      lessonSlides: mapped,
+      lessonTitle: lessonTitle,
+      embeddedUrl: null,
+    });
+  }, [isConnected, initialSlides, lessonTitle, updateSharedDisplay]);
+
   const teacherUserId = user?.id || sessionStorage.getItem('demo-teacher-id') || 'teacher';
   const [channelStatus, setChannelStatus] = useState<'CONNECTING' | 'SUBSCRIBED' | 'CLOSED' | 'CHANNEL_ERROR' | 'TIMED_OUT'>('CONNECTING');
   const pageLoadTime = useRef(Date.now());
