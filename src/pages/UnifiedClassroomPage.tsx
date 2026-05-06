@@ -179,6 +179,14 @@ const UnifiedClassroomPage: React.FC = () => {
   const studentFullName =
     studentRow?.full_name || studentRow?.email?.split('@')[0] || 'Student';
 
+  // Normalize hub type for downstream components
+  const normalizedHub: 'playground' | 'academy' | 'professional' =
+    hubType === 'success' || hubType === 'professional'
+      ? 'professional'
+      : hubType === 'playground'
+      ? 'playground'
+      : 'academy';
+
   if (classroomRole === 'teacher') {
     return (
       <>
@@ -187,6 +195,7 @@ const UnifiedClassroomPage: React.FC = () => {
           teacherName={displayName}
           studentName={studentFullName}
           studentId={booking.student_id}
+          hubType={normalizedHub}
         />
         <SoundSettingsLauncher />
       </>
@@ -200,6 +209,7 @@ const UnifiedClassroomPage: React.FC = () => {
         studentId={user.id}
         studentName={displayName}
         teacherName={teacherFullName}
+        hubType={normalizedHub}
       />
       <SoundSettingsLauncher />
     </>
