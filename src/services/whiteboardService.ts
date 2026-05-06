@@ -125,6 +125,7 @@ type ChatListener = (payload: ChatBroadcastPayload) => void;
 type WorksheetLoadListener = (payload: WorksheetLoadPayload) => void;
 type SlideCompletionListener = (payload: SlideCompletionPayload) => void;
 type GameStateListener = (payload: GameStatePayload) => void;
+type StudentActionListener = (payload: StudentActionPayload) => void;
 
 /** Teacher → all clients leader/follower slide navigation. */
 export interface SlideChangePayload {
