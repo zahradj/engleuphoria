@@ -166,6 +166,7 @@ interface RoomChannel {
   slideCompletionListeners: Set<SlideCompletionListener>;
   slideChangeListeners: Set<SlideChangeListener>;
   forceSyncListeners: Set<ForceSyncListener>;
+  studentActionListeners: Set<StudentActionListener>;
   refCount: number;
 }
 
