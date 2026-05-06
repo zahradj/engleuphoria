@@ -138,7 +138,8 @@ export const CenterStage: React.FC<CenterStageProps> = ({
   onCanvasTabChange,
   embeddedUrl,
   onCloseEmbed,
-  sessionContext = {}
+  sessionContext = {},
+  hubType = 'academy'
 }) => {
   const currentSlide = slides[currentSlideIndex];
   const isQuizSlide = currentSlide?.type === 'quiz';
