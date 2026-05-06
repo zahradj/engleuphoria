@@ -93,8 +93,9 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   // Library drawer for live lesson injection
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
-  // Raw GeneratedSlide[] for premium rendering in the stage
-  const [rawSlides, setRawSlides] = useState<any[]>([]);
+  // Raw GeneratedSlide[] for premium rendering in the stage — seeded from the
+  // resolved Master Library lesson when one is linked to this booking.
+  const [rawSlides, setRawSlides] = useState<any[]>(() => initialSlides ?? []);
 
   // Smart timer for Professional Buffer
   const sessionDuration: 25 | 55 = 25; // TODO: derive from booking data
@@ -114,7 +115,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   const webrtcRoom = `engleuphoria-${classId}`;
   
 
-  const slides = React.useMemo(() => ([
+  const placeholderSlides = React.useMemo(() => ([
     { id: '1', title: 'Welcome to the Lesson' },
     { id: '2', title: 'Vocabulary: Animals' },
     { id: '3', title: 'Practice: Matching Game' },
@@ -123,6 +124,20 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     { id: '6', title: 'Quiz Time!' },
     { id: '7', title: 'Great Job! Summary' },
   ]), []);
+
+  // Prefer real Master Library slides when present.
+  const slides = React.useMemo(() => {
+    if (initialSlides && initialSlides.length > 0) {
+      return initialSlides.map((s: any, i: number) => ({
+        ...s,
+        id: String(s?.id ?? i + 1),
+        title: String(s?.title || s?.content?.title || `Slide ${i + 1}`),
+        imageUrl: s?.imageUrl || s?.image_url || s?.generated_image_url || s?.media_url || s?.content?.imageUrl,
+      }));
+    }
+    return placeholderSlides;
+  }, [initialSlides, placeholderSlides]);
+
   const lessonData = React.useMemo(
     () => ({ title: lessonTitle, slides }),
     [lessonTitle, slides]
