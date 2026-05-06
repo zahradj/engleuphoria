@@ -81,7 +81,7 @@ function makeSlide(type: SlideType): Slide {
     case 'intro':
       return { type: 'intro', title: '👋 Hello!', text: 'Welcome to the lesson', voice: { text: 'Hello!', autoPlay: true } };
     case 'multiple':
-      return { type: 'multiple', question: 'What is this? 🐶', options: ['dog', 'cat', 'apple'], answer: 'dog', voice: { text: 'What is this?', autoPlay: true } };
+      return { type: 'multiple', question: 'What is this? 🐶', options: ['dog', 'cat', 'apple'], option_images: ['', '', ''], answer: 'dog', voice: { text: 'dog', autoPlay: false } } as Slide;
     case 'truefalse':
       return { type: 'truefalse', statement: 'This is a cat 🐱', answer: true, voice: { text: 'True or false?', autoPlay: true } };
     case 'fill':
