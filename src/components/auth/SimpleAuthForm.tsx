@@ -589,12 +589,12 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
           type="submit"
           className="w-full h-11 text-white font-medium shadow-lg transition-all duration-500 hover:shadow-xl hover:brightness-110"
           style={{ backgroundImage: `linear-gradient(to right, ${theme.cssFrom}, ${theme.cssTo})` }}
-          disabled={loading}
+          disabled={loading || verifyingRole}
         >
-          {loading ? (
+          {loading || verifyingRole ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {mode === 'login' ? 'Signing in...' : 'Creating account...'}
+              {verifyingRole ? 'Verifying role…' : (mode === 'login' ? 'Signing in...' : 'Creating account...')}
             </>
           ) : (
             <>
