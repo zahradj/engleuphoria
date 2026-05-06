@@ -57,6 +57,20 @@ export interface GameStatePayload {
   timestamp: number;
 }
 
+/** Live student interaction (button click, option select, drag drop, etc.) */
+export interface StudentActionPayload {
+  /** Stable slide id (or fallback to index). */
+  slideId: string;
+  slideIndex: number;
+  /** Short, human-readable label of what the student did (e.g. "Selected: Apple"). */
+  label: string;
+  /** Optional structured payload — answer index, option text, etc. */
+  data?: Record<string, any>;
+  senderId: string;
+  senderName?: string;
+  timestamp: number;
+}
+
 export interface SlideCompletionPayload {
   slideIndex: number;
   slideId: string;
