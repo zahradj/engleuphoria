@@ -93,7 +93,22 @@ Deno.serve(async (req) => {
     const tc = data.choices?.[0]?.message?.tool_calls?.[0];
     if (!tc) throw new Error('AI returned no structured payload');
     const args = JSON.parse(tc.function.arguments);
-    return new Response(JSON.stringify({ quiz_slides: args.quiz_slides || [] }), {
+    const quiz_slides = args.quiz_slides || [];
+
+    // Also expose as scaffolded-media segments (evenly-spaced 30s checkpoints)
+    const segments = quiz_slides.map((q: any, i: number) => ({
+      start_time: i * 30,
+      end_time: (i + 1) * 30,
+      question: {
+        prompt: q.question || q.statement || q.text || q.prompt || `Checkpoint ${i + 1}`,
+        options: Array.isArray(q.options) && q.options.length
+          ? q.options
+          : (typeof q.answer_bool === 'boolean' ? ['True', 'False'] : ['A', 'B', 'C']),
+        answer: q.answer ?? (q.answer_bool === true ? 'True' : q.answer_bool === false ? 'False' : 'A'),
+      },
+    }));
+
+    return new Response(JSON.stringify({ quiz_slides, segments }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (e: any) {
