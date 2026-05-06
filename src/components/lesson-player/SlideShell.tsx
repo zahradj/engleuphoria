@@ -22,27 +22,26 @@ const HUB_ICON: Record<HubType, React.ComponentType<{ className?: string }>> = {
  * style itself with `bg-[var(--hub-accent)]` and stay in sync when the
  * active hub changes.
  */
+// Calm, classroom-friendly surface. Hub identity comes through a thin
+// accent strip + small icon chip, NOT a full saturated frame.
 const HUB_TOKENS: Record<HubType, { accent: string; secondary: string; bg: string; gradient: string }> = {
   playground: {
-    accent: '#f97316',
-    secondary: '#fbbf24',
-    bg: '#431407',
-    gradient:
-      'radial-gradient(at 20% 0%, #FFB066 0%, transparent 55%), radial-gradient(at 80% 100%, #FFD166 0%, transparent 55%), linear-gradient(135deg, #FE6A2F 0%, #F59E0B 100%)',
+    accent: '#FE6A2F',
+    secondary: '#F59E0B',
+    bg: '#FFF8F1',
+    gradient: 'linear-gradient(180deg, #FFFDF8 0%, #FFF6EC 100%)',
   },
   academy: {
-    accent: '#a855f7',
-    secondary: '#ec4899',
-    bg: '#1e1b4b',
-    gradient:
-      'radial-gradient(at 15% 0%, #A855F7 0%, transparent 55%), radial-gradient(at 85% 100%, #6366F1 0%, transparent 55%), linear-gradient(135deg, #4C1D95 0%, #1E1B4B 100%)',
+    accent: '#3B82F6',
+    secondary: '#6366F1',
+    bg: '#F6F8FC',
+    gradient: 'linear-gradient(180deg, #FBFCFE 0%, #F1F5FB 100%)',
   },
   professional: {
-    accent: '#3b82f6',
-    secondary: '#eab308',
-    bg: '#0f172a',
-    gradient:
-      'radial-gradient(at 20% 0%, #3B82F6 0%, transparent 55%), radial-gradient(at 80% 100%, #1D4ED8 0%, transparent 55%), linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+    accent: '#059669',
+    secondary: '#0D9488',
+    bg: '#F4FBF8',
+    gradient: 'linear-gradient(180deg, #FBFEFC 0%, #ECFAF4 100%)',
   },
 };
 
