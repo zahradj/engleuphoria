@@ -540,10 +540,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       return { data, error };
     } catch (error: any) {
-      const errorMessage = 'Sign in failed';
+      const errorMessage = (error?.message && String(error.message).trim()) || 'Sign in failed. Please try again.';
       setError(errorMessage);
       toast.error(errorMessage);
-      return { data: null, error };
+      return { data: null, error: { message: errorMessage } };
     }
   };
 
