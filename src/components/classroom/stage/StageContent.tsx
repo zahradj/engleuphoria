@@ -5,7 +5,27 @@ import { NativeGameStage } from '@/components/classroom/native-games/NativeGameS
 import { NativeCoPlayArena } from '@/components/classroom/native-games/NativeCoPlayArena';
 import DynamicSlideRenderer from '@/components/lesson-player/DynamicSlideRenderer';
 import { CanvasEditor } from '@/components/admin/lesson-builder/canvas/CanvasEditor';
+import { CreatorSlideRenderer } from './CreatorSlideRenderer';
 import type { GeneratedSlide, HubType } from '@/components/admin/lesson-builder/ai-wizard/types';
+
+// Slide `type` values produced natively by the 3 Creator Studios
+// (PlaygroundDemo / AcademyDemo / SuccessDemo). When we detect any of these,
+// we render with the matching CreatorSlideRenderer (1:1 with the studio
+// preview) instead of going through the normalized DynamicSlideRenderer.
+const CREATOR_NATIVE_TYPES = new Set([
+  'intro', 'question', 'opinion', 'poll',
+  'vocab', 'vocab_solo', 'matching',
+  'reading_passage', 'listening',
+  'multiple', 'truefalse', 'fill_blank', 'fill', 'sentence_builder',
+  'grammar_pattern', 'error_detection', 'correction',
+  'debate_scale', 'role_play', 'speaking_task', 'reflection',
+  'cluster', 'canvas_game', 'living_canvas', 'scaffolded_media',
+  'lesson_summary', 'phonics_focus', 'storybook', 'media_player',
+  'drag', 'match', 'draw',
+  'tone_compare', 'functional_pattern', 'rewrite', 'scenario', 'email_task',
+]);
+const isCreatorNativeSlide = (s: any) =>
+  !!s && typeof s.type === 'string' && CREATOR_NATIVE_TYPES.has(s.type);
 
 // Legacy: third-party cloud-browser URLs.
 const isLegacyCoBrowseUrl = (url: string | null | undefined) =>
