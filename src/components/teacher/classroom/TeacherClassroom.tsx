@@ -476,7 +476,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     ? 'bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50'
     : hubType === 'professional'
     ? 'bg-gradient-to-br from-emerald-50 via-teal-50 to-mint-50'
-    : 'bg-gradient-to-br from-purple-50 via-violet-50 to-fuchsia-50';
+    : 'bg-gradient-to-br from-indigo-50 via-blue-50 to-violet-50';
 
   const showDebug = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug');
 
