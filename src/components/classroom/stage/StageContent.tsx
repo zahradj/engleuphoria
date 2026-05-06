@@ -192,12 +192,34 @@ export const StageContent: React.FC<StageContentProps> = ({
     return <div className="absolute inset-0 bg-white" />;
   }
 
-  const currentSlide = normalizeLiveSlide(rawSlides?.[currentSlideIndex] ?? slides[currentSlideIndex], currentSlideIndex);
+  const rawSrc = rawSlides?.[currentSlideIndex] ?? slides[currentSlideIndex];
+  const currentSlide = normalizeLiveSlide(rawSrc, currentSlideIndex);
   if (!currentSlide) return <div className="absolute inset-0 bg-white" />;
 
+  // Canvas-builder slides: render the saved layout in read-only mode.
+  const canvasElements = (rawSrc as any)?.canvasElements;
+  if (Array.isArray(canvasElements) && canvasElements.length > 0) {
+    return (
+      <div className="absolute inset-0 bg-white w-full h-full">
+        <CanvasEditor
+          slide={{
+            ...(rawSrc as any),
+            id: String((rawSrc as any).id ?? currentSlideIndex + 1),
+            order: (rawSrc as any).order ?? currentSlideIndex,
+            type: (rawSrc as any).type || 'image',
+            teacherNotes: (rawSrc as any).teacherNotes || '',
+            keywords: (rawSrc as any).keywords || [],
+          }}
+          onUpdateSlide={() => {}}
+          readOnly
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="absolute inset-0 bg-white w-full h-full overflow-y-auto p-2">
-      <div className="min-h-full w-full flex items-center justify-center">
+    <div className="absolute inset-0 bg-white w-full h-full overflow-y-auto">
+      <div className="min-h-full w-full flex items-stretch justify-stretch">
         <DynamicSlideRenderer
           slide={currentSlide}
           hub={hubType}
