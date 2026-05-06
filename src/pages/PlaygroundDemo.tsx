@@ -217,7 +217,8 @@ function Intro({ slide }: { slide: Extract<Slide, { type: 'intro' }> }) {
 }
 
 function MultipleChoice({ slide }: { slide: Extract<Slide, { type: 'multiple' }> }) {
-  useAutoVoice(slide.voice);
+  // Per project rule: do NOT auto-speak full questions/sentences in Playground.
+  // Only the vocabulary word is spoken (on tap of an option).
   const { playCorrect, playWrong } = usePlaygroundAudio();
   const [picked, setPicked] = useState<string | null>(null);
   const correct = picked === slide.answer;
