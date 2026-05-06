@@ -586,7 +586,7 @@ class WhiteboardService {
     return () => this.release(roomId, () => room.studentActionListeners.delete(onAction));
   }
 
-
+  subscribeToStatus(roomId: string, onStatus: (status: string) => void): () => void {
     const room = this.getRoom(roomId);
     room.statusListeners.add(onStatus);
     onStatus(room.currentStatus);
