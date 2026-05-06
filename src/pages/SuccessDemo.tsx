@@ -721,6 +721,16 @@ function renderSlideInner({ slide, t }: { slide: Slide; t: ThemeTokens }) {
   }
 }
 
+export function SlideRenderer({ slide, t }: { slide: Slide; t: ThemeTokens }) {
+  const skipHeader = ['canvas_game', 'living_canvas', 'scaffolded_media', 'vocab_solo'].includes(slide.type as string);
+  return (
+    <>
+      {!skipHeader && <SlideMediaHeader slide={slide} />}
+      {renderSlideInner({ slide, t })}
+    </>
+  );
+}
+
 // ─── Progress bar ───────────────────────────────────────────────────────────
 function ProgressBar({ currentBlock, slideIndex, t }: { currentBlock: Block; slideIndex: number; t: ThemeTokens }) {
   const blockSlides = SLIDES.reduce<Record<Block, number[]>>((acc, s, i) => {
