@@ -4,19 +4,17 @@ import { ScrollSyncedIframe } from './ScrollSyncedIframe';
 import { NativeGameStage } from '@/components/classroom/native-games/NativeGameStage';
 import { NativeCoPlayArena } from '@/components/classroom/native-games/NativeCoPlayArena';
 import DynamicSlideRenderer from '@/components/lesson-player/DynamicSlideRenderer';
+import { CanvasEditor } from '@/components/admin/lesson-builder/canvas/CanvasEditor';
 import type { GeneratedSlide, HubType } from '@/components/admin/lesson-builder/ai-wizard/types';
 
-// Legacy: third-party cloud-browser URLs. We now route these to the native
-// Co-Play arena instead of mounting a Hyperbeam iframe (which was suffering
-// WebRTC drops + bot/CORS blocks).
+// Legacy: third-party cloud-browser URLs.
 const isLegacyCoBrowseUrl = (url: string | null | undefined) =>
   !!url && /\.hyperbeam\.com\//i.test(url);
 
 const HUB_ACCENT: Record<HubType, string> = {
   playground: 'hsl(20 99% 59%)',
-  academy: 'hsl(262 83% 40%)',
-  professional: 'hsl(243 75% 59%)',
-  success: 'hsl(160 84% 30%)',
+  academy: 'hsl(217 91% 60%)',
+  professional: 'hsl(160 84% 30%)',
 } as any;
 
 interface Slide {
@@ -27,27 +25,77 @@ interface Slide {
 }
 
 const resolveSlideImage = (slide: any): string | undefined =>
-  slide?.imageUrl || slide?.image_url || slide?.generated_image_url || slide?.custom_image_url || slide?.media_url || slide?.content?.imageUrl;
+  slide?.imageUrl || slide?.image_url || slide?.custom_image_url || slide?.generated_image_url || slide?.media_url || slide?.content?.imageUrl || slide?.coverImageUrl;
 
+/**
+ * Unified slide adapter — normalizes BOTH creator-studio PPPSlide schemas
+ * (slide_type / interactive_data / custom_image_url) AND legacy GeneratedSlide
+ * shapes into one renderable payload that DynamicSlideRenderer understands.
+ *
+ * We KEEP every original field so downstream components (interactive_data
+ * consumers, FrontPageSlide, etc.) keep working — we just add the canonical
+ * keys the renderer expects.
+ */
 const normalizeLiveSlide = (slide: any, index: number): GeneratedSlide | null => {
   if (!slide) return null;
   const rawType = slide.slide_type || slide.slideType || slide.activityType || slide.type;
-  const activityType =
-    rawType === 'match_halves' ? 'drag_and_match'
-    : rawType === 'drag_and_match' || rawType === 'fill_in_the_gaps' || rawType === 'multiple_choice' ? rawType
-    : slide.activityType;
 
-  // Map AI-emitted slide_types to a renderable slideType so the renderer always
-  // resolves them (instead of falling through to the activity branch and crashing).
+  // Map legacy/AI types to first-class activity types.
+  const activityAlias: Record<string, string> = {
+    match_halves: 'drag_and_match',
+    match_words: 'drag_and_match',
+    quiz_mcq: 'multiple_choice',
+  };
+  const activityType =
+    activityAlias[rawType as string]
+    || (rawType === 'drag_and_match' || rawType === 'fill_in_the_gaps'
+        || rawType === 'multiple_choice' || rawType === 'drag_and_drop'
+        || rawType === 'flashcard'
+      ? rawType
+      : slide.activityType);
+
+  // Map slide_type aliases so the renderer's switch resolves cleanly.
   const slideTypeAlias: Record<string, string> = {
-    flashcard: 'vocabulary',
+    flashcard: 'activity',
+    multiple_choice: 'activity',
+    drag_and_match: 'activity',
+    drag_and_drop: 'activity',
+    fill_in_the_gaps: 'activity',
+    drawing_prompt: 'activity',
+    drawing_canvas: 'core_concept',
     mascot_speech: 'core_concept',
     text_image: 'hook',
-    drawing_canvas: 'core_concept',
+    vocab_list: 'vocabulary',
   };
-  const resolvedSlideType = slide.slideType
-    || slideTypeAlias[rawType]
-    || (activityType ? 'activity' : rawType === 'vocab_list' ? 'vocabulary' : 'hook');
+
+  const resolvedSlideType =
+    slide.slideType
+    || slideTypeAlias[rawType as string]
+    || (activityType ? 'activity' : (rawType || 'hook'));
+
+  // Normalize MCQ: ensure content.options is an array of {text, isCorrect} so
+  // AcademyQuiz / EditorialQuizMCQ render instead of "Interactive data missing".
+  let normalizedContent: any = typeof slide.content === 'string' ? { prompt: slide.content } : { ...(slide.content || {}) };
+  const interactive = slide.interactive_data || {};
+  if (rawType === 'multiple_choice' || activityType === 'multiple_choice') {
+    const options = interactive.options || normalizedContent.options || normalizedContent.quizOptions;
+    const correctIdx = typeof interactive.correct_index === 'number'
+      ? interactive.correct_index
+      : typeof normalizedContent.correct_index === 'number' ? normalizedContent.correct_index : 0;
+    if (Array.isArray(options)) {
+      const opts = options.map((opt: any, i: number) => {
+        if (typeof opt === 'string') return { text: opt, isCorrect: i === correctIdx };
+        return { text: opt.text ?? String(opt), isCorrect: !!opt.isCorrect || i === correctIdx };
+      });
+      normalizedContent = {
+        ...normalizedContent,
+        quizQuestion: interactive.question || normalizedContent.quizQuestion || normalizedContent.question || slide.title,
+        quizOptions: opts,
+        options: opts,
+        correctAnswer: opts.find((o: any) => o.isCorrect)?.text,
+      };
+    }
+  }
 
   return {
     ...slide,
@@ -58,7 +106,9 @@ const normalizeLiveSlide = (slide: any, index: number): GeneratedSlide | null =>
     slideType: resolvedSlideType,
     type: slide.type || activityType || rawType || 'title',
     activityType,
-    content: typeof slide.content === 'string' ? { prompt: slide.content } : slide.content,
+    slide_type: rawType,
+    interactive_data: slide.interactive_data,
+    content: normalizedContent,
     teacherNotes: slide.teacherNotes || slide.teacher_script || slide.teacher_instructions || '',
     keywords: Array.isArray(slide.keywords) ? slide.keywords : [],
   } as GeneratedSlide;
@@ -74,7 +124,6 @@ interface StageContentProps {
   role: 'teacher' | 'student';
   iframeUnlocked?: boolean;
   worksheet?: SmartWorksheet | null;
-  /** Raw GeneratedSlide data for premium rendering (parallel to slides array). */
   rawSlides?: any[];
   hubType?: HubType;
 }
