@@ -39,26 +39,48 @@ export function ScaffoldedMediaEditor({ slide, onChange, hub = 'playground' }: P
 
   const analyze = async () => {
     if (!slide.media_url) { toast.error('Add media URL first'); return; }
+    const transcript = (slide.transcript || '').trim();
+    if (transcript.length < 30) {
+      toast.error('Paste a transcript of at least 30 characters before generating checkpoints');
+      return;
+    }
     setBusy(true);
     try {
       const { data, error } = await supabase.functions.invoke('analyze-media', {
         body: {
           media_url: slide.media_url,
           media_kind: slide.media_kind,
-          transcript: slide.transcript || '',
-          hub,
-          mode: 'segments',
+          transcript,
+          hub_type: hub,
+          hub, // legacy alias
+          cefr_level: 'A2',
         },
       });
       if (error) throw error;
-      if (Array.isArray(data?.segments) && data.segments.length) {
-        update({ segments: data.segments });
-        toast.success(`AI generated ${data.segments.length} checkpoints`);
+      // Support both new (segments) and legacy (quiz_slides) responses
+      const segments = Array.isArray(data?.segments) && data.segments.length
+        ? data.segments
+        : Array.isArray(data?.quiz_slides) && data.quiz_slides.length
+          ? data.quiz_slides.map((q: any, i: number) => ({
+              start_time: i * 30,
+              end_time: (i + 1) * 30,
+              question: {
+                prompt: q.question || q.statement || q.text || q.prompt || `Checkpoint ${i + 1}`,
+                options: Array.isArray(q.options) && q.options.length
+                  ? q.options
+                  : (typeof q.answer_bool === 'boolean' ? ['True', 'False'] : ['A', 'B', 'C']),
+                answer: q.answer ?? (q.answer_bool === true ? 'True' : q.answer_bool === false ? 'False' : 'A'),
+              },
+            }))
+          : [];
+      if (segments.length) {
+        update({ segments });
+        toast.success(`AI generated ${segments.length} checkpoints`);
       } else {
         toast.error('No segments returned');
       }
     } catch (e: any) {
-      toast.error(e.message || 'Analysis failed');
+      toast.error(e?.message || 'Analysis failed. Try a longer transcript.');
     } finally {
       setBusy(false);
     }
