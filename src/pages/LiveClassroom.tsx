@@ -130,10 +130,18 @@ export default function LiveClassroom() {
           />
         </div>
 
-        {/* Slide canvas */}
+        {/* Slide canvas — neutral hub-aware frame (no purple bleed) */}
         <div className="flex-1 flex items-center justify-center p-6">
-          <div className="relative w-full max-w-5xl aspect-[16/10] bg-card rounded-3xl border border-border shadow-sm overflow-hidden">
-            <div className="absolute inset-0 p-6 overflow-auto">
+          <div
+            className={`relative w-full max-w-5xl aspect-[16/10] bg-white rounded-3xl border-2 overflow-hidden ${
+              hub === 'playground'
+                ? 'border-orange-300'
+                : hub === 'academy'
+                  ? 'border-indigo-300'
+                  : 'border-emerald-300'
+            }`}
+          >
+            <div className="absolute inset-0 p-6 overflow-auto bg-white">
               {SlideComponent}
             </div>
             <AnnotationOverlay

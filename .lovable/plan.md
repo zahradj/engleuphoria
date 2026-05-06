@@ -1,57 +1,93 @@
-## Auto-Hydrate Hub Creators from Master Library
+## Goals (8 fixes)
 
-When a teacher clicks a lesson in the Master Library, route them straight into the matching Hub Creator (Playground / Academy / Success) with the Lesson Blueprint already filled in — so they only need to tweak a field and hit ✨ Generate.
+### 1. Sync Lesson Library → Live Classroom & Storybook Creator
+- **Live Classroom**: `LibraryDrawer` already exists in `TeacherClassroom.tsx`, but uses `slideFormat='classroom'` which strips raw slide JSON (losing `image_url`). Switch the drawer to `slideFormat='raw'` so the original slide objects (with images) flow into `updateSharedDisplay({ lessonSlides })`.
+- **Storybook Creator hydration**: when a library lesson contains a `storybook` slide, allow opening it directly in the active hub creator. Extend `creatorHydration.ts` so the auto-hydration in PlaygroundCreator/AcademyCreator/SuccessCreator detects `content.slides[i].type === 'storybook'` and pre-selects that slide for editing.
+- **Add Storybook builder to Academy Creator**: it's already wired (line 717 `<StorybookEditor>`); confirm the `Storybook` chip is in the slide-type chooser (line 586 ✓) and `makeSlide('storybook')` returns a valid Academy storybook (line 84 ✓). No code change needed beyond verifying Academy hydration also handles existing storybooks (covered above).
 
-### 1. Library card → correct Hub Creator
+### 2. Super-admin Teacher Hub Change Doesn't Persist to Dashboards
+`TeacherManagement.handleSaveHubRole` writes `teacher_profiles.hub_role`, but the Playground/Academy/Success **teacher** dashboards route via `useTeacherHub` which reads `hub_role` *plus* `hub_specialty` and the auth `user_metadata.hub_type`. Two issues:
+1. Cache: `useTeacherHub` is keyed per-mount; after admin save we don't notify the teacher's session. Add a Supabase Realtime subscription on `teacher_profiles` row inside `useTeacherHub`, or invalidate via `react-query` key `['teacher-hub', userId]`.
+2. Some dashboards still fall back to `user_metadata.hub_type` set at signup. Update `handleSaveHubRole` to also call a new edge function `admin-set-teacher-hub` that:
+   - updates `teacher_profiles.hub_role`
+   - updates `auth.users.user_metadata.hub_type` via service role
+   - returns ok
+- Surface a clear toast and force the teacher to re-fetch on next page focus.
 
-`src/components/teacher/library/TeacherLessonLibrary.tsx`
+### 3. Lesson-Slide Frame – Remove Purple Theme, Match Hub
+The screenshot shows an Academy Hub session rendering with a purple gradient even when the lesson is from a non-academy hub.
+- In `LiveClassroom.tsx` line 90–94 the renderer is selected from `content.hub`. The bleed comes from the *card frame* (`bg-card rounded-3xl border border-border` at line 135) being overridden by `AcademyRenderer`'s own gradient when the hub is academy.
+- Fix: pass an explicit `hub`-aware theme wrapper. Replace the wrapper with a hub-token wrapper that uses **flat surfaces** (no purple gradient) and let only the slide content paint hub color. Concretely:
+  - Strip the inner `p-6 overflow-auto` wrapper background.
+  - Add `bg-white` (or `bg-card`) inside, drop any inherited `bg-gradient` from theme map by passing a "frame=false" prop or a neutral theme variant for the live shell.
+- Also align `TeacherClassroom`'s `CenterStage`/`DynamicSlideRenderer` to use the active lesson's hub instead of a hardcoded purple Academy frame (per-hub border colors: Playground=amber, Academy=indigo flat, Success=emerald).
 
-- Extend `HUB_META` with a `creatorPath` per hub:
-  - `playground` → `/playground-creator`
-  - `academy` → `/academy-creator`
-  - `professional` → `/success-creator`
-- Make the whole card clickable (and keep the Edit button) — both navigate to `${creatorPath}?lessonId=${lesson.id}`. The existing `?lessonId=` URL param is already what `useCreatorLesson` reads, so no new route shape is required.
-- The current "Edit" button currently points at the deprecated `/content-creator?edit=…`. Replace it with the hub-specific path so Pre-A1 lessons always re-open in the Playground (visual / audio-first), Academy lessons in Academy, etc.
+### 4. Playground Multiple-Choice Images + No Sentence TTS
+- **Add image fields per option** in PlaygroundCreator's `multiple` editor (line 1080). Replace the single `options` textarea with a per-option editor: each row has `text`, `image_url` (using `<ImageField subject={text}/>`), and a "✓ correct" toggle. Persist as `options: [{label, image_url}]` while remaining backward-compatible (string options still readable).
+- Update Playground `SlideRenderer` (in `PlaygroundDemo.tsx`) to render option image + label cards.
+- **TTS**: when previewing a `vocab_solo` / multiple-choice slide, only the vocabulary word should be spoken. In `slideAudioHelpers.ts` (and Playground autoplay), restrict autoplay payload to the word/lemma — do not concatenate `voice.text` for full sentences. Specifically:
+  - For `vocab_solo`: speak `slide.word` only.
+  - For `multiple`: do not autoplay the question; only speak option words on hover/tap.
+  - Remove `voice.autoPlay` defaults from the Playground `makeSlide('multiple')` template (line 84) and `vocab_solo` (line 101).
 
-### 2. Hydration in the three Hub Creators
+### 5. Multi-Item Activities Across All Three Hub Creators
+Currently each activity holds **one** item. Convert to a list:
 
-All three creators (`PlaygroundCreator.tsx`, `AcademyCreator.tsx`, `SuccessCreator.tsx`) already:
-- Read `lessonId` from `useSearchParams`
-- Pass it to `useCreatorLesson({ initialLessonId })` which fetches the row
-- Have a `useEffect` on `lessonHook.lesson?.id` that hydrates `slides`, `title`, and `blueprint` from `ai_metadata.lesson_blueprint`
-
-What's missing — extend that same effect so the **Lesson Blueprint sidebar** is fully primed:
-
-- `setAiTopic(lesson.title)` — so the topic input shows the imported title.
-- `setAiLevel(...)` — derive from `ai_metadata.cefr_level` first, otherwise from `lesson.difficulty_level` mapped to the closest CEFR (`beginner→A1`, `intermediate→B1`, `advanced→C1`). Default per hub if unknown (Playground=A1, Academy=A2, Success=B1).
-- If `meta.lesson_blueprint` exists, also push its `target_vocabulary`, `grammar_focus`, `interests`, `specific_needs` into the `blueprint` state (already happens through `setBlueprint(meta.lesson_blueprint)` — verify shape matches `LessonBlueprint` type and back-fill missing fields with empty defaults so the inputs render rather than being undefined).
-
-This is purely **additive lines** inside the existing hydrate `useEffect` — no new hook needed.
-
-### 3. UI ready-state
-
-The ✨ Generate button is already enabled whenever `aiTopic.trim()` is non-empty (see `disabled={aiBusy || !aiTopic.trim()}`). Because step 2 sets `aiTopic` on hydrate, the button is automatically active immediately after navigation — no extra wiring required. We just need to ensure the hydrate effect runs **before** the user can interact (it does, since `useCreatorLesson` resolves the row on mount and React re-renders synchronously after state set).
-
-### 4. Hub detection
-
-Hub detection is implicit in the routing: the Master Library card already knows the lesson's hub (from `lesson.hub`), so it sends the user to the correct creator route. Each creator hard-codes its own `hub: 'playground' | 'academy' | 'success'` in `useCreatorLesson`, so there is no risk of cross-hub bleed.
-
-Edge case to handle: if a user manually pastes a Playground lesson's `?lessonId=` into `/academy-creator`, hydration would still try to load it. Add a soft guard in the hydrate effect — if `content.hub` (or `ai_metadata.hub`) does not match the creator's hub, redirect via `navigate(`${correctCreatorPath}?lessonId=${id}`, { replace: true })`. This guarantees Pre-A1 / visual logic always opens in Playground.
-
-### 5. Files touched
-
-| File | Change |
+| Slide type | New structure |
 |---|---|
-| `src/components/teacher/library/TeacherLessonLibrary.tsx` | Add `creatorPath` to HUB_META; route Edit + card click to `${creatorPath}?lessonId=…` |
-| `src/pages/PlaygroundCreator.tsx` | Extend hydrate effect: setAiTopic + setAiLevel + hub-mismatch redirect |
-| `src/pages/AcademyCreator.tsx` | Same |
-| `src/pages/SuccessCreator.tsx` | Same |
+| `multiple` | `items: [{question, options[], answer}]` |
+| `truefalse` | `items: [{statement, answer}]` |
+| `fill` | `items: [{text, answer}]` |
+| `match` | `items: [{instruction, pairs:[…]}]` (or keep flat pairs) |
 
-No new routes, no new hooks, no DB changes. The infrastructure is already there — this plan just connects the wires.
+Implementation:
+- Add a small generic **`ItemListEditor`** (`src/components/creator-studio/shared/ItemListEditor.tsx`) that renders a numbered list with "+ Add item" / "🗑 Remove" controls and slots a child editor.
+- Update `SlideEditor` cases in **PlaygroundCreator, AcademyCreator, SuccessCreator** to render via `ItemListEditor` when `items` exist, while keeping single-item back-compat (auto-migrate legacy single-item slides to `items: [{…}]` on first edit).
+- Update the renderers (`PlaygroundDemo`, `AcademyDemo`, `SuccessDemo`) to step through `items` (carousel inside one slide) — show "Question 1 / N" and a Next-Question button before advancing the slide.
+- Validate: at least 1 item required; max 10 per slide.
 
-### 6. Manual verification
+### 6. Images Not Appearing in Live Classroom (Academy Creator)
+Two contributing bugs:
+1. **`slideFormat='classroom'`** in `TeacherClassroom`'s `LibraryDrawer` runs `extractClassroomSlides()` which only emits text fields. Switch to `'raw'` (see fix 1).
+2. **Signed URLs**: Academy lessons store images in `lesson-slides` bucket. The classroom-side renderer must call `supabase.storage.from('lesson-slides').getPublicUrl(...)` if the stored value is a relative path. Add a `resolveImageUrl()` helper in `src/utils/lessonImageUpload.ts` and call it from `AcademyRenderer` and `CenterStage` before rendering `<img>`.
 
-1. Open `/teacher/library`, click an Academy lesson → lands on `/academy-creator?lessonId=<id>` with Topic, Level, Vocab, Grammar all pre-filled.
-2. Click ✨ Generate immediately → produces a fresh variant of the same lesson.
-3. Click a Playground card → opens `/playground-creator` (not Academy), Pre-A1 visual-first UI active.
-4. Manually paste a Playground id into `/academy-creator?lessonId=…` → auto-redirects to `/playground-creator?lessonId=…`.
+### 7. Platform Readiness for Live Lessons
+Quick smoke pass:
+- Ensure `classroom_states` realtime is enabled (already migrated).
+- Verify `/classroom/:id` resolves bookings via `resolve_classroom_id` RPC (already in place).
+- Add a "Start Live Lesson" CTA on the Teacher Dashboard that opens `/classroom/:bookingId` for the next upcoming booking and copies the student join link.
+- Confirm the new "Sync Library" button persists slides through `useSharedDisplaySync`.
+
+### 8. `scaffolded_media`: Fix "non-2xx status" From `analyze-media`
+Mismatch between client and edge function:
+- Client `ScaffoldedMediaEditor.analyze()` sends `{ media_url, media_kind, transcript, hub, mode:'segments' }` and reads `data.segments`.
+- Function expects `{ transcript, cefr_level, hub_type, media_url }`, requires `transcript ≥30 chars`, and returns `quiz_slides`.
+
+Fix in two places (must match):
+1. **Client** (`ScaffoldedMediaEditor.tsx`): rename payload keys (`hub`→`hub_type`, drop `mode`, add `cefr_level` from blueprint), and read `data.quiz_slides` mapped into `segments`.
+2. **Edge function** (`analyze-media`): also accept the legacy `hub` alias and emit BOTH `quiz_slides` AND `segments` (with `start_time/end_time` derived by splitting the transcript into N chunks of equal duration when `media_kind === 'youtube'`).
+3. Validate transcript length client-side and show a friendly toast ("Paste a transcript of at least 30 characters before generating checkpoints") instead of swallowing the 400.
+
+## Files to be Edited / Created
+- `src/components/teacher/classroom/TeacherClassroom.tsx` (LibraryDrawer slideFormat, frame neutralisation)
+- `src/components/teacher/classroom/CenterStage.tsx` (image URL resolver, hub-aware frame)
+- `src/components/lesson-player/LibraryDrawer.tsx` (default slideFormat='raw')
+- `src/pages/LiveClassroom.tsx` (neutral frame)
+- `src/pages/PlaygroundCreator.tsx`, `AcademyCreator.tsx`, `SuccessCreator.tsx` (multi-item editors, multiple-choice images, hydration of storybook items)
+- `src/pages/PlaygroundDemo.tsx`, `AcademyDemo.tsx`, `SuccessDemo.tsx` (multi-item renderer, multiple-choice image cards)
+- `src/components/creator-studio/shared/ItemListEditor.tsx` *(new)*
+- `src/components/creator-studio/shared/ScaffoldedMediaEditor.tsx` (payload + response mapping)
+- `src/components/admin/TeacherManagement.tsx` (call new edge function)
+- `src/hooks/useTeacherHub.ts` (Realtime invalidation)
+- `src/utils/lessonImageUpload.ts` (resolveImageUrl helper)
+- `src/lib/playSlideAudio.ts` / `slideAudioHelpers.ts` (vocab-only TTS rule)
+- `supabase/functions/analyze-media/index.ts` (segments output, hub alias)
+- `supabase/functions/admin-set-teacher-hub/index.ts` *(new)*
+
+## Database / Infra
+- Edge function `admin-set-teacher-hub` (uses `SUPABASE_SERVICE_ROLE_KEY`) — needs `verify_jwt = true` + admin-role check inside.
+- No new tables. `classroom_states` realtime already enabled.
+
+## Out of Scope
+- Recording / video infrastructure changes
+- Curriculum content rewriting

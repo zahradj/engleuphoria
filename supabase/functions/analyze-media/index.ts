@@ -14,7 +14,13 @@ const HUB_RULES: Record<string, { quizMin: number; quizMax: number; types: strin
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   try {
-    const { transcript, cefr_level = 'A2', hub_type = 'academy', media_url = '' } = await req.json();
+    const body = await req.json();
+    const transcript = body.transcript;
+    const cefr_level = body.cefr_level || 'A2';
+    const hub_type = body.hub_type || body.hub || 'academy';
+    const media_url = body.media_url || '';
+    const media_kind = body.media_kind || 'youtube';
+
     if (!transcript || typeof transcript !== 'string' || transcript.trim().length < 30) {
       return new Response(JSON.stringify({ error: 'A transcript (at least ~30 chars) is required for analysis.' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -87,7 +93,22 @@ Deno.serve(async (req) => {
     const tc = data.choices?.[0]?.message?.tool_calls?.[0];
     if (!tc) throw new Error('AI returned no structured payload');
     const args = JSON.parse(tc.function.arguments);
-    return new Response(JSON.stringify({ quiz_slides: args.quiz_slides || [] }), {
+    const quiz_slides = args.quiz_slides || [];
+
+    // Also expose as scaffolded-media segments (evenly-spaced 30s checkpoints)
+    const segments = quiz_slides.map((q: any, i: number) => ({
+      start_time: i * 30,
+      end_time: (i + 1) * 30,
+      question: {
+        prompt: q.question || q.statement || q.text || q.prompt || `Checkpoint ${i + 1}`,
+        options: Array.isArray(q.options) && q.options.length
+          ? q.options
+          : (typeof q.answer_bool === 'boolean' ? ['True', 'False'] : ['A', 'B', 'C']),
+        answer: q.answer ?? (q.answer_bool === true ? 'True' : q.answer_bool === false ? 'False' : 'A'),
+      },
+    }));
+
+    return new Response(JSON.stringify({ quiz_slides, segments }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (e: any) {

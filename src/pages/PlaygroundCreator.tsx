@@ -81,7 +81,7 @@ function makeSlide(type: SlideType): Slide {
     case 'intro':
       return { type: 'intro', title: '👋 Hello!', text: 'Welcome to the lesson', voice: { text: 'Hello!', autoPlay: true } };
     case 'multiple':
-      return { type: 'multiple', question: 'What is this? 🐶', options: ['dog', 'cat', 'apple'], answer: 'dog', voice: { text: 'What is this?', autoPlay: true } };
+      return { type: 'multiple', question: 'What is this? 🐶', options: ['dog', 'cat', 'apple'], option_images: ['', '', ''], answer: 'dog', voice: { text: 'dog', autoPlay: false } } as Slide;
     case 'truefalse':
       return { type: 'truefalse', statement: 'This is a cat 🐱', answer: true, voice: { text: 'True or false?', autoPlay: true } };
     case 'fill':
@@ -98,7 +98,7 @@ function makeSlide(type: SlideType): Slide {
     case 'draw':
       return { type: 'draw', prompt: 'Draw your favourite animal!', voice: { text: 'Draw something!', autoPlay: true } };
     case 'vocab_solo':
-      return { type: 'vocab_solo', word: 'APPLE', definition: 'A round red or green fruit.', image_url: '', audio_url: '', voice: { text: 'apple', autoPlay: true } } as Slide;
+      return { type: 'vocab_solo', word: 'APPLE', definition: 'A round red or green fruit.', image_url: '', audio_url: '', voice: { text: 'apple', autoPlay: false } } as Slide;
     case 'phonics_focus':
       return { type: 'phonics_focus', phoneme: '/æ/', grapheme: 'a', sound_ipa: '/æ/', label: 'Listen to the sound', example_words: ['CAT', 'BAT', 'HAT'], audio_url: '', voice: { text: 'short a', autoPlay: true } } as unknown as Slide;
     case 'lesson_summary':
@@ -1077,28 +1077,88 @@ function SlideEditor({ slide, onChange, blueprint, hub = 'playground' }: { slide
         </div>
       );
 
-    case 'multiple':
+    case 'multiple': {
+      const opts: string[] = Array.isArray((slide as any).options) ? (slide as any).options : [];
+      const optImages: string[] = Array.isArray((slide as any).option_images)
+        ? (slide as any).option_images.slice()
+        : opts.map(() => '');
+      while (optImages.length < opts.length) optImages.push('');
+      const setOpt = (i: number, v: string) => {
+        const next = [...opts]; const prev = next[i]; next[i] = v;
+        const patch: any = { options: next };
+        if ((slide as any).answer === prev) patch.answer = v;
+        onChange(patch);
+      };
+      const setOptImg = (i: number, url: string) => {
+        const nextImgs = [...optImages]; nextImgs[i] = url;
+        onChange({ option_images: nextImgs } as any);
+      };
+      const addOpt = () => onChange({
+        options: [...opts, `option ${opts.length + 1}`],
+        option_images: [...optImages, ''],
+      } as any);
+      const removeOpt = (i: number) => onChange({
+        options: opts.filter((_, idx) => idx !== i),
+        option_images: optImages.filter((_, idx) => idx !== i),
+        answer: (slide as any).answer === opts[i]
+          ? (opts.find((_, idx) => idx !== i) || '')
+          : (slide as any).answer,
+      } as any);
       return (
         <div className="space-y-3">
           <Field label="Question">{wandRow(
             <input className={inputCls} value={slide.question} onChange={(e) => onChange({ question: e.target.value } as any)} />,
             wandFor('question', slide.question, (v) => onChange({ question: v } as any)),
           )}</Field>
-          <Field label="Options (one per line)">
-            <textarea
-              className={inputCls + ' h-24'}
-              value={slide.options.join('\n')}
-              onChange={(e) => onChange({ options: e.target.value.split('\n').filter(Boolean) } as any)}
-            />
-          </Field>
-          <Field label="Correct Answer">
-            <select className={inputCls} value={slide.answer} onChange={(e) => onChange({ answer: e.target.value } as any)}>
-              {slide.options.map((o) => <option key={o} value={o}>{o}</option>)}
-            </select>
-          </Field>
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-600 uppercase tracking-wide">Options (with images)</span>
+              <button onClick={addOpt} className="inline-flex items-center gap-1 text-xs font-bold border-2 border-orange-300 text-orange-700 rounded-lg px-2 py-1 hover:bg-orange-50">
+                + Add option
+              </button>
+            </div>
+            <div className="space-y-2">
+              {opts.map((o, i) => (
+                <div key={i} className="border-2 border-orange-100 rounded-xl p-2 bg-orange-50/30 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      className={inputCls + ' flex-1'}
+                      value={o}
+                      onChange={(e) => setOpt(i, e.target.value)}
+                      placeholder={`option ${i + 1}`}
+                    />
+                    <label className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700">
+                      <input
+                        type="radio"
+                        name="mc-answer"
+                        checked={(slide as any).answer === o}
+                        onChange={() => onChange({ answer: o } as any)}
+                      />
+                      ✓
+                    </label>
+                    <button
+                      onClick={() => removeOpt(i)}
+                      disabled={opts.length <= 2}
+                      className="text-rose-500 hover:text-rose-700 disabled:opacity-30 px-1"
+                      title={opts.length <= 2 ? 'Need at least 2 options' : 'Remove'}
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <ImageField
+                    label={`Image for "${o || `option ${i + 1}`}"`}
+                    url={optImages[i] || ''}
+                    subject={o}
+                    onChange={(url) => setOptImg(i, url)}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
           {VoiceFields}
         </div>
       );
+    }
 
     case 'truefalse':
       return (
