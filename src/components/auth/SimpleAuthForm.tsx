@@ -344,13 +344,16 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
+      {(formError || error) && (
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg"
+          role="alert"
         >
-          <p className="text-sm text-destructive">{error}</p>
+          <p className="text-sm text-destructive">
+            {formError || error || 'Something went wrong. Please try again.'}
+          </p>
         </motion.div>
       )}
 
