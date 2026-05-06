@@ -87,6 +87,7 @@ interface CenterStageProps {
   embeddedUrl?: string | null;
   onCloseEmbed?: () => void;
   sessionContext?: Record<string, any>;
+  hubType?: 'playground' | 'academy' | 'professional' | 'success';
 }
 
 const COLORS = [
