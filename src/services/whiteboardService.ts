@@ -562,7 +562,31 @@ class WhiteboardService {
     return () => this.release(roomId, () => room.forceSyncListeners.delete(onSync));
   }
 
-  subscribeToStatus(roomId: string, onStatus: (status: string) => void): () => void {
+  /** Student → all clients: live action broadcast (option click, drag drop…) */
+  async sendStudentAction(
+    roomId: string,
+    payload: Omit<StudentActionPayload, 'timestamp'>,
+  ): Promise<void> {
+    const room = this.getRoom(roomId);
+    await room.ready;
+    await room.channel.send({
+      type: 'broadcast',
+      event: 'student_action',
+      payload: { ...payload, timestamp: Date.now() } satisfies StudentActionPayload,
+    });
+  }
+
+  subscribeToStudentActions(
+    roomId: string,
+    onAction: StudentActionListener,
+  ): () => void {
+    const room = this.getRoom(roomId);
+    room.studentActionListeners.add(onAction);
+    room.refCount += 1;
+    return () => this.release(roomId, () => room.studentActionListeners.delete(onAction));
+  }
+
+
     const room = this.getRoom(roomId);
     room.statusListeners.add(onStatus);
     onStatus(room.currentStatus);
