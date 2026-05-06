@@ -83,6 +83,8 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [verifyingRole, setVerifyingRole] = useState(false);
+  const [formError, setFormError] = useState<string>('');
   const [googleLoading, setGoogleLoading] = useState(false);
   const [emailError, setEmailError] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -162,11 +164,14 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
+    setFormError('');
     setLoading(true);
 
     try {
       if (!isConfigured) {
-        toast({ title: "Authentication Error", description: "Supabase not configured.", variant: "destructive" });
+        const msg = 'Supabase not configured.';
+        setFormError(msg);
+        toast({ title: "Authentication Error", description: msg, variant: "destructive" });
         return;
       }
 
@@ -177,9 +182,11 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
           const description = isInvalidCreds
             ? "Incorrect email or password. Please double-check your credentials or use 'Forgot password?' below to reset it."
             : (error.message || "Invalid email or password.");
+          setFormError(description);
           toast({ title: "Login Failed", description, variant: "destructive", duration: 8000 });
         } else {
-          toast({ title: "Welcome back!", description: "Successfully signed in." });
+          setVerifyingRole(true);
+          toast({ title: "Welcome back!", description: "Verifying your account…" });
         }
       } else {
         const systemTag = formData.role === 'student' && formData.dateOfBirth ? calculateSystemTag(formData.dateOfBirth) : null;
@@ -337,13 +344,16 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
+      {(formError || error) && (
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg"
+          role="alert"
         >
-          <p className="text-sm text-destructive">{error}</p>
+          <p className="text-sm text-destructive">
+            {formError || error || 'Something went wrong. Please try again.'}
+          </p>
         </motion.div>
       )}
 
@@ -582,12 +592,12 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
           type="submit"
           className="w-full h-11 text-white font-medium shadow-lg transition-all duration-500 hover:shadow-xl hover:brightness-110"
           style={{ backgroundImage: `linear-gradient(to right, ${theme.cssFrom}, ${theme.cssTo})` }}
-          disabled={loading}
+          disabled={loading || verifyingRole}
         >
-          {loading ? (
+          {loading || verifyingRole ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {mode === 'login' ? 'Signing in...' : 'Creating account...'}
+              {verifyingRole ? 'Verifying role…' : (mode === 'login' ? 'Signing in...' : 'Creating account...')}
             </>
           ) : (
             <>

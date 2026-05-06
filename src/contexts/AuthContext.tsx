@@ -430,8 +430,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
       
       if (error) {
-        setError(error.message);
-        toast.error(error.message);
+        const status = (error as any)?.status ?? 0;
+        const raw = (error.message || '').trim();
+        const friendly = raw
+          || (status >= 500
+            ? 'Authentication service is temporarily unavailable. Please try again in a moment.'
+            : 'Invalid email or password.');
+        setError(friendly);
+        toast.error(friendly);
+        return { data: null, error: { ...(error as any), message: friendly } };
       } else if (data.user) {
         // Reset rate limiter on successful login
         rateLimiter.reset(clientKey);
@@ -533,10 +540,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       return { data, error };
     } catch (error: any) {
-      const errorMessage = 'Sign in failed';
+      const errorMessage = (error?.message && String(error.message).trim()) || 'Sign in failed. Please try again.';
       setError(errorMessage);
       toast.error(errorMessage);
-      return { data: null, error };
+      return { data: null, error: { message: errorMessage } };
     }
   };
 

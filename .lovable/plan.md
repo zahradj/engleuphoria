@@ -1,93 +1,149 @@
-## Goals (8 fixes)
+## Goals
+1. Login: empty red error box → always show a meaningful message; lock down post-login routing behind a "Verifying role…" gate.
+2. Postgres 17 upgrade timeout: diagnose pg_cron / long-running queries and provide safe SQL to let the upgrade complete.
 
-### 1. Sync Lesson Library → Live Classroom & Storybook Creator
-- **Live Classroom**: `LibraryDrawer` already exists in `TeacherClassroom.tsx`, but uses `slideFormat='classroom'` which strips raw slide JSON (losing `image_url`). Switch the drawer to `slideFormat='raw'` so the original slide objects (with images) flow into `updateSharedDisplay({ lessonSlides })`.
-- **Storybook Creator hydration**: when a library lesson contains a `storybook` slide, allow opening it directly in the active hub creator. Extend `creatorHydration.ts` so the auto-hydration in PlaygroundCreator/AcademyCreator/SuccessCreator detects `content.slides[i].type === 'storybook'` and pre-selects that slide for editing.
-- **Add Storybook builder to Academy Creator**: it's already wired (line 717 `<StorybookEditor>`); confirm the `Storybook` chip is in the slide-type chooser (line 586 ✓) and `makeSlide('storybook')` returns a valid Academy storybook (line 84 ✓). No code change needed beyond verifying Academy hydration also handles existing storybooks (covered above).
+---
 
-### 2. Super-admin Teacher Hub Change Doesn't Persist to Dashboards
-`TeacherManagement.handleSaveHubRole` writes `teacher_profiles.hub_role`, but the Playground/Academy/Success **teacher** dashboards route via `useTeacherHub` which reads `hub_role` *plus* `hub_specialty` and the auth `user_metadata.hub_type`. Two issues:
-1. Cache: `useTeacherHub` is keyed per-mount; after admin save we don't notify the teacher's session. Add a Supabase Realtime subscription on `teacher_profiles` row inside `useTeacherHub`, or invalidate via `react-query` key `['teacher-hub', userId]`.
-2. Some dashboards still fall back to `user_metadata.hub_type` set at signup. Update `handleSaveHubRole` to also call a new edge function `admin-set-teacher-hub` that:
-   - updates `teacher_profiles.hub_role`
-   - updates `auth.users.user_metadata.hub_type` via service role
-   - returns ok
-- Surface a clear toast and force the teacher to re-fetch on next page focus.
+## 1. Login UI + Routing fix
 
-### 3. Lesson-Slide Frame – Remove Purple Theme, Match Hub
-The screenshot shows an Academy Hub session rendering with a purple gradient even when the lesson is from a non-academy hub.
-- In `LiveClassroom.tsx` line 90–94 the renderer is selected from `content.hub`. The bleed comes from the *card frame* (`bg-card rounded-3xl border border-border` at line 135) being overridden by `AcademyRenderer`'s own gradient when the hub is academy.
-- Fix: pass an explicit `hub`-aware theme wrapper. Replace the wrapper with a hub-token wrapper that uses **flat surfaces** (no purple gradient) and let only the slide content paint hub color. Concretely:
-  - Strip the inner `p-6 overflow-auto` wrapper background.
-  - Add `bg-white` (or `bg-card`) inside, drop any inherited `bg-gradient` from theme map by passing a "frame=false" prop or a neutral theme variant for the live shell.
-- Also align `TeacherClassroom`'s `CenterStage`/`DynamicSlideRenderer` to use the active lesson's hub instead of a hardcoded purple Academy frame (per-hub border colors: Playground=amber, Academy=indigo flat, Success=emerald).
+**Where the bug lives**
 
-### 4. Playground Multiple-Choice Images + No Sentence TTS
-- **Add image fields per option** in PlaygroundCreator's `multiple` editor (line 1080). Replace the single `options` textarea with a per-option editor: each row has `text`, `image_url` (using `<ImageField subject={text}/>`), and a "✓ correct" toggle. Persist as `options: [{label, image_url}]` while remaining backward-compatible (string options still readable).
-- Update Playground `SlideRenderer` (in `PlaygroundDemo.tsx`) to render option image + label cards.
-- **TTS**: when previewing a `vocab_solo` / multiple-choice slide, only the vocabulary word should be spoken. In `slideAudioHelpers.ts` (and Playground autoplay), restrict autoplay payload to the word/lemma — do not concatenate `voice.text` for full sentences. Specifically:
-  - For `vocab_solo`: speak `slide.word` only.
-  - For `multiple`: do not autoplay the question; only speak option words on hover/tap.
-  - Remove `voice.autoPlay` defaults from the Playground `makeSlide('multiple')` template (line 84) and `vocab_solo` (line 101).
+- `src/contexts/AuthContext.tsx` (`signIn`) calls `setError(error.message)`. Looking at the recent auth logs, Supabase is returning 500 / 504 with empty `error.message` (`"context deadline exceeded"`, no body), so the inline red alert in `src/components/auth/SimpleAuthForm.tsx` (line 340-348) renders `<p>{error}</p>` with `error === ''`.
+- `signIn` also redirects via `window.location.href = redirectPath` *immediately* after resolving the role, but `Login.tsx` has a parallel `useEffect` that redirects on `user` presence with a 3 s metadata fallback. On a slow role fetch the metadata fallback can fire first and send a creator/admin to `/playground`.
 
-### 5. Multi-Item Activities Across All Three Hub Creators
-Currently each activity holds **one** item. Convert to a list:
+**Changes**
 
-| Slide type | New structure |
-|---|---|
-| `multiple` | `items: [{question, options[], answer}]` |
-| `truefalse` | `items: [{statement, answer}]` |
-| `fill` | `items: [{text, answer}]` |
-| `match` | `items: [{instruction, pairs:[…]}]` (or keep flat pairs) |
+1. `src/contexts/AuthContext.tsx` → `signIn`:
+   - When the SDK returns an error, build a non-empty message:
+     `const msg = error.message?.trim() || (error.status >= 500 ? 'Authentication service is temporarily unavailable. Please try again in a moment.' : 'Invalid email or password.');`
+     Pass `msg` to `setError` and `toast.error`, and return `{ data: null, error: { ...error, message: msg } }`.
+   - Same treatment in the `catch` branch (currently hardcoded `'Sign in failed'`) — surface `e.message` when present.
 
-Implementation:
-- Add a small generic **`ItemListEditor`** (`src/components/creator-studio/shared/ItemListEditor.tsx`) that renders a numbered list with "+ Add item" / "🗑 Remove" controls and slots a child editor.
-- Update `SlideEditor` cases in **PlaygroundCreator, AcademyCreator, SuccessCreator** to render via `ItemListEditor` when `items` exist, while keeping single-item back-compat (auto-migrate legacy single-item slides to `items: [{…}]` on first edit).
-- Update the renderers (`PlaygroundDemo`, `AcademyDemo`, `SuccessDemo`) to step through `items` (carousel inside one slide) — show "Question 1 / N" and a Next-Question button before advancing the slide.
-- Validate: at least 1 item required; max 10 per slide.
+2. `src/components/auth/SimpleAuthForm.tsx`:
+   - In the login submit branch, after `signIn` returns, if `error` exists set a local `formError` state and render it inside the existing red alert box (in addition to the global `error` from context, so the alert never goes blank when context clears).
+   - Show "Verifying your account…" inside the submit button while `loading` from context is true *and* `data?.user` was returned but role hasn't resolved yet (track via a `verifyingRole` boolean toggled around the `signIn` call).
 
-### 6. Images Not Appearing in Live Classroom (Academy Creator)
-Two contributing bugs:
-1. **`slideFormat='classroom'`** in `TeacherClassroom`'s `LibraryDrawer` runs `extractClassroomSlides()` which only emits text fields. Switch to `'raw'` (see fix 1).
-2. **Signed URLs**: Academy lessons store images in `lesson-slides` bucket. The classroom-side renderer must call `supabase.storage.from('lesson-slides').getPublicUrl(...)` if the stored value is a relative path. Add a `resolveImageUrl()` helper in `src/utils/lessonImageUpload.ts` and call it from `AcademyRenderer` and `CenterStage` before rendering `<img>`.
+3. `src/pages/Login.tsx`:
+   - Replace the 3-second metadata fallback with a hard role gate: while `user && !user.role` show a centered "Verifying role…" screen (already partially there). Only the role-based branch in the `useEffect` may navigate. If after 8 s the role is still missing, show an inline "We couldn't verify your role. Please refresh or contact support." message instead of silently routing to a default hub.
+   - Routing table to enforce:
+     - `admin` → `/super-admin`
+     - `content_creator` → `/content-creator` (the master library lives here)
+     - `teacher` → `/teacher`
+     - `parent` → `/parent`
+     - `student` → resolved hub (`/playground` | `/academy` | `/hub`)
+   - Remove the metadata-based silent fallback so users never land on the wrong hub.
 
-### 7. Platform Readiness for Live Lessons
-Quick smoke pass:
-- Ensure `classroom_states` realtime is enabled (already migrated).
-- Verify `/classroom/:id` resolves bookings via `resolve_classroom_id` RPC (already in place).
-- Add a "Start Live Lesson" CTA on the Teacher Dashboard that opens `/classroom/:bookingId` for the next upcoming booking and copies the student join link.
-- Confirm the new "Sync Library" button persists slides through `useSharedDisplaySync`.
+4. Light defensive cleanup: `signIn` should not call `window.location.href` when the calling component has already mounted React Router — switch to `navigate(redirectPath, { replace: true })` via a callback the form passes in. (Optional refactor; if too invasive, keep `location.href` but only fire once `resolvedRole` is non-null.)
 
-### 8. `scaffolded_media`: Fix "non-2xx status" From `analyze-media`
-Mismatch between client and edge function:
-- Client `ScaffoldedMediaEditor.analyze()` sends `{ media_url, media_kind, transcript, hub, mode:'segments' }` and reads `data.segments`.
-- Function expects `{ transcript, cefr_level, hub_type, media_url }`, requires `transcript ≥30 chars`, and returns `quiz_slides`.
+**No DB changes for the login fix.**
 
-Fix in two places (must match):
-1. **Client** (`ScaffoldedMediaEditor.tsx`): rename payload keys (`hub`→`hub_type`, drop `mode`, add `cefr_level` from blueprint), and read `data.quiz_slides` mapped into `segments`.
-2. **Edge function** (`analyze-media`): also accept the legacy `hub` alias and emit BOTH `quiz_slides` AND `segments` (with `start_time/end_time` derived by splitting the transcript into N chunks of equal duration when `media_kind === 'youtube'`).
-3. Validate transcript length client-side and show a friendly toast ("Paste a transcript of at least 30 characters before generating checkpoints") instead of swallowing the 400.
+---
 
-## Files to be Edited / Created
-- `src/components/teacher/classroom/TeacherClassroom.tsx` (LibraryDrawer slideFormat, frame neutralisation)
-- `src/components/teacher/classroom/CenterStage.tsx` (image URL resolver, hub-aware frame)
-- `src/components/lesson-player/LibraryDrawer.tsx` (default slideFormat='raw')
-- `src/pages/LiveClassroom.tsx` (neutral frame)
-- `src/pages/PlaygroundCreator.tsx`, `AcademyCreator.tsx`, `SuccessCreator.tsx` (multi-item editors, multiple-choice images, hydration of storybook items)
-- `src/pages/PlaygroundDemo.tsx`, `AcademyDemo.tsx`, `SuccessDemo.tsx` (multi-item renderer, multiple-choice image cards)
-- `src/components/creator-studio/shared/ItemListEditor.tsx` *(new)*
-- `src/components/creator-studio/shared/ScaffoldedMediaEditor.tsx` (payload + response mapping)
-- `src/components/admin/TeacherManagement.tsx` (call new edge function)
-- `src/hooks/useTeacherHub.ts` (Realtime invalidation)
-- `src/utils/lessonImageUpload.ts` (resolveImageUrl helper)
-- `src/lib/playSlideAudio.ts` / `slideAudioHelpers.ts` (vocab-only TTS rule)
-- `supabase/functions/analyze-media/index.ts` (segments output, hub alias)
-- `supabase/functions/admin-set-teacher-hub/index.ts` *(new)*
+## 2. Postgres 17 upgrade hang on pg_cron
 
-## Database / Infra
-- Edge function `admin-set-teacher-hub` (uses `SUPABASE_SERVICE_ROLE_KEY`) — needs `verify_jwt = true` + admin-role check inside.
-- No new tables. `classroom_states` realtime already enabled.
+The upgrade pre-flight check runs `SELECT … FROM pg_extension WHERE extname='pg_cron'` and waits for the cron background worker to drain. When you have many cron jobs (or a long-running job holding a lock), the check times out.
 
-## Out of Scope
-- Recording / video infrastructure changes
-- Curriculum content rewriting
+### Step A — diagnose (SELECT only, safe to run anytime)
+
+```sql
+-- 1. Is pg_cron installed and which version
+select extname, extversion from pg_extension where extname = 'pg_cron';
+
+-- 2. Currently running cron jobs / long queries
+select pid, usename, application_name, state,
+       now() - xact_start  as xact_age,
+       now() - query_start as query_age,
+       wait_event_type, wait_event, left(query, 200) as query
+  from pg_stat_activity
+ where state <> 'idle'
+   and (application_name ilike '%cron%' or query ilike '%cron%' or now() - query_start > interval '30 seconds')
+ order by query_age desc nulls last;
+
+-- 3. Active locks held by anything cron-related
+select l.pid, l.locktype, l.mode, l.granted, a.application_name, left(a.query, 200) as query
+  from pg_locks l
+  join pg_stat_activity a on a.pid = l.pid
+ where a.application_name ilike '%cron%' or a.query ilike '%cron%';
+
+-- 4. Recently scheduled jobs and their last status
+select jobid, schedule, command, active, jobname
+  from cron.job order by jobid;
+
+select jobid, runid, status, return_message, start_time, end_time
+  from cron.job_run_details
+ order by start_time desc
+ limit 20;
+```
+
+### Step B — give the upgrade check more time
+
+```sql
+-- Session-scoped (preferred — auto-resets when session ends):
+set statement_timeout = '5min';
+set lock_timeout      = '30s';
+set idle_in_transaction_session_timeout = '2min';
+
+-- If you need it for the whole DB during the upgrade window:
+alter database postgres set statement_timeout = '5min';
+-- After the upgrade finishes, restore the default:
+alter database postgres reset statement_timeout;
+```
+
+### Step C — kill any stuck pg_cron worker / long queries
+
+```sql
+-- Cancel (soft) anything cron-related that has been running too long
+select pg_cancel_backend(pid)
+  from pg_stat_activity
+ where (application_name ilike '%cron%' or query ilike '%cron%')
+   and state <> 'idle'
+   and now() - query_start > interval '2 minutes';
+
+-- If cancel doesn't release it after ~30s, terminate (hard):
+select pg_terminate_backend(pid)
+  from pg_stat_activity
+ where (application_name ilike '%cron%' or query ilike '%cron%')
+   and state <> 'idle'
+   and now() - query_start > interval '5 minutes';
+```
+
+### Step D — last-resort temporary toggle of pg_cron
+
+Only do this if Steps A–C don't unblock the upgrade. Save the job list first so nothing is lost.
+
+```sql
+-- 1. Snapshot scheduled jobs so we can recreate them after re-enabling pg_cron
+create table if not exists public._pg_cron_backup as
+  select * from cron.job;
+
+-- 2. Pause every job (does NOT delete them; re-runnable)
+update cron.job set active = false;
+
+-- 3. If still blocked, drop and re-create the extension during the maintenance window
+drop extension if exists pg_cron;
+-- ... run the Supabase Postgres 17.6.1.113 upgrade now ...
+create extension pg_cron;
+
+-- 4. Restore jobs from the backup
+insert into cron.job (schedule, command, nodename, nodeport, database, username, active, jobname)
+  select schedule, command, nodename, nodeport, database, username, active, jobname
+    from public._pg_cron_backup
+  on conflict do nothing;
+
+drop table public._pg_cron_backup;
+```
+
+I would only run Step D inside a maintenance window — dropping the extension cancels all in-flight jobs.
+
+### How I'll execute this
+
+- All SELECTs in Step A I can run via the read-only DB tool to give you a real picture before you touch anything.
+- The `alter database` / `pg_cancel_backend` / `pg_terminate_backend` / `drop extension` calls require a migration. I'll create one only after you confirm which step you want me to run, because Step D especially is destructive.
+
+---
+
+## What I'll do after you approve
+
+1. Edit `AuthContext.tsx`, `SimpleAuthForm.tsx`, `Login.tsx` for the login + routing fix (no schema changes).
+2. Run the Step A diagnostics against your DB and report what's stuck.
+3. Stop and ask which of Step B / C / D you want me to apply via a migration.
