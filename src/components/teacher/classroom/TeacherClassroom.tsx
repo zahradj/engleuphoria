@@ -675,6 +675,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             onRollDice={handleRollDice}
             onSendSticker={handleSendSticker}
             onOpenLibrary={() => setIsLibraryOpen(true)}
+            hubType={hubType}
           />
         </div>
 
