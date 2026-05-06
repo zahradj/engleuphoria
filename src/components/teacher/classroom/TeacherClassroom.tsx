@@ -44,6 +44,8 @@ interface TeacherClassroomProps {
   lessonId?: string;
   teacherName?: string;
   hubType?: HubType;
+  /** Pre-resolved Master Library slides (raw curriculum_lessons.content.slides) */
+  initialSlides?: any[];
 }
 
 export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
@@ -53,7 +55,8 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   lessonTitle = "Magic Forest: Lesson 1",
   lessonId,
   teacherName = "Teacher",
-  hubType = "academy"
+  hubType = "academy",
+  initialSlides,
 }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
