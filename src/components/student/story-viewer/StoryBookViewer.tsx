@@ -82,7 +82,9 @@ export const StoryBookViewer: React.FC<StoryBookViewerProps> = ({
   const tts = useTextToSpeech();
 
   const safePages = useMemo(
-    () => pages.filter((p) => p && (p.text || p.mcq || (p.panels && p.panels.length > 0))),
+    () => (Array.isArray(pages) ? pages : []).filter(
+      (p) => p && (p.text || p.mcq || (p.panels && p.panels.length > 0)),
+    ),
     [pages],
   );
   const total = safePages.length;
