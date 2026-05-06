@@ -284,12 +284,21 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
         duration: 3000,
       });
     });
+    const unsubStudentAction = whiteboardService.subscribeToStudentActions(roomName, (payload) => {
+      if (payload.senderId === teacherUserId) return;
+      setLiveStudentAnswers((prev) => ({
+        ...prev,
+        [payload.slideId]: { label: payload.label, ts: payload.timestamp },
+      }));
+      setLatestStudentAction({ label: payload.label, ts: payload.timestamp });
+    });
     return () => {
       unsubStage();
       unsubDrawing();
       unsubReward();
       unsubStatus();
       unsubSlideComplete();
+      unsubStudentAction();
     };
   }, [roomName, teacherUserId, applyRemoteStageMode, applyRemoteDrawingEnabled, setCurrentSlideIndex]);
 
