@@ -1,64 +1,96 @@
-# Postgres 17 Upgrade Prep — Prune cron bloat + pause jobs
+## Goal
 
-Two-step maintenance to unblock the Supabase Postgres upgrade pre-flight check.
+Make Engleuphoria feel like ONE product across Playground / Academy / Success by collapsing 3 parallel slide systems into:
 
-## Step 1 — Prune & vacuum `cron.job_run_details`
+**ONE Slide Engine + ONE Creator + 3 Hub Themes**
 
-Run as a migration (so it executes with elevated privileges):
+Plus fix two concrete bugs:
+1. Classroom is locked to Academy purple regardless of lesson hub.
+2. Academy & Success creators can't insert images.
 
-```sql
--- Clear historical run logs older than 7 days
-DELETE FROM cron.job_run_details
-WHERE start_time < now() - interval '7 days';
+---
 
--- Reclaim disk + refresh planner stats
-VACUUM (FULL, ANALYZE) cron.job_run_details;
+## Architecture (target)
+
+```text
+SlideEngine (single)
+ ├── SlideShell        — layout: Header / MainContent / ActivityPanel
+ ├── ActivityRegistry  — MCQ, Drag&Drop, Match, Quiz, Speak, etc.
+ ├── Navigation        — prev/next/progress (shared)
+ └── HubThemeProvider  — injects tokens (bg, slideBg, primary, radius, fontScale, vibe)
+
+UnifiedCreator (single, /content-creator)
+ ├── HubModeSwitch     — Playground | Academy | Success
+ ├── SlideTypePalette  — filtered by hub-permitted activities
+ ├── EditorCanvas      — same SlideShell as the player
+ └── MediaPicker       — AI generate (Gemini) | Library | URL paste
+
+Classroom (single)
+ └── reads lesson.hub → fallback user.activeHub → applies HubTheme
 ```
 
-Notes:
-- `VACUUM FULL` takes an `ACCESS EXCLUSIVE` lock on the table. Since only the cron worker writes here, impact is limited to brief contention on cron logging.
-- If the table is very large, this can take several minutes. Statement timeout will be raised for the migration.
+Three hub themes are pure data (no duplicated components):
 
-## Step 2 — Pause all cron jobs
-
-After Step 1 finishes successfully:
-
-```sql
--- Snapshot current active state so we can restore precisely
-CREATE TABLE IF NOT EXISTS public._cron_job_active_backup AS
-SELECT jobid, active, now() AS snapshotted_at
-FROM cron.job;
-
--- Pause everything
-UPDATE cron.job SET active = false;
+```ts
+playground: { bg, slideBg:#fff, primary:#FE6A2F, radius:'20px', fontScale:'large',   vibe:'playful' }
+academy:    { bg:#0f172a, slideBg:#1e293b, primary:#6B21A8, radius:'14px', fontScale:'medium', vibe:'focused' }
+success:    { bg:#f8fafc, slideBg:#fff,   primary:#059669, radius:'10px', fontScale:'compact',vibe:'professional' }
 ```
 
-The backup table lets us re-enable exactly the jobs that were active before (some jobs may already be inactive by design and should stay that way).
+---
 
-## After the upgrade (you run this once the dashboard upgrade succeeds)
+## Work plan
 
-```sql
--- Restore active flags from snapshot
-UPDATE cron.job j
-SET active = b.active
-FROM public._cron_job_active_backup b
-WHERE j.jobid = b.jobid;
+### Phase 1 — Theme unification (foundation)
+1. Create `src/lib/hubThemes.ts` — single source of truth (3 token objects above), reconciling `hubTheme.ts`, `hubConfig.ts`, `hubTheme.ts (creator)`, `phaseTheme.ts`, `SlideHubContext.tsx`. Keep names but re-export from one file.
+2. Add `<HubThemeProvider hub={...}>` that sets CSS vars (`--hub-bg`, `--hub-slide-bg`, `--hub-primary`, `--hub-radius`, `--hub-font-scale`).
+3. Replace all hard-coded hub colors in slide/classroom components with these CSS vars.
 
-DROP TABLE public._cron_job_active_backup;
-```
+### Phase 2 — Unified Slide Engine
+4. Promote `SlideShell` to enforce 3 zones: `<Header/> <MainContent/> <ActivityPanel/>`. Add `ActivityPanel` slot (currently missing — this is what makes slides feel "alive").
+5. Make `DynamicSlideRenderer` fully theme-driven: button padding/radius/font sizes derived from theme.vibe, not from hub-specific JSX branches.
+6. Audit `slides/` and `activities/` folders — delete any hub-duplicated components; keep one component per slide type, styled by tokens.
 
-I'll provide this restore snippet again in chat after you confirm the upgrade is done.
+### Phase 3 — Classroom fix
+7. `UnifiedClassroomPage` / `TeacherClassroomPage` / `StudentClassroomPage` / `AcademyClassroom`: 
+   - Resolve hub: `lesson.hub ?? booking.hub ?? userActiveHub ?? 'academy'`.
+   - Wrap classroom in `<HubThemeProvider>`.
+   - Remove the hardcoded purple frame.
+8. Delete `AcademyClassroom.tsx` if redundant after unification (route → `UnifiedClassroomPage`).
 
-## Execution order
+### Phase 4 — Unified Creator + image upload fix
+9. Build `UnifiedCreator` from `PlaygroundCreator` (richest one, 1385 lines) as the base. Add `hub` prop driven by HubModeSwitch.
+10. Extract `MediaPicker` component reused by all slide types in all hubs:
+    - **AI generate** → calls existing `ai-image-generation` edge function
+    - **Library** → lists previously generated assets from `lesson-slides` bucket
+    - **URL paste** → validates and embeds
+11. Replace `AcademyCreator` and `SuccessCreator` routes with thin wrappers that mount `UnifiedCreator` with a preset hub (or redirect). Then delete the duplicated 1140 + 1223 lines.
+12. Fix root cause of "no image insert" in Academy/Success: their `EditorCanvas`/slide-type registry was missing the image action — now solved by sharing `MediaPicker`.
 
-1. Approve this plan → I run Step 1 migration.
-2. Wait for confirmation that vacuum completed.
-3. Run Step 2 migration (pause jobs + backup).
-4. You click **Upgrade** in Supabase dashboard.
-5. After upgrade, I run the restore snippet.
+### Phase 5 — Cleanup & verify
+13. Remove dead exports from `hubTheme.ts`, `hubConfig.ts`, `phaseTheme.ts`, `SlideHubContext.tsx` after the consolidation.
+14. Smoke test: open one lesson per hub in classroom → verify theme. Insert image in each creator hub → verify upload.
+15. Update memory: "One Slide Engine + Three Themes" rule, "lesson.hub drives classroom theme".
+
+---
+
+## What gets deleted
+- `src/pages/AcademyCreator.tsx` (1223 lines) → wrapper
+- `src/pages/SuccessCreator.tsx` (1140 lines) → wrapper  
+- `src/pages/PlaygroundCreator.tsx` (1385 lines) → becomes `UnifiedCreator`
+- `src/pages/AcademyClassroom.tsx` (168 lines) → routes to `UnifiedClassroomPage`
+- Hub-specific slide variants in `lesson-player/slides/` (if any duplicates exist)
+
+Net: ~3000 lines removed, ~600 lines added. One source of truth for theme, engine, and creator.
+
+---
 
 ## Risks & mitigations
+- **Risk**: Existing lessons authored in Playground may render differently after token migration.  
+  **Mitigation**: Keep Playground tokens identical to current hardcoded values; visual diff one lesson per hub before deleting old creators.
+- **Risk**: Classroom hub resolution fails for legacy bookings without `hub` field.  
+  **Mitigation**: Fallback chain ends at user's active hub, then `'academy'` default.
+- **Risk**: Image upload regression in Playground.  
+  **Mitigation**: `MediaPicker` is extracted FROM Playground's working code, not rewritten.
 
-- **Vacuum timeout**: Migration runner may have its own timeout. If it fails, fallback is plain `VACUUM` (no FULL) which doesn't lock — still reduces bloat significantly after the DELETE.
-- **Paused jobs during upgrade window**: Any scheduled emails, reminders, or cleanup jobs will not fire until restored. Upgrade typically completes in <10 min.
-- **No data loss**: Only deleting historical run *logs*, not job definitions.
+No DB migrations required — `lessons.hub` and `bookings.hub` already exist per memory.
