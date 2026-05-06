@@ -164,11 +164,14 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
+    setFormError('');
     setLoading(true);
 
     try {
       if (!isConfigured) {
-        toast({ title: "Authentication Error", description: "Supabase not configured.", variant: "destructive" });
+        const msg = 'Supabase not configured.';
+        setFormError(msg);
+        toast({ title: "Authentication Error", description: msg, variant: "destructive" });
         return;
       }
 
@@ -179,9 +182,11 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
           const description = isInvalidCreds
             ? "Incorrect email or password. Please double-check your credentials or use 'Forgot password?' below to reset it."
             : (error.message || "Invalid email or password.");
+          setFormError(description);
           toast({ title: "Login Failed", description, variant: "destructive", duration: 8000 });
         } else {
-          toast({ title: "Welcome back!", description: "Successfully signed in." });
+          setVerifyingRole(true);
+          toast({ title: "Welcome back!", description: "Verifying your account…" });
         }
       } else {
         const systemTag = formData.role === 'student' && formData.dateOfBirth ? calculateSystemTag(formData.dateOfBirth) : null;
