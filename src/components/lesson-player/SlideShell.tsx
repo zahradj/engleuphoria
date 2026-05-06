@@ -79,7 +79,7 @@ export default function SlideShell({
 
   // Publish hub theme as CSS variables so descendants can use `bg-[var(--hub-accent)]`.
   const cssVars = {
-    background: tokens.gradient,
+    background: '#FFFFFF',
     ['--hub-accent' as any]: tokens.accent,
     ['--hub-secondary' as any]: tokens.secondary,
     ['--hub-bg' as any]: tokens.bg,
