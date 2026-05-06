@@ -97,6 +97,11 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   // resolved Master Library lesson when one is linked to this booking.
   const [rawSlides, setRawSlides] = useState<any[]>(() => initialSlides ?? []);
 
+  // Live student-action mirror — populated by the realtime broadcast so the
+  // teacher instantly sees what the student selected on each slide.
+  const [liveStudentAnswers, setLiveStudentAnswers] = useState<Record<string, { label: string; ts: number }>>({});
+  const [latestStudentAction, setLatestStudentAction] = useState<{ label: string; ts: number } | null>(null);
+
   // Smart timer for Professional Buffer
   const sessionDuration: 25 | 55 = 25; // TODO: derive from booking data
   const { classTime } = useClassroomTimer();
