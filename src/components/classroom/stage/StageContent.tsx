@@ -237,6 +237,17 @@ export const StageContent: React.FC<StageContentProps> = ({
     );
   }
 
+  // Creator-native slides (Playground / Academy / Success Demo schemas):
+  // render with the same SlideRenderer the studio uses so layout and
+  // interactive activities are identical to the creator preview.
+  if (isCreatorNativeSlide(rawSrc)) {
+    return (
+      <div className="absolute inset-0 bg-white w-full h-full overflow-y-auto">
+        <CreatorSlideRenderer slide={rawSrc} hub={hubType} theme="light" />
+      </div>
+    );
+  }
+
   return (
     <div className="absolute inset-0 bg-white w-full h-full overflow-y-auto">
       <div className="min-h-full w-full flex items-stretch justify-stretch">
