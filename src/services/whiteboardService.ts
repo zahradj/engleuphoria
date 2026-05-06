@@ -196,6 +196,7 @@ class WhiteboardService {
     const slideCompletionListeners = new Set<SlideCompletionListener>();
     const slideChangeListeners = new Set<SlideChangeListener>();
     const forceSyncListeners = new Set<ForceSyncListener>();
+    const studentActionListeners = new Set<StudentActionListener>();
     const statusListeners = new Set<(status: string) => void>();
 
     const channel = supabase
@@ -263,6 +264,9 @@ class WhiteboardService {
       })
       .on('broadcast', { event: 'force_sync' }, (payload) => {
         forceSyncListeners.forEach((cb) => cb(payload.payload as ForceSyncPayload));
+      })
+      .on('broadcast', { event: 'student_action' }, (payload) => {
+        studentActionListeners.forEach((cb) => cb(payload.payload as StudentActionPayload));
       });
 
     const ready = new Promise<void>((resolve) => {
@@ -291,6 +295,7 @@ class WhiteboardService {
       slideCompletionListeners,
       slideChangeListeners,
       forceSyncListeners,
+      studentActionListeners,
       refCount: 0,
     };
     this.rooms.set(channelName, room);
