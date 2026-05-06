@@ -1,53 +1,74 @@
-## Diagnosis
+## Goal
+Refactor the classroom slide reader so it renders the same slide formats produced by Playground Creator, Academy Creator, and Success Creator, while removing the overwhelming purple classroom/slide frame treatment.
 
-The classroom is still purple because the active bookings in `class_bookings` are saved with `hub_type = 'academy'`, and the classroom falls back to Academy whenever it cannot infer a hub from the actual lesson. The live stage also still contains hardcoded purple styles in the teacher dock.
+## Root findings
+- The classroom is using `DynamicSlideRenderer`, but creator slides are authored in the `CreatorContext.PPPSlide` schema (`slide_type`, `layout_style`, `interactive_data`, `custom_image_url`, `custom_video_url`, etc.). Several creator slide types are only fully supported by `SlideCanvas`, not by the classroom reader.
+- Academy Creator activities can become “empty” because `multiple_choice` is treated as a generic quiz but its `interactive_data` is not normalized into the `AcademyQuiz` component’s expected payload.
+- Canvas-builder slides with `canvasElements` are not rendered by the classroom reader at all, even though the editor has a read-only canvas path available.
+- The purple frame comes mainly from `SlideShell` Academy tokens and from teacher/student classroom background fallbacks (`indigo/blue/violet` gradients), plus activity components with hardcoded dark indigo/purple surfaces.
 
-The lessons are not reliably visible in the classroom because bookings point to `class_bookings.lesson_id -> public.lessons`, while the real Master Library lives in `public.curriculum_lessons`. The classroom seeds a placeholder lesson (`Magic Forest: Lesson 1`) and only loads Master Library content after the teacher manually opens the Library drawer. Also, the drawer only reads `is_published = true`, so draft creator lessons such as the currently open Playground lesson are hidden.
+## Implementation plan
 
-## Plan
+### 1. Add a single classroom slide adapter
+Create a shared adapter used by `StageContent` before it calls the renderer. It will normalize every saved slide shape into one renderable format:
+- Preserve raw creator fields: `slide_type`, `layout_style`, `interactive_data`, `custom_image_url`, `custom_video_url`, `youtube_*`, `audio_url`, `canvasElements`.
+- Map creator slide types correctly:
+  - `text_image`, `mascot_speech`, `drawing_prompt`, `drawing_canvas`
+  - `flashcard`
+  - `multiple_choice`
+  - `drag_and_match`
+  - `fill_in_the_gaps`
+  - legacy `drag_and_drop`, `match_halves`, `quiz_mcq`, `sorting_game`
+- Normalize media URLs from all known fields into `imageUrl` without dropping original fields.
+- Normalize `success` to the player’s `professional` hub when needed.
 
-1. Create one classroom lesson resolver
-   - Add a shared resolver that accepts a booking and returns:
-     - canonical hub: `playground | academy | professional`
-     - lesson title
-     - raw slide array from `curriculum_lessons.content.slides`
-     - lesson id when available
-   - Resolution order:
-     1. `classroom_sessions.lesson_id` if it points to a Master Library row
-     2. `lessons.curriculum_lesson_id`
-     3. best matching `curriculum_lessons` by hub/title when no direct link exists
-     4. booking hub only as fallback
+### 2. Make the classroom reader render creator layouts 1:1
+Refactor `DynamicSlideRenderer` to explicitly support the Creator slide schema:
+- Add a Creator-style rendering branch for `slide_type` values before the older activity fallbacks.
+- Reuse the same visual logic as `SlideCanvas` for:
+  - media block: image/video/YouTube/custom image
+  - layout styles: `full_background`, `center_card`, `split_left`, `split_right`
+  - text/image slides and mascot speech
+  - flashcards
+  - drawing prompt/canvas placeholder
+- Add proper `multiple_choice` handling directly from `interactive_data.question`, `options`, and `correct_index` so Academy Creator MCQ slides do not render empty.
+- Keep existing live interactive components for drag/match and fill-gaps, but feed them normalized data.
 
-2. Auto-link the Master Library into `/classroom/:bookingId`
-   - Update `UnifiedClassroomPage` to fetch the linked Master Library lesson together with the booking.
-   - Pass `lessonId`, `lessonTitle`, `lessonSlides`, and resolved `hubType` into `TeacherClassroom` and `StudentClassroom`.
-   - Stop relying on the placeholder `Magic Forest` lesson when real library slides exist.
+### 3. Support canvas-builder slides in classroom
+When a slide contains `canvasElements`, render it with the existing canvas engine in read-only mode instead of falling through to generic slide components.
+- Use `CanvasEditor` read-only for authored visual layouts.
+- Ensure it fits the live stage without adding another card or purple frame.
 
-3. Fix classroom sync so real lesson content persists
-   - Extend `useClassroomSync` / `classroomSyncService` to store `lesson_id` when seeding a session.
-   - Only preserve existing session slides if they belong to the same lesson; otherwise replace stale placeholder slides with the current Master Library lesson.
-   - When the teacher loads a lesson from the Library drawer, persist both `lesson_id` and raw slides.
+### 4. Remove the purple slide frame and calm the classroom visual design
+Replace the heavy Academy purple shell with a calmer, professional classroom surface:
+- `SlideShell`: remove the dark purple gradient background for Academy and replace it with a flat neutral “paper/canvas” surface using subtle hub accent lines, not a full purple frame.
+- Remove ambient glow blobs from the shell.
+- Keep hub identity as small accents only:
+  - Playground: orange/amber accent
+  - Academy: restrained blue/indigo accent, not purple-dominant
+  - Success: emerald/teal accent
+- Teacher and student classroom backgrounds: replace `indigo/blue/violet` hub backgrounds with neutral slate/white surfaces and thin hub accents.
+- Update hardcoded purple dice/overlay styling to semantic hub/accent styling where it appears in the classroom.
 
-4. Make the Library drawer show the real Master Library
-   - Change `LibraryDrawer` to support classroom mode where teachers can see published lessons plus their own draft/creator lessons when allowed by RLS.
-   - Add hub filtering from the active classroom hub but keep an “All hubs” option/search so lessons do not appear missing.
-   - Return the selected lesson id along with slides and title.
+### 5. Fix student mirroring of loaded lessons
+Ensure students receive the same normalized slides the teacher sees:
+- Keep `lessonSlides` as the raw Master Library slide payload, not a stripped placeholder shape.
+- When a lesson is loaded from the Library Drawer or booking resolver, push the normalized raw slides into `classroom_sessions.lesson_slides`.
+- Keep slide navigation and force-sync intact.
 
-5. Remove the purple frame and hardcoded purple controls
-   - Replace Academy fallback styling in `TeacherClassroom`, `StudentClassroom`, `StageContent`, and `TeacherControlDock` with hub-aware semantic tokens.
-   - Playground uses orange/yellow, Academy uses purple only when the lesson really is Academy, Success uses emerald/mint.
-   - Remove hardcoded `bg-[#6B21A8]`, `border-purple-*`, and purple classroom background defaults from the shared classroom shell.
+### 6. Verify with targeted checks
+After implementation:
+- Check the code paths for these slide types: `multiple_choice`, `drag_and_match`, `fill_in_the_gaps`, `flashcard`, `drawing_prompt`, `text_image`, and `canvasElements`.
+- Verify no classroom/stage shell still uses the overwhelming purple frame classes or the Academy fallback as the dominant surface.
+- Confirm `StageContent` passes normalized slides to `DynamicSlideRenderer` for both teacher and student flows.
 
-6. Validate from the root
-   - Query live booking/session/library rows after changes to confirm session rows carry `lesson_id` and non-placeholder slides.
-   - Open the classroom route and verify:
-     - no purple frame for Playground/Success lessons
-     - the slide count/title matches `curriculum_lessons`
-     - Library opens inside the classroom and lists Master Library lessons
-     - selecting a lesson changes the live stage and sync payload
+## Files expected to change
+- `src/components/classroom/stage/StageContent.tsx`
+- `src/components/lesson-player/DynamicSlideRenderer.tsx`
+- `src/components/lesson-player/SlideShell.tsx`
+- `src/components/teacher/classroom/TeacherClassroom.tsx`
+- `src/components/student/classroom/StudentClassroom.tsx`
+- likely one new adapter/helper under `src/components/classroom/stage/` or `src/components/lesson-player/`
 
-## Technical notes
-
-- No new lesson table will be introduced. `curriculum_lessons` remains the canonical Master Library.
-- I will not write curriculum content into `public.lessons`; that table is only used for booked session scheduling/back-compat links.
-- If a DB schema link is required, I will add it via a migration rather than asking you to run SQL manually.
+## Result
+The classroom becomes a true unified slide reader: the Master Library and all three Creator hubs feed one stage renderer, activities show instead of empty slides, custom media is preserved, canvas-authored slides render, and the purple classroom frame is replaced by a calmer hub-accented design.

@@ -414,8 +414,11 @@ export default function DynamicSlideRenderer({
     if (directorType === 'match_halves') {
       return <EditorialMatchHalves slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
     }
-    if (directorType === 'quiz_mcq') {
+    if (directorType === 'quiz_mcq' || directorType === 'multiple_choice') {
       return <EditorialQuizMCQ slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    }
+    if (directorType === 'drawing_prompt') {
+      return <LiveHeroMediaSlide slide={slide} />;
     }
     if (directorType === 'role_play') {
       return <EditorialRolePlay slide={slide} onCorrect={onCorrectAnswer} />;

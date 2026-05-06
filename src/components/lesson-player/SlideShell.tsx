@@ -22,27 +22,26 @@ const HUB_ICON: Record<HubType, React.ComponentType<{ className?: string }>> = {
  * style itself with `bg-[var(--hub-accent)]` and stay in sync when the
  * active hub changes.
  */
+// Calm, classroom-friendly surface. Hub identity comes through a thin
+// accent strip + small icon chip, NOT a full saturated frame.
 const HUB_TOKENS: Record<HubType, { accent: string; secondary: string; bg: string; gradient: string }> = {
   playground: {
-    accent: '#f97316',
-    secondary: '#fbbf24',
-    bg: '#431407',
-    gradient:
-      'radial-gradient(at 20% 0%, #FFB066 0%, transparent 55%), radial-gradient(at 80% 100%, #FFD166 0%, transparent 55%), linear-gradient(135deg, #FE6A2F 0%, #F59E0B 100%)',
+    accent: '#FE6A2F',
+    secondary: '#F59E0B',
+    bg: '#FFF8F1',
+    gradient: 'linear-gradient(180deg, #FFFDF8 0%, #FFF6EC 100%)',
   },
   academy: {
-    accent: '#a855f7',
-    secondary: '#ec4899',
-    bg: '#1e1b4b',
-    gradient:
-      'radial-gradient(at 15% 0%, #A855F7 0%, transparent 55%), radial-gradient(at 85% 100%, #6366F1 0%, transparent 55%), linear-gradient(135deg, #4C1D95 0%, #1E1B4B 100%)',
+    accent: '#3B82F6',
+    secondary: '#6366F1',
+    bg: '#F6F8FC',
+    gradient: 'linear-gradient(180deg, #FBFCFE 0%, #F1F5FB 100%)',
   },
   professional: {
-    accent: '#3b82f6',
-    secondary: '#eab308',
-    bg: '#0f172a',
-    gradient:
-      'radial-gradient(at 20% 0%, #3B82F6 0%, transparent 55%), radial-gradient(at 80% 100%, #1D4ED8 0%, transparent 55%), linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+    accent: '#059669',
+    secondary: '#0D9488',
+    bg: '#F4FBF8',
+    gradient: 'linear-gradient(180deg, #FBFEFC 0%, #ECFAF4 100%)',
   },
 };
 
@@ -80,7 +79,7 @@ export default function SlideShell({
 
   // Publish hub theme as CSS variables so descendants can use `bg-[var(--hub-accent)]`.
   const cssVars = {
-    background: tokens.gradient,
+    background: '#FFFFFF',
     ['--hub-accent' as any]: tokens.accent,
     ['--hub-secondary' as any]: tokens.secondary,
     ['--hub-bg' as any]: tokens.bg,
@@ -89,48 +88,48 @@ export default function SlideShell({
   return (
     <SlideHubContext.Provider value={buildHubValue(hub)}>
       <div
-        className={`slide-container ${hub} relative w-full h-full min-h-[520px] rounded-2xl overflow-hidden flex flex-col`}
+        className={`slide-container ${hub} relative w-full h-full min-h-[520px] rounded-2xl overflow-hidden flex flex-col border border-slate-200`}
         style={cssVars}
       >
-        {/* Ambient glows */}
-        <div className="pointer-events-none absolute -top-24 -left-24 w-72 h-72 rounded-full blur-3xl opacity-20" style={{ background: '#fff' }} />
-        <div className="pointer-events-none absolute -bottom-24 -right-24 w-80 h-80 rounded-full blur-3xl opacity-10" style={{ background: '#fff' }} />
+        {/* Thin hub accent strip — replaces the heavy purple frame */}
+        <div
+          className="absolute top-0 left-0 right-0 h-1 z-10"
+          style={{ background: `linear-gradient(90deg, ${tokens.accent}, ${tokens.secondary})` }}
+          aria-hidden
+        />
 
-        {/* Top bar */}
-        <div className="relative z-10 flex items-center justify-between px-5 py-3 backdrop-blur-md bg-black/15 border-b border-white/10">
+        {/* Top bar — light, neutral, classroom-friendly */}
+        <div className="relative z-10 flex items-center justify-between px-5 py-2.5 bg-white/85 backdrop-blur border-b border-slate-200">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="bg-white/95 rounded-lg px-2 py-1 shadow-sm flex items-center">
+            <div className="rounded-md px-1.5 py-0.5 flex items-center">
               <Logo size="small" />
             </div>
             <div className="flex items-center gap-2 min-w-0">
               <span
-                className="inline-flex items-center justify-center w-7 h-7 rounded-md shrink-0"
-                style={{ background: 'var(--hub-accent)' }}
+                className="inline-flex items-center justify-center w-6 h-6 rounded-md shrink-0"
+                style={{ background: tokens.accent }}
                 aria-hidden
               >
-                <HubIcon className="w-4 h-4 text-white" />
+                <HubIcon className="w-3.5 h-3.5 text-white" />
               </span>
-              <span className="text-white/90 text-xs md:text-sm font-semibold tracking-wide uppercase truncate">
+              <span className="text-slate-600 text-[11px] md:text-xs font-semibold tracking-wide uppercase truncate">
                 {meta}
               </span>
             </div>
           </div>
           {progress !== null && (
-            <span className="text-white/80 text-xs font-bold tabular-nums shrink-0">
+            <span className="text-slate-500 text-xs font-bold tabular-nums shrink-0">
               {(slideIndex ?? 0) + 1} / {totalSlides}
             </span>
           )}
         </div>
 
-        {/* Content */}
-        <div className="relative z-10 flex-1 flex items-center justify-center p-4 md:p-6 overflow-y-auto">
+        {/* Content — full-bleed white canvas, no purple inner card */}
+        <div className="relative z-10 flex-1 flex items-stretch justify-stretch p-3 md:p-4 overflow-y-auto bg-white">
           {fullBleed ? (
             <div className="w-full h-full">{children}</div>
           ) : (
-            <div
-              className="w-full max-w-5xl bg-white/97 dark:bg-slate-900/95 rounded-2xl shadow-2xl p-5 md:p-8 text-slate-900 dark:text-slate-100 border-2"
-              style={{ borderColor: `${tokens.accent}4D` }}
-            >
+            <div className="w-full h-full text-slate-900">
               {children}
             </div>
           )}
@@ -138,10 +137,10 @@ export default function SlideShell({
 
         {/* Progress bar */}
         {progress !== null && (
-          <div className="relative z-10 h-1.5 w-full bg-white/15">
+          <div className="relative z-10 h-1 w-full bg-slate-100">
             <div
               className="h-full transition-all duration-500"
-              style={{ width: `${progress}%`, background: 'var(--hub-accent)', boxShadow: `0 0 12px ${tokens.accent}` }}
+              style={{ width: `${progress}%`, background: tokens.accent }}
             />
           </div>
         )}

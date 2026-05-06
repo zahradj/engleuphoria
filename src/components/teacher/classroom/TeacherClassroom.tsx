@@ -473,10 +473,10 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   const resetTimer = () => { setTimerRunning(false); setTimerValue(timerSeconds); };
 
   const hubBg = hubType === 'playground'
-    ? 'bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50'
+    ? 'bg-gradient-to-br from-orange-50/40 via-white to-amber-50/40'
     : hubType === 'professional'
-    ? 'bg-gradient-to-br from-emerald-50 via-teal-50 to-mint-50'
-    : 'bg-gradient-to-br from-indigo-50 via-blue-50 to-violet-50';
+    ? 'bg-gradient-to-br from-emerald-50/40 via-white to-teal-50/40'
+    : 'bg-gradient-to-br from-slate-50 via-white to-blue-50/40';
 
   const showDebug = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug');
 
