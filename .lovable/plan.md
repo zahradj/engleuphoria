@@ -1,149 +1,64 @@
-## Goals
-1. Login: empty red error box → always show a meaningful message; lock down post-login routing behind a "Verifying role…" gate.
-2. Postgres 17 upgrade timeout: diagnose pg_cron / long-running queries and provide safe SQL to let the upgrade complete.
+# Postgres 17 Upgrade Prep — Prune cron bloat + pause jobs
 
----
+Two-step maintenance to unblock the Supabase Postgres upgrade pre-flight check.
 
-## 1. Login UI + Routing fix
+## Step 1 — Prune & vacuum `cron.job_run_details`
 
-**Where the bug lives**
-
-- `src/contexts/AuthContext.tsx` (`signIn`) calls `setError(error.message)`. Looking at the recent auth logs, Supabase is returning 500 / 504 with empty `error.message` (`"context deadline exceeded"`, no body), so the inline red alert in `src/components/auth/SimpleAuthForm.tsx` (line 340-348) renders `<p>{error}</p>` with `error === ''`.
-- `signIn` also redirects via `window.location.href = redirectPath` *immediately* after resolving the role, but `Login.tsx` has a parallel `useEffect` that redirects on `user` presence with a 3 s metadata fallback. On a slow role fetch the metadata fallback can fire first and send a creator/admin to `/playground`.
-
-**Changes**
-
-1. `src/contexts/AuthContext.tsx` → `signIn`:
-   - When the SDK returns an error, build a non-empty message:
-     `const msg = error.message?.trim() || (error.status >= 500 ? 'Authentication service is temporarily unavailable. Please try again in a moment.' : 'Invalid email or password.');`
-     Pass `msg` to `setError` and `toast.error`, and return `{ data: null, error: { ...error, message: msg } }`.
-   - Same treatment in the `catch` branch (currently hardcoded `'Sign in failed'`) — surface `e.message` when present.
-
-2. `src/components/auth/SimpleAuthForm.tsx`:
-   - In the login submit branch, after `signIn` returns, if `error` exists set a local `formError` state and render it inside the existing red alert box (in addition to the global `error` from context, so the alert never goes blank when context clears).
-   - Show "Verifying your account…" inside the submit button while `loading` from context is true *and* `data?.user` was returned but role hasn't resolved yet (track via a `verifyingRole` boolean toggled around the `signIn` call).
-
-3. `src/pages/Login.tsx`:
-   - Replace the 3-second metadata fallback with a hard role gate: while `user && !user.role` show a centered "Verifying role…" screen (already partially there). Only the role-based branch in the `useEffect` may navigate. If after 8 s the role is still missing, show an inline "We couldn't verify your role. Please refresh or contact support." message instead of silently routing to a default hub.
-   - Routing table to enforce:
-     - `admin` → `/super-admin`
-     - `content_creator` → `/content-creator` (the master library lives here)
-     - `teacher` → `/teacher`
-     - `parent` → `/parent`
-     - `student` → resolved hub (`/playground` | `/academy` | `/hub`)
-   - Remove the metadata-based silent fallback so users never land on the wrong hub.
-
-4. Light defensive cleanup: `signIn` should not call `window.location.href` when the calling component has already mounted React Router — switch to `navigate(redirectPath, { replace: true })` via a callback the form passes in. (Optional refactor; if too invasive, keep `location.href` but only fire once `resolvedRole` is non-null.)
-
-**No DB changes for the login fix.**
-
----
-
-## 2. Postgres 17 upgrade hang on pg_cron
-
-The upgrade pre-flight check runs `SELECT … FROM pg_extension WHERE extname='pg_cron'` and waits for the cron background worker to drain. When you have many cron jobs (or a long-running job holding a lock), the check times out.
-
-### Step A — diagnose (SELECT only, safe to run anytime)
+Run as a migration (so it executes with elevated privileges):
 
 ```sql
--- 1. Is pg_cron installed and which version
-select extname, extversion from pg_extension where extname = 'pg_cron';
+-- Clear historical run logs older than 7 days
+DELETE FROM cron.job_run_details
+WHERE start_time < now() - interval '7 days';
 
--- 2. Currently running cron jobs / long queries
-select pid, usename, application_name, state,
-       now() - xact_start  as xact_age,
-       now() - query_start as query_age,
-       wait_event_type, wait_event, left(query, 200) as query
-  from pg_stat_activity
- where state <> 'idle'
-   and (application_name ilike '%cron%' or query ilike '%cron%' or now() - query_start > interval '30 seconds')
- order by query_age desc nulls last;
-
--- 3. Active locks held by anything cron-related
-select l.pid, l.locktype, l.mode, l.granted, a.application_name, left(a.query, 200) as query
-  from pg_locks l
-  join pg_stat_activity a on a.pid = l.pid
- where a.application_name ilike '%cron%' or a.query ilike '%cron%';
-
--- 4. Recently scheduled jobs and their last status
-select jobid, schedule, command, active, jobname
-  from cron.job order by jobid;
-
-select jobid, runid, status, return_message, start_time, end_time
-  from cron.job_run_details
- order by start_time desc
- limit 20;
+-- Reclaim disk + refresh planner stats
+VACUUM (FULL, ANALYZE) cron.job_run_details;
 ```
 
-### Step B — give the upgrade check more time
+Notes:
+- `VACUUM FULL` takes an `ACCESS EXCLUSIVE` lock on the table. Since only the cron worker writes here, impact is limited to brief contention on cron logging.
+- If the table is very large, this can take several minutes. Statement timeout will be raised for the migration.
+
+## Step 2 — Pause all cron jobs
+
+After Step 1 finishes successfully:
 
 ```sql
--- Session-scoped (preferred — auto-resets when session ends):
-set statement_timeout = '5min';
-set lock_timeout      = '30s';
-set idle_in_transaction_session_timeout = '2min';
+-- Snapshot current active state so we can restore precisely
+CREATE TABLE IF NOT EXISTS public._cron_job_active_backup AS
+SELECT jobid, active, now() AS snapshotted_at
+FROM cron.job;
 
--- If you need it for the whole DB during the upgrade window:
-alter database postgres set statement_timeout = '5min';
--- After the upgrade finishes, restore the default:
-alter database postgres reset statement_timeout;
+-- Pause everything
+UPDATE cron.job SET active = false;
 ```
 
-### Step C — kill any stuck pg_cron worker / long queries
+The backup table lets us re-enable exactly the jobs that were active before (some jobs may already be inactive by design and should stay that way).
+
+## After the upgrade (you run this once the dashboard upgrade succeeds)
 
 ```sql
--- Cancel (soft) anything cron-related that has been running too long
-select pg_cancel_backend(pid)
-  from pg_stat_activity
- where (application_name ilike '%cron%' or query ilike '%cron%')
-   and state <> 'idle'
-   and now() - query_start > interval '2 minutes';
+-- Restore active flags from snapshot
+UPDATE cron.job j
+SET active = b.active
+FROM public._cron_job_active_backup b
+WHERE j.jobid = b.jobid;
 
--- If cancel doesn't release it after ~30s, terminate (hard):
-select pg_terminate_backend(pid)
-  from pg_stat_activity
- where (application_name ilike '%cron%' or query ilike '%cron%')
-   and state <> 'idle'
-   and now() - query_start > interval '5 minutes';
+DROP TABLE public._cron_job_active_backup;
 ```
 
-### Step D — last-resort temporary toggle of pg_cron
+I'll provide this restore snippet again in chat after you confirm the upgrade is done.
 
-Only do this if Steps A–C don't unblock the upgrade. Save the job list first so nothing is lost.
+## Execution order
 
-```sql
--- 1. Snapshot scheduled jobs so we can recreate them after re-enabling pg_cron
-create table if not exists public._pg_cron_backup as
-  select * from cron.job;
+1. Approve this plan → I run Step 1 migration.
+2. Wait for confirmation that vacuum completed.
+3. Run Step 2 migration (pause jobs + backup).
+4. You click **Upgrade** in Supabase dashboard.
+5. After upgrade, I run the restore snippet.
 
--- 2. Pause every job (does NOT delete them; re-runnable)
-update cron.job set active = false;
+## Risks & mitigations
 
--- 3. If still blocked, drop and re-create the extension during the maintenance window
-drop extension if exists pg_cron;
--- ... run the Supabase Postgres 17.6.1.113 upgrade now ...
-create extension pg_cron;
-
--- 4. Restore jobs from the backup
-insert into cron.job (schedule, command, nodename, nodeport, database, username, active, jobname)
-  select schedule, command, nodename, nodeport, database, username, active, jobname
-    from public._pg_cron_backup
-  on conflict do nothing;
-
-drop table public._pg_cron_backup;
-```
-
-I would only run Step D inside a maintenance window — dropping the extension cancels all in-flight jobs.
-
-### How I'll execute this
-
-- All SELECTs in Step A I can run via the read-only DB tool to give you a real picture before you touch anything.
-- The `alter database` / `pg_cancel_backend` / `pg_terminate_backend` / `drop extension` calls require a migration. I'll create one only after you confirm which step you want me to run, because Step D especially is destructive.
-
----
-
-## What I'll do after you approve
-
-1. Edit `AuthContext.tsx`, `SimpleAuthForm.tsx`, `Login.tsx` for the login + routing fix (no schema changes).
-2. Run the Step A diagnostics against your DB and report what's stuck.
-3. Stop and ask which of Step B / C / D you want me to apply via a migration.
+- **Vacuum timeout**: Migration runner may have its own timeout. If it fails, fallback is plain `VACUUM` (no FULL) which doesn't lock — still reduces bloat significantly after the DELETE.
+- **Paused jobs during upgrade window**: Any scheduled emails, reminders, or cleanup jobs will not fire until restored. Upgrade typically completes in <10 min.
+- **No data loss**: Only deleting historical run *logs*, not job definitions.
