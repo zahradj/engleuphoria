@@ -865,6 +865,16 @@ function renderSlideInner({ slide, t }: { slide: Slide; t: ThemeTokens }) {
   }
 }
 
+export function SlideRenderer({ slide, t }: { slide: Slide; t: ThemeTokens }) {
+  const skipHeader = ['canvas_game', 'living_canvas', 'scaffolded_media', 'vocab_solo'].includes(slide.type as string);
+  return (
+    <>
+      {!skipHeader && <SlideMediaHeader slide={slide} />}
+      {renderSlideInner({ slide, t })}
+    </>
+  );
+}
+
 function AcademyLessonSummary({ slide, t }: { slide: Extract<Slide, { type: 'lesson_summary' }>; t: ThemeTokens }) {
   return (
     <div className="space-y-6 max-w-2xl w-full">
