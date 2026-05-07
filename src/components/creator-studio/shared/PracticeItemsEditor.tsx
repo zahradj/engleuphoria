@@ -86,23 +86,58 @@ export function PracticeItemsEditor<T extends Record<string, any>>({
         <p className="text-xs text-slate-500 italic">No items yet — add one or generate with AI.</p>
       )}
 
-      {items.map((item, i) => (
-        <div
-          key={i}
-          className="group flex items-start gap-2 rounded-lg border border-slate-200 bg-white p-3"
-        >
-          <span className="mt-1 text-[10px] font-bold text-slate-400 w-5">#{i + 1}</span>
-          <div className="flex-1 min-w-0">{renderRow(item, i, (p) => update(i, p))}</div>
-          <button
-            type="button"
-            onClick={() => remove(i)}
-            className="opacity-50 hover:opacity-100 hover:text-red-600 transition p-1"
-            aria-label="Remove item"
+      {items.map((item, i) => {
+        const rewriteOne = async () => {
+          try {
+            const bp = blueprint ?? slide?.blueprint ?? slide?._blueprint ?? undefined;
+            const { data, error } = await supabase.functions.invoke('generate-practice-items', {
+              body: {
+                slide_type: slideType,
+                count: 1,
+                existing_items: items.filter((_, k) => k !== i),
+                blueprint: bp || {},
+                hub,
+                cefr_level: cefrLevel,
+              },
+            });
+            if (error) throw error;
+            const fresh = (data as any)?.items?.[0];
+            if (!fresh) throw new Error('AI returned nothing');
+            onChange(items.map((it, k) => (k === i ? fresh : it)));
+            toast.success('🔄 Item rewritten');
+          } catch (e: any) {
+            toast.error(e?.message || 'Rewrite failed');
+          }
+        };
+        return (
+          <div
+            key={i}
+            className="group flex items-start gap-2 rounded-lg border border-slate-200 bg-white p-3"
           >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      ))}
+            <span className="mt-1 text-[10px] font-bold text-slate-400 w-5">#{i + 1}</span>
+            <div className="flex-1 min-w-0">{renderRow(item, i, (p) => update(i, p))}</div>
+            <div className="flex flex-col gap-1">
+              <button
+                type="button"
+                onClick={rewriteOne}
+                className="opacity-50 hover:opacity-100 hover:text-fuchsia-600 transition p-1"
+                aria-label="Rewrite this item with AI"
+                title="🔄 Rewrite this item with AI"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => remove(i)}
+                className="opacity-50 hover:opacity-100 hover:text-red-600 transition p-1"
+                aria-label="Remove item"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        );
+      })}
 
       <button
         type="button"
