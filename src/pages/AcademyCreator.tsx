@@ -1059,38 +1059,96 @@ function SlideEditor({ slide, onChange, blueprint, hub = 'academy', cefrLevel = 
         </div>
       );
 
-    case 'error_detection':
+    case 'error_detection': {
+      const items = (slide as any).items ?? (
+        (slide as any).sentence != null
+          ? [{ sentence: (slide as any).sentence, wrongIndex: (slide as any).wrongIndex ?? 0 }]
+          : []
+      );
       return (
         <div className="space-y-3">
           <Field label="Prompt"><input className={inputCls} value={slide.prompt} onChange={(e) => onChange({ prompt: e.target.value } as any)} /></Field>
-          <Field label="Sentence"><input className={inputCls} value={slide.sentence} onChange={(e) => onChange({ sentence: e.target.value } as any)} /></Field>
-          <Field label={`Wrong word index (0…${slide.sentence.split(' ').length - 1})`}>
-            <input type="number" className={inputCls} value={slide.wrongIndex} onChange={(e) => onChange({ wrongIndex: Number(e.target.value) } as any)} />
-          </Field>
-          <div className="text-xs text-slate-500">Words: {slide.sentence.split(' ').map((w, i) => <span key={i} className={i === slide.wrongIndex ? 'text-red-500 font-bold' : ''}>{w} </span>)}</div>
+          <PracticeItemsEditor
+            slideType="error_detection"
+            items={items}
+            onChange={(next) => onChange({ items: next, sentence: undefined, wrongIndex: undefined } as any)}
+            renderRow={(it, _i, update) => {
+              const wordCount = String(it.sentence || '').split(' ').length;
+              return (
+                <div className="space-y-2">
+                  <input className={inputCls} placeholder="Sentence (with one wrong word)" value={it.sentence || ''} onChange={(e) => update({ sentence: e.target.value })} />
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-500">Wrong word index (0…{Math.max(0, wordCount - 1)}):</span>
+                    <input type="number" min={0} max={Math.max(0, wordCount - 1)} className={inputCls + ' w-20'}
+                      value={it.wrongIndex ?? 0} onChange={(e) => update({ wrongIndex: Number(e.target.value) })} />
+                  </div>
+                  <div className="text-xs text-slate-500 break-words">
+                    {String(it.sentence || '').split(' ').map((w: string, k: number) => (
+                      <span key={k} className={k === (it.wrongIndex ?? 0) ? 'text-red-500 font-bold' : ''}>{w} </span>
+                    ))}
+                  </div>
+                </div>
+              );
+            }}
+            newItem={() => ({ sentence: 'New sentence here.', wrongIndex: 0 })}
+            slide={slide}
+          />
         </div>
       );
+    }
 
-    case 'correction':
+    case 'correction': {
+      const items = (slide as any).items ?? (
+        (slide as any).wrong != null || (slide as any).answer != null
+          ? [{ wrong: (slide as any).wrong || '', answer: (slide as any).answer || '' }]
+          : []
+      );
       return (
         <div className="space-y-3">
           <Field label="Prompt"><input className={inputCls} value={slide.prompt} onChange={(e) => onChange({ prompt: e.target.value } as any)} /></Field>
-          <Field label="Wrong sentence"><input className={inputCls} value={slide.wrong} onChange={(e) => onChange({ wrong: e.target.value } as any)} /></Field>
-          <Field label="Correct sentence"><input className={inputCls} value={slide.answer} onChange={(e) => onChange({ answer: e.target.value } as any)} /></Field>
+          <PracticeItemsEditor
+            slideType="correction"
+            items={items}
+            onChange={(next) => onChange({ items: next, wrong: undefined, answer: undefined } as any)}
+            renderRow={(it, _i, update) => (
+              <div className="grid grid-cols-2 gap-2">
+                <input className={inputCls} placeholder="Wrong sentence" value={it.wrong || ''} onChange={(e) => update({ wrong: e.target.value })} />
+                <input className={inputCls} placeholder="Correct sentence" value={it.answer || ''} onChange={(e) => update({ answer: e.target.value })} />
+              </div>
+            )}
+            newItem={() => ({ wrong: '', answer: '' })}
+            slide={slide}
+          />
         </div>
       );
+    }
 
-    case 'fill_blank':
+    case 'fill_blank': {
+      const items = (slide as any).items ?? (
+        ((slide as any).before != null || (slide as any).after != null || (slide as any).answer != null)
+          ? [{ before: (slide as any).before || '', answer: (slide as any).answer || '', after: (slide as any).after || '' }]
+          : []
+      );
       return (
         <div className="space-y-3">
           <Field label="Prompt"><input className={inputCls} value={slide.prompt} onChange={(e) => onChange({ prompt: e.target.value } as any)} /></Field>
-          <div className="grid grid-cols-3 gap-2">
-            <Field label="Before"><input className={inputCls} value={slide.before} onChange={(e) => onChange({ before: e.target.value } as any)} /></Field>
-            <Field label="Answer"><input className={inputCls} value={slide.answer} onChange={(e) => onChange({ answer: e.target.value } as any)} /></Field>
-            <Field label="After"><input className={inputCls} value={slide.after} onChange={(e) => onChange({ after: e.target.value } as any)} /></Field>
-          </div>
+          <PracticeItemsEditor
+            slideType="fill_blank"
+            items={items}
+            onChange={(next) => onChange({ items: next, before: undefined, answer: undefined, after: undefined } as any)}
+            renderRow={(it, _i, update) => (
+              <div className="grid grid-cols-3 gap-2">
+                <input className={inputCls} placeholder="Before" value={it.before || ''} onChange={(e) => update({ before: e.target.value })} />
+                <input className={inputCls} placeholder="Answer" value={it.answer || ''} onChange={(e) => update({ answer: e.target.value })} />
+                <input className={inputCls} placeholder="After" value={it.after || ''} onChange={(e) => update({ after: e.target.value })} />
+              </div>
+            )}
+            newItem={() => ({ before: '', answer: '', after: '' })}
+            slide={slide}
+          />
         </div>
       );
+    }
 
     case 'sentence_builder':
       return (
