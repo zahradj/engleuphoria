@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pen } from 'lucide-react';
+import { GrammarMarkup } from '../grammarMarkup';
 
 interface EditorialGrammarProps {
   slide: any;
