@@ -107,9 +107,9 @@ function makeSlide(type: SlideType | 'storybook'): Slide {
     case 'multiple': return { type, block, question: 'Question?', options: ['A', 'B', 'C'], answer: 'A' };
     case 'truefalse': return { type, block, statement: 'Statement is true.', answer: true };
     case 'grammar_pattern': return { type, block, title: 'Pattern title', rows: [{ a: 'Example 1', b: 'Example 2' }], rule: 'Rule explanation.' };
-    case 'error_detection': return { type, block, prompt: 'Tap the wrong word.', sentence: 'He go to school.', wrongIndex: 1 };
-    case 'correction': return { type, block, prompt: 'Fix the sentence.', wrong: 'She go home.', answer: 'She goes home.' };
-    case 'fill_blank': return { type, block, prompt: 'Complete the sentence.', before: 'He', after: 'to school.', answer: 'goes' };
+    case 'error_detection': return { type, block, prompt: 'Tap the wrong word.', items: [{ sentence: 'He go to school.', wrongIndex: 1 }] };
+    case 'correction': return { type, block, prompt: 'Fix the sentence.', items: [{ wrong: 'She go home.', answer: 'She goes home.' }] };
+    case 'fill_blank': return { type, block, prompt: 'Complete the sentence.', items: [{ before: 'He', answer: 'goes', after: 'to school.' }] };
     case 'sentence_builder': return { type, block, prompt: 'Order the words.', words: ['I', 'a', 'have', 'phone'], answer: ['I', 'have', 'a', 'phone'] };
     case 'debate_scale': return { type, block, prompt: 'Statement to debate.' };
     case 'role_play': return { type, block, title: 'Role play', lineA: 'Speaker A line.', lineB: 'Speaker B line.' };
