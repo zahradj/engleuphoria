@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pen } from 'lucide-react';
+import { GrammarMarkup } from '../grammarMarkup';
 
 interface EditorialGrammarProps {
   slide: any;
@@ -53,9 +54,13 @@ function sanitizeGrammarHtml(input: string): string {
     .replace(new RegExp(PLACEHOLDER_CLOSE, 'g'), '</span>');
 }
 
-const SafeHtml: React.FC<{ html: string; className?: string }> = ({ html, className }) => (
-  <span className={className} dangerouslySetInnerHTML={{ __html: sanitizeGrammarHtml(html) }} />
-);
+const HAS_GRAMMAR_TAGS = /<\s*(verb|noun|adjective|adj|target)\s*>/i;
+const SafeHtml: React.FC<{ html: string; className?: string }> = ({ html, className }) => {
+  if (HAS_GRAMMAR_TAGS.test(html || '')) {
+    return <GrammarMarkup text={html} className={className} />;
+  }
+  return <span className={className} dangerouslySetInnerHTML={{ __html: sanitizeGrammarHtml(html) }} />;
+};
 
 export default function EditorialGrammar({ slide }: EditorialGrammarProps) {
   const payload = slide?.interactive_data || slide?.content || {};

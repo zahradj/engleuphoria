@@ -6,6 +6,12 @@ import type { CanvasGameSlide, LivingCanvasSlide, ScaffoldedMediaSlide } from '@
 import { LivingCanvas } from '@/components/creator-studio/shared/LivingCanvas';
 import { ScaffoldedPlayer } from '@/components/creator-studio/shared/ScaffoldedPlayer';
 import { SoloVocabCard } from '@/components/creator-studio/shared/SoloVocabCard';
+import { GrammarMarkup } from '@/components/lesson-player/grammarMarkup';
+import {
+  getErrorDetectionItems,
+  getCorrectionItems,
+  getFillBlankItems,
+} from '@/utils/practiceItemNormalize';
 
 /**
  * Academy Engine — teen-focused (12–17, A1–B1), 60-minute, 7-block lesson system.
@@ -56,9 +62,9 @@ export type Slide =
   | { type: 'truefalse'; block: Block; statement: string; answer: boolean }
   | { type: 'multiple'; block: Block; question: string; options: string[]; answer: string }
   | { type: 'grammar_pattern'; block: Block; title: string; rows: { a: string; b: string }[]; rule?: string }
-  | { type: 'error_detection'; block: Block; prompt: string; sentence: string; wrongIndex: number }
-  | { type: 'correction'; block: Block; prompt: string; wrong: string; answer: string }
-  | { type: 'fill_blank'; block: Block; prompt: string; before: string; after: string; answer: string }
+  | { type: 'error_detection'; block: Block; prompt: string; sentence?: string; wrongIndex?: number; items?: { sentence: string; wrongIndex: number }[] }
+  | { type: 'correction'; block: Block; prompt: string; wrong?: string; answer?: string; items?: { wrong: string; answer: string }[] }
+  | { type: 'fill_blank'; block: Block; prompt: string; before?: string; after?: string; answer?: string; items?: { before: string; answer: string; after: string }[] }
   | { type: 'sentence_builder'; block: Block; prompt: string; words: string[]; answer: string[] }
   | { type: 'debate_scale'; block: Block; prompt: string }
   | { type: 'role_play'; block: Block; title: string; lineA: string; lineB: string }
@@ -451,99 +457,152 @@ function GrammarPatternSlide({ slide, t }: { slide: Extract<Slide, { type: 'gram
   return (
     <div className="space-y-6 max-w-3xl w-full">
       <div className={`text-xs uppercase tracking-widest ${t.muted}`}>Grammar</div>
-      <h2 className={`text-2xl md:text-3xl font-semibold ${t.text}`}>{slide.title}</h2>
+      <h2 className={`text-2xl md:text-3xl font-semibold ${t.text}`}>
+        <GrammarMarkup text={slide.title} />
+      </h2>
       <div className="grid grid-cols-2 gap-3">
         {slide.rows.map((r, i) => (
           <div key={i} className={`px-4 py-3 rounded-md border ${t.card.replace('bg-', 'bg-')} border-slate-700`}>
-            <div className={`text-base ${t.text}`}>{r.a}</div>
+            <div className={`text-base ${t.text}`}><GrammarMarkup text={r.a} /></div>
           </div>
         )).flatMap((node, i) => [node,
           <div key={`b${i}`} className="px-4 py-3 rounded-md border border-indigo-500/40 bg-indigo-500/5">
-            <div className="text-base text-indigo-200">{slide.rows[i].b}</div>
+            <div className="text-base text-indigo-200"><GrammarMarkup text={slide.rows[i].b} /></div>
           </div>
         ])}
       </div>
-      {slide.rule && <p className={`text-sm ${t.muted}`}>{slide.rule}</p>}
+      {slide.rule && (
+        <p className={`text-sm ${t.muted}`}>
+          <GrammarMarkup text={slide.rule} />
+        </p>
+      )}
+    </div>
+  );
+}
+
+function ItemPager({ total, index, setIndex, score, t }: { total: number; index: number; setIndex: (i: number) => void; score: number; t: ThemeTokens }) {
+  if (total <= 1) return null;
+  return (
+    <div className={`flex items-center justify-between text-xs ${t.muted}`}>
+      <span>Item {index + 1} of {total} · Score: {score}/{total}</span>
+      <div className="flex gap-2">
+        <button disabled={index === 0} onClick={() => setIndex(Math.max(0, index - 1))}
+          className="px-2 py-1 rounded border border-slate-700 disabled:opacity-30">← Prev</button>
+        <button disabled={index >= total - 1} onClick={() => setIndex(Math.min(total - 1, index + 1))}
+          className="px-2 py-1 rounded border border-slate-700 disabled:opacity-30">Next →</button>
+      </div>
     </div>
   );
 }
 
 function ErrorDetectionSlide({ slide, t }: { slide: Extract<Slide, { type: 'error_detection' }>; t: ThemeTokens }) {
-  const words = slide.sentence.split(/\s+/);
-  const [picked, setPicked] = useState<number | null>(null);
+  const items = getErrorDetectionItems(slide);
+  const [index, setIndex] = useState(0);
+  const [picks, setPicks] = useState<Record<number, number>>({});
+  const item = items[index];
+  if (!item) return <div className={t.muted}>No items.</div>;
+  const words = item.sentence.split(/\s+/);
+  const picked = picks[index] ?? null;
+  const score = items.reduce((s, it, i) => s + ((picks[i] ?? -1) === it.wrongIndex ? 1 : 0), 0);
   return (
     <div className="space-y-6 max-w-2xl w-full">
       <h2 className={`text-2xl md:text-3xl font-semibold ${t.text}`}>{slide.prompt}</h2>
       <div className="flex flex-wrap gap-2 text-xl">
         {words.map((w, i) => {
           const isPicked = picked === i;
-          const isWrong = i === slide.wrongIndex;
+          const isWrong = i === item.wrongIndex;
           let cls = `border-slate-700 hover:border-indigo-500 ${t.text}`;
           if (picked !== null && isPicked && isWrong) cls = 'border-emerald-500 bg-emerald-500/10 text-emerald-200';
           else if (picked !== null && isPicked && !isWrong) cls = 'border-red-500 bg-red-500/10 text-red-200';
           else if (picked !== null && isWrong) cls = 'border-emerald-500/60 text-emerald-300';
           return (
-            <button key={i} onClick={() => picked === null && setPicked(i)} className={`px-3 py-1.5 rounded-md border transition ${cls}`}>
+            <button key={i} onClick={() => picked === null && setPicks((p) => ({ ...p, [index]: i }))}
+              className={`px-3 py-1.5 rounded-md border transition ${cls}`}>
               {w}
             </button>
           );
         })}
       </div>
+      <ItemPager total={items.length} index={index} setIndex={setIndex} score={score} t={t} />
     </div>
   );
 }
 
 function CorrectionSlide({ slide, t }: { slide: Extract<Slide, { type: 'correction' }>; t: ThemeTokens }) {
-  const [val, setVal] = useState('');
-  const [submitted, setSubmitted] = useState(false);
-  const correct = submitted && val.trim().toLowerCase().replace(/[.!?]/g, '') === slide.answer.toLowerCase().replace(/[.!?]/g, '');
+  const items = getCorrectionItems(slide);
+  const [index, setIndex] = useState(0);
+  const [vals, setVals] = useState<Record<number, string>>({});
+  const [subs, setSubs] = useState<Record<number, boolean>>({});
+  const item = items[index];
+  if (!item) return <div className={t.muted}>No items.</div>;
+  const val = vals[index] ?? '';
+  const submitted = !!subs[index];
+  const norm = (s: string) => s.trim().toLowerCase().replace(/[.!?]/g, '');
+  const correct = submitted && norm(val) === norm(item.answer);
+  const score = items.reduce((s, it, i) => s + ((subs[i] && norm(vals[i] || '') === norm(it.answer)) ? 1 : 0), 0);
   return (
     <div className="space-y-6 max-w-2xl w-full">
       <h2 className={`text-2xl md:text-3xl font-semibold ${t.text}`}>{slide.prompt}</h2>
-      <p className={`text-lg italic border-l-2 border-red-500 pl-4 ${t.muted}`}>{slide.wrong}</p>
+      <p className={`text-lg italic border-l-2 border-red-500 pl-4 ${t.muted}`}>{item.wrong}</p>
       <input
         value={val}
-        onChange={(e) => { setVal(e.target.value); setSubmitted(false); }}
+        onChange={(e) => { setVals((p) => ({ ...p, [index]: e.target.value })); setSubs((p) => ({ ...p, [index]: false })); }}
         placeholder="Write the corrected sentence…"
         className={`w-full rounded-md border px-4 py-3 outline-none focus:border-indigo-500 ${t.inputBg} ${
           submitted ? (correct ? 'border-emerald-500' : 'border-red-500') : ''
         }`}
       />
-      <button onClick={() => setSubmitted(true)} className="px-5 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium">
+      <button onClick={() => setSubs((p) => ({ ...p, [index]: true }))}
+        className="px-5 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium">
         Check
       </button>
       {submitted && (
         <div className={`text-sm flex items-center gap-2 ${correct ? 'text-emerald-400' : 'text-red-400'}`}>
           {correct ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
-          {correct ? 'Correct.' : `Try again. Expected: ${slide.answer}`}
+          {correct ? 'Correct.' : `Try again. Expected: ${item.answer}`}
         </div>
       )}
+      <ItemPager total={items.length} index={index} setIndex={setIndex} score={score} t={t} />
     </div>
   );
 }
 
 function FillBlankSlide({ slide, t }: { slide: Extract<Slide, { type: 'fill_blank' }>; t: ThemeTokens }) {
-  const [val, setVal] = useState('');
-  const [submitted, setSubmitted] = useState(false);
-  const correct = submitted && val.trim().toLowerCase() === slide.answer.toLowerCase();
+  const items = getFillBlankItems(slide);
+  const [index, setIndex] = useState(0);
+  const [vals, setVals] = useState<Record<number, string>>({});
+  const [subs, setSubs] = useState<Record<number, boolean>>({});
+  const item = items[index];
+  if (!item) return <div className={t.muted}>No items.</div>;
+  const val = vals[index] ?? '';
+  const submitted = !!subs[index];
+  const correct = submitted && val.trim().toLowerCase() === item.answer.toLowerCase();
+  const score = items.reduce((s, it, i) => s + ((subs[i] && (vals[i] || '').trim().toLowerCase() === it.answer.toLowerCase()) ? 1 : 0), 0);
   return (
     <div className="space-y-6 max-w-2xl w-full">
       <h2 className={`text-2xl md:text-3xl font-semibold ${t.text}`}>{slide.prompt}</h2>
       <div className={`text-2xl ${t.text} flex items-center gap-3 flex-wrap`}>
-        <span>{slide.before}</span>
+        <span>{item.before}</span>
         <input
           value={val}
-          onChange={(e) => { setVal(e.target.value); setSubmitted(false); }}
-          onKeyDown={(e) => e.key === 'Enter' && setSubmitted(true)}
+          onChange={(e) => { setVals((p) => ({ ...p, [index]: e.target.value })); setSubs((p) => ({ ...p, [index]: false })); }}
+          onKeyDown={(e) => e.key === 'Enter' && setSubs((p) => ({ ...p, [index]: true }))}
           className={`w-32 px-3 py-1.5 rounded-md border text-center outline-none focus:border-indigo-500 ${t.inputBg} ${
             submitted ? (correct ? 'border-emerald-500' : 'border-red-500') : ''
           }`}
         />
-        <span>{slide.after}</span>
+        <span>{item.after}</span>
       </div>
-      <button onClick={() => setSubmitted(true)} className="px-5 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium">
+      <button onClick={() => setSubs((p) => ({ ...p, [index]: true }))}
+        className="px-5 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium">
         Check
       </button>
+      {submitted && !correct && (
+        <div className="text-sm text-red-400 flex items-center gap-2">
+          <X className="w-4 h-4" /> Expected: {item.answer}
+        </div>
+      )}
+      <ItemPager total={items.length} index={index} setIndex={setIndex} score={score} t={t} />
     </div>
   );
 }

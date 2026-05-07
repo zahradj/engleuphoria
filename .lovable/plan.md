@@ -1,74 +1,141 @@
-## Goal
-Refactor the classroom slide reader so it renders the same slide formats produced by Playground Creator, Academy Creator, and Success Creator, while removing the overwhelming purple classroom/slide frame treatment.
+# Smart Slides Engine
 
-## Root findings
-- The classroom is using `DynamicSlideRenderer`, but creator slides are authored in the `CreatorContext.PPPSlide` schema (`slide_type`, `layout_style`, `interactive_data`, `custom_image_url`, `custom_video_url`, etc.). Several creator slide types are only fully supported by `SlideCanvas`, not by the classroom reader.
-- Academy Creator activities can become “empty” because `multiple_choice` is treated as a generic quiz but its `interactive_data` is not normalized into the `AcademyQuiz` component’s expected payload.
-- Canvas-builder slides with `canvasElements` are not rendered by the classroom reader at all, even though the editor has a read-only canvas path available.
-- The purple frame comes mainly from `SlideShell` Academy tokens and from teacher/student classroom background fallbacks (`indigo/blue/violet` gradients), plus activity components with hardcoded dark indigo/purple surfaces.
+Three upgrades to the Creator Studio + slide renderer that turn single-shot activities into intensive, AI-extendable practice and make grammar visually parsable at a glance.
 
-## Implementation plan
+## Phase 1 — Array-based activity slides ("Intensive Practice")
 
-### 1. Add a single classroom slide adapter
-Create a shared adapter used by `StageContent` before it calls the renderer. It will normalize every saved slide shape into one renderable format:
-- Preserve raw creator fields: `slide_type`, `layout_style`, `interactive_data`, `custom_image_url`, `custom_video_url`, `youtube_*`, `audio_url`, `canvasElements`.
-- Map creator slide types correctly:
-  - `text_image`, `mascot_speech`, `drawing_prompt`, `drawing_canvas`
-  - `flashcard`
-  - `multiple_choice`
-  - `drag_and_match`
-  - `fill_in_the_gaps`
-  - legacy `drag_and_drop`, `match_halves`, `quiz_mcq`, `sorting_game`
-- Normalize media URLs from all known fields into `imageUrl` without dropping original fields.
-- Normalize `success` to the player’s `professional` hub when needed.
+Today, `error_detection`, `correction`, and `fill_blank` slides hold **one** sentence each. We refactor them to hold an **array of items** while staying backwards-compatible with all existing single-item lessons.
 
-### 2. Make the classroom reader render creator layouts 1:1
-Refactor `DynamicSlideRenderer` to explicitly support the Creator slide schema:
-- Add a Creator-style rendering branch for `slide_type` values before the older activity fallbacks.
-- Reuse the same visual logic as `SlideCanvas` for:
-  - media block: image/video/YouTube/custom image
-  - layout styles: `full_background`, `center_card`, `split_left`, `split_right`
-  - text/image slides and mascot speech
-  - flashcards
-  - drawing prompt/canvas placeholder
-- Add proper `multiple_choice` handling directly from `interactive_data.question`, `options`, and `correct_index` so Academy Creator MCQ slides do not render empty.
-- Keep existing live interactive components for drag/match and fill-gaps, but feed them normalized data.
+### New slide shapes (Academy + Playground + Success creators)
 
-### 3. Support canvas-builder slides in classroom
-When a slide contains `canvasElements`, render it with the existing canvas engine in read-only mode instead of falling through to generic slide components.
-- Use `CanvasEditor` read-only for authored visual layouts.
-- Ensure it fits the live stage without adding another card or purple frame.
+```ts
+type ErrorDetectionItem = { sentence: string; wrongIndex: number };
+type CorrectionItem     = { wrong: string; answer: string };
+type FillBlankItem      = { before: string; answer: string; after: string };
 
-### 4. Remove the purple slide frame and calm the classroom visual design
-Replace the heavy Academy purple shell with a calmer, professional classroom surface:
-- `SlideShell`: remove the dark purple gradient background for Academy and replace it with a flat neutral “paper/canvas” surface using subtle hub accent lines, not a full purple frame.
-- Remove ambient glow blobs from the shell.
-- Keep hub identity as small accents only:
-  - Playground: orange/amber accent
-  - Academy: restrained blue/indigo accent, not purple-dominant
-  - Success: emerald/teal accent
-- Teacher and student classroom backgrounds: replace `indigo/blue/violet` hub backgrounds with neutral slate/white surfaces and thin hub accents.
-- Update hardcoded purple dice/overlay styling to semantic hub/accent styling where it appears in the classroom.
+// error_detection
+{ type: 'error_detection', block, prompt, items: ErrorDetectionItem[] }
+// correction
+{ type: 'correction',      block, prompt, items: CorrectionItem[] }
+// fill_blank
+{ type: 'fill_blank',      block, prompt, items: FillBlankItem[] }
+```
 
-### 5. Fix student mirroring of loaded lessons
-Ensure students receive the same normalized slides the teacher sees:
-- Keep `lessonSlides` as the raw Master Library slide payload, not a stripped placeholder shape.
-- When a lesson is loaded from the Library Drawer or booking resolver, push the normalized raw slides into `classroom_sessions.lesson_slides`.
-- Keep slide navigation and force-sync intact.
+### Backwards compatibility shim
 
-### 6. Verify with targeted checks
-After implementation:
-- Check the code paths for these slide types: `multiple_choice`, `drag_and_match`, `fill_in_the_gaps`, `flashcard`, `drawing_prompt`, `text_image`, and `canvasElements`.
-- Verify no classroom/stage shell still uses the overwhelming purple frame classes or the Academy fallback as the dominant surface.
-- Confirm `StageContent` passes normalized slides to `DynamicSlideRenderer` for both teacher and student flows.
+A tiny `normalizeActivityItems(slide)` helper (in `src/utils/creatorHydration.ts`) lifts legacy `{ sentence, wrongIndex }` / `{ wrong, answer }` / `{ before, answer, after }` into a single-element `items[]` at read time. Old saved lessons keep working unchanged; new ones are saved in array form.
 
-## Files expected to change
-- `src/components/classroom/stage/StageContent.tsx`
-- `src/components/lesson-player/DynamicSlideRenderer.tsx`
-- `src/components/lesson-player/SlideShell.tsx`
-- `src/components/teacher/classroom/TeacherClassroom.tsx`
-- `src/components/student/classroom/StudentClassroom.tsx`
-- likely one new adapter/helper under `src/components/classroom/stage/` or `src/components/lesson-player/`
+### Editor UI (AcademyCreator → also reused in Playground/Success)
 
-## Result
-The classroom becomes a true unified slide reader: the Master Library and all three Creator hubs feed one stage renderer, activities show instead of empty slides, custom media is preserved, canvas-authored slides render, and the purple classroom frame is replaced by a calmer hub-accented design.
+Replace the single-row editor with a `DynamicListEditor` (already exists in `src/components/creator-studio/shared/DynamicListEditor.tsx`):
+
+- Each row = one practice item with its own inputs + a trash icon.
+- Footer button **"+ Add new item"**.
+- New header button: ✨ **Generate 3 More** (see below).
+
+### "Generate 3 More" button
+
+New edge function **`generate-practice-items`** (Lovable AI Gateway, `google/gemini-3-flash-preview`).
+
+Request body:
+```ts
+{
+  slide_type: 'error_detection' | 'correction' | 'fill_blank',
+  count: number,                    // default 3
+  existing_items: any[],            // to avoid duplicates
+  blueprint: LessonBlueprint,       // vocab + grammar rule
+  hub: 'playground' | 'academy' | 'success',
+  cefr_level: string
+}
+```
+
+Returns `{ items: T[] }` typed-via-tool-calling (structured output) so we never parse free-form JSON. The frontend appends them to `slide.items` with a toast confirmation.
+
+### Stage / classroom rendering
+
+`AcademyDemo.tsx` (and the other two demo renderers) gets updated `ErrorDetectionSlide` / `CorrectionSlide` / `FillBlankSlide` that:
+
+- Iterate over `items[]`.
+- Show one-at-a-time pager (Next →) **OR** a vertical stack (toggle via `slide.layout: 'pager' | 'list'`, default `'pager'` for kids, `'list'` for teens/adults).
+- Score is `correct / total` and is broadcast through the existing student-action channel so the teacher's live HUD sees per-item progress.
+
+Because `CreatorSlideRenderer` already routes these slide types into the demo renderers, the classroom inherits the upgrade automatically — no separate classroom work required.
+
+## Phase 2 — Visual Grammar (color-coded markup)
+
+Extend the safe-HTML pipeline already in `EditorialGrammar.tsx`.
+
+### Authoring markup
+
+The AI (and teachers) can wrap words with semantic tags:
+
+```
+The cat <verb>jumped</verb> over the <noun>wall</noun>.
+She is <adjective>happy</adjective>.
+He <target>has been working</target> all day.
+```
+
+### Parser
+
+Add `parseGrammarMarkup(text)` in `src/components/lesson-player/RichText.tsx` (next to existing `**bold**` parser). It converts whitelisted tags to safe spans:
+
+| Tag | Class |
+|---|---|
+| `<verb>…</verb>` | `font-bold text-red-600` |
+| `<noun>…</noun>` | `font-bold text-blue-600` |
+| `<adjective>…</adjective>` | `font-bold text-green-600` |
+| `<target>…</target>` | `font-bold bg-yellow-200 text-slate-900 px-1 rounded` |
+
+Implementation: regex tokenizer (no `dangerouslySetInnerHTML`) that emits React nodes — XSS-safe by construction. Unknown tags are stripped; `&<>` are escaped.
+
+### Wiring
+
+- `EditorialGrammar.tsx` `examples`, `formula`, `rule_text` use the new parser instead of `sanitizeGrammarHtml`. The legacy color-span sanitizer is kept as a fallback for already-generated lessons.
+- `AcademyDemo.tsx` `GrammarPatternSlide` / `ReadingPassageSlide` / `RichText` pick up the same parser so highlights show in the classroom too.
+- Update `generate-ppp-slides`, `generate-blueprint`, and the new `generate-practice-items` system prompts to **emit** these tags around target structures (one-line addition: "When showing the target grammar in any example, wrap it in `<target>…</target>`. You may also wrap a verb/noun/adjective with `<verb>`, `<noun>`, `<adjective>` to highlight word class.").
+
+### Editor preview
+
+In the `grammar_pattern` slide editor, render a small live preview below the textarea using the same parser, so teachers see exactly what students will see.
+
+## Phase 3 — Universal "🔄 Rewrite with AI" per block
+
+Reuse the existing `WandFieldButton` (`src/components/creator-studio/shared/WandFieldButton.tsx`) which already calls the `rewrite-slide-field` edge function.
+
+We extend its placement, not its logic:
+
+1. **Every text input / textarea** in the slide editor (`title`, `prompt`, `rule`, `passage`, `question`, `statement`, `lineA/lineB`, vocab `definition` / `example`, etc.) gets a tiny `<WandFieldButton>` floated to the right of its label.
+2. **Every array row** (option in MCQ, pair in matching, item in error-detection list, etc.) gets a per-row 🔄 button beside the trash icon. It calls `rewrite-slide-field` with `field: 'option' | 'pair.left' | 'item.sentence'…` and patches just that one cell.
+3. The Studio passes the current `LessonBlueprint` (already in `SlideStudio` state) into every wand button so rewrites stay on-topic.
+
+A small helper component `<FieldWithWand label value onChange field/>` wraps the common pattern so we don't repeat `<Field>` + `<input>` + `<WandFieldButton>` 60 times.
+
+## Files to touch
+
+**New**
+- `supabase/functions/generate-practice-items/index.ts` — array generator (tool-calling for typed output).
+- `src/components/creator-studio/shared/FieldWithWand.tsx` — labeled input + inline 🔄.
+- `src/components/lesson-player/grammarMarkup.tsx` — `parseGrammarMarkup` React parser.
+
+**Edited**
+- `src/pages/AcademyDemo.tsx` — slide types switch to `items[]`; renderers iterate; grammar slides use new parser.
+- `src/pages/AcademyCreator.tsx` — editors for `error_detection` / `correction` / `fill_blank` use `DynamicListEditor` + ✨ Generate 3 More; sprinkle 🔄 wand buttons everywhere.
+- `src/pages/PlaygroundCreator.tsx`, `src/pages/SuccessCreator.tsx` — same editor treatment.
+- `src/utils/creatorHydration.ts` — `normalizeActivityItems` legacy shim.
+- `src/components/lesson-player/editorial/EditorialGrammar.tsx` — use new parser.
+- `src/components/lesson-player/RichText.tsx` — re-export parser, keep `**bold**` behavior.
+- `src/components/creator-studio/shared/slideTemplates.ts` — defaults emit `items: [...]`.
+- `supabase/functions/generate-blueprint/index.ts` and `generate-ppp-slides/index.ts` — system-prompt addendum to emit `<target>` markup and array-form practice slides.
+
+## Out of scope (this round)
+
+- No DB schema change — slides are JSON; the new `items[]` lives inside the existing `slide_data` JSON column. Already-saved lessons keep rendering via the legacy shim.
+- No change to classroom realtime sync; per-item answers ride the existing `student_action` channel.
+- No change to Playground game canvases or storybook viewer.
+
+## Acceptance checks
+
+1. Open Academy Creator → add an `Error Detection` slide → see a list with one item → click ✨ **Generate 3 More** → 3 contextually-aligned sentences are appended (verified by checking edge function returns 4 items in network panel).
+2. Click 🔄 on any single sentence/option → only that field updates; rest of slide unchanged.
+3. Generate a grammar slide via AI → `<target>has been working</target>` renders highlighted yellow in both the Creator preview and the live `/classroom/:id` stage.
+4. Open an existing pre-upgrade lesson (single-sentence `error_detection`) → still renders correctly (legacy shim).
