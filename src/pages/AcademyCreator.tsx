@@ -20,6 +20,7 @@ import { InsertSlideButton } from '@/components/creator-studio/shared/InsertSlid
 import { PreviewModeToggle, type PreviewMode } from '@/components/creator-studio/shared/PreviewModeToggle';
 import { PlayablePreviewPane } from '@/components/creator-studio/shared/PlayablePreviewPane';
 import { UniversalMediaShell } from '@/components/creator-studio/shared/UniversalMediaShell';
+import { PracticeItemsEditor } from '@/components/creator-studio/shared/PracticeItemsEditor';
 import { PhonicsFocusCard } from '@/components/creator-studio/shared/PhonicsFocusCard';
 import { PreviewRoleToggle, type PreviewRole } from '@/components/creator-studio/shared/PreviewRoleToggle';
 import { TeacherNotesField } from '@/components/creator-studio/shared/TeacherNotesField';
