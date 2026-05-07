@@ -146,7 +146,7 @@ function slideTitle(s: Slide): string {
     case 'vocab': return s.word;
     case 'multiple': return s.question;
     case 'truefalse': return s.statement;
-    case 'correction': return s.wrong;
+    case 'correction': return (s as any).items?.[0]?.wrong ?? (s as any).wrong ?? s.prompt;
     case 'cluster': return s.title;
     default: return (s as any).prompt ?? s.type;
   }
