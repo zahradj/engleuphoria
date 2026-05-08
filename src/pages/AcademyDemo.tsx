@@ -499,6 +499,12 @@ function ErrorDetectionSlide({ slide, t }: { slide: Extract<Slide, { type: 'erro
   const items = getErrorDetectionItems(slide);
   const [index, setIndex] = useState(0);
   const [picks, setPicks] = useState<Record<number, number>>({});
+  // Reset when the underlying items change (teacher edits in Creator) so
+  // we never render with a stale index past the new array length.
+  useEffect(() => {
+    setIndex((i) => Math.min(i, Math.max(0, items.length - 1)));
+    setPicks({});
+  }, [items.length, JSON.stringify(items)]);
   const item = items[index];
   if (!item) return <div className={t.muted}>No items.</div>;
   const words = item.sentence.split(/\s+/);
