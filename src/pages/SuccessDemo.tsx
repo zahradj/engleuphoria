@@ -425,6 +425,8 @@ function RewriteSlide({ slide, t }: { slide: Extract<Slide, { type: 'rewrite' }>
 function FillBlankSlide({ slide, t }: { slide: Extract<Slide, { type: 'fill_blank' }>; t: ThemeTokens }) {
   const [val, setVal] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  // Reset local input when the underlying slide changes (live edits in Creator)
+  useEffect(() => { setVal(''); setSubmitted(false); }, [slide.before, slide.after, slide.answer, slide.prompt]);
   const correct = submitted && val.trim().toLowerCase() === slide.answer.toLowerCase();
   return (
     <div className="space-y-6 max-w-2xl w-full">

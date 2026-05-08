@@ -73,8 +73,26 @@ export function usePlacementTest() {
     if (interests.length > 0) {
       upsertData.interests = interests;
     }
-    if (learningReason) {
-      upsertData.learning_reason = learningReason;
+    // Map UI goal labels (e.g. "Work / Business", "School / Exams") to the
+    // db CHECK constraint values: 'school' | 'career' | 'travel' | 'fun'.
+    const reasonMap: Record<string, string> = {
+      'travel': 'travel',
+      'work / business': 'career',
+      'work': 'career',
+      'business': 'career',
+      'career': 'career',
+      'school / exams': 'school',
+      'school': 'school',
+      'exams': 'school',
+      'fun / social': 'fun',
+      'fun': 'fun',
+      'social': 'fun',
+    };
+    const normalizedReason = learningReason
+      ? reasonMap[learningReason.trim().toLowerCase()]
+      : undefined;
+    if (normalizedReason) {
+      upsertData.learning_reason = normalizedReason;
     }
 
     // Use upsert so this works even if the signup row was never created
@@ -84,21 +102,24 @@ export function usePlacementTest() {
       .upsert(upsertData as any, { onConflict: 'user_id' });
 
     if (error) {
-      console.error('[usePlacementTest] Failed to persist placement result:', error);
-      throw error;
+      console.error('[usePlacementTest] Failed to persist placement result:', error, upsertData);
+      throw new Error(error.message || 'Could not save your placement result.');
     }
 
-    // Verify the write actually landed before we navigate away — guarantees
-    // the gatekeeper / guards see placement_test_completed_at on next read.
-    const { data: verify } = await supabase
-      .from('student_profiles')
-      .select('placement_test_completed_at, cefr_level')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (!verify?.placement_test_completed_at) {
-      console.error('[usePlacementTest] Placement write did not persist:', verify);
-      throw new Error('Could not save your placement result. Please try again.');
+    // Best-effort verify — but DO NOT throw on a stale replica read.
+    // The upsert already succeeded above; throwing here was triggering a
+    // false "popup again with error" loop on the playground placement test.
+    try {
+      const { data: verify } = await supabase
+        .from('student_profiles')
+        .select('placement_test_completed_at')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (!verify?.placement_test_completed_at) {
+        console.warn('[usePlacementTest] Verify read did not yet see completed_at (stale replica). Continuing.');
+      }
+    } catch (verifyErr) {
+      console.warn('[usePlacementTest] Verify read failed (non-fatal):', verifyErr);
     }
 
     // After placement, hand the student off to the My Path reveal page —
