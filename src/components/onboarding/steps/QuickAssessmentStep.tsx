@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Volume2, Loader2 } from 'lucide-react';
 import { StudentLevel } from '@/hooks/useStudentLevel';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { useMistakeTracker } from '@/hooks/useMistakeTracker';
+import { useAcademyAudio } from '@/hooks/useAcademyAudio';
 
 interface QuickAssessmentStepProps {
   studentLevel: StudentLevel;
