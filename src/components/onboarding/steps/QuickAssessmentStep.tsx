@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Volume2, Loader2 } from 'lucide-react';
 import { StudentLevel } from '@/hooks/useStudentLevel';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { useMistakeTracker } from '@/hooks/useMistakeTracker';
+import { useAcademyAudio } from '@/hooks/useAcademyAudio';
 
 interface QuickAssessmentStepProps {
   studentLevel: StudentLevel;
@@ -185,7 +186,14 @@ export const QuickAssessmentStep: React.FC<QuickAssessmentStepProps> = ({
   const questions = questionsByLevel[studentLevel];
   const config = levelConfig[studentLevel];
   const { recordMistake } = useMistakeTracker();
-  
+  const { playVoice, isLoading: ttsLoading, isPlaying: ttsPlaying } = useAcademyAudio();
+
+  const voiceIdByLevel: Record<StudentLevel, string> = {
+    playground: 'pFZP5JQG7iQjIQuC4Bku', // Lily — warm, kid-friendly
+    academy: 'EXAVITQu4vr4xnSDxMaL',    // Sarah — clear, neutral
+    professional: 'CwhRBWXzGAHq8TQ4Fs17', // Roger — confident, professional
+  };
+
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
@@ -195,6 +203,12 @@ export const QuickAssessmentStep: React.FC<QuickAssessmentStepProps> = ({
   const question = questions[currentQuestion];
   const isLastQuestion = currentQuestion === questions.length - 1;
   const progress = ((currentQuestion + 1) / questions.length) * 100;
+
+  const speakQuestion = () => {
+    const cleaned = question.question.replace(/[^\p{L}\p{N}\s'.,!?-]/gu, '').trim();
+    const optionsText = question.options.map((o, i) => `${String.fromCharCode(65 + i)}. ${o}`).join('. ');
+    playVoice(`${cleaned}. ${optionsText}`, voiceIdByLevel[studentLevel]);
+  };
 
   const handleSelectAnswer = (index: number) => {
     if (showResult) return;
@@ -279,7 +293,20 @@ export const QuickAssessmentStep: React.FC<QuickAssessmentStepProps> = ({
               transition={{ duration: 0.2 }}
             >
               {/* Question */}
-              <div className="text-lg font-medium text-foreground mb-4 text-center p-4 bg-muted/50 rounded-xl">
+              <div className="text-lg font-medium text-foreground mb-4 text-center p-4 bg-muted/50 rounded-xl relative">
+                <button
+                  type="button"
+                  onClick={speakQuestion}
+                  disabled={ttsLoading}
+                  aria-label="Listen to question"
+                  className="absolute top-2 right-2 p-2 rounded-full bg-background/80 hover:bg-background border border-border transition focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  {ttsLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  ) : (
+                    <Volume2 className={cn('h-4 w-4', ttsPlaying ? 'text-primary animate-pulse' : 'text-muted-foreground')} />
+                  )}
+                </button>
                 {question.question}
               </div>
 
