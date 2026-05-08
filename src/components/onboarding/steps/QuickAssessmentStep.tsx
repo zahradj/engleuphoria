@@ -293,7 +293,20 @@ export const QuickAssessmentStep: React.FC<QuickAssessmentStepProps> = ({
               transition={{ duration: 0.2 }}
             >
               {/* Question */}
-              <div className="text-lg font-medium text-foreground mb-4 text-center p-4 bg-muted/50 rounded-xl">
+              <div className="text-lg font-medium text-foreground mb-4 text-center p-4 bg-muted/50 rounded-xl relative">
+                <button
+                  type="button"
+                  onClick={speakQuestion}
+                  disabled={ttsLoading}
+                  aria-label="Listen to question"
+                  className="absolute top-2 right-2 p-2 rounded-full bg-background/80 hover:bg-background border border-border transition focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  {ttsLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  ) : (
+                    <Volume2 className={cn('h-4 w-4', ttsPlaying ? 'text-primary animate-pulse' : 'text-muted-foreground')} />
+                  )}
+                </button>
                 {question.question}
               </div>
 
