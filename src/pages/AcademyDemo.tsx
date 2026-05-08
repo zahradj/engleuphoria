@@ -582,6 +582,10 @@ function FillBlankSlide({ slide, t }: { slide: Extract<Slide, { type: 'fill_blan
   const [index, setIndex] = useState(0);
   const [vals, setVals] = useState<Record<number, string>>({});
   const [subs, setSubs] = useState<Record<number, boolean>>({});
+  useEffect(() => {
+    setIndex((i) => Math.min(i, Math.max(0, items.length - 1)));
+    setVals({}); setSubs({});
+  }, [items.length, JSON.stringify(items)]);
   const item = items[index];
   if (!item) return <div className={t.muted}>No items.</div>;
   const val = vals[index] ?? '';
