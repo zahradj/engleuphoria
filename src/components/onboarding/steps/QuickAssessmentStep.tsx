@@ -186,7 +186,14 @@ export const QuickAssessmentStep: React.FC<QuickAssessmentStepProps> = ({
   const questions = questionsByLevel[studentLevel];
   const config = levelConfig[studentLevel];
   const { recordMistake } = useMistakeTracker();
-  
+  const { playVoice, isLoading: ttsLoading, isPlaying: ttsPlaying } = useAcademyAudio();
+
+  const voiceIdByLevel: Record<StudentLevel, string> = {
+    playground: 'pFZP5JQG7iQjIQuC4Bku', // Lily — warm, kid-friendly
+    academy: 'EXAVITQu4vr4xnSDxMaL',    // Sarah — clear, neutral
+    professional: 'CwhRBWXzGAHq8TQ4Fs17', // Roger — confident, professional
+  };
+
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
@@ -196,6 +203,12 @@ export const QuickAssessmentStep: React.FC<QuickAssessmentStepProps> = ({
   const question = questions[currentQuestion];
   const isLastQuestion = currentQuestion === questions.length - 1;
   const progress = ((currentQuestion + 1) / questions.length) * 100;
+
+  const speakQuestion = () => {
+    const cleaned = question.question.replace(/[^\p{L}\p{N}\s'.,!?-]/gu, '').trim();
+    const optionsText = question.options.map((o, i) => `${String.fromCharCode(65 + i)}. ${o}`).join('. ');
+    playVoice(`${cleaned}. ${optionsText}`, voiceIdByLevel[studentLevel]);
+  };
 
   const handleSelectAnswer = (index: number) => {
     if (showResult) return;
