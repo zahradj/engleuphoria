@@ -73,8 +73,26 @@ export function usePlacementTest() {
     if (interests.length > 0) {
       upsertData.interests = interests;
     }
-    if (learningReason) {
-      upsertData.learning_reason = learningReason;
+    // Map UI goal labels (e.g. "Work / Business", "School / Exams") to the
+    // db CHECK constraint values: 'school' | 'career' | 'travel' | 'fun'.
+    const reasonMap: Record<string, string> = {
+      'travel': 'travel',
+      'work / business': 'career',
+      'work': 'career',
+      'business': 'career',
+      'career': 'career',
+      'school / exams': 'school',
+      'school': 'school',
+      'exams': 'school',
+      'fun / social': 'fun',
+      'fun': 'fun',
+      'social': 'fun',
+    };
+    const normalizedReason = learningReason
+      ? reasonMap[learningReason.trim().toLowerCase()]
+      : undefined;
+    if (normalizedReason) {
+      upsertData.learning_reason = normalizedReason;
     }
 
     // Use upsert so this works even if the signup row was never created
