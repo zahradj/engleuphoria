@@ -118,49 +118,95 @@ const FindTeacher: React.FC = () => {
 
   const fetchTeachers = async () => {
     try {
-      const { data, error } = await supabase.rpc('get_approved_teachers');
-      if (error) throw error;
+      let teacherList: any[] = [];
 
-      const teacherList = (data as any[]) || [];
+      // Primary source: approved teachers RPC
+      const { data, error } = await supabase.rpc('get_approved_teachers');
+      if (error) {
+        console.warn('[FindTeacher] get_approved_teachers RPC failed, falling back:', error);
+      } else {
+        teacherList = (data as any[]) || [];
+      }
+
+      // Fallback: query user_roles directly so the page never goes blank
+      // when the RPC returns no rows or errors out.
+      if (teacherList.length === 0) {
+        const { data: roleRows, error: roleErr } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .eq('role', 'teacher');
+
+        if (roleErr) {
+          console.error('[FindTeacher] user_roles fallback failed:', roleErr);
+        } else if (roleRows && roleRows.length > 0) {
+          const ids = roleRows.map(r => r.user_id);
+          const [{ data: usersData }, { data: profilesData }] = await Promise.all([
+            supabase.from('users').select('id, full_name').in('id', ids),
+            supabase
+              .from('teacher_profiles')
+              .select('id, user_id, bio, video_url, profile_image_url, specializations, accent, languages_spoken, years_experience, rating, total_reviews, hourly_rate_eur, timezone, is_available, hub_role')
+              .in('user_id', ids),
+          ]);
+          const userMap = new Map((usersData || []).map(u => [u.id, u.full_name]));
+          teacherList = (profilesData || []).map((p: any) => ({
+            id: p.id,
+            user_id: p.user_id,
+            full_name: userMap.get(p.user_id) || 'Teacher',
+            bio: p.bio,
+            video_url: p.video_url,
+            profile_image_url: p.profile_image_url,
+            specializations: p.specializations,
+            accent: p.accent,
+            languages_spoken: p.languages_spoken,
+            years_experience: p.years_experience,
+            rating: p.rating,
+            total_reviews: p.total_reviews,
+            hourly_rate_eur: p.hourly_rate_eur,
+            timezone: p.timezone,
+            is_available: p.is_available ?? true,
+            hub_role: p.hub_role,
+          }));
+        }
+      }
+
       if (teacherList.length > 0) {
         const teacherIds = teacherList.map(t => t.user_id);
-        
+
         // Fetch hub_role from teacher_profiles for hub filtering
         const { data: profileData } = await supabase
           .from('teacher_profiles')
           .select('user_id, hub_role')
           .in('user_id', teacherIds);
 
-        if (profileData) {
-          const hubRoleMap: Record<string, string> = {};
-          profileData.forEach(p => {
-            hubRoleMap[p.user_id] = (p as any).hub_role || 'academy_success_mentor';
-          });
-          teacherList.forEach(t => {
-            const role = hubRoleMap[t.user_id] || 'academy_success_mentor';
-            switch (role) {
-              case 'playground_specialist':
-                (t as any)._hubs = ['Playground'];
-                break;
-              case 'academy_mentor':
-                (t as any)._hubs = ['Academy'];
-                break;
-              case 'success_mentor':
-                (t as any)._hubs = ['Professional'];
-                break;
-              case 'academy_success_mentor':
-                (t as any)._hubs = ['Academy', 'Professional'];
-                break;
-              default:
-                (t as any)._hubs = ['Academy', 'Professional'];
-            }
-          });
-        }
+        const hubRoleMap: Record<string, string> = {};
+        (profileData || []).forEach(p => {
+          hubRoleMap[p.user_id] = (p as any).hub_role || 'academy_success_mentor';
+        });
+        teacherList.forEach(t => {
+          const role = hubRoleMap[t.user_id] || (t as any).hub_role || 'academy_success_mentor';
+          switch (role) {
+            case 'playground_specialist':
+              (t as any)._hubs = ['Playground'];
+              break;
+            case 'academy_mentor':
+              (t as any)._hubs = ['Academy'];
+              break;
+            case 'success_mentor':
+              (t as any)._hubs = ['Professional'];
+              break;
+            case 'academy_success_mentor':
+              (t as any)._hubs = ['Academy', 'Professional'];
+              break;
+            default:
+              (t as any)._hubs = ['Academy', 'Professional'];
+          }
+        });
       }
 
       setTeachers(teacherList);
     } catch (err) {
       console.error('Error fetching teachers:', err);
+      setTeachers([]);
     } finally {
       setLoading(false);
     }

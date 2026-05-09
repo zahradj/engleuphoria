@@ -14,9 +14,16 @@ const Dashboard: React.FC = () => {
   const autoHealAttemptedRef = useRef(false);
 
   // Hard escape hatch — if nothing resolves in 4s, route from metadata.
+  // CRITICAL: Always check role BEFORE hub assignment. A teacher must NEVER
+  // be routed to a student hub even if they have a hub_type in metadata.
   useEffect(() => {
     const hardTimeout = setTimeout(() => {
       if (!redirectPath && user) {
+        const metaRole = (user as any).user_metadata?.role;
+        if (metaRole === 'admin') { setRedirectPath('/super-admin'); return; }
+        if (metaRole === 'teacher') { setRedirectPath('/teacher'); return; }
+        if (metaRole === 'content_creator') { setRedirectPath('/content-creator'); return; }
+        if (metaRole === 'parent') { setRedirectPath('/parent'); return; }
         const { route, source } = resolveHubRoute({ metadata: (user as any).user_metadata });
         console.warn(`⏱️ [Dashboard] 4s timeout — routing from ${source} →`, route);
         toast.warning("We couldn't verify your hub from the database.", {
