@@ -47,6 +47,7 @@ import { AIToolsPanel } from '@/components/creator-studio/shared/AIToolsPanel';
 import { StorybookEditor } from '@/components/creator-studio/shared/StorybookEditor';
 import { StorybookRenderer } from '@/components/creator-studio/shared/StorybookRenderer';
 import { mapAIQuizSlides } from '@/components/creator-studio/shared/aiQuizMapper';
+import { MethodologyBadge } from '@/components/creator-studio/shared/MethodologyBadge';
 
 /**
  * Academy Slide Creator — clean teacher-facing authoring tool.
