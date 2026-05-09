@@ -1,6 +1,7 @@
 // Generate lesson content via Google AI Studio (Gemini API)
-// Routes: prompt_type -> targeted system instruction
-// Returns: strict JSON (slides[] or blueprint object)
+// - Pedagogical Routing: injects framework based on CEFR level
+// - Google Search Grounding: real-world examples & up-to-date usage
+// - Returns: strict JSON (slides[] or blueprint object) + methodology metadata
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,6 +21,57 @@ RULE 2 - GAMIFICATION FIRST: Maximize interactivity. Do not just output text to 
 RULE 3 - VISUAL APPEAL: For every single slide, generate a highly descriptive image_prompt field. Specify a vibrant art style (e.g., "3D Pixar style, vibrant colors, dynamic lighting" or "Studio Ghibli aesthetic"). The frontend will use this to generate the slide background.
 
 RULE 4 - VISUAL GRAMMAR: When teaching grammar, always use our custom syntax tags so the frontend can color-code the UI (e.g., <verb>jumped</verb>, <noun>dragon</noun>, <adjective>brave</adjective>, <target>highlight</target>).`;
+
+// ---------------------------------------------------------------------------
+// Pedagogical Framework Routing — based on CEFR level
+// ---------------------------------------------------------------------------
+
+type MethodologyKey = 'TPR' | 'CLT' | 'TBLT';
+
+interface Methodology {
+  key: MethodologyKey;
+  label: string;
+  emoji: string;
+  instruction: string;
+}
+
+const METHODOLOGIES: Record<MethodologyKey, Methodology> = {
+  TPR: {
+    key: 'TPR',
+    label: 'Total Physical Response',
+    emoji: '🧒',
+    instruction:
+      "Apply Total Physical Response (TPR) principles. Keep sentences under 6 words. Use repetitive, high-frequency sight words. Focus heavily on visual matching and auditory phonics games. Include physical-action prompts (clap, jump, point) and big, joyful visuals. Avoid abstract grammar explanations.",
+  },
+  CLT: {
+    key: 'CLT',
+    label: 'Communicative Language Teaching',
+    emoji: '🗣️',
+    instruction:
+      "Apply Communicative Language Teaching (CLT). Focus on functional language (ordering food, asking directions, making plans). Include interactive dialogue roleplays, gamified error detection, and short real-life conversations. Prioritise meaning over form, and always anchor grammar inside a communicative task.",
+  },
+  TBLT: {
+    key: 'TBLT',
+    label: 'Task-Based Language Teaching',
+    emoji: '🧠',
+    instruction:
+      "Apply Task-Based Language Teaching (TBLT) and the Harvard Business Case Study method. Use complex, multi-paragraph reading scenarios requiring critical thinking, negotiation, and advanced idiom usage. Build tasks around authentic professional outputs (briefs, proposals, debate prep) and require nuanced lexical choice.",
+  },
+};
+
+function methodologyForLevel(rawLevel?: string): Methodology {
+  const lvl = String(rawLevel || '').trim().toUpperCase().replace(/\s+/g, '');
+  // Accept Pre-A1, A1, A2, B1, B2, C1, C2, plus combos like "A2/B1"
+  if (lvl.includes('PRE-A1') || lvl === 'PREA1' || lvl === 'A0') return METHODOLOGIES.TPR;
+  if (lvl.startsWith('A1')) return METHODOLOGIES.TPR;
+  if (lvl.startsWith('A2') || lvl.startsWith('B1')) return METHODOLOGIES.CLT;
+  if (lvl.startsWith('B2') || lvl.startsWith('C1') || lvl.startsWith('C2')) return METHODOLOGIES.TBLT;
+  // Combos — use the higher band
+  if (lvl.includes('B2') || lvl.includes('C1') || lvl.includes('C2')) return METHODOLOGIES.TBLT;
+  if (lvl.includes('A2') || lvl.includes('B1')) return METHODOLOGIES.CLT;
+  if (lvl.includes('A1')) return METHODOLOGIES.TPR;
+  return METHODOLOGIES.CLT; // safe default
+}
 
 const PROMPT_VARIANTS: Record<string, string> = {
   story:
@@ -72,8 +124,22 @@ const RESPONSE_SCHEMA: Record<string, unknown> = {
 
 interface RequestBody {
   prompt_type?: string;
-  lesson_data?: Record<string, unknown>;
+  lesson_data?: Record<string, unknown> & { level?: string; cefr_level?: string };
   user_prompt?: string;
+  /** Disable Google Search grounding (default: enabled). */
+  disable_grounding?: boolean;
+}
+
+/** Tolerant JSON extraction — strips ```json fences and locates the outermost {...} */
+function extractJson(text: string): unknown {
+  const cleaned = text.replace(/^```(?:json)?/i, '').replace(/```$/i, '').trim();
+  try { return JSON.parse(cleaned); } catch { /* fall through */ }
+  const first = cleaned.indexOf('{');
+  const last = cleaned.lastIndexOf('}');
+  if (first >= 0 && last > first) {
+    try { return JSON.parse(cleaned.slice(first, last + 1)); } catch { /* fall through */ }
+  }
+  throw new Error('Unparseable JSON output');
 }
 
 Deno.serve(async (req) => {
@@ -91,28 +157,57 @@ Deno.serve(async (req) => {
     const promptType = (body.prompt_type || 'lesson').toLowerCase();
     const variantInstruction = PROMPT_VARIANTS[promptType] || PROMPT_VARIANTS.lesson;
 
-    const systemInstruction = `${BASE_SYSTEM}\n\nTASK MODE: ${promptType.toUpperCase()}\n${variantInstruction}\n\nReturn ONLY valid JSON matching the supplied schema. No markdown, no commentary.`;
+    // 1. Resolve methodology from CEFR level on the lesson payload.
+    const rawLevel =
+      (body.lesson_data?.cefr_level as string | undefined) ||
+      (body.lesson_data?.level as string | undefined) ||
+      '';
+    const methodology = methodologyForLevel(rawLevel);
+
+    // 2. Compose the system prompt: base + methodology + task variant + grounding.
+    const groundingEnabled = body.disable_grounding !== true;
+    const groundingNote = groundingEnabled
+      ? '\n\nGROUNDING: When generating the lesson, use Google Search to reference up-to-date, real-world examples, modern vocabulary usage, and current best practices for teaching this specific topic. Cite sources only inside the image_prompt or narrative when naturally useful — never fabricate URLs.'
+      : '';
+
+    const systemInstruction =
+      `${BASE_SYSTEM}\n\n` +
+      `PEDAGOGICAL FRAMEWORK (level: ${rawLevel || 'unspecified'} → ${methodology.label}):\n${methodology.instruction}\n\n` +
+      `TASK MODE: ${promptType.toUpperCase()}\n${variantInstruction}` +
+      groundingNote +
+      `\n\nReturn ONLY a single valid JSON object matching the implicit lesson schema. No markdown fences, no commentary.`;
 
     const userPayload = JSON.stringify({
       lesson_data: body.lesson_data ?? {},
       user_prompt: body.user_prompt ?? '',
     });
 
+    // 3. Build Gemini request. NOTE: googleSearch tool and structured output
+    //    (responseSchema + JSON mime) are mutually exclusive in Gemini. When
+    //    grounding is enabled we drop the schema and rely on prompt + tolerant
+    //    JSON extraction. Otherwise we keep strict schema for max reliability.
+    const generationConfig: Record<string, unknown> = {
+      temperature: 0.85,
+      maxOutputTokens: 8192,
+    };
+    const requestBody: Record<string, unknown> = {
+      systemInstruction: { role: 'system', parts: [{ text: systemInstruction }] },
+      contents: [{ role: 'user', parts: [{ text: userPayload }] }],
+      generationConfig,
+    };
+    if (groundingEnabled) {
+      requestBody.tools = [{ google_search: {} }];
+    } else {
+      generationConfig.response_mime_type = 'application/json';
+      generationConfig.responseSchema = RESPONSE_SCHEMA;
+    }
+
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
     const geminiRes = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        systemInstruction: { role: 'system', parts: [{ text: systemInstruction }] },
-        contents: [{ role: 'user', parts: [{ text: userPayload }] }],
-        generationConfig: {
-          temperature: 0.85,
-          response_mime_type: 'application/json',
-          responseSchema: RESPONSE_SCHEMA,
-          maxOutputTokens: 8192,
-        },
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!geminiRes.ok) {
@@ -128,9 +223,17 @@ Deno.serve(async (req) => {
     const text: string =
       data?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text || '').join('') || '';
 
+    // Surface grounding citations if Gemini returned any.
+    const groundingMeta = data?.candidates?.[0]?.groundingMetadata ?? null;
+    const sources: Array<{ title?: string; uri?: string }> =
+      (groundingMeta?.groundingChunks || [])
+        .map((c: any) => c?.web)
+        .filter(Boolean)
+        .map((w: any) => ({ title: w.title, uri: w.uri })) || [];
+
     let parsed: unknown = null;
     try {
-      parsed = JSON.parse(text);
+      parsed = extractJson(text);
     } catch (e) {
       console.error('Failed to parse Gemini JSON:', e, text.slice(0, 500));
       return new Response(
@@ -140,7 +243,19 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ ok: true, prompt_type: promptType, content: parsed }),
+      JSON.stringify({
+        ok: true,
+        prompt_type: promptType,
+        content: parsed,
+        methodology: {
+          key: methodology.key,
+          label: methodology.label,
+          emoji: methodology.emoji,
+          level: rawLevel,
+        },
+        grounded: groundingEnabled,
+        sources,
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   } catch (err) {

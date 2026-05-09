@@ -47,6 +47,7 @@ import { AIToolsPanel } from '@/components/creator-studio/shared/AIToolsPanel';
 import { StorybookEditor } from '@/components/creator-studio/shared/StorybookEditor';
 import { StorybookRenderer } from '@/components/creator-studio/shared/StorybookRenderer';
 import { mapAIQuizSlides } from '@/components/creator-studio/shared/aiQuizMapper';
+import { MethodologyBadge } from '@/components/creator-studio/shared/MethodologyBadge';
 
 /**
  * Academy Slide Creator — clean teacher-facing authoring tool.
@@ -458,6 +459,7 @@ export default function AcademyCreator() {
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
+            <MethodologyBadge level={level} />
             <select value={level} onChange={(e) => setLevel(e.target.value)}
               className="border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 bg-white">
               <option>A1</option><option>A2</option><option>B1</option><option>A2 / B1</option>
