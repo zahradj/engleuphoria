@@ -10129,11 +10129,16 @@ export type Database = {
         Returns: {
           accent: string
           bio: string
+          can_teach: boolean
           full_name: string
           hourly_rate_dzd: number
           hourly_rate_eur: number
+          hub_role: string
           id: string
+          is_available: boolean
           languages_spoken: string[]
+          profile_approved_by_admin: boolean
+          profile_complete: boolean
           profile_image_url: string
           rating: number
           specializations: string[]
@@ -10277,6 +10282,13 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      hub_role_slot_profile: {
+        Args: { p_hub_role: string }
+        Returns: {
+          target_duration: number
+          target_hub_specialty: string
+        }[]
       }
       increment_template_clone: {
         Args: { template_id: string }
