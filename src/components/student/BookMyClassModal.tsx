@@ -32,6 +32,8 @@ interface BookMyClassModalProps {
   onClose: () => void;
   accentClass?: string;
   studentLevel?: HubType;
+  /** When set, show only this specific teacher's slots (from FindTeacher card). */
+  teacherId?: string | null;
 }
 
 const HUB_CONFIG = {
@@ -66,6 +68,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
   onClose,
   accentClass,
   studentLevel = 'academy',
+  teacherId,
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -129,12 +132,18 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
         .order('start_time', { ascending: true })
         .limit(120);
 
-      // Apply hub-teacher filter when we have teachers; otherwise fall back to all teachers
-      // so the modal isn't silently empty when hub_role classification is missing.
-      if (teacherIds.length > 0) {
+      // Strict hub filter — never silently fall back to all teachers,
+      // so a Playground student can never see Academy/Success teachers.
+      if (teacherId) {
+        // Single-teacher mode (booking from a specific teacher card)
+        query = query.eq('teacher_id', teacherId);
+      } else if (teacherIds.length > 0) {
         query = query.in('teacher_id', teacherIds);
       } else {
-        console.warn('[BookMyClassModal] No teachers found for hub roles — falling back to all teachers for this duration.');
+        console.warn('[BookMyClassModal] No teachers in hub', selectedHub, '— returning empty result.');
+        setRawSlots([]);
+        setLoadingSlots(false);
+        return;
       }
 
       const { data, error } = await query;
@@ -170,7 +179,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
     } finally {
       setLoadingSlots(false);
     }
-  }, [allowedHubRoles, slotDuration]);
+  }, [allowedHubRoles, slotDuration, teacherId, selectedHub]);
 
   useEffect(() => {
     if (isOpen) {
@@ -460,6 +469,27 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
                 >
                   <Loader2 className="w-12 h-12 animate-spin text-primary" />
                   <p className="text-muted-foreground">Loading available slots...</p>
+                </motion.div>
+              ) : displaySlots.length === 0 ? (
+                <motion.div
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex flex-col items-center justify-center py-12 gap-3 text-center"
+                >
+                  <Calendar className="w-12 h-12 text-muted-foreground/60" />
+                  <h3 className="text-lg font-semibold text-foreground">
+                    No {config.label} teachers available right now
+                  </h3>
+                  <p className="text-sm text-muted-foreground max-w-sm">
+                    {teacherId
+                      ? `This teacher has no upcoming ${slotDuration}-minute openings yet. Try again later.`
+                      : `No ${slotDuration}-minute slots are open in this hub yet. Please check back soon.`}
+                  </p>
+                  <Button variant="outline" size="sm" onClick={fetchSlots} disabled={loadingSlots}>
+                    Refresh availability
+                  </Button>
                 </motion.div>
               ) : (
                 <motion.div
