@@ -1,141 +1,99 @@
-# Smart Slides Engine
+## Diagnosis summary
 
-Three upgrades to the Creator Studio + slide renderer that turn single-shot activities into intensive, AI-extendable practice and make grammar visually parsable at a glance.
+- The teacher role update in Super Admin only changes `teacher_profiles.hub_role`.
+- The teacher is now `playground_specialist`, but their existing availability rows are still 60-minute slots: current DB scan shows `open_30m_future_slots = 0` and `open_60m_future_slots = 70` for the Playground specialist.
+- Playground students only book 30-minute lessons by design, so the teacher profile can be filtered out or appear with no bookable slots.
+- `get_approved_teachers()` also does not return `hub_role`, so the frontend performs extra reads and can misclassify teachers if RLS or fallback logic fails.
+- `BookMyClassModal` currently falls back to “all teachers for this duration” when no hub-role teachers are found, which can hide the real data problem and show wrong teachers.
+- `GEMINI_API_KEY` is already configured, so no secret prompt is needed.
 
-## Phase 1 — Array-based activity slides ("Intensive Practice")
+## Implementation plan
 
-Today, `error_detection`, `correction`, and `fill_blank` slides hold **one** sentence each. We refactor them to hold an **array of items** while staying backwards-compatible with all existing single-item lessons.
+### 1. Fix teacher hub assignment at the root
 
-### New slide shapes (Academy + Playground + Success creators)
+Create a Supabase migration that updates the backend source of truth:
 
-```ts
-type ErrorDetectionItem = { sentence: string; wrongIndex: number };
-type CorrectionItem     = { wrong: string; answer: string };
-type FillBlankItem      = { before: string; answer: string; after: string };
+- Update `public.get_approved_teachers()` to return `hub_role`, `can_teach`, `profile_complete`, `profile_approved_by_admin`, and `is_available` so the student booking UI does not need fragile secondary joins.
+- Add a database trigger on `teacher_profiles.hub_role` updates:
+  - When a teacher becomes `playground_specialist`, future unbooked availability is normalized to:
+    - `duration = 30`
+    - `end_time = start_time + 30 minutes`
+    - `hub_specialty = 'Playground'`
+  - When a teacher becomes `academy_mentor`, future unbooked availability is normalized to 60-minute Academy slots.
+  - When a teacher becomes `success_mentor`, future unbooked availability is normalized to 60-minute Professional slots.
+  - When a teacher becomes `academy_success_mentor`, future unbooked availability is normalized to 60-minute Academy/Professional-compatible slots.
+- Backfill existing future unbooked rows for current teachers so the teacher already changed in Super Admin immediately becomes visible to Playground students.
 
-// error_detection
-{ type: 'error_detection', block, prompt, items: ErrorDetectionItem[] }
-// correction
-{ type: 'correction',      block, prompt, items: CorrectionItem[] }
-// fill_blank
-{ type: 'fill_blank',      block, prompt, items: FillBlankItem[] }
-```
+### 2. Fix student teacher discovery and booking UI
 
-### Backwards compatibility shim
+Update the booking frontend so it uses one canonical hub-role path:
 
-A tiny `normalizeActivityItems(slide)` helper (in `src/utils/creatorHydration.ts`) lifts legacy `{ sentence, wrongIndex }` / `{ wrong, answer }` / `{ before, answer, after }` into a single-element `items[]` at read time. Old saved lessons keep working unchanged; new ones are saved in array form.
+- In `src/pages/student/FindTeacher.tsx`:
+  - Read `hub_role` directly from the updated `get_approved_teachers()` response.
+  - Keep the explicit `user_roles.role = 'teacher'` fallback, but join it to `teacher_profiles` with approval flags and `hub_role`.
+  - Do not default missing hub roles to Academy/Success; mark them as unassigned/general instead.
+  - Show a proper hub-specific empty state, e.g. `No Playground teachers currently available`.
+- In `src/components/student/BookMyClassModal.tsx`:
+  - Remove the “fall back to all teachers” behavior when no teachers match the hub role.
+  - Filter by both `teacher_profiles.hub_role` and the slot duration required by the student hub.
+  - Display a clear empty state when no slots exist for the selected hub.
+- Ensure the selected teacher is respected in the modal. Right now `FindTeacher` stores `selectedTeacherId`, but `BookMyClassModal` does not receive/use it; I will pass it through and filter slots to that teacher when booking from a teacher card.
 
-### Editor UI (AcademyCreator → also reused in Playground/Success)
+### 3. Add lesson blueprint generation to all creators
 
-Replace the single-row editor with a `DynamicListEditor` (already exists in `src/components/creator-studio/shared/DynamicListEditor.tsx`):
+Bring the Blueprint workflow into every creator consistently:
 
-- Each row = one practice item with its own inputs + a trash icon.
-- Footer button **"+ Add new item"**.
-- New header button: ✨ **Generate 3 More** (see below).
+- PlaygroundCreator, AcademyCreator, and SuccessCreator already have a `LessonBlueprintPanel`; I will add an explicit blueprint section inside each “Generate with AI” modal so the teacher can see or edit the blueprint before pressing Generate.
+- Add an “Auto-generate blueprint” action that generates:
+  - exactly 5 target vocabulary items based on topic + CEFR level + hub
+  - grammar focus
+  - phonics/pronunciation focus where appropriate
+- Use that blueprint as the required input for slide generation so vocabulary is always generated according to topic and lesson/student level.
 
-### "Generate 3 More" button
+### 4. Create `generate-gemini` edge function
 
-New edge function **`generate-practice-items`** (Lovable AI Gateway, `google/gemini-3-flash-preview`).
+Add a new Supabase Edge Function:
 
-Request body:
-```ts
-{
-  slide_type: 'error_detection' | 'correction' | 'fill_blank',
-  count: number,                    // default 3
-  existing_items: any[],            // to avoid duplicates
-  blueprint: LessonBlueprint,       // vocab + grammar rule
-  hub: 'playground' | 'academy' | 'success',
-  cefr_level: string
-}
-```
+- `supabase/functions/generate-gemini/index.ts`
+- Standard CORS headers including `Access-Control-Allow-Origin: *`
+- Securely reads `Deno.env.get('GEMINI_API_KEY')`
+- Accepts `{ prompt: string }`, plus optional structured helpers like `system`, `responseMimeType`, `model`, and `temperature` for internal reuse
+- Calls Gemini via Deno `fetch`:
+  - `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`
+- Returns:
+  - `text` for simple generation
+  - raw Gemini metadata only where useful for debugging
+- Add input validation and safe error responses with CORS on every response.
 
-Returns `{ items: T[] }` typed-via-tool-calling (structured output) so we never parse free-form JSON. The frontend appends them to `slide.items` with a toast confirmation.
+### 5. Refactor Creator AI generation away from Lovable AI Cloud
 
-### Stage / classroom rendering
+Update Creator Studio AI paths to call Supabase/Gemini instead of Lovable AI gateway:
 
-`AcademyDemo.tsx` (and the other two demo renderers) gets updated `ErrorDetectionSlide` / `CorrectionSlide` / `FillBlankSlide` that:
+- Replace Lovable AI usage in the functions directly used by creators:
+  - `plan-lesson-blueprint`
+  - `generate-ppp-slides`
+  - `generate-practice-items`
+  - `sync-slides-to-blueprint`
+  - `ai-rewrite-text`
+  - `generate-storybook`
+  - lesson-builder generator functions used by Creator dashboards where applicable
+- Keep frontend calls as `supabase.functions.invoke(...)`; the frontend must never call Gemini directly or expose the API key.
+- For simple text-generation frontend actions, route through `generate-gemini`.
+- For structured lesson JSON generation, update the existing specialized edge functions to use `GEMINI_API_KEY` directly or a shared Gemini request pattern, preserving their current response shapes so the UI does not break.
+- Preserve loading states and existing error toasts.
 
-- Iterate over `items[]`.
-- Show one-at-a-time pager (Next →) **OR** a vertical stack (toggle via `slide.layout: 'pager' | 'list'`, default `'pager'` for kids, `'list'` for teens/adults).
-- Score is `correct / total` and is broadcast through the existing student-action channel so the teacher's live HUD sees per-item progress.
+### 6. Validate the full flow
 
-Because `CreatorSlideRenderer` already routes these slide types into the demo renderers, the classroom inherits the upgrade automatically — no separate classroom work required.
+After implementation:
 
-## Phase 2 — Visual Grammar (color-coded markup)
+- Query the DB again to verify the Playground specialist now has future 30-minute Playground slots.
+- Test the teacher discovery logic with read queries and the app route assumptions.
+- Deploy/test the new `generate-gemini` function with a small prompt.
+- Test the blueprint and lesson generation path enough to confirm the UI receives valid data and loading/error states work.
 
-Extend the safe-HTML pipeline already in `EditorialGrammar.tsx`.
+## Technical notes
 
-### Authoring markup
-
-The AI (and teachers) can wrap words with semantic tags:
-
-```
-The cat <verb>jumped</verb> over the <noun>wall</noun>.
-She is <adjective>happy</adjective>.
-He <target>has been working</target> all day.
-```
-
-### Parser
-
-Add `parseGrammarMarkup(text)` in `src/components/lesson-player/RichText.tsx` (next to existing `**bold**` parser). It converts whitelisted tags to safe spans:
-
-| Tag | Class |
-|---|---|
-| `<verb>…</verb>` | `font-bold text-red-600` |
-| `<noun>…</noun>` | `font-bold text-blue-600` |
-| `<adjective>…</adjective>` | `font-bold text-green-600` |
-| `<target>…</target>` | `font-bold bg-yellow-200 text-slate-900 px-1 rounded` |
-
-Implementation: regex tokenizer (no `dangerouslySetInnerHTML`) that emits React nodes — XSS-safe by construction. Unknown tags are stripped; `&<>` are escaped.
-
-### Wiring
-
-- `EditorialGrammar.tsx` `examples`, `formula`, `rule_text` use the new parser instead of `sanitizeGrammarHtml`. The legacy color-span sanitizer is kept as a fallback for already-generated lessons.
-- `AcademyDemo.tsx` `GrammarPatternSlide` / `ReadingPassageSlide` / `RichText` pick up the same parser so highlights show in the classroom too.
-- Update `generate-ppp-slides`, `generate-blueprint`, and the new `generate-practice-items` system prompts to **emit** these tags around target structures (one-line addition: "When showing the target grammar in any example, wrap it in `<target>…</target>`. You may also wrap a verb/noun/adjective with `<verb>`, `<noun>`, `<adjective>` to highlight word class.").
-
-### Editor preview
-
-In the `grammar_pattern` slide editor, render a small live preview below the textarea using the same parser, so teachers see exactly what students will see.
-
-## Phase 3 — Universal "🔄 Rewrite with AI" per block
-
-Reuse the existing `WandFieldButton` (`src/components/creator-studio/shared/WandFieldButton.tsx`) which already calls the `rewrite-slide-field` edge function.
-
-We extend its placement, not its logic:
-
-1. **Every text input / textarea** in the slide editor (`title`, `prompt`, `rule`, `passage`, `question`, `statement`, `lineA/lineB`, vocab `definition` / `example`, etc.) gets a tiny `<WandFieldButton>` floated to the right of its label.
-2. **Every array row** (option in MCQ, pair in matching, item in error-detection list, etc.) gets a per-row 🔄 button beside the trash icon. It calls `rewrite-slide-field` with `field: 'option' | 'pair.left' | 'item.sentence'…` and patches just that one cell.
-3. The Studio passes the current `LessonBlueprint` (already in `SlideStudio` state) into every wand button so rewrites stay on-topic.
-
-A small helper component `<FieldWithWand label value onChange field/>` wraps the common pattern so we don't repeat `<Field>` + `<input>` + `<WandFieldButton>` 60 times.
-
-## Files to touch
-
-**New**
-- `supabase/functions/generate-practice-items/index.ts` — array generator (tool-calling for typed output).
-- `src/components/creator-studio/shared/FieldWithWand.tsx` — labeled input + inline 🔄.
-- `src/components/lesson-player/grammarMarkup.tsx` — `parseGrammarMarkup` React parser.
-
-**Edited**
-- `src/pages/AcademyDemo.tsx` — slide types switch to `items[]`; renderers iterate; grammar slides use new parser.
-- `src/pages/AcademyCreator.tsx` — editors for `error_detection` / `correction` / `fill_blank` use `DynamicListEditor` + ✨ Generate 3 More; sprinkle 🔄 wand buttons everywhere.
-- `src/pages/PlaygroundCreator.tsx`, `src/pages/SuccessCreator.tsx` — same editor treatment.
-- `src/utils/creatorHydration.ts` — `normalizeActivityItems` legacy shim.
-- `src/components/lesson-player/editorial/EditorialGrammar.tsx` — use new parser.
-- `src/components/lesson-player/RichText.tsx` — re-export parser, keep `**bold**` behavior.
-- `src/components/creator-studio/shared/slideTemplates.ts` — defaults emit `items: [...]`.
-- `supabase/functions/generate-blueprint/index.ts` and `generate-ppp-slides/index.ts` — system-prompt addendum to emit `<target>` markup and array-form practice slides.
-
-## Out of scope (this round)
-
-- No DB schema change — slides are JSON; the new `items[]` lives inside the existing `slide_data` JSON column. Already-saved lessons keep rendering via the legacy shim.
-- No change to classroom realtime sync; per-item answers ride the existing `student_action` channel.
-- No change to Playground game canvases or storybook viewer.
-
-## Acceptance checks
-
-1. Open Academy Creator → add an `Error Detection` slide → see a list with one item → click ✨ **Generate 3 More** → 3 contextually-aligned sentences are appended (verified by checking edge function returns 4 items in network panel).
-2. Click 🔄 on any single sentence/option → only that field updates; rest of slide unchanged.
-3. Generate a grammar slide via AI → `<target>has been working</target>` renders highlighted yellow in both the Creator preview and the live `/classroom/:id` stage.
-4. Open an existing pre-upgrade lesson (single-sentence `error_detection`) → still renders correctly (legacy shim).
+- The migration will not touch `auth` schema or store secrets in the database.
+- Teacher roles remain in `user_roles`; hub teaching assignment remains in `teacher_profiles.hub_role`.
+- The Gemini API key remains server-side in Supabase Edge Functions only.
+- I will not change the fixed business rules: Playground = 30 minutes, Academy/Success = 60 minutes.
