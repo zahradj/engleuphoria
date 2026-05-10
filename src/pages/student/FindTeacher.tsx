@@ -477,6 +477,7 @@ const FindTeacher: React.FC = () => {
           setSelectedTeacherId(null);
         }}
         studentLevel={getStudentLevel()}
+        teacherId={selectedTeacherId}
       />
     </div>
   );

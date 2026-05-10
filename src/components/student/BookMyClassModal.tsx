@@ -470,6 +470,27 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
                   <Loader2 className="w-12 h-12 animate-spin text-primary" />
                   <p className="text-muted-foreground">Loading available slots...</p>
                 </motion.div>
+              ) : displaySlots.length === 0 ? (
+                <motion.div
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex flex-col items-center justify-center py-12 gap-3 text-center"
+                >
+                  <Calendar className="w-12 h-12 text-muted-foreground/60" />
+                  <h3 className="text-lg font-semibold text-foreground">
+                    No {config.label} teachers available right now
+                  </h3>
+                  <p className="text-sm text-muted-foreground max-w-sm">
+                    {teacherId
+                      ? `This teacher has no upcoming ${slotDuration}-minute openings yet. Try again later.`
+                      : `No ${slotDuration}-minute slots are open in this hub yet. Please check back soon.`}
+                  </p>
+                  <Button variant="outline" size="sm" onClick={fetchSlots} disabled={loadingSlots}>
+                    Refresh availability
+                  </Button>
+                </motion.div>
               ) : (
                 <motion.div
                   key="calendar"
