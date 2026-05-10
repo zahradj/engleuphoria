@@ -311,8 +311,13 @@ const FindTeacher: React.FC = () => {
         ) : filteredTeachers.length === 0 ? (
           <div className="text-center py-20">
             <Sparkles className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-            <h3 className="text-xl font-semibold text-foreground mb-2">No teachers found</h3>
-            <p className="text-muted-foreground">Try adjusting your search or filters</p>
+            <h3 className="text-xl font-semibold text-foreground mb-2">
+              {hubFilter === 'playground' ? 'No Playground teachers currently available'
+                : hubFilter === 'academy' ? 'No Academy teachers currently available'
+                : hubFilter === 'professional' ? 'No Success Hub teachers currently available'
+                : 'No teachers found'}
+            </h3>
+            <p className="text-muted-foreground">Please check back soon — we add teachers regularly.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
