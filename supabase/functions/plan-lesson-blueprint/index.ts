@@ -1,45 +1,66 @@
-// Plan a Lesson Blueprint: given Topic + CEFR level + Hub, the AI selects 5
-// vocabulary words + 1 grammar structure that the slide generator MUST use
-// consistently across the lesson. Returns:
-//   { vocabulary: string[5], grammar: string, rationale?: string }
+// Plan a Lesson Blueprint via Google Gemini.
+// Given Topic + CEFR level + Hub, the AI selects 5 vocabulary words +
+// 1 grammar structure + 1 phonics focus that the slide generator MUST use
+// consistently across the lesson.
+// Returns: { vocabulary: string[5], grammar: string, target_phonics: {...}, rationale?: string }
+
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+const MODEL = 'gemini-1.5-flash';
+
+function tolerantJsonParse(raw: string): any | null {
+  if (!raw) return null;
+  let cleaned = raw.trim();
+  if (cleaned.startsWith('```')) {
+    cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
+  }
+  try { return JSON.parse(cleaned); } catch { /* try slice */ }
+  const first = cleaned.indexOf('{');
+  const last = cleaned.lastIndexOf('}');
+  if (first >= 0 && last > first) {
+    try { return JSON.parse(cleaned.slice(first, last + 1)); } catch { /* give up */ }
+  }
+  return null;
+}
+
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
-    const { topic, cefr_level = "A1", hub = "academy", interests, specific_needs } = await req.json().catch(() => ({}));
-    if (!topic || typeof topic !== "string") {
-      return new Response(JSON.stringify({ error: "topic is required" }), {
+    const { topic, cefr_level = 'A1', hub = 'academy', interests, specific_needs } =
+      await req.json().catch(() => ({}));
+
+    if (!topic || typeof topic !== 'string') {
+      return new Response(JSON.stringify({ error: 'topic is required' }), {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    const apiKey = Deno.env.get("LOVABLE_API_KEY");
-    if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
+    if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not configured');
 
     const phonicsGuidance =
-      hub === "playground"
+      hub === 'playground'
         ? `Choose a SYNTHETIC PHONICS focus that is directly derivable from the chosen vocabulary (e.g., vocab "cat / bat / hat" → "Short /a/"; vocab "cake / bake / lake" → "Magic e / long /eɪ/"; "ship / chip" → "/ʃ/ vs /tʃ/ digraph"). Provide both a kid-friendly focus label AND the IPA symbol.`
-        : hub === "success"
+        : hub === 'success'
         ? `Choose an EXECUTIVE PRONUNCIATION focus tied to the vocabulary — word stress patterns (e.g. "Stress on -tion endings"), connected speech, or business intonation. Avoid kids' phonics.`
         : `Choose a PRONUNCIATION ACCURACY focus tied to the vocabulary — common teen problem sounds (e.g. "/v/ vs /w/", "th- digraph", "schwa in unstressed syllables").`;
 
     const audience =
-      hub === "playground"
-        ? "young children (ages 5-10), playful and concrete"
-        : hub === "success"
-        ? "adult professionals, business / workplace context"
-        : "teenagers (ages 11-17), modern and relatable";
+      hub === 'playground'
+        ? 'young children (ages 5-10), playful and concrete'
+        : hub === 'success'
+        ? 'adult professionals, business / workplace context'
+        : 'teenagers (ages 11-17), modern and relatable';
 
     const anchor = [
-      interests ? `STUDENT INTERESTS (creative anchor): ${interests}` : "",
-      specific_needs ? `SPECIFIC NEEDS / GOALS: ${specific_needs}` : "",
-    ].filter(Boolean).join("\n");
+      interests ? `STUDENT INTERESTS (creative anchor): ${interests}` : '',
+      specific_needs ? `SPECIFIC NEEDS / GOALS: ${specific_needs}` : '',
+    ].filter(Boolean).join('\n');
 
     const system = `You are a Senior ESL Curriculum Designer.
 Given a TOPIC and a CEFR level, you select:
@@ -53,87 +74,67 @@ Grammar must be one a teacher could plausibly drill in 30-60 minutes alongside t
 PHONICS RULES:
 ${phonicsGuidance}
 The phonics focus MUST be derivable from the chosen vocabulary; pick 2-3 of those vocabulary words as "example_words" that contain the target sound.
-${anchor ? `\nWhen choosing vocabulary, gently bias toward terms that resonate with the following:\n${anchor}` : ""}
-Return ONLY via the supplied function tool.`;
+${anchor ? `\nWhen choosing vocabulary, gently bias toward terms that resonate with the following:\n${anchor}` : ''}
 
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+Return ONLY a single valid JSON object with this exact shape (no markdown, no commentary):
+{
+  "vocabulary": ["word1","word2","word3","word4","word5"],
+  "grammar": "Grammar structure name",
+  "target_phonics": {
+    "focus": "Kid/teacher-friendly label",
+    "sound_ipa": "/x/",
+    "grapheme": "letter or pattern",
+    "example_words": ["w1","w2","w3"]
+  },
+  "rationale": "Short explanation"
+}`;
+
+    const userMsg = `TOPIC: ${topic}\nCEFR LEVEL: ${cefr_level}\nHUB: ${hub}\n${anchor}`;
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: `TOPIC: ${topic}\nCEFR LEVEL: ${cefr_level}\nHUB: ${hub}\n${anchor}` },
-        ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "emit_blueprint",
-              description: "Emit the lesson blueprint",
-              parameters: {
-                type: "object",
-                properties: {
-                  vocabulary: {
-                    type: "array",
-                    items: { type: "string" },
-                    minItems: 5,
-                    maxItems: 5,
-                  },
-                  grammar: { type: "string" },
-                  target_phonics: {
-                    type: "object",
-                    properties: {
-                      focus: { type: "string", description: "Kid/teacher-friendly label, e.g. 'Short /a/' or 'Word stress on -tion'." },
-                      sound_ipa: { type: "string", description: "IPA symbol(s), e.g. '/æ/' or '/ʃ/ vs /tʃ/'." },
-                      grapheme: { type: "string", description: "Letter or pattern shown on screen, e.g. 'a', 'sh', 'magic e'." },
-                      example_words: {
-                        type: "array",
-                        items: { type: "string" },
-                        minItems: 2,
-                        maxItems: 3,
-                      },
-                    },
-                    required: ["focus", "example_words"],
-                  },
-                  rationale: { type: "string" },
-                },
-                required: ["vocabulary", "grammar", "target_phonics"],
-                additionalProperties: false,
-              },
-            },
-          },
-        ],
-        tool_choice: { type: "function", function: { name: "emit_blueprint" } },
+        systemInstruction: { role: 'system', parts: [{ text: system }] },
+        contents: [{ role: 'user', parts: [{ text: userMsg }] }],
+        generationConfig: {
+          temperature: 0.8,
+          maxOutputTokens: 1024,
+          responseMimeType: 'application/json',
+        },
       }),
     });
 
     if (!resp.ok) {
       const t = await resp.text();
-      console.error("[plan-lesson-blueprint] AI error", resp.status, t);
-      return new Response(JSON.stringify({ error: "AI gateway error", detail: t }), {
-        status: resp.status,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      console.error('[plan-lesson-blueprint] Gemini error', resp.status, t);
+      return new Response(JSON.stringify({ error: 'Gemini API error', detail: t }), {
+        status: 502,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
     const data = await resp.json();
-    const args = data?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
-    const parsed = typeof args === "string" ? JSON.parse(args) : args;
+    const text: string =
+      data?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text || '').join('') || '';
+    const parsed = tolerantJsonParse(text);
+
     if (!parsed?.vocabulary || !parsed?.grammar) {
-      throw new Error("AI did not return a valid blueprint");
+      console.error('[plan-lesson-blueprint] invalid output', text.slice(0, 400));
+      throw new Error('AI did not return a valid blueprint');
     }
-    // Hard-clamp to 5
     parsed.vocabulary = (parsed.vocabulary as string[]).slice(0, 5);
-    while (parsed.vocabulary.length < 5) parsed.vocabulary.push("");
+    while (parsed.vocabulary.length < 5) parsed.vocabulary.push('');
 
     return new Response(JSON.stringify(parsed), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (e) {
-    console.error("[plan-lesson-blueprint]", e);
+    console.error('[plan-lesson-blueprint]', e);
     return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      JSON.stringify({ error: e instanceof Error ? e.message : 'Unknown error' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   }
 });
