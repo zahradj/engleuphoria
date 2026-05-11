@@ -463,6 +463,18 @@ export default function DynamicSlideRenderer({
     if (directorType === 'drag_and_drop') {
       return <PlaygroundDragDrop slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
     }
+    if (directorType === 'drag_and_drop_sorting') {
+      return <DragAndDropSortingSlide slide={slide} hub={hub === 'professional' ? 'success' : hub as any} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} onComplete={onComplete} />;
+    }
+    if (directorType === 'matching_lines') {
+      return <MatchingLinesSlide slide={slide} hub={hub === 'professional' ? 'success' : hub as any} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} onComplete={onComplete} />;
+    }
+    if (directorType === 'tracing_canvas') {
+      return <TracingCanvasSlide slide={slide} hub={hub === 'professional' ? 'success' : hub as any} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} onComplete={onComplete} />;
+    }
+    if (directorType === 'spinner_wheel') {
+      return <SpinnerWheelSlide slide={slide} hub={hub === 'professional' ? 'success' : hub as any} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} onComplete={onComplete} />;
+    }
     if (directorType === 'fill_in_the_gaps') {
       return <FillInTheGaps slide={slide} hub={hub} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
     }
