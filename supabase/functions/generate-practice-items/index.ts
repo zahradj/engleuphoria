@@ -21,6 +21,9 @@ interface Body {
   blueprint?: { vocabulary?: string[]; grammar?: string; title?: string };
   hub?: 'playground' | 'academy' | 'success';
   cefr_level?: string;
+  age_group?: string;
+  target_grammar?: string;
+  previous_topics?: string[];
 }
 
 const SCHEMA_BY_TYPE: Record<SlideType, Record<string, unknown>> = {
