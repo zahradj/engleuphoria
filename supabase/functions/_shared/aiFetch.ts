@@ -243,13 +243,31 @@ async function fallbackGeminiToGateway(originalUrl: string, originalBody: any): 
 export async function aiFetch(url: string, init?: RequestInit): Promise<Response> {
   const isLovable = url.includes(LOVABLE_HOST);
   const isGemini = url.includes(GEMINI_HOST);
+  const hasGemini = !!Deno.env.get("GEMINI_API_KEY");
+  const hasLovable = !!Deno.env.get("LOVABLE_API_KEY");
 
-  // Parse body once for potential reuse on failover
+  // Parse body once for potential reuse on rerouting / failover
   let parsedBody: any = null;
   if (init?.body && typeof init.body === "string") {
     try {
       parsedBody = JSON.parse(init.body);
     } catch { /* non-JSON body — failover not possible */ }
+  }
+
+  // ─── PRIMARY ROUTE OVERRIDE ───
+  // The workspace has migrated off Lovable AI. When a caller targets the
+  // Lovable Gateway and we have a GEMINI_API_KEY, route directly to Gemini
+  // first; only fall back to the Lovable Gateway if Gemini fails AND a
+  // LOVABLE_API_KEY is still configured.
+  if (isLovable && hasGemini && parsedBody) {
+    try {
+      const fb = await fallbackGatewayToGemini(parsedBody);
+      return fb;
+    } catch (err) {
+      console.warn(`⚠️ Gemini-direct primary failed: ${err instanceof Error ? err.message : err}`);
+      if (!hasLovable) throw err;
+      // fall through to legacy gateway path below
+    }
   }
 
   let primaryError: unknown = null;
@@ -264,23 +282,19 @@ export async function aiFetch(url: string, init?: RequestInit): Promise<Response
     console.warn(`⚠️ Primary AI provider threw: ${err instanceof Error ? err.message : err}. Attempting failover…`);
   }
 
-  if (!parsedBody) {
-    // Cannot translate request -> bubble original failure
-    throw primaryError;
-  }
+  if (!parsedBody) throw primaryError;
 
   try {
-    if (isLovable) {
+    if (isLovable && hasGemini) {
       const fb = await fallbackGatewayToGemini(parsedBody);
       console.log("✅ Recovered via Gemini direct failover");
       return fb;
     }
-    if (isGemini) {
+    if (isGemini && hasLovable) {
       const fb = await fallbackGeminiToGateway(url, parsedBody);
       console.log("✅ Recovered via Lovable Gateway failover");
       return fb;
     }
-    // Unknown host — propagate original error
     throw primaryError;
   } catch (failoverErr) {
     console.error("❌ Both AI providers failed:", failoverErr);
