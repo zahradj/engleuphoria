@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
     });
   }
 
-  const model = body.model || DEFAULT_MODEL;
+  const model = normalizeModel(body.model);
   const temperature = typeof body.temperature === 'number' ? body.temperature : 0.85;
   const maxOutputTokens = typeof body.maxOutputTokens === 'number' ? body.maxOutputTokens : 4096;
 
