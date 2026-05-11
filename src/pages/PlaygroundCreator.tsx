@@ -306,13 +306,13 @@ export default function PlaygroundCreator() {
   const current = slides[safeIndex] ?? { type: 'intro', title: '', content: '' } as any;
   const slideId = `slide-${safeIndex}`;
 
-  const generateWithAI = async (payload: { topic: string; level: string; vocabulary: string[]; grammar: string; target_phonics: string }) => {
+  const generateWithAI = async (payload: { topic: string; level: string; vocabulary: string[]; grammar: string; target_phonics: string; interests: string; specific_needs: string }) => {
     const topic = payload.topic.trim();
     if (!topic) return;
     setAiBusy(true);
     try {
-      const interests = blueprint?.interests?.trim();
-      const specific_needs = blueprint?.specific_needs?.trim();
+      const interests = payload.interests?.trim() || blueprint?.interests?.trim();
+      const specific_needs = payload.specific_needs?.trim() || blueprint?.specific_needs?.trim();
 
       // Hydrate sidebar immediately with the validated blueprint
       const hydrated: LessonBlueprint = {
@@ -892,6 +892,8 @@ export default function PlaygroundCreator() {
         defaultVocabulary={blueprint?.vocabulary}
         defaultGrammar={blueprint?.grammar}
         defaultPhonics={blueprint?.target_phonics}
+        defaultInterests={blueprint?.interests}
+        defaultNeeds={blueprint?.specific_needs}
         busy={aiBusy}
         onGenerate={generateWithAI}
       />

@@ -9,9 +9,11 @@ export type Hub = 'playground' | 'academy' | 'success';
 export interface GenerateLessonPayload {
   topic: string;
   level: string;
-  vocabulary: string[]; // length 5
+  vocabulary: string[]; // length 5 (or 3-4 for Pre-A1)
   grammar: string;
   target_phonics: string;
+  interests: string;
+  specific_needs: string;
 }
 
 interface Props {
@@ -23,6 +25,8 @@ interface Props {
   defaultVocabulary?: string[];
   defaultGrammar?: string;
   defaultPhonics?: string;
+  defaultInterests?: string;
+  defaultNeeds?: string;
   busy: boolean;
   onGenerate: (payload: GenerateLessonPayload) => Promise<void> | void;
 }
@@ -90,6 +94,8 @@ export default function GenerateLessonModal({
   defaultVocabulary,
   defaultGrammar,
   defaultPhonics,
+  defaultInterests,
+  defaultNeeds,
   busy,
   onGenerate,
 }: Props) {
@@ -100,8 +106,12 @@ export default function GenerateLessonModal({
   const [vocab, setVocab] = useState<string[]>(ensureFive(defaultVocabulary));
   const [grammar, setGrammar] = useState(defaultGrammar || '');
   const [phonics, setPhonics] = useState(defaultPhonics || '');
+  const [interests, setInterests] = useState(defaultInterests || '');
+  const [needs, setNeeds] = useState(defaultNeeds || '');
   const [expanded, setExpanded] = useState(false);
   const [autoFillBusy, setAutoFillBusy] = useState(false);
+
+  const isPreA1 = level === 'Pre-A1';
 
   // Re-sync defaults whenever modal opens
   useEffect(() => {
@@ -111,38 +121,62 @@ export default function GenerateLessonModal({
     setVocab(ensureFive(defaultVocabulary));
     setGrammar(defaultGrammar || '');
     setPhonics(defaultPhonics || '');
+    setInterests(defaultInterests || '');
+    setNeeds(defaultNeeds || '');
     setExpanded(Boolean(
       (defaultVocabulary && defaultVocabulary.some((v) => v?.trim())) ||
       defaultGrammar?.trim() ||
-      defaultPhonics?.trim(),
+      defaultPhonics?.trim() ||
+      defaultInterests?.trim() ||
+      defaultNeeds?.trim(),
     ));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const vocabFilled = vocab.every((v) => v.trim().length > 0);
-  const canGenerate = topic.trim() && grammar.trim() && vocabFilled && !busy;
+  // Pre-A1 only needs 3 vocab + phonics; grammar may be empty.
+  const filledVocabCount = vocab.filter((v) => v.trim().length > 0).length;
+  const canGenerate = isPreA1
+    ? Boolean(topic.trim() && phonics.trim() && filledVocabCount >= 3 && !busy)
+    : Boolean(topic.trim() && grammar.trim() && filledVocabCount === 5 && !busy);
 
   const handleAutoFill = async () => {
     if (!topic.trim() || autoFillBusy) return;
     setAutoFillBusy(true);
     try {
-      const system =
-        `You are an expert ESL Curriculum Designer. Hub: ${hub}. ` +
-        `Pick exactly 5 target vocabulary items, 1 grammar focus, and 1 phonics focus ` +
-        `that suit the topic and CEFR level. Keep vocab short (1-3 words each), age-appropriate, and high-frequency.`;
-      const prompt =
-        `TOPIC: ${topic.trim()}\nCEFR LEVEL: ${level}\n\n` +
-        `Return ONLY JSON in this exact shape:\n` +
-        `{ "vocabulary": ["w1","w2","w3","w4","w5"], "grammar": "string", "target_phonics": "string" }`;
+      const system = isPreA1
+        ? `You are an expert Early-Years Phonics Designer. Audience: 4-5 year-old true beginners and pre-readers. ` +
+          `DO NOT propose grammar rules or full sentences. Pick EXACTLY 3 phonetically decodable CVC words ` +
+          `(or ultra-basic single-syllable nouns) tied to ONE phonics focus. Phonics MUST be a single sound ` +
+          `(e.g. "Short A: /æ/", "Consonant M: /m/").`
+        : `You are an expert ESL Curriculum Designer. Hub: ${hub}. ` +
+          `Pick exactly 5 target vocabulary items, 1 grammar focus, 1 phonics focus, ` +
+          `2-3 likely student interests for this topic, and 1 short specific-needs hint ` +
+          `that suit the topic and CEFR level. Keep vocab short (1-3 words each), age-appropriate, and high-frequency.`;
+      const prompt = isPreA1
+        ? `TOPIC: ${topic.trim()}\nCEFR LEVEL: Pre-A1 (ages 4-5)\n\n` +
+          `Return ONLY JSON in this exact shape (grammar MUST be empty string):\n` +
+          `{ "vocabulary": ["w1","w2","w3"], "grammar": "", "target_phonics": "string", "interests": "string", "specific_needs": "string" }`
+        : `TOPIC: ${topic.trim()}\nCEFR LEVEL: ${level}\n\n` +
+          `Return ONLY JSON in this exact shape:\n` +
+          `{ "vocabulary": ["w1","w2","w3","w4","w5"], "grammar": "string", "target_phonics": "string", "interests": "string", "specific_needs": "string" }`;
       const { data, error } = await supabase.functions.invoke('generate-gemini', {
         body: { prompt, system, responseMimeType: 'application/json', temperature: 0.7 },
       });
       if (error) throw error;
       const parsed = (data?.json ?? data) as any;
-      const v = ensureFive(parsed?.vocabulary);
-      setVocab(v);
-      setGrammar(String(parsed?.grammar || '').trim());
+      if (isPreA1) {
+        const list = Array.isArray(parsed?.vocabulary) ? parsed.vocabulary.slice(0, 4) : [];
+        const padded = ensureFive(list); // we still keep 5 slots; teacher can leave extras blank
+        setVocab(padded);
+        setGrammar('');
+      } else {
+        setVocab(ensureFive(parsed?.vocabulary));
+        setGrammar(String(parsed?.grammar || '').trim());
+      }
       setPhonics(String(parsed?.target_phonics || '').trim());
+      // Don't overwrite if teacher already typed something
+      if (!interests.trim()) setInterests(String(parsed?.interests || '').trim());
+      if (!needs.trim()) setNeeds(String(parsed?.specific_needs || '').trim());
       setExpanded(true);
       toast.success('Blueprint suggested — review and edit before generating.');
     } catch (e: any) {
@@ -159,9 +193,11 @@ export default function GenerateLessonModal({
     await onGenerate({
       topic: topic.trim(),
       level,
-      vocabulary: vocab.map((v) => v.trim()),
+      vocabulary: vocab.map((v) => v.trim()).filter((v) => v.length > 0),
       grammar: grammar.trim(),
       target_phonics: phonics.trim(),
+      interests: interests.trim(),
+      specific_needs: needs.trim(),
     });
   };
 
@@ -216,7 +252,11 @@ export default function GenerateLessonModal({
                   onChange={(e) => setLevel(e.target.value)}
                   disabled={busy}
                 >
-                  {theme.levels.map((l) => <option key={l} value={l}>{l}</option>)}
+                  {theme.levels.map((l) => (
+                    <option key={l} value={l}>
+                      {l === 'Pre-A1' ? 'Pre-A1 — Ages 4-5 (Phonics)' : l}
+                    </option>
+                  ))}
                 </select>
               </label>
 
@@ -227,14 +267,16 @@ export default function GenerateLessonModal({
                   onClick={() => setExpanded((x) => !x)}
                   className={`w-full flex items-center justify-between px-4 py-3 ${theme.chipBg} ${theme.chipText} font-bold text-sm`}
                 >
-                  <span>Blueprint Details {vocabFilled && grammar.trim() ? '✓' : '(auto-filled by AI)'}</span>
+                  <span>Blueprint Details {canGenerate ? '✓' : '(auto-filled by AI)'}</span>
                   {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 </button>
 
                 {expanded && (
                   <div className="p-4 space-y-4 bg-white">
                     <div>
-                      <span className={labelCls}>Target Vocabulary (5 words)</span>
+                      <span className={labelCls}>
+                        {isPreA1 ? 'Target Vocabulary (3-4 CVC words)' : 'Target Vocabulary (5 words)'}
+                      </span>
                       <div className="mt-1 grid grid-cols-2 sm:grid-cols-5 gap-2">
                         {vocab.map((w, i) => (
                           <input
@@ -246,29 +288,51 @@ export default function GenerateLessonModal({
                               next[i] = e.target.value;
                               setVocab(next);
                             }}
-                            placeholder={`Word ${i + 1}`}
+                            placeholder={isPreA1 && i >= 4 ? '(optional)' : `Word ${i + 1}`}
                             disabled={busy}
                           />
                         ))}
                       </div>
                     </div>
+                    {!isPreA1 && (
+                      <label className="block">
+                        <span className={labelCls}>Grammar Focus</span>
+                        <input
+                          className={inputCls}
+                          value={grammar}
+                          onChange={(e) => setGrammar(e.target.value)}
+                          placeholder="e.g. Present simple"
+                          disabled={busy}
+                        />
+                      </label>
+                    )}
                     <label className="block">
-                      <span className={labelCls}>Grammar Focus</span>
-                      <input
-                        className={inputCls}
-                        value={grammar}
-                        onChange={(e) => setGrammar(e.target.value)}
-                        placeholder="e.g. Present simple"
-                        disabled={busy}
-                      />
-                    </label>
-                    <label className="block">
-                      <span className={labelCls}>Target Phonics</span>
+                      <span className={labelCls}>🔊 Target Phonics / Sound</span>
                       <input
                         className={inputCls}
                         value={phonics}
                         onChange={(e) => setPhonics(e.target.value)}
-                        placeholder='e.g. Short /a/, Word stress'
+                        placeholder={isPreA1 ? 'e.g. Short A: /æ/, Consonant M: /m/' : 'e.g. Short /a/, Word stress'}
+                        disabled={busy}
+                      />
+                    </label>
+                    <label className="block">
+                      <span className={labelCls}>🎯 Student Interests (creative anchor)</span>
+                      <input
+                        className={inputCls}
+                        value={interests}
+                        onChange={(e) => setInterests(e.target.value)}
+                        placeholder="e.g. football, Pokemon, dinosaurs"
+                        disabled={busy}
+                      />
+                    </label>
+                    <label className="block">
+                      <span className={labelCls}>🛠 Specific Needs / Goals</span>
+                      <input
+                        className={inputCls}
+                        value={needs}
+                        onChange={(e) => setNeeds(e.target.value)}
+                        placeholder="e.g. shy speaker, exam prep, dyslexic"
                         disabled={busy}
                       />
                     </label>
@@ -278,7 +342,7 @@ export default function GenerateLessonModal({
 
               {!canGenerate && !busy && (
                 <p className="text-xs text-slate-500">
-                  Click <strong>Auto-Fill</strong> or fill in all 5 vocabulary words and a grammar focus to generate slides.
+                  Click <strong>Auto-Fill</strong> or fill in {isPreA1 ? '3 CVC words plus a phonics focus' : 'all 5 vocabulary words and a grammar focus'} to generate slides.
                 </p>
               )}
             </div>

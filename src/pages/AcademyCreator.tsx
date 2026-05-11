@@ -283,13 +283,13 @@ export default function AcademyCreator() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const generateWithAI = async (payload: { topic: string; level: string; vocabulary: string[]; grammar: string; target_phonics: string }) => {
+  const generateWithAI = async (payload: { topic: string; level: string; vocabulary: string[]; grammar: string; target_phonics: string; interests: string; specific_needs: string }) => {
     const topic = payload.topic.trim();
     if (!topic) return;
     setAiBusy(true);
     try {
-      const interests = blueprint?.interests?.trim();
-      const specific_needs = blueprint?.specific_needs?.trim();
+      const interests = payload.interests?.trim() || blueprint?.interests?.trim();
+      const specific_needs = payload.specific_needs?.trim() || blueprint?.specific_needs?.trim();
 
       const hydrated: LessonBlueprint = {
         ...(blueprint ?? EMPTY_BLUEPRINT),
@@ -867,6 +867,8 @@ export default function AcademyCreator() {
         defaultVocabulary={blueprint?.vocabulary}
         defaultGrammar={blueprint?.grammar || aiGrammar}
         defaultPhonics={blueprint?.target_phonics}
+        defaultInterests={blueprint?.interests}
+        defaultNeeds={blueprint?.specific_needs}
         busy={aiBusy}
         onGenerate={generateWithAI}
       />

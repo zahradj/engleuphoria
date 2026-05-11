@@ -95,7 +95,9 @@ Deno.serve(async (req) => {
             : [];
       const grammarFocus: string =
         body?.grammar_focus || blueprint?.grammar_focus || blueprint?.grammar || "";
-      const vocabCount = Math.max(1, targetVocab.length);
+      const vocabCount = isPreA1
+        ? Math.min(4, Math.max(3, targetVocab.length))
+        : Math.max(1, targetVocab.length);
 
       // ── Target phonics (Synthetic Phonics for kids) ─────────────────────
       const phonics = body?.target_phonics || blueprint?.target_phonics || null;
@@ -118,7 +120,16 @@ You MUST insert (in this exact order):
   • EXACTLY 2 EXTRA "multiple" or "match" Phonemic Awareness mini-games inside Phase 2 — these are IN ADDITION to the existing 3 practice slides. Question patterns: "Click the words that start with ${phonicsIPA || phonicsFocus}." or "Tap the picture whose name has the ${phonicsFocus} sound."
 ` : "";
 
-      const blueprintBlock = `
+      // Pre-A1 deck skips the grammar phase entirely; it's pure phonics + vocab.
+      const blueprintBlock = isPreA1 ? `
+TARGET VOCABULARY (exact list — do NOT add or remove words): ${JSON.stringify(targetVocab.slice(0, vocabCount))}
+TARGET GRAMMAR: NONE — Pre-A1 mode forbids grammar rules and full sentences.
+${phonicsBlock}
+STRICT PRE-A1 COUNTS — your output MUST contain EXACTLY:
+  • Phase 1 PRESENTATION: 1 "intro"${hasPhonics ? ` + 1 "phonics_focus"` : ""} + ${vocabCount} "vocab_solo" slides — one per word, in the order listed above. The "word" field MUST exactly equal the target word (uppercase OK).
+  • Phase 2 PRACTICE: EXACTLY ${hasPhonics ? "5 (3 vocab drills + 2 phonemic-awareness games)" : "4"} interactive slides ("multiple" with image options, "match" image↔word, or "drag"). NO "fill", NO "truefalse", NO "storybook".
+  • End with EXACTLY 1 "lesson_summary" recapping the target words.
+Total slides: ${1 + (hasPhonics ? 1 : 0) + vocabCount + (hasPhonics ? 5 : 4) + 1}.` : `
 TARGET VOCABULARY (exact list — do NOT add or remove words): ${JSON.stringify(targetVocab)}
 TARGET GRAMMAR: "${grammarFocus}"
 ${phonicsBlock}
@@ -133,10 +144,11 @@ Total slides: ${1 + (hasPhonics ? 1 : 0) + vocabCount + (hasPhonics ? 5 : 3) + 2
       const preA1Directive = isPreA1 ? `
 
 ⚠️ PRE-A1 NON-READER MODE — STRICT
-- The student CANNOT read in any language. Minimize on-screen text everywhere.
+- Audience: 4-5 year olds. The student CANNOT read in any language.
+- DO NOT generate grammar rules or full sentences. Build the lesson SOLELY around the target phoneme.
 - EVERY slide MUST have a "voice" object whose "text" is the spoken instruction (1 short sentence, ≤6 words).
-- Bias the deck toward "multiple" (image-based options spoken aloud) and "match"/"drag" (image ↔ word).
-- DO NOT generate "fill" slides. Avoid long sentences. Avoid sub-titles.
+- Allowed slide types ONLY: "intro", "phonics_focus", "vocab_solo", "multiple", "match", "drag", "draw", "lesson_summary".
+- DO NOT generate "fill", "truefalse", or "storybook" slides. No Phase 3 (grammar). No Phase 4 (production storybook).
 - Every interactive prompt should be answerable purely by listening + looking at images.
 ` : "";
 
@@ -166,13 +178,15 @@ Allowed types and required shape:
 ${blueprintBlock}
 
 RULES:
-- Follow the STRICT PPP COUNTS above EXACTLY. Do not invent extra slides or skip phases.
+- Follow the STRICT ${isPreA1 ? "PRE-A1" : "PPP"} COUNTS above EXACTLY. Do not invent extra slides or skip phases.
 - For every "AI:<subject>" placeholder, write a clear, kid-friendly subject ≤ 6 words.
 - For EVERY slide include a short "teacher_notes" (≤120 chars) for the live teacher. Never shown to the student.
 - Topic: "${effectiveTitle}". ${objective ? `Goal: ${objective}.` : ""}
 - Return RAW JSON ARRAY only.${preA1Directive}`;
 
-      const allowed = new Set(["intro", "phonics_focus", "vocab_solo", "multiple", "truefalse", "fill", "drag", "match", "storybook", "draw", "lesson_summary"]);
+      const allowed = isPreA1
+        ? new Set(["intro", "phonics_focus", "vocab_solo", "multiple", "match", "drag", "draw", "lesson_summary"])
+        : new Set(["intro", "phonics_focus", "vocab_solo", "multiple", "truefalse", "fill", "drag", "match", "storybook", "draw", "lesson_summary"]);
 
       const callModel = async (extraUserMsg?: string): Promise<any[]> => {
         const messages: any[] = [

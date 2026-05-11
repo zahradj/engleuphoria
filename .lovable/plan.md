@@ -1,85 +1,84 @@
 ## Goal
 
-Refactor the inline "AI Generate" modal currently duplicated across the three Hub Creators (Playground / Academy / Success) into a single shared `GenerateLessonModal` component with a two-step **Auto-Fill → Generate Slides** flow. The teacher can review and edit the AI-suggested vocabulary, grammar, and phonics **before** committing to slide generation, and the validated blueprint hydrates the left-side `LessonBlueprintPanel` sidebar automatically.
+Two tightly-related changes:
+
+**A. Single-source-of-truth blueprint inputs.** Move the three "creative" fields currently in the left `LessonBlueprintPanel` sidebar — **🔊 Target Phonics**, **🎯 Student Interests**, **🛠 Specific Needs / Goals** — into the `GenerateLessonModal` and remove them from the sidebar. The sidebar keeps only the deterministic outputs (5 vocab + grammar + Sync Slides).
+
+**B. Pre-A1 (Ages 4-5) curriculum tier.** Add `Pre-A1` to every Playground-facing CEFR selector and teach the AI a strict phonics-only mode: no grammar, 3–4 CVC vocab, listen/look/trace slide types only.
 
 ---
 
-## Phase 1 — Extract & Expand the Modal
+## Phase 1 — Modal: absorb the three sidebar fields
 
-**Current state**
-- The "AI Generate" modal is inline JSX inside each hub page (`PlaygroundCreator.tsx` ~line 883, `AcademyCreator.tsx` ~855, `SuccessCreator.tsx` ~813), each with hub-specific colors. Inputs: Topic + CEFR Level only.
-- Submit calls each hub's `generateWithAI()`, which internally calls `plan-lesson-blueprint` → `generate-ppp-slides` (so the AI plans the blueprint silently, with no chance to review).
+`src/components/creator-studio/shared/GenerateLessonModal.tsx`
 
-**Changes**
-1. Create `src/components/creator-studio/shared/GenerateLessonModal.tsx`:
-   - Props: `open`, `onClose`, `hub: 'playground' | 'academy' | 'success'`, `defaultTopic`, `defaultLevel`, `defaultBlueprint?`, `onGenerate(payload) → Promise<void>`, `busy`.
-   - Hub-aware theming via the existing per-hub gradient/border tokens (read from `hubTheme.ts`); same look as today, just centralized.
-   - Renders the Topic input, CEFR select, then a new **Blueprint Details** section that is:
-     - Collapsed by default with a chevron header `Blueprint Details (auto-filled by AI)`.
-     - Auto-expands the moment Auto-Fill returns or the user clicks the header.
-     - Inputs:
-       - **Target Vocabulary** — five separate small text inputs (Word 1 … Word 5), arranged in a 5-column grid on desktop / 2-col on mobile. (Five inputs match the existing blueprint shape and the sidebar's bindings.)
-       - **Grammar Focus** — single text input.
-       - **Target Phonics** — single text input (free text label like "Short /a/").
-2. Replace the inline modal in each hub page with `<GenerateLessonModal …/>`. Hub UI stays pixel-identical because the new component reuses the same Tailwind classes per hub.
+1. Add three fields **inside the existing collapsible "Blueprint Details" section**, below Target Phonics:
+   - **🎯 Student Interests** (creative anchor) — placeholder `e.g. football, Pokemon, dinosaurs`.
+   - **🛠 Specific Needs / Goals** — placeholder `e.g. shy speaker, exam prep, dyslexic`.
+   - The existing **🔊 Target Phonics** input stays where it is, with a per-hub placeholder.
+2. Extend `Props` and `GenerateLessonPayload` to carry `interests` and `specific_needs` (already had `target_phonics`). Add `defaultInterests`, `defaultNeeds`.
+3. Auto-Fill prompt to `generate-gemini` is extended to also propose `interests` and `specific_needs` (skip overwriting if the teacher already typed something there).
+4. `onGenerate` now returns the full payload `{ topic, level, vocabulary, grammar, target_phonics, interests, specific_needs }`.
 
----
+## Phase 2 — Sidebar: strip the moved fields
 
-## Phase 2 — Auto-Fill Step
+`src/components/creator-studio/shared/LessonBlueprintPanel.tsx`
 
-**Changes**
-1. Add a `✨ Auto-Fill Blueprint Details` button placed inline next to the Topic input (right side, small ghost button on desktop; full-width below the input on mobile).
-2. On click:
-   - Disable while `autoFillBusy === true`; show inline `Loader2`.
-   - Call `supabase.functions.invoke('generate-gemini', { body: { … } })` with a compact JSON-mode prompt:
-     ```
-     system: "You are an ESL Curriculum Designer. Pick 5 target vocab + 1 grammar rule + 1 phonics focus suitable for the topic and CEFR level. Hub: <hub>."
-     prompt: "TOPIC: <topic>\nCEFR LEVEL: <level>\nReturn ONLY: { vocabulary: string[5], grammar: string, target_phonics: string }"
-     responseMimeType: 'application/json'
-     temperature: 0.7
-     ```
-   - On success: populate the five vocab inputs, grammar, phonics; expand the Blueprint Details section; toast `Blueprint suggested — review and edit before generating.`
-   - On failure: surface the error via `toast.error` (handle 429 / 402 like elsewhere).
-3. Auto-Fill is **optional** — the teacher can also type values manually.
+1. Delete the three input blocks (target_phonics, interests, specific_needs) and their labels — keep the **Target Vocabulary (5)**, **Grammar Focus**, and **Sync Slides** action.
+2. Keep these fields on the `LessonBlueprint` type (they remain in state and are still passed to `sync-slides-to-blueprint` and `generate-ppp-slides`); only the sidebar UI is removed.
+3. Hub Creator pages already hydrate `setBlueprint(...)` with these fields after Generate — no extra wiring needed.
 
----
+## Phase 3 — Hub Creator handlers
 
-## Phase 3 — Generate Slides + Sidebar Hydration
+`src/pages/PlaygroundCreator.tsx`, `AcademyCreator.tsx`, `SuccessCreator.tsx`
 
-**Changes**
-1. Rename the primary submit button to `Generate Slides` (sparkles icon, hub gradient).
-2. The button is disabled until: topic is non-empty AND **all 5 vocab slots are filled AND grammar is non-empty** (phonics optional). This forces the teacher through the review step.
-3. On click, the modal calls the parent's `onGenerate({ topic, level, vocabulary, grammar, target_phonics })`. The hub page's handler:
-   - **Skips** `plan-lesson-blueprint` (the modal already owns the validated blueprint).
-   - Sets the sidebar state via `setBlueprint({ vocabulary, grammar, target_phonics, interests, specific_needs, ...keepAuxFields })` **immediately** so the left sidebar visibly fills before slide generation finishes.
-   - Calls `generate-ppp-slides` with the merged blueprint shape already in use today (including `pedagogical_framework`, `phases`, `lesson_structure` derived from sensible per-hub defaults: Playground=Immersion, Academy=Discovery, Success=TaskBased — same defaults the edge function already applies when `phases` are missing, so we can omit them and let the function fill in).
-   - On success, `setSlides(...)`, close the modal, toast `Generated N slides ✨`. Sidebar already shows the validated blueprint.
-4. Re-opening the modal preserves the last-used values (`defaultBlueprint` is read from current sidebar state), so the teacher can iterate.
+1. `generateWithAI(payload)` now uses `payload.interests` and `payload.specific_needs` directly (instead of reading them from the previous `blueprint`), and writes them into the hydrated blueprint so any later Sync still has them.
+2. Pass `defaultInterests={blueprint?.interests}` and `defaultNeeds={blueprint?.specific_needs}` into `<GenerateLessonModal>` so re-opening the modal preserves them.
 
----
+## Phase 4 — Pre-A1 across the UI
 
-## Phase 4 — Cleanup
+1. **`GenerateLessonModal.tsx`** — `THEME.playground.levels` becomes `['Pre-A1', 'A1', 'A2', 'B1', 'B2']`. The select renders a friendly suffix for Pre-A1 (`Pre-A1 — Ages 4-5 Phonics`).
+2. **`PlaygroundCreator.tsx`** — initial `aiLevel` stays `'A1'`, but the new Pre-A1 option is offered.
+3. **`src/components/creator-studio/steps/BlueprintEngine.tsx`** — add a `<SelectItem value="Pre-A1">Pre-A1 — Ages 4-5 (Phonics)</SelectItem>` above A1, gated to Playground (`hub === 'playground'`).
+4. **`src/components/creator-studio/steps/blueprint/CurriculumMap.tsx`** — extend the cefr→tier map: `if (cefr === 'PRE-A1') return 'beginner'`.
 
-- Remove the inline modal JSX block (and its hub-specific styles) from each of the three hub pages.
-- Delete the `interests` / `specific_needs` plumbing in the modal (those remain editable only in the sidebar — no UI change there).
-- No edge-function changes are required: `generate-gemini` and `generate-ppp-slides` already accept the inputs we need. We are simply removing one intermediate auto-call (`plan-lesson-blueprint`) from this entry point.
+## Phase 5 — AI prompts: Pre-A1 conditional rules
 
----
+### 5a. Modal Auto-Fill (`generate-gemini` call inside `GenerateLessonModal.tsx`)
 
-## Verification Checklist
+When `level === 'Pre-A1'`, swap the system+user prompt to:
 
-- [ ] All three hub pages render the same modal component; per-hub colors match the previous inline modal.
-- [ ] `Auto-Fill Blueprint Details` populates 5 vocab + grammar + phonics from `generate-gemini` in <3 s.
-- [ ] Teacher can edit any field after auto-fill.
-- [ ] `Generate Slides` is disabled until vocab[5] + grammar are present.
-- [ ] After clicking, the left `LessonBlueprintPanel` sidebar shows exactly the validated values.
-- [ ] Slide generation still uses `generate-ppp-slides` and produces the same hub-themed slides as before.
-- [ ] No visual regression in the Hub Creator pages (modal styling matches the prior inline version).
+> "Pre-A1 ages 4-5 mode: pick 3–4 phonetically decodable CVC words or ultra-basic nouns (Cat, Mat, Apple). Set `grammar` to an empty string. Phonics MUST be a single sound focus (e.g. `Short A: /æ/`, `Consonant M: /m/`). Return `{ vocabulary: string[3..4], grammar: \"\", target_phonics: string }`."
 
----
+The modal's "vocab filled" gate is also relaxed for Pre-A1: only **3 vocab + phonics** required (grammar may be empty); button label stays `Generate Slides`.
 
-## Technical Notes
+### 5b. Curriculum Blueprint (`supabase/functions/plan-lesson-blueprint/index.ts`)
 
-- Modal lives at `src/components/creator-studio/shared/GenerateLessonModal.tsx`; type-only re-exports the existing `LessonBlueprint` shape from `LessonBlueprintPanel`.
-- The Auto-Fill prompt is intentionally tiny (single Gemini call, ~1k output tokens) for speed and cost.
-- Sidebar hydration is performed in the hub's `onGenerate` handler before `await`-ing the slide call so the user sees the panel update instantly.
+Inject a Pre-A1 conditional block into the system prompt (only when `cefr_level === 'Pre-A1'`):
+
+> "PRE-A1 OVERRIDE — strict. Audience is 4–5 year-old true beginners and pre-readers. DO NOT generate grammar rules or full sentences. Output `vocabulary`: an array of EXACTLY 3 phonetically-decodable CVC words tied to one phonics focus (e.g. for `/æ/` → ['cat','mat','hat']). Output `grammar`: empty string. Output `target_phonics`: a single phoneme focus with IPA + grapheme + the 3 example words. `lesson_structure` MUST contain only `flashcard`, `multiple_choice` (Listen & Click), `drag_and_match`, and `drawing_canvas` slide types. Do not select Discovery or TaskBased frameworks — force `pedagogical_framework: 'Immersion'`."
+
+The function still returns the same JSON shape; only contents are constrained.
+
+### 5c. Slide generator (`supabase/functions/generate-ppp-slides/index.ts`)
+
+The Playground branch already detects `isPreA1`. Tighten it:
+
+- When `isPreA1 === true`:
+  - Override `vocabCount` to `Math.min(targetVocab.length, 4)` (cap at 4) and skip emitting the **Phase 3 GRAMMAR** block entirely (replace with one extra `multiple` "Listen & Find the letter" slide).
+  - Add the user's wording verbatim to `preA1Directive`: "DO NOT generate grammar rules or full sentences. Build the lesson solely around the target phoneme."
+  - Restrict `allowed` slide set to `{ intro, phonics_focus, vocab_solo, multiple, match, drag, draw, lesson_summary }` (drop `fill`, `truefalse`, `storybook`).
+  - Recompute the printed total-slide count accordingly.
+
+## Phase 6 — Database check
+
+Lesson creator writes to `curriculum_lessons` (column `difficulty_level` is `beginner|intermediate|advanced`, **not** CEFR). The literal CEFR string is only stored inside `content` JSONB / `ai_metadata.lesson_blueprint`. Other tables that DO check CEFR (`speaking_sessions`, `speaking_scenarios`, `student_speaking_goals`, `assessments`, `certificates`, `certificate_templates`) are not written by the creator flow, so **no migration is required**. Note in code comments that future writes of `Pre-A1` to those tables would need a CHECK update.
+
+## Verification
+
+- [ ] Sidebar shows only Vocab(5), Grammar, Sync Slides.
+- [ ] Modal contains Topic + Level + collapsible Blueprint Details with Vocab(5), Grammar, Phonics, Interests, Needs.
+- [ ] Auto-Fill populates all 5 fields (or 3 for Pre-A1, with empty grammar).
+- [ ] Selecting Pre-A1 in Playground → AI returns CVC words + phonics + no grammar; generated slides contain `phonics_focus`, `vocab_solo`, `multiple`/`match`/`drag` only; no `fill`/`truefalse`; no Phase 3.
+- [ ] Selecting Pre-A1 in BlueprintEngine surfaces a Pre-A1 unit and downstream functions accept it.
+- [ ] Existing A1–C1 flows unchanged.

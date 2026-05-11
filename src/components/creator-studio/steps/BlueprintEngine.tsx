@@ -131,6 +131,7 @@ export const BlueprintEngine: React.FC = () => {
             <Select value={cefrLevel} onValueChange={(v) => setCefrLevel(v as CEFRLevel)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
+                <SelectItem value="Pre-A1">Pre-A1 — Ages 4-5 (Phonics)</SelectItem>
                 <SelectItem value="A1">A1 — Absolute Beginner</SelectItem>
                 <SelectItem value="A2">A2 — Elementary</SelectItem>
                 <SelectItem value="B1">B1 — Intermediate</SelectItem>
