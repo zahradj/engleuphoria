@@ -1,92 +1,85 @@
 ## Goal
 
-Merge the rich lesson-architecture from the standalone Slide Studio (`steps/slide-studio/*`) into the three Hub Creators (Playground / Academy / Success) **without changing any of their visual layout, CSS, or component arrangement**. Once the Hub Creators own the advanced sequencing engine, retire the `/content-creator/slide-builder` route and its files.
+Refactor the inline "AI Generate" modal currently duplicated across the three Hub Creators (Playground / Academy / Success) into a single shared `GenerateLessonModal` component with a two-step **Auto-Fill → Generate Slides** flow. The teacher can review and edit the AI-suggested vocabulary, grammar, and phonics **before** committing to slide generation, and the validated blueprint hydrates the left-side `LessonBlueprintPanel` sidebar automatically.
 
 ---
 
-## Phase 1 — Merge the Blueprint Schemas
+## Phase 1 — Extract & Expand the Modal
 
 **Current state**
-- Hub Creators use a thin local `LessonBlueprint` shape: `{ vocabulary[5], grammar, target_phonics, interests, specific_needs }`.
-- Slide Studio's canonical schema (`steps/slide-studio/blueprintTypes.ts`) is much richer: `pedagogical_framework`, `framework_rationale`, `phases[]` (ordered `LessonPhase` sequence), `video_strategy`, `final_speaking_mission`, etc.
-- The edge function `generate-ppp-slides` already understands `phases[]` and `LESSON_PHASES`, but the Hub Creators never send them.
+- The "AI Generate" modal is inline JSX inside each hub page (`PlaygroundCreator.tsx` ~line 883, `AcademyCreator.tsx` ~855, `SuccessCreator.tsx` ~813), each with hub-specific colors. Inputs: Topic + CEFR Level only.
+- Submit calls each hub's `generateWithAI()`, which internally calls `plan-lesson-blueprint` → `generate-ppp-slides` (so the AI plans the blueprint silently, with no chance to review).
 
 **Changes**
-1. Promote `steps/slide-studio/blueprintTypes.ts` to a shared module (e.g. `src/components/creator-studio/shared/blueprintTypes.ts`) and re-export from the old path so Slide Studio keeps working.
-2. Extend the Hub Creator local `LessonBlueprint` to a **superset** that includes the Slide Studio fields (`pedagogical_framework`, `framework_rationale`, `phases`, `video_strategy`, `final_speaking_mission`, `reading_passage_summary`, etc.) while preserving the existing fields (`vocabulary`, `grammar`, `target_phonics`, `interests`, `specific_needs`) so the existing sidebar inputs keep binding to the same keys.
-3. Update `plan-lesson-blueprint` (edge function) so its JSON output contract additionally returns `pedagogical_framework`, `framework_rationale`, and a `lesson_structure` (= ordered `phases[]` plus per-phase slide-type hints derived from Slide Studio's `FRAMEWORK_DEFAULTS` and `SLIDE_TYPES`). Per-hub defaults:
-   - Playground → `Immersion` framework, kid-safe slide types.
-   - Academy → AI-chosen framework, teen slide types.
-   - Success → `TaskBased` framework, professional slide types.
-4. In each Hub Creator (`PlaygroundCreator.tsx`, `AcademyCreator.tsx`, `SuccessCreator.tsx`), capture the new fields into state when `plan-lesson-blueprint` returns. **No JSX/CSS changes** — only the in-memory blueprint shape grows.
-5. Hydration from `location.state` (post Curriculum Blueprint hand-off) and from `ai_metadata.lesson_blueprint` is updated to read/write the new fields.
-
-**Backwards compatibility**
-- All new fields are optional; old lessons hydrate fine.
-- `isBlueprintReady` updated to accept the merged shape.
+1. Create `src/components/creator-studio/shared/GenerateLessonModal.tsx`:
+   - Props: `open`, `onClose`, `hub: 'playground' | 'academy' | 'success'`, `defaultTopic`, `defaultLevel`, `defaultBlueprint?`, `onGenerate(payload) → Promise<void>`, `busy`.
+   - Hub-aware theming via the existing per-hub gradient/border tokens (read from `hubTheme.ts`); same look as today, just centralized.
+   - Renders the Topic input, CEFR select, then a new **Blueprint Details** section that is:
+     - Collapsed by default with a chevron header `Blueprint Details (auto-filled by AI)`.
+     - Auto-expands the moment Auto-Fill returns or the user clicks the header.
+     - Inputs:
+       - **Target Vocabulary** — five separate small text inputs (Word 1 … Word 5), arranged in a 5-column grid on desktop / 2-col on mobile. (Five inputs match the existing blueprint shape and the sidebar's bindings.)
+       - **Grammar Focus** — single text input.
+       - **Target Phonics** — single text input (free text label like "Short /a/").
+2. Replace the inline modal in each hub page with `<GenerateLessonModal …/>`. Hub UI stays pixel-identical because the new component reuses the same Tailwind classes per hub.
 
 ---
 
-## Phase 2 — Upgrade the "Generate Slides" Engine in the Hubs
-
-**Current state**
-- `generateWithAI()` in each Hub Creator calls `plan-lesson-blueprint` → `generate-ppp-slides`, but does not forward `phases`, `pedagogical_framework`, or `lesson_structure`. The edge function falls back to a hardcoded sequence.
+## Phase 2 — Auto-Fill Step
 
 **Changes**
-1. Update each Hub Creator's `generateWithAI()` to forward the merged blueprint into `generate-ppp-slides` body:
-   ```
-   blueprint: { ...bp, phases, pedagogical_framework, video_strategy, lesson_structure }
-   ```
-2. Update `generate-ppp-slides` to:
-   - Treat `blueprint.lesson_structure` (or `phases[]`) as the **authoritative** slide sequence.
-   - For each entry, emit a slide whose `lesson_phase` and `type` come from the structure, but whose **rendering shape** still matches the existing per-hub Slide schema already consumed by Playground/Academy/Success (i.e. the same `Slide` union types each hub already renders today). No new slide components are introduced.
-3. After receiving the response, the existing `setSlides(...)` flow stays identical; the existing styled components (`SlideCanvas`, mascot, drag-and-drop, flashcards, etc.) render the new sequence with the Hub's existing theme.
-4. Verify via `supabase--curl_edge_functions` for one sample of each hub that the returned slides:
-   - Honor the requested `phases[]` order.
-   - Use slide `type`s already supported by that hub's renderer.
-
-**Explicitly NOT changing**
-- No edits to JSX structure, Tailwind classes, layout grids, sidebar arrangement, modals, or styling tokens in `PlaygroundCreator.tsx`, `AcademyCreator.tsx`, `SuccessCreator.tsx`.
+1. Add a `✨ Auto-Fill Blueprint Details` button placed inline next to the Topic input (right side, small ghost button on desktop; full-width below the input on mobile).
+2. On click:
+   - Disable while `autoFillBusy === true`; show inline `Loader2`.
+   - Call `supabase.functions.invoke('generate-gemini', { body: { … } })` with a compact JSON-mode prompt:
+     ```
+     system: "You are an ESL Curriculum Designer. Pick 5 target vocab + 1 grammar rule + 1 phonics focus suitable for the topic and CEFR level. Hub: <hub>."
+     prompt: "TOPIC: <topic>\nCEFR LEVEL: <level>\nReturn ONLY: { vocabulary: string[5], grammar: string, target_phonics: string }"
+     responseMimeType: 'application/json'
+     temperature: 0.7
+     ```
+   - On success: populate the five vocab inputs, grammar, phonics; expand the Blueprint Details section; toast `Blueprint suggested — review and edit before generating.`
+   - On failure: surface the error via `toast.error` (handle 429 / 402 like elsewhere).
+3. Auto-Fill is **optional** — the teacher can also type values manually.
 
 ---
 
-## Phase 3 — Retire the Standalone Slide Studio
+## Phase 3 — Generate Slides + Sidebar Hydration
 
-**Dependencies to migrate first** (currently route to `/content-creator/slide-builder`):
-- `steps/TrialCreator.tsx` — on success, navigates to `slide-builder`.
-- `steps/StoryCreator.tsx` — same.
-- `steps/LibraryManager.tsx` — `handleCreateNew('all')` and `handleEdit` for non-hub lessons fall back to `slide-builder`.
+**Changes**
+1. Rename the primary submit button to `Generate Slides` (sparkles icon, hub gradient).
+2. The button is disabled until: topic is non-empty AND **all 5 vocab slots are filled AND grammar is non-empty** (phonics optional). This forces the teacher through the review step.
+3. On click, the modal calls the parent's `onGenerate({ topic, level, vocabulary, grammar, target_phonics })`. The hub page's handler:
+   - **Skips** `plan-lesson-blueprint` (the modal already owns the validated blueprint).
+   - Sets the sidebar state via `setBlueprint({ vocabulary, grammar, target_phonics, interests, specific_needs, ...keepAuxFields })` **immediately** so the left sidebar visibly fills before slide generation finishes.
+   - Calls `generate-ppp-slides` with the merged blueprint shape already in use today (including `pedagogical_framework`, `phases`, `lesson_structure` derived from sensible per-hub defaults: Playground=Immersion, Academy=Discovery, Success=TaskBased — same defaults the edge function already applies when `phases` are missing, so we can omit them and let the function fill in).
+   - On success, `setSlides(...)`, close the modal, toast `Generated N slides ✨`. Sidebar already shows the validated blueprint.
+4. Re-opening the modal preserves the last-used values (`defaultBlueprint` is read from current sidebar state), so the teacher can iterate.
 
-**Migration**
-1. Route those flows to the matching Hub Creator using the existing `detectLessonHub` / `creatorPathFor` helpers (default `academy` when unknown), passing `?lessonId=` so the hub hydrates from DB.
-2. Remove `slide-builder` from:
-   - `CreatorContext.tsx` `CreatorStep` union.
-   - `CreatorStudioShell.tsx` route mapping and component switch.
-   - `StudioSidebar.tsx`, `StudioMobileNav.tsx`, `StudioHeader.tsx` nav entries and labels.
-   - `ContentCreatorSidebar.tsx` step union.
+---
 
-**Deletions** (after the above compiles cleanly)
-- `src/components/creator-studio/steps/SlideStudio.tsx` (1-line re-export).
-- `src/components/creator-studio/steps/slide-studio/` entire directory **except** `blueprintTypes.ts` (already moved in Phase 1) and any utility still imported by hubs (`phaseTheme.ts`, `mediaGeneration.ts`, `uploadSlideAsset.ts`, `PhaseTracker`-related helpers — audit first; move to `shared/` if reused).
+## Phase 4 — Cleanup
 
-**Route cleanup**
-- Remove the in-shell `/content-creator/slide-builder` (handled by `CreatorStudioShell`'s path matching). No `App.tsx` route to delete (none exists today for `slide-builder` directly).
+- Remove the inline modal JSX block (and its hub-specific styles) from each of the three hub pages.
+- Delete the `interests` / `specific_needs` plumbing in the modal (those remain editable only in the sidebar — no UI change there).
+- No edge-function changes are required: `generate-gemini` and `generate-ppp-slides` already accept the inputs we need. We are simply removing one intermediate auto-call (`plan-lesson-blueprint`) from this entry point.
 
 ---
 
 ## Verification Checklist
 
-- [ ] Visual diff of Playground/Academy/Success Creator pages: pixel-identical to before.
-- [ ] `plan-lesson-blueprint` returns merged schema including `phases` and `pedagogical_framework`.
-- [ ] `generate-ppp-slides` honors `blueprint.lesson_structure` order.
-- [ ] Trial, Story, Library "create new" all land in a Hub Creator with the lesson hydrated.
-- [ ] No remaining import of `steps/slide-studio/SlideStudio` anywhere in `src/`.
-- [ ] Build passes; `rg "slide-builder" src` returns zero matches.
+- [ ] All three hub pages render the same modal component; per-hub colors match the previous inline modal.
+- [ ] `Auto-Fill Blueprint Details` populates 5 vocab + grammar + phonics from `generate-gemini` in <3 s.
+- [ ] Teacher can edit any field after auto-fill.
+- [ ] `Generate Slides` is disabled until vocab[5] + grammar are present.
+- [ ] After clicking, the left `LessonBlueprintPanel` sidebar shows exactly the validated values.
+- [ ] Slide generation still uses `generate-ppp-slides` and produces the same hub-themed slides as before.
+- [ ] No visual regression in the Hub Creator pages (modal styling matches the prior inline version).
 
 ---
 
 ## Technical Notes
 
-- Shared types live under `src/components/creator-studio/shared/` to keep import paths short.
-- Edge-function changes are additive (new optional fields in request body, richer JSON response). Old callers continue to work.
-- Slide rendering components in each Hub are untouched; only the **data feeding them** is enriched, satisfying the "do not change UI" constraint.
+- Modal lives at `src/components/creator-studio/shared/GenerateLessonModal.tsx`; type-only re-exports the existing `LessonBlueprint` shape from `LessonBlueprintPanel`.
+- The Auto-Fill prompt is intentionally tiny (single Gemini call, ~1k output tokens) for speed and cost.
+- Sidebar hydration is performed in the hub's `onGenerate` handler before `await`-ing the slide call so the user sees the panel update instantly.
