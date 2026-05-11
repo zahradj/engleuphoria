@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { useAdminPendingCounts } from '@/hooks/useAdminPendingCounts';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { AdminOverview } from '@/components/admin/AdminOverview';
