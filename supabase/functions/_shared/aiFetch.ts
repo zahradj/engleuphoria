@@ -39,11 +39,28 @@ function geminiModelToGateway(geminiModel: string): string {
   return "google/gemini-2.5-flash";
 }
 
+// Recursively strip JSON-Schema fields Gemini's REST API does not accept
+// (`additionalProperties`, `$schema`, `definitions`, `$ref`). This lets us
+// reuse the same OpenAI-style tool schemas across both providers.
+function sanitizeForGemini(node: any): any {
+  if (Array.isArray(node)) return node.map(sanitizeForGemini);
+  if (node && typeof node === "object") {
+    const out: any = {};
+    for (const [k, v] of Object.entries(node)) {
+      if (k === "additionalProperties" || k === "$schema" || k === "definitions" || k === "$ref") continue;
+      out[k] = sanitizeForGemini(v);
+    }
+    return out;
+  }
+  return node;
+}
+
 // Convert an OpenAI-style request -> Gemini direct, call it, then translate
 // the Gemini response back into an OpenAI-style Response so callers don't break.
 async function fallbackGatewayToGemini(originalBody: any): Promise<Response> {
   const apiKey = Deno.env.get("GEMINI_API_KEY");
   if (!apiKey) throw new Error("Failover failed: GEMINI_API_KEY not configured");
+
 
   const messages: Array<{ role: string; content: string }> = originalBody.messages || [];
   const systemMessages = messages.filter((m) => m.role === "system");
