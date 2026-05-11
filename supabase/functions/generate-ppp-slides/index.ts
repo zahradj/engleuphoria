@@ -332,6 +332,7 @@ RULES:
         }
       }
 
+      enforceVisualTheme(playground_slides);
       return new Response(JSON.stringify({ playground_slides }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
