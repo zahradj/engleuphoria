@@ -754,6 +754,7 @@ export default function PlaygroundCreator() {
                   unitNumber: (lessonHook.lesson as any)?.unit_number,
                   unitTitle: (lessonHook.lesson as any)?.unit_title,
                   lessonNumber: (lessonHook.lesson as any)?.lesson_number,
+                  hub: 'playground' as const,
                 };
                 return (
                   <div className="rounded-xl bg-gradient-to-br from-orange-400 via-amber-300 to-yellow-200 p-4 min-h-[420px] flex items-center justify-center">
