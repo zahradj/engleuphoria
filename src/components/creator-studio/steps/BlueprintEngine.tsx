@@ -44,6 +44,27 @@ export const BlueprintEngine: React.FC = () => {
     setError(null);
     setIsGenerating(true);
     try {
+      // Anti-Repetition: pull this user's last 5 lesson titles so Gemini
+      // can't recycle themes/storylines from their recent generations.
+      let previousTopics: string[] = [];
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.id) {
+          const { data: recent } = await supabase
+            .from('curriculum_lessons')
+            .select('title')
+            .eq('created_by', user.id)
+            .order('created_at', { ascending: false })
+            .limit(5);
+          previousTopics = (recent || [])
+            .map((r: any) => String(r?.title || '').trim())
+            .filter(Boolean);
+        }
+      } catch (prevErr) {
+        // Fail-open: missing previous topics shouldn't block generation.
+        console.warn('Could not load previous lesson titles:', prevErr);
+      }
+
       const { data, error } = await supabase.functions.invoke('generate-curriculum-blueprint', {
         body: {
           cefr_level: cefrLevel,
@@ -52,6 +73,7 @@ export const BlueprintEngine: React.FC = () => {
           unit_count: unitCount,
           lessons_per_unit: lessonsPerUnit,
           theme_hint: theme.trim(),
+          previous_topics: previousTopics,
         },
       });
       if (error) throw error;
@@ -83,7 +105,8 @@ export const BlueprintEngine: React.FC = () => {
       };
       setCurriculumData(next);
       const totalLessons = units.reduce((n: number, u: any) => n + u.lessons.length, 0);
-      toast.success(`Blueprint ready · ${units.length} units · ${totalLessons} lessons`);
+      const genreNote = data?.chosen_genre ? ` · genre: ${data.chosen_genre}` : '';
+      toast.success(`Blueprint ready · ${units.length} units · ${totalLessons} lessons${genreNote}`);
 
     } catch (err: any) {
       console.error('Blueprint generation error:', err);

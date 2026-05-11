@@ -2,6 +2,7 @@
 // Calls Google Gemini directly (Google AI Studio).
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { requireAuth } from '../_shared/authGuard.ts';
+import { buildStudioSystemPrompt } from '../_shared/studioPersona.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -10,7 +11,7 @@ const corsHeaders = {
 };
 
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-const MODEL = 'gemini-1.5-flash';
+const MODEL = 'gemini-2.5-flash';
 
 function tolerantJsonParse(raw: string): any | null {
   if (!raw) return null;
@@ -39,7 +40,7 @@ serve(async (req) => {
   }
 
   try {
-    const { texts, direction, targetLevel, hub } = await req.json();
+    const { texts, direction, targetLevel, hub, age_group, target_grammar } = await req.json();
     if (!Array.isArray(texts) || texts.length === 0) {
       return new Response(JSON.stringify({ error: 'texts (array) is required' }), {
         status: 400,
@@ -50,11 +51,22 @@ serve(async (req) => {
     const level = targetLevel || (hub === 'playground' ? 'A1' : 'B1');
     if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not configured');
 
-    const sys = `You are an ESL editor. Rewrite each input string to be ${dir} for a ${level} learner. Preserve meaning, length range (±25%), and tone. ${
+    const persona = buildStudioSystemPrompt({
+      role: 'rewriter',
+      cefr: level,
+      ageGroup: age_group,
+      hub,
+      targetGrammar: target_grammar,
+      outputContract: 'Return STRICT JSON: { "rewritten": string[] } with the SAME order and length as the input array.',
+    });
+
+    const sys = `${persona}
+
+Rewrite each input string to be ${dir} for a ${level} learner. Preserve meaning, length range (±25%), and tone. ${
       dir === 'easier'
         ? 'Use shorter sentences, common words, simpler grammar.'
         : 'Use richer vocabulary, more complex grammar (subordinate clauses, varied tenses).'
-    } Return STRICT JSON: { "rewritten": string[] } with the SAME order and length as the input array.`;
+    }`;
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`;
     const resp = await fetch(url, {
