@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { generateGoogleImage, GoogleImageError } from "../_shared/googleImageClient.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,15 +13,9 @@ serve(async (req) => {
 
   try {
     const { characterDescription, characterName } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
+    console.log(`🎨 Generating image for ${characterName} via Google AI Studio...`);
 
-    console.log(`🎨 Generating image for ${characterName} using Gemini...`);
-
-    // Enhanced prompt for better Gemini image generation
     const prompt = `Create a high-quality cartoon character illustration for a children's English learning app:
 
 CHARACTER: ${characterName}
@@ -40,61 +35,27 @@ AVOID: realistic details, scary features, dark colors, complex backgrounds
 
 Generate a single, clear image of this character.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image-preview",
-        messages: [
-          {
-            role: "user",
-            content: prompt
-          }
-        ],
-        modalities: ["image", "text"]
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("❌ Gemini image generation error:", response.status, errorText);
-      
-      // Handle rate limiting
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      
-      throw new Error(`Image generation failed: ${response.status}`);
+    try {
+      const { dataUrl } = await generateGoogleImage(prompt);
+      console.log(`✅ Image generated successfully for ${characterName}`);
+      return new Response(
+        JSON.stringify({ imageUrl: dataUrl }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    } catch (e) {
+      const err = e as GoogleImageError;
+      const status = err.status ?? 500;
+      console.error("❌ Google image generation error:", status, err.message);
+      return new Response(
+        JSON.stringify({ error: err.message }),
+        { status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
-
-    const data = await response.json();
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
-    if (!imageUrl) {
-      console.error("❌ No image URL in response:", JSON.stringify(data));
-      throw new Error("No image generated - check Gemini API response format");
-    }
-
-    console.log(`✅ Image generated successfully for ${characterName}`);
-
-    return new Response(
-      JSON.stringify({ imageUrl }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
   } catch (error) {
     console.error("Error in generate-character-image:", error);
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      JSON.stringify({ error: error instanceof Error ? error.message : "Internal server error" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
