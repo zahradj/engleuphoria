@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { useAdminPendingCounts } from '@/hooks/useAdminPendingCounts';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { AdminOverview } from '@/components/admin/AdminOverview';
@@ -28,9 +30,24 @@ import { Loader2, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') || 'overview';
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const { isAdmin, isLoading, user } = useAdminAuth();
+  const { profileApprovals, loading: countsLoading } = useAdminPendingCounts();
+  const autoRoutedRef = useRef(false);
+
+  // Auto-jump to Profile Approvals when items are waiting and admin hasn't navigated yet.
+  useEffect(() => {
+    if (autoRoutedRef.current) return;
+    if (countsLoading) return;
+    if (searchParams.get('tab')) { autoRoutedRef.current = true; return; }
+    if (activeTab === 'overview' && profileApprovals > 0) {
+      setActiveTab('profile-review');
+    }
+    autoRoutedRef.current = true;
+  }, [countsLoading, profileApprovals, activeTab, searchParams]);
 
   if (isLoading) {
     return (

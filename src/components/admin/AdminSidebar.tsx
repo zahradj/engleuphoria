@@ -77,22 +77,28 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
             {managementItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
+              const hasBadge = !!item.badge && item.badge > 0;
               return (
                 <Button
                   key={item.id}
                   variant="ghost"
-                  className={`w-full justify-start transition-all ${
+                  className={`w-full justify-start transition-all relative ${
                     isActive
                       ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/20'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                      : hasBadge
+                        ? 'text-foreground font-semibold bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/30 dark:hover:bg-amber-950/50 ring-1 ring-amber-300/60'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                   }`}
                   onClick={() => onTabChange(item.id)}
                 >
-                  <Icon className="h-4 w-4 mr-3" />
+                  {hasBadge && !isActive && (
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r bg-amber-500 animate-pulse" />
+                  )}
+                  <Icon className={`h-4 w-4 mr-3 ${hasBadge && !isActive ? 'text-amber-600 dark:text-amber-400' : ''}`} />
                   <span className="flex-1 text-left">{item.label}</span>
-                  {item.badge && item.badge > 0 ? (
-                    <span className="ml-2 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold">
-                      {item.badge > 99 ? '99+' : item.badge}
+                  {hasBadge ? (
+                    <span className="ml-2 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold animate-pulse">
+                      {item.badge! > 99 ? '99+' : item.badge}
                     </span>
                   ) : null}
                 </Button>

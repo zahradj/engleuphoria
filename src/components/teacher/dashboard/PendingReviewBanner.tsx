@@ -1,12 +1,17 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Clock, CheckCircle, Bell } from 'lucide-react';
+import { Clock, CheckCircle, Bell, Shield, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface PendingReviewBannerProps {
   teacherName: string;
 }
 
 export const PendingReviewBanner: React.FC<PendingReviewBannerProps> = ({ teacherName }) => {
+  const { user } = useAuth();
+  const isAdmin = (user as any)?.role === 'admin';
   return (
     <div className="min-h-[60vh] flex items-center justify-center p-6">
       <Card className="max-w-2xl w-full border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 dark:border-amber-800">
@@ -63,6 +68,21 @@ export const PendingReviewBanner: React.FC<PendingReviewBannerProps> = ({ teache
                 </li>
               </ul>
             </div>
+
+            {isAdmin && (
+              <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-sm text-foreground">
+                  <Shield className="w-4 h-4 text-primary" />
+                  <span>You're signed in as an admin — review this profile now.</span>
+                </div>
+                <Button asChild size="sm">
+                  <Link to="/super-admin?tab=profile-review">
+                    Open Profile Approvals
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </Link>
+                </Button>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

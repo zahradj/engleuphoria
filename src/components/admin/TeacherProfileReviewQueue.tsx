@@ -87,6 +87,8 @@ export const TeacherProfileReviewQueue = () => {
       });
 
       setPending(merged);
+      // Auto-expand the first pending teacher so the reviewer is one click from Approve.
+      setExpandedId(prev => prev ?? (merged[0]?.id ?? null));
     } catch (err) {
       console.error('Error fetching pending profiles:', err);
       toast.error('Failed to load pending profiles');
