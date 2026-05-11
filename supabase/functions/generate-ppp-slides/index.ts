@@ -576,6 +576,16 @@ RULE 6 — INTERACTIVE_DATA SHAPES (by slide_type)
 • drag_and_match   → { "instruction": string, "pairs": [{"left_item": string, "right_item": string, "left_thumbnail_keyword"?: string, "right_thumbnail_keyword"?: string}] }
                      // EXACTLY 3 pairs.
 • fill_in_the_gaps → { "instruction": string, "sentence_parts": string[], "missing_word": string, "distractors": string[2..3] }
+• drag_and_drop_sorting → { "instruction": string, "categories": string[2..3], "draggable_items": [{"text": string, "category": string}] }
+                          // 8-12 items distributed across categories. Example for /sh/ vs /th/:
+                          // { categories: ["sh","th"], draggable_items: [{text:"ship",category:"sh"},{text:"this",category:"th"},...] }
+• matching_lines → { "instruction": string, "left_column": string[3..6], "right_column": string[3..6], "pairs": [[leftIdx, rightIdx], ...] }
+                   // Example present↔past:
+                   // { left_column:["go","eat","run"], right_column:["ate","ran","went"], pairs:[[0,2],[1,0],[2,1]] }
+• tracing_canvas → { "instruction": string, "target_letters": string[1..4], "font_style": "print" | "cursive" }
+                   // Pre-A1 / Playground only. Example: { target_letters:["C","c"], font_style:"print" }
+• spinner_wheel → { "instruction": string, "wheel_segments": string[4..8], "prompt_template"?: string }
+                  // Speaking practice. Example: { wheel_segments:["cat","mat","hat","bat"], prompt_template:"Say: {segment}" }
 
 ═══════════════════════════════════════════════════════
 RULE 6B — PREMIUM EDITORIAL SLIDE TYPES (OPTIONAL — USE FOR RICHER UX)
@@ -823,7 +833,7 @@ Top-level shape:
 Each slide object MUST have these keys:
   "phase": "Hook" | "Presentation" | "Practice" | "Production" | "Mission",
   "lesson_phase": "Vocabulary" | "Reading" | "Comprehension" | "Grammar" | "Speaking" | "Writing",
-  "slide_type": "mascot_speech" | "multiple_choice" | "drawing_canvas" | "drag_and_drop" | "flashcard" | "drag_and_match" | "fill_in_the_gaps" | "hero_media" | "vocab_list" | "grammar_explanation" | "sorting_game" | "fill_in_blanks" | "match_halves" | "quiz_mcq" | "role_play" | "audio_listening" | "true_false" | "sentence_builder" | "reading_quiz" | "listening_comprehension" | "match_words" | "image_match" | "shadowing_drill" | "real_world_task" | "branching_dialogue",
+  "slide_type": "mascot_speech" | "multiple_choice" | "drawing_canvas" | "drag_and_drop" | "flashcard" | "drag_and_match" | "fill_in_the_gaps" | "hero_media" | "vocab_list" | "grammar_explanation" | "sorting_game" | "fill_in_blanks" | "match_halves" | "quiz_mcq" | "role_play" | "audio_listening" | "true_false" | "sentence_builder" | "reading_quiz" | "listening_comprehension" | "match_words" | "image_match" | "shadowing_drill" | "real_world_task" | "branching_dialogue" | "drag_and_drop_sorting" | "matching_lines" | "tracing_canvas" | "spinner_wheel",
   "media_type": "image" | "video",
   "layout_style": "split_left" | "split_right" | "center_card" | "full_background",
   "title": string,

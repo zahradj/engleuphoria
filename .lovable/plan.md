@@ -1,44 +1,53 @@
-## Diagnosis
+## Goal
+Add four new gamified interactive slide types — `drag_and_drop_sorting`, `matching_lines`, `tracing_canvas`, `spinner_wheel` — end-to-end: AI blueprint schema → slide generator → renderer → blueprint preview badges.
 
-The teacher you logged in as (`djaanine.zahra@gmail.com`) is correctly in the "Pending Approval" state in the database:
+## Phase 1 — AI Schema (edge functions)
 
-- `profile_complete = true`
-- `profile_approved_by_admin = false`
-- `hub_role = playground_specialist`
+**`supabase/functions/plan-lesson-blueprint/index.ts`**
+- Extend the allowed `slide_type` whitelist (lines 102–103 and 134) to include the four new types.
+- Add a `GAMIFIED ACTIVITY CATALOG` block to the system prompt with required `activity_data` shapes:
+  - `drag_and_drop_sorting` → `{ categories: string[], draggable_items: { text, category }[] }`
+  - `matching_lines` → `{ left_column: string[], right_column: string[], pairs: [li, ri][] }`
+  - `tracing_canvas` → `{ target_letters: string[], font_style?: 'print'|'cursive' }` (Pre-A1 / Playground)
+  - `spinner_wheel` → `{ wheel_segments: string[], prompt_template?: string }`
+- Tier hint: tracing/spinner default Pre-A1/A1; sorting/matching bias A2+.
+- Add: "REQUIRED — every practice phase must use one of the gamified types when appropriate."
 
-So the teacher dashboard is right to show "Profile under review."
+**`supabase/functions/generate-ppp-slides/index.ts`**
+- Mirror the four `slide_type` values in the slide-generation prompt with example payloads to lock the JSON shape.
 
-The admin queue **does exist** and **does contain this teacher** — it lives under the **"Profile Review"** sidebar tab in the Admin Dashboard (`TeacherProfileReviewQueue` component). A live DB query confirms 1 pending profile is waiting there right now.
+## Phase 2 — UI components & renderer mapping
 
-The problem is **discoverability**: the admin dashboard has three overlapping teacher tabs ("Teachers", "Teacher Applications", "Profile Review") and nothing tells the super admin that a teacher is waiting in the Profile Review bucket. The Overview / Super Admin Control Center never surfaces this count, and the sidebar item has no badge — so it looks like "there is no pending teacher" when in fact there is one, just one click away.
+Create under `src/components/lesson-player/activities/`:
+- `DragAndDropSlide.tsx` — categories + draggable items, scores correct/incorrect.
+- `MatchingLinesSlide.tsx` — two columns, SVG line connectors.
+- `TracingSlide.tsx` — `<canvas>` with faded target letter, stroke-coverage tracking, Playground-styled.
+- `SpinnerWheelSlide.tsx` — animated wheel; on stop hands off the chosen word to existing `SpeakingPractice`.
 
-## Plan
+All four components: signature `{ slide, hub, onCorrect, onIncorrect, onComplete }` matching `EditorialSortingGame` / `DragAndMatch`. Read payload from `slide.activity_data ?? slide.interactive_data`.
 
-### 1. Add a live "pending count" badge to the sidebar
-- In `src/components/admin/AdminSidebar.tsx`, fetch the count of `teacher_profiles` where `profile_complete = true AND profile_approved_by_admin = false` (and the parallel count for `teacher_applications` pending interview, so both pipelines are visible).
-- Render a small red pill next to "Profile Review" and "Teacher Applications" when the count > 0.
-- Re-fetch on tab change and every 60s.
+**`src/components/lesson-player/DynamicSlideRenderer.tsx`**
+- Add the four keys to `INTERACTIVE_REQUIRED_KEYS`:
+  - `drag_and_drop_sorting: ['categories', 'draggable_items']`
+  - `matching_lines: ['left_column', 'right_column']`
+  - `tracing_canvas: ['target_letters']`
+  - `spinner_wheel: ['wheel_segments']`
+- Add four new branches to the `directorType` switch (~line 408) rendering the new components.
 
-### 2. Add an "Action Required" card to the Admin Overview
-- In `AdminOverview` (and mirror in `SuperAdminControlCenter`), add a card at the top that lists:
-  - N teacher profiles awaiting approval → button jumps to `profile-review` tab
-  - N teacher applications awaiting interview decision → jumps to `teacher-applications`
-- The card only renders when at least one count > 0, so it disappears on a clean queue.
+## Phase 3 — Blueprint preview badges
 
-### 3. Clarify the labels so the three tabs stop colliding
-Rename in `AdminSidebar.tsx`:
-- "Teacher Applications" → **"Applications & Interviews"** (hiring pipeline before they're hired)
-- "Profile Review" → **"Profile Approvals"** with subtitle "Review bio + intro video" (post-hire activation gate)
-- "Teachers" → **"Active Teachers"** (already-approved roster)
-
-### 4. Wire the teacher-side message to the right tab
-Update the `PendingReviewBanner` shown to the teacher to say *"An admin is reviewing your bio and intro video — usually within 24h"* so the wording matches what the admin actually sees in **Profile Approvals**.
-
-## Out of scope
-- No DB schema changes; no RLS changes; the data and approval action already work.
-- No change to teacher onboarding flow or to `useTeacherStatus` logic.
+In `src/components/creator-studio/shared/LessonBlueprintPanel.tsx` (and any inline preview in `BlueprintEngine` / `CurriculumMap`):
+- Add a `SLIDE_TYPE_META` lookup `{ icon, label, color }` per slide_type using lucide icons: `MousePointerClick` (sorting), `GitCompareArrows` (matching), `Pencil` (tracing), `Disc3` (spinner) plus existing types.
+- Render icon + colored badge next to each `lesson_structure` row.
+- Use hub theme tokens — no raw colors — so badges respect Playground/Academy/Success palettes.
 
 ## Verification
-- Reload `/dashboard` as super admin → red "1" badge on **Profile Approvals**, Action Required card on Overview links to it.
-- Open the tab → existing queue lists `djaanine.zahra@gmail.com`, the existing Approve button activates her.
-- After approval, badge and card disappear; teacher dashboard flips from "under review" to the full Novakid dashboard on next refresh.
+- Call `plan-lesson-blueprint` Pre-A1 Playground → returns `lesson_structure` containing `tracing_canvas` and `spinner_wheel`.
+- Call `generate-ppp-slides` from that blueprint → resulting slides contain matching `activity_data` keys.
+- Open the lesson in the player → each component renders, scores, advances.
+- Regenerate a blueprint in Creator Studio → preview shows new colored badges.
+
+## Out of scope
+- No DB schema changes (`slide_type` is free text).
+- No edits to existing `EditorialSortingGame` / `DragAndMatch` components.
+- No new audio wiring; spinner reuses existing `SpeakingPractice` flow.

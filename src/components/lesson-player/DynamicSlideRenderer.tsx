@@ -43,6 +43,10 @@ import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConf
 import PlaygroundDragDrop from './activities/PlaygroundDragDrop';
 import PlaygroundMatchPictures from './activities/PlaygroundMatchPictures';
 import PlaygroundPopBubble from './activities/PlaygroundPopBubble';
+import DragAndDropSortingSlide from './activities/DragAndDropSortingSlide';
+import MatchingLinesSlide from './activities/MatchingLinesSlide';
+import TracingCanvasSlide from './activities/TracingCanvasSlide';
+import SpinnerWheelSlide from './activities/SpinnerWheelSlide';
 import AcademyQuiz from './activities/AcademyQuiz';
 import AcademyFillBlanks from './activities/AcademyFillBlanks';
 import AcademySentenceUnscramble from './activities/AcademySentenceUnscramble';
@@ -212,12 +216,16 @@ const INTERACTIVE_REQUIRED_KEYS: Record<string, string[]> = {
   true_false: ['statements'],
   drag_and_match: ['pairs'],
   drag_and_drop: ['items', 'targets'],
+  drag_and_drop_sorting: ['categories', 'draggable_items'],
+  matching_lines: ['left_column', 'right_column'],
+  tracing_canvas: ['target_letters'],
+  spinner_wheel: ['wheel_segments'],
 };
 
 const hasValidInteractiveData = (slide: any, type: string): boolean => {
   const required = INTERACTIVE_REQUIRED_KEYS[type];
   if (!required) return true;
-  const data = slide?.interactive_data || slide?.content;
+  const data = slide?.activity_data || slide?.interactive_data || slide?.content;
   if (!data || typeof data !== 'object') return false;
   return required.some((k) => {
     const v = (data as any)[k];
@@ -454,6 +462,18 @@ export default function DynamicSlideRenderer({
     }
     if (directorType === 'drag_and_drop') {
       return <PlaygroundDragDrop slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    }
+    if (directorType === 'drag_and_drop_sorting') {
+      return <DragAndDropSortingSlide slide={slide} hub={hub === 'professional' ? 'success' : hub as any} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} onComplete={onComplete} />;
+    }
+    if (directorType === 'matching_lines') {
+      return <MatchingLinesSlide slide={slide} hub={hub === 'professional' ? 'success' : hub as any} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} onComplete={onComplete} />;
+    }
+    if (directorType === 'tracing_canvas') {
+      return <TracingCanvasSlide slide={slide} hub={hub === 'professional' ? 'success' : hub as any} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} onComplete={onComplete} />;
+    }
+    if (directorType === 'spinner_wheel') {
+      return <SpinnerWheelSlide slide={slide} hub={hub === 'professional' ? 'success' : hub as any} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} onComplete={onComplete} />;
     }
     if (directorType === 'fill_in_the_gaps') {
       return <FillInTheGaps slide={slide} hub={hub} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
