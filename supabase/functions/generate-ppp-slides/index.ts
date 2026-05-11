@@ -59,7 +59,12 @@ Deno.serve(async (req) => {
       blueprint, // ← Approved Blueprint (optional). When present, treated as ground truth.
       student_profile, // ← Hyper-personalization: { industry, age, interests[] }
       hub_type, // ← when 'playground', returns the kid-friendly Playground schema instead of the 20-slide Academy deck.
+      previous_topics, // ← anti-repetition list (last N lesson titles by this user)
     } = body || {};
+
+    const prevTopics: string[] = Array.isArray(previous_topics)
+      ? previous_topics.filter((s: unknown) => typeof s === 'string' && s.trim()).slice(0, 10)
+      : [];
 
     // Allow the title to fall back to blueprint.lesson_title when caller omits it.
     const effectiveTitle: string | undefined = lesson_title || blueprint?.lesson_title;
