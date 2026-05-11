@@ -43,6 +43,10 @@ import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConf
 import PlaygroundDragDrop from './activities/PlaygroundDragDrop';
 import PlaygroundMatchPictures from './activities/PlaygroundMatchPictures';
 import PlaygroundPopBubble from './activities/PlaygroundPopBubble';
+import DragAndDropSortingSlide from './activities/DragAndDropSortingSlide';
+import MatchingLinesSlide from './activities/MatchingLinesSlide';
+import TracingCanvasSlide from './activities/TracingCanvasSlide';
+import SpinnerWheelSlide from './activities/SpinnerWheelSlide';
 import AcademyQuiz from './activities/AcademyQuiz';
 import AcademyFillBlanks from './activities/AcademyFillBlanks';
 import AcademySentenceUnscramble from './activities/AcademySentenceUnscramble';
