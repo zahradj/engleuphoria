@@ -1269,45 +1269,16 @@ function SlideEditor({ slide, onChange, blueprint, hub = 'playground', lessonId,
         </div>
       );
 
-    case 'phonics_focus': {
-      const ps: any = slide;
-      const examples: string[] = Array.isArray(ps.example_words) ? ps.example_words : [];
-      const setExample = (i: number, v: string) => {
-        const next = [...examples];
-        next[i] = v;
-        onChange({ example_words: next.filter((_, idx) => idx < 3 || next[idx]?.trim()) } as any);
-      };
-      while (examples.length < 3) examples.push('');
+    case 'phonics_focus':
       return (
-        <div className="space-y-3">
-          <Field label="Grapheme / Letter (large display)">
-            <input className={inputCls} value={ps.grapheme || ''} onChange={(e) => onChange({ grapheme: e.target.value } as any)} placeholder="a" />
-          </Field>
-          <Field label="Phoneme (IPA)">
-            <input className={inputCls} value={ps.phoneme || ''} onChange={(e) => onChange({ phoneme: e.target.value, sound_ipa: e.target.value } as any)} placeholder="/æ/" />
-          </Field>
-          <Field label="Headline (optional)">
-            <input className={inputCls} value={ps.label || ''} onChange={(e) => onChange({ label: e.target.value } as any)} placeholder="Listen to the sound" />
-          </Field>
-          <div>
-            <span className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Example Words (3, from your vocabulary)</span>
-            <div className="space-y-1.5">
-              {[0, 1, 2].map((i) => (
-                <input
-                  key={i}
-                  className={inputCls}
-                  placeholder={`example ${i + 1}`}
-                  value={examples[i] || ''}
-                  onChange={(e) => setExample(i, e.target.value.toUpperCase())}
-                />
-              ))}
-            </div>
-          </div>
-          <p className="text-[11px] text-slate-500">Generate the isolated sound in the <b>AI Media & Audio</b> tab — it binds to the 🔊 button.</p>
-          {VoiceFields}
-        </div>
+        <PhonicsFocusEditor
+          slide={slide as any}
+          onChange={onChange as any}
+          lessonId={lessonId || 'draft'}
+          slideId={slideId || 'phonics'}
+          VoiceFields={VoiceFields}
+        />
       );
-    }
 
     case 'match':
       return (
