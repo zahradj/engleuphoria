@@ -18,6 +18,35 @@ const CEFR_RULES: Record<string, string> = {
 const SKILL_ROTATION = ["Grammar", "Vocabulary", "Reading/Listening", "Speaking"];
 const VALID_SKILLS = ["Grammar", "Vocabulary", "Reading/Listening", "Speaking", "Review"];
 
+// ── Dynamic Scope & Sequence: theme genre pools by CEFR band ────────────
+// Hub names are NOT themes — these pools force diverse, age-appropriate
+// genres regardless of which hub the user is generating for.
+const GENRE_POOLS: Record<string, string[]> = {
+  beginner: [
+    "Space Adventure", "Magical Creatures", "Superheroes",
+    "Under the Sea", "Robot Friends",
+  ],
+  intermediate: [
+    "Detective Mystery", "Time Travel", "Sports Championship",
+    "Jungle Survival", "Teen Drama",
+  ],
+  advanced: [
+    "Business Negotiation", "Sci-Fi Cyberpunk", "Ethical Dilemma",
+    "Global Tech Startup", "Historical Documentary",
+  ],
+};
+
+function bandForCefr(cefr: string): "beginner" | "intermediate" | "advanced" {
+  if (cefr === "A1") return "beginner";
+  if (cefr === "A2" || cefr === "B1") return "intermediate";
+  return "advanced"; // B2, C1, C2
+}
+
+function pickGenre(cefr: string): string {
+  const pool = GENRE_POOLS[bandForCefr(cefr)];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 // Tiny UUIDv4 generator (no external deps)
 function uuid(): string {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
