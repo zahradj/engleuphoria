@@ -357,6 +357,28 @@ export default function GenerateLessonModal({
 
                 {expanded && (
                   <div className="p-4 space-y-4 bg-white">
+                    <label className="block">
+                      <span className={labelCls}>🎯 Learning Objective (SWBAT)</span>
+                      <textarea
+                        className={`${inputCls} resize-none`}
+                        rows={2}
+                        value={learningObjective}
+                        onChange={(e) => setLearningObjective(e.target.value)}
+                        placeholder="Auto-filled by AI — e.g. Student will be able to order food at a restaurant using polite requests."
+                        disabled={busy}
+                      />
+                    </label>
+                    <label className="block">
+                      <span className={labelCls}>🏁 Final Output Task</span>
+                      <textarea
+                        className={`${inputCls} resize-none`}
+                        rows={2}
+                        value={finalOutputTask}
+                        onChange={(e) => setFinalOutputTask(e.target.value)}
+                        placeholder="Auto-filled by AI — e.g. Roleplay: order a 3-course meal with a partner using all 5 target words."
+                        disabled={busy}
+                      />
+                    </label>
                     <div>
                       <span className={labelCls}>
                         {isPreA1 ? 'Target Vocabulary (3-4 CVC words)' : 'Target Vocabulary (5 words)'}
