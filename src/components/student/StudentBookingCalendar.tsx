@@ -36,7 +36,11 @@ export const StudentBookingCalendar = ({
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
 
-  // Real-time subscription for availability changes
+  // Real-time subscription for availability changes.
+  // No column filter — DELETE events under default replica identity don't
+  // carry column values, so a filter like `is_available=eq.true` silently
+  // drops them and the student keeps seeing "ghost" slots after a teacher
+  // removes them. Listening to all events and re-fetching is correct.
   React.useEffect(() => {
     const subscription = supabase
       .channel('availability-realtime')
@@ -46,9 +50,8 @@ export const StudentBookingCalendar = ({
           event: '*',
           schema: 'public',
           table: 'teacher_availability',
-          filter: 'is_available=eq.true'
         },
-        (payload) => {
+        () => {
           window.dispatchEvent(new CustomEvent('availability-changed'));
         }
       )
@@ -58,6 +61,7 @@ export const StudentBookingCalendar = ({
       subscription.unsubscribe();
     };
   }, []);
+
 
   // Update local slots when prop changes
   React.useEffect(() => {
