@@ -369,8 +369,12 @@ export const StoryCreator: React.FC = () => {
       setActiveLessonData({ ...lesson, lesson_id: result.lesson_id });
       setDirty(false);
       toast.success(`Story generated: ${narrativeSlides.length} pages + ${compSlides.length} quiz`);
-      setCurrentStep('slide-builder');
-      navigate('/content-creator/slide-builder');
+      const hubPath = lesson.hub === 'playground'
+        ? '/playground-creator'
+        : lesson.hub === 'success'
+        ? '/success-creator'
+        : '/academy-creator';
+      navigate(`${hubPath}?lessonId=${result.lesson_id}`);
     } catch (e: any) {
       console.error('StoryCreator error:', e);
       setError(e?.message || 'Generation failed');
