@@ -1056,7 +1056,7 @@ function ImageField({
 }
 
 
-function SlideEditor({ slide, onChange, blueprint, hub = 'playground' }: { slide: Slide; onChange: (p: Partial<Slide>) => void; blueprint?: LessonBlueprint | null; hub?: 'playground' | 'academy' | 'success' }) {
+function SlideEditor({ slide, onChange, blueprint, hub = 'playground', lessonId, slideId }: { slide: Slide; onChange: (p: Partial<Slide>) => void; blueprint?: LessonBlueprint | null; hub?: 'playground' | 'academy' | 'success'; lessonId?: string | null; slideId?: string }) {
   const voice = (slide as any).voice as Slide['voice'] | undefined;
   const wandFor = (field: string, currentValue: string, apply: (v: string) => void) => (
     <WandFieldButton
