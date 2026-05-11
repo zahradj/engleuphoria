@@ -100,7 +100,7 @@ Audience: 4-5 year-old true beginners and PRE-READERS.
 - "target_phonics" MUST be a single phoneme focus with IPA + grapheme + the same 3 example words.
 - "pedagogical_framework" MUST be "Immersion" (no Discovery/TaskBased).
 - "lesson_structure" entries may use ONLY these slide_type hints:
-  ["flashcard","multiple_choice","drag_and_match","drawing_canvas"].
+  ["flashcard","multiple_choice","drag_and_match","drawing_canvas","tracing_canvas","spinner_wheel"].
 - All "phase" values should be "Vocabulary" (no Grammar/Reading/Comprehension/Writing phases).
 ` : '';
 
