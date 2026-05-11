@@ -112,6 +112,10 @@ export default function GenerateLessonModal({
   defaultPhonics,
   defaultInterests,
   defaultNeeds,
+  defaultLanguageVariant,
+  defaultVisualTheme,
+  defaultLearningObjective,
+  defaultFinalOutputTask,
   busy,
   onGenerate,
 }: Props) {
@@ -124,6 +128,14 @@ export default function GenerateLessonModal({
   const [phonics, setPhonics] = useState(defaultPhonics || '');
   const [interests, setInterests] = useState(defaultInterests || '');
   const [needs, setNeeds] = useState(defaultNeeds || '');
+  const [languageVariant, setLanguageVariant] = useState<LanguageVariant>(
+    defaultLanguageVariant ?? DEFAULT_LANGUAGE_VARIANT,
+  );
+  const [visualTheme, setVisualTheme] = useState<VisualTheme>(
+    defaultVisualTheme ?? DEFAULT_VISUAL_THEME,
+  );
+  const [learningObjective, setLearningObjective] = useState(defaultLearningObjective || '');
+  const [finalOutputTask, setFinalOutputTask] = useState(defaultFinalOutputTask || '');
   const [expanded, setExpanded] = useState(false);
   const [autoFillBusy, setAutoFillBusy] = useState(false);
 
@@ -139,6 +151,10 @@ export default function GenerateLessonModal({
     setPhonics(defaultPhonics || '');
     setInterests(defaultInterests || '');
     setNeeds(defaultNeeds || '');
+    setLanguageVariant(defaultLanguageVariant ?? DEFAULT_LANGUAGE_VARIANT);
+    setVisualTheme(defaultVisualTheme ?? DEFAULT_VISUAL_THEME);
+    setLearningObjective(defaultLearningObjective || '');
+    setFinalOutputTask(defaultFinalOutputTask || '');
     setExpanded(Boolean(
       (defaultVocabulary && defaultVocabulary.some((v) => v?.trim())) ||
       defaultGrammar?.trim() ||
@@ -170,23 +186,27 @@ export default function GenerateLessonModal({
     if (!topic.trim() || autoFillBusy) return;
     setAutoFillBusy(true);
     try {
+      const variantRule = `LANGUAGE VARIANT: ${languageVariant}. ALL spelling, vocabulary choices, examples and idioms MUST match this regional variant (e.g. British "colour"/"chips", American "color"/"fries", Global/Neutral = avoid region-specific slang).`;
+      const swbatRule = `Also produce:
+  • "learning_objective": ONE sentence beginning with "Student will be able to ..." — observable, functional, level-appropriate.
+  • "final_output_task": ONE sentence describing the FINAL production task (roleplay, debate, free-speak or show-and-tell) that proves mastery of the chosen vocabulary AND grammar.`;
       const system = isPreA1
         ? `You are an expert Early-Years Phonics Designer. Audience: 4-5 year-old true beginners and pre-readers. ` +
           `DO NOT propose grammar rules or full sentences. Pick EXACTLY 3 phonetically decodable CVC words ` +
           `(or ultra-basic single-syllable nouns) tied to ONE phonics focus. ${phonicsTierHint} ` +
-          `target_phonics is REQUIRED — never empty.`
+          `target_phonics is REQUIRED — never empty. ${variantRule} ${swbatRule}`
         : `You are an expert ESL Curriculum Designer. Hub: ${hub}. ` +
           `Pick exactly 5 target vocabulary items, 1 grammar focus, 1 phonics focus, ` +
           `2-3 likely student interests for this topic, and 1 short specific-needs hint ` +
           `that suit the topic and CEFR level. Keep vocab short (1-3 words each), age-appropriate, and high-frequency. ` +
-          `${phonicsTierHint} target_phonics is REQUIRED — never empty.`;
+          `${phonicsTierHint} target_phonics is REQUIRED — never empty. ${variantRule} ${swbatRule}`;
       const prompt = isPreA1
-        ? `TOPIC: ${topic.trim()}\nCEFR LEVEL: Pre-A1 (ages 4-5)\n\n` +
+        ? `TOPIC: ${topic.trim()}\nCEFR LEVEL: Pre-A1 (ages 4-5)\nLANGUAGE VARIANT: ${languageVariant}\n\n` +
           `Return ONLY JSON in this exact shape (grammar MUST be empty string, target_phonics MUST be non-empty):\n` +
-          `{ "vocabulary": ["w1","w2","w3"], "grammar": "", "target_phonics": "string", "interests": "string", "specific_needs": "string" }`
-        : `TOPIC: ${topic.trim()}\nCEFR LEVEL: ${level}\n\n` +
+          `{ "vocabulary": ["w1","w2","w3"], "grammar": "", "target_phonics": "string", "interests": "string", "specific_needs": "string", "learning_objective": "string", "final_output_task": "string" }`
+        : `TOPIC: ${topic.trim()}\nCEFR LEVEL: ${level}\nLANGUAGE VARIANT: ${languageVariant}\n\n` +
           `Return ONLY JSON in this exact shape (target_phonics MUST be non-empty and follow the tier rule above):\n` +
-          `{ "vocabulary": ["w1","w2","w3","w4","w5"], "grammar": "string", "target_phonics": "string", "interests": "string", "specific_needs": "string" }`;
+          `{ "vocabulary": ["w1","w2","w3","w4","w5"], "grammar": "string", "target_phonics": "string", "interests": "string", "specific_needs": "string", "learning_objective": "string", "final_output_task": "string" }`;
       const { data, error } = await supabase.functions.invoke('generate-gemini', {
         body: { prompt, system, responseMimeType: 'application/json', temperature: 0.7 },
       });
@@ -205,6 +225,8 @@ export default function GenerateLessonModal({
       // Don't overwrite if teacher already typed something
       if (!interests.trim()) setInterests(String(parsed?.interests || '').trim());
       if (!needs.trim()) setNeeds(String(parsed?.specific_needs || '').trim());
+      setLearningObjective(String(parsed?.learning_objective || '').trim());
+      setFinalOutputTask(String(parsed?.final_output_task || '').trim());
       setExpanded(true);
       toast.success('Blueprint suggested — review and edit before generating.');
     } catch (e: any) {
@@ -226,6 +248,10 @@ export default function GenerateLessonModal({
       target_phonics: phonics.trim(),
       interests: interests.trim(),
       specific_needs: needs.trim(),
+      language_variant: languageVariant,
+      visual_theme: visualTheme,
+      learning_objective: learningObjective.trim() || undefined,
+      final_output_task: finalOutputTask.trim() || undefined,
     });
   };
 
