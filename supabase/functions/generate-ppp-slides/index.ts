@@ -140,7 +140,15 @@ Total slides: ${1 + (hasPhonics ? 1 : 0) + vocabCount + (hasPhonics ? 5 : 3) + 2
 - Every interactive prompt should be answerable purely by listening + looking at images.
 ` : "";
 
-      const playgroundSystem = `You are an expert children's EdTech game designer. Create a highly interactive, fun English lesson. Keep vocabulary very simple. Output ONLY a valid JSON array of slide objects. Do not wrap in markdown or backticks. You MUST use a variety of these exact slide types.
+      const playgroundPersona = buildStudioSystemPrompt({
+        role: 'game-designer',
+        cefr: cefr_level,
+        hub: 'playground',
+        ageGroup: 'kids',
+        targetGrammar: grammarFocus,
+        previousTopics: prevTopics,
+      });
+      const playgroundSystem = `${playgroundPersona}\n\nYou are an expert children's EdTech game designer. Create a highly interactive, fun English lesson. Keep vocabulary very simple. Output ONLY a valid JSON array of slide objects. Do not wrap in markdown or backticks. You MUST use a variety of these exact slide types.
 
 STRICT SCHEMA (per type) — every slide MUST include a "voice" object { "text": string, "autoPlay": true }. Use simple 1-2 syllable words. NEVER include emojis in image fields — use the literal placeholder string "AI:<short subject>" anywhere an image is needed and the server will replace it with an AI-generated cartoon URL.
 
