@@ -278,8 +278,8 @@ export default function SuccessCreator() {
     if (!topic) return;
     setAiBusy(true);
     try {
-      const interests = blueprint?.interests?.trim();
-      const specific_needs = blueprint?.specific_needs?.trim();
+      const interests = payload.interests?.trim() || blueprint?.interests?.trim();
+      const specific_needs = payload.specific_needs?.trim() || blueprint?.specific_needs?.trim();
 
       const hydrated: LessonBlueprint = {
         ...(blueprint ?? EMPTY_BLUEPRINT),
@@ -825,6 +825,8 @@ export default function SuccessCreator() {
         defaultVocabulary={blueprint?.vocabulary}
         defaultGrammar={blueprint?.grammar || aiGrammar}
         defaultPhonics={blueprint?.target_phonics}
+        defaultInterests={blueprint?.interests}
+        defaultNeeds={blueprint?.specific_needs}
         defaultInterests={blueprint?.interests}
         defaultNeeds={blueprint?.specific_needs}
         busy={aiBusy}

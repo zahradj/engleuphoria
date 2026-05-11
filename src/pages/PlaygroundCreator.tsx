@@ -311,8 +311,8 @@ export default function PlaygroundCreator() {
     if (!topic) return;
     setAiBusy(true);
     try {
-      const interests = blueprint?.interests?.trim();
-      const specific_needs = blueprint?.specific_needs?.trim();
+      const interests = payload.interests?.trim() || blueprint?.interests?.trim();
+      const specific_needs = payload.specific_needs?.trim() || blueprint?.specific_needs?.trim();
 
       // Hydrate sidebar immediately with the validated blueprint
       const hydrated: LessonBlueprint = {
@@ -892,6 +892,8 @@ export default function PlaygroundCreator() {
         defaultVocabulary={blueprint?.vocabulary}
         defaultGrammar={blueprint?.grammar}
         defaultPhonics={blueprint?.target_phonics}
+        defaultInterests={blueprint?.interests}
+        defaultNeeds={blueprint?.specific_needs}
         defaultInterests={blueprint?.interests}
         defaultNeeds={blueprint?.specific_needs}
         busy={aiBusy}
