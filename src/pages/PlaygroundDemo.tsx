@@ -208,7 +208,37 @@ export interface PlaygroundLessonContext {
   unitNumber?: number | string;
   unitTitle?: string;
   lessonNumber?: number | string;
+  hub?: 'playground' | 'academy' | 'success' | 'professional';
 }
+
+// Hub bubble palette — matches the homepage brand coating per workspace rules.
+const HUB_BUBBLE: Record<string, { bubble: string; accent: string; ring: string; pillBg: string; pillText: string; titleText: string }> = {
+  playground: {
+    bubble: '#FE6A2F',  // Playground orange
+    accent: '#FBBF24',  // warm yellow accent
+    ring: 'rgba(254,106,47,0.25)',
+    pillBg: 'bg-orange-100',
+    pillText: 'text-orange-700',
+    titleText: 'text-orange-600',
+  },
+  academy: {
+    bubble: '#6B21A8',  // Academy purple
+    accent: '#A855F7',
+    ring: 'rgba(107,33,168,0.25)',
+    pillBg: 'bg-purple-100',
+    pillText: 'text-purple-700',
+    titleText: 'text-purple-700',
+  },
+  success: {
+    bubble: '#059669',  // Success emerald
+    accent: '#14B8A6',
+    ring: 'rgba(5,150,105,0.25)',
+    pillBg: 'bg-emerald-100',
+    pillText: 'text-emerald-700',
+    titleText: 'text-emerald-700',
+  },
+};
+HUB_BUBBLE.professional = HUB_BUBBLE.success;
 
 function Intro({
   slide,
@@ -220,6 +250,8 @@ function Intro({
   useAutoVoice(slide.voice);
 
   const ctx = lessonContext || {};
+  const hub = ctx.hub || 'playground';
+  const palette = HUB_BUBBLE[hub] || HUB_BUBBLE.playground;
   const headline = ctx.lessonTitle || slide.title;
   const subtitle = slide.text;
 
@@ -231,14 +263,13 @@ function Intro({
     return parts.join(' · ');
   })();
 
-  // Playground palette: lime + purple accent on warm cream
-  const PRIMARY = '#84CC16';
-  const ACCENT = '#A855F7';
-
   return (
-    <div className="relative w-full overflow-hidden rounded-2xl bg-white grid grid-cols-1 md:grid-cols-2 min-h-[360px] border border-orange-100">
-      {/* LEFT — full-bleed image */}
-      <div className="relative h-full min-h-[280px] w-full bg-orange-50 overflow-hidden">
+    <div
+      className="relative w-full overflow-hidden rounded-2xl bg-white grid grid-cols-1 md:grid-cols-2 min-h-[360px] border"
+      style={{ borderColor: `${palette.bubble}22` }}
+    >
+      {/* LEFT — full-bleed topic image */}
+      <div className="relative h-full min-h-[280px] w-full overflow-hidden" style={{ background: `${palette.bubble}10` }}>
         {slide.image_url ? (
           <img
             src={slide.image_url}
@@ -249,8 +280,8 @@ function Intro({
           <div
             className="absolute inset-0 flex items-center justify-center text-7xl"
             style={{
-              background: `linear-gradient(135deg, ${PRIMARY}33, ${ACCENT}33)`,
-              color: PRIMARY,
+              background: `linear-gradient(135deg, ${palette.bubble}33, ${palette.accent}33)`,
+              color: palette.bubble,
             }}
             aria-hidden
           >
@@ -259,7 +290,7 @@ function Intro({
         )}
         <div
           className="absolute bottom-0 left-0 right-0 h-1.5"
-          style={{ background: `linear-gradient(90deg, ${PRIMARY}, ${ACCENT})` }}
+          style={{ background: `linear-gradient(90deg, ${palette.bubble}, ${palette.accent})` }}
         />
       </div>
 
@@ -267,27 +298,35 @@ function Intro({
       <div
         className="relative h-full w-full px-6 md:px-10 py-8 flex flex-col justify-center"
         style={{
-          background: `linear-gradient(180deg, #FFFFFF 0%, ${PRIMARY}0A 100%)`,
+          background: `linear-gradient(180deg, #FFFFFF 0%, ${palette.bubble}0D 100%)`,
         }}
       >
-        {/* Logo top-right */}
-        <div className="absolute top-4 right-5 flex items-center gap-2">
+        {/* Logo bubble — top-right, hub-coated like the homepage */}
+        <div className="absolute top-4 right-5 flex items-center gap-2.5">
           <span
-            className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-white font-black text-sm shadow-sm"
-            style={{ backgroundColor: PRIMARY }}
+            className="inline-flex items-center justify-center h-11 w-11 rounded-full"
+            style={{
+              background: `radial-gradient(circle at 30% 30%, ${palette.accent}, ${palette.bubble} 70%)`,
+              boxShadow: `0 4px 14px ${palette.ring}, inset 0 -2px 4px rgba(0,0,0,0.08)`,
+            }}
             aria-hidden
           >
-            E
+            <img
+              src={engleuphoriaLogo}
+              alt=""
+              className="h-7 w-7 object-contain"
+              style={{ filter: 'brightness(0) invert(1)' }}
+            />
           </span>
           <span className="text-sm font-extrabold tracking-tight text-slate-800">
             EnglEuphoria
           </span>
         </div>
 
-        <div className="flex flex-col gap-3 max-w-md mt-10 md:mt-0">
+        <div className="flex flex-col gap-3 max-w-md mt-12 md:mt-0">
           {ctx.level && (
             <span
-              className="inline-flex self-start items-center px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-widest bg-lime-100 text-lime-800"
+              className={`inline-flex self-start items-center px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-widest ${palette.pillBg} ${palette.pillText}`}
             >
               {ctx.level}
             </span>
@@ -299,7 +338,7 @@ function Intro({
             </p>
           )}
 
-          <h1 className="font-extrabold text-3xl md:text-4xl lg:text-5xl text-orange-600 leading-[1.05] drop-shadow-sm">
+          <h1 className={`font-extrabold text-3xl md:text-4xl lg:text-5xl ${palette.titleText} leading-[1.05] drop-shadow-sm`}>
             {headline}
           </h1>
 
@@ -311,7 +350,7 @@ function Intro({
 
           <div
             className="mt-2 h-1 w-20 rounded-full"
-            style={{ background: `linear-gradient(90deg, ${PRIMARY}, ${ACCENT})` }}
+            style={{ background: `linear-gradient(90deg, ${palette.bubble}, ${palette.accent})` }}
           />
         </div>
       </div>
