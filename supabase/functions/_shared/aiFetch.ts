@@ -39,11 +39,28 @@ function geminiModelToGateway(geminiModel: string): string {
   return "google/gemini-2.5-flash";
 }
 
+// Recursively strip JSON-Schema fields Gemini's REST API does not accept
+// (`additionalProperties`, `$schema`, `definitions`, `$ref`). This lets us
+// reuse the same OpenAI-style tool schemas across both providers.
+function sanitizeForGemini(node: any): any {
+  if (Array.isArray(node)) return node.map(sanitizeForGemini);
+  if (node && typeof node === "object") {
+    const out: any = {};
+    for (const [k, v] of Object.entries(node)) {
+      if (k === "additionalProperties" || k === "$schema" || k === "definitions" || k === "$ref") continue;
+      out[k] = sanitizeForGemini(v);
+    }
+    return out;
+  }
+  return node;
+}
+
 // Convert an OpenAI-style request -> Gemini direct, call it, then translate
 // the Gemini response back into an OpenAI-style Response so callers don't break.
 async function fallbackGatewayToGemini(originalBody: any): Promise<Response> {
   const apiKey = Deno.env.get("GEMINI_API_KEY");
   if (!apiKey) throw new Error("Failover failed: GEMINI_API_KEY not configured");
+
 
   const messages: Array<{ role: string; content: string }> = originalBody.messages || [];
   const systemMessages = messages.filter((m) => m.role === "system");
@@ -81,7 +98,7 @@ async function fallbackGatewayToGemini(originalBody: any): Promise<Response> {
         .map((t: any) => ({
           name: t.function.name,
           description: t.function.description || "",
-          parameters: t.function.parameters || { type: "object", properties: {} },
+          parameters: sanitizeForGemini(t.function.parameters || { type: "object", properties: {} }),
         })),
     }];
     if (originalBody.tool_choice?.type === "function" && originalBody.tool_choice.function?.name) {
@@ -226,13 +243,31 @@ async function fallbackGeminiToGateway(originalUrl: string, originalBody: any): 
 export async function aiFetch(url: string, init?: RequestInit): Promise<Response> {
   const isLovable = url.includes(LOVABLE_HOST);
   const isGemini = url.includes(GEMINI_HOST);
+  const hasGemini = !!Deno.env.get("GEMINI_API_KEY");
+  const hasLovable = !!Deno.env.get("LOVABLE_API_KEY");
 
-  // Parse body once for potential reuse on failover
+  // Parse body once for potential reuse on rerouting / failover
   let parsedBody: any = null;
   if (init?.body && typeof init.body === "string") {
     try {
       parsedBody = JSON.parse(init.body);
     } catch { /* non-JSON body — failover not possible */ }
+  }
+
+  // ─── PRIMARY ROUTE OVERRIDE ───
+  // The workspace has migrated off Lovable AI. When a caller targets the
+  // Lovable Gateway and we have a GEMINI_API_KEY, route directly to Gemini
+  // first; only fall back to the Lovable Gateway if Gemini fails AND a
+  // LOVABLE_API_KEY is still configured.
+  if (isLovable && hasGemini && parsedBody) {
+    try {
+      const fb = await fallbackGatewayToGemini(parsedBody);
+      return fb;
+    } catch (err) {
+      console.warn(`⚠️ Gemini-direct primary failed: ${err instanceof Error ? err.message : err}`);
+      if (!hasLovable) throw err;
+      // fall through to legacy gateway path below
+    }
   }
 
   let primaryError: unknown = null;
@@ -247,23 +282,19 @@ export async function aiFetch(url: string, init?: RequestInit): Promise<Response
     console.warn(`⚠️ Primary AI provider threw: ${err instanceof Error ? err.message : err}. Attempting failover…`);
   }
 
-  if (!parsedBody) {
-    // Cannot translate request -> bubble original failure
-    throw primaryError;
-  }
+  if (!parsedBody) throw primaryError;
 
   try {
-    if (isLovable) {
+    if (isLovable && hasGemini) {
       const fb = await fallbackGatewayToGemini(parsedBody);
       console.log("✅ Recovered via Gemini direct failover");
       return fb;
     }
-    if (isGemini) {
+    if (isGemini && hasLovable) {
       const fb = await fallbackGeminiToGateway(url, parsedBody);
       console.log("✅ Recovered via Lovable Gateway failover");
       return fb;
     }
-    // Unknown host — propagate original error
     throw primaryError;
   } catch (failoverErr) {
     console.error("❌ Both AI providers failed:", failoverErr);
