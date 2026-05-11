@@ -17,7 +17,15 @@ const corsHeaders = {
 };
 
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-const DEFAULT_MODEL = 'gemini-1.5-flash';
+const DEFAULT_MODEL = 'gemini-2.5-flash';
+
+// Map retired model ids to current equivalents so older callers don't 404.
+function normalizeModel(m?: string): string {
+  if (!m) return DEFAULT_MODEL;
+  if (m === 'gemini-1.5-flash') return 'gemini-2.5-flash';
+  if (m === 'gemini-1.5-pro') return 'gemini-2.5-pro';
+  return m;
+}
 
 interface RequestBody {
   prompt?: string;
