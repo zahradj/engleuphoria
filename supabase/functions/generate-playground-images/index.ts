@@ -1,9 +1,10 @@
 // Generate kid-friendly cartoon illustrations for Playground lessons.
-// Uses the Lovable AI Gateway image-generation model and uploads PNGs to
+// Uses Google AI Studio (gemini-2.5-flash-image) and uploads PNGs to
 // the public `playground_assets` Supabase Storage bucket. Returns a map of
 // subject -> public URL. Cached by content hash to avoid regenerating
 // the same subject twice.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { generateGoogleImage } from "../_shared/googleImageClient.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
