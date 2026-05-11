@@ -35,9 +35,15 @@ export const PendingReviewBanner: React.FC<PendingReviewBannerProps> = ({ teache
             {/* Message */}
             <div className="bg-white/60 dark:bg-white/5 rounded-xl p-6 space-y-4">
               <p className="text-muted-foreground">
-                Our team is reviewing your application. This typically takes{' '}
-                <span className="font-semibold text-foreground">1-2 business days</span>.
+                An admin is reviewing your <span className="font-semibold text-foreground">bio and intro video</span> — usually within{' '}
+                <span className="font-semibold text-foreground">24 hours</span>.
               </p>
+              
+              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                <Bell className="w-4 h-4" />
+                <span>You will receive an email notification once approved.</span>
+              </div>
+            </div>
               
               <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                 <Bell className="w-4 h-4" />
