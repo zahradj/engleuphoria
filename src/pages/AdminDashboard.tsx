@@ -62,7 +62,12 @@ const AdminDashboard = () => {
   const renderActiveTab = () => {
     switch (activeTab) {
       case 'overview':
-        return <AdminOverview />;
+        return (
+          <div className="space-y-6">
+            <AdminActionRequiredCard onNavigate={handleTabChange} />
+            <AdminOverview />
+          </div>
+        );
       case 'users':
         return <UserManagement />;
       case 'teachers':
