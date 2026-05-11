@@ -760,7 +760,16 @@ export default function PlaygroundCreator() {
                             {legacySolo ? (
                               <SoloVocabCard card={flashcards[0]} hub="playground" />
                             ) : (
-                              <SlideRenderer slide={slide as Slide} />
+                              <SlideRenderer
+                                slide={slide as Slide}
+                                lessonContext={{
+                                  lessonTitle: title,
+                                  level: aiLevel,
+                                  unitNumber: (lessonHook.lesson as any)?.unit_number,
+                                  unitTitle: (lessonHook.lesson as any)?.unit_title,
+                                  lessonNumber: (lessonHook.lesson as any)?.lesson_number,
+                                }}
+                              />
                             )}
                           </UniversalMediaShell>
                         )}
