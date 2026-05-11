@@ -74,12 +74,15 @@ export const useSlotActions = (
         .eq('id', slot.id);
 
       if (error) throw error;
-      
+
       toast({
         title: "🗑️ Slot Deleted",
         description: "Time slot closed",
       });
 
+      // Notify any open student views in this tab to refetch immediately
+      // (defensive — realtime should also deliver, but covers same-tab cases).
+      window.dispatchEvent(new CustomEvent('availability-changed'));
       onSlotChange();
     } catch (error) {
       console.error('Error deleting slot:', error);
