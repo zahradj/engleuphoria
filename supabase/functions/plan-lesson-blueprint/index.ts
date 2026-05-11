@@ -3,6 +3,7 @@
 // 1 grammar structure + 1 phonics focus that the slide generator MUST use
 // consistently across the lesson.
 // Returns: { vocabulary: string[5], grammar: string, target_phonics: {...}, rationale?: string }
+import { buildStudioSystemPrompt } from "../_shared/studioPersona.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
