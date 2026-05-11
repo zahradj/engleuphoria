@@ -379,6 +379,7 @@ export default function DynamicSlideRenderer({
         coverImageUrl={(slide as any).coverImageUrl || (slide as any).imageUrl || (slide as any).custom_image_url}
         unitNumber={(slide as any).unitNumber ?? (slide as any).unit_number}
         unitTitle={(slide as any).unitTitle ?? (slide as any).unit_title}
+        lessonNumber={(slide as any).lessonNumber ?? (slide as any).lesson_number}
       />;
     }
     if (directorType === 'celebration') {
