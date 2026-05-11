@@ -194,9 +194,24 @@ export function LessonBlueprintPanel({
                 />
               </div>
               {/* Target Phonics, Student Interests, and Specific Needs were moved
-                  into the GenerateLessonModal — see shared/GenerateLessonModal.tsx.
-                  They remain on the LessonBlueprint type and are still forwarded to
-                  generate-ppp-slides + sync-slides-to-blueprint. */}
+                  into the GenerateLessonModal — see shared/GenerateLessonModal.tsx. */}
+              {bp.lesson_structure && bp.lesson_structure.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">
+                    Lesson Structure ({bp.lesson_structure.length})
+                  </p>
+                  <ol className="space-y-1 max-h-56 overflow-y-auto pr-1">
+                    {bp.lesson_structure.map((row, i) => (
+                      <li key={i} className="flex items-center gap-2 text-[11px] text-slate-700">
+                        <span className="w-5 text-slate-400 tabular-nums">{i + 1}.</span>
+                        <span className="font-semibold w-20 shrink-0 truncate">{row.phase}</span>
+                        <SlideTypeBadge slideType={row.slide_type} />
+                        {row.note && <span className="text-slate-500 truncate">— {row.note}</span>}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
               <button
                 onClick={sync}
                 disabled={syncing}
