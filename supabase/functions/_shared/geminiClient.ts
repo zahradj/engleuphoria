@@ -12,7 +12,7 @@ export interface GeminiMessage {
 }
 
 export interface GeminiOptions {
-  model?: 'gemini-2.5-flash' | 'gemini-2.5-pro' | 'gemini-1.5-flash' | 'gemini-1.5-pro';
+  model?: 'gemini-2.5-flash' | 'gemini-2.5-pro';
   systemInstruction?: string;
   messages: GeminiMessage[];
   maxTokens?: number;
@@ -48,13 +48,18 @@ async function callGeminiDirect(options: GeminiOptions): Promise<GeminiResponse>
   if (!apiKey) throw new Error('GEMINI_API_KEY not configured');
 
   const {
-    model = 'gemini-2.5-flash',
+    model: rawModel = 'gemini-2.5-flash',
     systemInstruction,
     messages,
     maxTokens = 2048,
     temperature = 0.7,
     responseType = 'text',
   } = options;
+  // Map retired ids to current equivalents.
+  const model =
+    rawModel === ('gemini-1.5-flash' as string) ? 'gemini-2.5-flash'
+    : rawModel === ('gemini-1.5-pro' as string) ? 'gemini-2.5-pro'
+    : rawModel;
 
   const url = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
   const requestBody: any = {
