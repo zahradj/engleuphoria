@@ -273,7 +273,7 @@ export default function SuccessCreator() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const generateWithAI = async (payload: { topic: string; level: string; vocabulary: string[]; grammar: string; target_phonics: string; interests: string; specific_needs: string }) => {
+  const generateWithAI = async (payload: import('@/components/creator-studio/shared/GenerateLessonModal').GenerateLessonPayload) => {
     const topic = payload.topic.trim();
     if (!topic) return;
     setAiBusy(true);
@@ -288,6 +288,10 @@ export default function SuccessCreator() {
         target_phonics: payload.target_phonics,
         interests,
         specific_needs,
+        language_variant: payload.language_variant,
+        visual_theme: payload.visual_theme,
+        learning_objective: payload.learning_objective,
+        final_output_task: payload.final_output_task,
       };
       setBlueprint(hydrated);
       setAiTopic(topic);
@@ -304,7 +308,7 @@ export default function SuccessCreator() {
       const { data, error } = await supabase.functions.invoke('generate-ppp-slides', {
         body: {
           lesson_title: topic,
-          objective: `60-minute Business English Success lesson on ${topic}. Target vocabulary: ${payload.vocabulary.join(', ')}. Target grammar: ${payload.grammar}.`,
+          objective: payload.learning_objective || `60-minute Business English Success lesson on ${topic}. Target vocabulary: ${payload.vocabulary.join(', ')}. Target grammar: ${payload.grammar}.`,
           skill_focus: 'Professional Communication',
           cefr_level: payload.level,
           hub: 'success',
@@ -316,6 +320,10 @@ export default function SuccessCreator() {
           interests,
           specific_needs,
           previous_topics,
+          language_variant: payload.language_variant,
+          visual_theme: payload.visual_theme,
+          learning_objective: payload.learning_objective,
+          final_output_task: payload.final_output_task,
           blueprint: {
             lesson_title: topic,
             target_vocabulary: payload.vocabulary,
@@ -324,6 +332,10 @@ export default function SuccessCreator() {
             target_hub: 'success',
             interests,
             specific_needs,
+            language_variant: payload.language_variant,
+            visual_theme: payload.visual_theme,
+            learning_objective: payload.learning_objective,
+            final_output_task: payload.final_output_task,
           },
         },
       });
@@ -819,6 +831,10 @@ export default function SuccessCreator() {
         defaultPhonics={blueprint?.target_phonics}
         defaultInterests={blueprint?.interests}
         defaultNeeds={blueprint?.specific_needs}
+        defaultLanguageVariant={blueprint?.language_variant}
+        defaultVisualTheme={blueprint?.visual_theme}
+        defaultLearningObjective={blueprint?.learning_objective}
+        defaultFinalOutputTask={blueprint?.final_output_task}
         busy={aiBusy}
         onGenerate={generateWithAI}
       />

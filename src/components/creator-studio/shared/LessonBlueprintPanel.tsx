@@ -8,7 +8,10 @@ import type {
   PedagogicalFramework,
   LessonPhase,
   BlueprintVideoStrategy,
+  LanguageVariant,
+  VisualTheme,
 } from './blueprintTypes';
+import { DEFAULT_LANGUAGE_VARIANT, DEFAULT_VISUAL_THEME } from './blueprintTypes';
 
 /**
  * Hub-Creator Blueprint = SUPERSET of the original thin Hub shape AND the rich
@@ -42,6 +45,14 @@ export interface LessonBlueprint {
   final_speaking_mission?: string;
   /** Authoritative slide structure: ordered list of {phase, slide_type} hints. */
   lesson_structure?: Array<{ phase: LessonPhase; slide_type?: string; note?: string }>;
+  /** SWBAT — single-sentence functional learning objective. */
+  learning_objective?: string;
+  /** Production-stage final task that proves mastery. */
+  final_output_task?: string;
+  /** Regional spelling/vocab variant. */
+  language_variant?: LanguageVariant;
+  /** Aesthetic appended to every image prompt. */
+  visual_theme?: VisualTheme;
 }
 
 export const EMPTY_BLUEPRINT: LessonBlueprint = {
@@ -50,6 +61,8 @@ export const EMPTY_BLUEPRINT: LessonBlueprint = {
   interests: '',
   specific_needs: '',
   target_phonics: '',
+  language_variant: DEFAULT_LANGUAGE_VARIANT,
+  visual_theme: DEFAULT_VISUAL_THEME,
 };
 
 interface Props {
@@ -166,6 +179,44 @@ export function LessonBlueprintPanel({
             className="overflow-hidden"
           >
             <div className="px-3 pb-3 space-y-2.5">
+              {(bp.learning_objective || bp.final_output_task) && (
+                <div className="space-y-2">
+                  {bp.learning_objective && (
+                    <div className={`rounded-lg border ${t.border} bg-slate-50 px-2.5 py-1.5`}>
+                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                        🎯 Learning Objective (SWBAT)
+                      </p>
+                      <p className="text-[11px] text-slate-700 leading-snug mt-0.5">
+                        {bp.learning_objective}
+                      </p>
+                    </div>
+                  )}
+                  {bp.final_output_task && (
+                    <div className={`rounded-lg border ${t.border} bg-slate-50 px-2.5 py-1.5`}>
+                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                        🏁 Final Output Task
+                      </p>
+                      <p className="text-[11px] text-slate-700 leading-snug mt-0.5">
+                        {bp.final_output_task}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+              {(bp.language_variant || bp.visual_theme) && (
+                <div className="flex flex-wrap gap-1.5">
+                  {bp.language_variant && (
+                    <span className={`inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 border ${t.chip}`}>
+                      🌐 {bp.language_variant}
+                    </span>
+                  )}
+                  {bp.visual_theme && (
+                    <span className={`inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 border ${t.chip}`}>
+                      🎨 {bp.visual_theme}
+                    </span>
+                  )}
+                </div>
+              )}
               <div>
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">
                   Target Vocabulary (5)

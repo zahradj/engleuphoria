@@ -3,6 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Loader2, ChevronDown, ChevronUp, Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  DEFAULT_LANGUAGE_VARIANT,
+  DEFAULT_VISUAL_THEME,
+  LANGUAGE_VARIANT_OPTIONS,
+  VISUAL_THEME_OPTIONS,
+  type LanguageVariant,
+  type VisualTheme,
+} from './blueprintTypes';
 
 export type Hub = 'playground' | 'academy' | 'success';
 
@@ -14,6 +22,10 @@ export interface GenerateLessonPayload {
   target_phonics: string;
   interests: string;
   specific_needs: string;
+  language_variant: LanguageVariant;
+  visual_theme: VisualTheme;
+  learning_objective?: string;
+  final_output_task?: string;
 }
 
 interface Props {
@@ -27,6 +39,10 @@ interface Props {
   defaultPhonics?: string;
   defaultInterests?: string;
   defaultNeeds?: string;
+  defaultLanguageVariant?: LanguageVariant;
+  defaultVisualTheme?: VisualTheme;
+  defaultLearningObjective?: string;
+  defaultFinalOutputTask?: string;
   busy: boolean;
   onGenerate: (payload: GenerateLessonPayload) => Promise<void> | void;
 }
@@ -96,6 +112,10 @@ export default function GenerateLessonModal({
   defaultPhonics,
   defaultInterests,
   defaultNeeds,
+  defaultLanguageVariant,
+  defaultVisualTheme,
+  defaultLearningObjective,
+  defaultFinalOutputTask,
   busy,
   onGenerate,
 }: Props) {
@@ -108,6 +128,14 @@ export default function GenerateLessonModal({
   const [phonics, setPhonics] = useState(defaultPhonics || '');
   const [interests, setInterests] = useState(defaultInterests || '');
   const [needs, setNeeds] = useState(defaultNeeds || '');
+  const [languageVariant, setLanguageVariant] = useState<LanguageVariant>(
+    defaultLanguageVariant ?? DEFAULT_LANGUAGE_VARIANT,
+  );
+  const [visualTheme, setVisualTheme] = useState<VisualTheme>(
+    defaultVisualTheme ?? DEFAULT_VISUAL_THEME,
+  );
+  const [learningObjective, setLearningObjective] = useState(defaultLearningObjective || '');
+  const [finalOutputTask, setFinalOutputTask] = useState(defaultFinalOutputTask || '');
   const [expanded, setExpanded] = useState(false);
   const [autoFillBusy, setAutoFillBusy] = useState(false);
 
@@ -123,6 +151,10 @@ export default function GenerateLessonModal({
     setPhonics(defaultPhonics || '');
     setInterests(defaultInterests || '');
     setNeeds(defaultNeeds || '');
+    setLanguageVariant(defaultLanguageVariant ?? DEFAULT_LANGUAGE_VARIANT);
+    setVisualTheme(defaultVisualTheme ?? DEFAULT_VISUAL_THEME);
+    setLearningObjective(defaultLearningObjective || '');
+    setFinalOutputTask(defaultFinalOutputTask || '');
     setExpanded(Boolean(
       (defaultVocabulary && defaultVocabulary.some((v) => v?.trim())) ||
       defaultGrammar?.trim() ||
@@ -154,23 +186,27 @@ export default function GenerateLessonModal({
     if (!topic.trim() || autoFillBusy) return;
     setAutoFillBusy(true);
     try {
+      const variantRule = `LANGUAGE VARIANT: ${languageVariant}. ALL spelling, vocabulary choices, examples and idioms MUST match this regional variant (e.g. British "colour"/"chips", American "color"/"fries", Global/Neutral = avoid region-specific slang).`;
+      const swbatRule = `Also produce:
+  • "learning_objective": ONE sentence beginning with "Student will be able to ..." — observable, functional, level-appropriate.
+  • "final_output_task": ONE sentence describing the FINAL production task (roleplay, debate, free-speak or show-and-tell) that proves mastery of the chosen vocabulary AND grammar.`;
       const system = isPreA1
         ? `You are an expert Early-Years Phonics Designer. Audience: 4-5 year-old true beginners and pre-readers. ` +
           `DO NOT propose grammar rules or full sentences. Pick EXACTLY 3 phonetically decodable CVC words ` +
           `(or ultra-basic single-syllable nouns) tied to ONE phonics focus. ${phonicsTierHint} ` +
-          `target_phonics is REQUIRED — never empty.`
+          `target_phonics is REQUIRED — never empty. ${variantRule} ${swbatRule}`
         : `You are an expert ESL Curriculum Designer. Hub: ${hub}. ` +
           `Pick exactly 5 target vocabulary items, 1 grammar focus, 1 phonics focus, ` +
           `2-3 likely student interests for this topic, and 1 short specific-needs hint ` +
           `that suit the topic and CEFR level. Keep vocab short (1-3 words each), age-appropriate, and high-frequency. ` +
-          `${phonicsTierHint} target_phonics is REQUIRED — never empty.`;
+          `${phonicsTierHint} target_phonics is REQUIRED — never empty. ${variantRule} ${swbatRule}`;
       const prompt = isPreA1
-        ? `TOPIC: ${topic.trim()}\nCEFR LEVEL: Pre-A1 (ages 4-5)\n\n` +
+        ? `TOPIC: ${topic.trim()}\nCEFR LEVEL: Pre-A1 (ages 4-5)\nLANGUAGE VARIANT: ${languageVariant}\n\n` +
           `Return ONLY JSON in this exact shape (grammar MUST be empty string, target_phonics MUST be non-empty):\n` +
-          `{ "vocabulary": ["w1","w2","w3"], "grammar": "", "target_phonics": "string", "interests": "string", "specific_needs": "string" }`
-        : `TOPIC: ${topic.trim()}\nCEFR LEVEL: ${level}\n\n` +
+          `{ "vocabulary": ["w1","w2","w3"], "grammar": "", "target_phonics": "string", "interests": "string", "specific_needs": "string", "learning_objective": "string", "final_output_task": "string" }`
+        : `TOPIC: ${topic.trim()}\nCEFR LEVEL: ${level}\nLANGUAGE VARIANT: ${languageVariant}\n\n` +
           `Return ONLY JSON in this exact shape (target_phonics MUST be non-empty and follow the tier rule above):\n` +
-          `{ "vocabulary": ["w1","w2","w3","w4","w5"], "grammar": "string", "target_phonics": "string", "interests": "string", "specific_needs": "string" }`;
+          `{ "vocabulary": ["w1","w2","w3","w4","w5"], "grammar": "string", "target_phonics": "string", "interests": "string", "specific_needs": "string", "learning_objective": "string", "final_output_task": "string" }`;
       const { data, error } = await supabase.functions.invoke('generate-gemini', {
         body: { prompt, system, responseMimeType: 'application/json', temperature: 0.7 },
       });
@@ -189,6 +225,8 @@ export default function GenerateLessonModal({
       // Don't overwrite if teacher already typed something
       if (!interests.trim()) setInterests(String(parsed?.interests || '').trim());
       if (!needs.trim()) setNeeds(String(parsed?.specific_needs || '').trim());
+      setLearningObjective(String(parsed?.learning_objective || '').trim());
+      setFinalOutputTask(String(parsed?.final_output_task || '').trim());
       setExpanded(true);
       toast.success('Blueprint suggested — review and edit before generating.');
     } catch (e: any) {
@@ -210,6 +248,10 @@ export default function GenerateLessonModal({
       target_phonics: phonics.trim(),
       interests: interests.trim(),
       specific_needs: needs.trim(),
+      language_variant: languageVariant,
+      visual_theme: visualTheme,
+      learning_objective: learningObjective.trim() || undefined,
+      final_output_task: finalOutputTask.trim() || undefined,
     });
   };
 
@@ -272,6 +314,36 @@ export default function GenerateLessonModal({
                 </select>
               </label>
 
+              {/* Language Variant + Visual Theme */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label className="block">
+                  <span className={labelCls}>🌐 Language Variant</span>
+                  <select
+                    className={inputCls}
+                    value={languageVariant}
+                    onChange={(e) => setLanguageVariant(e.target.value as LanguageVariant)}
+                    disabled={busy}
+                  >
+                    {LANGUAGE_VARIANT_OPTIONS.map((v) => (
+                      <option key={v} value={v}>{v}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className={labelCls}>🎨 Visual Theme</span>
+                  <select
+                    className={inputCls}
+                    value={visualTheme}
+                    onChange={(e) => setVisualTheme(e.target.value as VisualTheme)}
+                    disabled={busy}
+                  >
+                    {VISUAL_THEME_OPTIONS.map((v) => (
+                      <option key={v} value={v}>{v}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
               {/* Blueprint Details (collapsible) */}
               <div className="rounded-2xl border-2 border-slate-200 overflow-hidden">
                 <button
@@ -285,6 +357,28 @@ export default function GenerateLessonModal({
 
                 {expanded && (
                   <div className="p-4 space-y-4 bg-white">
+                    <label className="block">
+                      <span className={labelCls}>🎯 Learning Objective (SWBAT)</span>
+                      <textarea
+                        className={`${inputCls} resize-none`}
+                        rows={2}
+                        value={learningObjective}
+                        onChange={(e) => setLearningObjective(e.target.value)}
+                        placeholder="Auto-filled by AI — e.g. Student will be able to order food at a restaurant using polite requests."
+                        disabled={busy}
+                      />
+                    </label>
+                    <label className="block">
+                      <span className={labelCls}>🏁 Final Output Task</span>
+                      <textarea
+                        className={`${inputCls} resize-none`}
+                        rows={2}
+                        value={finalOutputTask}
+                        onChange={(e) => setFinalOutputTask(e.target.value)}
+                        placeholder="Auto-filled by AI — e.g. Roleplay: order a 3-course meal with a partner using all 5 target words."
+                        disabled={busy}
+                      />
+                    </label>
                     <div>
                       <span className={labelCls}>
                         {isPreA1 ? 'Target Vocabulary (3-4 CVC words)' : 'Target Vocabulary (5 words)'}

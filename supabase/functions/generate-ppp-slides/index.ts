@@ -60,7 +60,53 @@ Deno.serve(async (req) => {
       student_profile, // ← Hyper-personalization: { industry, age, interests[] }
       hub_type, // ← when 'playground', returns the kid-friendly Playground schema instead of the 20-slide Academy deck.
       previous_topics, // ← anti-repetition list (last N lesson titles by this user)
+      language_variant: bodyLanguageVariant,
+      visual_theme: bodyVisualTheme,
+      learning_objective: bodyLearningObjective,
+      final_output_task: bodyFinalOutputTask,
     } = body || {};
+
+    const language_variant: string =
+      (typeof bodyLanguageVariant === 'string' && bodyLanguageVariant) ||
+      blueprint?.language_variant ||
+      'American English';
+    const visual_theme: string =
+      (typeof bodyVisualTheme === 'string' && bodyVisualTheme) ||
+      blueprint?.visual_theme ||
+      'Professional/Realistic';
+    const learning_objective: string =
+      bodyLearningObjective || blueprint?.learning_objective || '';
+    const final_output_task: string =
+      bodyFinalOutputTask || blueprint?.final_output_task || '';
+
+    const VISUAL_THEME_PROMPT_SUFFIX: Record<string, string> = {
+      '3D Animation': ', rendered in vibrant Pixar-style 3D animation, soft global illumination, cinematic lighting, clean vector edges, family-friendly',
+      'Anime/Manga': ', rendered in modern Japanese anime / manga style, crisp ink line art, cel-shaded coloring, expressive character design',
+      'Watercolor': ', painted in soft watercolor illustration style, gentle pastel washes, visible paper texture, hand-painted feel',
+      'Professional/Realistic': ', professional editorial illustration with realistic proportions, clean modern composition, high-quality stock-photo-grade lighting',
+    };
+    const visualThemeSuffix = VISUAL_THEME_PROMPT_SUFFIX[visual_theme] || VISUAL_THEME_PROMPT_SUFFIX['Professional/Realistic'];
+
+    const ensureSuffix = (s: unknown): string => {
+      if (typeof s !== 'string' || !s.trim()) return typeof s === 'string' ? s : '';
+      return s.includes(visualThemeSuffix) ? s : `${s.replace(/\s+$/, '')}${visualThemeSuffix}`;
+    };
+    const enforceVisualTheme = (slides: unknown): void => {
+      if (!Array.isArray(slides)) return;
+      for (const slide of slides) {
+        if (!slide || typeof slide !== 'object') continue;
+        const s = slide as Record<string, unknown>;
+        for (const key of ['image_prompt', 'image_prompt_detailed', 'image_description']) {
+          if (typeof s[key] === 'string') s[key] = ensureSuffix(s[key]);
+        }
+        const hero = s['hero_media'];
+        if (hero && typeof hero === 'object') {
+          const h = hero as Record<string, unknown>;
+          if (typeof h['image_prompt_detailed'] === 'string') h['image_prompt_detailed'] = ensureSuffix(h['image_prompt_detailed']);
+          if (typeof h['image_prompt'] === 'string') h['image_prompt'] = ensureSuffix(h['image_prompt']);
+        }
+      }
+    };
 
     const prevTopics: string[] = Array.isArray(previous_topics)
       ? previous_topics.filter((s: unknown) => typeof s === 'string' && s.trim()).slice(0, 10)
@@ -286,6 +332,7 @@ RULES:
         }
       }
 
+      enforceVisualTheme(playground_slides);
       return new Response(JSON.stringify({ playground_slides }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -436,6 +483,7 @@ ADDITIONAL ALLOWED TYPES (when phonics layer is required):
         });
       }
 
+      enforceVisualTheme(academy_slides);
       return new Response(JSON.stringify({ academy_slides }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -483,7 +531,24 @@ TARGET PRONUNCIATION FOCUS: "${phonicsGenericFocus}"${phonicsGenericIPA ? ` (IPA
 Insert EXACTLY 1 dedicated pronunciation slide inside the vocab/practice phase — frame it for ${resolvedHub === 'success' ? 'adult professionals (workplace context, e.g. word stress, intonation, connected speech, weak forms)' : 'the target learner level'}. Use a "multiple" or "drag" slide drilling the focus with example phrases drawn from the target vocabulary. Add a short "teacher_notes" explaining how to model the sound.
 ` : "";
 
-    const systemPrompt = `${successPersona}${pronunciationBlock}\n\nYou are the EXPERT CURRICULUM DESIGNER for Engleuphoria — an elite ESL platform.
+    const variantThemeBlock = `
+
+REGIONAL LANGUAGE VARIANT (MANDATORY): ${language_variant}.
+ALL slide text — vocabulary definitions, example sentences, reading passages, dialogues,
+quiz questions, hints, teacher notes — MUST use spelling and lexis matching this variant.
+- "American English" → color, fries, elevator, apartment, soccer.
+- "British English"  → colour, chips, lift, flat, football.
+- "Global/Neutral"   → avoid region-specific slang or spellings.
+
+VISUAL THEME (MANDATORY for every image_prompt / image_prompt_detailed): ${visual_theme}.
+After describing the scene, you MUST append this exact suffix to every image_prompt:
+"${visualThemeSuffix}"
+Do not change wording from this suffix; the renderer relies on it.
+${learning_objective ? `\nLEARNING OBJECTIVE (SWBAT — drives every slide): "${learning_objective}".` : ''}
+${final_output_task ? `\nFINAL OUTPUT TASK (the LAST slide MUST implement this exact production task): "${final_output_task}".` : ''}
+`;
+
+    const systemPrompt = `${successPersona}${pronunciationBlock}${variantThemeBlock}\n\nYou are the EXPERT CURRICULUM DESIGNER for Engleuphoria — an elite ESL platform.
 You design ONE classroom-ready 1-HOUR (≈60 minute) deeply COHESIVE interactive lesson as a 20–25 slide deck.
 Total slide count MUST be between 20 and 25 inclusive — never fewer than 20.
 
@@ -1172,6 +1237,7 @@ Return ONLY the JSON object.`;
       }
     }
 
+    enforceVisualTheme(slides);
     return new Response(JSON.stringify({ slides, homework_missions }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

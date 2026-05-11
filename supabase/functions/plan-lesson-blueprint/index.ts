@@ -33,8 +33,19 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
-    const { topic, cefr_level = 'A1', hub = 'academy', interests, specific_needs, target_grammar, previous_topics } =
-      await req.json().catch(() => ({}));
+    const {
+      topic,
+      cefr_level = 'A1',
+      hub = 'academy',
+      interests,
+      specific_needs,
+      target_grammar,
+      previous_topics,
+      language_variant = 'American English',
+      visual_theme = 'Professional/Realistic',
+      learning_objective,
+      final_output_task,
+    } = await req.json().catch(() => ({}));
 
     if (!topic || typeof topic !== 'string') {
       return new Response(JSON.stringify({ error: 'topic is required' }), {
@@ -149,6 +160,20 @@ TIER HINTS (level → which gamified types to favour):
 - A2 / B1 → favour matching_lines + drag_and_drop_sorting.
 - B2+ → matching_lines + drag_and_drop_sorting only (no tracing).
 
+LANGUAGE VARIANT: ${language_variant}.
+ALL spelling, vocabulary, idioms and example sentences MUST match this regional variant.
+- American English → "color", "fries", "elevator", "apartment".
+- British English  → "colour", "chips", "lift", "flat".
+- Global/Neutral   → avoid region-specific slang or spellings; pick internationally neutral wording.
+
+VISUAL THEME: ${visual_theme}.
+Every image_prompt the downstream slide generator produces MUST end with the matching aesthetic suffix; you do not need to add it here, but tailor scene descriptions so they will read well in this style.
+
+LEARNING OBJECTIVE & FINAL OUTPUT TASK:
+${learning_objective ? `Authoritative learning_objective (use VERBATIM): "${learning_objective}"` : `Generate a single-sentence "learning_objective" beginning with "Student will be able to ..." — observable, functional, level-appropriate.`}
+${final_output_task ? `Authoritative final_output_task (use VERBATIM and ensure the LAST entry of lesson_structure mirrors it): "${final_output_task}"` : `Generate a single-sentence "final_output_task" describing the FINAL production activity (roleplay, debate, free-speak, show-and-tell) that proves mastery of the chosen vocabulary AND grammar.`}
+The LAST entry of "lesson_structure" MUST be a Speaking or Writing phase whose "note" matches "final_output_task".
+
 Return ONLY a single valid JSON object with this exact shape (no markdown, no commentary):
 {
   "vocabulary": ["word1","word2","word3","word4","word5"],
@@ -166,6 +191,10 @@ Return ONLY a single valid JSON object with this exact shape (no markdown, no co
     { "phase": "Vocabulary", "slide_type": "flashcard", "note": "intro 5 words" },
     { "phase": "Vocabulary", "slide_type": "drag_and_match", "note": "match word↔picture" }
   ],
+  "learning_objective": "Student will be able to ...",
+  "final_output_task": "Final production task description.",
+  "language_variant": "${language_variant}",
+  "visual_theme": "${visual_theme}",
   "rationale": "Short explanation of vocabulary/grammar choice"
 }`;
 
@@ -234,6 +263,14 @@ Return ONLY a single valid JSON object with this exact shape (no markdown, no co
         .filter((e: any) => e && typeof e === 'object' && VALID_PHASES.has(e.phase))
         .slice(0, 20);
     }
+    // Echo regional + visual choices and ensure SWBAT/Final Task are populated.
+    parsed.language_variant = parsed.language_variant || language_variant;
+    parsed.visual_theme = parsed.visual_theme || visual_theme;
+    if (learning_objective) parsed.learning_objective = learning_objective;
+    if (final_output_task) parsed.final_output_task = final_output_task;
+    if (typeof parsed.learning_objective !== 'string') parsed.learning_objective = '';
+    if (typeof parsed.final_output_task !== 'string') parsed.final_output_task = '';
+
     return new Response(JSON.stringify(parsed), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
