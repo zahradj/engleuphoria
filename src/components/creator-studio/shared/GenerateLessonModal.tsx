@@ -252,7 +252,11 @@ export default function GenerateLessonModal({
                   onChange={(e) => setLevel(e.target.value)}
                   disabled={busy}
                 >
-                  {theme.levels.map((l) => <option key={l} value={l}>{l}</option>)}
+                  {theme.levels.map((l) => (
+                    <option key={l} value={l}>
+                      {l === 'Pre-A1' ? 'Pre-A1 — Ages 4-5 (Phonics)' : l}
+                    </option>
+                  ))}
                 </select>
               </label>
 
@@ -263,14 +267,16 @@ export default function GenerateLessonModal({
                   onClick={() => setExpanded((x) => !x)}
                   className={`w-full flex items-center justify-between px-4 py-3 ${theme.chipBg} ${theme.chipText} font-bold text-sm`}
                 >
-                  <span>Blueprint Details {vocabFilled && grammar.trim() ? '✓' : '(auto-filled by AI)'}</span>
+                  <span>Blueprint Details {canGenerate ? '✓' : '(auto-filled by AI)'}</span>
                   {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 </button>
 
                 {expanded && (
                   <div className="p-4 space-y-4 bg-white">
                     <div>
-                      <span className={labelCls}>Target Vocabulary (5 words)</span>
+                      <span className={labelCls}>
+                        {isPreA1 ? 'Target Vocabulary (3-4 CVC words)' : 'Target Vocabulary (5 words)'}
+                      </span>
                       <div className="mt-1 grid grid-cols-2 sm:grid-cols-5 gap-2">
                         {vocab.map((w, i) => (
                           <input
@@ -282,29 +288,51 @@ export default function GenerateLessonModal({
                               next[i] = e.target.value;
                               setVocab(next);
                             }}
-                            placeholder={`Word ${i + 1}`}
+                            placeholder={isPreA1 && i >= 4 ? '(optional)' : `Word ${i + 1}`}
                             disabled={busy}
                           />
                         ))}
                       </div>
                     </div>
+                    {!isPreA1 && (
+                      <label className="block">
+                        <span className={labelCls}>Grammar Focus</span>
+                        <input
+                          className={inputCls}
+                          value={grammar}
+                          onChange={(e) => setGrammar(e.target.value)}
+                          placeholder="e.g. Present simple"
+                          disabled={busy}
+                        />
+                      </label>
+                    )}
                     <label className="block">
-                      <span className={labelCls}>Grammar Focus</span>
-                      <input
-                        className={inputCls}
-                        value={grammar}
-                        onChange={(e) => setGrammar(e.target.value)}
-                        placeholder="e.g. Present simple"
-                        disabled={busy}
-                      />
-                    </label>
-                    <label className="block">
-                      <span className={labelCls}>Target Phonics</span>
+                      <span className={labelCls}>🔊 Target Phonics / Sound</span>
                       <input
                         className={inputCls}
                         value={phonics}
                         onChange={(e) => setPhonics(e.target.value)}
-                        placeholder='e.g. Short /a/, Word stress'
+                        placeholder={isPreA1 ? 'e.g. Short A: /æ/, Consonant M: /m/' : 'e.g. Short /a/, Word stress'}
+                        disabled={busy}
+                      />
+                    </label>
+                    <label className="block">
+                      <span className={labelCls}>🎯 Student Interests (creative anchor)</span>
+                      <input
+                        className={inputCls}
+                        value={interests}
+                        onChange={(e) => setInterests(e.target.value)}
+                        placeholder="e.g. football, Pokemon, dinosaurs"
+                        disabled={busy}
+                      />
+                    </label>
+                    <label className="block">
+                      <span className={labelCls}>🛠 Specific Needs / Goals</span>
+                      <input
+                        className={inputCls}
+                        value={needs}
+                        onChange={(e) => setNeeds(e.target.value)}
+                        placeholder="e.g. shy speaker, exam prep, dyslexic"
                         disabled={busy}
                       />
                     </label>
@@ -314,7 +342,7 @@ export default function GenerateLessonModal({
 
               {!canGenerate && !busy && (
                 <p className="text-xs text-slate-500">
-                  Click <strong>Auto-Fill</strong> or fill in all 5 vocabulary words and a grammar focus to generate slides.
+                  Click <strong>Auto-Fill</strong> or fill in {isPreA1 ? '3 CVC words plus a phonics focus' : 'all 5 vocabulary words and a grammar focus'} to generate slides.
                 </p>
               )}
             </div>
