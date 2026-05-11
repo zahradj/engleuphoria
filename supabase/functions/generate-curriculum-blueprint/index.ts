@@ -1,6 +1,6 @@
 // 4-Skills ESL Curriculum Blueprint Generator
 // Outputs: { curriculum_title, units: [{ unit_title, theme, lessons: [{ lesson_id, title, skill_focus, learning_objective }] }] }
-import { aiFetch } from "../_shared/aiFetch.ts";
+// Migrated off Lovable AI — calls Google Gemini directly via GEMINI_API_KEY.
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
