@@ -22,8 +22,18 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [hasSaved, setHasSaved] = useState(false);
 
-  const handleBuildSlides = (lesson: BlueprintLessonRef) => {
+  const HUB_ROUTE: Record<string, string> = {
+    playground: '/playground-creator',
+    academy: '/academy-creator',
+    success: '/success-creator',
+  };
+
+  const handleBuildSlides = async (lesson: BlueprintLessonRef) => {
     if (!data) return;
+    const hubKey = (data.hub || 'playground').toLowerCase();
+    const route = HUB_ROUTE[hubKey] || '/playground-creator';
+
+    // Stash for the destination Creator
     setActiveLessonData({
       source_lesson: lesson,
       cefr_level: data.cefr_level,
@@ -33,8 +43,46 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
       slides: [],
       roadmap: ['Warm-up', 'Presentation', 'Practice', 'Production', 'Review'],
     });
-    setCurrentStep('slide-builder');
-    toast.success(`Opening Slide Studio for "${lesson.title}"…`);
+
+    // Auto-plan the lesson blueprint (vocab + grammar + phonics) so the
+    // destination Creator sidebar is pre-filled and ready for slide gen.
+    let blueprint: any = null;
+    const tId = toast.loading(`Planning blueprint for "${lesson.title}"…`);
+    try {
+      const { data: planData, error: planErr } = await supabase.functions.invoke(
+        'plan-lesson-blueprint',
+        {
+          body: {
+            topic: lesson.title,
+            cefr_level: data.cefr_level,
+            hub: hubKey,
+            target_grammar: lesson.skill_focus,
+          },
+        },
+      );
+      if (planErr) throw planErr;
+      if (planData?.error) throw new Error(planData.error);
+      blueprint = planData;
+      toast.success(`Blueprint ready · opening ${hubKey} creator…`, { id: tId });
+    } catch (e: any) {
+      console.warn('plan-lesson-blueprint failed; navigating without prefill', e);
+      toast.error(e?.message || 'Could not pre-plan blueprint — opening creator anyway', { id: tId });
+    }
+
+    setCurrentStep(`${hubKey}-creator` as any);
+    navigate(route, {
+      state: {
+        fromBlueprint: true,
+        blueprint,
+        lessonTitle: lesson.title,
+        cefrLevel: data.cefr_level,
+        hub: hubKey,
+        objective: lesson.objective || lesson.learning_objective || null,
+        skill_focus: lesson.skill_focus || null,
+        unit_title: (lesson as any).unit_title || null,
+        unit_number: (lesson as any).unit_number || null,
+      },
+    });
   };
 
   const saveBlueprintToLibrary = async (
