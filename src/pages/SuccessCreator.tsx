@@ -816,42 +816,18 @@ export default function SuccessCreator() {
       )}
 
       {/* AI generation modal */}
-      {aiOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-emerald-200 overflow-hidden">
-            <div className="bg-gradient-to-r from-emerald-500 to-teal-600 p-5 text-white">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-6 h-6" />
-                <h3 className="text-xl font-bold">Generate Success Lesson</h3>
-              </div>
-              <p className="text-sm opacity-90 mt-1">A 60-min, 7-block Business English deck for adults.</p>
-            </div>
-            <div className="p-5 space-y-4">
-              <label className="block">
-                <span className={labelCls}>Topic</span>
-                <input autoFocus className={inputCls} value={aiTopic} onChange={(e) => setAiTopic(e.target.value)} placeholder="e.g. Negotiating deadlines" disabled={aiBusy} />
-              </label>
-              <label className="block">
-                <span className={labelCls}>CEFR Level</span>
-                <select className={inputCls} value={aiLevel} onChange={(e) => setAiLevel(e.target.value)} disabled={aiBusy}>
-                  <option>A2</option><option>B1</option><option>B2</option><option>C1</option>
-                </select>
-              </label>
-              <label className="block">
-                <span className={labelCls}>Target language / function</span>
-                <input className={inputCls} value={aiGrammar} onChange={(e) => setAiGrammar(e.target.value)} placeholder="e.g. Polite modals" disabled={aiBusy} />
-              </label>
-              <p className="text-xs text-slate-500">Calls the same AI core with <code className="bg-emerald-50 text-emerald-700 rounded px-1">hub_type: 'success'</code>.</p>
-            </div>
-            <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
-              <button disabled={aiBusy} onClick={() => setAiOpen(false)} className="px-4 py-2 rounded-lg border border-slate-300 font-semibold text-slate-600 hover:bg-white disabled:opacity-50">Cancel</button>
-              <button disabled={aiBusy || !aiTopic.trim()} onClick={generateWithAI} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-md disabled:opacity-50">
-                {aiBusy ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating…</> : <><Sparkles className="w-4 h-4" /> Generate</>}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <GenerateLessonModal
+        open={aiOpen}
+        onClose={() => setAiOpen(false)}
+        hub="success"
+        defaultTopic={aiTopic}
+        defaultLevel={aiLevel}
+        defaultVocabulary={blueprint?.vocabulary}
+        defaultGrammar={blueprint?.grammar || aiGrammar}
+        defaultPhonics={blueprint?.target_phonics}
+        busy={aiBusy}
+        onGenerate={generateWithAI}
+      />
 
       <RevisionHistoryModal
         open={historyOpen}
