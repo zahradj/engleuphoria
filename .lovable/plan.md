@@ -1,53 +1,89 @@
-## Goal
-Add four new gamified interactive slide types — `drag_and_drop_sorting`, `matching_lines`, `tracing_canvas`, `spinner_wheel` — end-to-end: AI blueprint schema → slide generator → renderer → blueprint preview badges.
+# Blueprint Schema Expansion — SWBAT, Final Task, Language Variant, Visual Theme
 
-## Phase 1 — AI Schema (edge functions)
+Add four new pedagogical / visual fields end-to-end: blueprint type → Generate Lesson modal inputs → AI auto-fill prompt → slide generator → image prompt aesthetic.
+
+## 1. Type & payload changes
+
+**`src/components/creator-studio/shared/blueprintTypes.ts`**
+- Add to `LessonBlueprint`:
+  - `learning_objective?: string` — SWBAT statement
+  - `final_output_task?: string` — production-stage task description
+  - `language_variant?: LanguageVariant`
+  - `visual_theme?: VisualTheme`
+- Add union types + label maps:
+  - `LanguageVariant = 'American English' | 'British English' | 'Global/Neutral'` (default `'American English'`)
+  - `VisualTheme = '3D Animation' | 'Anime/Manga' | 'Watercolor' | 'Professional/Realistic'` (default `'Professional/Realistic'`)
+- Export `VISUAL_THEME_PROMPT_SUFFIX: Record<VisualTheme, string>` with the exact aesthetic phrase to append to image prompts (e.g. `'3D Animation' → ', rendered in vibrant Pixar-style 3D animation, soft global illumination, clean vector edges'`).
+
+**`GenerateLessonPayload`** (in `GenerateLessonModal.tsx`)
+- Add: `language_variant: LanguageVariant`, `visual_theme: VisualTheme`.
+- Also surface AI-produced `learning_objective` and `final_output_task` back to caller via a new optional `onBlueprintHints` callback OR (preferred) include them in `GenerateLessonPayload` as `learning_objective?: string`, `final_output_task?: string` so the three Creator pages can store them on the blueprint.
+
+## 2. Generate Lesson modal UI
+
+**`src/components/creator-studio/shared/GenerateLessonModal.tsx`**
+- Add two new dropdowns above the "Blueprint Details" collapsible (always visible, side-by-side on `sm:`):
+  - **Language Variant** — `American English` (default) / `British English` / `Global/Neutral`
+  - **Visual Theme** — `Professional/Realistic` (default) / `3D Animation` / `Anime/Manga` / `Watercolor`
+- Persist selections via `useState`, re-sync on `open` like other fields.
+- Pass both into `onGenerate` payload.
+
+**Auto-Fill prompt update (inside `handleAutoFill`)**
+- Extend the JSON shape requested from `generate-gemini` to also return:
+  - `learning_objective` — single sentence starting with `"Student will be able to ..."`, functional, observable, level-appropriate.
+  - `final_output_task` — one-sentence production task (roleplay / debate / free speak / show-and-tell) that proves mastery of grammar+vocab.
+- Update system prompt: include current `language_variant` so spelling/vocab in suggestions matches it (e.g. avoid "fries" if British).
+- Store returned `learning_objective` and `final_output_task` in new local state and render them as **read-only preview cards** inside the Blueprint Details panel (with a small ✏ edit toggle so the teacher can refine).
+
+## 3. AI prompt — `generate-gemini` consumers
+
+No changes to the generic `generate-gemini` edge function itself (it's a passthrough). The new fields are handled by:
+- The auto-fill prompt above (modal).
+- `plan-lesson-blueprint/index.ts` and `generate-ppp-slides/index.ts` (below).
+
+## 4. Blueprint planner & slide generator
 
 **`supabase/functions/plan-lesson-blueprint/index.ts`**
-- Extend the allowed `slide_type` whitelist (lines 102–103 and 134) to include the four new types.
-- Add a `GAMIFIED ACTIVITY CATALOG` block to the system prompt with required `activity_data` shapes:
-  - `drag_and_drop_sorting` → `{ categories: string[], draggable_items: { text, category }[] }`
-  - `matching_lines` → `{ left_column: string[], right_column: string[], pairs: [li, ri][] }`
-  - `tracing_canvas` → `{ target_letters: string[], font_style?: 'print'|'cursive' }` (Pre-A1 / Playground)
-  - `spinner_wheel` → `{ wheel_segments: string[], prompt_template?: string }`
-- Tier hint: tracing/spinner default Pre-A1/A1; sorting/matching bias A2+.
-- Add: "REQUIRED — every practice phase must use one of the gamified types when appropriate."
+- Accept new optional inputs: `learning_objective`, `final_output_task`, `language_variant`, `visual_theme`.
+- Inject into system prompt:
+  - `LANGUAGE VARIANT: <variant>. Use matching spelling and regional vocabulary throughout.`
+  - `VISUAL THEME: <theme>. Every image_prompt MUST end with: "<VISUAL_THEME_PROMPT_SUFFIX[theme]>".`
+  - If `learning_objective`/`final_output_task` provided, treat as authoritative; otherwise instruct AI to generate them and include them in the returned JSON.
+- Add `learning_objective` and `final_output_task` to the JSON schema returned to client.
+- Add a hard rule: **the final slide of `lesson_structure` MUST be a `production` / `free_speaking` phase whose `note` matches `final_output_task` verbatim.**
 
 **`supabase/functions/generate-ppp-slides/index.ts`**
-- Mirror the four `slide_type` values in the slide-generation prompt with example payloads to lock the JSON shape.
+- Accept the same four fields from request body.
+- Append `VISUAL_THEME_PROMPT_SUFFIX[theme]` to every generated `image_prompt` / `image_prompt_detailed` (server-side guarantee even if model forgets).
+- Inject `LANGUAGE VARIANT` rule into the system prompt.
+- Ensure final slide content reflects `final_output_task`.
 
-## Phase 2 — UI components & renderer mapping
+## 5. Wire the three Creator pages
 
-Create under `src/components/lesson-player/activities/`:
-- `DragAndDropSlide.tsx` — categories + draggable items, scores correct/incorrect.
-- `MatchingLinesSlide.tsx` — two columns, SVG line connectors.
-- `TracingSlide.tsx` — `<canvas>` with faded target letter, stroke-coverage tracking, Playground-styled.
-- `SpinnerWheelSlide.tsx` — animated wheel; on stop hands off the chosen word to existing `SpeakingPractice`.
+**`src/pages/PlaygroundCreator.tsx`, `AcademyCreator.tsx`, `SuccessCreator.tsx`**
+- Extend the local blueprint state with the four new fields.
+- Pass `defaultLanguageVariant` (`'American English'`) and `defaultVisualTheme` (`'Professional/Realistic'`) to `GenerateLessonModal`.
+- In the `onGenerate` handler, forward `language_variant`, `visual_theme`, `learning_objective`, `final_output_task` into both:
+  - `plan-lesson-blueprint` invocation
+  - `generate-ppp-slides` invocation
+- Persist the four new fields onto the blueprint object stored in component state so subsequent regeneration reuses them.
 
-All four components: signature `{ slide, hub, onCorrect, onIncorrect, onComplete }` matching `EditorialSortingGame` / `DragAndMatch`. Read payload from `slide.activity_data ?? slide.interactive_data`.
+## 6. Blueprint preview (read-only display)
 
-**`src/components/lesson-player/DynamicSlideRenderer.tsx`**
-- Add the four keys to `INTERACTIVE_REQUIRED_KEYS`:
-  - `drag_and_drop_sorting: ['categories', 'draggable_items']`
-  - `matching_lines: ['left_column', 'right_column']`
-  - `tracing_canvas: ['target_letters']`
-  - `spinner_wheel: ['wheel_segments']`
-- Add four new branches to the `directorType` switch (~line 408) rendering the new components.
-
-## Phase 3 — Blueprint preview badges
-
-In `src/components/creator-studio/shared/LessonBlueprintPanel.tsx` (and any inline preview in `BlueprintEngine` / `CurriculumMap`):
-- Add a `SLIDE_TYPE_META` lookup `{ icon, label, color }` per slide_type using lucide icons: `MousePointerClick` (sorting), `GitCompareArrows` (matching), `Pencil` (tracing), `Disc3` (spinner) plus existing types.
-- Render icon + colored badge next to each `lesson_structure` row.
-- Use hub theme tokens — no raw colors — so badges respect Playground/Academy/Success palettes.
+**`src/components/creator-studio/shared/LessonBlueprintPanel.tsx`**
+- Add two new info rows at the top of the panel:
+  - **🎯 Learning Objective (SWBAT):** `{learning_objective}`
+  - **🏁 Final Output Task:** `{final_output_task}`
+- Add small chip row showing **Variant:** `{language_variant}` · **Theme:** `{visual_theme}`.
 
 ## Verification
-- Call `plan-lesson-blueprint` Pre-A1 Playground → returns `lesson_structure` containing `tracing_canvas` and `spinner_wheel`.
-- Call `generate-ppp-slides` from that blueprint → resulting slides contain matching `activity_data` keys.
-- Open the lesson in the player → each component renders, scores, advances.
-- Regenerate a blueprint in Creator Studio → preview shows new colored badges.
+
+1. Open Creator Studio → click Generate Lesson → see new "Language Variant" and "Visual Theme" dropdowns above Blueprint Details.
+2. Click Auto-Fill → AI returns vocab/grammar **plus** SWBAT and Final Task; both render in the modal.
+3. Submit → blueprint panel shows SWBAT + Final Task + variant/theme chips.
+4. Inspect generated slides JSON: every `image_prompt` ends with the chosen theme suffix; final slide is a production task matching `final_output_task`; spelling matches variant (e.g. "colour" for British).
 
 ## Out of scope
-- No DB schema changes (`slide_type` is free text).
-- No edits to existing `EditorialSortingGame` / `DragAndMatch` components.
-- No new audio wiring; spinner reuses existing `SpeakingPractice` flow.
+- No DB schema changes — fields ride along with the existing JSON blueprint payload.
+- No changes to the lesson player renderer.
+- No new edge functions; only updates to `plan-lesson-blueprint` and `generate-ppp-slides`.
