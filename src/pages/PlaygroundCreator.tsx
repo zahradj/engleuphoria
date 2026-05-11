@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Eye, Code2, X, Sparkles, Loader2, Image as ImageIcon, Save, BookOpen, Send, FolderOpen, History, Wand2, FileUp, ArrowLeft } from 'lucide-react';
 import { SlideRenderer, type Slide } from './PlaygroundDemo';
