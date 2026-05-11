@@ -9,9 +9,11 @@ export type Hub = 'playground' | 'academy' | 'success';
 export interface GenerateLessonPayload {
   topic: string;
   level: string;
-  vocabulary: string[]; // length 5
+  vocabulary: string[]; // length 5 (or 3-4 for Pre-A1)
   grammar: string;
   target_phonics: string;
+  interests: string;
+  specific_needs: string;
 }
 
 interface Props {
@@ -23,6 +25,8 @@ interface Props {
   defaultVocabulary?: string[];
   defaultGrammar?: string;
   defaultPhonics?: string;
+  defaultInterests?: string;
+  defaultNeeds?: string;
   busy: boolean;
   onGenerate: (payload: GenerateLessonPayload) => Promise<void> | void;
 }
