@@ -307,6 +307,7 @@ export default function PlaygroundCreator() {
           grammar_focus: bp.grammar,
           interests,
           specific_needs,
+          previous_topics,
           blueprint: { lesson_title: aiTopic.trim(), target_vocabulary: bp.vocabulary, grammar_focus: bp.grammar, target_hub: 'playground', interests, specific_needs },
         },
       });
