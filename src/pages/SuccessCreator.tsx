@@ -275,6 +275,7 @@ export default function SuccessCreator() {
           grammar_focus: bp.grammar,
           interests,
           specific_needs,
+          previous_topics,
           blueprint: { lesson_title: aiTopic.trim(), target_vocabulary: bp.vocabulary, grammar_focus: bp.grammar, target_hub: 'success', interests, specific_needs },
         },
       });
