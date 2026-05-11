@@ -898,6 +898,10 @@ export default function PlaygroundCreator() {
         defaultPhonics={blueprint?.target_phonics}
         defaultInterests={blueprint?.interests}
         defaultNeeds={blueprint?.specific_needs}
+        defaultLanguageVariant={blueprint?.language_variant}
+        defaultVisualTheme={blueprint?.visual_theme}
+        defaultLearningObjective={blueprint?.learning_objective}
+        defaultFinalOutputTask={blueprint?.final_output_task}
         busy={aiBusy}
         onGenerate={generateWithAI}
       />
