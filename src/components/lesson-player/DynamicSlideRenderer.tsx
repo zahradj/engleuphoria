@@ -221,7 +221,7 @@ const INTERACTIVE_REQUIRED_KEYS: Record<string, string[]> = {
 const hasValidInteractiveData = (slide: any, type: string): boolean => {
   const required = INTERACTIVE_REQUIRED_KEYS[type];
   if (!required) return true;
-  const data = slide?.interactive_data || slide?.content;
+  const data = slide?.activity_data || slide?.interactive_data || slide?.content;
   if (!data || typeof data !== 'object') return false;
   return required.some((k) => {
     const v = (data as any)[k];
