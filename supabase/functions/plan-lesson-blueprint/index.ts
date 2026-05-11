@@ -73,7 +73,23 @@ Deno.serve(async (req) => {
       outputContract: 'Return ONE JSON object with shape { vocabulary: string[5], grammar: string, target_phonics: { focus, sound_ipa, grapheme, example_words[] }, rationale?: string }. No markdown.',
     });
 
-    const system = `${studioPersona}
+    const isPreA1 = String(cefr_level).toLowerCase() === 'pre-a1';
+
+    const preA1Override = isPreA1 ? `
+
+⚠️ PRE-A1 OVERRIDE — STRICT (overrides any conflicting rule below).
+Audience: 4-5 year-old true beginners and PRE-READERS.
+- DO NOT generate grammar rules or full sentences. Set "grammar" to an empty string.
+- "vocabulary" MUST be EXACTLY 3 phonetically-decodable CVC words tied to ONE phonics focus
+  (e.g. for /æ/ → ["cat","mat","hat"]; for /m/ → ["mat","mom","map"]).
+- "target_phonics" MUST be a single phoneme focus with IPA + grapheme + the same 3 example words.
+- "pedagogical_framework" MUST be "Immersion" (no Discovery/TaskBased).
+- "lesson_structure" entries may use ONLY these slide_type hints:
+  ["flashcard","multiple_choice","drag_and_match","drawing_canvas"].
+- All "phase" values should be "Vocabulary" (no Grammar/Reading/Comprehension/Writing phases).
+` : '';
+
+    const system = `${studioPersona}${preA1Override}
 
 You are also a Senior ESL Curriculum Designer.
 Given a TOPIC and a CEFR level, you select:
