@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
-    const { topic, cefr_level = 'A1', hub = 'academy', interests, specific_needs } =
+    const { topic, cefr_level = 'A1', hub = 'academy', interests, specific_needs, target_grammar, previous_topics } =
       await req.json().catch(() => ({}));
 
     if (!topic || typeof topic !== 'string') {
