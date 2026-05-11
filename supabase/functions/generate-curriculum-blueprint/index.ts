@@ -1,6 +1,6 @@
 // 4-Skills ESL Curriculum Blueprint Generator
 // Outputs: { curriculum_title, units: [{ unit_title, theme, lessons: [{ lesson_id, title, skill_focus, learning_objective }] }] }
-import { aiFetch } from "../_shared/aiFetch.ts";
+// Migrated off Lovable AI — calls Google Gemini directly via GEMINI_API_KEY.
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -31,9 +31,9 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
   try {
-    const apiKey = Deno.env.get("LOVABLE_API_KEY") || Deno.env.get("GEMINI_API_KEY");
+    const apiKey = Deno.env.get("GEMINI_API_KEY");
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: "AI key not configured" }), {
+      return new Response(JSON.stringify({ error: "GEMINI_API_KEY not configured" }), {
         status: 500,
         headers: { ...CORS, "Content-Type": "application/json" },
       });
@@ -65,38 +65,18 @@ HUB: ${hub}
 
 THEME RULE:
 - If a Core Theme is provided, base the units around it and progress logically across them.
-- If the Core Theme is empty, you MUST invent a highly engaging, age-appropriate, and creative theme yourself based on the requested CEFR Level and Age Group. Pick something fresh and motivating (e.g. for kids: "Dinosaur Detectives", for teens: "Esports & Streaming Culture", for adults: "Career Power Moves"). Do not default to bland topics like "General English".
+- If the Core Theme is empty, you MUST invent a highly engaging, age-appropriate, and creative theme yourself based on the requested CEFR Level and Age Group.
 
 REQUIREMENTS:
-1. Every unit MUST have a single engaging central theme (e.g. "Travel Adventures", "Tech & Social Media", "Career Confidence").
-2. Within each unit, lessons MUST systematically rotate through these skill focuses in order:
-   1) Grammar  2) Vocabulary  3) Reading/Listening  4) Speaking
-   (If more than 4 non-review lessons in a unit, cycle through them again.)
+1. Every unit MUST have a single engaging central theme.
+2. Within each unit, lessons MUST systematically rotate through skill focuses in order: Grammar → Vocabulary → Reading/Listening → Speaking.
 3. CRITICAL — Spaced repetition: the FINAL lesson of EVERY unit MUST have skill_focus = "Review". No exceptions.
-4. Lesson titles must be specific and engaging — NOT generic ("Grammar Lesson 1" is forbidden).
-5. Each objective must be a single concrete, observable outcome ("Students will be able to...").
-6. Themes must progress logically across units (build complexity, don't repeat).
+4. Lesson titles must be specific and engaging.
+5. Each objective must be a single concrete observable outcome ("Students will be able to...").
+6. Themes must progress logically across units.
 7. Variation seed: ${variationSeed} — use this to differ from past outputs.
 
-OUTPUT STRICT JSON ONLY (no markdown, no code fences) matching this schema EXACTLY:
-{
-  "curriculum_title": "string — engaging title for the whole course",
-  "units": [
-    {
-      "unit_number": number,
-      "unit_title": "string",
-      "theme": "string — the central theme of this unit",
-      "lessons": [
-        {
-          "lesson_number": number,
-          "title": "string — specific & engaging lesson title",
-          "skill_focus": "Grammar | Vocabulary | Reading/Listening | Speaking | Review",
-          "objective": "string — one observable outcome"
-        }
-      ]
-    }
-  ]
-}`;
+Return STRICT JSON only.`;
 
     const userPrompt = `Generate a curriculum with:
 - ${safeUnits} units
@@ -106,154 +86,84 @@ ${hasTheme ? `- Core theme/topic: "${cleanTheme}"` : "- Core theme/topic: (none 
 
 Return ONLY the JSON object.`;
 
-    // Use Lovable AI Gateway with strict tool-calling for guaranteed-valid JSON.
-    // Tool-calling is the OpenAI-compatible equivalent of Gemini's responseSchema —
-    // the model is forced to return data matching our exact shape, eliminating
-    // the need for parse-retry loops.
-    const useLovableGateway = !!Deno.env.get("LOVABLE_API_KEY");
-    let parsed: any = null;
-
-    const blueprintTool = {
-      type: "function",
-      function: {
-        name: "emit_curriculum_blueprint",
-        description: "Return a structured 4-skills ESL curriculum blueprint.",
-        parameters: {
-          type: "object",
-          properties: {
-            curriculum_title: { type: "string", description: "Engaging title for the whole course." },
-            units: {
-              type: "array",
-              minItems: 1,
-              items: {
-                type: "object",
-                properties: {
-                  unit_number: { type: "integer", minimum: 1 },
-                  unit_title: { type: "string" },
-                  theme: { type: "string", description: "Central theme of this unit." },
-                  lessons: {
-                    type: "array",
-                    minItems: 2,
-                    items: {
-                      type: "object",
-                      properties: {
-                        lesson_number: { type: "integer", minimum: 1 },
-                        title: { type: "string", description: "Specific & engaging lesson title." },
-                        skill_focus: {
-                          type: "string",
-                          enum: ["Grammar", "Vocabulary", "Reading/Listening", "Speaking", "Review"],
-                        },
-                        objective: { type: "string", description: "One observable outcome." },
-                      },
-                      required: ["lesson_number", "title", "skill_focus", "objective"],
-                      additionalProperties: false,
+    // Gemini responseSchema — note: NO `additionalProperties` (unsupported by Gemini API).
+    const responseSchema = {
+      type: "object",
+      properties: {
+        curriculum_title: { type: "string" },
+        units: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              unit_number: { type: "integer" },
+              unit_title: { type: "string" },
+              theme: { type: "string" },
+              lessons: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    lesson_number: { type: "integer" },
+                    title: { type: "string" },
+                    skill_focus: {
+                      type: "string",
+                      enum: ["Grammar", "Vocabulary", "Reading/Listening", "Speaking", "Review"],
                     },
+                    objective: { type: "string" },
                   },
+                  required: ["lesson_number", "title", "skill_focus", "objective"],
                 },
-                required: ["unit_number", "unit_title", "theme", "lessons"],
-                additionalProperties: false,
               },
             },
+            required: ["unit_number", "unit_title", "theme", "lessons"],
           },
-          required: ["curriculum_title", "units"],
-          additionalProperties: false,
         },
       },
+      required: ["curriculum_title", "units"],
     };
 
-    if (useLovableGateway) {
-      const aiResponse = await aiFetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt },
-          ],
-          tools: [blueprintTool],
-          tool_choice: { type: "function", function: { name: "emit_curriculum_blueprint" } },
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    const aiResponse = await fetch(geminiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema,
           temperature: 0.85,
-        }),
-      });
+          maxOutputTokens: 4096,
+        },
+      }),
+    });
 
-      if (!aiResponse.ok) {
-        const errText = await aiResponse.text();
-        console.error("AI gateway error:", aiResponse.status, errText);
-        if (aiResponse.status === 429) {
-          return new Response(
-            JSON.stringify({ error: "Rate limit reached. Please wait a moment and try again." }),
-            { status: 429, headers: { ...CORS, "Content-Type": "application/json" } },
-          );
-        }
-        if (aiResponse.status === 402) {
-          return new Response(
-            JSON.stringify({ error: "AI credits exhausted. Add funds in Settings → Workspace → Usage." }),
-            { status: 402, headers: { ...CORS, "Content-Type": "application/json" } },
-          );
-        }
-        return new Response(
-          JSON.stringify({ error: "AI generation failed.", details: errText }),
-          { status: 500, headers: { ...CORS, "Content-Type": "application/json" } },
-        );
-      }
+    if (!aiResponse.ok) {
+      const errText = await aiResponse.text();
+      console.error("Gemini error:", aiResponse.status, errText);
+      const status = aiResponse.status === 429 ? 429 : 500;
+      const msg =
+        aiResponse.status === 429
+          ? "Gemini rate limit reached. Please wait a moment and try again."
+          : "AI generation failed.";
+      return new Response(
+        JSON.stringify({ error: msg, details: errText.slice(0, 500) }),
+        { status, headers: { ...CORS, "Content-Type": "application/json" } },
+      );
+    }
 
-      const j = await aiResponse.json();
-      const argsRaw = j?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
-      if (!argsRaw) {
-        console.error("No tool call in AI response", JSON.stringify(j).slice(0, 500));
-        return new Response(
-          JSON.stringify({ error: "AI did not return a structured blueprint." }),
-          { status: 502, headers: { ...CORS, "Content-Type": "application/json" } },
-        );
-      }
-      try {
-        parsed = JSON.parse(argsRaw);
-      } catch (e) {
-        console.error("Tool-call args parse failed:", e, argsRaw.slice(0, 500));
-        return new Response(
-          JSON.stringify({ error: "AI returned malformed structured output.", raw: argsRaw.slice(0, 1000) }),
-          { status: 502, headers: { ...CORS, "Content-Type": "application/json" } },
-        );
-      }
-    } else {
-      // Direct Gemini fallback — uses native responseSchema for guaranteed JSON.
-      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-      const aiResponse = await aiFetch(geminiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemPrompt }] },
-          contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-          generationConfig: {
-            responseMimeType: "application/json",
-            responseSchema: blueprintTool.function.parameters,
-            temperature: 0.85,
-            maxOutputTokens: 4096,
-          },
-        }),
-      });
-      if (!aiResponse.ok) {
-        const errText = await aiResponse.text();
-        return new Response(
-          JSON.stringify({ error: "AI generation failed", details: errText }),
-          { status: 500, headers: { ...CORS, "Content-Type": "application/json" } },
-        );
-      }
-      const j = await aiResponse.json();
-      const rawText = (j?.candidates?.[0]?.content?.parts?.[0]?.text || "").trim();
-      try {
-        parsed = JSON.parse(rawText);
-      } catch (e) {
-        console.error("Failed to parse JSON:", e, rawText.slice(0, 500));
-        return new Response(
-          JSON.stringify({ error: "AI returned invalid JSON", raw: rawText.slice(0, 1000) }),
-          { status: 500, headers: { ...CORS, "Content-Type": "application/json" } },
-        );
-      }
+    const j = await aiResponse.json();
+    const rawText = (j?.candidates?.[0]?.content?.parts?.[0]?.text || "").trim();
+    let parsed: any = null;
+    try {
+      parsed = JSON.parse(rawText);
+    } catch (e) {
+      console.error("Failed to parse Gemini JSON:", e, rawText.slice(0, 500));
+      return new Response(
+        JSON.stringify({ error: "AI returned invalid JSON", raw: rawText.slice(0, 1000) }),
+        { status: 502, headers: { ...CORS, "Content-Type": "application/json" } },
+      );
     }
 
     // Lightweight runtime validation (tool-calling already enforces shape;
