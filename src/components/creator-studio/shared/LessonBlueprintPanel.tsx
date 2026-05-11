@@ -8,7 +8,10 @@ import type {
   PedagogicalFramework,
   LessonPhase,
   BlueprintVideoStrategy,
+  LanguageVariant,
+  VisualTheme,
 } from './blueprintTypes';
+import { DEFAULT_LANGUAGE_VARIANT, DEFAULT_VISUAL_THEME } from './blueprintTypes';
 
 /**
  * Hub-Creator Blueprint = SUPERSET of the original thin Hub shape AND the rich
@@ -42,6 +45,14 @@ export interface LessonBlueprint {
   final_speaking_mission?: string;
   /** Authoritative slide structure: ordered list of {phase, slide_type} hints. */
   lesson_structure?: Array<{ phase: LessonPhase; slide_type?: string; note?: string }>;
+  /** SWBAT — single-sentence functional learning objective. */
+  learning_objective?: string;
+  /** Production-stage final task that proves mastery. */
+  final_output_task?: string;
+  /** Regional spelling/vocab variant. */
+  language_variant?: LanguageVariant;
+  /** Aesthetic appended to every image prompt. */
+  visual_theme?: VisualTheme;
 }
 
 export const EMPTY_BLUEPRINT: LessonBlueprint = {
@@ -50,6 +61,8 @@ export const EMPTY_BLUEPRINT: LessonBlueprint = {
   interests: '',
   specific_needs: '',
   target_phonics: '',
+  language_variant: DEFAULT_LANGUAGE_VARIANT,
+  visual_theme: DEFAULT_VISUAL_THEME,
 };
 
 interface Props {
