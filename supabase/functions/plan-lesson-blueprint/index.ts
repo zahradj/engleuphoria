@@ -44,12 +44,27 @@ Deno.serve(async (req) => {
     }
     if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not configured');
 
-    const phonicsGuidance =
+    // CEFR-tiered phonics rules — TIER WINS over hub flavoring.
+    const cefrUpper = String(cefr_level).toUpperCase();
+    const tier: 'A' | 'B' | 'C' =
+      ['PRE-A1', 'A1'].includes(cefrUpper) ? 'A' :
+      ['A2', 'B1'].includes(cefrUpper) ? 'B' : 'C';
+
+    const tierRule =
+      tier === 'A'
+        ? `TIER A — Synthetic Phonics (Pre-A1 / A1). Pick a single-phoneme focus, CVC blend, or simple digraph (sh, ch, th, ck). e.g. "Short A /æ/", "Digraph /ʃ/ (sh)", "CVC blend C-A-T". Provide IPA + grapheme + 3 example_words from the chosen vocabulary.`
+        : tier === 'B'
+        ? `TIER B — Minimal Pairs / Tricky Sounds (A2 / B1). Pick a minimal pair, a tricky consonant cluster, OR a silent letter pattern. e.g. "Minimal pair /ɪ/ vs /iː/ (ship/sheep)", "Cluster /spr/ (spring/spray)", "Silent K (knee/know)". Provide IPA + a short pattern label + 2-3 contrasting example_words drawn from the vocabulary.`
+        : `TIER C — Suprasegmentals (B2 / C1 / C2). Pick word stress, sentence stress, intonation, linking, elision, or weak forms. e.g. "Noun↔verb stress shift (RE-cord vs re-CORD)", "Elision in connected speech (next door → /neks dɔː/)", "Rising intonation in yes/no questions". Provide a clear pattern label + IPA where relevant + 2-3 example phrases drawn from the vocabulary.`;
+
+    const hubFlavor =
       hub === 'playground'
-        ? `Choose a SYNTHETIC PHONICS focus that is directly derivable from the chosen vocabulary (e.g., vocab "cat / bat / hat" → "Short /a/"; vocab "cake / bake / lake" → "Magic e / long /eɪ/"; "ship / chip" → "/ʃ/ vs /tʃ/ digraph"). Provide both a kid-friendly focus label AND the IPA symbol.`
+        ? `Use kid-friendly labels alongside the IPA.`
         : hub === 'success'
-        ? `Choose an EXECUTIVE PRONUNCIATION focus tied to the vocabulary — word stress patterns (e.g. "Stress on -tion endings"), connected speech, or business intonation. Avoid kids' phonics.`
-        : `Choose a PRONUNCIATION ACCURACY focus tied to the vocabulary — common teen problem sounds (e.g. "/v/ vs /w/", "th- digraph", "schwa in unstressed syllables").`;
+        ? `Frame the focus for adult professionals (workplace / business contexts). Avoid kids' phonics labels.`
+        : `Frame the focus for teenagers — modern, relatable examples.`;
+
+    const phonicsGuidance = `${tierRule}\n${hubFlavor}\n⚠️ target_phonics is REQUIRED at every level — never return an empty object.`;
 
     const audience =
       hub === 'playground'
