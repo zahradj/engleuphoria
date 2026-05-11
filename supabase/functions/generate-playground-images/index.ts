@@ -33,16 +33,6 @@ async function hashSubject(s: string): Promise<string> {
     .join("");
 }
 
-function dataUrlToBytes(url: string): { bytes: Uint8Array; mime: string } {
-  const m = url.match(/^data:([^;]+);base64,(.+)$/);
-  if (!m) throw new Error("Invalid data URL from image model");
-  const mime = m[1];
-  const b64 = m[2];
-  const bin = atob(b64);
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  return { bytes, mime };
-}
 
 async function generateOne(
   subject: string,
