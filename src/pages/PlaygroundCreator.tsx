@@ -101,7 +101,11 @@ function makeSlide(type: SlideType): Slide {
     case 'vocab_solo':
       return { type: 'vocab_solo', word: 'APPLE', definition: 'A round red or green fruit.', image_url: '', audio_url: '', voice: { text: 'apple', autoPlay: false } } as Slide;
     case 'phonics_focus':
-      return { type: 'phonics_focus', phoneme: '/æ/', grapheme: 'a', sound_ipa: '/æ/', label: 'Listen to the sound', example_words: ['CAT', 'BAT', 'HAT'], audio_url: '', voice: { text: 'short a', autoPlay: true } } as unknown as Slide;
+      return { type: 'phonics_focus', phoneme: '/æ/', grapheme: 'a', sound_ipa: '/æ/', label: 'Listen to the sound', example_words: ['CAT', 'BAT', 'HAT'], phonics_items: [
+        { word: 'CAT', image_url: '', audio_url: '', spoken_text: '' },
+        { word: 'BAT', image_url: '', audio_url: '', spoken_text: '' },
+        { word: 'HAT', image_url: '', audio_url: '', spoken_text: '' },
+      ], audio_url: '', voice: { text: 'a', autoPlay: true } } as unknown as Slide;
     case 'lesson_summary':
       return { type: 'lesson_summary', title: 'Level Complete!', vocab_recap: [], takeaway: 'You did amazing!', voice: { text: 'Great job! Level complete!', autoPlay: true } };
     case 'storybook':
@@ -817,7 +821,7 @@ export default function PlaygroundCreator() {
                     onChange={(next) => update(next as Partial<Slide>)}
                   />
                 ) : (
-                  <SlideEditor slide={current} onChange={update} blueprint={blueprint} hub="playground" />
+                  <SlideEditor slide={current} onChange={update} blueprint={blueprint} hub="playground" lessonId={lessonHook.lessonId} slideId={slideId} />
                 )}
               </TabsContent>
               <TabsContent value="media" className="pt-4 flex-1 overflow-y-auto min-h-0">
@@ -1052,7 +1056,7 @@ function ImageField({
 }
 
 
-function SlideEditor({ slide, onChange, blueprint, hub = 'playground' }: { slide: Slide; onChange: (p: Partial<Slide>) => void; blueprint?: LessonBlueprint | null; hub?: 'playground' | 'academy' | 'success' }) {
+function SlideEditor({ slide, onChange, blueprint, hub = 'playground', lessonId, slideId }: { slide: Slide; onChange: (p: Partial<Slide>) => void; blueprint?: LessonBlueprint | null; hub?: 'playground' | 'academy' | 'success'; lessonId?: string | null; slideId?: string }) {
   const voice = (slide as any).voice as Slide['voice'] | undefined;
   const wandFor = (field: string, currentValue: string, apply: (v: string) => void) => (
     <WandFieldButton
@@ -1265,45 +1269,16 @@ function SlideEditor({ slide, onChange, blueprint, hub = 'playground' }: { slide
         </div>
       );
 
-    case 'phonics_focus': {
-      const ps: any = slide;
-      const examples: string[] = Array.isArray(ps.example_words) ? ps.example_words : [];
-      const setExample = (i: number, v: string) => {
-        const next = [...examples];
-        next[i] = v;
-        onChange({ example_words: next.filter((_, idx) => idx < 3 || next[idx]?.trim()) } as any);
-      };
-      while (examples.length < 3) examples.push('');
+    case 'phonics_focus':
       return (
-        <div className="space-y-3">
-          <Field label="Grapheme / Letter (large display)">
-            <input className={inputCls} value={ps.grapheme || ''} onChange={(e) => onChange({ grapheme: e.target.value } as any)} placeholder="a" />
-          </Field>
-          <Field label="Phoneme (IPA)">
-            <input className={inputCls} value={ps.phoneme || ''} onChange={(e) => onChange({ phoneme: e.target.value, sound_ipa: e.target.value } as any)} placeholder="/æ/" />
-          </Field>
-          <Field label="Headline (optional)">
-            <input className={inputCls} value={ps.label || ''} onChange={(e) => onChange({ label: e.target.value } as any)} placeholder="Listen to the sound" />
-          </Field>
-          <div>
-            <span className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Example Words (3, from your vocabulary)</span>
-            <div className="space-y-1.5">
-              {[0, 1, 2].map((i) => (
-                <input
-                  key={i}
-                  className={inputCls}
-                  placeholder={`example ${i + 1}`}
-                  value={examples[i] || ''}
-                  onChange={(e) => setExample(i, e.target.value.toUpperCase())}
-                />
-              ))}
-            </div>
-          </div>
-          <p className="text-[11px] text-slate-500">Generate the isolated sound in the <b>AI Media & Audio</b> tab — it binds to the 🔊 button.</p>
-          {VoiceFields}
-        </div>
+        <PhonicsFocusEditor
+          slide={slide as any}
+          onChange={onChange as any}
+          lessonId={lessonId || 'draft'}
+          slideId={slideId || 'phonics'}
+          VoiceFields={VoiceFields}
+        />
       );
-    }
 
     case 'match':
       return (
@@ -1416,3 +1391,162 @@ function FullPreview({ slides }: { slides: Slide[] }) {
     </div>
   );
 }
+
+interface PhonicsItem { word: string; image_url?: string; audio_url?: string; spoken_text?: string }
+
+function PhonicsFocusEditor({
+  slide, onChange, lessonId, slideId, VoiceFields,
+}: {
+  slide: any;
+  onChange: (p: any) => void;
+  lessonId: string;
+  slideId: string;
+  VoiceFields: React.ReactNode;
+}) {
+  const items: PhonicsItem[] = Array.isArray(slide.phonics_items) && slide.phonics_items.length > 0
+    ? slide.phonics_items
+    : (slide.example_words || []).map((w: string) => ({ word: w, image_url: '', audio_url: '', spoken_text: '' }));
+
+  const setItems = (next: PhonicsItem[]) => {
+    onChange({
+      phonics_items: next,
+      example_words: next.map((it) => it.word).filter(Boolean),
+    });
+  };
+  const updateItem = (i: number, patch: Partial<PhonicsItem>) =>
+    setItems(items.map((it, idx) => idx === i ? { ...it, ...patch } : it));
+  const addItem = () => setItems([...items, { word: '', image_url: '', audio_url: '', spoken_text: '' }]);
+  const removeItem = (i: number) => setItems(items.filter((_, idx) => idx !== i));
+
+  const [busyAudio, setBusyAudio] = useState<number | null>(null);
+  const [busySoundIso, setBusySoundIso] = useState(false);
+
+  const generateItemAudio = async (i: number) => {
+    const it = items[i];
+    const text = (it.spoken_text || it.word || '').trim();
+    if (!text) { toast.error('Add the word or spoken text first'); return; }
+    setBusyAudio(i);
+    try {
+      const { generateSlideVoiceover } = await import('@/components/creator-studio/steps/slide-studio/mediaGeneration');
+      const res = await generateSlideVoiceover(text, lessonId, `${slideId}-phon-${i}`);
+      updateItem(i, { audio_url: res.url });
+      toast.success(`Audio generated for "${it.word}"`);
+    } catch (e: any) {
+      toast.error(e?.message || 'Audio generation failed');
+    } finally { setBusyAudio(null); }
+  };
+
+  const generateIsolatedSound = async () => {
+    const grapheme = (slide.grapheme || '').trim();
+    if (!grapheme) { toast.error('Set the grapheme first'); return; }
+    setBusySoundIso(true);
+    try {
+      const { generateSlideVoiceover } = await import('@/components/creator-studio/steps/slide-studio/mediaGeneration');
+      const res = await generateSlideVoiceover(grapheme, lessonId, `${slideId}-grapheme`, undefined, 'phonetic');
+      onChange({ audio_url: res.url, voice: { ...(slide.voice || {}), text: grapheme, audio_url: res.url, autoPlay: true } });
+      toast.success('Phonetic sound generated');
+    } catch (e: any) {
+      toast.error(e?.message || 'Sound generation failed');
+    } finally { setBusySoundIso(false); }
+  };
+
+  return (
+    <div className="space-y-3">
+      <Field label="Grapheme / Letter (large display)">
+        <input className={inputCls} value={slide.grapheme || ''} onChange={(e) => onChange({ grapheme: e.target.value })} placeholder="a" />
+      </Field>
+      <Field label="Phoneme (IPA)">
+        <input className={inputCls} value={slide.phoneme || ''} onChange={(e) => onChange({ phoneme: e.target.value, sound_ipa: e.target.value })} placeholder="/æ/" />
+      </Field>
+      <Field label="Headline (optional)">
+        <input className={inputCls} value={slide.label || ''} onChange={(e) => onChange({ label: e.target.value })} placeholder="Listen to the sound" />
+      </Field>
+
+      <div className="rounded-xl border-2 border-orange-100 bg-orange-50/40 p-3">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-bold text-slate-700 uppercase tracking-wide">Isolated sound (🔊 Play sound)</span>
+          <button
+            type="button"
+            onClick={generateIsolatedSound}
+            disabled={busySoundIso}
+            className="text-xs font-bold text-white bg-gradient-to-r from-fuchsia-500 to-orange-500 rounded-lg px-3 py-1.5 inline-flex items-center gap-1 disabled:opacity-50"
+          >
+            {busySoundIso ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+            Generate phonetic
+          </button>
+        </div>
+        <p className="text-[11px] text-slate-500">
+          Uses ElevenLabs SSML <code>&lt;phoneme&gt;</code> so the voice says the <b>sound</b> (/æ/), not the letter name (AY).
+        </p>
+        {slide.audio_url && <audio controls src={slide.audio_url} className="h-8 w-full mt-2" />}
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <span className="block text-xs font-bold text-slate-600 uppercase tracking-wide">Phonics Items (word + image + audio)</span>
+          <button
+            type="button"
+            onClick={addItem}
+            className="text-xs font-bold text-orange-700 bg-orange-100 hover:bg-orange-200 rounded-lg px-2 py-1 inline-flex items-center gap-1"
+          >
+            <Plus className="w-3.5 h-3.5" /> Add Word
+          </button>
+        </div>
+        <div className="space-y-3">
+          {items.length === 0 && (
+            <p className="text-xs text-slate-500 italic">No words yet. Click "Add Word" to start.</p>
+          )}
+          {items.map((it, i) => (
+            <div key={i} className="rounded-xl border-2 border-orange-100 bg-white p-3 space-y-2">
+              <div className="flex items-center gap-2">
+                <input
+                  className={inputCls + ' flex-1'}
+                  placeholder={`Word ${i + 1} (e.g. CAT)`}
+                  value={it.word}
+                  onChange={(e) => updateItem(i, { word: e.target.value.toUpperCase() })}
+                />
+                <button
+                  type="button"
+                  onClick={() => removeItem(i)}
+                  className="text-slate-400 hover:text-red-500 p-1.5"
+                  aria-label="Remove"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+              <ImageField
+                label="Image"
+                url={it.image_url}
+                subject={it.word}
+                onChange={(url) => updateItem(i, { image_url: url })}
+              />
+              <Field label="Spoken text (override — leave blank to say the word)">
+                <input
+                  className={inputCls}
+                  placeholder={`e.g. "aaah cat" or <phoneme alphabet="ipa" ph="kæt">cat</phoneme>`}
+                  value={it.spoken_text || ''}
+                  onChange={(e) => updateItem(i, { spoken_text: e.target.value })}
+                />
+              </Field>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => generateItemAudio(i)}
+                  disabled={busyAudio === i}
+                  className="text-xs font-bold text-white bg-gradient-to-r from-fuchsia-500 to-orange-500 rounded-lg px-3 py-1.5 inline-flex items-center gap-1 disabled:opacity-50"
+                >
+                  {busyAudio === i ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                  Generate audio
+                </button>
+                {it.audio_url && <audio controls src={it.audio_url} className="h-7 flex-1" />}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {VoiceFields}
+    </div>
+  );
+}
+

@@ -16,7 +16,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { text, voiceId, lessonId, slideId } = await req.json();
+    const { text, voiceId, lessonId, slideId, mode } = await req.json();
     if (!text || typeof text !== "string" || !text.trim()) {
       return new Response(JSON.stringify({ error: "Text is required" }), {
         status: 400,
@@ -33,6 +33,26 @@ serve(async (req) => {
     }
 
     const vid = (voiceId && typeof voiceId === "string" ? voiceId : DEFAULT_VOICE_ID);
+    const isPhonetic = mode === "phonetic";
+
+    // Phonetic mode: speak the SOUND of the letter, not its alphabet name.
+    // ElevenLabs supports SSML <phoneme> tags only on eleven_multilingual_v2.
+    // Auto-wrap a single bare letter in <phoneme> with a small heuristic IPA map
+    // so teachers don't have to hand-author SSML; pass-through if already SSML.
+    let spoken = text.trim();
+    if (isPhonetic && !/<phoneme/i.test(spoken)) {
+      const ipaMap: Record<string, string> = {
+        a: "æ", e: "ɛ", i: "ɪ", o: "ɒ", u: "ʌ",
+        b: "b", c: "k", d: "d", f: "f", g: "ɡ", h: "h",
+        j: "dʒ", k: "k", l: "l", m: "m", n: "n", p: "p",
+        q: "kw", r: "ɹ", s: "s", t: "t", v: "v", w: "w",
+        x: "ks", y: "j", z: "z",
+      };
+      const single = spoken.length === 1 ? spoken.toLowerCase() : null;
+      if (single && ipaMap[single]) {
+        spoken = `<phoneme alphabet="ipa" ph="${ipaMap[single]}">${spoken}</phoneme>`;
+      }
+    }
 
     const ttsRes = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${vid}?output_format=mp3_44100_128`,
@@ -43,12 +63,13 @@ serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          text,
-          model_id: "eleven_turbo_v2_5",
+          text: spoken,
+          // Multilingual v2 is required for SSML <phoneme>; turbo for normal speech.
+          model_id: isPhonetic ? "eleven_multilingual_v2" : "eleven_turbo_v2_5",
           voice_settings: {
-            stability: 0.5,
+            stability: isPhonetic ? 0.7 : 0.5,
             similarity_boost: 0.8,
-            style: 0.55,
+            style: isPhonetic ? 0.1 : 0.55,
             use_speaker_boost: true,
           },
         }),
