@@ -159,14 +159,25 @@ Return ONLY the JSON object.`;
     }
 
     const j = await aiResponse.json();
-    const rawText = (j?.candidates?.[0]?.content?.parts?.[0]?.text || "").trim();
+    const candidate = j?.candidates?.[0];
+    const finishReason = candidate?.finishReason;
+    const rawText = (candidate?.content?.parts?.[0]?.text || "").trim();
+
+    if (finishReason && finishReason !== "STOP") {
+      console.error("Gemini finishReason non-STOP:", finishReason, "text length:", rawText.length);
+    }
+
     let parsed: any = null;
     try {
       parsed = JSON.parse(rawText);
     } catch (e) {
-      console.error("Failed to parse Gemini JSON:", e, rawText.slice(0, 500));
+      console.error("Failed to parse Gemini JSON:", e, "finishReason:", finishReason, "len:", rawText.length, rawText.slice(0, 500));
+      const hint =
+        finishReason === "MAX_TOKENS"
+          ? "AI response was cut off (token limit). Try fewer units/lessons."
+          : "AI returned invalid JSON. Please retry.";
       return new Response(
-        JSON.stringify({ error: "AI returned invalid JSON", raw: rawText.slice(0, 1000) }),
+        JSON.stringify({ error: hint, finishReason, raw: rawText.slice(0, 1000) }),
         { status: 502, headers: { ...CORS, "Content-Type": "application/json" } },
       );
     }
