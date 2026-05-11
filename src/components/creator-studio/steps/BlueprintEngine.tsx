@@ -105,7 +105,8 @@ export const BlueprintEngine: React.FC = () => {
       };
       setCurriculumData(next);
       const totalLessons = units.reduce((n: number, u: any) => n + u.lessons.length, 0);
-      toast.success(`Blueprint ready · ${units.length} units · ${totalLessons} lessons`);
+      const genreNote = data?.chosen_genre ? ` · genre: ${data.chosen_genre}` : '';
+      toast.success(`Blueprint ready · ${units.length} units · ${totalLessons} lessons${genreNote}`);
 
     } catch (err: any) {
       console.error('Blueprint generation error:', err);
