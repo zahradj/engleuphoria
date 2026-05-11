@@ -109,7 +109,7 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
     // CHECK constraint on curriculum_lessons.difficulty_level only allows
     // 'beginner' | 'intermediate' | 'advanced'. Map CEFR → bucket.
     const cefrToDifficulty = (c: string): 'beginner' | 'intermediate' | 'advanced' => {
-      if (['A1', 'A2'].includes(c)) return 'beginner';
+      if (['PRE-A1', 'A1', 'A2'].includes(c)) return 'beginner';
       if (['B1', 'B2'].includes(c)) return 'intermediate';
       return 'advanced'; // C1, C2, fallback
     };
