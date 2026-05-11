@@ -1,6 +1,7 @@
 // Generates N additional practice items for an activity slide
 // (error_detection / correction / fill_blank), aligned with the lesson blueprint.
 // Calls Google Gemini directly (Google AI Studio).
+import { buildStudioSystemPrompt } from "../_shared/studioPersona.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
