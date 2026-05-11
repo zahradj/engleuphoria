@@ -272,50 +272,57 @@ export default function SuccessCreator() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const generateWithAI = async () => {
-    if (!aiTopic.trim()) return;
+  const generateWithAI = async (payload: { topic: string; level: string; vocabulary: string[]; grammar: string; target_phonics: string }) => {
+    const topic = payload.topic.trim();
+    if (!topic) return;
     setAiBusy(true);
     try {
-      toast.message('Planning lesson blueprint…');
       const interests = blueprint?.interests?.trim();
       const specific_needs = blueprint?.specific_needs?.trim();
+
+      const hydrated: LessonBlueprint = {
+        ...(blueprint ?? EMPTY_BLUEPRINT),
+        vocabulary: payload.vocabulary,
+        grammar: payload.grammar,
+        target_phonics: payload.target_phonics,
+        interests,
+        specific_needs,
+      };
+      setBlueprint(hydrated);
+      setAiTopic(topic);
+      setAiLevel(payload.level);
+      setAiGrammar(payload.grammar);
+      setTitle(topic);
+      setLevel(payload.level);
+
       const { data: prevRows } = await supabase
         .from('curriculum_lessons').select('title')
         .order('created_at', { ascending: false }).limit(5);
       const previous_topics = (prevRows || []).map((r: any) => r.title).filter(Boolean);
-      const planRes = await supabase.functions.invoke('plan-lesson-blueprint', {
-        body: { topic: aiTopic.trim(), cefr_level: aiLevel, hub: 'success', interests, specific_needs, target_grammar: blueprint?.grammar, previous_topics },
-      });
-      if (planRes.error) throw planRes.error;
-      const bp = { ...(planRes.data as LessonBlueprint), interests, specific_needs };
-      setBlueprint(bp);
 
       const { data, error } = await supabase.functions.invoke('generate-ppp-slides', {
         body: {
-          lesson_title: aiTopic.trim(),
-          objective: `60-minute Business English Success lesson on ${aiTopic.trim()}. Target vocabulary: ${bp.vocabulary.join(', ')}. Target grammar: ${bp.grammar}.`,
+          lesson_title: topic,
+          objective: `60-minute Business English Success lesson on ${topic}. Target vocabulary: ${payload.vocabulary.join(', ')}. Target grammar: ${payload.grammar}.`,
           skill_focus: 'Professional Communication',
-          cefr_level: aiLevel,
+          cefr_level: payload.level,
           hub: 'success',
           target_hub: 'success',
           hub_type: 'success',
-          target_vocabulary: bp.vocabulary,
-          grammar_focus: bp.grammar,
+          target_vocabulary: payload.vocabulary,
+          grammar_focus: payload.grammar,
+          target_phonics: payload.target_phonics,
           interests,
           specific_needs,
           previous_topics,
           blueprint: {
-            lesson_title: aiTopic.trim(),
-            target_vocabulary: bp.vocabulary,
-            grammar_focus: bp.grammar,
+            lesson_title: topic,
+            target_vocabulary: payload.vocabulary,
+            grammar_focus: payload.grammar,
+            target_phonics: payload.target_phonics,
             target_hub: 'success',
             interests,
             specific_needs,
-            pedagogical_framework: bp.pedagogical_framework,
-            framework_rationale: bp.framework_rationale,
-            phases: bp.phases,
-            lesson_structure: bp.lesson_structure,
-            video_strategy: bp.video_strategy,
           },
         },
       });
@@ -328,8 +335,6 @@ export default function SuccessCreator() {
         ? successSlides
         : [...successSlides, makeSlide('lesson_summary')];
       setSlides(finalSlides);
-      setTitle(aiTopic.trim());
-      setLevel(aiLevel);
       setSelected(0);
       setAiOpen(false);
       toast.success(`Generated ${successSlides.length} slides ✨`);
