@@ -98,7 +98,7 @@ async function fallbackGatewayToGemini(originalBody: any): Promise<Response> {
         .map((t: any) => ({
           name: t.function.name,
           description: t.function.description || "",
-          parameters: t.function.parameters || { type: "object", properties: {} },
+          parameters: sanitizeForGemini(t.function.parameters || { type: "object", properties: {} }),
         })),
     }];
     if (originalBody.tool_choice?.type === "function" && originalBody.tool_choice.function?.name) {
