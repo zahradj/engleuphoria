@@ -60,7 +60,32 @@ Deno.serve(async (req) => {
       student_profile, // ← Hyper-personalization: { industry, age, interests[] }
       hub_type, // ← when 'playground', returns the kid-friendly Playground schema instead of the 20-slide Academy deck.
       previous_topics, // ← anti-repetition list (last N lesson titles by this user)
+      language_variant: bodyLanguageVariant,
+      visual_theme: bodyVisualTheme,
+      learning_objective: bodyLearningObjective,
+      final_output_task: bodyFinalOutputTask,
     } = body || {};
+
+    const language_variant: string =
+      (typeof bodyLanguageVariant === 'string' && bodyLanguageVariant) ||
+      blueprint?.language_variant ||
+      'American English';
+    const visual_theme: string =
+      (typeof bodyVisualTheme === 'string' && bodyVisualTheme) ||
+      blueprint?.visual_theme ||
+      'Professional/Realistic';
+    const learning_objective: string =
+      bodyLearningObjective || blueprint?.learning_objective || '';
+    const final_output_task: string =
+      bodyFinalOutputTask || blueprint?.final_output_task || '';
+
+    const VISUAL_THEME_PROMPT_SUFFIX: Record<string, string> = {
+      '3D Animation': ', rendered in vibrant Pixar-style 3D animation, soft global illumination, cinematic lighting, clean vector edges, family-friendly',
+      'Anime/Manga': ', rendered in modern Japanese anime / manga style, crisp ink line art, cel-shaded coloring, expressive character design',
+      'Watercolor': ', painted in soft watercolor illustration style, gentle pastel washes, visible paper texture, hand-painted feel',
+      'Professional/Realistic': ', professional editorial illustration with realistic proportions, clean modern composition, high-quality stock-photo-grade lighting',
+    };
+    const visualThemeSuffix = VISUAL_THEME_PROMPT_SUFFIX[visual_theme] || VISUAL_THEME_PROMPT_SUFFIX['Professional/Realistic'];
 
     const prevTopics: string[] = Array.isArray(previous_topics)
       ? previous_topics.filter((s: unknown) => typeof s === 'string' && s.trim()).slice(0, 10)
