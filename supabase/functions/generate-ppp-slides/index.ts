@@ -13,6 +13,7 @@ import {
 } from "../_shared/hubProfiles.ts";
 
 import { aiFetch } from "../_shared/aiFetch.ts";
+import { buildStudioSystemPrompt } from "../_shared/studioPersona.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
