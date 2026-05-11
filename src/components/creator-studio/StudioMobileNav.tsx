@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Map, Palette, Library, LogOut, Zap, BookOpen, Sparkles, GraduationCap, Briefcase } from 'lucide-react';
+import { Library, LogOut, Zap, BookOpen, Sparkles, GraduationCap, Briefcase } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
