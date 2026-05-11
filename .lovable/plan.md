@@ -1,82 +1,92 @@
-## Plan
+## Goal
 
-Two combined upgrades. Phase A confirms/hardens the Creator Studio AI migration. Phase B rebuilds the blueprint generator into a true Dynamic Scope & Sequence engine with anti-literal, anti-repetition rules.
-
----
-
-### A. Creator Studio AI — Final Migration Pass
-
-The shared `_shared/aiFetch.ts` is already routing every Creator Studio call to Gemini-direct first (Lovable AI is now an optional last-resort fallback only if its key is still set). What's still missing is a **shared persona** and a guarantee that the rewrite / multi-item generators always return structured JSON.
-
-**Files touched (Creator Studio scope only — background cron, n8n-bridge, classroom AI, image/audio pipelines untouched):**
-
-1. **New** `supabase/functions/_shared/studioPersona.ts`
-   - Exports `buildStudioSystemPrompt({ role, cefr, ageGroup, targetGrammar?, hub?, outputContract })`.
-   - `role` = `"pedagogue" | "game-designer" | "rewriter"`.
-   - Always prepends the **Expert Pedagogue / Game Designer** persona, CEFR ladder rules (reuses table from blueprint generator), and "return strict JSON conforming to: …" clause when caller asks.
-
-2. **Edit** the 6 functions wired to Creator Studio buttons so they import and inject this persona + accept a `studioContext` payload (`{ cefr, age_group, hub, target_grammar, previous_topics }`):
-   - `generate-practice-items` — force `response_format: json_object` with a `{ items: [...] }` envelope (Gemini rejects naked top-level arrays in JSON mode); add an explicit `count` and per-item schema for Error Detection sentences.
-   - `ai-rewrite-text` — accept optional `cefr`/`tone` context, return `{ rewrites: string[] }` so the dialog can show alternatives.
-   - `rewrite-slide-field` — same persona injection; keep single-string contract.
-   - `ai-slide-game-generator` — game-designer persona, JSON envelope.
-   - `generate-canvas-game` — game-designer persona, JSON envelope.
-   - `studio-ai-copilot` — pedagogue persona, accepts `studioContext`.
-   - `ai-extract-lesson-from-text`, `analyze-media`, `generate-storybook`, `generate-ppp-slides`, `generate-blueprint`, `sync-slides-to-blueprint`, `plan-lesson-blueprint` — persona injection only (already JSON-shaped via tool-calling).
-
-3. **Edit** the corresponding frontend hooks (`PracticeItemsEditor`, `WandFieldButton`, `DifficultyTunerDialog`, `CanvasElementEditor`, `TeacherControlsPanel` slide-game button, `CreatorStudioAITools`, `ImportFromTextDialog`) to forward `cefr`, `target_grammar`, and `hub` from `CreatorContext` so the persona has real context to specialise on.
-
-4. **Verification:** curl-test `generate-practice-items` (5 Error-Detection items at B1, target_grammar = "past simple") and `ai-rewrite-text` (3 rewrites at A2) — both must return valid JSON arrays/envelopes.
-
-No background cron, webhook, or automated pipeline is modified.
+Merge the rich lesson-architecture from the standalone Slide Studio (`steps/slide-studio/*`) into the three Hub Creators (Playground / Academy / Success) **without changing any of their visual layout, CSS, or component arrangement**. Once the Hub Creators own the advanced sequencing engine, retire the `/content-creator/slide-builder` route and its files.
 
 ---
 
-### B. Dynamic Scope & Sequence Matrix (curriculum blueprint)
+## Phase 1 — Merge the Blueprint Schemas
 
-All three phases land in **`supabase/functions/generate-curriculum-blueprint/index.ts`** plus a small frontend update.
+**Current state**
+- Hub Creators use a thin local `LessonBlueprint` shape: `{ vocabulary[5], grammar, target_phonics, interests, specific_needs }`.
+- Slide Studio's canonical schema (`steps/slide-studio/blueprintTypes.ts`) is much richer: `pedagogical_framework`, `framework_rationale`, `phases[]` (ordered `LessonPhase` sequence), `video_strategy`, `final_speaking_mission`, etc.
+- The edge function `generate-ppp-slides` already understands `phases[]` and `LESSON_PHASES`, but the Hub Creators never send them.
 
-**Phase 1 — Anti-Literal Constraint**
-Append to the system prompt:
+**Changes**
+1. Promote `steps/slide-studio/blueprintTypes.ts` to a shared module (e.g. `src/components/creator-studio/shared/blueprintTypes.ts`) and re-export from the old path so Slide Studio keeps working.
+2. Extend the Hub Creator local `LessonBlueprint` to a **superset** that includes the Slide Studio fields (`pedagogical_framework`, `framework_rationale`, `phases`, `video_strategy`, `final_speaking_mission`, `reading_passage_summary`, etc.) while preserving the existing fields (`vocabulary`, `grammar`, `target_phonics`, `interests`, `specific_needs`) so the existing sidebar inputs keep binding to the same keys.
+3. Update `plan-lesson-blueprint` (edge function) so its JSON output contract additionally returns `pedagogical_framework`, `framework_rationale`, and a `lesson_structure` (= ordered `phases[]` plus per-phase slide-type hints derived from Slide Studio's `FRAMEWORK_DEFAULTS` and `SLIDE_TYPES`). Per-hub defaults:
+   - Playground → `Immersion` framework, kid-safe slide types.
+   - Academy → AI-chosen framework, teen slide types.
+   - Success → `TaskBased` framework, professional slide types.
+4. In each Hub Creator (`PlaygroundCreator.tsx`, `AcademyCreator.tsx`, `SuccessCreator.tsx`), capture the new fields into state when `plan-lesson-blueprint` returns. **No JSX/CSS changes** — only the in-memory blueprint shape grows.
+5. Hydration from `location.state` (post Curriculum Blueprint hand-off) and from `ai_metadata.lesson_blueprint` is updated to read/write the new fields.
 
-> CRITICAL: The hub names (Playground, Academy, Success) indicate **age and proficiency only**. DO NOT generate literal lessons about playgrounds, academies, or workplaces unless the user's `theme_hint` explicitly requests them. Themes must be diverse, vivid, and unrelated to the hub's name.
-
-**Phase 2 — Dynamic Theme Genre Generator**
-Inside the function, before building the prompt:
-
-```text
-GENRE_POOL by CEFR band:
-  A1            → Space Adventure, Magical Creatures, Superheroes,
-                  Under the Sea, Robot Friends
-  A2 / B1       → Detective Mystery, Time Travel, Sports Championship,
-                  Jungle Survival, Teen Drama
-  B2 / C1       → Business Negotiation, Sci-Fi Cyberpunk, Ethical Dilemma,
-                  Global Tech Startup, Historical Documentary
-```
-
-- Map `cefr_level` → band, pick a random genre.
-- If the caller already passed a non-empty `theme_hint`, that wins (user intent overrides randomness).
-- Otherwise inject the picked genre as `lesson_theme` in both system + user prompts and echo it back in the response (`{ chosen_genre: "Time Travel", … }`) so the UI can show what it picked.
-
-**Phase 3 — Anti-Repetition (`previous_topics`)**
-
-- Edge function: accept `previous_topics: string[]` (max 10, trimmed). When non-empty, append:
-
-  > You MUST NOT reuse any of the following themes, primary vocabulary, storylines, or settings: [list]. Ensure 100% originality. Every unit theme and lesson title must be semantically distinct from this list.
-
-- Frontend (`BlueprintEngine.tsx`): before invoking the function, query Supabase for the **last 5 lesson titles** authored by the current user from `curriculum_lessons` (canonical lessons table per project memory) ordered by `created_at desc`, and pass them as `previous_topics`. Fail open — if the query fails, just send `[]`.
-
-**Validation step** added inside the edge function: after Gemini responds, lowercase-compare every generated `lesson.title` and `unit.theme` against `previous_topics`. If any exact match is found, automatically retry once with a stronger "ABSOLUTELY FORBIDDEN" reminder before returning.
+**Backwards compatibility**
+- All new fields are optional; old lessons hydrate fine.
+- `isBlueprintReady` updated to accept the merged shape.
 
 ---
 
-### Rollout / verification
+## Phase 2 — Upgrade the "Generate Slides" Engine in the Hubs
 
-- Deploy all touched edge functions in one batch.
-- Curl `generate-curriculum-blueprint` four times back-to-back at the same CEFR with the previous response's titles fed as `previous_topics`; confirm zero title duplicates and that themes match the chosen genre pool (no "playground" lessons appear at A1 unless user typed it).
-- Manual UI smoke: open Creator Studio → Blueprint Engine, generate twice, confirm dramatically different themes; open Practice Items editor, generate 5 Error-Detection items at B1 / past-simple, confirm a clean JSON list renders.
+**Current state**
+- `generateWithAI()` in each Hub Creator calls `plan-lesson-blueprint` → `generate-ppp-slides`, but does not forward `phases`, `pedagogical_framework`, or `lesson_structure`. The edge function falls back to a hardcoded sequence.
 
-### Out of scope
+**Changes**
+1. Update each Hub Creator's `generateWithAI()` to forward the merged blueprint into `generate-ppp-slides` body:
+   ```
+   blueprint: { ...bp, phases, pedagogical_framework, video_strategy, lesson_structure }
+   ```
+2. Update `generate-ppp-slides` to:
+   - Treat `blueprint.lesson_structure` (or `phases[]`) as the **authoritative** slide sequence.
+   - For each entry, emit a slide whose `lesson_phase` and `type` come from the structure, but whose **rendering shape** still matches the existing per-hub Slide schema already consumed by Playground/Academy/Success (i.e. the same `Slide` union types each hub already renders today). No new slide components are introduced.
+3. After receiving the response, the existing `setSlides(...)` flow stays identical; the existing styled components (`SlideCanvas`, mascot, drag-and-drop, flashcards, etc.) render the new sequence with the Hub's existing theme.
+4. Verify via `supabase--curl_edge_functions` for one sample of each hub that the returned slides:
+   - Honor the requested `phases[]` order.
+   - Use slide `type`s already supported by that hub's renderer.
 
-- Background AI cron jobs, n8n bridge, classroom realtime AI (tutor, phonetic, character voices), image / audio / video generation, lesson auto-completion.
-- The `lessons` table (project rule: curriculum content lives only in `curriculum_lessons`).
+**Explicitly NOT changing**
+- No edits to JSX structure, Tailwind classes, layout grids, sidebar arrangement, modals, or styling tokens in `PlaygroundCreator.tsx`, `AcademyCreator.tsx`, `SuccessCreator.tsx`.
+
+---
+
+## Phase 3 — Retire the Standalone Slide Studio
+
+**Dependencies to migrate first** (currently route to `/content-creator/slide-builder`):
+- `steps/TrialCreator.tsx` — on success, navigates to `slide-builder`.
+- `steps/StoryCreator.tsx` — same.
+- `steps/LibraryManager.tsx` — `handleCreateNew('all')` and `handleEdit` for non-hub lessons fall back to `slide-builder`.
+
+**Migration**
+1. Route those flows to the matching Hub Creator using the existing `detectLessonHub` / `creatorPathFor` helpers (default `academy` when unknown), passing `?lessonId=` so the hub hydrates from DB.
+2. Remove `slide-builder` from:
+   - `CreatorContext.tsx` `CreatorStep` union.
+   - `CreatorStudioShell.tsx` route mapping and component switch.
+   - `StudioSidebar.tsx`, `StudioMobileNav.tsx`, `StudioHeader.tsx` nav entries and labels.
+   - `ContentCreatorSidebar.tsx` step union.
+
+**Deletions** (after the above compiles cleanly)
+- `src/components/creator-studio/steps/SlideStudio.tsx` (1-line re-export).
+- `src/components/creator-studio/steps/slide-studio/` entire directory **except** `blueprintTypes.ts` (already moved in Phase 1) and any utility still imported by hubs (`phaseTheme.ts`, `mediaGeneration.ts`, `uploadSlideAsset.ts`, `PhaseTracker`-related helpers — audit first; move to `shared/` if reused).
+
+**Route cleanup**
+- Remove the in-shell `/content-creator/slide-builder` (handled by `CreatorStudioShell`'s path matching). No `App.tsx` route to delete (none exists today for `slide-builder` directly).
+
+---
+
+## Verification Checklist
+
+- [ ] Visual diff of Playground/Academy/Success Creator pages: pixel-identical to before.
+- [ ] `plan-lesson-blueprint` returns merged schema including `phases` and `pedagogical_framework`.
+- [ ] `generate-ppp-slides` honors `blueprint.lesson_structure` order.
+- [ ] Trial, Story, Library "create new" all land in a Hub Creator with the lesson hydrated.
+- [ ] No remaining import of `steps/slide-studio/SlideStudio` anywhere in `src/`.
+- [ ] Build passes; `rg "slide-builder" src` returns zero matches.
+
+---
+
+## Technical Notes
+
+- Shared types live under `src/components/creator-studio/shared/` to keep import paths short.
+- Edge-function changes are additive (new optional fields in request body, richer JSON response). Old callers continue to work.
+- Slide rendering components in each Hub are untouched; only the **data feeding them** is enriched, satisfying the "do not change UI" constraint.
