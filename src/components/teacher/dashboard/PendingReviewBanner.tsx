@@ -44,12 +44,6 @@ export const PendingReviewBanner: React.FC<PendingReviewBannerProps> = ({ teache
                 <span>You will receive an email notification once approved.</span>
               </div>
             </div>
-              
-              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                <Bell className="w-4 h-4" />
-                <span>You will receive an email notification once approved.</span>
-              </div>
-            </div>
 
             {/* What's Next */}
             <div className="text-left bg-white/40 dark:bg-white/5 rounded-xl p-5">
