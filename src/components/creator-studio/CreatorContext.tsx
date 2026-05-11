@@ -256,7 +256,11 @@ export const CreatorProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isDirty, setDirty] = useState(false);
 
   const workingTitle = useMemo(() => {
-    if (currentStep === 'slide-builder' && activeLessonData) {
+    const inHubCreator =
+      currentStep === 'playground-creator' ||
+      currentStep === 'academy-creator' ||
+      currentStep === 'success-creator';
+    if (inHubCreator && activeLessonData) {
       return `Drafting: ${activeLessonData.lesson_title}`;
     }
     if (currentStep === 'blueprint' && curriculumData) {
