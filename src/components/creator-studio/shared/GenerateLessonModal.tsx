@@ -319,7 +319,13 @@ export default function GenerateLessonModal({
                       </label>
                     )}
                     <label className="block">
-                      <span className={labelCls}>🔊 Target Phonics / Sound</span>
+                      <span className={labelCls}>
+                        {hub === 'success'
+                          ? '🎙 Pronunciation / Intonation Focus'
+                          : hub === 'academy'
+                          ? '🔊 Pronunciation Focus'
+                          : '🔊 Target Phonics / Sound'}
+                      </span>
                       <input
                         className={inputCls}
                         value={phonics}
