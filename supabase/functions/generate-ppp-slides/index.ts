@@ -508,7 +508,24 @@ TARGET PRONUNCIATION FOCUS: "${phonicsGenericFocus}"${phonicsGenericIPA ? ` (IPA
 Insert EXACTLY 1 dedicated pronunciation slide inside the vocab/practice phase — frame it for ${resolvedHub === 'success' ? 'adult professionals (workplace context, e.g. word stress, intonation, connected speech, weak forms)' : 'the target learner level'}. Use a "multiple" or "drag" slide drilling the focus with example phrases drawn from the target vocabulary. Add a short "teacher_notes" explaining how to model the sound.
 ` : "";
 
-    const systemPrompt = `${successPersona}${pronunciationBlock}\n\nYou are the EXPERT CURRICULUM DESIGNER for Engleuphoria — an elite ESL platform.
+    const variantThemeBlock = `
+
+REGIONAL LANGUAGE VARIANT (MANDATORY): ${language_variant}.
+ALL slide text — vocabulary definitions, example sentences, reading passages, dialogues,
+quiz questions, hints, teacher notes — MUST use spelling and lexis matching this variant.
+- "American English" → color, fries, elevator, apartment, soccer.
+- "British English"  → colour, chips, lift, flat, football.
+- "Global/Neutral"   → avoid region-specific slang or spellings.
+
+VISUAL THEME (MANDATORY for every image_prompt / image_prompt_detailed): ${visual_theme}.
+After describing the scene, you MUST append this exact suffix to every image_prompt:
+"${visualThemeSuffix}"
+Do not change wording from this suffix; the renderer relies on it.
+${learning_objective ? `\nLEARNING OBJECTIVE (SWBAT — drives every slide): "${learning_objective}".` : ''}
+${final_output_task ? `\nFINAL OUTPUT TASK (the LAST slide MUST implement this exact production task): "${final_output_task}".` : ''}
+`;
+
+    const systemPrompt = `${successPersona}${pronunciationBlock}${variantThemeBlock}\n\nYou are the EXPERT CURRICULUM DESIGNER for Engleuphoria — an elite ESL platform.
 You design ONE classroom-ready 1-HOUR (≈60 minute) deeply COHESIVE interactive lesson as a 20–25 slide deck.
 Total slide count MUST be between 20 and 25 inclusive — never fewer than 20.
 
