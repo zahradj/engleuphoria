@@ -239,8 +239,8 @@ export const LibraryManager: React.FC = () => {
     if (target === 'playground') return navigate('/playground-creator');
     if (target === 'academy') return navigate('/academy-creator');
     if (target === 'success') return navigate('/success-creator');
-    // all → fall back to in-shell standard slide builder
-    setCurrentStep('slide-builder');
+    // all → default to Academy creator (advanced sequencing engine).
+    return navigate('/academy-creator');
   };
   const handleEdit = (row: LessonRow) => {
     const slides: PPPSlide[] = Array.isArray(row.content?.slides) ? row.content.slides : [];
