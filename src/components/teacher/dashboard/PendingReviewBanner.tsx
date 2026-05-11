@@ -68,6 +68,21 @@ export const PendingReviewBanner: React.FC<PendingReviewBannerProps> = ({ teache
                 </li>
               </ul>
             </div>
+
+            {isAdmin && (
+              <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-sm text-foreground">
+                  <Shield className="w-4 h-4 text-primary" />
+                  <span>You're signed in as an admin — review this profile now.</span>
+                </div>
+                <Button asChild size="sm">
+                  <Link to="/super-admin?tab=profile-review">
+                    Open Profile Approvals
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </Link>
+                </Button>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
