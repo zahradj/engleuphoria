@@ -293,7 +293,14 @@ RULES:
 
 PRONUNCIATION LAYER (MANDATORY): The lesson MUST include EXACTLY 1 "phonics_focus" slide inside the "vocab" block (after the matching slide) framed as PRONUNCIATION ACCURACY for "${phonicsAcademyFocus}"${phonicsAcademy?.sound_ipa ? ` (IPA: ${phonicsAcademy.sound_ipa})` : ""}, with example_words drawn from the target vocabulary. Also include EXACTLY 1 "listen_repeat" slide inside the "practice" block providing a comparison_audio prompt drilling that same sound. Both slides MUST set "block": "vocab" or "block": "practice" respectively.` : "";
 
-      const academySystem = `You are a Master TEFL/CELTA-trained ESL lesson designer for TEENAGERS.
+      const academyPersona = buildStudioSystemPrompt({
+        role: 'pedagogue',
+        cefr: cefr_level,
+        hub: 'academy',
+        ageGroup: 'teens',
+        previousTopics: prevTopics,
+      });
+      const academySystem = `${academyPersona}\n\nYou are a Master TEFL/CELTA-trained ESL lesson designer for TEENAGERS.
 Output ONLY a valid raw JSON array of slide objects (no markdown, no prose, no backticks).
 
 Build a 60-minute Academy lesson at CEFR ${cefr_level}. Topic: "${effectiveTitle}". ${objective ? `Goal: ${objective}.` : ""}
