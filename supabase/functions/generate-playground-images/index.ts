@@ -46,7 +46,6 @@ function dataUrlToBytes(url: string): { bytes: Uint8Array; mime: string } {
 
 async function generateOne(
   subject: string,
-  apiKey: string,
   supabase: ReturnType<typeof createClient>,
 ): Promise<{ subject: string; url: string }> {
   const safe = subject.trim().slice(0, 120);
@@ -60,30 +59,11 @@ async function generateOne(
     return { subject, url: pub.publicUrl };
   }
 
-  const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash-image",
-      modalities: ["image", "text"],
-      messages: [
-        { role: "user", content: `${STYLE_PROMPT}\n\nSubject: ${safe}` },
-      ],
-    }),
-  });
-  if (!aiRes.ok) {
-    const t = await aiRes.text();
-    throw new Error(`Image gen ${aiRes.status}: ${t.slice(0, 200)}`);
-  }
-  const aiJson = await aiRes.json();
-  const dataUrl: string | undefined =
-    aiJson?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-  if (!dataUrl) throw new Error("Image model returned no image");
+  const { bytes, contentType } = await generateGoogleImage(`${STYLE_PROMPT}\n\nSubject: ${safe}`);
 
-  const { bytes, mime } = dataUrlToBytes(dataUrl);
   const { error: upErr } = await supabase.storage
     .from(BUCKET)
-    .upload(path, bytes, { contentType: mime, upsert: true });
+    .upload(path, bytes, { contentType, upsert: true });
   if (upErr) throw new Error(`Upload failed: ${upErr.message}`);
 
   const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
