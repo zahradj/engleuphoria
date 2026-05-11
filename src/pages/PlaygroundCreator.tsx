@@ -305,53 +305,56 @@ export default function PlaygroundCreator() {
   const current = slides[safeIndex] ?? { type: 'intro', title: '', content: '' } as any;
   const slideId = `slide-${safeIndex}`;
 
-  const generateWithAI = async () => {
-    if (!aiTopic.trim()) return;
+  const generateWithAI = async (payload: { topic: string; level: string; vocabulary: string[]; grammar: string; target_phonics: string }) => {
+    const topic = payload.topic.trim();
+    if (!topic) return;
     setAiBusy(true);
     try {
-      // Step 1 — Plan the blueprint (5 vocab + 1 grammar)
-      toast.message('Planning lesson blueprint…');
       const interests = blueprint?.interests?.trim();
       const specific_needs = blueprint?.specific_needs?.trim();
+
+      // Hydrate sidebar immediately with the validated blueprint
+      const hydrated: LessonBlueprint = {
+        ...(blueprint ?? EMPTY_BLUEPRINT),
+        vocabulary: payload.vocabulary,
+        grammar: payload.grammar,
+        target_phonics: payload.target_phonics,
+        interests,
+        specific_needs,
+      };
+      setBlueprint(hydrated);
+      setAiTopic(topic);
+      setAiLevel(payload.level);
+      setTitle(topic);
+
       const { data: prevRows } = await supabase
         .from('curriculum_lessons').select('title')
         .order('created_at', { ascending: false }).limit(5);
       const previous_topics = (prevRows || []).map((r: any) => r.title).filter(Boolean);
-      const planRes = await supabase.functions.invoke('plan-lesson-blueprint', {
-        body: { topic: aiTopic.trim(), cefr_level: aiLevel, hub: 'playground', interests, specific_needs, target_grammar: blueprint?.grammar, previous_topics },
-      });
-      if (planRes.error) throw planRes.error;
-      const bp = { ...(planRes.data as LessonBlueprint), interests, specific_needs };
-      setBlueprint(bp);
 
-      // Step 2 — Generate slides forced to use that blueprint
       const { data, error } = await supabase.functions.invoke('generate-ppp-slides', {
         body: {
-          lesson_title: aiTopic.trim(),
-          objective: `Fun interactive Playground lesson about ${aiTopic.trim()}. Target vocabulary: ${bp.vocabulary.join(', ')}. Target grammar: ${bp.grammar}.`,
+          lesson_title: topic,
+          objective: `Fun interactive Playground lesson about ${topic}. Target vocabulary: ${payload.vocabulary.join(', ')}. Target grammar: ${payload.grammar}.`,
           skill_focus: 'Vocabulary',
-          cefr_level: aiLevel,
+          cefr_level: payload.level,
           hub: 'playground',
           target_hub: 'playground',
           hub_type: 'playground',
-          target_vocabulary: bp.vocabulary,
-          grammar_focus: bp.grammar,
+          target_vocabulary: payload.vocabulary,
+          grammar_focus: payload.grammar,
+          target_phonics: payload.target_phonics,
           interests,
           specific_needs,
           previous_topics,
           blueprint: {
-            lesson_title: aiTopic.trim(),
-            target_vocabulary: bp.vocabulary,
-            grammar_focus: bp.grammar,
+            lesson_title: topic,
+            target_vocabulary: payload.vocabulary,
+            grammar_focus: payload.grammar,
+            target_phonics: payload.target_phonics,
             target_hub: 'playground',
             interests,
             specific_needs,
-            // Merged Slide-Studio sequencing fields:
-            pedagogical_framework: bp.pedagogical_framework,
-            framework_rationale: bp.framework_rationale,
-            phases: bp.phases,
-            lesson_structure: bp.lesson_structure,
-            video_strategy: bp.video_strategy,
           },
         },
       });
