@@ -282,8 +282,12 @@ export default function PlaygroundCreator() {
       toast.message('Planning lesson blueprint…');
       const interests = blueprint?.interests?.trim();
       const specific_needs = blueprint?.specific_needs?.trim();
+      const { data: prevRows } = await supabase
+        .from('curriculum_lessons').select('title')
+        .order('created_at', { ascending: false }).limit(5);
+      const previous_topics = (prevRows || []).map((r: any) => r.title).filter(Boolean);
       const planRes = await supabase.functions.invoke('plan-lesson-blueprint', {
-        body: { topic: aiTopic.trim(), cefr_level: aiLevel, hub: 'playground', interests, specific_needs },
+        body: { topic: aiTopic.trim(), cefr_level: aiLevel, hub: 'playground', interests, specific_needs, target_grammar: blueprint?.grammar, previous_topics },
       });
       if (planRes.error) throw planRes.error;
       const bp = { ...(planRes.data as LessonBlueprint), interests, specific_needs };
