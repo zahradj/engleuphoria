@@ -192,39 +192,10 @@ export function LessonBlueprintPanel({
                   className={`w-full text-xs rounded-md border ${t.border} px-2 py-1 outline-none focus:ring-2 ${t.ring}`}
                 />
               </div>
-              <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">
-                  🔊 Target Phonics / Sound <span className="text-slate-400 font-normal lowercase">(auto-suggested)</span>
-                </p>
-                <input
-                  value={bp.target_phonics || ''}
-                  onChange={(e) => onChange({ ...bp, target_phonics: e.target.value })}
-                  placeholder={hub === 'success' ? 'e.g. Word stress on -tion endings' : hub === 'academy' ? 'e.g. /v/ vs /w/, Th- digraph' : 'e.g. Short /a/, Magic e'}
-                  className={`w-full text-xs rounded-md border ${t.border} px-2 py-1 outline-none focus:ring-2 ${t.ring}`}
-                />
-              </div>
-              <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">
-                  🎯 Student Interests <span className="text-slate-400 font-normal lowercase">(creative anchor)</span>
-                </p>
-                <input
-                  value={bp.interests || ''}
-                  onChange={(e) => onChange({ ...bp, interests: e.target.value })}
-                  placeholder="e.g. football, Pokemon, K-pop"
-                  className={`w-full text-xs rounded-md border ${t.border} px-2 py-1 outline-none focus:ring-2 ${t.ring}`}
-                />
-              </div>
-              <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">
-                  🛠 Specific Needs / Goals
-                </p>
-                <input
-                  value={bp.specific_needs || ''}
-                  onChange={(e) => onChange({ ...bp, specific_needs: e.target.value })}
-                  placeholder="e.g. shy speaker, exam prep, dyslexic"
-                  className={`w-full text-xs rounded-md border ${t.border} px-2 py-1 outline-none focus:ring-2 ${t.ring}`}
-                />
-              </div>
+              {/* Target Phonics, Student Interests, and Specific Needs were moved
+                  into the GenerateLessonModal — see shared/GenerateLessonModal.tsx.
+                  They remain on the LessonBlueprint type and are still forwarded to
+                  generate-ppp-slides + sync-slides-to-blueprint. */}
               <button
                 onClick={sync}
                 disabled={syncing}
