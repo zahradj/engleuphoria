@@ -105,6 +105,9 @@ Deno.serve(async (req) => {
       blueprint = {},
       hub = 'academy',
       cefr_level = 'A2',
+      age_group,
+      target_grammar,
+      previous_topics,
     } = body;
 
     if (!slide_type || !SCHEMA_BY_TYPE[slide_type]) {
@@ -121,10 +124,20 @@ Deno.serve(async (req) => {
     }
 
     const vocab = (blueprint.vocabulary || []).join(', ') || '—';
-    const grammar = blueprint.grammar || '—';
+    const grammar = target_grammar || blueprint.grammar || '—';
 
-    const system = `You are an ESL curriculum designer creating intensive practice items.
-Hub: ${hub} | CEFR: ${cefr_level}
+    const persona = buildStudioSystemPrompt({
+      role: 'pedagogue',
+      cefr: cefr_level,
+      ageGroup: age_group,
+      hub,
+      targetGrammar: grammar,
+      previousTopics: previous_topics,
+      outputContract: `Return ONLY JSON: { "items": [...] } with exactly ${count} items matching the requested schema. No markdown, no prose.`,
+    });
+
+    const system = `${persona}
+
 Lesson title: ${blueprint.title || '—'}
 Target vocabulary: ${vocab}
 Target grammar rule: ${grammar}
@@ -134,8 +147,7 @@ Rules:
 - Reuse the target vocabulary and target grammar.
 - Vary the subjects (he/she/they/we/the kids/etc.) to keep it fresh.
 - Do NOT repeat any of the existing items.
-- Match the CEFR level — short, clean, natural English.
-- Return ONLY valid JSON matching the requested schema. No markdown.`;
+- Match the CEFR level — short, clean, natural English.`;
 
     const user = `Slide type: ${slide_type}
 Existing items (do not duplicate):
