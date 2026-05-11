@@ -12,7 +12,7 @@ const corsHeaders = {
 };
 
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-const MODEL = 'gemini-1.5-flash';
+const MODEL = 'gemini-2.5-flash';
 
 function tolerantJsonParse(raw: string): any | null {
   if (!raw) return null;
