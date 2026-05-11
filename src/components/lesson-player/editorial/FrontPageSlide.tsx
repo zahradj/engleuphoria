@@ -1,6 +1,5 @@
 import React from 'react';
 import { getEditorialTheme } from './editorialHubTheme';
-import logoMark from '@/assets/logo-white.png';
 
 interface FrontPageSlideProps {
   lessonTitle: string;
@@ -11,23 +10,61 @@ interface FrontPageSlideProps {
   unitNumber?: number | string;
   unitTitle?: string;
   subtitle?: string;
+  lessonNumber?: number | string;
 }
 
 /**
- * Editorial Front Page — light, simple, image-first.
- *
- * Layout (matches the reference screenshot):
- *   ┌─────────────────────────────────────────────┐
- *   │  [logo]                       [LEVEL] [HUB] │
- *   │                                             │
- *   │                ╭───────────╮                │
- *   │                │   COVER   │                │
- *   │                ╰───────────╯                │
- *   │                                             │
- *   │            New Words for New Friends!       │
- *   │            Hello everyone! Today …          │
- *   │                                             │
- *   └─────────────────────────────────────────────┘
+ * Hub-specific accent palette for the IntroSlide.
+ * (User-spec overrides — kept local so we don't disturb the global hub theme.)
+ */
+const INTRO_HUB_PALETTE: Record<
+  string,
+  { primary: string; accent: string; ring: string; pillBg: string; pillText: string }
+> = {
+  playground: {
+    primary: '#84CC16', // lime
+    accent: '#A855F7', // purple
+    ring: 'ring-lime-300/60',
+    pillBg: 'bg-lime-100',
+    pillText: 'text-lime-800',
+  },
+  academy: {
+    primary: '#06B6D4', // cyan
+    accent: '#F97316', // orange
+    ring: 'ring-cyan-300/60',
+    pillBg: 'bg-cyan-100',
+    pillText: 'text-cyan-800',
+  },
+  professional: {
+    primary: '#0F172A', // navy
+    accent: '#D4A24C', // gold
+    ring: 'ring-amber-300/60',
+    pillBg: 'bg-slate-900',
+    pillText: 'text-amber-300',
+  },
+  success: {
+    primary: '#0F172A',
+    accent: '#D4A24C',
+    ring: 'ring-amber-300/60',
+    pillBg: 'bg-slate-900',
+    pillText: 'text-amber-300',
+  },
+};
+
+function getIntroPalette(hub?: string) {
+  return INTRO_HUB_PALETTE[hub || 'academy'] || INTRO_HUB_PALETTE.academy;
+}
+
+/**
+ * Editorial Front Page — 50/50 split layout.
+ *   ┌──────────────────────┬──────────────────────┐
+ *   │                      │                logo  │
+ *   │                      │                      │
+ *   │   COVER IMAGE        │   [LEVEL pill]       │
+ *   │   (object-cover)     │   Lesson Title       │
+ *   │                      │   Unit · Lesson #    │
+ *   │                      │                      │
+ *   └──────────────────────┴──────────────────────┘
  */
 export default function FrontPageSlide({
   lessonTitle,
@@ -38,27 +75,62 @@ export default function FrontPageSlide({
   unitNumber,
   unitTitle,
   subtitle,
+  lessonNumber,
 }: FrontPageSlideProps) {
   const theme = getEditorialTheme(hub);
-  const unitLine =
-    unitTitle && unitNumber != null
-      ? `Unit ${unitNumber} · ${unitTitle}`
-      : unitTitle ||
-        (unitNumber != null ? `Unit ${unitNumber}` : '');
+  const palette = getIntroPalette(hub);
+
+  const unitLessonLine = (() => {
+    const parts: string[] = [];
+    if (unitNumber != null) parts.push(`Unit ${unitNumber}`);
+    if (unitTitle) parts.push(unitTitle);
+    if (lessonNumber != null) parts.push(`Lesson ${lessonNumber}`);
+    return parts.join(' · ');
+  })();
 
   return (
-    <div
-      className="relative w-full h-full min-h-[520px] overflow-hidden rounded-2xl bg-white"
-      style={{
-        background: `radial-gradient(ellipse at top, ${theme.primary}14 0%, transparent 55%), linear-gradient(180deg, #ffffff 0%, ${theme.primary}0A 100%)`,
-      }}
-    >
-      {/* ── Top bar: logo (left) · level + hub badge (right) ───────── */}
-      <div className="absolute top-4 left-5 right-5 z-20 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+    <div className="relative w-full h-full min-h-[520px] overflow-hidden rounded-2xl bg-white grid grid-cols-2">
+      {/* ── LEFT: full-bleed cover image ─────────────────────────── */}
+      <div className="relative h-full w-full bg-slate-100 overflow-hidden">
+        {coverImageUrl ? (
+          <img
+            src={coverImageUrl}
+            alt={lessonTitle}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          <div
+            className="absolute inset-0 flex items-center justify-center text-6xl"
+            style={{
+              background: `linear-gradient(135deg, ${palette.primary}33, ${palette.accent}33)`,
+              color: palette.primary,
+            }}
+            aria-hidden
+          >
+            📖
+          </div>
+        )}
+        {/* Subtle hub accent stripe at bottom of image */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-1.5"
+          style={{
+            background: `linear-gradient(90deg, ${palette.primary}, ${palette.accent})`,
+          }}
+        />
+      </div>
+
+      {/* ── RIGHT: metadata panel ────────────────────────────────── */}
+      <div
+        className="relative h-full w-full px-8 md:px-12 py-10 flex flex-col justify-center"
+        style={{
+          background: `linear-gradient(180deg, #ffffff 0%, ${palette.primary}0A 100%)`,
+        }}
+      >
+        {/* Logo — top-right */}
+        <div className="absolute top-5 right-6 flex items-center gap-2">
           <span
             className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-white font-black text-sm"
-            style={{ backgroundColor: theme.primary }}
+            style={{ backgroundColor: palette.primary }}
             aria-hidden
           >
             E
@@ -67,74 +139,47 @@ export default function FrontPageSlide({
             EnglEuphoria
           </span>
         </div>
-        <div className="flex items-center gap-2">
+
+        {/* Vertically-centered metadata stack */}
+        <div className="flex flex-col gap-4 max-w-md">
           {level && (
             <span
-              className="px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-widest text-white"
-              style={{ backgroundColor: theme.primary }}
+              className={`inline-flex self-start items-center px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-widest ${palette.pillBg} ${palette.pillText}`}
             >
               {level}
             </span>
           )}
-          <span
-            className="px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-widest border bg-white/70 backdrop-blur-sm"
-            style={{ color: theme.primary, borderColor: `${theme.primary}40` }}
+
+          <h1
+            className="font-serif text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 leading-[1.05]"
           >
+            {lessonTitle}
+          </h1>
+
+          {unitLessonLine && (
+            <p className="text-sm md:text-base font-semibold uppercase tracking-[0.18em] text-slate-500">
+              {unitLessonLine}
+            </p>
+          )}
+
+          {(subtitle || (topic && topic !== lessonTitle)) && (
+            <p className="text-sm md:text-base text-slate-600 font-light leading-relaxed">
+              {subtitle || topic}
+            </p>
+          )}
+
+          {/* Hub accent bar */}
+          <div
+            className="mt-2 h-1 w-20 rounded-full"
+            style={{
+              background: `linear-gradient(90deg, ${palette.primary}, ${palette.accent})`,
+            }}
+          />
+
+          <span className="text-[10px] uppercase tracking-[0.3em] text-slate-400 font-bold">
             {theme.label}
           </span>
         </div>
-      </div>
-
-      {/* ── Vertical stack: cover image · title · subtitle ─────────── */}
-      <div className="relative z-10 h-full w-full flex flex-col items-center justify-center px-6 pt-16 pb-8 text-center">
-        {/* Cover illustration */}
-        <div
-          className="relative mb-6 w-full max-w-[640px] aspect-[16/9] rounded-2xl overflow-hidden bg-slate-100"
-          style={{ boxShadow: `0 12px 40px -12px ${theme.primary}55` }}
-        >
-          {coverImageUrl ? (
-            <img
-              src={coverImageUrl}
-              alt={lessonTitle}
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-          ) : (
-            <div
-              className="absolute inset-0 flex items-center justify-center text-5xl"
-              style={{
-                background: `linear-gradient(135deg, ${theme.primary}22, ${theme.primaryLight ?? theme.primary}33)`,
-                color: theme.primary,
-              }}
-              aria-hidden
-            >
-              📖
-            </div>
-          )}
-        </div>
-
-        {unitLine && (
-          <p className="mb-2 text-[10px] md:text-[11px] font-bold uppercase tracking-[0.35em] text-slate-500">
-            {unitLine}
-          </p>
-        )}
-
-        <h1
-          className="font-serif text-3xl md:text-5xl lg:text-6xl font-black text-slate-900 leading-[1.05] max-w-3xl"
-        >
-          {lessonTitle}
-        </h1>
-
-        {(subtitle || (topic && topic !== lessonTitle)) && (
-          <p className="mt-4 text-sm md:text-lg text-slate-600 font-light max-w-2xl leading-relaxed">
-            {subtitle || topic}
-          </p>
-        )}
-
-        {/* Hub accent bar */}
-        <div
-          className="mt-6 h-1 w-16 rounded-full"
-          style={{ backgroundColor: theme.primary }}
-        />
       </div>
     </div>
   );
