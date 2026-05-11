@@ -471,7 +471,19 @@ ADDITIONAL ALLOWED TYPES (when phonics layer is required):
       ageGroup: resolvedHub === 'success' ? 'adults' : resolvedHub === 'playground' ? 'kids' : 'teens',
       previousTopics: prevTopics,
     });
-    const systemPrompt = `${successPersona}\n\nYou are the EXPERT CURRICULUM DESIGNER for Engleuphoria — an elite ESL platform.
+
+    // CEFR-tiered pronunciation layer for Success / generic decks.
+    const phonicsGeneric = blueprint?.target_phonics || body?.target_phonics || null;
+    const phonicsGenericFocus = (typeof phonicsGeneric === "string" ? phonicsGeneric : phonicsGeneric?.focus) || "";
+    const phonicsGenericIPA = (phonicsGeneric as any)?.sound_ipa || (phonicsGeneric as any)?.phoneme || "";
+    const pronunciationBlock = phonicsGenericFocus ? `
+
+PRONUNCIATION LAYER (MANDATORY when target_phonics is supplied):
+TARGET PRONUNCIATION FOCUS: "${phonicsGenericFocus}"${phonicsGenericIPA ? ` (IPA: ${phonicsGenericIPA})` : ""}.
+Insert EXACTLY 1 dedicated pronunciation slide inside the vocab/practice phase — frame it for ${resolvedHub === 'success' ? 'adult professionals (workplace context, e.g. word stress, intonation, connected speech, weak forms)' : 'the target learner level'}. Use a "multiple" or "drag" slide drilling the focus with example phrases drawn from the target vocabulary. Add a short "teacher_notes" explaining how to model the sound.
+` : "";
+
+    const systemPrompt = `${successPersona}${pronunciationBlock}\n\nYou are the EXPERT CURRICULUM DESIGNER for Engleuphoria — an elite ESL platform.
 You design ONE classroom-ready 1-HOUR (≈60 minute) deeply COHESIVE interactive lesson as a 20–25 slide deck.
 Total slide count MUST be between 20 and 25 inclusive — never fewer than 20.
 

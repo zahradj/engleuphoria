@@ -139,6 +139,17 @@ export default function GenerateLessonModal({
     ? Boolean(topic.trim() && phonics.trim() && filledVocabCount >= 3 && !busy)
     : Boolean(topic.trim() && grammar.trim() && filledVocabCount === 5 && !busy);
 
+  // CEFR-tiered phonics tier hint, mirrors plan-lesson-blueprint.
+  const phonicsTier: 'A' | 'B' | 'C' =
+    ['Pre-A1', 'A1'].includes(level) ? 'A' :
+    ['A2', 'B1'].includes(level) ? 'B' : 'C';
+  const phonicsTierHint =
+    phonicsTier === 'A'
+      ? `PHONICS RULE (Tier A — Pre-A1/A1): pick a single-phoneme focus, CVC blend, or simple digraph (sh, ch, th). e.g. "Short A: /æ/", "Digraph /ʃ/".`
+      : phonicsTier === 'B'
+      ? `PHONICS RULE (Tier B — A2/B1): pick a minimal pair, tricky consonant cluster, or silent letter. e.g. "Minimal pair /ɪ/ vs /iː/ (ship/sheep)", "Silent K (knee)".`
+      : `PHONICS RULE (Tier C — B2/C1+): pick a suprasegmental — word stress, intonation, linking, elision, or weak forms. e.g. "Noun↔verb stress (RE-cord vs re-CORD)", "Elision in connected speech".`;
+
   const handleAutoFill = async () => {
     if (!topic.trim() || autoFillBusy) return;
     setAutoFillBusy(true);
@@ -146,18 +157,19 @@ export default function GenerateLessonModal({
       const system = isPreA1
         ? `You are an expert Early-Years Phonics Designer. Audience: 4-5 year-old true beginners and pre-readers. ` +
           `DO NOT propose grammar rules or full sentences. Pick EXACTLY 3 phonetically decodable CVC words ` +
-          `(or ultra-basic single-syllable nouns) tied to ONE phonics focus. Phonics MUST be a single sound ` +
-          `(e.g. "Short A: /æ/", "Consonant M: /m/").`
+          `(or ultra-basic single-syllable nouns) tied to ONE phonics focus. ${phonicsTierHint} ` +
+          `target_phonics is REQUIRED — never empty.`
         : `You are an expert ESL Curriculum Designer. Hub: ${hub}. ` +
           `Pick exactly 5 target vocabulary items, 1 grammar focus, 1 phonics focus, ` +
           `2-3 likely student interests for this topic, and 1 short specific-needs hint ` +
-          `that suit the topic and CEFR level. Keep vocab short (1-3 words each), age-appropriate, and high-frequency.`;
+          `that suit the topic and CEFR level. Keep vocab short (1-3 words each), age-appropriate, and high-frequency. ` +
+          `${phonicsTierHint} target_phonics is REQUIRED — never empty.`;
       const prompt = isPreA1
         ? `TOPIC: ${topic.trim()}\nCEFR LEVEL: Pre-A1 (ages 4-5)\n\n` +
-          `Return ONLY JSON in this exact shape (grammar MUST be empty string):\n` +
+          `Return ONLY JSON in this exact shape (grammar MUST be empty string, target_phonics MUST be non-empty):\n` +
           `{ "vocabulary": ["w1","w2","w3"], "grammar": "", "target_phonics": "string", "interests": "string", "specific_needs": "string" }`
         : `TOPIC: ${topic.trim()}\nCEFR LEVEL: ${level}\n\n` +
-          `Return ONLY JSON in this exact shape:\n` +
+          `Return ONLY JSON in this exact shape (target_phonics MUST be non-empty and follow the tier rule above):\n` +
           `{ "vocabulary": ["w1","w2","w3","w4","w5"], "grammar": "string", "target_phonics": "string", "interests": "string", "specific_needs": "string" }`;
       const { data, error } = await supabase.functions.invoke('generate-gemini', {
         body: { prompt, system, responseMimeType: 'application/json', temperature: 0.7 },
@@ -307,7 +319,13 @@ export default function GenerateLessonModal({
                       </label>
                     )}
                     <label className="block">
-                      <span className={labelCls}>🔊 Target Phonics / Sound</span>
+                      <span className={labelCls}>
+                        {hub === 'success'
+                          ? '🎙 Pronunciation / Intonation Focus'
+                          : hub === 'academy'
+                          ? '🔊 Pronunciation Focus'
+                          : '🔊 Target Phonics / Sound'}
+                      </span>
                       <input
                         className={inputCls}
                         value={phonics}
