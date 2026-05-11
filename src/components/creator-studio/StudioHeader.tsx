@@ -90,7 +90,7 @@ export const StudioHeader: React.FC = () => {
       <div className="min-w-0">
         <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
           {currentStep === 'blueprint' ? t('nav.blueprint')
-            : currentStep === 'slide-builder' ? t('nav.slide_studio')
+            : inSlideStudio ? t('nav.slide_studio')
             : t('nav.master_library')}
         </div>
         <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50 truncate">
