@@ -306,7 +306,7 @@ export default function PlaygroundCreator() {
   const current = slides[safeIndex] ?? { type: 'intro', title: '', content: '' } as any;
   const slideId = `slide-${safeIndex}`;
 
-  const generateWithAI = async (payload: { topic: string; level: string; vocabulary: string[]; grammar: string; target_phonics: string; interests: string; specific_needs: string }) => {
+  const generateWithAI = async (payload: import('@/components/creator-studio/shared/GenerateLessonModal').GenerateLessonPayload) => {
     const topic = payload.topic.trim();
     if (!topic) return;
     setAiBusy(true);
@@ -322,6 +322,10 @@ export default function PlaygroundCreator() {
         target_phonics: payload.target_phonics,
         interests,
         specific_needs,
+        language_variant: payload.language_variant,
+        visual_theme: payload.visual_theme,
+        learning_objective: payload.learning_objective,
+        final_output_task: payload.final_output_task,
       };
       setBlueprint(hydrated);
       setAiTopic(topic);
@@ -336,7 +340,7 @@ export default function PlaygroundCreator() {
       const { data, error } = await supabase.functions.invoke('generate-ppp-slides', {
         body: {
           lesson_title: topic,
-          objective: `Fun interactive Playground lesson about ${topic}. Target vocabulary: ${payload.vocabulary.join(', ')}. Target grammar: ${payload.grammar}.`,
+          objective: payload.learning_objective || `Fun interactive Playground lesson about ${topic}. Target vocabulary: ${payload.vocabulary.join(', ')}. Target grammar: ${payload.grammar}.`,
           skill_focus: 'Vocabulary',
           cefr_level: payload.level,
           hub: 'playground',
@@ -348,6 +352,10 @@ export default function PlaygroundCreator() {
           interests,
           specific_needs,
           previous_topics,
+          language_variant: payload.language_variant,
+          visual_theme: payload.visual_theme,
+          learning_objective: payload.learning_objective,
+          final_output_task: payload.final_output_task,
           blueprint: {
             lesson_title: topic,
             target_vocabulary: payload.vocabulary,
@@ -356,6 +364,10 @@ export default function PlaygroundCreator() {
             target_hub: 'playground',
             interests,
             specific_needs,
+            language_variant: payload.language_variant,
+            visual_theme: payload.visual_theme,
+            learning_objective: payload.learning_objective,
+            final_output_task: payload.final_output_task,
           },
         },
       });
