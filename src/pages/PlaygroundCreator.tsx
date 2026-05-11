@@ -38,7 +38,7 @@ import { getLibraryLessonSlides } from '@/services/lessonLibraryService';
 import { StorybookEditor } from '@/components/creator-studio/shared/StorybookEditor';
 import { MediaAnalyzerModal } from '@/components/creator-studio/shared/MediaAnalyzerModal';
 import { mapAIQuizSlides } from '@/components/creator-studio/shared/aiQuizMapper';
-import { LessonBlueprintPanel, EMPTY_BLUEPRINT, type LessonBlueprint } from '@/components/creator-studio/shared/LessonBlueprintPanel';
+import { EMPTY_BLUEPRINT, type LessonBlueprint } from '@/components/creator-studio/shared/LessonBlueprintPanel';
 import GenerateLessonModal from '@/components/creator-studio/shared/GenerateLessonModal';
 import { CanvasElementEditor } from '@/components/creator-studio/shared/CanvasElementEditor';
 import { ScaffoldedMediaEditor } from '@/components/creator-studio/shared/ScaffoldedMediaEditor';
@@ -631,14 +631,6 @@ export default function PlaygroundCreator() {
       <div className="flex-1 w-full grid grid-cols-1 lg:grid-cols-[240px_1fr_380px] gap-4 p-4 min-h-0">
         {/* Slide list */}
         <aside className="min-h-0 flex flex-col order-1">
-          <LessonBlueprintPanel
-            hub="playground"
-            blueprint={blueprint}
-            onChange={setBlueprint}
-            slides={slides}
-            onSyncedSlides={(s) => { setSlides(s as Slide[]); setSelected(0); }}
-            cefrLevel={'A1'}
-          />
           <div className="bg-white rounded-2xl shadow-md border-2 border-orange-200 p-3 flex flex-col flex-1 min-h-0">
             <h2 className="text-sm font-bold text-orange-600 px-2 py-1">SLIDES</h2>
             <div className="space-y-1 flex-1 overflow-y-auto pr-1 min-h-0">

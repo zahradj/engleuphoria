@@ -40,7 +40,7 @@ import { SaveStatusBadge } from '@/components/creator-studio/shared/SaveStatusBa
 import { RevisionHistoryModal } from '@/components/creator-studio/shared/RevisionHistoryModal';
 import { CanvasElementEditor } from '@/components/creator-studio/shared/CanvasElementEditor';
 import { ScaffoldedMediaEditor } from '@/components/creator-studio/shared/ScaffoldedMediaEditor';
-import { LessonBlueprintPanel, EMPTY_BLUEPRINT, type LessonBlueprint } from '@/components/creator-studio/shared/LessonBlueprintPanel';
+import { EMPTY_BLUEPRINT, type LessonBlueprint } from '@/components/creator-studio/shared/LessonBlueprintPanel';
 import GenerateLessonModal from '@/components/creator-studio/shared/GenerateLessonModal';
 import { WandFieldButton } from '@/components/creator-studio/shared/WandFieldButton';
 import { AIToolsPanel } from '@/components/creator-studio/shared/AIToolsPanel';
@@ -573,14 +573,6 @@ export default function SuccessCreator() {
       <div className="flex-1 w-full grid grid-cols-1 lg:grid-cols-[240px_1fr_380px] gap-4 p-4 min-h-0">
         {/* Left: slide list grouped by block */}
         <aside className="min-h-0 flex flex-col order-1">
-          <LessonBlueprintPanel
-            hub="success"
-            blueprint={blueprint}
-            onChange={setBlueprint}
-            slides={slides}
-            onSyncedSlides={(s) => { setSlides(s as Slide[]); setSelected(0); }}
-            cefrLevel={aiLevel}
-          />
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 flex flex-col flex-1 min-h-0">
             <div className="flex items-center justify-between px-2 py-1 mb-2 flex-shrink-0">
               <h2 className="text-xs font-bold text-emerald-600 tracking-wider uppercase">Slides · {slides.length}</h2>
