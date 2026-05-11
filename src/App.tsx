@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Canonical } from "@/components/seo/Canonical";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LessonProvider } from "@/contexts/LessonContext";
 import { ThemeModeProvider } from "@/hooks/useThemeMode";
@@ -99,6 +100,7 @@ const App = () => {
                 <Sonner />
                 <BrowserRouter>
                   <AppErrorBoundary>
+                    <Canonical />
                     <Routes>
                       {/* Public Entry Point - Landing Page */}
                       <Route path="/" element={<HomeGateWrapper />} />
