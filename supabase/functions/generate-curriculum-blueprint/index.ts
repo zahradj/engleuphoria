@@ -298,6 +298,8 @@ Return ONLY the JSON object.`;
         cefr_level,
         age_group,
         hub,
+        chosen_genre: chosenGenre,
+        previous_topics_count: prevTopics.length,
         units,
       }),
       { status: 200, headers: { ...CORS, "Content-Type": "application/json" } }
