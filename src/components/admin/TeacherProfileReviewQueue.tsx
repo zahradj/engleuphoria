@@ -7,7 +7,7 @@ import { VideoReviewPanel } from './VideoReviewPanel';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Loader2, UserCheck, Clock, FileText, Globe, GraduationCap,
-  ExternalLink, ChevronDown, ChevronUp, RefreshCw
+  ExternalLink, ChevronDown, ChevronUp, RefreshCw, CheckCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -47,6 +47,7 @@ export const TeacherProfileReviewQueue = () => {
   const [pending, setPending] = useState<PendingTeacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
 
   const fetchPending = useCallback(async () => {
     setLoading(true);
@@ -103,6 +104,56 @@ export const TeacherProfileReviewQueue = () => {
 
   const toggleExpand = (id: string) => {
     setExpandedId(prev => prev === id ? null : id);
+  };
+
+  const approveTeacherProfile = async (teacher: PendingTeacher) => {
+    setApprovingId(teacher.id);
+    try {
+      const { error } = await supabase
+        .from('teacher_profiles')
+        .update({
+          video_status: 'approved',
+          video_rejection_reason: null,
+          can_teach: true,
+          is_available: true,
+          profile_approved_by_admin: true,
+          updated_at: new Date().toISOString(),
+        } as any)
+        .eq('id', teacher.id);
+
+      if (error) throw error;
+
+      try {
+        await supabase.functions.invoke('send-transactional-email', {
+          body: {
+            templateName: 'video-approved',
+            recipientEmail: teacher.email,
+            idempotencyKey: `profile-approved-${teacher.id}`,
+            templateData: { name: teacher.full_name },
+          }
+        });
+      } catch { /* Approval must not fail if email delivery fails. */ }
+
+      try {
+        await supabase.from('admin_notifications').insert({
+          notification_type: 'teacher_profile_approved',
+          title: 'Teacher Profile Approved — Now Live',
+          message: `${teacher.full_name}'s profile has been approved. They are now visible to students and can receive bookings.`,
+          metadata: { teacher_user_id: teacher.user_id, teacher_name: teacher.full_name },
+        });
+      } catch { /* Non-blocking notification. */ }
+
+      toast.success('Teacher approved and live', {
+        description: `${teacher.full_name} can now receive bookings.`,
+      });
+      setPending(prev => prev.filter(item => item.id !== teacher.id));
+      setExpandedId(prev => prev === teacher.id ? null : prev);
+    } catch (err) {
+      console.error('Error approving teacher profile:', err);
+      toast.error('Failed to approve teacher profile');
+    } finally {
+      setApprovingId(null);
+    }
   };
 
   if (loading) {
@@ -185,6 +236,21 @@ export const TeacherProfileReviewQueue = () => {
                     <Clock className="h-3 w-3 mr-1" />
                     Pending Review
                   </Badge>
+                  <Button
+                    size="sm"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      approveTeacherProfile(teacher);
+                    }}
+                    disabled={approvingId === teacher.id}
+                  >
+                    {approvingId === teacher.id ? (
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    ) : (
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                    )}
+                    Approve Profile
+                  </Button>
                   {teacher.hub_role && hubRoleLabels[teacher.hub_role] && (
                     <Badge variant="outline" className={hubRoleLabels[teacher.hub_role].color}>
                       {hubRoleLabels[teacher.hub_role].label}
