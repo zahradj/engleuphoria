@@ -76,6 +76,7 @@ Deno.serve(async (req) => {
       lessons_per_unit = 4,
       theme_hint = "",
       hub = "academy",
+      previous_topics = [],
     } = body;
 
     const safeUnits = Math.max(1, Math.min(10, Number(unit_count) || 4));
@@ -86,24 +87,45 @@ Deno.serve(async (req) => {
     const cleanTheme = String(theme_hint || "").trim();
     const hasTheme = cleanTheme.length > 0;
 
-    const systemPrompt = `You are an elite ESL Curriculum Director. Generate a progressive, high-energy 4-skills English curriculum.
+    // Phase 2: Dynamic theme genre — only when user did NOT supply a theme.
+    const chosenGenre = hasTheme ? null : pickGenre(cefr_level);
+
+    // Phase 3: Anti-repetition — sanitize previous_topics input.
+    const prevTopics: string[] = Array.isArray(previous_topics)
+      ? previous_topics.map((t: any) => String(t || "").trim()).filter(Boolean).slice(0, 10)
+      : [];
+
+    const systemPrompt = `You are an elite ESL Curriculum Director and Expert Pedagogue. Generate a progressive, high-energy 4-skills English curriculum.
 
 CEFR LEVEL CONSTRAINT: ${cefr_level} — ${cefrRule}
 AGE GROUP: ${age_group}
 HUB: ${hub}
 
+CRITICAL — ANTI-LITERAL RULE:
+The hub names (Playground, Academy, Success) indicate AGE and PROFICIENCY LEVEL only.
+DO NOT generate literal lessons about playgrounds, schools, academies, or workplaces
+unless the user's Core Theme explicitly requests them. Themes must be diverse, vivid,
+imaginative, and unrelated to the hub's name.
+
 THEME RULE:
-- If a Core Theme is provided, base the units around it and progress logically across them.
-- If the Core Theme is empty, you MUST invent a highly engaging, age-appropriate, and creative theme yourself based on the requested CEFR Level and Age Group.
+- If a Core Theme is provided, base every unit around it and progress logically across units.
+- If a Required Lesson Genre is provided below, you MUST build all units inside that genre,
+  inventing distinct sub-themes per unit (still avoid the hub-name literal trap).
+- Themes must progress logically across units (sub-topic → sub-topic, never repeating).
 
 REQUIREMENTS:
 1. Every unit MUST have a single engaging central theme.
 2. Within each unit, lessons MUST systematically rotate through skill focuses in order: Grammar → Vocabulary → Reading/Listening → Speaking.
 3. CRITICAL — Spaced repetition: the FINAL lesson of EVERY unit MUST have skill_focus = "Review". No exceptions.
-4. Lesson titles must be specific and engaging.
+4. Lesson titles must be specific, vivid, and age-appropriate (more mature as CEFR rises).
 5. Each objective must be a single concrete observable outcome ("Students will be able to...").
-6. Themes must progress logically across units.
-7. Variation seed: ${variationSeed} — use this to differ from past outputs.
+6. Variation seed: ${variationSeed} — use this to differ from past outputs.
+
+${prevTopics.length > 0 ? `ANTI-REPETITION — ABSOLUTELY FORBIDDEN:
+You MUST NOT reuse any of the following themes, primary vocabulary, storylines, or settings
+from the user's recent lessons: ${JSON.stringify(prevTopics)}.
+Every unit theme and lesson title must be 100% original and semantically distinct from
+that list. Do not paraphrase, swap synonyms, or relocate the same plot.` : ""}
 
 Return STRICT JSON only.`;
 
@@ -111,9 +133,13 @@ Return STRICT JSON only.`;
 - ${safeUnits} units
 - ${safeLessons} lessons per unit (the LAST lesson of each unit MUST be a "Review")
 - Skill rotation for non-review lessons: ${SKILL_ROTATION.join(" → ")}
-${hasTheme ? `- Core theme/topic: "${cleanTheme}"` : "- Core theme/topic: (none provided — invent a creative, age-appropriate one yourself)"}
+${hasTheme
+  ? `- Core theme/topic (user-supplied, mandatory): "${cleanTheme}"`
+  : `- Required Lesson Genre (auto-selected for this CEFR band): "${chosenGenre}"
+- No user theme was provided — invent vivid sub-themes inside the "${chosenGenre}" genre.`}
 
 Return ONLY the JSON object.`;
+
 
     // Gemini responseSchema — note: NO `additionalProperties` (unsupported by Gemini API).
     const responseSchema = {
