@@ -89,7 +89,12 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
                   onClick={() => onTabChange(item.id)}
                 >
                   <Icon className="h-4 w-4 mr-3" />
-                  {item.label}
+                  <span className="flex-1 text-left">{item.label}</span>
+                  {item.badge && item.badge > 0 ? (
+                    <span className="ml-2 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold">
+                      {item.badge > 99 ? '99+' : item.badge}
+                    </span>
+                  ) : null}
                 </Button>
               );
             })}
