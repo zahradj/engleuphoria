@@ -294,8 +294,8 @@ export const LibraryManager: React.FC = () => {
       navigate(`/success-creator?lessonId=${row.id}`);
       return;
     }
-    // Standard → keep the existing in-shell editor.
-    setCurrentStep('slide-builder');
+    // Unknown hub → default to Academy creator.
+    navigate(`/academy-creator?lessonId=${row.id}`);
   };
 
   const handleDelete = async (row: LessonRow) => {
