@@ -12,7 +12,7 @@ export interface GeminiMessage {
 }
 
 export interface GeminiOptions {
-  model?: 'gemini-2.5-flash' | 'gemini-2.5-pro' | 'gemini-1.5-flash' | 'gemini-1.5-pro';
+  model?: 'gemini-2.5-flash' | 'gemini-2.5-pro';
   systemInstruction?: string;
   messages: GeminiMessage[];
   maxTokens?: number;
