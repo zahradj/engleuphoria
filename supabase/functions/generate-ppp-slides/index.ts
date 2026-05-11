@@ -440,7 +440,14 @@ ADDITIONAL ALLOWED TYPES (when phonics layer is required):
       ? buildPhaseSequenceBlock(blueprintPhases, blueprint?.pedagogical_framework)
       : "";
 
-    const systemPrompt = `You are the EXPERT CURRICULUM DESIGNER for Engleuphoria — an elite ESL platform.
+    const successPersona = buildStudioSystemPrompt({
+      role: 'pedagogue',
+      cefr: cefr_level,
+      hub: resolvedHub,
+      ageGroup: resolvedHub === 'success' ? 'adults' : resolvedHub === 'playground' ? 'kids' : 'teens',
+      previousTopics: prevTopics,
+    });
+    const systemPrompt = `${successPersona}\n\nYou are the EXPERT CURRICULUM DESIGNER for Engleuphoria — an elite ESL platform.
 You design ONE classroom-ready 1-HOUR (≈60 minute) deeply COHESIVE interactive lesson as a 20–25 slide deck.
 Total slide count MUST be between 20 and 25 inclusive — never fewer than 20.
 
