@@ -197,15 +197,7 @@ serve(async (req) => {
       );
     }
 
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    if (!lovableApiKey) {
-      return new Response(
-        JSON.stringify({ error: 'Lovable API key not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // ── 1. Generate image via Gemini ─────────────────────────────
+    // ── 1. Generate image via Google AI Studio (gemini-2.5-flash-image) ──
     const preset = STYLE_PRESETS[style] || STYLE_PRESETS.educational;
     let enhancedPrompt = `${preset.prefix}. ${prompt}, ${preset.suffix}`;
     const allNegative = [preset.negative, negativePrompt].filter(Boolean).join(' ');
@@ -215,35 +207,16 @@ serve(async (req) => {
 
     console.log('Generating image | style:', style, '| prompt:', enhancedPrompt.slice(0, 200));
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image-preview',
-        messages: [{ role: 'user', content: enhancedPrompt }],
-        modalities: ['image', 'text'],
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error('Lovable AI error:', errorData);
+    let imageUrl: string;
+    try {
+      const out = await generateGoogleImage(enhancedPrompt);
+      imageUrl = out.dataUrl;
+    } catch (e) {
+      const err = e as GoogleImageError;
+      const status = err.status ?? 500;
       return new Response(
-        JSON.stringify({ error: 'Failed to generate image', details: errorData }),
-        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const data = await response.json();
-    let imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
-    if (!imageUrl) {
-      return new Response(
-        JSON.stringify({ error: 'No image returned from AI' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Failed to generate image', details: err.message }),
+        { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
