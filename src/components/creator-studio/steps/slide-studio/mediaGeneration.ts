@@ -40,7 +40,8 @@ export const generateSlideVoiceover = (
   lessonId: string,
   slideId: string,
   voiceId?: string,
-) => invokeJson('generate-slide-voiceover', { text, lessonId, slideId, voiceId });
+  mode?: 'phonetic',
+) => invokeJson('generate-slide-voiceover', { text, lessonId, slideId, voiceId, mode });
 
 export const generateSlideMusic = (
   prompt: string,
