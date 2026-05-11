@@ -250,7 +250,7 @@ interface CreatorContextValue {
 const CreatorContext = createContext<CreatorContextValue | null>(null);
 
 export const CreatorProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentStep, setCurrentStep] = useState<CreatorStep>('blueprint');
+  const [currentStep, setCurrentStep] = useState<CreatorStep>('playground-creator');
   const [curriculumData, setCurriculumData] = useState<CurriculumData | null>(null);
   const [activeLessonData, setActiveLessonData] = useState<ActiveLessonData | null>(null);
   const [isDirty, setDirty] = useState(false);
