@@ -57,6 +57,44 @@ export interface BlueprintVideoStrategy {
   rationale?: string;
 }
 
+/** Regional spelling/vocab variant. Default: American English. */
+export type LanguageVariant = 'American English' | 'British English' | 'Global/Neutral';
+
+/** Aesthetic appended to every image_prompt in the generated deck. */
+export type VisualTheme =
+  | '3D Animation'
+  | 'Anime/Manga'
+  | 'Watercolor'
+  | 'Professional/Realistic';
+
+export const LANGUAGE_VARIANT_OPTIONS: LanguageVariant[] = [
+  'American English',
+  'British English',
+  'Global/Neutral',
+];
+
+export const VISUAL_THEME_OPTIONS: VisualTheme[] = [
+  'Professional/Realistic',
+  '3D Animation',
+  'Anime/Manga',
+  'Watercolor',
+];
+
+export const DEFAULT_LANGUAGE_VARIANT: LanguageVariant = 'American English';
+export const DEFAULT_VISUAL_THEME: VisualTheme = 'Professional/Realistic';
+
+/** Aesthetic phrase appended to every generated image_prompt. */
+export const VISUAL_THEME_PROMPT_SUFFIX: Record<VisualTheme, string> = {
+  '3D Animation':
+    ', rendered in vibrant Pixar-style 3D animation, soft global illumination, cinematic lighting, clean vector edges, family-friendly',
+  'Anime/Manga':
+    ', rendered in modern Japanese anime / manga style, crisp ink line art, cel-shaded coloring, expressive character design',
+  'Watercolor':
+    ', painted in soft watercolor illustration style, gentle pastel washes, visible paper texture, hand-painted feel',
+  'Professional/Realistic':
+    ', professional editorial illustration with realistic proportions, clean modern composition, high-quality stock-photo-grade lighting',
+};
+
 export interface LessonBlueprint {
   lesson_title: string;
   target_vocabulary: BlueprintVocabItem[];
@@ -74,6 +112,14 @@ export interface LessonBlueprint {
   phases?: LessonPhase[];
   /** AI-curated YouTube clip plan (query + which phase to insert it in). */
   video_strategy?: BlueprintVideoStrategy;
+  /** SWBAT — single-sentence functional learning objective. */
+  learning_objective?: string;
+  /** Production-stage final task that proves mastery (roleplay, debate, free speak…). */
+  final_output_task?: string;
+  /** Regional spelling/vocab variant. Defaults to American English. */
+  language_variant?: LanguageVariant;
+  /** Aesthetic appended to every image prompt. */
+  visual_theme?: VisualTheme;
 }
 
 export const isBlueprintReady = (b: LessonBlueprint | null): b is LessonBlueprint => {
