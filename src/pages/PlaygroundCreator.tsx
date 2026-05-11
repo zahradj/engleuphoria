@@ -101,7 +101,11 @@ function makeSlide(type: SlideType): Slide {
     case 'vocab_solo':
       return { type: 'vocab_solo', word: 'APPLE', definition: 'A round red or green fruit.', image_url: '', audio_url: '', voice: { text: 'apple', autoPlay: false } } as Slide;
     case 'phonics_focus':
-      return { type: 'phonics_focus', phoneme: '/æ/', grapheme: 'a', sound_ipa: '/æ/', label: 'Listen to the sound', example_words: ['CAT', 'BAT', 'HAT'], audio_url: '', voice: { text: 'short a', autoPlay: true } } as unknown as Slide;
+      return { type: 'phonics_focus', phoneme: '/æ/', grapheme: 'a', sound_ipa: '/æ/', label: 'Listen to the sound', example_words: ['CAT', 'BAT', 'HAT'], phonics_items: [
+        { word: 'CAT', image_url: '', audio_url: '', spoken_text: '' },
+        { word: 'BAT', image_url: '', audio_url: '', spoken_text: '' },
+        { word: 'HAT', image_url: '', audio_url: '', spoken_text: '' },
+      ], audio_url: '', voice: { text: 'a', autoPlay: true } } as unknown as Slide;
     case 'lesson_summary':
       return { type: 'lesson_summary', title: 'Level Complete!', vocab_recap: [], takeaway: 'You did amazing!', voice: { text: 'Great job! Level complete!', autoPlay: true } };
     case 'storybook':
