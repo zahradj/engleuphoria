@@ -306,7 +306,7 @@ export default function PlaygroundCreator() {
   const current = slides[safeIndex] ?? { type: 'intro', title: '', content: '' } as any;
   const slideId = `slide-${safeIndex}`;
 
-  const generateWithAI = async (payload: { topic: string; level: string; vocabulary: string[]; grammar: string; target_phonics: string }) => {
+  const generateWithAI = async (payload: { topic: string; level: string; vocabulary: string[]; grammar: string; target_phonics: string; interests: string; specific_needs: string }) => {
     const topic = payload.topic.trim();
     if (!topic) return;
     setAiBusy(true);
@@ -892,6 +892,8 @@ export default function PlaygroundCreator() {
         defaultVocabulary={blueprint?.vocabulary}
         defaultGrammar={blueprint?.grammar}
         defaultPhonics={blueprint?.target_phonics}
+        defaultInterests={blueprint?.interests}
+        defaultNeeds={blueprint?.specific_needs}
         busy={aiBusy}
         onGenerate={generateWithAI}
       />
