@@ -40,7 +40,8 @@ import { SaveStatusBadge } from '@/components/creator-studio/shared/SaveStatusBa
 import { RevisionHistoryModal } from '@/components/creator-studio/shared/RevisionHistoryModal';
 import { CanvasElementEditor } from '@/components/creator-studio/shared/CanvasElementEditor';
 import { ScaffoldedMediaEditor } from '@/components/creator-studio/shared/ScaffoldedMediaEditor';
-import { LessonBlueprintPanel, type LessonBlueprint } from '@/components/creator-studio/shared/LessonBlueprintPanel';
+import { LessonBlueprintPanel, EMPTY_BLUEPRINT, type LessonBlueprint } from '@/components/creator-studio/shared/LessonBlueprintPanel';
+import GenerateLessonModal from '@/components/creator-studio/shared/GenerateLessonModal';
 import { WandFieldButton } from '@/components/creator-studio/shared/WandFieldButton';
 import { AIToolsPanel } from '@/components/creator-studio/shared/AIToolsPanel';
 import { StorybookEditor } from '@/components/creator-studio/shared/StorybookEditor';
