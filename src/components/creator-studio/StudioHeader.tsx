@@ -21,7 +21,10 @@ export const StudioHeader: React.FC = () => {
   const [savingDraft, setSavingDraft] = useState(false);
   const [publishing, setPublishing] = useState(false);
 
-  const inSlideStudio = currentStep === 'slide-builder';
+  const inSlideStudio =
+    currentStep === 'playground-creator' ||
+    currentStep === 'academy-creator' ||
+    currentStep === 'success-creator';
   const hasSlides = !!activeLessonData?.slides?.length;
 
   const buildExtra = (): { kind: 'standard' | 'trial' | 'story'; extra?: Record<string, unknown> } => {
