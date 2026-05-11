@@ -1,12 +1,17 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Clock, CheckCircle, Bell } from 'lucide-react';
+import { Clock, CheckCircle, Bell, Shield, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface PendingReviewBannerProps {
   teacherName: string;
 }
 
 export const PendingReviewBanner: React.FC<PendingReviewBannerProps> = ({ teacherName }) => {
+  const { user } = useAuth();
+  const isAdmin = (user as any)?.role === 'admin';
   return (
     <div className="min-h-[60vh] flex items-center justify-center p-6">
       <Card className="max-w-2xl w-full border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 dark:border-amber-800">
