@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight, BookOpen, RefreshCw, Loader2, Sparkles } fro
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { SlideTypeBadge } from './SlideTypeBadge';
 import type {
   PedagogicalFramework,
   LessonPhase,
