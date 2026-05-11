@@ -99,6 +99,7 @@ const App = () => {
                 <Sonner />
                 <BrowserRouter>
                   <AppErrorBoundary>
+                    <Canonical />
                     <Routes>
                       {/* Public Entry Point - Landing Page */}
                       <Route path="/" element={<HomeGateWrapper />} />
