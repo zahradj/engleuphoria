@@ -1237,6 +1237,7 @@ Return ONLY the JSON object.`;
       }
     }
 
+    enforceVisualTheme(slides);
     return new Response(JSON.stringify({ slides, homework_missions }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
