@@ -39,6 +39,10 @@ interface Props {
   defaultPhonics?: string;
   defaultInterests?: string;
   defaultNeeds?: string;
+  defaultLanguageVariant?: LanguageVariant;
+  defaultVisualTheme?: VisualTheme;
+  defaultLearningObjective?: string;
+  defaultFinalOutputTask?: string;
   busy: boolean;
   onGenerate: (payload: GenerateLessonPayload) => Promise<void> | void;
 }
