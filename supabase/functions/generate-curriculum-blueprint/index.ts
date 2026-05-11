@@ -134,7 +134,12 @@ Return ONLY the JSON object.`;
           responseMimeType: "application/json",
           responseSchema,
           temperature: 0.85,
-          maxOutputTokens: 4096,
+          // Big enough for up to 10 units × 8 lessons.
+          // gemini-2.5-flash silently consumes "thinking" tokens out of this
+          // budget, so 4096 truncates mid-JSON. 16k is safe.
+          maxOutputTokens: 16384,
+          // Disable hidden chain-of-thought so the entire budget goes to JSON.
+          thinkingConfig: { thinkingBudget: 0 },
         },
       }),
     });
