@@ -3,6 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Loader2, ChevronDown, ChevronUp, Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  DEFAULT_LANGUAGE_VARIANT,
+  DEFAULT_VISUAL_THEME,
+  LANGUAGE_VARIANT_OPTIONS,
+  VISUAL_THEME_OPTIONS,
+  type LanguageVariant,
+  type VisualTheme,
+} from './blueprintTypes';
 
 export type Hub = 'playground' | 'academy' | 'success';
 
@@ -14,6 +22,10 @@ export interface GenerateLessonPayload {
   target_phonics: string;
   interests: string;
   specific_needs: string;
+  language_variant: LanguageVariant;
+  visual_theme: VisualTheme;
+  learning_objective?: string;
+  final_output_task?: string;
 }
 
 interface Props {
