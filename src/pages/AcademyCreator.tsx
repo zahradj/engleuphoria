@@ -285,6 +285,7 @@ export default function AcademyCreator() {
           grammar_focus: bp.grammar,
           interests,
           specific_needs,
+          previous_topics,
           blueprint: { lesson_title: aiTopic.trim(), target_vocabulary: bp.vocabulary, grammar_focus: bp.grammar, target_hub: 'academy', interests, specific_needs },
         },
       });
