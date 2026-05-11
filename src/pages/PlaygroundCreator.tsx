@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Eye, Code2, X, Sparkles, Loader2, Image as ImageIcon, Save, BookOpen, Send, FolderOpen, History, Wand2, FileUp, ArrowLeft } from 'lucide-react';
 import { SlideRenderer, type Slide } from './PlaygroundDemo';
@@ -200,6 +200,37 @@ export default function PlaygroundCreator() {
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [mediaModalOpen, setMediaModalOpen] = useState(false);
   const [blueprint, setBlueprint] = useState<LessonBlueprint | null>(null);
+
+  // ── Hydrate from Curriculum Blueprint hand-off (router state) ────
+  // When the teacher clicks "Build Slides" inside the Master Blueprint,
+  // we ship the planned vocab/grammar/phonics here via location.state.
+  const location = useLocation();
+  useEffect(() => {
+    const st: any = location.state;
+    if (!st || !st.fromBlueprint) return;
+    if (st.lessonTitle) {
+      setTitle(st.lessonTitle);
+      setAiTopic(st.lessonTitle);
+    }
+    if (st.cefrLevel) setAiLevel(String(st.cefrLevel).toUpperCase());
+    if (st.blueprint) {
+      const bp = st.blueprint as any;
+      setBlueprint({
+        vocabulary: Array.isArray(bp.vocabulary) ? bp.vocabulary.slice(0, 5) : ['', '', '', '', ''],
+        grammar: bp.grammar || st.skill_focus || '',
+        rationale: bp.rationale,
+        target_phonics: typeof bp.target_phonics === 'string' ? bp.target_phonics : bp.target_phonics?.focus || '',
+        interests: '',
+        specific_needs: '',
+      } as LessonBlueprint);
+    } else if (st.skill_focus) {
+      setBlueprint({ ...EMPTY_BLUEPRINT, grammar: st.skill_focus });
+    }
+    toast.success('📋 Blueprint loaded — ready to generate slides');
+    // Clear state so a refresh doesn't re-hydrate
+    navigate(location.pathname + location.search, { replace: true, state: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Insert quiz slides directly after the current slide (before any trailing lesson_summary).
   const insertAfterCurrent = (extra: Slide[]) => {

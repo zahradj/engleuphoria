@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Code2, X, Play, Sparkles, Loader2, Save, Send, FolderOpen, History, Wand2, FileUp, ArrowLeft } from 'lucide-react';
 import {
   SlideRenderer,
@@ -178,6 +178,34 @@ export default function SuccessCreator() {
   const [aiGrammar, setAiGrammar] = useState('Polite modals (could / would / would you mind)');
   const [aiBusy, setAiBusy] = useState(false);
   const [blueprint, setBlueprint] = useState<LessonBlueprint | null>(null);
+
+  // ── Hydrate from Curriculum Blueprint hand-off (router state) ────
+  const location = useLocation();
+  useEffect(() => {
+    const st: any = location.state;
+    if (!st || !st.fromBlueprint) return;
+    if (st.lessonTitle) {
+      setTitle(st.lessonTitle);
+      setAiTopic(st.lessonTitle);
+    }
+    if (st.cefrLevel) setAiLevel(String(st.cefrLevel).toUpperCase());
+    if (st.blueprint) {
+      const bp = st.blueprint as any;
+      setBlueprint({
+        vocabulary: Array.isArray(bp.vocabulary) ? bp.vocabulary.slice(0, 5) : ['', '', '', '', ''],
+        grammar: bp.grammar || st.skill_focus || '',
+        rationale: bp.rationale,
+        target_phonics: typeof bp.target_phonics === 'string' ? bp.target_phonics : bp.target_phonics?.focus || '',
+        interests: '',
+        specific_needs: '',
+      } as LessonBlueprint);
+    } else if (st.skill_focus) {
+      setBlueprint({ vocabulary: ['', '', '', '', ''], grammar: st.skill_focus, interests: '', specific_needs: '', target_phonics: '' });
+    }
+    toast.success('📋 Blueprint loaded — ready to generate slides');
+    navigate(location.pathname + location.search, { replace: true, state: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [previewMode, setPreviewMode] = useState<PreviewMode>('editor');
   const [previewRole, setPreviewRole] = useState<PreviewRole>('teacher');
   const [vaultOpen, setVaultOpen] = useState(false);
