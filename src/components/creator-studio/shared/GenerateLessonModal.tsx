@@ -314,6 +314,36 @@ export default function GenerateLessonModal({
                 </select>
               </label>
 
+              {/* Language Variant + Visual Theme */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label className="block">
+                  <span className={labelCls}>🌐 Language Variant</span>
+                  <select
+                    className={inputCls}
+                    value={languageVariant}
+                    onChange={(e) => setLanguageVariant(e.target.value as LanguageVariant)}
+                    disabled={busy}
+                  >
+                    {LANGUAGE_VARIANT_OPTIONS.map((v) => (
+                      <option key={v} value={v}>{v}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className={labelCls}>🎨 Visual Theme</span>
+                  <select
+                    className={inputCls}
+                    value={visualTheme}
+                    onChange={(e) => setVisualTheme(e.target.value as VisualTheme)}
+                    disabled={busy}
+                  >
+                    {VISUAL_THEME_OPTIONS.map((v) => (
+                      <option key={v} value={v}>{v}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
               {/* Blueprint Details (collapsible) */}
               <div className="rounded-2xl border-2 border-slate-200 overflow-hidden">
                 <button
