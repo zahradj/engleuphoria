@@ -131,8 +131,23 @@ LESSON STRUCTURE:
 Emit an ordered \`lesson_structure\` array (8-14 entries) selecting from these phases:
   ["Vocabulary","Reading","Comprehension","Grammar","Speaking","Writing"]
 and these slide_type hints:
-  ["mascot_speech","flashcard","multiple_choice","drag_and_drop","drag_and_match","fill_in_the_gaps","drawing_canvas"]
+  ["mascot_speech","flashcard","multiple_choice","drag_and_drop","drag_and_match","fill_in_the_gaps","drawing_canvas","drag_and_drop_sorting","matching_lines","tracing_canvas","spinner_wheel"]
 The order of phases MUST follow the framework you picked. Repeat phases as needed (e.g. Vocabulary may appear 2-3 times).
+
+GAMIFIED ACTIVITY CATALOG (REQUIRED — every practice phase should pick one of these when appropriate):
+• drag_and_drop_sorting — sort items into category buckets (e.g. "sh" vs "th" words).
+    activity_data: { "categories": string[2..3], "draggable_items": [{"text": string, "category": string}, ...8..12] }
+• matching_lines — connect pairs across two columns (e.g. present↔past tense).
+    activity_data: { "left_column": string[3..6], "right_column": string[3..6], "pairs": [[leftIndex, rightIndex], ...] }
+• tracing_canvas — young learners trace target letters (Pre-A1 / Playground only).
+    activity_data: { "target_letters": string[1..4], "font_style": "print" | "cursive" }
+• spinner_wheel — gamified speaking-practice wheel; the chosen segment becomes the speaking target.
+    activity_data: { "wheel_segments": string[4..8], "prompt_template"?: "Say: {segment}" }
+
+TIER HINTS (level → which gamified types to favour):
+- Pre-A1 / A1 → favour tracing_canvas + spinner_wheel.
+- A2 / B1 → favour matching_lines + drag_and_drop_sorting.
+- B2+ → matching_lines + drag_and_drop_sorting only (no tracing).
 
 Return ONLY a single valid JSON object with this exact shape (no markdown, no commentary):
 {
