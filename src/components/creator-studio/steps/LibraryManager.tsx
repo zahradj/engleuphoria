@@ -239,8 +239,8 @@ export const LibraryManager: React.FC = () => {
     if (target === 'playground') return navigate('/playground-creator');
     if (target === 'academy') return navigate('/academy-creator');
     if (target === 'success') return navigate('/success-creator');
-    // all → fall back to in-shell standard slide builder
-    setCurrentStep('slide-builder');
+    // all → default to Academy creator (advanced sequencing engine).
+    return navigate('/academy-creator');
   };
   const handleEdit = (row: LessonRow) => {
     const slides: PPPSlide[] = Array.isArray(row.content?.slides) ? row.content.slides : [];
@@ -294,8 +294,8 @@ export const LibraryManager: React.FC = () => {
       navigate(`/success-creator?lessonId=${row.id}`);
       return;
     }
-    // Standard → keep the existing in-shell editor.
-    setCurrentStep('slide-builder');
+    // Unknown hub → default to Academy creator.
+    navigate(`/academy-creator?lessonId=${row.id}`);
   };
 
   const handleDelete = async (row: LessonRow) => {

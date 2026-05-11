@@ -314,7 +314,19 @@ export default function AcademyCreator() {
           interests,
           specific_needs,
           previous_topics,
-          blueprint: { lesson_title: aiTopic.trim(), target_vocabulary: bp.vocabulary, grammar_focus: bp.grammar, target_hub: 'academy', interests, specific_needs },
+          blueprint: {
+            lesson_title: aiTopic.trim(),
+            target_vocabulary: bp.vocabulary,
+            grammar_focus: bp.grammar,
+            target_hub: 'academy',
+            interests,
+            specific_needs,
+            pedagogical_framework: bp.pedagogical_framework,
+            framework_rationale: bp.framework_rationale,
+            phases: bp.phases,
+            lesson_structure: bp.lesson_structure,
+            video_strategy: bp.video_strategy,
+          },
         },
       });
       if (error) throw error;

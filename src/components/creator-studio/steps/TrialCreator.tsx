@@ -96,8 +96,12 @@ export const TrialCreator: React.FC = () => {
       setActiveLessonData({ ...lesson, lesson_id: result.lesson_id });
       setDirty(false);
       toast.success(`Trial lesson generated: ${slides.length} slides`);
-      setCurrentStep('slide-builder');
-      navigate('/content-creator/slide-builder');
+      const hubPath = lesson.hub === 'playground'
+        ? '/playground-creator'
+        : lesson.hub === 'success'
+        ? '/success-creator'
+        : '/academy-creator';
+      navigate(`${hubPath}?lessonId=${result.lesson_id}`);
     } catch (e: any) {
       console.error('TrialCreator error:', e);
       setError(e?.message || 'Generation failed');

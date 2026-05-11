@@ -440,6 +440,16 @@ ADDITIONAL ALLOWED TYPES (when phonics layer is required):
       ? buildPhaseSequenceBlock(blueprintPhases, blueprint?.pedagogical_framework)
       : "";
 
+    // Authoritative slide sequence — when the planner provided
+    // blueprint.lesson_structure, instruct the AI to follow it exactly.
+    const lessonStructure: Array<{ phase: string; slide_type?: string; note?: string }> =
+      Array.isArray(blueprint?.lesson_structure) ? blueprint!.lesson_structure : [];
+    const structureBlock = lessonStructure.length > 0
+      ? `\n\nAUTHORITATIVE LESSON STRUCTURE (MUST follow in order — one slide per entry, plus the mandatory lesson_summary at the end):\n${lessonStructure
+          .map((e, i) => `  ${i + 1}. lesson_phase=${e.phase}${e.slide_type ? ` · type=${e.slide_type}` : ''}${e.note ? ` — ${e.note}` : ''}`)
+          .join('\n')}\n`
+      : "";
+
     const successPersona = buildStudioSystemPrompt({
       role: 'pedagogue',
       cefr: cefr_level,
@@ -691,7 +701,7 @@ RULE 6C — NEW SLIDE TYPE SCHEMAS
 
 ${hubBlock}
 
-${dynamicPhaseBlock ? dynamicPhaseBlock + "\n\nThe DYNAMIC PHASE SEQUENCE above OVERRIDES the default 6-step order in RULE 1 — follow the dynamic order instead, but keep all other RULE 1 phase requirements (vocab counts, reading word coverage, grammar drilling, etc.)." : ""}`;
+${dynamicPhaseBlock ? dynamicPhaseBlock + "\n\nThe DYNAMIC PHASE SEQUENCE above OVERRIDES the default 6-step order in RULE 1 — follow the dynamic order instead, but keep all other RULE 1 phase requirements (vocab counts, reading word coverage, grammar drilling, etc.)." : ""}${structureBlock}`;
 
     // ── BLUEPRINT GROUND-TRUTH BLOCK (only when caller supplied a blueprint) ──
     let blueprintBlock = "";

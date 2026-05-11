@@ -89,6 +89,20 @@ ${phonicsGuidance}
 The phonics focus MUST be derivable from the chosen vocabulary; pick 2-3 of those vocabulary words as "example_words" that contain the target sound.
 ${anchor ? `\nWhen choosing vocabulary, gently bias toward terms that resonate with the following:\n${anchor}` : ''}
 
+FRAMEWORK CHOICE:
+You ALSO pick a pedagogical framework that best fits the topic + audience:
+  • "Discovery"  — best for tricky grammar (inductive: meet-in-context → guess-rule → formalize).
+  • "TaskBased"  — best for adult/professional learners (try-and-fail → toolbox → succeed).
+  • "Immersion"  — best for young learners / beginners (visual vocab → story → comprehension → guided production).
+For Playground default to "Immersion"; for Success default to "TaskBased"; for Academy choose freely.
+
+LESSON STRUCTURE:
+Emit an ordered \`lesson_structure\` array (8-14 entries) selecting from these phases:
+  ["Vocabulary","Reading","Comprehension","Grammar","Speaking","Writing"]
+and these slide_type hints:
+  ["mascot_speech","flashcard","multiple_choice","drag_and_drop","drag_and_match","fill_in_the_gaps","drawing_canvas"]
+The order of phases MUST follow the framework you picked. Repeat phases as needed (e.g. Vocabulary may appear 2-3 times).
+
 Return ONLY a single valid JSON object with this exact shape (no markdown, no commentary):
 {
   "vocabulary": ["word1","word2","word3","word4","word5"],
@@ -99,7 +113,14 @@ Return ONLY a single valid JSON object with this exact shape (no markdown, no co
     "grapheme": "letter or pattern",
     "example_words": ["w1","w2","w3"]
   },
-  "rationale": "Short explanation"
+  "pedagogical_framework": "Discovery" | "TaskBased" | "Immersion",
+  "framework_rationale": "One short sentence why this framework fits.",
+  "phases": ["Vocabulary","Reading", ...],
+  "lesson_structure": [
+    { "phase": "Vocabulary", "slide_type": "flashcard", "note": "intro 5 words" },
+    { "phase": "Vocabulary", "slide_type": "drag_and_match", "note": "match word↔picture" }
+  ],
+  "rationale": "Short explanation of vocabulary/grammar choice"
 }`;
 
     const userMsg = `TOPIC: ${topic}\nCEFR LEVEL: ${cefr_level}\nHUB: ${hub}\n${anchor}`;
@@ -113,7 +134,7 @@ Return ONLY a single valid JSON object with this exact shape (no markdown, no co
         contents: [{ role: 'user', parts: [{ text: userMsg }] }],
         generationConfig: {
           temperature: 0.8,
-          maxOutputTokens: 1024,
+          maxOutputTokens: 2048,
           responseMimeType: 'application/json',
         },
       }),
@@ -140,6 +161,33 @@ Return ONLY a single valid JSON object with this exact shape (no markdown, no co
     parsed.vocabulary = (parsed.vocabulary as string[]).slice(0, 5);
     while (parsed.vocabulary.length < 5) parsed.vocabulary.push('');
 
+    // ── Normalize merged Slide-Studio fields with hub-aware defaults ──
+    const FRAMEWORK_DEFAULTS: Record<string, string[]> = {
+      Discovery: ['Reading', 'Comprehension', 'Grammar', 'Vocabulary', 'Speaking', 'Writing'],
+      TaskBased: ['Speaking', 'Vocabulary', 'Grammar', 'Reading', 'Comprehension', 'Writing'],
+      Immersion: ['Vocabulary', 'Reading', 'Comprehension', 'Speaking', 'Grammar', 'Writing'],
+    };
+    const VALID_FRAMEWORKS = new Set(['Discovery', 'TaskBased', 'Immersion']);
+    const VALID_PHASES = new Set(['Vocabulary', 'Reading', 'Comprehension', 'Grammar', 'Speaking', 'Writing']);
+    const hubDefaultFramework =
+      hub === 'playground' ? 'Immersion' : hub === 'success' ? 'TaskBased' : 'Discovery';
+    if (!VALID_FRAMEWORKS.has(parsed.pedagogical_framework)) {
+      parsed.pedagogical_framework = hubDefaultFramework;
+    }
+    let phases: string[] = Array.isArray(parsed.phases)
+      ? parsed.phases.filter((p: unknown) => typeof p === 'string' && VALID_PHASES.has(p))
+      : [];
+    if (phases.length === 0) phases = FRAMEWORK_DEFAULTS[parsed.pedagogical_framework];
+    parsed.phases = phases;
+    if (!Array.isArray(parsed.lesson_structure) || parsed.lesson_structure.length === 0) {
+      const defaultSlideType =
+        hub === 'playground' ? 'flashcard' : hub === 'success' ? 'mascot_speech' : 'multiple_choice';
+      parsed.lesson_structure = phases.map((p: string) => ({ phase: p, slide_type: defaultSlideType }));
+    } else {
+      parsed.lesson_structure = parsed.lesson_structure
+        .filter((e: any) => e && typeof e === 'object' && VALID_PHASES.has(e.phase))
+        .slice(0, 20);
+    }
     return new Response(JSON.stringify(parsed), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

@@ -5,7 +5,6 @@ import { StudioSidebar } from './StudioSidebar';
 import { StudioHeader } from './StudioHeader';
 import { StudioMobileNav } from './StudioMobileNav';
 import { BlueprintEngine } from './steps/BlueprintEngine';
-import { SlideStudio } from './steps/SlideStudio';
 import { LibraryManager } from './steps/LibraryManager';
 import { TrialCreator } from './steps/TrialCreator';
 import { StoryCreator } from './steps/StoryCreator';
@@ -27,13 +26,14 @@ const StudioBody: React.FC = () => {
     else if (path.endsWith('/playground-creator')) next = 'playground-creator';
     else if (path.endsWith('/academy-creator')) next = 'academy-creator';
     else if (path.endsWith('/success-creator')) next = 'success-creator';
-    else if (path.endsWith('/slide-builder') || path.endsWith('/slides')) next = 'slide-builder';
+    // Legacy /slide-builder or /slides paths now route to the Academy Creator,
+    // which owns the advanced sequencing engine inherited from the Slide Studio.
+    else if (path.endsWith('/slide-builder') || path.endsWith('/slides')) next = 'academy-creator';
     if (next && next !== currentStep) setCurrentStep(next);
   }, [currentStep, location.pathname, setCurrentStep]);
 
   const Step =
     currentStep === 'blueprint' ? BlueprintEngine
-    : currentStep === 'slide-builder' ? SlideStudio
     : currentStep === 'playground-creator' ? PlaygroundCreator
     : currentStep === 'academy-creator' ? AcademyCreator
     : currentStep === 'success-creator' ? SuccessCreator

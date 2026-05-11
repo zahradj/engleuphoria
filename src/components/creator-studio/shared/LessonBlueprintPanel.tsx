@@ -3,7 +3,19 @@ import { ChevronDown, ChevronRight, BookOpen, RefreshCw, Loader2, Sparkles } fro
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import type {
+  PedagogicalFramework,
+  LessonPhase,
+  BlueprintVideoStrategy,
+} from './blueprintTypes';
 
+/**
+ * Hub-Creator Blueprint = SUPERSET of the original thin Hub shape AND the rich
+ * Slide-Studio shape. The original sidebar inputs still bind to `vocabulary`,
+ * `grammar`, `target_phonics`, `interests`, `specific_needs`. The added fields
+ * are populated by `plan-lesson-blueprint` and forwarded to `generate-ppp-slides`
+ * to drive lesson sequencing — they do NOT affect the sidebar UI.
+ */
 export interface LessonBlueprint {
   vocabulary: string[]; // exactly 5
   grammar: string;
@@ -14,6 +26,21 @@ export interface LessonBlueprint {
   specific_needs?: string;
   /** Target Phonics / Sound focus (e.g. "Short /a/", "Magic e", "Th- digraph", "Word stress"). */
   target_phonics?: string;
+  // ── Merged from Slide Studio's LessonBlueprint (all optional) ──────────
+  /** AI-selected pedagogical framework (Discovery / TaskBased / Immersion). */
+  pedagogical_framework?: PedagogicalFramework;
+  /** Short rationale for the framework choice. */
+  framework_rationale?: string;
+  /** Ordered phase sequence the slide generator MUST follow. */
+  phases?: LessonPhase[];
+  /** AI-curated YouTube clip plan. */
+  video_strategy?: BlueprintVideoStrategy;
+  /** Optional richer narrative context for slide generation. */
+  reading_passage_summary?: string;
+  /** Optional final speaking task. */
+  final_speaking_mission?: string;
+  /** Authoritative slide structure: ordered list of {phase, slide_type} hints. */
+  lesson_structure?: Array<{ phase: LessonPhase; slide_type?: string; note?: string }>;
 }
 
 export const EMPTY_BLUEPRINT: LessonBlueprint = {
