@@ -39,6 +39,7 @@ import { StorybookEditor } from '@/components/creator-studio/shared/StorybookEdi
 import { MediaAnalyzerModal } from '@/components/creator-studio/shared/MediaAnalyzerModal';
 import { mapAIQuizSlides } from '@/components/creator-studio/shared/aiQuizMapper';
 import { LessonBlueprintPanel, EMPTY_BLUEPRINT, type LessonBlueprint } from '@/components/creator-studio/shared/LessonBlueprintPanel';
+import GenerateLessonModal from '@/components/creator-studio/shared/GenerateLessonModal';
 import { CanvasElementEditor } from '@/components/creator-studio/shared/CanvasElementEditor';
 import { ScaffoldedMediaEditor } from '@/components/creator-studio/shared/ScaffoldedMediaEditor';
 import { Headphones } from 'lucide-react';
@@ -305,53 +306,56 @@ export default function PlaygroundCreator() {
   const current = slides[safeIndex] ?? { type: 'intro', title: '', content: '' } as any;
   const slideId = `slide-${safeIndex}`;
 
-  const generateWithAI = async () => {
-    if (!aiTopic.trim()) return;
+  const generateWithAI = async (payload: { topic: string; level: string; vocabulary: string[]; grammar: string; target_phonics: string }) => {
+    const topic = payload.topic.trim();
+    if (!topic) return;
     setAiBusy(true);
     try {
-      // Step 1 — Plan the blueprint (5 vocab + 1 grammar)
-      toast.message('Planning lesson blueprint…');
       const interests = blueprint?.interests?.trim();
       const specific_needs = blueprint?.specific_needs?.trim();
+
+      // Hydrate sidebar immediately with the validated blueprint
+      const hydrated: LessonBlueprint = {
+        ...(blueprint ?? EMPTY_BLUEPRINT),
+        vocabulary: payload.vocabulary,
+        grammar: payload.grammar,
+        target_phonics: payload.target_phonics,
+        interests,
+        specific_needs,
+      };
+      setBlueprint(hydrated);
+      setAiTopic(topic);
+      setAiLevel(payload.level);
+      setTitle(topic);
+
       const { data: prevRows } = await supabase
         .from('curriculum_lessons').select('title')
         .order('created_at', { ascending: false }).limit(5);
       const previous_topics = (prevRows || []).map((r: any) => r.title).filter(Boolean);
-      const planRes = await supabase.functions.invoke('plan-lesson-blueprint', {
-        body: { topic: aiTopic.trim(), cefr_level: aiLevel, hub: 'playground', interests, specific_needs, target_grammar: blueprint?.grammar, previous_topics },
-      });
-      if (planRes.error) throw planRes.error;
-      const bp = { ...(planRes.data as LessonBlueprint), interests, specific_needs };
-      setBlueprint(bp);
 
-      // Step 2 — Generate slides forced to use that blueprint
       const { data, error } = await supabase.functions.invoke('generate-ppp-slides', {
         body: {
-          lesson_title: aiTopic.trim(),
-          objective: `Fun interactive Playground lesson about ${aiTopic.trim()}. Target vocabulary: ${bp.vocabulary.join(', ')}. Target grammar: ${bp.grammar}.`,
+          lesson_title: topic,
+          objective: `Fun interactive Playground lesson about ${topic}. Target vocabulary: ${payload.vocabulary.join(', ')}. Target grammar: ${payload.grammar}.`,
           skill_focus: 'Vocabulary',
-          cefr_level: aiLevel,
+          cefr_level: payload.level,
           hub: 'playground',
           target_hub: 'playground',
           hub_type: 'playground',
-          target_vocabulary: bp.vocabulary,
-          grammar_focus: bp.grammar,
+          target_vocabulary: payload.vocabulary,
+          grammar_focus: payload.grammar,
+          target_phonics: payload.target_phonics,
           interests,
           specific_needs,
           previous_topics,
           blueprint: {
-            lesson_title: aiTopic.trim(),
-            target_vocabulary: bp.vocabulary,
-            grammar_focus: bp.grammar,
+            lesson_title: topic,
+            target_vocabulary: payload.vocabulary,
+            grammar_focus: payload.grammar,
+            target_phonics: payload.target_phonics,
             target_hub: 'playground',
             interests,
             specific_needs,
-            // Merged Slide-Studio sequencing fields:
-            pedagogical_framework: bp.pedagogical_framework,
-            framework_rationale: bp.framework_rationale,
-            phases: bp.phases,
-            lesson_structure: bp.lesson_structure,
-            video_strategy: bp.video_strategy,
           },
         },
       });
@@ -879,48 +883,18 @@ export default function PlaygroundCreator() {
       </AnimatePresence>
 
       {/* AI generation modal */}
-      <AnimatePresence>
-        {aiOpen && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur flex items-center justify-center p-4"
-          >
-            <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border-4 border-orange-300 overflow-hidden">
-              <div className="bg-gradient-to-r from-fuchsia-500 to-orange-500 p-5 text-white">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-6 h-6" />
-                  <h3 className="text-xl font-extrabold">Generate Playground Lesson</h3>
-                </div>
-                <p className="text-sm opacity-90 mt-1">AI will craft a kid-friendly interactive deck.</p>
-              </div>
-              <div className="p-5 space-y-4">
-                <Field label="Topic">
-                  <input
-                    autoFocus
-                    className={inputCls}
-                    value={aiTopic}
-                    onChange={(e) => setAiTopic(e.target.value)}
-                    placeholder="e.g. Animals, Colors, Greetings"
-                    disabled={aiBusy}
-                  />
-                </Field>
-                <Field label="CEFR Level">
-                  <select className={inputCls} value={aiLevel} onChange={(e) => setAiLevel(e.target.value)} disabled={aiBusy}>
-                    {['Pre-A1','A1','A2','B1','B2'].map((l) => <option key={l} value={l}>{l}</option>)}
-                  </select>
-                </Field>
-                <p className="text-xs text-slate-500">The AI will pick 5 vocabulary words and 1 grammar structure for you — you can edit them in the Lesson Blueprint panel.</p>
-              </div>
-              <div className="p-4 bg-orange-50 border-t border-orange-200 flex justify-end gap-2">
-                <button disabled={aiBusy} onClick={() => setAiOpen(false)} className="px-4 py-2 rounded-xl border-2 border-slate-200 font-bold text-slate-600 hover:bg-white disabled:opacity-50">Cancel</button>
-                <button disabled={aiBusy || !aiTopic.trim()} onClick={generateWithAI} className="px-5 py-2 rounded-xl bg-gradient-to-r from-fuchsia-500 to-orange-500 text-white font-bold shadow-md disabled:opacity-50 inline-flex items-center gap-2">
-                  {aiBusy ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating…</> : <><Sparkles className="w-4 h-4" /> Generate</>}
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <GenerateLessonModal
+        open={aiOpen}
+        onClose={() => setAiOpen(false)}
+        hub="playground"
+        defaultTopic={aiTopic}
+        defaultLevel={aiLevel}
+        defaultVocabulary={blueprint?.vocabulary}
+        defaultGrammar={blueprint?.grammar}
+        defaultPhonics={blueprint?.target_phonics}
+        busy={aiBusy}
+        onGenerate={generateWithAI}
+      />
 
       <RevisionHistoryModal
         open={historyOpen}

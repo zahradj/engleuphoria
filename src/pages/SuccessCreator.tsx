@@ -40,7 +40,8 @@ import { SaveStatusBadge } from '@/components/creator-studio/shared/SaveStatusBa
 import { RevisionHistoryModal } from '@/components/creator-studio/shared/RevisionHistoryModal';
 import { CanvasElementEditor } from '@/components/creator-studio/shared/CanvasElementEditor';
 import { ScaffoldedMediaEditor } from '@/components/creator-studio/shared/ScaffoldedMediaEditor';
-import { LessonBlueprintPanel, type LessonBlueprint } from '@/components/creator-studio/shared/LessonBlueprintPanel';
+import { LessonBlueprintPanel, EMPTY_BLUEPRINT, type LessonBlueprint } from '@/components/creator-studio/shared/LessonBlueprintPanel';
+import GenerateLessonModal from '@/components/creator-studio/shared/GenerateLessonModal';
 import { WandFieldButton } from '@/components/creator-studio/shared/WandFieldButton';
 import { AIToolsPanel } from '@/components/creator-studio/shared/AIToolsPanel';
 import { StorybookEditor } from '@/components/creator-studio/shared/StorybookEditor';
@@ -272,50 +273,57 @@ export default function SuccessCreator() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const generateWithAI = async () => {
-    if (!aiTopic.trim()) return;
+  const generateWithAI = async (payload: { topic: string; level: string; vocabulary: string[]; grammar: string; target_phonics: string }) => {
+    const topic = payload.topic.trim();
+    if (!topic) return;
     setAiBusy(true);
     try {
-      toast.message('Planning lesson blueprint…');
       const interests = blueprint?.interests?.trim();
       const specific_needs = blueprint?.specific_needs?.trim();
+
+      const hydrated: LessonBlueprint = {
+        ...(blueprint ?? EMPTY_BLUEPRINT),
+        vocabulary: payload.vocabulary,
+        grammar: payload.grammar,
+        target_phonics: payload.target_phonics,
+        interests,
+        specific_needs,
+      };
+      setBlueprint(hydrated);
+      setAiTopic(topic);
+      setAiLevel(payload.level);
+      setAiGrammar(payload.grammar);
+      setTitle(topic);
+      setLevel(payload.level);
+
       const { data: prevRows } = await supabase
         .from('curriculum_lessons').select('title')
         .order('created_at', { ascending: false }).limit(5);
       const previous_topics = (prevRows || []).map((r: any) => r.title).filter(Boolean);
-      const planRes = await supabase.functions.invoke('plan-lesson-blueprint', {
-        body: { topic: aiTopic.trim(), cefr_level: aiLevel, hub: 'success', interests, specific_needs, target_grammar: blueprint?.grammar, previous_topics },
-      });
-      if (planRes.error) throw planRes.error;
-      const bp = { ...(planRes.data as LessonBlueprint), interests, specific_needs };
-      setBlueprint(bp);
 
       const { data, error } = await supabase.functions.invoke('generate-ppp-slides', {
         body: {
-          lesson_title: aiTopic.trim(),
-          objective: `60-minute Business English Success lesson on ${aiTopic.trim()}. Target vocabulary: ${bp.vocabulary.join(', ')}. Target grammar: ${bp.grammar}.`,
+          lesson_title: topic,
+          objective: `60-minute Business English Success lesson on ${topic}. Target vocabulary: ${payload.vocabulary.join(', ')}. Target grammar: ${payload.grammar}.`,
           skill_focus: 'Professional Communication',
-          cefr_level: aiLevel,
+          cefr_level: payload.level,
           hub: 'success',
           target_hub: 'success',
           hub_type: 'success',
-          target_vocabulary: bp.vocabulary,
-          grammar_focus: bp.grammar,
+          target_vocabulary: payload.vocabulary,
+          grammar_focus: payload.grammar,
+          target_phonics: payload.target_phonics,
           interests,
           specific_needs,
           previous_topics,
           blueprint: {
-            lesson_title: aiTopic.trim(),
-            target_vocabulary: bp.vocabulary,
-            grammar_focus: bp.grammar,
+            lesson_title: topic,
+            target_vocabulary: payload.vocabulary,
+            grammar_focus: payload.grammar,
+            target_phonics: payload.target_phonics,
             target_hub: 'success',
             interests,
             specific_needs,
-            pedagogical_framework: bp.pedagogical_framework,
-            framework_rationale: bp.framework_rationale,
-            phases: bp.phases,
-            lesson_structure: bp.lesson_structure,
-            video_strategy: bp.video_strategy,
           },
         },
       });
@@ -328,8 +336,6 @@ export default function SuccessCreator() {
         ? successSlides
         : [...successSlides, makeSlide('lesson_summary')];
       setSlides(finalSlides);
-      setTitle(aiTopic.trim());
-      setLevel(aiLevel);
       setSelected(0);
       setAiOpen(false);
       toast.success(`Generated ${successSlides.length} slides ✨`);
@@ -810,42 +816,18 @@ export default function SuccessCreator() {
       )}
 
       {/* AI generation modal */}
-      {aiOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-emerald-200 overflow-hidden">
-            <div className="bg-gradient-to-r from-emerald-500 to-teal-600 p-5 text-white">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-6 h-6" />
-                <h3 className="text-xl font-bold">Generate Success Lesson</h3>
-              </div>
-              <p className="text-sm opacity-90 mt-1">A 60-min, 7-block Business English deck for adults.</p>
-            </div>
-            <div className="p-5 space-y-4">
-              <label className="block">
-                <span className={labelCls}>Topic</span>
-                <input autoFocus className={inputCls} value={aiTopic} onChange={(e) => setAiTopic(e.target.value)} placeholder="e.g. Negotiating deadlines" disabled={aiBusy} />
-              </label>
-              <label className="block">
-                <span className={labelCls}>CEFR Level</span>
-                <select className={inputCls} value={aiLevel} onChange={(e) => setAiLevel(e.target.value)} disabled={aiBusy}>
-                  <option>A2</option><option>B1</option><option>B2</option><option>C1</option>
-                </select>
-              </label>
-              <label className="block">
-                <span className={labelCls}>Target language / function</span>
-                <input className={inputCls} value={aiGrammar} onChange={(e) => setAiGrammar(e.target.value)} placeholder="e.g. Polite modals" disabled={aiBusy} />
-              </label>
-              <p className="text-xs text-slate-500">Calls the same AI core with <code className="bg-emerald-50 text-emerald-700 rounded px-1">hub_type: 'success'</code>.</p>
-            </div>
-            <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
-              <button disabled={aiBusy} onClick={() => setAiOpen(false)} className="px-4 py-2 rounded-lg border border-slate-300 font-semibold text-slate-600 hover:bg-white disabled:opacity-50">Cancel</button>
-              <button disabled={aiBusy || !aiTopic.trim()} onClick={generateWithAI} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-md disabled:opacity-50">
-                {aiBusy ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating…</> : <><Sparkles className="w-4 h-4" /> Generate</>}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <GenerateLessonModal
+        open={aiOpen}
+        onClose={() => setAiOpen(false)}
+        hub="success"
+        defaultTopic={aiTopic}
+        defaultLevel={aiLevel}
+        defaultVocabulary={blueprint?.vocabulary}
+        defaultGrammar={blueprint?.grammar || aiGrammar}
+        defaultPhonics={blueprint?.target_phonics}
+        busy={aiBusy}
+        onGenerate={generateWithAI}
+      />
 
       <RevisionHistoryModal
         open={historyOpen}
