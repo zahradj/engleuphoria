@@ -3,6 +3,7 @@
 // 1 grammar structure + 1 phonics focus that the slide generator MUST use
 // consistently across the lesson.
 // Returns: { vocabulary: string[5], grammar: string, target_phonics: {...}, rationale?: string }
+import { buildStudioSystemPrompt } from "../_shared/studioPersona.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -32,7 +33,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
-    const { topic, cefr_level = 'A1', hub = 'academy', interests, specific_needs } =
+    const { topic, cefr_level = 'A1', hub = 'academy', interests, specific_needs, target_grammar, previous_topics } =
       await req.json().catch(() => ({}));
 
     if (!topic || typeof topic !== 'string') {
@@ -62,7 +63,19 @@ Deno.serve(async (req) => {
       specific_needs ? `SPECIFIC NEEDS / GOALS: ${specific_needs}` : '',
     ].filter(Boolean).join('\n');
 
-    const system = `You are a Senior ESL Curriculum Designer.
+    const studioPersona = buildStudioSystemPrompt({
+      role: 'pedagogue',
+      cefr: cefr_level,
+      hub,
+      ageGroup: hub === 'playground' ? 'kids' : hub === 'academy' ? 'teens' : 'adults',
+      targetGrammar: target_grammar,
+      previousTopics: Array.isArray(previous_topics) ? previous_topics.slice(0, 10) : undefined,
+      outputContract: 'Return ONE JSON object with shape { vocabulary: string[5], grammar: string, target_phonics: { focus, sound_ipa, grapheme, example_words[] }, rationale?: string }. No markdown.',
+    });
+
+    const system = `${studioPersona}
+
+You are also a Senior ESL Curriculum Designer.
 Given a TOPIC and a CEFR level, you select:
   • exactly 5 target vocabulary words (single words or 2-word collocations)
   • exactly 1 target grammar structure (e.g. "Simple Past", "Present Continuous", "Modal: should")

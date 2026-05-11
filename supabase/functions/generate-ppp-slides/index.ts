@@ -13,6 +13,7 @@ import {
 } from "../_shared/hubProfiles.ts";
 
 import { aiFetch } from "../_shared/aiFetch.ts";
+import { buildStudioSystemPrompt } from "../_shared/studioPersona.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -58,7 +59,12 @@ Deno.serve(async (req) => {
       blueprint, // ← Approved Blueprint (optional). When present, treated as ground truth.
       student_profile, // ← Hyper-personalization: { industry, age, interests[] }
       hub_type, // ← when 'playground', returns the kid-friendly Playground schema instead of the 20-slide Academy deck.
+      previous_topics, // ← anti-repetition list (last N lesson titles by this user)
     } = body || {};
+
+    const prevTopics: string[] = Array.isArray(previous_topics)
+      ? previous_topics.filter((s: unknown) => typeof s === 'string' && s.trim()).slice(0, 10)
+      : [];
 
     // Allow the title to fall back to blueprint.lesson_title when caller omits it.
     const effectiveTitle: string | undefined = lesson_title || blueprint?.lesson_title;
@@ -134,7 +140,15 @@ Total slides: ${1 + (hasPhonics ? 1 : 0) + vocabCount + (hasPhonics ? 5 : 3) + 2
 - Every interactive prompt should be answerable purely by listening + looking at images.
 ` : "";
 
-      const playgroundSystem = `You are an expert children's EdTech game designer. Create a highly interactive, fun English lesson. Keep vocabulary very simple. Output ONLY a valid JSON array of slide objects. Do not wrap in markdown or backticks. You MUST use a variety of these exact slide types.
+      const playgroundPersona = buildStudioSystemPrompt({
+        role: 'game-designer',
+        cefr: cefr_level,
+        hub: 'playground',
+        ageGroup: 'kids',
+        targetGrammar: grammarFocus,
+        previousTopics: prevTopics,
+      });
+      const playgroundSystem = `${playgroundPersona}\n\nYou are an expert children's EdTech game designer. Create a highly interactive, fun English lesson. Keep vocabulary very simple. Output ONLY a valid JSON array of slide objects. Do not wrap in markdown or backticks. You MUST use a variety of these exact slide types.
 
 STRICT SCHEMA (per type) — every slide MUST include a "voice" object { "text": string, "autoPlay": true }. Use simple 1-2 syllable words. NEVER include emojis in image fields — use the literal placeholder string "AI:<short subject>" anywhere an image is needed and the server will replace it with an AI-generated cartoon URL.
 
@@ -279,7 +293,14 @@ RULES:
 
 PRONUNCIATION LAYER (MANDATORY): The lesson MUST include EXACTLY 1 "phonics_focus" slide inside the "vocab" block (after the matching slide) framed as PRONUNCIATION ACCURACY for "${phonicsAcademyFocus}"${phonicsAcademy?.sound_ipa ? ` (IPA: ${phonicsAcademy.sound_ipa})` : ""}, with example_words drawn from the target vocabulary. Also include EXACTLY 1 "listen_repeat" slide inside the "practice" block providing a comparison_audio prompt drilling that same sound. Both slides MUST set "block": "vocab" or "block": "practice" respectively.` : "";
 
-      const academySystem = `You are a Master TEFL/CELTA-trained ESL lesson designer for TEENAGERS.
+      const academyPersona = buildStudioSystemPrompt({
+        role: 'pedagogue',
+        cefr: cefr_level,
+        hub: 'academy',
+        ageGroup: 'teens',
+        previousTopics: prevTopics,
+      });
+      const academySystem = `${academyPersona}\n\nYou are a Master TEFL/CELTA-trained ESL lesson designer for TEENAGERS.
 Output ONLY a valid raw JSON array of slide objects (no markdown, no prose, no backticks).
 
 Build a 60-minute Academy lesson at CEFR ${cefr_level}. Topic: "${effectiveTitle}". ${objective ? `Goal: ${objective}.` : ""}
@@ -419,7 +440,14 @@ ADDITIONAL ALLOWED TYPES (when phonics layer is required):
       ? buildPhaseSequenceBlock(blueprintPhases, blueprint?.pedagogical_framework)
       : "";
 
-    const systemPrompt = `You are the EXPERT CURRICULUM DESIGNER for Engleuphoria — an elite ESL platform.
+    const successPersona = buildStudioSystemPrompt({
+      role: 'pedagogue',
+      cefr: cefr_level,
+      hub: resolvedHub,
+      ageGroup: resolvedHub === 'success' ? 'adults' : resolvedHub === 'playground' ? 'kids' : 'teens',
+      previousTopics: prevTopics,
+    });
+    const systemPrompt = `${successPersona}\n\nYou are the EXPERT CURRICULUM DESIGNER for Engleuphoria — an elite ESL platform.
 You design ONE classroom-ready 1-HOUR (≈60 minute) deeply COHESIVE interactive lesson as a 20–25 slide deck.
 Total slide count MUST be between 20 and 25 inclusive — never fewer than 20.
 
