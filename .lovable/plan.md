@@ -1,89 +1,48 @@
-# Blueprint Schema Expansion — SWBAT, Final Task, Language Variant, Visual Theme
+# Fix: Auto-Fill / Blueprint generation 404 across all creators
 
-Add four new pedagogical / visual fields end-to-end: blueprint type → Generate Lesson modal inputs → AI auto-fill prompt → slide generator → image prompt aesthetic.
+## Root cause (verified in edge logs)
 
-## 1. Type & payload changes
+`generate-gemini` (called by the Auto-Fill button in `GenerateLessonModal`) and `plan-lesson-blueprint` both hit Google's `v1beta` endpoint with model `gemini-1.5-flash`, which Google has retired:
 
-**`src/components/creator-studio/shared/blueprintTypes.ts`**
-- Add to `LessonBlueprint`:
-  - `learning_objective?: string` — SWBAT statement
-  - `final_output_task?: string` — production-stage task description
-  - `language_variant?: LanguageVariant`
-  - `visual_theme?: VisualTheme`
-- Add union types + label maps:
-  - `LanguageVariant = 'American English' | 'British English' | 'Global/Neutral'` (default `'American English'`)
-  - `VisualTheme = '3D Animation' | 'Anime/Manga' | 'Watercolor' | 'Professional/Realistic'` (default `'Professional/Realistic'`)
-- Export `VISUAL_THEME_PROMPT_SUFFIX: Record<VisualTheme, string>` with the exact aesthetic phrase to append to image prompts (e.g. `'3D Animation' → ', rendered in vibrant Pixar-style 3D animation, soft global illumination, clean vector edges'`).
+```
+models/gemini-1.5-flash is not found for API version v1beta,
+or is not supported for generateContent.
+```
 
-**`GenerateLessonPayload`** (in `GenerateLessonModal.tsx`)
-- Add: `language_variant: LanguageVariant`, `visual_theme: VisualTheme`.
-- Also surface AI-produced `learning_objective` and `final_output_task` back to caller via a new optional `onBlueprintHints` callback OR (preferred) include them in `GenerateLessonPayload` as `learning_objective?: string`, `final_output_task?: string` so the three Creator pages can store them on the blueprint.
+The function then returns 502, which the Supabase client surfaces as the generic toast *"Edge Function returned a non-2xx status code"*. The same retired model id is also baked into the shared `_shared/geminiClient.ts` used by other generators, so every Creator hub (Playground / Academy / Success) is affected the moment Auto-Fill or blueprint planning runs.
 
-## 2. Generate Lesson modal UI
+The "You've run out of AI balance" banner is unrelated — these functions go directly to Google AI Studio with `GEMINI_API_KEY`, not the Lovable AI Gateway.
 
-**`src/components/creator-studio/shared/GenerateLessonModal.tsx`**
-- Add two new dropdowns above the "Blueprint Details" collapsible (always visible, side-by-side on `sm:`):
-  - **Language Variant** — `American English` (default) / `British English` / `Global/Neutral`
-  - **Visual Theme** — `Professional/Realistic` (default) / `3D Animation` / `Anime/Manga` / `Watercolor`
-- Persist selections via `useState`, re-sync on `open` like other fields.
-- Pass both into `onGenerate` payload.
+## Fix (minimal, surgical)
 
-**Auto-Fill prompt update (inside `handleAutoFill`)**
-- Extend the JSON shape requested from `generate-gemini` to also return:
-  - `learning_objective` — single sentence starting with `"Student will be able to ..."`, functional, observable, level-appropriate.
-  - `final_output_task` — one-sentence production task (roleplay / debate / free speak / show-and-tell) that proves mastery of grammar+vocab.
-- Update system prompt: include current `language_variant` so spelling/vocab in suggestions matches it (e.g. avoid "fries" if British).
-- Store returned `learning_objective` and `final_output_task` in new local state and render them as **read-only preview cards** inside the Blueprint Details panel (with a small ✏ edit toggle so the teacher can refine).
+Swap the retired model id for the current stable equivalent **`gemini-2.5-flash`** in the three places it is hard-coded. No client/UI changes; no schema changes; the request/response shape is unchanged.
 
-## 3. AI prompt — `generate-gemini` consumers
+### Files to edit
 
-No changes to the generic `generate-gemini` edge function itself (it's a passthrough). The new fields are handled by:
-- The auto-fill prompt above (modal).
-- `plan-lesson-blueprint/index.ts` and `generate-ppp-slides/index.ts` (below).
+1. **`supabase/functions/generate-gemini/index.ts`** (line 20)
+   - `const DEFAULT_MODEL = 'gemini-1.5-flash';` → `'gemini-2.5-flash'`
+   - Also map any incoming `body.model === 'gemini-1.5-flash' | 'gemini-1.5-pro'` → `'gemini-2.5-flash' | 'gemini-2.5-pro'` so older callers passing the old id don't 404.
 
-## 4. Blueprint planner & slide generator
+2. **`supabase/functions/plan-lesson-blueprint/index.ts`** (line 15)
+   - `const MODEL = 'gemini-1.5-flash';` → `'gemini-2.5-flash'`
 
-**`supabase/functions/plan-lesson-blueprint/index.ts`**
-- Accept new optional inputs: `learning_objective`, `final_output_task`, `language_variant`, `visual_theme`.
-- Inject into system prompt:
-  - `LANGUAGE VARIANT: <variant>. Use matching spelling and regional vocabulary throughout.`
-  - `VISUAL THEME: <theme>. Every image_prompt MUST end with: "<VISUAL_THEME_PROMPT_SUFFIX[theme]>".`
-  - If `learning_objective`/`final_output_task` provided, treat as authoritative; otherwise instruct AI to generate them and include them in the returned JSON.
-- Add `learning_objective` and `final_output_task` to the JSON schema returned to client.
-- Add a hard rule: **the final slide of `lesson_structure` MUST be a `production` / `free_speaking` phase whose `note` matches `final_output_task` verbatim.**
+3. **`supabase/functions/_shared/geminiClient.ts`**
+   - Type union (line 15): drop `'gemini-1.5-flash' | 'gemini-1.5-pro'` from the public type, keep accepting them at runtime via the existing switch which already maps them to 2.5 — extend that switch so when the function calls Google directly (not the gateway) it sends `'gemini-2.5-flash'` / `'gemini-2.5-pro'` rather than echoing the retired id.
+   - Update the two default `model = 'gemini-2.5-flash'` lines (already correct — no change needed, just verify).
 
-**`supabase/functions/generate-ppp-slides/index.ts`**
-- Accept the same four fields from request body.
-- Append `VISUAL_THEME_PROMPT_SUFFIX[theme]` to every generated `image_prompt` / `image_prompt_detailed` (server-side guarantee even if model forgets).
-- Inject `LANGUAGE VARIANT` rule into the system prompt.
-- Ensure final slide content reflects `final_output_task`.
+### Why `gemini-2.5-flash` (not gateway)
 
-## 5. Wire the three Creator pages
-
-**`src/pages/PlaygroundCreator.tsx`, `AcademyCreator.tsx`, `SuccessCreator.tsx`**
-- Extend the local blueprint state with the four new fields.
-- Pass `defaultLanguageVariant` (`'American English'`) and `defaultVisualTheme` (`'Professional/Realistic'`) to `GenerateLessonModal`.
-- In the `onGenerate` handler, forward `language_variant`, `visual_theme`, `learning_objective`, `final_output_task` into both:
-  - `plan-lesson-blueprint` invocation
-  - `generate-ppp-slides` invocation
-- Persist the four new fields onto the blueprint object stored in component state so subsequent regeneration reuses them.
-
-## 6. Blueprint preview (read-only display)
-
-**`src/components/creator-studio/shared/LessonBlueprintPanel.tsx`**
-- Add two new info rows at the top of the panel:
-  - **🎯 Learning Objective (SWBAT):** `{learning_objective}`
-  - **🏁 Final Output Task:** `{final_output_task}`
-- Add small chip row showing **Variant:** `{language_variant}` · **Theme:** `{visual_theme}`.
+These functions are intentionally decoupled from Lovable AI Gateway (header comment in `generate-gemini` calls this out) and authenticate with the user's own `GEMINI_API_KEY`. Switching to the gateway is a larger architectural change and out of scope. `gemini-2.5-flash` is the documented current replacement on the same `v1beta/models/{id}:generateContent` endpoint, so the fetch URL, payload, and response parsing remain identical.
 
 ## Verification
 
-1. Open Creator Studio → click Generate Lesson → see new "Language Variant" and "Visual Theme" dropdowns above Blueprint Details.
-2. Click Auto-Fill → AI returns vocab/grammar **plus** SWBAT and Final Task; both render in the modal.
-3. Submit → blueprint panel shows SWBAT + Final Task + variant/theme chips.
-4. Inspect generated slides JSON: every `image_prompt` ends with the chosen theme suffix; final slide is a production task matching `final_output_task`; spelling matches variant (e.g. "colour" for British).
+1. Open `/playground-creator` → click **Generate** → click **Auto-Fill** → modal should populate Vocabulary / Grammar / SWBAT / Final Output Task with no toast error.
+2. Repeat on `/academy-creator` and `/success-creator`.
+3. Click **Generate Slides** → blueprint phase (`plan-lesson-blueprint`) returns 200 and slides stream in.
+4. Tail edge logs for `generate-gemini` and `plan-lesson-blueprint` — confirm no more `404 ... gemini-1.5-flash is not found`.
 
 ## Out of scope
-- No DB schema changes — fields ride along with the existing JSON blueprint payload.
-- No changes to the lesson player renderer.
-- No new edge functions; only updates to `plan-lesson-blueprint` and `generate-ppp-slides`.
+
+- No migration to Lovable AI Gateway (requested decoupling stays).
+- No prompt / schema changes.
+- No UI changes — the existing toast handling is sufficient once the 502 is gone.
