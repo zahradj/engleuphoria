@@ -4,6 +4,7 @@ import confetti from 'canvas-confetti';
 import { Volume2 } from 'lucide-react';
 import { usePlaygroundAudio } from '@/hooks/usePlaygroundAudio';
 import type { CanvasGameSlide, LivingCanvasSlide, ScaffoldedMediaSlide } from '@/components/creator-studio/shared/canvasSchema';
+import engleuphoriaLogo from '@/assets/engleuphoria-logo-dark.png';
 
 /**
  * Playground Engine — content-driven, AI-enhanced mini app.
