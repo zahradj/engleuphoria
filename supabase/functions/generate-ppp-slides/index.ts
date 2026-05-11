@@ -483,6 +483,7 @@ ADDITIONAL ALLOWED TYPES (when phonics layer is required):
         });
       }
 
+      enforceVisualTheme(academy_slides);
       return new Response(JSON.stringify({ academy_slides }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
