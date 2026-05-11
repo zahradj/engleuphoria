@@ -87,6 +87,27 @@ Deno.serve(async (req) => {
     };
     const visualThemeSuffix = VISUAL_THEME_PROMPT_SUFFIX[visual_theme] || VISUAL_THEME_PROMPT_SUFFIX['Professional/Realistic'];
 
+    const ensureSuffix = (s: unknown): string => {
+      if (typeof s !== 'string' || !s.trim()) return typeof s === 'string' ? s : '';
+      return s.includes(visualThemeSuffix) ? s : `${s.replace(/\s+$/, '')}${visualThemeSuffix}`;
+    };
+    const enforceVisualTheme = (slides: unknown): void => {
+      if (!Array.isArray(slides)) return;
+      for (const slide of slides) {
+        if (!slide || typeof slide !== 'object') continue;
+        const s = slide as Record<string, unknown>;
+        for (const key of ['image_prompt', 'image_prompt_detailed', 'image_description']) {
+          if (typeof s[key] === 'string') s[key] = ensureSuffix(s[key]);
+        }
+        const hero = s['hero_media'];
+        if (hero && typeof hero === 'object') {
+          const h = hero as Record<string, unknown>;
+          if (typeof h['image_prompt_detailed'] === 'string') h['image_prompt_detailed'] = ensureSuffix(h['image_prompt_detailed']);
+          if (typeof h['image_prompt'] === 'string') h['image_prompt'] = ensureSuffix(h['image_prompt']);
+        }
+      }
+    };
+
     const prevTopics: string[] = Array.isArray(previous_topics)
       ? previous_topics.filter((s: unknown) => typeof s === 'string' && s.trim()).slice(0, 10)
       : [];
