@@ -1,74 +1,44 @@
-## Goal
+## Diagnosis
 
-Make **target_phonics** a **required, CEFR-tiered** output across every hub & every level — and surface it consistently in the unified `GenerateLessonModal` (which already replaces the per-hub sidebar input).
+The teacher you logged in as (`djaanine.zahra@gmail.com`) is correctly in the "Pending Approval" state in the database:
 
-> Note: in the previous turn the per-hub sidebar phonics inputs were intentionally consolidated into the shared `GenerateLessonModal` (single source of truth, identical UI for all 3 hubs). This plan keeps that consolidation — Phase 2 is satisfied by the shared modal, with a hub-aware label tweak.
+- `profile_complete = true`
+- `profile_approved_by_admin = false`
+- `hub_role = playground_specialist`
 
----
+So the teacher dashboard is right to show "Profile under review."
 
-## Phase 1 — CEFR-tiered phonics rules in the AI prompts
+The admin queue **does exist** and **does contain this teacher** — it lives under the **"Profile Review"** sidebar tab in the Admin Dashboard (`TeacherProfileReviewQueue` component). A live DB query confirms 1 pending profile is waiting there right now.
 
-### 1a. `supabase/functions/plan-lesson-blueprint/index.ts`
+The problem is **discoverability**: the admin dashboard has three overlapping teacher tabs ("Teachers", "Teacher Applications", "Profile Review") and nothing tells the super admin that a teacher is waiting in the Profile Review bucket. The Overview / Super Admin Control Center never surfaces this count, and the sidebar item has no badge — so it looks like "there is no pending teacher" when in fact there is one, just one click away.
 
-Replace the current hub-only `phonicsGuidance` with a **level-first, hub-second** matrix. Keep returning the same JSON shape (`target_phonics: { focus, sound_ipa, grapheme, example_words[] }`).
+## Plan
 
-```text
-Tier A — Pre-A1 / A1  → Synthetic phonics: single phonemes, CVC blends, simple
-                         digraphs (sh, ch, th). e.g. "Short A /æ/", "Digraph /ʃ/".
-Tier B — A2 / B1      → Minimal pairs, tricky consonant clusters, silent letters.
-                         e.g. "Minimal pair /ɪ/ vs /iː/ (ship/sheep)", "Silent K".
-Tier C — B2 / C1 / C2 → Suprasegmentals: word stress, sentence stress, intonation,
-                         linking, elision, weak forms.
-                         e.g. "Noun↔verb stress shift (RE-cord vs re-CORD)",
-                         "Elision in connected speech".
-```
+### 1. Add a live "pending count" badge to the sidebar
+- In `src/components/admin/AdminSidebar.tsx`, fetch the count of `teacher_profiles` where `profile_complete = true AND profile_approved_by_admin = false` (and the parallel count for `teacher_applications` pending interview, so both pipelines are visible).
+- Render a small red pill next to "Profile Review" and "Teacher Applications" when the count > 0.
+- Re-fetch on tab change and every 60s.
 
-Hub stays as a tone hint only (kid-friendly label vs. business-style label) — the **tier rule wins** if it conflicts.
+### 2. Add an "Action Required" card to the Admin Overview
+- In `AdminOverview` (and mirror in `SuperAdminControlCenter`), add a card at the top that lists:
+  - N teacher profiles awaiting approval → button jumps to `profile-review` tab
+  - N teacher applications awaiting interview decision → jumps to `teacher-applications`
+- The card only renders when at least one count > 0, so it disappears on a clean queue.
 
-Prompt change:
-- Build `phonicsGuidance` from `cefr_level` first, then append a one-line hub flavoring.
-- Add to system prompt: `"target_phonics is REQUIRED for every level — never return empty."`
-- Pre-A1 override block (added in the previous turn) is preserved and runs after the tier rule.
+### 3. Clarify the labels so the three tabs stop colliding
+Rename in `AdminSidebar.tsx`:
+- "Teacher Applications" → **"Applications & Interviews"** (hiring pipeline before they're hired)
+- "Profile Review" → **"Profile Approvals"** with subtitle "Review bio + intro video" (post-hire activation gate)
+- "Teachers" → **"Active Teachers"** (already-approved roster)
 
-### 1b. Modal Auto-Fill (`GenerateLessonModal.tsx`)
+### 4. Wire the teacher-side message to the right tab
+Update the `PendingReviewBanner` shown to the teacher to say *"An admin is reviewing your bio and intro video — usually within 24h"* so the wording matches what the admin actually sees in **Profile Approvals**.
 
-The Auto-Fill prompt currently only varies on Pre-A1. Extend it with the same 3-tier rule so the small "✨ Auto-Fill" suggestion matches what `plan-lesson-blueprint` produces:
-
-- Inject a `phonicsTierHint` string (Tier A/B/C as above) into the system message based on `level`.
-- Keep `target_phonics` non-empty even when level is Pre-A1 (Tier A wording).
-
-### 1c. `supabase/functions/generate-ppp-slides/index.ts`
-
-Already consumes `target_phonics` for Playground only. Extend the **Academy** and **Success** branches so that when `target_phonics` is supplied:
-
-- Inject a short "PRONUNCIATION LAYER" block into the Academy/Success system prompts mirroring the existing Playground `phonicsBlock`, instructing 1–2 dedicated pronunciation slides (e.g., a `multiple` minimal-pairs drill for Academy; a `multiple`/`drag` word-stress drill for Success).
-- No change to slide-type allow-lists for Academy/Success (their `multiple`/`fill` types already cover this).
-
-## Phase 2 — Shared modal + hub-aware label
-
-`GenerateLessonModal.tsx` is already the single phonics input shared by all 3 hubs (the deprecated sidebar inputs were removed last turn). Add only a **dynamic label**:
-
-- `playground` → `🔊 Target Phonics / Sound`
-- `academy` → `🔊 Pronunciation Focus`
-- `success` → `🎙 Pronunciation / Intonation Focus`
-
-Placeholder per hub already varies — keep it.
-
-## Phase 3 — Blueprint hydration
-
-Already wired end-to-end:
-
-- `CurriculumMap.tsx` ships `target_phonics` via `location.state` when navigating to the hub creator.
-- `PlaygroundCreator`, `AcademyCreator`, `SuccessCreator` each parse `st.bp.target_phonics` (string or `{ focus }`) into `blueprint.target_phonics` on mount.
-- `<GenerateLessonModal defaultPhonics={blueprint?.target_phonics} />` already reflects this on open.
-
-Verification only — no code change needed unless smoke-tests show a missing field.
+## Out of scope
+- No DB schema changes; no RLS changes; the data and approval action already work.
+- No change to teacher onboarding flow or to `useTeacherStatus` logic.
 
 ## Verification
-
-- [ ] Calling `plan-lesson-blueprint` with `cefr_level=B1, hub=academy` returns a minimal-pairs phonics object (not silent / not Playground-style).
-- [ ] Calling it with `cefr_level=C1, hub=success` returns a suprasegmental focus (word stress / intonation / elision).
-- [ ] Modal Auto-Fill at A2/B1 suggests minimal pairs; at B2+ suggests stress/intonation; at Pre-A1/A1 suggests CVC phonics.
-- [ ] Modal label updates per hub.
-- [ ] After "Draft Lesson Blueprint" from Curriculum Map, opening the modal in any hub shows the suggested phonics pre-filled.
-- [ ] Academy/Success generated decks now include a pronunciation drill slide when `target_phonics` is supplied.
+- Reload `/dashboard` as super admin → red "1" badge on **Profile Approvals**, Action Required card on Overview links to it.
+- Open the tab → existing queue lists `djaanine.zahra@gmail.com`, the existing Approve button activates her.
+- After approval, badge and card disappear; teacher dashboard flips from "under review" to the full Novakid dashboard on next refresh.

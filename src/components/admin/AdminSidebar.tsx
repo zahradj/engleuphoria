@@ -2,6 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdminPendingCounts } from "@/hooks/useAdminPendingCounts";
 import {
   LayoutDashboard, Activity, Users, FileText, TrendingUp, CreditCard, Settings,
   LogOut, Calendar, GraduationCap, Radio, Video, Mail, Briefcase, Inbox
@@ -14,6 +15,7 @@ interface AdminSidebarProps {
 
 export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
   const { signOut } = useAuth();
+  const { profileApprovals, applications } = useAdminPendingCounts();
 
   const mainItems = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
@@ -25,9 +27,9 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
   const managementItems = [
     { id: "users", label: "User Manager", icon: Users },
     { id: "schedule", label: "Schedule", icon: Calendar },
-    { id: "teachers", label: "Teachers", icon: GraduationCap },
-    { id: "profile-review", label: "Profile Review", icon: FileText },
-    { id: "teacher-applications", label: "Applications", icon: FileText },
+    { id: "teachers", label: "Active Teachers", icon: GraduationCap },
+    { id: "profile-review", label: "Profile Approvals", icon: FileText, badge: profileApprovals },
+    { id: "teacher-applications", label: "Applications & Interviews", icon: FileText, badge: applications },
     { id: "interviews", label: "Interviews", icon: Video },
     { id: "students", label: "Students", icon: Users },
     { id: "analytics", label: "Analytics", icon: TrendingUp },
@@ -36,7 +38,7 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
     { id: "inbox", label: "Contact Inbox", icon: Inbox },
     { id: "email-log", label: "Email Log", icon: Mail },
     { id: "settings", label: "Settings", icon: Settings },
-  ];
+  ] as Array<{ id: string; label: string; icon: typeof Users; badge?: number }>;
 
   return (
     <aside className="w-64 bg-card/80 backdrop-blur-xl border-r border-border/50 h-full overflow-y-auto">
@@ -87,7 +89,12 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
                   onClick={() => onTabChange(item.id)}
                 >
                   <Icon className="h-4 w-4 mr-3" />
-                  {item.label}
+                  <span className="flex-1 text-left">{item.label}</span>
+                  {item.badge && item.badge > 0 ? (
+                    <span className="ml-2 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold">
+                      {item.badge > 99 ? '99+' : item.badge}
+                    </span>
+                  ) : null}
                 </Button>
               );
             })}

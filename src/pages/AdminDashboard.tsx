@@ -21,6 +21,7 @@ import { TeacherProfileReviewQueue } from '@/components/admin/TeacherProfileRevi
 import { TestCreditButton } from '@/components/admin/TestCreditButton';
 import { DesktopOnlyNotice } from '@/components/admin/DesktopOnlyNotice';
 import { AdminInbox } from '@/components/admin/AdminInbox';
+import { AdminActionRequiredCard } from '@/components/admin/AdminActionRequiredCard';
 import { AdminMobileBottomNav, type AdminMobileTab } from '@/components/admin/AdminMobileBottomNav';
 import { ScrollHeader } from '@/components/navigation/ScrollHeader';
 import { Loader2, Menu, X } from 'lucide-react';
@@ -61,7 +62,12 @@ const AdminDashboard = () => {
   const renderActiveTab = () => {
     switch (activeTab) {
       case 'overview':
-        return <AdminOverview />;
+        return (
+          <div className="space-y-6">
+            <AdminActionRequiredCard onNavigate={handleTabChange} />
+            <AdminOverview />
+          </div>
+        );
       case 'users':
         return <UserManagement />;
       case 'teachers':
