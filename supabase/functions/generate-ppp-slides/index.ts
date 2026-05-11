@@ -701,7 +701,7 @@ RULE 6C — NEW SLIDE TYPE SCHEMAS
 
 ${hubBlock}
 
-${dynamicPhaseBlock ? dynamicPhaseBlock + "\n\nThe DYNAMIC PHASE SEQUENCE above OVERRIDES the default 6-step order in RULE 1 — follow the dynamic order instead, but keep all other RULE 1 phase requirements (vocab counts, reading word coverage, grammar drilling, etc.)." : ""}`;
+${dynamicPhaseBlock ? dynamicPhaseBlock + "\n\nThe DYNAMIC PHASE SEQUENCE above OVERRIDES the default 6-step order in RULE 1 — follow the dynamic order instead, but keep all other RULE 1 phase requirements (vocab counts, reading word coverage, grammar drilling, etc.)." : ""}${structureBlock}`;
 
     // ── BLUEPRINT GROUND-TRUTH BLOCK (only when caller supplied a blueprint) ──
     let blueprintBlock = "";
