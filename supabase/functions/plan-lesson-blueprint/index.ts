@@ -134,7 +134,7 @@ Return ONLY a single valid JSON object with this exact shape (no markdown, no co
         contents: [{ role: 'user', parts: [{ text: userMsg }] }],
         generationConfig: {
           temperature: 0.8,
-          maxOutputTokens: 1024,
+          maxOutputTokens: 2048,
           responseMimeType: 'application/json',
         },
       }),
