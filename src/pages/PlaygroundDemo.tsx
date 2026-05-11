@@ -655,14 +655,15 @@ import { ScaffoldedPlayer } from '@/components/creator-studio/shared/ScaffoldedP
 import { VisualFlashcard } from '@/components/creator-studio/shared/VisualFlashcard';
 import { PhonicsFocusCard } from '@/components/creator-studio/shared/PhonicsFocusCard';
 
-export function SlideRenderer({ slide, onStorybookComplete, onCanvasSolved, onMediaPassed }: {
+export function SlideRenderer({ slide, onStorybookComplete, onCanvasSolved, onMediaPassed, lessonContext }: {
   slide: Slide;
   onStorybookComplete?: () => void;
   onCanvasSolved?: () => void;
   onMediaPassed?: () => void;
+  lessonContext?: PlaygroundLessonContext;
 }) {
   switch (slide.type) {
-    case 'intro': return <Intro slide={slide} />;
+    case 'intro': return <Intro slide={slide} lessonContext={lessonContext} />;
     case 'multiple': return <MultipleChoice slide={slide} />;
     case 'truefalse': return <TrueFalse slide={slide} />;
     case 'fill': return <FillBlank slide={slide} />;
