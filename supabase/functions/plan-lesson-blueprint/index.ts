@@ -33,8 +33,19 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
-    const { topic, cefr_level = 'A1', hub = 'academy', interests, specific_needs, target_grammar, previous_topics } =
-      await req.json().catch(() => ({}));
+    const {
+      topic,
+      cefr_level = 'A1',
+      hub = 'academy',
+      interests,
+      specific_needs,
+      target_grammar,
+      previous_topics,
+      language_variant = 'American English',
+      visual_theme = 'Professional/Realistic',
+      learning_objective,
+      final_output_task,
+    } = await req.json().catch(() => ({}));
 
     if (!topic || typeof topic !== 'string') {
       return new Response(JSON.stringify({ error: 'topic is required' }), {
