@@ -745,22 +745,32 @@ export default function PlaygroundCreator() {
                 const s: any = slide;
                 const isVocab = s.type === 'vocab_solo';
                 const isPhonics = s.type === 'phonics_focus';
+                const isIntro = s.type === 'intro';
                 const flashcards = Array.isArray(s.flashcards) ? s.flashcards : [];
-                const legacySolo = !isVocab && !isPhonics && flashcards.length > 0;
+                const legacySolo = !isVocab && !isPhonics && !isIntro && flashcards.length > 0;
+                const lessonContext = {
+                  lessonTitle: title,
+                  level: aiLevel,
+                  unitNumber: (lessonHook.lesson as any)?.unit_number,
+                  unitTitle: (lessonHook.lesson as any)?.unit_title,
+                  lessonNumber: (lessonHook.lesson as any)?.lesson_number,
+                };
                 return (
                   <div className="rounded-xl bg-gradient-to-br from-orange-400 via-amber-300 to-yellow-200 p-4 min-h-[420px] flex items-center justify-center">
                     <div key={idx + (slide as Slide).type} className="bg-white rounded-2xl shadow-xl w-full p-4 min-h-[380px] flex items-center justify-center">
-                      <div className="scale-[0.85] origin-center w-full">
+                      <div className={isIntro ? 'w-full' : 'scale-[0.85] origin-center w-full'}>
                         {isVocab ? (
                           <VisualFlashcard slide={s} hub="playground" />
                         ) : isPhonics ? (
                           <PhonicsFocusCard slide={s} hub="playground" />
+                        ) : isIntro ? (
+                          <SlideRenderer slide={slide as Slide} lessonContext={lessonContext} />
                         ) : (
                           <UniversalMediaShell slide={s} hub="playground" suppressImage={legacySolo}>
                             {legacySolo ? (
                               <SoloVocabCard card={flashcards[0]} hub="playground" />
                             ) : (
-                              <SlideRenderer slide={slide as Slide} />
+                              <SlideRenderer slide={slide as Slide} lessonContext={lessonContext} />
                             )}
                           </UniversalMediaShell>
                         )}

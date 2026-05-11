@@ -201,17 +201,119 @@ function useAutoVoice(voice?: SlideVoice) {
 }
 
 // ─── Games ───────────────────────────────────────────────────────────────────
-function Intro({ slide }: { slide: Extract<Slide, { type: 'intro' }> }) {
+export interface PlaygroundLessonContext {
+  lessonTitle?: string;
+  level?: string;
+  unitNumber?: number | string;
+  unitTitle?: string;
+  lessonNumber?: number | string;
+}
+
+function Intro({
+  slide,
+  lessonContext,
+}: {
+  slide: Extract<Slide, { type: 'intro' }>;
+  lessonContext?: PlaygroundLessonContext;
+}) {
   useAutoVoice(slide.voice);
+
+  const ctx = lessonContext || {};
+  const headline = ctx.lessonTitle || slide.title;
+  const subtitle = slide.text;
+
+  const unitLessonLine = (() => {
+    const parts: string[] = [];
+    if (ctx.unitNumber != null) parts.push(`Unit ${ctx.unitNumber}`);
+    if (ctx.unitTitle) parts.push(ctx.unitTitle);
+    if (ctx.lessonNumber != null) parts.push(`Lesson ${ctx.lessonNumber}`);
+    return parts.join(' · ');
+  })();
+
+  // Playground palette: lime + purple accent on warm cream
+  const PRIMARY = '#84CC16';
+  const ACCENT = '#A855F7';
+
   return (
-    <div className="flex flex-col items-center gap-6 text-center">
-      {slide.image_url && (
-        <img src={slide.image_url} alt="" className="w-44 h-44 rounded-2xl object-cover shadow-md" />
-      )}
-      <h1 className="text-6xl md:text-7xl font-extrabold text-orange-600 drop-shadow-sm">
-        {slide.title}
-      </h1>
-      {slide.text && <p className="text-2xl text-slate-700">{slide.text}</p>}
+    <div className="relative w-full overflow-hidden rounded-2xl bg-white grid grid-cols-1 md:grid-cols-2 min-h-[360px] border border-orange-100">
+      {/* LEFT — full-bleed image */}
+      <div className="relative h-full min-h-[280px] w-full bg-orange-50 overflow-hidden">
+        {slide.image_url ? (
+          <img
+            src={slide.image_url}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          <div
+            className="absolute inset-0 flex items-center justify-center text-7xl"
+            style={{
+              background: `linear-gradient(135deg, ${PRIMARY}33, ${ACCENT}33)`,
+              color: PRIMARY,
+            }}
+            aria-hidden
+          >
+            🎨
+          </div>
+        )}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-1.5"
+          style={{ background: `linear-gradient(90deg, ${PRIMARY}, ${ACCENT})` }}
+        />
+      </div>
+
+      {/* RIGHT — metadata panel */}
+      <div
+        className="relative h-full w-full px-6 md:px-10 py-8 flex flex-col justify-center"
+        style={{
+          background: `linear-gradient(180deg, #FFFFFF 0%, ${PRIMARY}0A 100%)`,
+        }}
+      >
+        {/* Logo top-right */}
+        <div className="absolute top-4 right-5 flex items-center gap-2">
+          <span
+            className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-white font-black text-sm shadow-sm"
+            style={{ backgroundColor: PRIMARY }}
+            aria-hidden
+          >
+            E
+          </span>
+          <span className="text-sm font-extrabold tracking-tight text-slate-800">
+            EnglEuphoria
+          </span>
+        </div>
+
+        <div className="flex flex-col gap-3 max-w-md mt-10 md:mt-0">
+          {ctx.level && (
+            <span
+              className="inline-flex self-start items-center px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-widest bg-lime-100 text-lime-800"
+            >
+              {ctx.level}
+            </span>
+          )}
+
+          {unitLessonLine && (
+            <p className="text-[11px] md:text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+              {unitLessonLine}
+            </p>
+          )}
+
+          <h1 className="font-extrabold text-3xl md:text-4xl lg:text-5xl text-orange-600 leading-[1.05] drop-shadow-sm">
+            {headline}
+          </h1>
+
+          {subtitle && (
+            <p className="text-base md:text-lg text-slate-700 font-medium leading-relaxed">
+              {subtitle}
+            </p>
+          )}
+
+          <div
+            className="mt-2 h-1 w-20 rounded-full"
+            style={{ background: `linear-gradient(90deg, ${PRIMARY}, ${ACCENT})` }}
+          />
+        </div>
+      </div>
     </div>
   );
 }
@@ -553,14 +655,15 @@ import { ScaffoldedPlayer } from '@/components/creator-studio/shared/ScaffoldedP
 import { VisualFlashcard } from '@/components/creator-studio/shared/VisualFlashcard';
 import { PhonicsFocusCard } from '@/components/creator-studio/shared/PhonicsFocusCard';
 
-export function SlideRenderer({ slide, onStorybookComplete, onCanvasSolved, onMediaPassed }: {
+export function SlideRenderer({ slide, onStorybookComplete, onCanvasSolved, onMediaPassed, lessonContext }: {
   slide: Slide;
   onStorybookComplete?: () => void;
   onCanvasSolved?: () => void;
   onMediaPassed?: () => void;
+  lessonContext?: PlaygroundLessonContext;
 }) {
   switch (slide.type) {
-    case 'intro': return <Intro slide={slide} />;
+    case 'intro': return <Intro slide={slide} lessonContext={lessonContext} />;
     case 'multiple': return <MultipleChoice slide={slide} />;
     case 'truefalse': return <TrueFalse slide={slide} />;
     case 'fill': return <FillBlank slide={slide} />;
