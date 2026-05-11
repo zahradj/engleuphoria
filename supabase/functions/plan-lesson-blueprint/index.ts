@@ -263,6 +263,14 @@ Return ONLY a single valid JSON object with this exact shape (no markdown, no co
         .filter((e: any) => e && typeof e === 'object' && VALID_PHASES.has(e.phase))
         .slice(0, 20);
     }
+    // Echo regional + visual choices and ensure SWBAT/Final Task are populated.
+    parsed.language_variant = parsed.language_variant || language_variant;
+    parsed.visual_theme = parsed.visual_theme || visual_theme;
+    if (learning_objective) parsed.learning_objective = learning_objective;
+    if (final_output_task) parsed.final_output_task = final_output_task;
+    if (typeof parsed.learning_objective !== 'string') parsed.learning_objective = '';
+    if (typeof parsed.final_output_task !== 'string') parsed.final_output_task = '';
+
     return new Response(JSON.stringify(parsed), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
