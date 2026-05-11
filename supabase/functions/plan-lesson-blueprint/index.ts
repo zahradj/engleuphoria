@@ -161,6 +161,33 @@ Return ONLY a single valid JSON object with this exact shape (no markdown, no co
     parsed.vocabulary = (parsed.vocabulary as string[]).slice(0, 5);
     while (parsed.vocabulary.length < 5) parsed.vocabulary.push('');
 
+    // ── Normalize merged Slide-Studio fields with hub-aware defaults ──
+    const FRAMEWORK_DEFAULTS: Record<string, string[]> = {
+      Discovery: ['Reading', 'Comprehension', 'Grammar', 'Vocabulary', 'Speaking', 'Writing'],
+      TaskBased: ['Speaking', 'Vocabulary', 'Grammar', 'Reading', 'Comprehension', 'Writing'],
+      Immersion: ['Vocabulary', 'Reading', 'Comprehension', 'Speaking', 'Grammar', 'Writing'],
+    };
+    const VALID_FRAMEWORKS = new Set(['Discovery', 'TaskBased', 'Immersion']);
+    const VALID_PHASES = new Set(['Vocabulary', 'Reading', 'Comprehension', 'Grammar', 'Speaking', 'Writing']);
+    const hubDefaultFramework =
+      hub === 'playground' ? 'Immersion' : hub === 'success' ? 'TaskBased' : 'Discovery';
+    if (!VALID_FRAMEWORKS.has(parsed.pedagogical_framework)) {
+      parsed.pedagogical_framework = hubDefaultFramework;
+    }
+    let phases: string[] = Array.isArray(parsed.phases)
+      ? parsed.phases.filter((p: unknown) => typeof p === 'string' && VALID_PHASES.has(p))
+      : [];
+    if (phases.length === 0) phases = FRAMEWORK_DEFAULTS[parsed.pedagogical_framework];
+    parsed.phases = phases;
+    if (!Array.isArray(parsed.lesson_structure) || parsed.lesson_structure.length === 0) {
+      const defaultSlideType =
+        hub === 'playground' ? 'flashcard' : hub === 'success' ? 'mascot_speech' : 'multiple_choice';
+      parsed.lesson_structure = phases.map((p: string) => ({ phase: p, slide_type: defaultSlideType }));
+    } else {
+      parsed.lesson_structure = parsed.lesson_structure
+        .filter((e: any) => e && typeof e === 'object' && VALID_PHASES.has(e.phase))
+        .slice(0, 20);
+    }
     return new Response(JSON.stringify(parsed), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
