@@ -28,11 +28,11 @@ export const HUB_ART_PROFILES: Record<ArtHub, HubArtProfile> = {
   Playground: {
     label: "Claymation Kids",
     style_suffix:
-      "in a colorful, cute 3D Pixar style, child-friendly, bright and cheerful. " +
-      "Friendly 3D claymation children's-book illustration, vibrant saturated palette " +
-      "(sunshine yellows, bright oranges, sky blues), rounded shapes, big expressive eyes, " +
-      "plush textures, gentle rim lighting, centered composition on a clean solid pastel " +
-      "background, no text, no watermarks, kid-safe, age 4-9.",
+      "Style: 3D Pixar claymation, soft lighting, vibrant lime greens, peach, " +
+      "and purple colors. Whimsical and high-energy for kids. " +
+      "Rounded shapes, big expressive eyes, plush textures, gentle rim lighting, " +
+      "centered composition on a clean solid pastel background, no text, no watermarks, " +
+      "kid-safe, age 4-9.",
     negative:
       "no scary content, no realistic photography, no weapons, no horror, " +
       "no sharp edges, no dark themes, no text overlay.",
@@ -42,10 +42,11 @@ export const HUB_ART_PROFILES: Record<ArtHub, HubArtProfile> = {
   Academy: {
     label: "Modern Flat Vector",
     style_suffix:
-      "Premium modern flat vector illustration, bold clean lines, vibrant teen-friendly " +
-      "colour palette (purples, teals, accent corals), subtle depth via flat layered shapes, " +
-      "isometric where appropriate, clean composition on a soft gradient background, " +
-      "no text, no watermarks, age 10-16.",
+      "Style: Modern vector flat art or dynamic anime aesthetic. Bold cyan and " +
+      "energetic orange highlights. Clean lines, teen-focused. " +
+      "Premium illustration, subtle depth via flat layered shapes, isometric where " +
+      "appropriate, clean composition on a soft gradient background, no text, " +
+      "no watermarks, age 10-16.",
     negative:
       "no childish claymation, no photorealism, no clutter, no text overlay.",
     safe_search: "moderate",
@@ -54,10 +55,10 @@ export const HUB_ART_PROFILES: Record<ArtHub, HubArtProfile> = {
   Success: {
     label: "Editorial Cinematic",
     style_suffix:
-      "Editorial cinematic photography, luxury corporate aesthetic, shot on 35mm Leica, " +
-      "natural soft directional lighting, neutral sophisticated tones (charcoal, ivory, " +
-      "subtle emerald), shallow depth of field, premium magazine quality, no text, " +
-      "no watermarks, professional adult audience.",
+      "Style: High-end professional photography or minimalist 3D corporate " +
+      "glass/metal aesthetic. Deep navy blue and warm gold tones. Sophisticated " +
+      "and premium for adults. Natural soft directional lighting, shallow depth of " +
+      "field, premium magazine quality, no text, no watermarks, professional adult audience.",
     negative:
       "no cartoons, no childish illustration, no neon, no clutter, no text overlay.",
     safe_search: "moderate",
