@@ -69,16 +69,13 @@ Deno.serve(async (req) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const apiKey = Deno.env.get("LOVABLE_API_KEY");
-    if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
-
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
     const capped: string[] = subjects.slice(0, 16).map((s: unknown) => String(s));
-    const results = await Promise.allSettled(capped.map((s) => generateOne(s, apiKey, supabase)));
+    const results = await Promise.allSettled(capped.map((s) => generateOne(s, supabase)));
     const images = results
       .map((r, i) => (r.status === "fulfilled" ? r.value : { subject: capped[i], url: "" }))
       .filter((x) => x.url);
