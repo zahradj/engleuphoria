@@ -1,48 +1,48 @@
-# Fix: Auto-Fill / Blueprint generation 404 across all creators
+# Switch Image Generation to Google AI Studio
 
-## Root cause (verified in edge logs)
+## Root cause
 
-`generate-gemini` (called by the Auto-Fill button in `GenerateLessonModal`) and `plan-lesson-blueprint` both hit Google's `v1beta` endpoint with model `gemini-1.5-flash`, which Google has retired:
+Six edge functions currently generate images via the Lovable AI Gateway (`https://ai.gateway.lovable.dev/v1/chat/completions` with `google/gemini-*-image-preview`), which is billed against Lovable AI credits and is now returning `402` / failing. The project already has `GEMINI_API_KEY` in Supabase secrets (used by `plan-lesson-blueprint` and `generate-gemini`), so we can call Google's image model directly with no third-party cost.
 
+## Approach
+
+Add one shared helper that calls Google's Generative Language API for images and swap the gateway fetch in every image function to use it. Keep input/output shapes identical so no frontend code changes are needed.
+
+**Model choice:** `gemini-2.5-flash-image` via `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=GEMINI_API_KEY`. This is Google's "Nano Banana" image model, available on AI Studio keys, returns inline base64 PNG in `candidates[0].content.parts[].inline_data`. (Imagen 3 on AI Studio is gated to paid tier in many regions; Nano Banana works on the same free key already in use for text and matches the prompt-only contract these functions expect.)
+
+## Changes
+
+### 1. New shared helper — `supabase/functions/_shared/googleImageClient.ts`
+Single function:
+```ts
+generateGoogleImage(prompt: string): Promise<{ bytes: Uint8Array; contentType: string }>
 ```
-models/gemini-1.5-flash is not found for API version v1beta,
-or is not supported for generateContent.
-```
+- Reads `GEMINI_API_KEY` from env (throws clear error if missing).
+- POSTs to `…/models/gemini-2.5-flash-image:generateContent` with `{ contents: [{ parts: [{ text: prompt }] }] }`.
+- Walks `candidates[0].content.parts[]`, finds the part with `inline_data` (or `inlineData`), returns decoded bytes + mime.
+- Maps non-200 responses to typed errors so callers can return 429/402/500.
 
-The function then returns 502, which the Supabase client surfaces as the generic toast *"Edge Function returned a non-2xx status code"*. The same retired model id is also baked into the shared `_shared/geminiClient.ts` used by other generators, so every Creator hub (Playground / Academy / Success) is affected the moment Auto-Fill or blueprint planning runs.
+### 2. Refactor 6 edge functions to use the helper
+For each, replace the `fetch("https://ai.gateway.lovable.dev/...")` block + base64 decode with one call to `generateGoogleImage(prompt)`. Storage upload, response shape, CORS, and error JSON stay exactly the same.
 
-The "You've run out of AI balance" banner is unrelated — these functions go directly to Google AI Studio with `GEMINI_API_KEY`, not the Lovable AI Gateway.
+- `supabase/functions/generate-slide-image/index.ts` — main Slide Studio "Generate image" button. Keeps `applyHubStyle` prompt suffix and `lesson-assets` upload.
+- `supabase/functions/ai-image-generation/index.ts` — generic image service used by `services/imageGeneration.ts`, `lessonImageService.ts`, `fetchSlideImage.ts`, `VocabularyImage.tsx`.
+- `supabase/functions/generate-lesson-image/index.ts` — single-prompt helper.
+- `supabase/functions/batch-generate-lesson-images/index.ts` — vocabulary batch (loops through `imagePrompts`, calls helper per slide, preserves per-slide error map).
+- `supabase/functions/generate-playground-images/index.ts` — Playground subject thumbnails.
+- `supabase/functions/generate-character-image/index.ts` — character/storybook portraits.
 
-## Fix (minimal, surgical)
+### 3. Frontend
+**No changes required.** All callers already invoke these functions via `supabase.functions.invoke(...)` and consume `{ url }` or `{ imageUrl }` from storage. Removing Lovable AI Gateway happens entirely server-side, so loading spinners and error toasts (`services/imageGeneration.ts`, `useVocabularyImageGenerator.ts`, `mediaGeneration.ts`) keep working unchanged.
 
-Swap the retired model id for the current stable equivalent **`gemini-2.5-flash`** in the three places it is hard-coded. No client/UI changes; no schema changes; the request/response shape is unchanged.
-
-### Files to edit
-
-1. **`supabase/functions/generate-gemini/index.ts`** (line 20)
-   - `const DEFAULT_MODEL = 'gemini-1.5-flash';` → `'gemini-2.5-flash'`
-   - Also map any incoming `body.model === 'gemini-1.5-flash' | 'gemini-1.5-pro'` → `'gemini-2.5-flash' | 'gemini-2.5-pro'` so older callers passing the old id don't 404.
-
-2. **`supabase/functions/plan-lesson-blueprint/index.ts`** (line 15)
-   - `const MODEL = 'gemini-1.5-flash';` → `'gemini-2.5-flash'`
-
-3. **`supabase/functions/_shared/geminiClient.ts`**
-   - Type union (line 15): drop `'gemini-1.5-flash' | 'gemini-1.5-pro'` from the public type, keep accepting them at runtime via the existing switch which already maps them to 2.5 — extend that switch so when the function calls Google directly (not the gateway) it sends `'gemini-2.5-flash'` / `'gemini-2.5-pro'` rather than echoing the retired id.
-   - Update the two default `model = 'gemini-2.5-flash'` lines (already correct — no change needed, just verify).
-
-### Why `gemini-2.5-flash` (not gateway)
-
-These functions are intentionally decoupled from Lovable AI Gateway (header comment in `generate-gemini` calls this out) and authenticate with the user's own `GEMINI_API_KEY`. Switching to the gateway is a larger architectural change and out of scope. `gemini-2.5-flash` is the documented current replacement on the same `v1beta/models/{id}:generateContent` endpoint, so the fetch URL, payload, and response parsing remain identical.
+### 4. Out of scope
+- `generate-slide-music`, `generate-slide-voiceover`, and any text-only `generate-gemini` / `plan-lesson-blueprint` calls — not affected.
+- DB schema, RLS, and storage buckets — unchanged.
+- No removal of `LOVABLE_API_KEY`; other non-image functions (e.g. `ai-tutor`, `studio-ai-copilot`) still use it for text/streaming.
 
 ## Verification
 
-1. Open `/playground-creator` → click **Generate** → click **Auto-Fill** → modal should populate Vocabulary / Grammar / SWBAT / Final Output Task with no toast error.
-2. Repeat on `/academy-creator` and `/success-creator`.
-3. Click **Generate Slides** → blueprint phase (`plan-lesson-blueprint`) returns 200 and slides stream in.
-4. Tail edge logs for `generate-gemini` and `plan-lesson-blueprint` — confirm no more `404 ... gemini-1.5-flash is not found`.
-
-## Out of scope
-
-- No migration to Lovable AI Gateway (requested decoupling stays).
-- No prompt / schema changes.
-- No UI changes — the existing toast handling is sufficient once the 502 is gone.
+1. From `/playground-creator` (current route) → Slide #2 → **Media › Image › Generate** → confirm an image appears and is stored under `lesson-assets/studio/...`.
+2. Tail logs for `generate-slide-image` and confirm a 200 response with no `ai.gateway.lovable.dev` calls.
+3. Trigger a vocab batch generation to validate `batch-generate-lesson-images` returns per-slide URLs.
+4. Trigger Playground subject image to validate `generate-playground-images`.
