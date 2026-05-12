@@ -373,11 +373,15 @@ export default function AcademyCreator() {
   };
 
   const t = themeMap.light;
-  const current = slides[selected];
+  const safeSelected = Math.max(0, Math.min(selected, Math.max(0, slides.length - 1)));
+  const current = slides[safeSelected];
 
   const grouped = useMemo(() => {
     const m: Record<Block, { slide: Slide; idx: number }[]> = { warmup: [], vocab: [], reading: [], grammar: [], practice: [], interactive: [], speaking: [] };
-    slides.forEach((s, idx) => m[s.block].push({ slide: s, idx }));
+    slides.forEach((s, idx) => {
+      const block = (s?.block && (m as any)[s.block]) ? s.block : 'warmup';
+      m[block as Block].push({ slide: s, idx });
+    });
     return m;
   }, [slides]);
 
