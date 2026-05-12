@@ -234,10 +234,13 @@ export default function AcademyCreator() {
       return;
     }
     const dbSlides = getLibraryLessonSlides(lesson) as Slide[];
-    setSlides(dbSlides);
-    // If a Storybook slide exists, auto-select it so the editor opens on it.
-    const storyIdx = dbSlides.findIndex((s: any) => s?.type === 'storybook');
-    setSelected(storyIdx >= 0 ? storyIdx : 0);
+    if (!Array.isArray(dbSlides) || dbSlides.length === 0) {
+      toast.message('This lesson has no slides yet — starting with a blank deck');
+    } else {
+      setSlides(dbSlides);
+      const storyIdx = dbSlides.findIndex((s: any) => s?.type === 'storybook');
+      setSelected(storyIdx >= 0 ? storyIdx : 0);
+    }
     if (lesson.title) {
       setTitle(lesson.title);
       setAiTopic(lesson.title);
