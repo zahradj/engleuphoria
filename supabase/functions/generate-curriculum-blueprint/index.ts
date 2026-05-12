@@ -178,42 +178,74 @@ Return ONLY the JSON object.`;
       required: ["curriculum_title", "units"],
     };
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-    const aiResponse = await fetch(geminiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: systemPrompt }] },
-        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema,
-          temperature: 0.85,
-          // Big enough for up to 10 units × 8 lessons.
-          // gemini-2.5-flash silently consumes "thinking" tokens out of this
-          // budget, so 4096 truncates mid-JSON. 16k is safe.
-          maxOutputTokens: 16384,
-          // Disable hidden chain-of-thought so the entire budget goes to JSON.
-          thinkingConfig: { thinkingBudget: 0 },
-        },
-      }),
+    const requestBody = JSON.stringify({
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema,
+        temperature: 0.85,
+        maxOutputTokens: 16384,
+        thinkingConfig: { thinkingBudget: 0 },
+      },
     });
 
-    if (!aiResponse.ok) {
-      const errText = await aiResponse.text();
-      console.error("Gemini error:", aiResponse.status, errText);
-      const status = aiResponse.status === 429 ? 429 : 500;
-      const msg =
-        aiResponse.status === 429
-          ? "Gemini rate limit reached. Please wait a moment and try again."
-          : "AI generation failed.";
+    const TRANSIENT = new Set([429, 500, 502, 503, 504]);
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+    async function callGemini(model: string): Promise<{ ok: true; data: any } | { ok: false; status: number; text: string }> {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const delays = [1500, 3000, 6000];
+      let lastStatus = 0;
+      let lastText = "";
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const r = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: requestBody,
+          });
+          if (r.ok) return { ok: true, data: await r.json() };
+          lastStatus = r.status;
+          lastText = await r.text();
+          console.error(`Gemini ${model} attempt ${attempt + 1} → ${r.status}`, lastText.slice(0, 200));
+          if (!TRANSIENT.has(r.status)) return { ok: false, status: r.status, text: lastText };
+        } catch (e) {
+          lastStatus = 0;
+          lastText = String(e);
+          console.error(`Gemini ${model} attempt ${attempt + 1} threw:`, e);
+        }
+        if (attempt < 2) await sleep(delays[attempt] + Math.floor(Math.random() * 400));
+      }
+      return { ok: false, status: lastStatus, text: lastText };
+    }
+
+    let geminiResult = await callGemini("gemini-2.5-flash");
+    if (!geminiResult.ok && TRANSIENT.has(geminiResult.status)) {
+      console.warn("Primary model exhausted, falling back to gemini-2.0-flash");
+      geminiResult = await callGemini("gemini-2.0-flash");
+    }
+
+    if (!geminiResult.ok) {
+      const isOverload = TRANSIENT.has(geminiResult.status);
+      if (isOverload) {
+        // Graceful payload — HTTP 200 so the client's handleAIResponse shows
+        // the friendly amber "AI overloaded — Retry" toast instead of throwing.
+        return new Response(
+          JSON.stringify({
+            error: true,
+            message: "The AI curriculum engine is overloaded. Please retry in ~10 seconds.",
+          }),
+          { status: 200, headers: { ...CORS, "Content-Type": "application/json" } },
+        );
+      }
       return new Response(
-        JSON.stringify({ error: msg, details: errText.slice(0, 500) }),
-        { status, headers: { ...CORS, "Content-Type": "application/json" } },
+        JSON.stringify({ error: "AI generation failed.", details: geminiResult.text.slice(0, 500) }),
+        { status: 500, headers: { ...CORS, "Content-Type": "application/json" } },
       );
     }
 
-    const j = await aiResponse.json();
+    const j = geminiResult.data;
     const candidate = j?.candidates?.[0];
     const finishReason = candidate?.finishReason;
     const rawText = (candidate?.content?.parts?.[0]?.text || "").trim();
