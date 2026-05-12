@@ -1,50 +1,40 @@
+# Fix: "New Curriculum Blueprint" non-2xx error
 
 ## Root cause
 
-The Profile Approvals queue at `/super-admin` (tab `profile-review`) already loads the pending profile correctly. The "I can't review it" symptom comes from two issues:
+Edge Function logs for `generate-curriculum-blueprint` show repeated **Gemini 503 UNAVAILABLE — "model is currently experiencing high demand"**. The function returns HTTP 500, so the Supabase client throws `FunctionsHttpError: Edge Function returned a non-2xx status code` and the user sees a generic failure with no friendly message and no retry path.
 
-1. **Wrong session.** You're logged in as the *teacher* account (`djaanine.zahra@gmail.com`). The only admin is `f.zahra.djaanine@engleuphoria.com`. While viewing `/teacher` you simply aren't an admin in that browser session.
-2. **Discoverability.** Even after switching to the admin account, "Profile Approvals" is one of ~15 sidebar items. There is no jump-to-link from the teacher's "Under Review" card or from the admin landing screen.
-
-No RLS or data fix is needed — the row is in the queue and admin policies already allow SELECT/UPDATE.
+Gemini 2.5 Flash periodically rejects requests during peak load — a single attempt is fragile. There is no retry, no fallback model, and no graceful payload that the existing `handleAIResponse` helper (used by other wizards) can render as the nice amber "AI overloaded — Retry" toast.
 
 ## Plan
 
-### 1. Auto-route admins to the queue when items are pending
-- In `src/pages/AdminDashboard.tsx`, when `useAdminPendingCounts` returns `profileApprovals > 0` on first load, set `activeTab` to `'profile-review'` instead of `'overview'` (only on initial mount, never override later manual nav).
-- Keep the AdminActionRequiredCard as a secondary nudge on overview.
+### 1. Server: `supabase/functions/generate-curriculum-blueprint/index.ts`
 
-### 2. Highlight the sidebar entry while there's a queue
-- In `src/components/admin/AdminSidebar.tsx`, give the "Profile Approvals" row a pulsing amber dot + bolder label when `badge > 0` so it visually wins over other tabs.
+- **Retry with exponential backoff** on transient Gemini failures (`429`, `500`, `502`, `503`, `504`, network throws):
+  - Up to **3 attempts**, delays `1.5s → 3s → 6s` with small jitter.
+  - Log each retry with attempt number and status.
+- **Model fallback**: if `gemini-2.5-flash` still 503s after retries, retry once against `gemini-2.0-flash` as a graceful degrade.
+- **Graceful overload payload**: when all retries fail with 429/5xx, return **HTTP 200** with body `{ error: true, message: "The AI curriculum engine is overloaded. Please retry in ~10 seconds." }` (matches the contract `src/lib/aiErrorHandler.ts` already understands).
+- **Hard failures only** (missing API key, malformed user input, Gemini 4xx other than 429) keep their current 4xx/500 behavior.
+- Keep all existing behavior (UUID injection, skill rotation, Review-last enforcement) intact.
 
-### 3. Add a deep link from the teacher's "Under Review" screen for admins
-- Locate the teacher pending-review screen (`src/components/teacher/ProfileCompleteGuard.tsx` / dashboard pending state).
-- If `useAuth().user.role === 'admin'` (i.e. an admin happens to land there while impersonating or testing), render a small "Open Profile Approvals →" button linking to `/super-admin` with `?tab=profile-review`.
-- Update `AdminDashboard` to read `?tab=` from the URL on mount and select that tab.
+### 2. Client: `src/components/creator-studio/steps/BlueprintEngine.tsx`
 
-### 4. One-click approve from the action card
-- Extend `AdminActionRequiredCard` so the "X profile(s) awaiting approval" button additionally accepts a quick-approve flow: clicking it still navigates to `profile-review`, but the destination auto-expands the first pending teacher (set `expandedId` to `pending[0].id` in `TeacherProfileReviewQueue`) so the reviewer is one click from Approve.
+- Replace the raw `if (error) throw error; if (data?.error) throw new Error(data.error);` block with the shared `handleAIResponse({ data, error, onRetry: handleGenerate, context: 'Blueprint' })` helper from `src/lib/aiErrorHandler.ts`.
+- On graceful failure: stop the spinner, show the amber glassmorphism toast with a **Retry** button, do not push a red `toast.error`.
+- On success: continue with the existing normalization code.
 
-### 5. Verify
-- Log in as `f.zahra.djaanine@engleuphoria.com`, hit `/super-admin`, confirm:
-  - Lands directly on Profile Approvals with fatima's card expanded.
-  - Approve button flips `profile_approved_by_admin=true`, `can_teach=true`.
-  - Teacher account on `/teacher` then loads the real dashboard instead of the "Under Review" screen.
+### 3. Verify
 
-## Files to touch
+- Deploy `generate-curriculum-blueprint`.
+- Hit `/content-creator/blueprint` and click Generate. Confirm:
+  - On success → blueprint renders as before.
+  - On simulated 503 (check edge logs) → amber "AI Engine Overloaded" toast with Retry, no red error, spinner clears.
+- Re-check `supabase--edge_function_logs` for `generate-curriculum-blueprint` to confirm retries are firing and 200s are being returned.
 
-- `src/pages/AdminDashboard.tsx` — initial-tab logic + `?tab=` query param.
-- `src/components/admin/AdminSidebar.tsx` — pulse styling for non-zero badges.
-- `src/components/admin/TeacherProfileReviewQueue.tsx` — accept an `initialExpandedId` (or auto-expand first item when only one is pending).
-- `src/components/admin/AdminActionRequiredCard.tsx` — pass intent to expand first item.
-- `src/components/teacher/ProfileCompleteGuard.tsx` (and/or the "Under Review" card) — admin-only deep link.
+## Files touched
 
-## Out of scope
+- `supabase/functions/generate-curriculum-blueprint/index.ts` (retry, fallback, graceful payload)
+- `src/components/creator-studio/steps/BlueprintEngine.tsx` (use `handleAIResponse`)
 
-- No DB migrations (RLS already correct).
-- No change to the approval action itself in `VideoReviewPanel`.
-- Not changing how role assignment works.
-
-## Important note for you
-
-If clicking through the new flow still shows an empty queue, you're logged into the teacher account, not the admin. Sign out and sign in as `f.zahra.djaanine@engleuphoria.com`.
+No DB migrations. No schema changes. No new secrets.
