@@ -505,6 +505,64 @@ export default function AcademyCreator() {
     navigate('/academy-classroom');
   };
 
+  if (!current) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 max-w-md text-center space-y-4">
+          <div className="text-xs font-bold text-indigo-600 tracking-wider uppercase">Academy · Slide Creator</div>
+          <h2 className="text-xl font-bold text-slate-900">No slides yet</h2>
+          <p className="text-sm text-slate-600">This lesson has no slides. Generate a deck with AI or add a slide to get started.</p>
+          <div className="flex gap-2 justify-center">
+            <button onClick={() => setAiOpen(true)} className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow-md">
+              Generate with AI
+            </button>
+            <button onClick={() => setPickerOpen(true)} className="px-4 py-2 rounded-lg border border-slate-300 font-semibold text-slate-700 hover:bg-slate-50">
+              Add a slide
+            </button>
+          </div>
+          <button onClick={goBack} className="text-xs text-slate-500 hover:text-slate-700 underline">Back</button>
+        </div>
+        {pickerOpen && (
+          <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setPickerOpen(false)}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-slate-900">Add a slide</h3>
+                <button onClick={() => setPickerOpen(false)}><X className="w-5 h-5 text-slate-500" /></button>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {SLIDE_TYPES.map((s) => (
+                  <button key={s.type} onClick={() => addSlide(s.type)}
+                    className="text-left p-3 rounded-lg border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50 transition">
+                    <div className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">{s.defaultBlock}</div>
+                    <div className="text-sm font-semibold text-slate-800">{s.label}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+        <GenerateLessonModal
+          open={aiOpen}
+          onClose={() => setAiOpen(false)}
+          hub="academy"
+          defaultTopic={aiTopic}
+          defaultLevel={aiLevel}
+          defaultVocabulary={blueprint?.vocabulary}
+          defaultGrammar={blueprint?.grammar || aiGrammar}
+          defaultPhonics={blueprint?.target_phonics}
+          defaultInterests={blueprint?.interests}
+          defaultNeeds={blueprint?.specific_needs}
+          defaultLanguageVariant={blueprint?.language_variant}
+          defaultVisualTheme={blueprint?.visual_theme}
+          defaultLearningObjective={blueprint?.learning_objective}
+          defaultFinalOutputTask={blueprint?.final_output_task}
+          busy={aiBusy}
+          onGenerate={generateWithAI}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col">
       {/* Top bar */}
