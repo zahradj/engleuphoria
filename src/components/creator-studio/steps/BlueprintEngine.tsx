@@ -76,8 +76,10 @@ export const BlueprintEngine: React.FC = () => {
           previous_topics: previousTopics,
         },
       });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      if (!handleAIResponse({ data, error, onRetry: handleGenerate, context: 'Blueprint' })) {
+        setIsGenerating(false);
+        return;
+      }
 
       const units = (data?.units || []).map((u: any) => ({
         id: uid(),
