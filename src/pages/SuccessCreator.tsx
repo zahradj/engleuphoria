@@ -596,10 +596,11 @@ export default function SuccessCreator() {
                 }
                 const tId = (toast as any).loading?.('Generating homework…');
                 try {
+                  const { extractEdgeError } = await import('@/lib/extractEdgeError');
                   const { data, error } = await supabase.functions.invoke('generate-homework', {
-                    body: { lesson_id: lessonHook.lessonId, blueprint, title: lessonHook.title || 'Lesson' },
+                    body: { lesson_id: lessonHook.lessonId, blueprint, title: lessonHook.lesson?.title || 'Lesson' },
                   });
-                  if (error || data?.error) throw new Error(extractEdgeError(error, data) || 'Generation failed');
+                  if (error || data?.error) throw new Error(extractEdgeError({ error, data, fallback: 'Generation failed' }));
                   toast.success?.('Homework ready ✓');
                 } catch (e: any) {
                   toast.error?.(`Homework Failed: ${e?.message || e}`);
