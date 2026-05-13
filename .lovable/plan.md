@@ -1,43 +1,47 @@
-# Fix: Google Image Generation 404 (deprecated Imagen 3 model)
+# Bypass Lovable AI Gateway for Image Generation
 
-## Root cause
-`supabase/functions/_shared/googleImageClient.ts` calls the deprecated endpoint
-`models/imagen-3.0-generate-001:predict` on Google's `v1beta` API. That model is no longer served, so every image generation (lesson images, slide images, character images, playground images, batch images, ai-image-generation) returns 404. All 6 callers fail through this single shared client.
+## Why
+The current `_shared/googleImageClient.ts` calls `https://ai.gateway.lovable.dev/...`, which charges your Lovable AI balance (now empty, hence the "fill in the balance" prompt). Your project already has a `GEMINI_API_KEY` secret, so we can call Google directly and skip the gateway entirely — no Lovable AI credits consumed.
 
-## Fix (single-file change in the shared client)
-Rewrite `generateGoogleImage()` to use the **Lovable AI Gateway** image model `google/gemini-2.5-flash-image` (a.k.a. Nano Banana) via the OpenAI-compatible chat-completions endpoint. This is the supported, billed-through-Lovable path and matches our other AI calls.
+## The fix (one file)
+Rewrite `supabase/functions/_shared/googleImageClient.ts` to call Google's Generative Language API directly with the **gemini-2.5-flash-image** model (a.k.a. "Nano Banana", the current supported image-gen endpoint that replaced the retired `imagen-3.0-generate-001`).
 
-Behavior contract stays identical (same exported name, same `GoogleImageResult { bytes, contentType, dataUrl }`, same `GoogleImageError`), so none of the 6 calling edge functions need changes.
+### Endpoint
+```
+POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${GEMINI_API_KEY}
+```
 
-### Technical details
-- Endpoint: `POST https://ai.gateway.lovable.dev/v1/chat/completions`
-- Auth: `Authorization: Bearer ${LOVABLE_API_KEY}` (already provisioned, no new secret)
-- Body:
-  ```json
-  {
-    "model": "google/gemini-2.5-flash-image",
-    "messages": [{ "role": "user", "content": "<prompt>" }],
-    "modalities": ["image", "text"]
-  }
-  ```
-- Response: image returned in `choices[0].message.images[0].image_url.url` as a `data:image/png;base64,...` URL — split on `,` to get base64, decode to bytes, derive `contentType` from the data-URL prefix.
-- Error mapping preserved:
-  - 429 → "Rate limited, try again shortly" (429)
-  - 402 → "AI credits exhausted — add credits in Workspace settings" (402)
-  - 401/403 → "LOVABLE_API_KEY rejected" (402)
-  - other non-2xx → 502 with truncated body
+### Request body
+```json
+{
+  "contents": [{ "parts": [{ "text": "<prompt>" }] }],
+  "generationConfig": { "responseModalities": ["IMAGE"] }
+}
+```
 
-### Files touched
-- `supabase/functions/_shared/googleImageClient.ts` — rewrite internals only; exports unchanged.
+### Response parsing
+Image bytes arrive as base64 in:
+```
+candidates[0].content.parts[].inlineData.{mimeType, data}
+```
+Decode `data` → `Uint8Array`, keep `mimeType` (usually `image/png`), build the same `dataUrl` shape callers already expect.
 
-### Callers (unchanged, auto-redeploy)
-`generate-lesson-image`, `generate-slide-image`, `generate-character-image`, `generate-playground-images`, `batch-generate-lesson-images`, `ai-image-generation`.
+### Contract preserved
+- Same exported `generateGoogleImage(prompt)` signature
+- Same `GoogleImageResult { bytes, contentType, dataUrl }`
+- Same `GoogleImageError` with HTTP status mapping (429 → rate limit, 401/403 → auth, others → 502)
+- All 6 callers (`generate-slide-image`, `generate-lesson-image`, `generate-character-image`, `generate-playground-images`, `batch-generate-lesson-images`, `ai-image-generation`) keep working unchanged and auto-redeploy.
 
-### Verification
-1. Deploy the 6 functions.
-2. From the Success Creator (`/content-creator/success-creator?lessonId=...`) trigger image generation and confirm a 200 + visible image.
-3. Tail `generate-slide-image` logs to confirm no more `404 imagen-3.0-generate-001`.
+## What stays the same
+- All edge functions and frontend services (`imageGeneration.ts`, `lessonImageService.ts`, `usePlaygroundImages.ts`) untouched.
+- Picsart post-processing, Supabase Storage uploads, hub art-style prompt suffixes — all unchanged.
 
-### Notes
-- Keeps the function/module name `generateGoogleImage` to avoid touching every caller. A follow-up rename to `generateAIImage` is optional and can be a separate cleanup.
-- No DB changes, no new secrets, no UI changes.
+## What you'll need
+Nothing. `GEMINI_API_KEY` is already set in your project secrets. Google's free tier on `gemini-2.5-flash-image` is generous; billing only kicks in if you've enabled it on your Google Cloud project.
+
+## Verification after implementation
+1. Open Success Creator → Generate Lesson → confirm slide images render.
+2. Tail edge function logs for `generate-slide-image` / `ai-image-generation` — expect 200s, no `ai.gateway.lovable.dev` calls, no `imagen-3.0-generate-001` 404s.
+
+## Files touched
+- `supabase/functions/_shared/googleImageClient.ts` (rewrite internals only)
