@@ -117,11 +117,15 @@ export const useUnifiedLessonGenerator = () => {
   ): Promise<GeneratedLesson> => {
     updateStage('content', { status: 'running', progress: 10, message: 'Connecting to AI...' });
 
+    const hubConfig = getHubConfig(config.hubType ?? config.system);
+
     const { data, error } = await supabase.functions.invoke('n8n-bridge', {
       body: {
         action: 'generate-lesson',
         topic: config.topic,
         system: config.system,
+        hub_type: config.hubType ?? null,
+        ai_persona: hubConfig.ai_persona,
         level: config.level,
         cefr_level: config.cefrLevel,
         duration_minutes: config.durationMinutes,
