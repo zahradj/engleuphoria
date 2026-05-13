@@ -435,8 +435,9 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Lesson content generation error:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
-      JSON.stringify({ success: false, error: "Internal server error" }),
+      JSON.stringify({ success: false, error: message }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500
