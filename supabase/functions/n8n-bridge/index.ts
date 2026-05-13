@@ -824,3 +824,166 @@ function getLessonTypeContext(lessonType: string) {
       return "";
   }
 }
+
+// ============================================================================
+// 4-Part Sequential PPP Chunk Generator
+// ============================================================================
+
+interface ChunkParams {
+  topic: string;
+  system: string;
+  level: string;
+  cefrLevel: string;
+  lessonType?: string;
+  unitName?: string;
+  levelName?: string;
+  durationMinutes: number;
+  apiKey: string;
+  aiPersona?: string;
+  hubType?: string;
+  currentStage: string;
+  previousSlideCount: number;
+  blueprint: any;
+}
+
+const STAGE_INSTRUCTIONS: Record<string, { count: string; desc: string; types: string }> = {
+  foundation: {
+    count: "EXACTLY 3",
+    desc: "FOUNDATION (Warm-up): (1) Intro/Title slide with objectives, (2) Spaced-Repetition Review slide of the previous lesson, (3) Target Vocabulary intro slide with 4-6 words including IPA pronunciation.",
+    types: "title, warmup, vocabulary",
+  },
+  mechanics: {
+    count: "EXACTLY 3",
+    desc: "MECHANICS (Presentation): Visual Grammar explanation slides + Phonics/Pronunciation focus slide. Each must include the rule, pattern formula, and 2-3 examples.",
+    types: "grammar, grammar_focus, listening",
+  },
+  application: {
+    count: "EXACTLY 3 to 4",
+    desc: "APPLICATION (Practice): Interactive gamified slides ONLY. Use a mix of drag_drop, sentence_builder, matching, sorting, quiz. Each slide MUST include FULL game data: drag_drop needs content.items[{text,targetId}] + content.targets[{id,label}]; matching needs content.pairs[{left,right}]; sentence_builder needs content.words + content.correctOrder; quiz needs content.options[{id,text,isCorrect}].",
+    types: "drag_drop, matching, sentence_builder, sorting, quiz",
+  },
+  mastery: {
+    count: "EXACTLY 2",
+    desc: "MASTERY (Production): (1) Final output task — roleplay, debate or simulation forcing the student to USE everything learned, (2) Lesson Review + Goodbye summary slide with key takeaways.",
+    types: "production, summary",
+  },
+};
+
+async function generateLessonChunk(p: ChunkParams): Promise<any[]> {
+  const stageDef = STAGE_INSTRUCTIONS[p.currentStage] || STAGE_INSTRUCTIONS.foundation;
+  const sys = getSystemContext(p.system);
+
+  const personaBlock = p.aiPersona
+    ? `\n=== HUB AGE-LOCK (NON-NEGOTIABLE) ===\nActive Hub: ${p.hubType ?? "unspecified"}\n${p.aiPersona}\n=== END HUB AGE-LOCK ===\n`
+    : "";
+
+  const systemPrompt = `You are an expert ESL curriculum designer generating ONE chunk of a ${p.durationMinutes}-minute PPP lesson.${personaBlock}
+
+CURRENT STAGE: ${p.currentStage.toUpperCase()}
+${stageDef.desc}
+
+You will generate ${stageDef.count} slides — NO MORE, NO LESS.
+Allowed slide types for this stage: ${stageDef.types}
+
+Each slide must have these fields: id, type, phase, phaseLabel, title, content, teacherNotes, durationSeconds.
+Continue numbering: starting slide id = "slide-${p.previousSlideCount + 1}".
+
+Audience: ${sys.ageGroup}. Tone: ${sys.tone}.
+
+CRITICAL: Return ONLY a JSON object via the emit_chunk tool with the slides array. No prose, no extra text.`;
+
+  const userPrompt = `Topic: ${p.topic}
+Level: ${p.levelName || p.level} (${p.cefrLevel})
+Unit: ${p.unitName || "General"}
+Lesson Type: ${p.lessonType || "Mechanic"}
+${p.blueprint ? `\nBlueprint context:\n${JSON.stringify(p.blueprint).substring(0, 1500)}` : ""}
+
+Generate the ${p.currentStage} chunk now.`;
+
+  const tools = [{
+    type: "function",
+    function: {
+      name: "emit_chunk",
+      description: `Emit the ${p.currentStage} slide chunk`,
+      parameters: {
+        type: "object",
+        properties: {
+          slides: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                id: { type: "string" },
+                type: { type: "string" },
+                phase: { type: "string" },
+                phaseLabel: { type: "string" },
+                title: { type: "string" },
+                content: { type: "object" },
+                teacherNotes: { type: "string" },
+                durationSeconds: { type: "number" },
+              },
+              required: ["id", "type", "title", "phase", "content", "teacherNotes"],
+            },
+          },
+        },
+        required: ["slides"],
+      },
+    },
+  }];
+
+  const modelsToTry = ["google/gemini-2.5-flash", "google/gemini-2.5-pro"];
+  let lastError: Error | null = null;
+
+  for (const model of modelsToTry) {
+    try {
+      const response = await aiFetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${p.apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          tools,
+          tool_choice: { type: "function", function: { name: "emit_chunk" } },
+          max_tokens: 6000,
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        if (response.status === 429) throw new Response("Rate limit exceeded", { status: 429 });
+        if (response.status === 402) throw new Response("Payment required", { status: 402 });
+        lastError = new Error(`Model ${model} returned ${response.status}: ${errText.substring(0, 200)}`);
+        continue;
+      }
+
+      const ai = await response.json();
+      if (ai.error) {
+        lastError = new Error(`AI error: ${ai.error.message || JSON.stringify(ai.error)}`);
+        continue;
+      }
+      const toolCall = ai.choices?.[0]?.message?.tool_calls?.[0];
+      if (!toolCall) {
+        lastError = new Error(`No tool call in ${p.currentStage} chunk response`);
+        continue;
+      }
+      const parsed = JSON.parse(toolCall.function.arguments);
+      const slides = Array.isArray(parsed?.slides) ? parsed.slides : [];
+      if (slides.length === 0) {
+        lastError = new Error(`Empty ${p.currentStage} slide array`);
+        continue;
+      }
+      // Ensure ids continue from previous count
+      return slides.map((s: any, i: number) => ({
+        ...s,
+        id: s.id || `slide-${p.previousSlideCount + i + 1}`,
+      }));
+    } catch (err) {
+      if (err instanceof Response) throw err;
+      lastError = err instanceof Error ? err : new Error(String(err));
+    }
+  }
+  throw lastError || new Error(`All models failed for chunk ${p.currentStage}`);
+}
