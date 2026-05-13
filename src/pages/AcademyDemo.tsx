@@ -7,6 +7,7 @@ import { LivingCanvas } from '@/components/creator-studio/shared/LivingCanvas';
 import { ScaffoldedPlayer } from '@/components/creator-studio/shared/ScaffoldedPlayer';
 import { SoloVocabCard } from '@/components/creator-studio/shared/SoloVocabCard';
 import { GrammarMarkup } from '@/components/lesson-player/grammarMarkup';
+import { LessonCoverSlide } from '@/components/lesson-player/LessonCoverSlide';
 import {
   getErrorDetectionItems,
   getCorrectionItems,
