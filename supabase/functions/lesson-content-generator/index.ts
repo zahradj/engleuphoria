@@ -525,5 +525,7 @@ In metadata, include audioManifest array with ALL audio files needed:
 
 Return valid JSON with version: "2.0", theme: "mist-blue", durationMin: 45, metadata (CEFR, module, lesson, targets, audioManifest), and slides array.
 
-CRITICAL: You must return ONLY valid, raw JSON. Do NOT wrap the response in markdown blocks. Do not use \`\`\`json or \`\`\` tags. Start immediately with { or [.`;
+CRITICAL: You must return ONLY valid, raw JSON. Do NOT wrap the response in markdown blocks. Do not use \`\`\`json or \`\`\` tags. Start immediately with { or [.
+
+CRITICAL RESPONSE FORMAT: You MUST return a single JSON object containing exactly one key named "slides". The value of "slides" must be an array of slide objects. Example: { "slides": [ { "slide_type": "...", "content": {...} } ] }`;
 }
