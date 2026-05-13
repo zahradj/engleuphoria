@@ -435,19 +435,19 @@ export const useUnifiedLessonGenerator = (hubType?: HubType) => {
 
     try {
       // Stage 1: Generate content
-      let lesson = await generateContent(config, signal);
+      let lesson = await generateContent(mergedConfig, signal);
       setOverallProgress(25);
 
       // Stage 2: Generate games
-      lesson = await generateGames(lesson, config, signal);
+      lesson = await generateGames(lesson, mergedConfig, signal);
       setOverallProgress(50);
 
       // Stage 3: Generate images
-      lesson = await generateImages(lesson, config, signal);
+      lesson = await generateImages(lesson, mergedConfig, signal);
       setOverallProgress(75);
 
       // Stage 4: Finalize
-      lesson = await finalizeLesson(lesson, config);
+      lesson = await finalizeLesson(lesson, mergedConfig);
       setOverallProgress(100);
 
       setGeneratedLesson(lesson);
