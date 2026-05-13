@@ -71,14 +71,23 @@ export function useMediaAccess() {
       return stream;
     } catch (error) {
       console.error('🎤 Media access denied:', error);
+      const name = error instanceof Error ? error.name : '';
+      let description = 'Please allow camera and microphone access to join the classroom.';
+      if (name === 'NotAllowedError') {
+        description = "🔒 Permission blocked. Click the lock icon in your browser's address bar → set Camera + Microphone to 'Allow' → reload.";
+      } else if (name === 'NotFoundError') {
+        description = '📷 No camera or microphone detected. Plug in a device and try again.';
+      } else if (name === 'NotReadableError') {
+        description = '⚠️ Camera/mic in use by another app (Zoom, Meet, etc.). Close it and retry.';
+      }
       const errorMessage = error instanceof Error ? error.message : 'Media access denied';
-      setMediaError(errorMessage);
+      setMediaError(description);
       setIsInitialized(true); // Mark as initialized even on error to prevent infinite retries
       
       if (!hasShownToast.current) {
         toast({
-          title: "Media Access Required",
-          description: "Please allow camera and microphone access to join the classroom",
+          title: "Camera & Mic Required",
+          description,
           variant: "destructive"
         });
         hasShownToast.current = true;

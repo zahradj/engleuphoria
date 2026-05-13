@@ -12,6 +12,7 @@ import {
 import { MAKING_REQUESTS_AT_WORK } from '@/data/successLessons/makingRequestsAtWork';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { handleAIResponse } from '@/lib/aiErrorHandler';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { SlideMediaPanel } from '@/components/creator-studio/shared/SlideMediaPanel';
@@ -339,7 +340,10 @@ export default function SuccessCreator() {
           },
         },
       });
-      if (error) throw error;
+      if (!handleAIResponse({ data, error, onRetry: () => generateWithAI(payload), context: 'Success Lesson' })) {
+        setAiBusy(false);
+        return;
+      }
       const successSlides: Slide[] | undefined = data?.success_slides || data?.academy_slides;
       if (!successSlides || !Array.isArray(successSlides) || successSlides.length === 0) {
         throw new Error('AI returned no Success slides');
@@ -353,7 +357,9 @@ export default function SuccessCreator() {
       toast.success(`Generated ${successSlides.length} slides ✨`);
     } catch (e: any) {
       console.error(e);
-      toast.error(e?.message || 'AI generation failed');
+      toast.error(e?.message || 'AI generation failed', {
+        action: { label: 'Retry', onClick: () => generateWithAI(payload) },
+      });
     } finally {
       setAiBusy(false);
     }
