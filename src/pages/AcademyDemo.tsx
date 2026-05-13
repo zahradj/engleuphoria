@@ -224,6 +224,24 @@ function ListenButton({ text, label = 'Listen', variant = 'pill' }: { text: stri
 
 // ─── Slide components ───────────────────────────────────────────────────────
 function Intro({ slide, t }: { slide: Extract<Slide, { type: 'intro' }>; t: ThemeTokens }) {
+  // First intro of the lesson (warmup block) renders as the unified 50/50
+  // hub-themed cover. Mid-lesson "intro" slides (e.g. grammar block intros)
+  // keep the lighter section-header treatment.
+  const isLessonCover = slide.block === 'warmup';
+  if (isLessonCover) {
+    return (
+      <LessonCoverSlide
+        hub="academy"
+        topic={slide.title}
+        subtitle={slide.subtitle}
+        imageUrl={slide.image_url}
+        level={slide.level}
+        unitNumber={slide.unit_number}
+        unitTitle={slide.unit_title}
+        lessonNumber={slide.lesson_number}
+      />
+    );
+  }
   return (
     <div className="space-y-4">
       <div className={`text-xs uppercase tracking-widest ${t.muted}`}>{slide.block}</div>
