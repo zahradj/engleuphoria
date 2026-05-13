@@ -11,6 +11,10 @@ import {
   type LanguageVariant,
   type VisualTheme,
 } from './blueprintTypes';
+import {
+  IMAGE_STYLES_BY_HUB,
+  DEFAULT_IMAGE_STYLE_ID,
+} from './imageStyleOptions';
 
 export type Hub = 'playground' | 'academy' | 'success';
 
@@ -24,6 +28,8 @@ export interface GenerateLessonPayload {
   specific_needs: string;
   language_variant: LanguageVariant;
   visual_theme: VisualTheme;
+  /** Hub-specific Image Style id, e.g. "claymation". Always present. */
+  image_style: string;
   learning_objective?: string;
   final_output_task?: string;
 }
@@ -136,10 +142,12 @@ export default function GenerateLessonModal({
   );
   const [learningObjective, setLearningObjective] = useState(defaultLearningObjective || '');
   const [finalOutputTask, setFinalOutputTask] = useState(defaultFinalOutputTask || '');
+  const [imageStyle, setImageStyle] = useState<string>(DEFAULT_IMAGE_STYLE_ID[hub]);
   const [expanded, setExpanded] = useState(false);
   const [autoFillBusy, setAutoFillBusy] = useState(false);
 
   const isPreA1 = level === 'Pre-A1';
+  const imageStyleOptions = IMAGE_STYLES_BY_HUB[hub];
 
   // Re-sync defaults whenever modal opens
   useEffect(() => {
