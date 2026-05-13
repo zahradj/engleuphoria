@@ -512,6 +512,8 @@ export const useUnifiedLessonGenerator = (hubType?: HubType) => {
     setOverallProgress(0);
     setGeneratedLesson(null);
     setElapsedTime(0);
+    setStreamingSlides([]);
+    setCurrentStage(null);
   }, []);
 
   return {
@@ -523,6 +525,12 @@ export const useUnifiedLessonGenerator = (hubType?: HubType) => {
     generateLesson,
     cancelGeneration,
     reset,
+    /** Slides streamed in as each PPP chunk completes (for live sidebar render) */
+    streamingSlides,
+    /** Currently active PPP stage id (null when idle/done) */
+    currentStage,
+    /** Human-readable label for the active stage */
+    currentStageLabel: currentStage ? STAGE_LABELS[currentStage] : null,
     /** Tailwind classes for the active hub — apply to wrapper components */
     hubTheme: hubConfig.ui_theme,
     /** Full active hub config (persona, cefr range, etc.) */
