@@ -1,92 +1,49 @@
-# 4-Part Sequential PPP Generation Pipeline
+## Audit findings
 
-Refactor the monolithic "generate everything in one call" into 4 small, fast, pedagogically-aligned chunks that stream into the deck as they arrive.
+- **Assessment creation paths are mostly correct on the frontend:** `CreateAssessmentDialog.tsx` and `AssessmentCreator.tsx` create new assessments with `.insert()` and do not pass hardcoded assessment IDs.
+- **Root database risk:** current RLS policies use broad `FOR ALL` rules on `assessments` and `assessment_questions`, which allows teachers to update/delete historical assessments and questions after creation. There is no database-level immutability trigger.
+- **Question/content media risk:** `assessment_questions` stores `question_text`, `options`, `correct_answer`, `rubric`, and `audio_url`; because updates are allowed, old tests/questions/audio can be modified by any frontend path or future generator bug.
+- **Lesson generator error swallowing:** the active creator pages call `generate-ppp-slides`, but Academy/Playground only throw `error.message`; Success partially uses `handleAIResponse`, but empty/wrong response shapes still collapse into generic “AI returned no Success slides”. The UI does not reliably show backend `error`, `detail`, or Google/Gateway response text.
+- **Backend status check:** `generate-ppp-slides` has a catch returning status `500` with `error` and `stack`, but some provider failures return `{ error: 'AI gateway error', detail: ... }` with `502`/other status; the frontend must extract both fields.
 
-## The 4 Stages (PPP-aligned)
+## Plan
 
-| # | Stage | Slides | Pedagogical role |
-|---|-------|--------|------------------|
-| 1 | `foundation`  | Intro + Spaced-Repetition Review + Target Vocabulary | Warm-up |
-| 2 | `mechanics`   | Visual Grammar + Phonics/Pronunciation               | Presentation |
-| 3 | `application` | Interactive games (Drag-Drop, Sentence Builder, Match) | Practice |
-| 4 | `mastery`     | Roleplay/Production task + Lesson Review/Goodbye    | Production |
+1. **Add database-level assessment immutability**
+   - Create a migration with trigger functions on `public.assessments` and `public.assessment_questions`.
+   - Block updates/deletes to historical question rows, including question text, answers, options, rubrics, audio URLs, and metadata.
+   - Block destructive assessment deletion.
+   - Keep only safe lifecycle fields mutable on assessments if needed for existing UI: `is_published`, `published_at`, `due_date`, `updated_at`. All content fields such as `title`, `description`, `assessment_type`, `cefr_level`, `duration_minutes`, `passing_score`, and `total_points` become immutable after insert.
+   - This protects existing rows even if a future frontend bug accidentally calls `.update()` or `.upsert()`.
 
-Each chunk is a separate Edge Function call → never times out, renders progressively.
+2. **Tighten assessment frontend save/delete behavior**
+   - Keep new assessment saves as pure `.insert()` operations.
+   - Ensure question inserts never send frontend temp IDs; let Postgres generate UUIDs.
+   - Remove or disable the destructive delete action in `AssessmentsList.tsx` so the UI matches the database protection.
+   - Keep publish/unpublish working if lifecycle fields remain allowed.
 
-## Frontend changes — `src/hooks/useUnifiedLessonGenerator.ts`
+3. **Create a shared raw Edge Function error extractor**
+   - Add a frontend helper that extracts the exact technical error from Supabase function responses:
+     - `error.message`
+     - `data.error`
+     - `data.detail`
+     - `data.stack`
+     - nested JSON/message shapes where present
+   - Use this instead of generic fallback text in lesson generation flows.
 
-Replace the single `generateContent()` call inside `generateLesson()` with a sequential loop:
+4. **Fix lesson generator error surfacing in all creator pages**
+   - Update `SuccessCreator.tsx`, `AcademyCreator.tsx`, and `PlaygroundCreator.tsx` around `generateWithAI`.
+   - On any Supabase function error or invalid slide payload, show a toast titled **Generation Failed** with the exact raw error string.
+   - Preserve the retry action where currently available.
+   - Include returned response keys in the error when the function succeeds but returns the wrong shape, so we can see whether the backend returned `slides`, `success_slides`, `academy_slides`, `playground_slides`, etc.
 
-```ts
-const STAGES = ['foundation', 'mechanics', 'application', 'mastery'] as const;
-type StageId = typeof STAGES[number];
+5. **Normalize `generate-ppp-slides` error responses**
+   - Ensure every failing path returns JSON with at least:
+     - `error`: exact human-readable technical message
+     - `detail`: raw provider/Gateway body when available
+     - `status`: provider status when available
+   - Keep failure statuses non-2xx, using `500` for internal exceptions and provider-specific statuses where already meaningful.
 
-const STAGE_LABELS: Record<StageId, string> = {
-  foundation:  'Generating Intro & Vocabulary…',
-  mechanics:   'Generating Grammar & Phonics…',
-  application: 'Generating Interactive Games…',
-  mastery:     'Finalizing Roleplay & Review…',
-};
-```
-
-- New state: `currentStage: StageId | null`, `setCurrentStage`.
-- New state: `streamingSlides: GeneratedSlide[]` exposed to the modal sidebar.
-- Loop:
-  ```ts
-  let allSlides: GeneratedSlide[] = [];
-  for (const stage of STAGES) {
-    setCurrentStage(stage);
-    updateStage('content', { status: 'running', message: STAGE_LABELS[stage] });
-    const chunk = await generateChunk(config, stage, allSlides, signal);
-    allSlides = [...allSlides, ...chunk];
-    setStreamingSlides(allSlides);            // progressive render
-    updateStage('content', { progress: ((STAGES.indexOf(stage)+1)/4)*100 });
-  }
-  ```
-- `generateChunk()` calls `n8n-bridge` (or a new direct call to `lesson-content-generator`) with payload:
-  ```json
-  { "action": "generate-lesson-chunk",
-    "current_stage": "foundation",
-    "previous_slide_count": 0,
-    "topic": "...", "hub_type": "...", "ai_persona": "...",
-    "level": "...", "cefr_level": "...", "duration_minutes": 60,
-    "age_group": "...", "blueprint": { ... } }
-  ```
-- On any chunk failure: keep already-rendered slides, surface a "Retry this section" toast (uses existing `aiErrorHandler.ts`), do not blow away the deck.
-- Games stage: only run `generateGames()` for `application` slides that came back as placeholders. Image stage and Finalizing stage stay as-is.
-
-## Modal / sidebar UI
-
-The "Generate Slides" button consumer (creator modal, e.g. `SuccessCreator`, Academy/Playground equivalents) reads `streamingSlides` + `currentStage` from the hook and:
-- appends slides to the Lesson Blueprint sidebar as they arrive,
-- shows a small badge/spinner: `STAGE_LABELS[currentStage]`.
-
-No business-logic changes — purely a render of new hook state.
-
-## Edge Function changes — `supabase/functions/lesson-content-generator/index.ts` and `n8n-bridge/index.ts`
-
-1. Accept new payload fields: `current_stage`, `previous_slide_count`, `blueprint`.
-2. Build the Gemini system prompt with a `switch (current_stage)`:
-   - `foundation` → "Generate ONLY 3 slides: (1) Intro, (2) Spaced-Repetition Review of the previous lesson, (3) Target Vocabulary. Use the hub's `ai_persona`. Number slides starting at `previous_slide_count + 1`."
-   - `mechanics` → "Generate ONLY 2–3 slides covering Visual Grammar explanation and Phonics/Pronunciation."
-   - `application` → "Generate ONLY 3–4 interactive practice slides (drag_and_drop, sentence_builder, match_pairs). Each must include full game data (items, targets, correct answers)."
-   - `mastery` → "Generate ONLY 2 slides: (1) Production roleplay/simulation task, (2) Lesson Review + Goodbye."
-3. Keep `responseMimeType: "application/json"` and require a JSON **array** of slide objects: `[ { slide_type, phase, content, teacher_notes, … } ]`.
-4. Keep `RAW_JSON_INSTRUCTION` + `parseAIJson` from `_shared/aiJson.ts`.
-5. `n8n-bridge` adds a route for `action === 'generate-lesson-chunk'` that forwards to `lesson-content-generator` and returns `{ status, slides: [...] }`.
-
-## Strict JSON / safety
-- Each chunk is validated with `parseAIJson` and must be `Array.isArray`.
-- Hub config (`HUB_CONFIGS`) continues to inject `ai_persona` per call — no regression to the age-locked behavior.
-- All 4 calls reuse the same `AbortController` so Cancel still works mid-stage.
-
-## Out of scope
-- No DB schema changes.
-- No changes to image/audio batch generation (those already chunk).
-- Playground 30-min lessons keep the same 4 stages but the prompt yields fewer slides per stage (handled by existing `duration_minutes` hint).
-
-## Files to edit
-- `src/hooks/useUnifiedLessonGenerator.ts` — sequential loop + new exposed state.
-- `src/pages/SuccessCreator.tsx` (and Academy/Playground creator pages) — render `streamingSlides` + `currentStage` label.
-- `supabase/functions/lesson-content-generator/index.ts` — stage-aware prompt + array response.
-- `supabase/functions/n8n-bridge/index.ts` — new `generate-lesson-chunk` action.
+6. **Validate after implementation**
+   - Run targeted searches to confirm no assessment creation path uses `.update()`/`.upsert()` for new tests or hardcoded IDs.
+   - Use read-only database inspection to confirm triggers/policies exist.
+   - Check the relevant frontend/Edge Function files after edits and run targeted tests or Edge Function calls where safe.
