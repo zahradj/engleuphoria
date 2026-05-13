@@ -1,10 +1,11 @@
 // Shared client for AI image generation.
-// Routes through the Lovable AI Gateway (Nano Banana / gemini-2.5-flash-image).
-// The legacy Google Imagen 3 endpoint (`imagen-3.0-generate-001:predict`)
-// has been retired by Google and now returns 404 — do not reintroduce it.
+// Calls Google's Generative Language API directly using GEMINI_API_KEY.
+// This bypasses the Lovable AI Gateway entirely so it does not consume
+// Lovable AI credits. The legacy `imagen-3.0-generate-001:predict`
+// endpoint has been retired by Google — do not reintroduce it.
 
-const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
-const MODEL = "google/gemini-2.5-flash-image";
+const MODEL = "gemini-2.5-flash-image";
+const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 
 export class GoogleImageError extends Error {
   status: number;
@@ -29,65 +30,61 @@ function b64ToBytes(b64: string): Uint8Array {
 }
 
 /**
- * Generate a single image via the Lovable AI Gateway.
+ * Generate a single image via Google Generative Language API (Gemini).
  * Throws GoogleImageError with an appropriate HTTP status on failure.
  * Name preserved for backwards compatibility with existing callers.
  */
 export async function generateGoogleImage(prompt: string): Promise<GoogleImageResult> {
-  const apiKey = Deno.env.get("LOVABLE_API_KEY");
+  const apiKey = Deno.env.get("GEMINI_API_KEY");
   if (!apiKey) {
-    throw new GoogleImageError("LOVABLE_API_KEY is not configured", 500);
+    throw new GoogleImageError("GEMINI_API_KEY is not configured", 500);
   }
   if (!prompt || !prompt.trim()) {
     throw new GoogleImageError("Prompt is required", 400);
   }
 
-  const res = await fetch(GATEWAY_URL, {
+  const res = await fetch(`${ENDPOINT}?key=${apiKey}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: MODEL,
-      messages: [{ role: "user", content: prompt }],
-      modalities: ["image", "text"],
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseModalities: ["IMAGE"] },
     }),
   });
 
   if (!res.ok) {
     const txt = await res.text();
-    console.error("Lovable AI Gateway image error", res.status, txt.slice(0, 500));
+    console.error("Google Gemini image error", res.status, txt.slice(0, 500));
     if (res.status === 429) {
-      throw new GoogleImageError("Rate limited. Please try again shortly.", 429);
-    }
-    if (res.status === 402) {
-      throw new GoogleImageError("AI credits exhausted. Add credits in Workspace → Usage.", 402);
+      throw new GoogleImageError("Rate limited by Google. Please retry shortly.", 429);
     }
     if (res.status === 401 || res.status === 403) {
-      throw new GoogleImageError("LOVABLE_API_KEY rejected by AI Gateway.", 402);
+      throw new GoogleImageError("GEMINI_API_KEY rejected by Google.", 401);
+    }
+    if (res.status === 400) {
+      throw new GoogleImageError(`Bad request: ${txt.slice(0, 200)}`, 400);
     }
     throw new GoogleImageError(`Image generation failed: ${txt.slice(0, 200)}`, 502);
   }
 
   const data = await res.json();
-  const message = data?.choices?.[0]?.message;
-  const imageUrl: string | undefined =
-    message?.images?.[0]?.image_url?.url ??
-    message?.images?.[0]?.url ??
-    undefined;
-
-  if (!imageUrl || !imageUrl.startsWith("data:")) {
-    console.error("AI Gateway: no image in response", JSON.stringify(data).slice(0, 500));
-    throw new GoogleImageError("Invalid response from AI Gateway (no image)", 502);
+  const parts = data?.candidates?.[0]?.content?.parts ?? [];
+  let inline: { mimeType?: string; data?: string } | undefined;
+  for (const p of parts) {
+    const cand = p?.inlineData ?? p?.inline_data;
+    if (cand?.data) {
+      inline = { mimeType: cand.mimeType ?? cand.mime_type, data: cand.data };
+      break;
+    }
   }
 
-  // Parse data URL: data:<mime>;base64,<payload>
-  const commaIdx = imageUrl.indexOf(",");
-  const header = imageUrl.slice(5, commaIdx); // strip leading "data:"
-  const b64 = imageUrl.slice(commaIdx + 1);
-  const contentType = header.split(";")[0] || "image/png";
-  const bytes = b64ToBytes(b64);
-  const dataUrl = imageUrl;
+  if (!inline?.data) {
+    console.error("Gemini: no inline image in response", JSON.stringify(data).slice(0, 500));
+    throw new GoogleImageError("Invalid response from Gemini (no image)", 502);
+  }
+
+  const contentType = inline.mimeType || "image/png";
+  const bytes = b64ToBytes(inline.data);
+  const dataUrl = `data:${contentType};base64,${inline.data}`;
   return { bytes, contentType, dataUrl };
 }
