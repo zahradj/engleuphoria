@@ -258,6 +258,7 @@ export default function GenerateLessonModal({
       specific_needs: needs.trim(),
       language_variant: languageVariant,
       visual_theme: visualTheme,
+      image_style: imageStyle,
       learning_objective: learningObjective.trim() || undefined,
       final_output_task: finalOutputTask.trim() || undefined,
     });
@@ -351,6 +352,24 @@ export default function GenerateLessonModal({
                   </select>
                 </label>
               </div>
+
+              {/* Hub Image-Style Matrix */}
+              <label className="block">
+                <span className={labelCls}>🖼 Image Style ({hub})</span>
+                <select
+                  className={inputCls}
+                  value={imageStyle}
+                  onChange={(e) => setImageStyle(e.target.value)}
+                  disabled={busy}
+                >
+                  {imageStyleOptions.map((opt) => (
+                    <option key={opt.id} value={opt.id}>{opt.label}</option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Strictly enforced on every AI image in this lesson.
+                </p>
+              </label>
 
               {/* Blueprint Details (collapsible) */}
               <div className="rounded-2xl border-2 border-slate-200 overflow-hidden">
