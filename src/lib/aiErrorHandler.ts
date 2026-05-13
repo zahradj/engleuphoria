@@ -50,12 +50,20 @@ function classifyError(rawMessage: string): {
       isOverload: true,
     };
   }
-  if (msg.includes('invalid json') || msg.includes('parse') || msg.includes('empty response')) {
+  if (msg.includes('invalid json') || msg.includes('parse') || msg.includes('empty response') || msg.includes('malformed')) {
     return {
       title: '🧩 AI Returned Malformed Output',
       description: 'The AI generated a response we couldn\'t parse.',
       nextStep: 'Click Retry — this is usually a one-off. If it persists, simplify your topic or shorten the prompt.',
       isOverload: false,
+    };
+  }
+  if (msg.includes('timed out') || msg.includes('coffee break') || msg.includes('timeout')) {
+    return {
+      title: '☕ AI Is Taking a Coffee Break',
+      description: 'The AI took too long to respond.',
+      nextStep: 'Click Retry — usually works on the second try. If it keeps stalling, shorten the prompt.',
+      isOverload: true,
     };
   }
   if (msg.includes('not configured') || msg.includes('api key')) {
