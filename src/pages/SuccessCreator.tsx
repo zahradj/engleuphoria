@@ -588,6 +588,28 @@ export default function SuccessCreator() {
             <button onClick={() => setAiOpen(true)} className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:opacity-90 text-white font-semibold rounded-lg px-4 py-2 text-sm shadow-md transition">
               <Sparkles className="w-4 h-4" /> Generate with AI
             </button>
+            <button
+              onClick={async () => {
+                if (!lessonHook.lessonId) {
+                  toast.error?.('Save the lesson once before generating homework.');
+                  return;
+                }
+                const tId = (toast as any).loading?.('Generating homework…');
+                try {
+                  const { data, error } = await supabase.functions.invoke('generate-homework', {
+                    body: { lesson_id: lessonHook.lessonId, blueprint, title: lessonHook.title || 'Lesson' },
+                  });
+                  if (error || data?.error) throw new Error(extractEdgeError(error, data) || 'Generation failed');
+                  toast.success?.('Homework ready ✓');
+                } catch (e: any) {
+                  toast.error?.(`Homework Failed: ${e?.message || e}`);
+                } finally {
+                  if (tId) (toast as any).dismiss?.(tId);
+                }
+              }}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:opacity-90 text-white font-semibold rounded-lg px-4 py-2 text-sm shadow-md transition">
+              <ClipboardCheck className="w-4 h-4" /> Generate Homework
+            </button>
             <button onClick={openClassroom} className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg px-4 py-2 text-sm shadow-md transition">
               <Play className="w-4 h-4" /> Open in Classroom
             </button>
