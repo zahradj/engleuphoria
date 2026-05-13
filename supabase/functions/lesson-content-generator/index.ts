@@ -235,13 +235,21 @@ serve(async (req) => {
       throw new Error('AI did not return structured output after successful generation');
     }
 
+    // Sanitize: strip markdown code fences and any leading/trailing prose
+    let rawText = typeof content === 'string' ? content.trim() : String(content);
+    rawText = rawText.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
+    const firstBrace = rawText.indexOf('{');
+    const lastBrace = rawText.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace > firstBrace) {
+      rawText = rawText.slice(firstBrace, lastBrace + 1);
+    }
+
     let slidesData;
     try {
-      slidesData = JSON.parse(content);
+      slidesData = JSON.parse(rawText);
     } catch (parseError) {
-      console.error('JSON parse error:', parseError);
-      console.error('Content:', content.substring(0, 500));
-      throw new Error(`Failed to parse AI response: ${parseError.message}`);
+      console.error('Failed to parse Gemini JSON:', rawText.substring(0, 800));
+      throw new Error('AI returned malformed data. Please try generating again.');
     }
 
     const slides = slidesData.slides || [];
@@ -427,8 +435,9 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Lesson content generation error:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
-      JSON.stringify({ success: false, error: "Internal server error" }),
+      JSON.stringify({ success: false, error: message }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500
@@ -504,5 +513,7 @@ SLIDES 17-20: ASSESSMENT & REWARDS
 In metadata, include audioManifest array with ALL audio files needed:
 [{id: "vocab-apple", text: "Apple. A round red fruit.", type: "vocabulary"}, ...]
 
-Return valid JSON with version: "2.0", theme: "mist-blue", durationMin: 45, metadata (CEFR, module, lesson, targets, audioManifest), and slides array.`;
+Return valid JSON with version: "2.0", theme: "mist-blue", durationMin: 45, metadata (CEFR, module, lesson, targets, audioManifest), and slides array.
+
+CRITICAL: You must return ONLY valid, raw JSON. Do NOT wrap the response in markdown blocks. Do not use \`\`\`json or \`\`\` tags. Start immediately with { or [.`;
 }
