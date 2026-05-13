@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Eye, Code2, X, Sparkles, Loader2, Image as ImageIcon, Save, BookOpen, Send, FolderOpen, History, Wand2, FileUp, ArrowLeft } from 'lucide-react';
+import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Eye, Code2, X, Sparkles, Loader2, Image as ImageIcon, Save, BookOpen, Send, FolderOpen, History, Wand2, FileUp, ArrowLeft, ClipboardCheck } from 'lucide-react';
 import { SlideRenderer, type Slide } from './PlaygroundDemo';
 import { detectLessonHub, creatorPathFor, deriveCefrLevel } from '@/utils/creatorHydration';
 import { generateOnePlaygroundImage } from '@/hooks/usePlaygroundImages';
@@ -565,6 +565,24 @@ export default function PlaygroundCreator() {
           <div className="flex items-center gap-2 flex-shrink-0">
             <button onClick={() => setAiOpen(true)} className="inline-flex items-center gap-2 bg-gradient-to-r from-fuchsia-500 to-orange-500 hover:opacity-90 text-white font-bold rounded-xl px-3 py-2 text-xs shadow-md transition active:scale-95">
               <Sparkles className="w-3.5 h-3.5" /> AI
+            </button>
+            <button
+              onClick={async () => {
+                if (!lessonHook.lessonId) { toast.error?.('Save the lesson once before generating homework.'); return; }
+                const tId = (toast as any).loading?.('Generating homework…');
+                try {
+                  const { extractEdgeError } = await import('@/lib/extractEdgeError');
+                  const { data, error } = await supabase.functions.invoke('generate-homework', {
+                    body: { lesson_id: lessonHook.lessonId, blueprint, title: lessonHook.lesson?.title || 'Lesson' },
+                  });
+                  if (error || data?.error) throw new Error(extractEdgeError({ error, data, fallback: 'Generation failed' }));
+                  toast.success?.('Homework ready ✓');
+                } catch (e: any) {
+                  toast.error?.(`Homework Failed: ${e?.message || e}`);
+                } finally { if (tId) (toast as any).dismiss?.(tId); }
+              }}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-400 to-orange-500 hover:opacity-90 text-white font-bold rounded-xl px-3 py-2 text-xs shadow-md transition active:scale-95">
+              <ClipboardCheck className="w-3.5 h-3.5" /> Homework
             </button>
             <Popover>
               <PopoverTrigger asChild>

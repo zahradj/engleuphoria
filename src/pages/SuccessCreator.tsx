@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Code2, X, Play, Sparkles, Loader2, Save, Send, FolderOpen, History, Wand2, FileUp, ArrowLeft } from 'lucide-react';
+import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Download, Upload, Code2, X, Play, Sparkles, Loader2, Save, Send, FolderOpen, History, Wand2, FileUp, ArrowLeft, ClipboardCheck } from 'lucide-react';
 import {
   SlideRenderer,
   themeMap,
@@ -587,6 +587,29 @@ export default function SuccessCreator() {
             </button>
             <button onClick={() => setAiOpen(true)} className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:opacity-90 text-white font-semibold rounded-lg px-4 py-2 text-sm shadow-md transition">
               <Sparkles className="w-4 h-4" /> Generate with AI
+            </button>
+            <button
+              onClick={async () => {
+                if (!lessonHook.lessonId) {
+                  toast.error?.('Save the lesson once before generating homework.');
+                  return;
+                }
+                const tId = (toast as any).loading?.('Generating homework…');
+                try {
+                  const { extractEdgeError } = await import('@/lib/extractEdgeError');
+                  const { data, error } = await supabase.functions.invoke('generate-homework', {
+                    body: { lesson_id: lessonHook.lessonId, blueprint, title: lessonHook.lesson?.title || 'Lesson' },
+                  });
+                  if (error || data?.error) throw new Error(extractEdgeError({ error, data, fallback: 'Generation failed' }));
+                  toast.success?.('Homework ready ✓');
+                } catch (e: any) {
+                  toast.error?.(`Homework Failed: ${e?.message || e}`);
+                } finally {
+                  if (tId) (toast as any).dismiss?.(tId);
+                }
+              }}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:opacity-90 text-white font-semibold rounded-lg px-4 py-2 text-sm shadow-md transition">
+              <ClipboardCheck className="w-4 h-4" /> Generate Homework
             </button>
             <button onClick={openClassroom} className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg px-4 py-2 text-sm shadow-md transition">
               <Play className="w-4 h-4" /> Open in Classroom

@@ -226,6 +226,16 @@ export const LessonWrapUpDialog: React.FC<LessonWrapUpDialogProps> = ({
             if (payErr) console.error('Failed to insert lesson_payments:', payErr);
           }
         }
+
+        // 4. Post-Class Sync — push the lesson's blueprint vocab + phonics
+        //    into the student's Vocabulary Vault and Map of Sounds.
+        try {
+          await supabase.functions.invoke('post-class-sync', {
+            body: { booking_id: lessonId },
+          });
+        } catch (syncErr) {
+          console.error('post-class-sync failed (non-blocking):', syncErr);
+        }
       }
 
       toast({
