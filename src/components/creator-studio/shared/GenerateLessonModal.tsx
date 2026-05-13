@@ -11,6 +11,10 @@ import {
   type LanguageVariant,
   type VisualTheme,
 } from './blueprintTypes';
+import {
+  IMAGE_STYLES_BY_HUB,
+  DEFAULT_IMAGE_STYLE_ID,
+} from './imageStyleOptions';
 
 export type Hub = 'playground' | 'academy' | 'success';
 
@@ -24,6 +28,8 @@ export interface GenerateLessonPayload {
   specific_needs: string;
   language_variant: LanguageVariant;
   visual_theme: VisualTheme;
+  /** Hub-specific Image Style id, e.g. "claymation". Always present. */
+  image_style: string;
   learning_objective?: string;
   final_output_task?: string;
 }
@@ -136,10 +142,12 @@ export default function GenerateLessonModal({
   );
   const [learningObjective, setLearningObjective] = useState(defaultLearningObjective || '');
   const [finalOutputTask, setFinalOutputTask] = useState(defaultFinalOutputTask || '');
+  const [imageStyle, setImageStyle] = useState<string>(DEFAULT_IMAGE_STYLE_ID[hub]);
   const [expanded, setExpanded] = useState(false);
   const [autoFillBusy, setAutoFillBusy] = useState(false);
 
   const isPreA1 = level === 'Pre-A1';
+  const imageStyleOptions = IMAGE_STYLES_BY_HUB[hub];
 
   // Re-sync defaults whenever modal opens
   useEffect(() => {
@@ -155,6 +163,7 @@ export default function GenerateLessonModal({
     setVisualTheme(defaultVisualTheme ?? DEFAULT_VISUAL_THEME);
     setLearningObjective(defaultLearningObjective || '');
     setFinalOutputTask(defaultFinalOutputTask || '');
+    setImageStyle(DEFAULT_IMAGE_STYLE_ID[hub]);
     setExpanded(Boolean(
       (defaultVocabulary && defaultVocabulary.some((v) => v?.trim())) ||
       defaultGrammar?.trim() ||
@@ -250,6 +259,7 @@ export default function GenerateLessonModal({
       specific_needs: needs.trim(),
       language_variant: languageVariant,
       visual_theme: visualTheme,
+      image_style: imageStyle,
       learning_objective: learningObjective.trim() || undefined,
       final_output_task: finalOutputTask.trim() || undefined,
     });
@@ -343,6 +353,24 @@ export default function GenerateLessonModal({
                   </select>
                 </label>
               </div>
+
+              {/* Hub Image-Style Matrix */}
+              <label className="block">
+                <span className={labelCls}>🖼 Image Style ({hub})</span>
+                <select
+                  className={inputCls}
+                  value={imageStyle}
+                  onChange={(e) => setImageStyle(e.target.value)}
+                  disabled={busy}
+                >
+                  {imageStyleOptions.map((opt) => (
+                    <option key={opt.id} value={opt.id}>{opt.label}</option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Strictly enforced on every AI image in this lesson.
+                </p>
+              </label>
 
               {/* Blueprint Details (collapsible) */}
               <div className="rounded-2xl border-2 border-slate-200 overflow-hidden">

@@ -1,6 +1,11 @@
-// generate-homework — AI Edge Function
-// Reads a Lesson Blueprint and generates a 3-part homework assignment
-// (matching_quiz, fill_in_the_blank, speaking_prompt) saved to homework_assignments.content.
+// generate-homework — Smart Homework AI
+// Reads the Lesson Blueprint + Hub config and emits a strict 3-activity
+// JSON payload consumed by <HomeworkPlayer />.
+//
+// Activities (in order):
+//   1. activity_1_recognition  — Listen & Match
+//   2. activity_2_syntax       — Sentence Scramble (drag & drop)
+//   3. activity_3_production   — Voice Challenge (roleplay)
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 import { aiFetch } from "../_shared/aiFetch.ts";
@@ -9,6 +14,26 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+type Hub = "playground" | "academy" | "success";
+
+const HUB_RULES: Record<Hub, string> = {
+  playground:
+    'AUDIENCE: kids aged 4-9. Tone: enthusiastic, magical, simple. CEFR: Pre-A1 to A2. ' +
+    'Sentences must be ≤6 words. Use concrete nouns and physical verbs only. No abstract ideas, no business themes.',
+  academy:
+    'AUDIENCE: teenagers aged 10-15. Tone: engaging, relevant, slightly informal. CEFR: A2 to B2. ' +
+    'Sentences may be 6-10 words. Use everyday teen contexts (school, sport, tech, friends).',
+  success:
+    'AUDIENCE: adult professionals. Tone: formal, sophisticated, business-oriented. CEFR: B1 to C2. ' +
+    'Sentences may be 8-14 words and may use intermediate idioms or business collocations.',
+};
+
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -22,65 +47,110 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Auth
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Missing authorization header" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+    if (!authHeader) return json({ error: "Missing authorization header" }, 401);
     const { data: { user }, error: authErr } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
-    if (authErr || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+    if (authErr || !user) return json({ error: "Unauthorized" }, 401);
 
-    const body = await req.json();
-    const { lesson_id, blueprint, title, due_date } = body || {};
+    const body = await req.json().catch(() => ({}));
+    const {
+      lesson_id,
+      blueprint,
+      title,
+      due_date,
+      hub: rawHub,
+      image_style,
+      assigned_student_id,
+    } = (body || {}) as Record<string, any>;
 
-    // Resolve blueprint
+    const hub: Hub = (["playground", "academy", "success"].includes(rawHub) ? rawHub : "academy") as Hub;
+
     let bp = blueprint || null;
     let resolvedTitle = title || "Homework";
+    let resolvedImageStyle: string | null = image_style || null;
+
     if (!bp && lesson_id) {
       const { data: lesson } = await supabase
         .from("curriculum_lessons")
-        .select("title, vocabulary_list, grammar_pattern, phonics_focus, content")
+        .select("title, vocabulary_list, grammar_pattern, phonics_focus, content, image_style")
         .eq("id", lesson_id)
         .maybeSingle();
       if (lesson) {
         resolvedTitle = lesson.title || resolvedTitle;
+        resolvedImageStyle = resolvedImageStyle || (lesson as any).image_style || null;
         bp = {
           vocabulary: lesson.vocabulary_list || [],
           grammar: lesson.grammar_pattern || "",
           phonics: lesson.phonics_focus || "",
-          ...(lesson.content as any || {}),
+          ...((lesson.content as any) || {}),
         };
       }
     }
 
-    if (!bp || (!bp.vocabulary && !bp.grammar && !bp.target_phonics && !bp.phonics)) {
-      return new Response(JSON.stringify({ error: "No blueprint or vocabulary/grammar provided" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!bp || (!bp.vocabulary && !bp.target_vocabulary && !bp.grammar)) {
+      return json({ error: "No blueprint or vocabulary/grammar provided" }, 400);
     }
 
-    const vocabArr = Array.isArray(bp.vocabulary) ? bp.vocabulary : (bp.target_vocabulary || []);
-    const grammar = bp.grammar || bp.grammar_focus || "";
-    const phonics = bp.target_phonics || bp.phonics || "";
+    // Normalise vocabulary into plain strings for the prompt
+    const rawVocab = Array.isArray(bp.vocabulary)
+      ? bp.vocabulary
+      : (bp.target_vocabulary || []);
+    const vocabStrings: string[] = rawVocab
+      .map((v: any) => (typeof v === "string" ? v : v?.word || v?.term || ""))
+      .filter((v: string) => v && v.trim().length > 0)
+      .slice(0, 8);
+
+    if (vocabStrings.length < 3) {
+      return json({ error: "Need at least 3 vocabulary items to generate homework" }, 400);
+    }
+
+    const grammar = bp.grammar || bp.grammar_focus || bp.target_grammar_rule || "";
+    const phonics = bp.target_phonics || bp.phonics || bp.phonics_focus || "";
 
     const systemPrompt =
-      `You are an expert ESL homework designer. Based on the provided lesson blueprint (vocabulary, grammar, phonics), ` +
-      `generate a JSON object for a 3-part homework assignment for an independent study session of ~15 minutes. ` +
-      `The student must reuse the EXACT vocabulary and grammar pattern from the blueprint. ` +
-      `Return ONLY raw JSON in this exact shape — no markdown, no commentary:\n` +
+      `You are an expert ESL homework game designer for the ${hub.toUpperCase()} hub. ` +
+      `${HUB_RULES[hub]} ` +
+      `Reuse the EXACT lesson vocabulary and grammar pattern. Do NOT introduce new vocabulary. ` +
+      `\nCRITICAL OUTPUT FORMAT — return ONLY this raw JSON object, no markdown, no commentary:\n` +
       `{\n` +
-      `  "matching_quiz": [ { "term": "string", "definition": "string" } ],   // 5 pairs from the vocabulary\n` +
-      `  "fill_in_the_blank": [ { "sentence": "string with ____", "answer": "string" } ],   // 5 sentences using the grammar\n` +
-      `  "speaking_prompt": "One short, vivid sentence the student should say aloud, using today's grammar + at least one vocab word."\n` +
-      `}`;
+      `  "activity_1_recognition": {\n` +
+      `    "instructions": "string — short kid/teen/adult-appropriate instructions",\n` +
+      `    "items": [\n` +
+      `      {\n` +
+      `        "audio_text": "string — the word/short phrase the student will HEAR (one of the vocabulary words)",\n` +
+      `        "correct_answer": "string — same as audio_text",\n` +
+      `        "wrong_options": ["string","string","string"]\n` +
+      `      }\n` +
+      `      // 4-5 items total, each using a different vocabulary word\n` +
+      `    ]\n` +
+      `  },\n` +
+      `  "activity_2_syntax": {\n` +
+      `    "instructions": "string",\n` +
+      `    "items": [\n` +
+      `      {\n` +
+      `        "scrambled_words": ["array of word tokens in shuffled order"],\n` +
+      `        "correct_order": "string — the full correct sentence with normal punctuation"\n` +
+      `      }\n` +
+      `      // EXACTLY 3 sentences. Each sentence MUST follow the target grammar pattern AND ` +
+      `       use at least one target vocabulary word.\n` +
+      `    ]\n` +
+      `  },\n` +
+      `  "activity_3_production": {\n` +
+      `    "instructions": "string",\n` +
+      `    "prompt": "string — a single short roleplay or contextual speaking prompt appropriate for the hub",\n` +
+      `    "target_words_to_detect": ["string", "string"],\n` +
+      `    "example_response": "string — a model sentence showing what a strong answer sounds like"\n` +
+      `  }\n` +
+      `}\n` +
+      `Rules: scrambled_words must contain the SAME tokens (case-sensitive, punctuation stripped) as ` +
+      `correct_order split on spaces, just shuffled. target_words_to_detect must be 2-3 words drawn from the vocabulary list.`;
 
-    const userPrompt = `Lesson title: ${resolvedTitle}
-Vocabulary: ${JSON.stringify(vocabArr)}
-Grammar focus: ${grammar}
-Phonics focus: ${phonics}`;
+    const userPrompt =
+      `Lesson title: ${resolvedTitle}\n` +
+      `Hub: ${hub}\n` +
+      `Vocabulary (REUSE EXACTLY): ${JSON.stringify(vocabStrings)}\n` +
+      `Grammar focus: ${grammar || "(none — focus only on vocabulary recognition for this hub)"}\n` +
+      `Phonics / pronunciation focus: ${phonics || "(none)"}\n`;
 
     const aiRes = await aiFetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -92,42 +162,67 @@ Phonics focus: ${phonics}`;
           { role: "user", content: userPrompt },
         ],
         response_format: { type: "json_object" },
-        max_tokens: 2000,
+        max_tokens: 2200,
       }),
     });
 
     if (!aiRes.ok) {
       const errText = await aiRes.text();
-      return new Response(JSON.stringify({ error: `AI gateway error ${aiRes.status}`, detail: errText.slice(0, 500) }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return json({ error: `AI gateway error ${aiRes.status}`, detail: errText.slice(0, 800) }, 502);
     }
     const ai = await aiRes.json();
-    const content = ai.choices?.[0]?.message?.content;
+    const content = ai?.choices?.[0]?.message?.content;
     if (!content) {
-      return new Response(JSON.stringify({ error: "AI returned empty response", detail: JSON.stringify(ai).slice(0, 500) }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return json({ error: "AI returned empty response", detail: JSON.stringify(ai).slice(0, 600) }, 502);
     }
 
     let raw = typeof content === "string" ? content.trim() : String(content);
     raw = raw.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
     let homework: any;
-    try { homework = JSON.parse(raw); } catch (e) {
-      return new Response(JSON.stringify({ error: "AI returned invalid JSON", detail: raw.slice(0, 400) }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    try {
+      homework = JSON.parse(raw);
+    } catch (_e) {
+      return json({ error: "AI returned invalid JSON", detail: raw.slice(0, 600) }, 502);
     }
 
-    // Save to homework_assignments
+    // ── Validate the 3-activity shape ───────────────────────────
+    const a1 = homework?.activity_1_recognition;
+    const a2 = homework?.activity_2_syntax;
+    const a3 = homework?.activity_3_production;
+    const valid =
+      a1 && Array.isArray(a1.items) && a1.items.length >= 3 &&
+      a2 && Array.isArray(a2.items) && a2.items.length >= 1 &&
+      a3 && typeof a3.prompt === "string";
+    if (!valid) {
+      return json({ error: "AI response did not match the 3-activity schema", detail: homework }, 502);
+    }
+
+    // Enrich for the player
+    homework.meta = {
+      hub,
+      lesson_id: lesson_id || null,
+      title: resolvedTitle,
+      vocabulary: vocabStrings,
+      grammar,
+      phonics,
+      image_style: resolvedImageStyle,
+    };
+
+    // ── Persist ────────────────────────────────────────────────
     const insertRow: Record<string, unknown> = {
       teacher_id: user.id,
       lesson_id: lesson_id || null,
+      assigned_student_id: assigned_student_id || null,
       title: `Homework: ${resolvedTitle}`,
-      description: homework.speaking_prompt || "Auto-generated homework",
-      instructions: "Complete the matching quiz, fill in the blanks, and record your speaking challenge.",
-      points: 10,
+      description: a3?.prompt || "Auto-generated interactive homework",
+      instructions:
+        "Complete all three activities: Listen & Match, Sentence Scramble, and the Voice Challenge.",
+      points: 50,
       due_date: due_date || null,
       status: "draft",
       content: homework,
       source: "ai-generated",
+      image_style: resolvedImageStyle,
     };
     const { data: saved, error: saveErr } = await supabase
       .from("homework_assignments")
@@ -135,15 +230,20 @@ Phonics focus: ${phonics}`;
       .select()
       .single();
     if (saveErr) {
-      return new Response(JSON.stringify({ error: "Failed to save homework", detail: saveErr.message, homework }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      // Some columns (assigned_student_id / image_style) may be missing in older schemas — retry without them.
+      const retryRow = { ...insertRow };
+      delete retryRow.assigned_student_id;
+      delete retryRow.image_style;
+      const retry = await supabase.from("homework_assignments").insert(retryRow).select().single();
+      if (retry.error) {
+        return json({ error: "Failed to save homework", detail: retry.error.message, homework }, 500);
+      }
+      return json({ success: true, homework, assignment: retry.data });
     }
 
-    return new Response(JSON.stringify({ success: true, homework, assignment: saved }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
+    return json({ success: true, homework, assignment: saved });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ success: false, error: message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return json({ success: false, error: message }, 500);
   }
 });

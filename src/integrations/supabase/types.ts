@@ -2365,6 +2365,7 @@ export type Database = {
           duration_minutes: number | null
           grammar_pattern: string | null
           id: string
+          image_style: string | null
           is_published: boolean | null
           is_review: boolean
           language: string | null
@@ -2397,6 +2398,7 @@ export type Database = {
           duration_minutes?: number | null
           grammar_pattern?: string | null
           id?: string
+          image_style?: string | null
           is_published?: boolean | null
           is_review?: boolean
           language?: string | null
@@ -2429,6 +2431,7 @@ export type Database = {
           duration_minutes?: number | null
           grammar_pattern?: string | null
           id?: string
+          image_style?: string | null
           is_published?: boolean | null
           is_review?: boolean
           language?: string | null
@@ -3620,6 +3623,7 @@ export type Database = {
           description: string
           due_date: string
           id: string
+          image_style: string | null
           instructions: string | null
           lesson_id: string | null
           points: number
@@ -3636,6 +3640,7 @@ export type Database = {
           description: string
           due_date: string
           id?: string
+          image_style?: string | null
           instructions?: string | null
           lesson_id?: string | null
           points?: number
@@ -3652,6 +3657,7 @@ export type Database = {
           description?: string
           due_date?: string
           id?: string
+          image_style?: string | null
           instructions?: string | null
           lesson_id?: string | null
           points?: number
@@ -9722,6 +9728,7 @@ export type Database = {
           role: string
           teacher_level: string | null
           teacher_points: number | null
+          total_xp: number
           updated_at: string
         }
         Insert: {
@@ -9741,6 +9748,7 @@ export type Database = {
           role: string
           teacher_level?: string | null
           teacher_points?: number | null
+          total_xp?: number
           updated_at?: string
         }
         Update: {
@@ -9760,6 +9768,7 @@ export type Database = {
           role?: string
           teacher_level?: string | null
           teacher_points?: number | null
+          total_xp?: number
           updated_at?: string
         }
         Relationships: [

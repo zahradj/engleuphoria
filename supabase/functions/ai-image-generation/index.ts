@@ -188,8 +188,13 @@ serve(async (req) => {
       postProcess = false,
       persist = false,
       storagePath,
+      // Hub Image-Style Matrix overrides — sent by the Creator Studio modal.
+      // `imageStyle` is the human-readable label, `imageStyleSuffix` is the strict
+      // prompt fragment that must be appended verbatim to enforce the look.
+      imageStyle,
+      imageStyleSuffix,
     } = await req.json();
-    
+
     if (!prompt) {
       return new Response(
         JSON.stringify({ error: 'Prompt is required' }),
@@ -203,6 +208,13 @@ serve(async (req) => {
     const allNegative = [preset.negative, negativePrompt].filter(Boolean).join(' ');
     if (allNegative) {
       enhancedPrompt += `. NEGATIVE: ${allNegative}`;
+    }
+
+    // Hub Image-Style override — strictly appended to enforce teacher's chosen vibe.
+    if (imageStyleSuffix && typeof imageStyleSuffix === 'string') {
+      enhancedPrompt += `. ${prompt}, ${imageStyleSuffix}. Must be age-appropriate and visually vibrant.`;
+    } else if (imageStyle && typeof imageStyle === 'string') {
+      enhancedPrompt += `. Generated in an authentic, flawless ${imageStyle} style. Must be age-appropriate and visually vibrant.`;
     }
 
     console.log('Generating image | style:', style, '| prompt:', enhancedPrompt.slice(0, 200));

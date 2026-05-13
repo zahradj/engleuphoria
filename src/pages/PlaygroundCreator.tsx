@@ -573,7 +573,7 @@ export default function PlaygroundCreator() {
                 try {
                   const { extractEdgeError } = await import('@/lib/extractEdgeError');
                   const { data, error } = await supabase.functions.invoke('generate-homework', {
-                    body: { lesson_id: lessonHook.lessonId, blueprint, title: lessonHook.lesson?.title || 'Lesson' },
+                    body: { lesson_id: lessonHook.lessonId, blueprint, title: lessonHook.lesson?.title || 'Lesson', hub: 'playground' },
                   });
                   if (error || data?.error) throw new Error(extractEdgeError({ error, data, fallback: 'Generation failed' }));
                   toast.success?.('Homework ready ✓');

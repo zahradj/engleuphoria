@@ -59,6 +59,7 @@ const InstallPage = lazy(() => import("./pages/InstallPage"));
 const HubConfirmation = lazy(() => import("./pages/HubConfirmation"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const StudentCertificatePage = lazy(() => import("./pages/StudentCertificatePage"));
+const HomeworkPage = lazy(() => import("./pages/student/HomeworkPage"));
 const PlaygroundDemo = lazy(() => import("./pages/PlaygroundDemo"));
 const AcademyDemo = lazy(() => import("./pages/AcademyDemo"));
 const SuccessDemo = lazy(() => import("./pages/SuccessDemo"));
@@ -154,7 +155,12 @@ const App = () => {
                         </ImprovedProtectedRoute>
                       } />
 
-                      {/* Student Dashboard Routes - Protected with hub-level guards */}
+                      {/* Interactive Homework Player */}
+                      <Route path="/homework/:assignmentId" element={
+                        <ImprovedProtectedRoute>
+                          <Suspense fallback={<LoadingFallback />}><HomeworkPage /></Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
                       <Route path="/playground/*" element={
                         <Navigate to="/dashboard/playground" replace />
                       } />
