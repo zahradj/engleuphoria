@@ -38,7 +38,18 @@ export type ClusterActivity =
   | { type: 'rewrite'; text: string; instruction: string; sample: string };
 
 export type Slide =
-  | { type: 'intro'; block: Block; title: string; subtitle?: string }
+  | {
+      type: 'intro';
+      block: Block;
+      title: string;
+      subtitle?: string;
+      // Optional cover-slide enrichments — when present render the unified 50/50 cover.
+      image_url?: string;
+      level?: string | null;
+      unit_number?: number | string | null;
+      unit_title?: string | null;
+      lesson_number?: number | string | null;
+    }
   | { type: 'question'; block: Block; prompt: string; placeholder?: string }
   | { type: 'opinion'; block: Block; prompt: string; options: string[] }
   | { type: 'vocab'; block: Block; word: string; definition: string; example?: string }
