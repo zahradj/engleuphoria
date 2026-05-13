@@ -121,6 +121,8 @@ serve(async (req) => {
         levelName: level_name,
         durationMinutes: lessonDuration,
         apiKey: lovableApiKey,
+        aiPersona: ai_persona,
+        hubType: hub_type,
       });
 
       return new Response(
