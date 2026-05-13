@@ -7,6 +7,7 @@ import { LivingCanvas } from '@/components/creator-studio/shared/LivingCanvas';
 import { ScaffoldedPlayer } from '@/components/creator-studio/shared/ScaffoldedPlayer';
 import { SoloVocabCard } from '@/components/creator-studio/shared/SoloVocabCard';
 import { GrammarMarkup } from '@/components/lesson-player/grammarMarkup';
+import { LessonCoverSlide } from '@/components/lesson-player/LessonCoverSlide';
 import {
   getErrorDetectionItems,
   getCorrectionItems,
@@ -51,7 +52,18 @@ export type ClusterActivity =
   | { type: 'build'; prompt?: string; words: string[]; answer: string[] };
 
 export type Slide =
-  | { type: 'intro'; block: Block; title: string; subtitle?: string }
+  | {
+      type: 'intro';
+      block: Block;
+      title: string;
+      subtitle?: string;
+      // Optional cover-slide enrichments — when present render the unified 50/50 cover.
+      image_url?: string;
+      level?: string | null;
+      unit_number?: number | string | null;
+      unit_title?: string | null;
+      lesson_number?: number | string | null;
+    }
   | { type: 'question'; block: Block; prompt: string; placeholder?: string }
   | { type: 'poll'; block: Block; prompt: string; options: { label: string; pct: number }[] }
   | { type: 'opinion'; block: Block; prompt: string }
@@ -213,6 +225,24 @@ function ListenButton({ text, label = 'Listen', variant = 'pill' }: { text: stri
 
 // ─── Slide components ───────────────────────────────────────────────────────
 function Intro({ slide, t }: { slide: Extract<Slide, { type: 'intro' }>; t: ThemeTokens }) {
+  // First intro of the lesson (warmup block) renders as the unified 50/50
+  // hub-themed cover. Mid-lesson "intro" slides (e.g. grammar block intros)
+  // keep the lighter section-header treatment.
+  const isLessonCover = slide.block === 'warmup';
+  if (isLessonCover) {
+    return (
+      <LessonCoverSlide
+        hub="academy"
+        topic={slide.title}
+        subtitle={slide.subtitle}
+        imageUrl={slide.image_url}
+        level={slide.level}
+        unitNumber={slide.unit_number}
+        unitTitle={slide.unit_title}
+        lessonNumber={slide.lesson_number}
+      />
+    );
+  }
   return (
     <div className="space-y-4">
       <div className={`text-xs uppercase tracking-widest ${t.muted}`}>{slide.block}</div>

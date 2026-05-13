@@ -42,6 +42,7 @@ const TeacherClassroomPage = lazy(() => import("./pages/TeacherClassroomPage"));
 const AIPlacementTest = lazy(() => import("./components/placement/AIPlacementTest"));
 const StudentClassroomPage = lazy(() => import("./pages/StudentClassroomPage"));
 const UnifiedClassroomPage = lazy(() => import("./pages/UnifiedClassroomPage"));
+const PostLessonSummary = lazy(() => import("./pages/PostLessonSummary"));
 const AssessmentTaker = lazy(() => import("./components/assessment/AssessmentTaker"));
 const AssessmentResults = lazy(() => import("./components/assessment/AssessmentResults"));
 const CreatorStudioShell = lazy(() => import("./components/creator-studio/CreatorStudioShell"));
@@ -198,6 +199,15 @@ const App = () => {
                         <ImprovedProtectedRoute>
                           <Suspense fallback={<LoadingFallback />}>
                             <UnifiedClassroomPage />
+                          </Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
+
+                      {/* Post-Lesson Summary — shared landing for teacher + student after End Class */}
+                      <Route path="/classroom/:id/summary" element={
+                        <ImprovedProtectedRoute>
+                          <Suspense fallback={<LoadingFallback />}>
+                            <PostLessonSummary />
                           </Suspense>
                         </ImprovedProtectedRoute>
                       } />

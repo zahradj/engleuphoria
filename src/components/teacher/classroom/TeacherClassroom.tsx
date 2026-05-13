@@ -351,14 +351,19 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     setHasEndedClass(true);
     setWrapUpOpen(true);
     toast({ title: "Class Ended", description: "Please complete the lesson feedback report." });
-  }, [toast, endSession]);
+    // Tear down media + WebRTC immediately for the teacher.
+    try { await rtcDisconnect(); } catch (e) { /* noop */ }
+    try { media.leave(); } catch (e) { /* noop */ }
+    // Route teacher to the shared Post-Lesson Summary page.
+    navigate(`/classroom/${classId}/summary`, { replace: true });
+  }, [toast, endSession, classId, navigate]);
 
   const handleWrapUpChange = useCallback((open: boolean) => {
     setWrapUpOpen(open);
     if (!open && hasEndedClass) {
-      navigate('/teacher');
+      navigate(`/classroom/${classId}/summary`, { replace: true });
     }
-  }, [hasEndedClass, navigate]);
+  }, [hasEndedClass, navigate, classId]);
 
   useEffect(() => { media.join(); return () => { media.leave(); }; }, []);
 
