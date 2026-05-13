@@ -134,6 +134,27 @@ export const useUnifiedLessonGenerator = (hubType?: HubType) => {
     const allSlides: GeneratedSlide[] = [];
     setStreamingSlides([]);
 
+    // ── Short-Term Memory: fetch the most recent lesson for this CEFR level ──
+    let previousLessonData: { vocabulary: unknown; grammar: string; topic: string; title: string } | null = null;
+    try {
+      const { data: prev } = await supabase
+        .from('systematic_lessons')
+        .select('title, topic, grammar_focus, vocabulary_set, created_at')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (prev) {
+        previousLessonData = {
+          title: prev.title,
+          topic: prev.topic,
+          grammar: prev.grammar_focus || '',
+          vocabulary: prev.vocabulary_set || [],
+        };
+      }
+    } catch (e) {
+      console.warn('Could not fetch previous lesson for spaced repetition:', e);
+    }
+
     for (let i = 0; i < GENERATION_STAGES.length; i++) {
       if (signal.aborted) throw new Error('Generation cancelled');
       const stage = GENERATION_STAGES[i];
@@ -153,6 +174,8 @@ export const useUnifiedLessonGenerator = (hubType?: HubType) => {
           system: config.system,
           hub_type: config.hubType ?? null,
           ai_persona: hubConfig.ai_persona,
+          phonics_rule: hubConfig.phonics_rule,
+          previous_lesson_data: previousLessonData,
           level: config.level,
           cefr_level: config.cefrLevel,
           duration_minutes: config.durationMinutes,
@@ -169,13 +192,16 @@ export const useUnifiedLessonGenerator = (hubType?: HubType) => {
       if (error) throw new Error(`[${stage}] ${error.message}`);
       if (data?.error) throw new Error(`[${stage}] ${data.error}`);
 
-      const chunkSlides: GeneratedSlide[] = Array.isArray(data?.slides) ? data.slides : [];
+      // Robust unwrapping: accept array directly OR { slides: [...] } OR { lesson_plan/data: [...] }
+      const raw = data?.slides ?? data?.lesson_plan ?? data?.data ?? data;
+      const chunkSlides: GeneratedSlide[] = Array.isArray(raw) ? raw : [];
       if (chunkSlides.length === 0) {
-        throw new Error(`[${stage}] AI returned no slides — please retry.`);
+        console.error(`[${stage}] AI returned no slides. Raw response keys:`, data ? Object.keys(data) : 'null', data);
+        throw new Error(`[${stage}] AI returned no slides — please retry. (response keys: ${data ? Object.keys(data).join(', ') : 'none'})`);
       }
 
       allSlides.push(...chunkSlides);
-      setStreamingSlides([...allSlides]); // progressive render
+      setStreamingSlides([...allSlides]);
       updateStage('content', {
         progress: Math.round(((i + 1) / GENERATION_STAGES.length) * 100),
         message: `${STAGE_LABELS[stage]} ✓ (${allSlides.length} slides)`,

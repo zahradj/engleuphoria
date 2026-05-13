@@ -19,6 +19,8 @@ export interface HubConfig {
   cefrRange: { min: string; max: string };
   /** Default lesson duration (minutes) */
   defaultDuration: number;
+  /** Hub-specific phonics/pronunciation progression rule injected into the AI prompt */
+  phonics_rule: string;
 }
 
 export const HUB_CONFIGS: Record<HubType, HubConfig> = {
@@ -32,6 +34,9 @@ export const HUB_CONFIGS: Record<HubType, HubConfig> = {
       'Never use abstract concepts, business themes, or words above A2 level.',
     cefrRange: { min: 'Pre-A1', max: 'A2' },
     defaultDuration: 30,
+    phonics_rule:
+      'Focus strictly on single-letter phonemes (e.g., Short A /æ/, Hard C /k/) and simple ' +
+      'CVC (Consonant-Vowel-Consonant) blending. Do not introduce complex digraphs yet.',
   },
   academy: {
     label: 'Academy',
@@ -43,6 +48,9 @@ export const HUB_CONFIGS: Record<HubType, HubConfig> = {
       'Avoid babyish themes (no toys, no nursery rhymes) and avoid corporate/IELTS topics.',
     cefrRange: { min: 'A2', max: 'B2' },
     defaultDuration: 60,
+    phonics_rule:
+      'Focus on two-letter and three-letter consonant clusters/digraphs (e.g., sh, ch, th, str, spl) ' +
+      'and vowel teams (e.g., ee, oa, ai). Introduce minimal pairs (e.g., ship vs sheep).',
   },
   success: {
     label: 'Success',
@@ -54,6 +62,10 @@ export const HUB_CONFIGS: Record<HubType, HubConfig> = {
       'Use complex sentence structures and idioms. Never use childish themes or cartoon metaphors.',
     cefrRange: { min: 'B1', max: 'C2' },
     defaultDuration: 60,
+    phonics_rule:
+      'Move beyond basic letters. Focus on advanced adult pronunciation features: connected speech ' +
+      '(elision, assimilation), syllable stress in multi-syllable words (e.g., RE-cord vs re-CORD), ' +
+      'and rising/falling intonation for questions and statements.',
   },
 };
 

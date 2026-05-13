@@ -55,7 +55,7 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { action, topic, system, level, level_id, cefr_level, lesson_type, unit_name, level_name, duration_minutes, ai_persona, hub_type, current_stage, previous_slide_count, blueprint } = body;
+    const { action, topic, system, level, level_id, cefr_level, lesson_type, unit_name, level_name, duration_minutes, ai_persona, hub_type, current_stage, previous_slide_count, blueprint, phonics_rule, previous_lesson_data } = body;
 
     // Default to 60 minutes if not specified
     const lessonDuration = duration_minutes || 60;
@@ -75,6 +75,8 @@ serve(async (req) => {
         lessonType: lesson_type, unitName: unit_name, levelName: level_name,
         durationMinutes: lessonDuration, apiKey: lovableApiKey,
         aiPersona: ai_persona, hubType: hub_type,
+        phonicsRule: phonics_rule,
+        previousLessonData: previous_lesson_data,
         currentStage: stage,
         previousSlideCount: Number(previous_slide_count) || 0,
         blueprint: blueprint || null,
@@ -841,6 +843,8 @@ interface ChunkParams {
   apiKey: string;
   aiPersona?: string;
   hubType?: string;
+  phonicsRule?: string;
+  previousLessonData?: { title?: string; topic?: string; grammar?: string; vocabulary?: unknown } | null;
   currentStage: string;
   previousSlideCount: number;
   blueprint: any;
@@ -849,17 +853,17 @@ interface ChunkParams {
 const STAGE_INSTRUCTIONS: Record<string, { count: string; desc: string; types: string }> = {
   foundation: {
     count: "EXACTLY 3",
-    desc: "FOUNDATION (Warm-up): (1) Intro/Title slide with objectives, (2) Spaced-Repetition Review slide of the previous lesson, (3) Target Vocabulary intro slide with 4-6 words including IPA pronunciation.",
-    types: "title, warmup, vocabulary",
+    desc: "FOUNDATION (Warm-up): (1) Intro/Title slide with objectives, (2) SPACED-REPETITION REVIEW slide (type: 'review_slide') that gamifies recall of the previous lesson's vocabulary and grammar — if previous_lesson_data is provided, this slide is MANDATORY and must reference those exact words/structures via a drag-drop or matching mini-game. The new theme must logically extend the previous theme without repeating it. (3) Target Vocabulary intro slide with 4-6 words including IPA pronunciation.",
+    types: "title, review_slide, warmup, vocabulary",
   },
   mechanics: {
     count: "EXACTLY 3",
-    desc: "MECHANICS (Presentation): Visual Grammar explanation slides + Phonics/Pronunciation focus slide. Each must include the rule, pattern formula, and 2-3 examples.",
-    types: "grammar, grammar_focus, listening",
+    desc: "MECHANICS (Presentation): (a) Visual Grammar explanation slide with rule + pattern formula + 2-3 examples, (b) Phonics/Pronunciation focus slide that STRICTLY OBEYS the active hub phonics_rule, (c) MANDATORY sentence_builder slide — the student must drag scrambled words into a grammatically correct sentence using TODAY's grammar focus (e.g., Subject → Verb → Object). content.words must be the scrambled array; content.correctOrder must be the indices in correct order; provide 2-3 sentences.",
+    types: "grammar, grammar_focus, phonics, sentence_builder",
   },
   application: {
     count: "EXACTLY 3 to 4",
-    desc: "APPLICATION (Practice): Interactive gamified slides ONLY. Use a mix of drag_drop, sentence_builder, matching, sorting, quiz. Each slide MUST include FULL game data: drag_drop needs content.items[{text,targetId}] + content.targets[{id,label}]; matching needs content.pairs[{left,right}]; sentence_builder needs content.words + content.correctOrder; quiz needs content.options[{id,text,isCorrect}].",
+    desc: "APPLICATION (Practice): Interactive gamified slides ONLY. Use a mix of drag_drop, sentence_builder, matching, sorting, quiz. At least one MUST be a sentence_builder reinforcing today's syntax. Each slide MUST include FULL game data: drag_drop needs content.items[{text,targetId}] + content.targets[{id,label}]; matching needs content.pairs[{left,right}]; sentence_builder needs content.words + content.correctOrder; quiz needs content.options[{id,text,isCorrect}].",
     types: "drag_drop, matching, sentence_builder, sorting, quiz",
   },
   mastery: {
@@ -877,7 +881,15 @@ async function generateLessonChunk(p: ChunkParams): Promise<any[]> {
     ? `\n=== HUB AGE-LOCK (NON-NEGOTIABLE) ===\nActive Hub: ${p.hubType ?? "unspecified"}\n${p.aiPersona}\n=== END HUB AGE-LOCK ===\n`
     : "";
 
-  const systemPrompt = `You are an expert ESL curriculum designer generating ONE chunk of a ${p.durationMinutes}-minute PPP lesson.${personaBlock}
+  const phonicsBlock = p.phonicsRule
+    ? `\n=== PHONICS / PRONUNCIATION RULE (NON-NEGOTIABLE) ===\n${p.phonicsRule}\nYou MUST generate a target_phonics or pronunciation_focus data point that strictly obeys this rule. Any auditory/phonics slide must include a practice activity tailored to this specific phonetic target.\n=== END PHONICS RULE ===\n`
+    : "";
+
+  const prevBlock = p.previousLessonData
+    ? `\n=== PREVIOUS LESSON (use for spaced repetition) ===\nTitle: ${p.previousLessonData.title || "—"}\nTopic: ${p.previousLessonData.topic || "—"}\nGrammar: ${p.previousLessonData.grammar || "—"}\nVocabulary: ${JSON.stringify(p.previousLessonData.vocabulary || []).substring(0, 400)}\nThe FIRST interactive slide of THIS lesson must be a review_slide that gamifies recall of the items above. The new theme must logically connect to the previous topic without repeating it.\n=== END PREVIOUS LESSON ===\n`
+    : "\n(No previous lesson on record — skip the spaced-repetition review slide and go straight to today's vocabulary.)\n";
+
+  const systemPrompt = `You are an expert ESL curriculum designer generating ONE chunk of a ${p.durationMinutes}-minute PPP lesson.${personaBlock}${phonicsBlock}${prevBlock}
 
 CURRENT STAGE: ${p.currentStage.toUpperCase()}
 ${stageDef.desc}
@@ -890,7 +902,7 @@ Continue numbering: starting slide id = "slide-${p.previousSlideCount + 1}".
 
 Audience: ${sys.ageGroup}. Tone: ${sys.tone}.
 
-CRITICAL: Return ONLY a JSON object via the emit_chunk tool with the slides array. No prose, no extra text.`;
+CRITICAL RESPONSE FORMAT: Return ONLY a JSON object via the emit_chunk tool with exactly one key "slides" whose value is an array of slide objects. No prose, no markdown, no extra text.`;
 
   const userPrompt = `Topic: ${p.topic}
 Level: ${p.levelName || p.level} (${p.cefrLevel})
@@ -965,17 +977,33 @@ Generate the ${p.currentStage} chunk now.`;
         continue;
       }
       const toolCall = ai.choices?.[0]?.message?.tool_calls?.[0];
-      if (!toolCall) {
+      let parsed: any = null;
+      if (toolCall) {
+        try { parsed = JSON.parse(toolCall.function.arguments); } catch (e) {
+          lastError = new Error(`Failed to parse tool args: ${(e as Error).message}`);
+          continue;
+        }
+      } else {
+        // Fallback: try plain JSON content
+        const content = ai.choices?.[0]?.message?.content;
+        if (typeof content === "string") {
+          const cleaned = content.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+          try { parsed = JSON.parse(cleaned); } catch { /* ignore */ }
+        }
+      }
+      if (!parsed) {
         lastError = new Error(`No tool call in ${p.currentStage} chunk response`);
         continue;
       }
-      const parsed = JSON.parse(toolCall.function.arguments);
-      const slides = Array.isArray(parsed?.slides) ? parsed.slides : [];
-      if (slides.length === 0) {
-        lastError = new Error(`Empty ${p.currentStage} slide array`);
+      // Robust unwrapping — accept array OR { slides | lesson_plan | data: [...] }
+      const slides = Array.isArray(parsed)
+        ? parsed
+        : (parsed.slides || parsed.lesson_plan || parsed.data || []);
+      if (!Array.isArray(slides) || slides.length === 0) {
+        console.error(`AI returned valid JSON but no slides for ${p.currentStage}. Raw:`, parsed);
+        lastError = new Error(`Empty ${p.currentStage} slide array (keys: ${Object.keys(parsed || {}).join(", ")})`);
         continue;
       }
-      // Ensure ids continue from previous count
       return slides.map((s: any, i: number) => ({
         ...s,
         id: s.id || `slide-${p.previousSlideCount + i + 1}`,

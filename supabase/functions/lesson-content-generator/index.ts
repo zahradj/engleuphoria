@@ -244,15 +244,25 @@ serve(async (req) => {
       rawText = rawText.slice(firstBrace, lastBrace + 1);
     }
 
-    let slidesData;
+    let parsedData: any;
     try {
-      slidesData = JSON.parse(rawText);
+      parsedData = JSON.parse(rawText);
     } catch (parseError) {
       console.error('Failed to parse Gemini JSON:', rawText.substring(0, 800));
       throw new Error('AI returned malformed data. Please try generating again.');
     }
 
-    const slides = slidesData.slides || [];
+    // Robust unwrapping — accept array OR { slides | lesson_plan | data: [...] }
+    const slides = Array.isArray(parsedData)
+      ? parsedData
+      : (parsedData.slides || parsedData.lesson_plan || parsedData.data || []);
+
+    if (!Array.isArray(slides) || slides.length === 0) {
+      console.error('AI returned valid JSON, but no slides found. Raw output:', JSON.stringify(parsedData).substring(0, 1000));
+      throw new Error(`AI returned an empty or malformed slide array. (response keys: ${Object.keys(parsedData || {}).join(', ') || 'none'})`);
+    }
+
+    const slidesData = Array.isArray(parsedData) ? { slides } : parsedData;
     console.log(`Generated ${slides.length} slides`);
 
     // Step 2: Extract image prompts
@@ -515,5 +525,7 @@ In metadata, include audioManifest array with ALL audio files needed:
 
 Return valid JSON with version: "2.0", theme: "mist-blue", durationMin: 45, metadata (CEFR, module, lesson, targets, audioManifest), and slides array.
 
-CRITICAL: You must return ONLY valid, raw JSON. Do NOT wrap the response in markdown blocks. Do not use \`\`\`json or \`\`\` tags. Start immediately with { or [.`;
+CRITICAL: You must return ONLY valid, raw JSON. Do NOT wrap the response in markdown blocks. Do not use \`\`\`json or \`\`\` tags. Start immediately with { or [.
+
+CRITICAL RESPONSE FORMAT: You MUST return a single JSON object containing exactly one key named "slides". The value of "slides" must be an array of slide objects. Example: { "slides": [ { "slide_type": "...", "content": {...} } ] }`;
 }
