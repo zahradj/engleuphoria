@@ -3615,6 +3615,7 @@ export type Database = {
       homework_assignments: {
         Row: {
           attachment_urls: string[] | null
+          content: Json | null
           created_at: string
           description: string
           due_date: string
@@ -3622,6 +3623,7 @@ export type Database = {
           instructions: string | null
           lesson_id: string | null
           points: number
+          source: string | null
           status: string
           teacher_id: string
           title: string
@@ -3629,6 +3631,7 @@ export type Database = {
         }
         Insert: {
           attachment_urls?: string[] | null
+          content?: Json | null
           created_at?: string
           description: string
           due_date: string
@@ -3636,6 +3639,7 @@ export type Database = {
           instructions?: string | null
           lesson_id?: string | null
           points?: number
+          source?: string | null
           status?: string
           teacher_id: string
           title: string
@@ -3643,6 +3647,7 @@ export type Database = {
         }
         Update: {
           attachment_urls?: string[] | null
+          content?: Json | null
           created_at?: string
           description?: string
           due_date?: string
@@ -3650,6 +3655,7 @@ export type Database = {
           instructions?: string | null
           lesson_id?: string | null
           points?: number
+          source?: string | null
           status?: string
           teacher_id?: string
           title?: string
@@ -7781,8 +7787,10 @@ export type Database = {
       }
       student_phonics_progress: {
         Row: {
+          audio_url: string | null
           created_at: string | null
           id: string
+          image_url: string | null
           lesson_id: string | null
           mastered_at: string | null
           mastery_level: string | null
@@ -7790,8 +7798,10 @@ export type Database = {
           student_id: string
         }
         Insert: {
+          audio_url?: string | null
           created_at?: string | null
           id?: string
+          image_url?: string | null
           lesson_id?: string | null
           mastered_at?: string | null
           mastery_level?: string | null
@@ -7799,8 +7809,10 @@ export type Database = {
           student_id: string
         }
         Update: {
+          audio_url?: string | null
           created_at?: string | null
           id?: string
+          image_url?: string | null
           lesson_id?: string | null
           mastered_at?: string | null
           mastery_level?: string | null
@@ -8178,6 +8190,7 @@ export type Database = {
           created_at: string | null
           first_seen_at: string | null
           id: string
+          image_url: string | null
           last_reviewed_at: string | null
           mastered: boolean | null
           mastery_level: number | null
@@ -8193,6 +8206,7 @@ export type Database = {
           created_at?: string | null
           first_seen_at?: string | null
           id?: string
+          image_url?: string | null
           last_reviewed_at?: string | null
           mastered?: boolean | null
           mastery_level?: number | null
@@ -8208,6 +8222,7 @@ export type Database = {
           created_at?: string | null
           first_seen_at?: string | null
           id?: string
+          image_url?: string | null
           last_reviewed_at?: string | null
           mastered?: boolean | null
           mastery_level?: number | null
