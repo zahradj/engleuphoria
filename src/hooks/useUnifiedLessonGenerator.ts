@@ -70,12 +70,25 @@ const createInitialStages = (): PipelineStage[] => [
   },
 ];
 
+// 4-Part Sequential PPP stages
+const GENERATION_STAGES = ['foundation', 'mechanics', 'application', 'mastery'] as const;
+export type GenerationStageId = typeof GENERATION_STAGES[number];
+
+const STAGE_LABELS: Record<GenerationStageId, string> = {
+  foundation: 'Generating Intro & Vocabulary…',
+  mechanics: 'Generating Grammar & Phonics…',
+  application: 'Generating Interactive Games…',
+  mastery: 'Finalizing Roleplay & Review…',
+};
+
 export const useUnifiedLessonGenerator = (hubType?: HubType) => {
   const [stages, setStages] = useState<PipelineStage[]>(createInitialStages());
   const [overallProgress, setOverallProgress] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [generatedLesson, setGeneratedLesson] = useState<GeneratedLesson | null>(null);
+  const [streamingSlides, setStreamingSlides] = useState<GeneratedSlide[]>([]);
+  const [currentStage, setCurrentStage] = useState<GenerationStageId | null>(null);
 
   const hubConfig = getHubConfig(hubType);
 
