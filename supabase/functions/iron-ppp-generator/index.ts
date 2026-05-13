@@ -248,7 +248,7 @@ Generate the curriculum now. Output ONLY valid JSON.`;
   } catch (error) {
     console.error('[Iron PPP Generator] Error:', error);
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: error instanceof Error ? error.message : "Internal server error" }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

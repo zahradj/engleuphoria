@@ -358,7 +358,7 @@ ${(parsedData.slides || []).map((s: any, i: number) => {
   } catch (err) {
     console.error("Edge function error:", err);
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: err instanceof Error ? err.message : "Internal server error" }),
       { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
     );
   }

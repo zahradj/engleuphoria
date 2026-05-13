@@ -98,7 +98,7 @@ Guidelines:
     });
   } catch (error) {
     console.error('Error in ai-conversation function:', error);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
