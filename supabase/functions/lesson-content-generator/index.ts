@@ -171,7 +171,7 @@ serve(async (req) => {
                 }
               }
             },
-            max_completion_tokens: 3000
+            max_completion_tokens: 16384
           }),
         });
 

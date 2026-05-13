@@ -83,7 +83,7 @@ Generate exactly ${vocabularyCount || 4} vocabulary items.`;
           { role: "user", content: userPrompt },
         ],
         temperature: 0.7,
-        max_tokens: 8192,
+        max_tokens: 16384,
       }),
     });
 
