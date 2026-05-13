@@ -19,6 +19,8 @@ export interface HubConfig {
   cefrRange: { min: string; max: string };
   /** Default lesson duration (minutes) */
   defaultDuration: number;
+  /** Hub-specific phonics/pronunciation progression rule injected into the AI prompt */
+  phonics_rule: string;
 }
 
 export const HUB_CONFIGS: Record<HubType, HubConfig> = {
