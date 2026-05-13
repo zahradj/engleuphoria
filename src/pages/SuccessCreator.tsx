@@ -374,7 +374,10 @@ export default function SuccessCreator() {
 
   const grouped = useMemo(() => {
     const m: Record<Block, { slide: Slide; idx: number }[]> = { warmup: [], vocab: [], context: [], functional: [], practice: [], simulation: [], output: [], buffer: [] };
-    slides.forEach((s, idx) => m[s.block].push({ slide: s, idx }));
+    slides.forEach((s, idx) => {
+      const block = (s?.block && (m as any)[s.block]) ? s.block : 'buffer';
+      m[block as Block].push({ slide: s, idx });
+    });
     return m;
   }, [slides]);
 
