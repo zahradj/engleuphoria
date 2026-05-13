@@ -449,6 +449,8 @@ export const useUnifiedLessonGenerator = (hubType?: HubType) => {
     setStages(createInitialStages());
     setOverallProgress(0);
     setGeneratedLesson(null);
+    setStreamingSlides([]);
+    setCurrentStage(null);
     
     abortControllerRef.current = new AbortController();
     const signal = abortControllerRef.current.signal;
