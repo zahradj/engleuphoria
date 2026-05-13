@@ -418,6 +418,11 @@ export const useUnifiedLessonGenerator = (hubType?: HubType) => {
 
   // Main generation function
   const generateLesson = useCallback(async (config: UnifiedGenerationConfig) => {
+    // If caller didn't pass hubType in the config, fall back to the hook-level hubType
+    const mergedConfig: UnifiedGenerationConfig = {
+      ...config,
+      hubType: config.hubType ?? hubType,
+    };
     setIsGenerating(true);
     setStages(createInitialStages());
     setOverallProgress(0);
