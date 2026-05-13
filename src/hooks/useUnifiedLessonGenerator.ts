@@ -70,13 +70,15 @@ const createInitialStages = (): PipelineStage[] => [
   },
 ];
 
-export const useUnifiedLessonGenerator = () => {
+export const useUnifiedLessonGenerator = (hubType?: HubType) => {
   const [stages, setStages] = useState<PipelineStage[]>(createInitialStages());
   const [overallProgress, setOverallProgress] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [generatedLesson, setGeneratedLesson] = useState<GeneratedLesson | null>(null);
-  
+
+  const hubConfig = getHubConfig(hubType);
+
   const abortControllerRef = useRef<AbortController | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
