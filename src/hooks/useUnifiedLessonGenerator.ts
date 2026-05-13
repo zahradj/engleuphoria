@@ -499,5 +499,9 @@ export const useUnifiedLessonGenerator = (hubType?: HubType) => {
     generateLesson,
     cancelGeneration,
     reset,
+    /** Tailwind classes for the active hub — apply to wrapper components */
+    hubTheme: hubConfig.ui_theme,
+    /** Full active hub config (persona, cefr range, etc.) */
+    hubConfig,
   };
 };
