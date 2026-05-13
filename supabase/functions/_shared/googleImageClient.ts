@@ -1,8 +1,10 @@
-// Shared client for Google AI Studio image generation (Imagen 3).
-// Uses GEMINI_API_KEY directly — bypasses Lovable AI Gateway and its credit billing.
+// Shared client for AI image generation.
+// Routes through the Lovable AI Gateway (Nano Banana / gemini-2.5-flash-image).
+// The legacy Google Imagen 3 endpoint (`imagen-3.0-generate-001:predict`)
+// has been retired by Google and now returns 404 — do not reintroduce it.
 
-const MODEL = "imagen-3.0-generate-001";
-const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:predict`;
+const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const MODEL = "google/gemini-2.5-flash-image";
 
 export class GoogleImageError extends Error {
   status: number;
@@ -27,48 +29,65 @@ function b64ToBytes(b64: string): Uint8Array {
 }
 
 /**
- * Generate a single image with Google's gemini-2.5-flash-image model.
+ * Generate a single image via the Lovable AI Gateway.
  * Throws GoogleImageError with an appropriate HTTP status on failure.
+ * Name preserved for backwards compatibility with existing callers.
  */
 export async function generateGoogleImage(prompt: string): Promise<GoogleImageResult> {
-  const apiKey = Deno.env.get("GEMINI_API_KEY");
+  const apiKey = Deno.env.get("LOVABLE_API_KEY");
   if (!apiKey) {
-    throw new GoogleImageError("GEMINI_API_KEY is not configured", 500);
+    throw new GoogleImageError("LOVABLE_API_KEY is not configured", 500);
   }
   if (!prompt || !prompt.trim()) {
     throw new GoogleImageError("Prompt is required", 400);
   }
 
-  const res = await fetch(`${ENDPOINT}?key=${encodeURIComponent(apiKey)}`, {
+  const res = await fetch(GATEWAY_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
     body: JSON.stringify({
-      instances: [{ prompt }],
-      parameters: { sampleCount: 1 },
+      model: MODEL,
+      messages: [{ role: "user", content: prompt }],
+      modalities: ["image", "text"],
     }),
   });
 
   if (!res.ok) {
     const txt = await res.text();
-    console.error("Google Imagen API error", res.status, txt.slice(0, 500));
+    console.error("Lovable AI Gateway image error", res.status, txt.slice(0, 500));
     if (res.status === 429) {
-      throw new GoogleImageError("Rate limited by Google. Please try again shortly.", 429);
+      throw new GoogleImageError("Rate limited. Please try again shortly.", 429);
     }
-    if (res.status === 403) {
-      throw new GoogleImageError("Google API key rejected (check GEMINI_API_KEY permissions / billing).", 402);
+    if (res.status === 402) {
+      throw new GoogleImageError("AI credits exhausted. Add credits in Workspace → Usage.", 402);
     }
-    throw new GoogleImageError(`Google image generation failed: ${txt.slice(0, 200)}`, 502);
+    if (res.status === 401 || res.status === 403) {
+      throw new GoogleImageError("LOVABLE_API_KEY rejected by AI Gateway.", 402);
+    }
+    throw new GoogleImageError(`Image generation failed: ${txt.slice(0, 200)}`, 502);
   }
 
   const data = await res.json();
-  const prediction = data?.predictions?.[0];
-  const b64 = prediction?.bytesBase64Encoded;
-  if (!b64) {
-    console.error("Imagen API: no image in response", JSON.stringify(data).slice(0, 500));
-    throw new GoogleImageError("Invalid response from Google Imagen API", 502);
+  const message = data?.choices?.[0]?.message;
+  const imageUrl: string | undefined =
+    message?.images?.[0]?.image_url?.url ??
+    message?.images?.[0]?.url ??
+    undefined;
+
+  if (!imageUrl || !imageUrl.startsWith("data:")) {
+    console.error("AI Gateway: no image in response", JSON.stringify(data).slice(0, 500));
+    throw new GoogleImageError("Invalid response from AI Gateway (no image)", 502);
   }
-  const contentType: string = prediction?.mimeType ?? "image/png";
+
+  // Parse data URL: data:<mime>;base64,<payload>
+  const commaIdx = imageUrl.indexOf(",");
+  const header = imageUrl.slice(5, commaIdx); // strip leading "data:"
+  const b64 = imageUrl.slice(commaIdx + 1);
+  const contentType = header.split(";")[0] || "image/png";
   const bytes = b64ToBytes(b64);
-  const dataUrl = `data:${contentType};base64,${b64}`;
+  const dataUrl = imageUrl;
   return { bytes, contentType, dataUrl };
 }
