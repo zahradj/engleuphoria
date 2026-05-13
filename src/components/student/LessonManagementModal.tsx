@@ -133,7 +133,13 @@ export function LessonManagementModal({
           <div className="bg-muted/50 p-4 rounded-lg space-y-2">
             <div className="flex items-center gap-2 text-sm">
               <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-              <span>{new Date(lesson.scheduled_at).toLocaleString()}</span>
+              <span>
+                {new Date(lesson.scheduled_at).toLocaleString(undefined, {
+                  weekday: 'short', month: 'short', day: 'numeric',
+                  hour: '2-digit', minute: '2-digit',
+                  timeZoneName: 'short',
+                })}
+              </span>
             </div>
             <div className="flex items-center gap-2 text-sm">
               <Clock className="h-4 w-4 text-muted-foreground" />
