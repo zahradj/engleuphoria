@@ -513,5 +513,7 @@ SLIDES 17-20: ASSESSMENT & REWARDS
 In metadata, include audioManifest array with ALL audio files needed:
 [{id: "vocab-apple", text: "Apple. A round red fruit.", type: "vocabulary"}, ...]
 
-Return valid JSON with version: "2.0", theme: "mist-blue", durationMin: 45, metadata (CEFR, module, lesson, targets, audioManifest), and slides array.`;
+Return valid JSON with version: "2.0", theme: "mist-blue", durationMin: 45, metadata (CEFR, module, lesson, targets, audioManifest), and slides array.
+
+CRITICAL: You must return ONLY valid, raw JSON. Do NOT wrap the response in markdown blocks. Do not use \`\`\`json or \`\`\` tags. Start immediately with { or [.`;
 }
