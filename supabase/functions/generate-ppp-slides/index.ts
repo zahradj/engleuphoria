@@ -1245,9 +1245,15 @@ Return ONLY the JSON object.`;
   } catch (e) {
     const err = e instanceof Error ? e : new Error(String(e));
     console.error("generate-ppp-slides error:", err.message, err.stack);
-    return new Response(JSON.stringify({ error: err.message, stack: err.stack }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        error: err.message || "generate-ppp-slides failed",
+        detail: err.stack ? err.stack.split("\n").slice(0, 4).join(" | ") : undefined,
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   }
 });

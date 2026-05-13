@@ -352,10 +352,14 @@ export default function AcademyCreator() {
           },
         },
       });
-      if (error) throw error;
-      const academySlides: Slide[] | undefined = data?.academy_slides;
+      if (error || data?.error) {
+        const { extractEdgeError } = await import('@/lib/extractEdgeError');
+        throw new Error(extractEdgeError({ error, data, fallback: 'AI generation failed' }));
+      }
+      const academySlides: Slide[] | undefined = data?.academy_slides || data?.slides;
       if (!academySlides || !Array.isArray(academySlides) || academySlides.length === 0) {
-        throw new Error('AI returned no Academy slides');
+        const keys = data && typeof data === 'object' ? Object.keys(data).join(', ') : 'none';
+        throw new Error(`AI returned no Academy slides. Response keys: [${keys}]`);
       }
       const finalSlides = academySlides.some((s: any) => s.type === 'lesson_summary')
         ? academySlides
@@ -366,7 +370,11 @@ export default function AcademyCreator() {
       toast.success(`Generated ${academySlides.length} slides ✨`);
     } catch (e: any) {
       console.error(e);
-      toast.error(e?.message || 'AI generation failed');
+      toast.error('Generation Failed', {
+        description: e?.message || 'AI generation failed',
+        duration: 15000,
+        action: { label: 'Retry', onClick: () => generateWithAI(payload) },
+      });
     } finally {
       setAiBusy(false);
     }

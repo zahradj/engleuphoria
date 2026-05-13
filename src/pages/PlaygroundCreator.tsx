@@ -375,10 +375,14 @@ export default function PlaygroundCreator() {
           },
         },
       });
-      if (error) throw error;
-      const playgroundSlides: Slide[] | undefined = data?.playground_slides;
+      if (error || data?.error) {
+        const { extractEdgeError } = await import('@/lib/extractEdgeError');
+        throw new Error(extractEdgeError({ error, data, fallback: 'AI generation failed' }));
+      }
+      const playgroundSlides: Slide[] | undefined = data?.playground_slides || data?.slides;
       if (!playgroundSlides || !Array.isArray(playgroundSlides) || playgroundSlides.length === 0) {
-        throw new Error('AI returned no Playground slides');
+        const keys = data && typeof data === 'object' ? Object.keys(data).join(', ') : 'none';
+        throw new Error(`AI returned no Playground slides. Response keys: [${keys}]`);
       }
       const finalSlides = playgroundSlides.some((s: any) => s.type === 'lesson_summary')
         ? playgroundSlides
@@ -389,7 +393,11 @@ export default function PlaygroundCreator() {
       toast.success(`Generated ${playgroundSlides.length} slides ✨`);
     } catch (e: any) {
       console.error(e);
-      toast.error(e?.message || 'AI generation failed');
+      toast.error('Generation Failed', {
+        description: e?.message || 'AI generation failed',
+        duration: 15000,
+        action: { label: 'Retry', onClick: () => generateWithAI(payload) },
+      });
     } finally {
       setAiBusy(false);
     }
