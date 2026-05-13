@@ -89,7 +89,7 @@ export function AssessmentsList({ isTeacher }: { isTeacher: boolean }) {
   };
 
   const deleteAssessment = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this assessment?')) return;
+    if (!confirm('Delete this assessment? This is only allowed if NO student has submitted answers yet.')) return;
 
     try {
       const { error } = await supabase
@@ -107,8 +107,8 @@ export function AssessmentsList({ isTeacher }: { isTeacher: boolean }) {
       fetchAssessments();
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Cannot delete assessment",
+        description: error.message || 'Historical assessments with submissions are immutable.',
         variant: "destructive",
       });
     }
