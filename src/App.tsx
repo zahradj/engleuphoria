@@ -203,6 +203,15 @@ const App = () => {
                         </ImprovedProtectedRoute>
                       } />
 
+                      {/* Post-Lesson Summary — shared landing for teacher + student after End Class */}
+                      <Route path="/classroom/:id/summary" element={
+                        <ImprovedProtectedRoute>
+                          <Suspense fallback={<LoadingFallback />}>
+                            <PostLessonSummary />
+                          </Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
+
                       {/* Real-Time Live Classroom (sync + annotation overlay) */}
                       <Route path="/live-classroom/:sessionId" element={
                         <ImprovedProtectedRoute>
