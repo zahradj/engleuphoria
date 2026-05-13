@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AdvancedOptions, GameMode } from '@/components/admin/generator/AdvancedLessonOptions';
 import { PipelineStage, PipelineStageStatus } from '@/components/admin/generator/PipelineProgress';
 import { toast } from 'sonner';
+import { HubType, getHubConfig } from '@/config/hubConfigs';
 
 export interface UnifiedGenerationConfig {
   topic: string;
@@ -11,6 +12,8 @@ export interface UnifiedGenerationConfig {
   cefrLevel: string;
   durationMinutes: number;
   ageGroup: string;
+  /** Hub the lesson belongs to — drives age-locked AI persona + UI theme */
+  hubType?: HubType;
   advancedOptions: AdvancedOptions;
 }
 
@@ -67,13 +70,15 @@ const createInitialStages = (): PipelineStage[] => [
   },
 ];
 
-export const useUnifiedLessonGenerator = () => {
+export const useUnifiedLessonGenerator = (hubType?: HubType) => {
   const [stages, setStages] = useState<PipelineStage[]>(createInitialStages());
   const [overallProgress, setOverallProgress] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [generatedLesson, setGeneratedLesson] = useState<GeneratedLesson | null>(null);
-  
+
+  const hubConfig = getHubConfig(hubType);
+
   const abortControllerRef = useRef<AbortController | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -114,11 +119,15 @@ export const useUnifiedLessonGenerator = () => {
   ): Promise<GeneratedLesson> => {
     updateStage('content', { status: 'running', progress: 10, message: 'Connecting to AI...' });
 
+    const hubConfig = getHubConfig(config.hubType ?? config.system);
+
     const { data, error } = await supabase.functions.invoke('n8n-bridge', {
       body: {
         action: 'generate-lesson',
         topic: config.topic,
         system: config.system,
+        hub_type: config.hubType ?? null,
+        ai_persona: hubConfig.ai_persona,
         level: config.level,
         cefr_level: config.cefrLevel,
         duration_minutes: config.durationMinutes,
@@ -409,6 +418,11 @@ export const useUnifiedLessonGenerator = () => {
 
   // Main generation function
   const generateLesson = useCallback(async (config: UnifiedGenerationConfig) => {
+    // If caller didn't pass hubType in the config, fall back to the hook-level hubType
+    const mergedConfig: UnifiedGenerationConfig = {
+      ...config,
+      hubType: config.hubType ?? hubType,
+    };
     setIsGenerating(true);
     setStages(createInitialStages());
     setOverallProgress(0);
@@ -421,19 +435,19 @@ export const useUnifiedLessonGenerator = () => {
 
     try {
       // Stage 1: Generate content
-      let lesson = await generateContent(config, signal);
+      let lesson = await generateContent(mergedConfig, signal);
       setOverallProgress(25);
 
       // Stage 2: Generate games
-      lesson = await generateGames(lesson, config, signal);
+      lesson = await generateGames(lesson, mergedConfig, signal);
       setOverallProgress(50);
 
       // Stage 3: Generate images
-      lesson = await generateImages(lesson, config, signal);
+      lesson = await generateImages(lesson, mergedConfig, signal);
       setOverallProgress(75);
 
       // Stage 4: Finalize
-      lesson = await finalizeLesson(lesson, config);
+      lesson = await finalizeLesson(lesson, mergedConfig);
       setOverallProgress(100);
 
       setGeneratedLesson(lesson);
@@ -460,7 +474,7 @@ export const useUnifiedLessonGenerator = () => {
       setIsGenerating(false);
       abortControllerRef.current = null;
     }
-  }, [startTimer, stopTimer, updateStage]);
+  }, [startTimer, stopTimer, updateStage, hubType]);
 
   const cancelGeneration = useCallback(() => {
     if (abortControllerRef.current) {
@@ -485,5 +499,9 @@ export const useUnifiedLessonGenerator = () => {
     generateLesson,
     cancelGeneration,
     reset,
+    /** Tailwind classes for the active hub — apply to wrapper components */
+    hubTheme: hubConfig.ui_theme,
+    /** Full active hub config (persona, cefr range, etc.) */
+    hubConfig,
   };
 };
