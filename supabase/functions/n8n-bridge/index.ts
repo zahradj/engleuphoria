@@ -180,11 +180,13 @@ interface GenerateParams {
   levelName?: string;
   durationMinutes: number;
   apiKey: string;
+  aiPersona?: string;
+  hubType?: string;
 }
 
 async function generateLessonWithAI(params: GenerateParams) {
-  const { topic, system, level, cefrLevel, lessonType, unitName, levelName, durationMinutes, apiKey } = params;
-  
+  const { topic, system, level, cefrLevel, lessonType, unitName, levelName, durationMinutes, apiKey, aiPersona, hubType } = params;
+
   // Calculate slide count based on duration (approximately 1.5 min per slide)
   const slideCount = Math.min(Math.max(Math.ceil(durationMinutes / 1.5), 13), 50);
   const presentationSlides = Math.ceil(slideCount * 0.35); // ~35% for presentation
@@ -195,8 +197,13 @@ async function generateLessonWithAI(params: GenerateParams) {
   const systemContext = getSystemContext(system);
   const lessonTypeContext = getLessonTypeContext(lessonType || "Mechanic");
 
+  // Hub-locked persona block — strictly enforces age-appropriate output
+  const hubPersonaBlock = aiPersona
+    ? `\n\n=== HUB AGE-LOCK (NON-NEGOTIABLE) ===\nActive Hub: ${hubType ?? "unspecified"}\n${aiPersona}\nIf any topic, vocabulary item, or example violates this persona, REPLACE it before emitting the slide.\n=== END HUB AGE-LOCK ===\n`
+    : "";
+
   const systemPrompt = `You are an expert ESL curriculum designer specializing in creating engaging, pedagogically sound INTERACTIVE lessons. 
-You create complete PPP (Presentation-Practice-Production) lessons that are classroom-ready with diverse interactive activities.
+You create complete PPP (Presentation-Practice-Production) lessons that are classroom-ready with diverse interactive activities.${hubPersonaBlock}
 
 LESSON STRUCTURE FOR ${durationMinutes}-MINUTE LESSON (${slideCount} slides total):
 - Presentation Phase: ${presentationSlides} slides
