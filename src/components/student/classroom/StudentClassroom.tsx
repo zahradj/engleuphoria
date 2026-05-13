@@ -245,17 +245,21 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     return () => clearInterval(interval);
   }, [isZenMode]);
 
-  // Teacher ended the session → notify student and exit gracefully
+  // Teacher ended the session → tear down media/WebRTC and route to the
+  // shared Post-Lesson Summary page within milliseconds of the realtime UPDATE.
   const sessionEndedHandled = useRef(false);
   useEffect(() => {
     if (!sessionEnded || sessionEndedHandled.current) return;
     sessionEndedHandled.current = true;
     toast({
       title: 'Class ended',
-      description: 'Your teacher has ended the session. Thanks for joining!'
+      description: 'Your teacher has ended the session. Great work today!'
     });
-    setShowFeedbackModal(true);
-  }, [sessionEnded, toast]);
+    // Best-effort teardown — don't block navigation on these.
+    try { void rtcDisconnect(); } catch (e) { /* noop */ }
+    try { media.leave(); } catch (e) { /* noop */ }
+    navigate(`/classroom/${roomId}/summary`, { replace: true });
+  }, [sessionEnded, toast, roomId, navigate, rtcDisconnect, media]);
 
   const handleLeaveClass = () => {
     setShowFeedbackModal(true);
