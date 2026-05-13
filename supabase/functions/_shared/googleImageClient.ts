@@ -1,8 +1,8 @@
-// Shared client for Google AI Studio image generation (Gemini 2.5 Flash Image / Nano Banana).
+// Shared client for Google AI Studio image generation (Imagen 3).
 // Uses GEMINI_API_KEY directly — bypasses Lovable AI Gateway and its credit billing.
 
-const MODEL = "gemini-2.5-flash-image";
-const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+const MODEL = "imagen-3.0-generate-001";
+const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:predict`;
 
 export class GoogleImageError extends Error {
   status: number;
