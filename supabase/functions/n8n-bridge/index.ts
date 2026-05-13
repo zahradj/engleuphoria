@@ -55,11 +55,35 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { action, topic, system, level, level_id, cefr_level, lesson_type, unit_name, level_name, duration_minutes, ai_persona, hub_type } = body;
+    const { action, topic, system, level, level_id, cefr_level, lesson_type, unit_name, level_name, duration_minutes, ai_persona, hub_type, current_stage, previous_slide_count, blueprint } = body;
 
     // Default to 60 minutes if not specified
     const lessonDuration = duration_minutes || 60;
-    console.log("n8n-bridge request:", { action, topic, system, level, cefr_level, lesson_type, duration_minutes: lessonDuration });
+    console.log("n8n-bridge request:", { action, topic, system, level, cefr_level, lesson_type, duration_minutes: lessonDuration, current_stage });
+
+    // ── New: 4-Part Sequential PPP Chunk ──────────────────────────────────────
+    if (action === "generate-lesson-chunk") {
+      if (!lovableApiKey) {
+        return new Response(
+          JSON.stringify({ error: "AI service not configured. Please add LOVABLE_API_KEY." }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      const stage = String(current_stage || "foundation");
+      const slides = await generateLessonChunk({
+        topic, system, level, cefrLevel: cefr_level,
+        lessonType: lesson_type, unitName: unit_name, levelName: level_name,
+        durationMinutes: lessonDuration, apiKey: lovableApiKey,
+        aiPersona: ai_persona, hubType: hub_type,
+        currentStage: stage,
+        previousSlideCount: Number(previous_slide_count) || 0,
+        blueprint: blueprint || null,
+      });
+      return new Response(
+        JSON.stringify({ status: "success", stage, slides, source: "lovable-ai-chunk" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     if (action === "generate-lesson") {
       // Try n8n webhook first if configured
