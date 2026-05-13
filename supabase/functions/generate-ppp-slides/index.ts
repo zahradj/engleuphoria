@@ -244,7 +244,7 @@ RULES:
         const aiRes = await aiFetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ model: "google/gemini-2.5-flash", messages }),
+          body: JSON.stringify({ model: "google/gemini-2.5-flash", messages, max_tokens: 16384 }),
         });
         if (!aiRes.ok) throw new Error(`AI error ${aiRes.status}: ${await aiRes.text()}`);
         const aiData = await aiRes.json();
@@ -429,7 +429,7 @@ ADDITIONAL ALLOWED TYPES (when phonics layer is required):
         const aiRes = await aiFetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ model: "google/gemini-2.5-flash", messages }),
+          body: JSON.stringify({ model: "google/gemini-2.5-flash", messages, max_tokens: 16384 }),
         });
         if (!aiRes.ok) throw new Error(`AI error ${aiRes.status}: ${await aiRes.text()}`);
         const aiData = await aiRes.json();
@@ -940,6 +940,7 @@ Return ONLY the JSON object.`;
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           model: "google/gemini-2.5-flash",
+          max_tokens: 16384,
           messages: [
             { role: "system", content: systemPrompt + jsonContract },
             { role: "user", content: userPrompt },
