@@ -70,12 +70,25 @@ const createInitialStages = (): PipelineStage[] => [
   },
 ];
 
+// 4-Part Sequential PPP stages
+const GENERATION_STAGES = ['foundation', 'mechanics', 'application', 'mastery'] as const;
+export type GenerationStageId = typeof GENERATION_STAGES[number];
+
+const STAGE_LABELS: Record<GenerationStageId, string> = {
+  foundation: 'Generating Intro & Vocabulary…',
+  mechanics: 'Generating Grammar & Phonics…',
+  application: 'Generating Interactive Games…',
+  mastery: 'Finalizing Roleplay & Review…',
+};
+
 export const useUnifiedLessonGenerator = (hubType?: HubType) => {
   const [stages, setStages] = useState<PipelineStage[]>(createInitialStages());
   const [overallProgress, setOverallProgress] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [generatedLesson, setGeneratedLesson] = useState<GeneratedLesson | null>(null);
+  const [streamingSlides, setStreamingSlides] = useState<GeneratedSlide[]>([]);
+  const [currentStage, setCurrentStage] = useState<GenerationStageId | null>(null);
 
   const hubConfig = getHubConfig(hubType);
 
@@ -112,66 +125,75 @@ export const useUnifiedLessonGenerator = (hubType?: HubType) => {
     }
   }, []);
 
-  // Stage 1: Generate base lesson content
+  // Stage 1: Generate base lesson content via 4 sequential PPP chunks
   const generateContent = async (
     config: UnifiedGenerationConfig,
     signal: AbortSignal
   ): Promise<GeneratedLesson> => {
-    updateStage('content', { status: 'running', progress: 10, message: 'Connecting to AI...' });
-
     const hubConfig = getHubConfig(config.hubType ?? config.system);
+    const allSlides: GeneratedSlide[] = [];
+    setStreamingSlides([]);
 
-    const { data, error } = await supabase.functions.invoke('n8n-bridge', {
-      body: {
-        action: 'generate-lesson',
-        topic: config.topic,
-        system: config.system,
-        hub_type: config.hubType ?? null,
-        ai_persona: hubConfig.ai_persona,
-        level: config.level,
-        cefr_level: config.cefrLevel,
-        duration_minutes: config.durationMinutes,
-        age_group: config.ageGroup,
-        include_games: config.advancedOptions.includeGames,
-        game_slide_count: config.advancedOptions.gameSlideCount,
-      },
-    });
+    for (let i = 0; i < GENERATION_STAGES.length; i++) {
+      if (signal.aborted) throw new Error('Generation cancelled');
+      const stage = GENERATION_STAGES[i];
+      setCurrentStage(stage);
+      updateStage('content', {
+        status: 'running',
+        progress: Math.round((i / GENERATION_STAGES.length) * 100),
+        message: STAGE_LABELS[stage],
+      });
 
-    if (signal.aborted) throw new Error('Generation cancelled');
-    if (error) throw new Error(`Content generation failed: ${error.message}`);
+      const { data, error } = await supabase.functions.invoke('n8n-bridge', {
+        body: {
+          action: 'generate-lesson-chunk',
+          current_stage: stage,
+          previous_slide_count: allSlides.length,
+          topic: config.topic,
+          system: config.system,
+          hub_type: config.hubType ?? null,
+          ai_persona: hubConfig.ai_persona,
+          level: config.level,
+          cefr_level: config.cefrLevel,
+          duration_minutes: config.durationMinutes,
+          age_group: config.ageGroup,
+          blueprint: {
+            includeGames: config.advancedOptions.includeGames,
+            gameSlideCount: config.advancedOptions.gameSlideCount,
+            gameMode: config.advancedOptions.gameMode,
+          },
+        },
+      });
 
-    updateStage('content', { progress: 80, message: 'Processing response...' });
+      if (signal.aborted) throw new Error('Generation cancelled');
+      if (error) throw new Error(`[${stage}] ${error.message}`);
+      if (data?.error) throw new Error(`[${stage}] ${data.error}`);
 
-    // Parse the lesson data - handle nested response from edge function
-    // Edge function returns { status, data: lessonData, source }
-    let lesson: GeneratedLesson;
-    const lessonData = data?.data || data;
-    
-    if (lessonData?.slides) {
-      lesson = {
-        title: lessonData.title || `${config.topic} Lesson`,
-        slides: lessonData.slides,
-        metadata: lessonData.metadata || lessonData._validation || {},
-      };
-    } else if (lessonData?.script) {
-      // Legacy format support
-      lesson = {
-        title: lessonData.title || `${config.topic} Lesson`,
-        slides: Array.isArray(lessonData.script) ? lessonData.script : [],
-        metadata: lessonData.metadata || {},
-      };
-    } else {
-      console.error('Unexpected response structure:', JSON.stringify(data).substring(0, 500));
-      throw new Error('Invalid lesson data received');
+      const chunkSlides: GeneratedSlide[] = Array.isArray(data?.slides) ? data.slides : [];
+      if (chunkSlides.length === 0) {
+        throw new Error(`[${stage}] AI returned no slides — please retry.`);
+      }
+
+      allSlides.push(...chunkSlides);
+      setStreamingSlides([...allSlides]); // progressive render
+      updateStage('content', {
+        progress: Math.round(((i + 1) / GENERATION_STAGES.length) * 100),
+        message: `${STAGE_LABELS[stage]} ✓ (${allSlides.length} slides)`,
+      });
     }
 
-    updateStage('content', { 
-      status: 'complete', 
-      progress: 100, 
-      message: `Generated ${lesson.slides.length} slides` 
+    setCurrentStage(null);
+    updateStage('content', {
+      status: 'complete',
+      progress: 100,
+      message: `Generated ${allSlides.length} slides across 4 PPP stages`,
     });
 
-    return lesson;
+    return {
+      title: `${config.topic} Lesson`,
+      slides: allSlides,
+      metadata: { generatedVia: 'sequential-4-chunk', stages: [...GENERATION_STAGES] },
+    };
   };
 
   // Stage 2: Generate games for game slides
@@ -427,6 +449,8 @@ export const useUnifiedLessonGenerator = (hubType?: HubType) => {
     setStages(createInitialStages());
     setOverallProgress(0);
     setGeneratedLesson(null);
+    setStreamingSlides([]);
+    setCurrentStage(null);
     
     abortControllerRef.current = new AbortController();
     const signal = abortControllerRef.current.signal;
@@ -488,6 +512,8 @@ export const useUnifiedLessonGenerator = (hubType?: HubType) => {
     setOverallProgress(0);
     setGeneratedLesson(null);
     setElapsedTime(0);
+    setStreamingSlides([]);
+    setCurrentStage(null);
   }, []);
 
   return {
@@ -499,6 +525,12 @@ export const useUnifiedLessonGenerator = (hubType?: HubType) => {
     generateLesson,
     cancelGeneration,
     reset,
+    /** Slides streamed in as each PPP chunk completes (for live sidebar render) */
+    streamingSlides,
+    /** Currently active PPP stage id (null when idle/done) */
+    currentStage,
+    /** Human-readable label for the active stage */
+    currentStageLabel: currentStage ? STAGE_LABELS[currentStage] : null,
     /** Tailwind classes for the active hub — apply to wrapper components */
     hubTheme: hubConfig.ui_theme,
     /** Full active hub config (persona, cefr range, etc.) */
