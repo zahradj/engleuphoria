@@ -359,7 +359,9 @@ export default function SuccessCreator() {
       toast.success(`Generated ${successSlides.length} slides ✨`);
     } catch (e: any) {
       console.error(e);
-      toast.error(e?.message || 'AI generation failed', {
+      toast.error('Generation Failed', {
+        description: e?.message || 'AI generation failed',
+        duration: 15000,
         action: { label: 'Retry', onClick: () => generateWithAI(payload) },
       });
     } finally {
