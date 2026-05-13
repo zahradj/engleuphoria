@@ -474,7 +474,7 @@ export const useUnifiedLessonGenerator = (hubType?: HubType) => {
       setIsGenerating(false);
       abortControllerRef.current = null;
     }
-  }, [startTimer, stopTimer, updateStage]);
+  }, [startTimer, stopTimer, updateStage, hubType]);
 
   const cancelGeneration = useCallback(() => {
     if (abortControllerRef.current) {
