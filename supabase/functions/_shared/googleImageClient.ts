@@ -1,8 +1,8 @@
-// Shared client for Google AI Studio image generation (Gemini 2.5 Flash Image / Nano Banana).
+// Shared client for Google AI Studio image generation (Imagen 3).
 // Uses GEMINI_API_KEY directly — bypasses Lovable AI Gateway and its credit billing.
 
-const MODEL = "gemini-2.5-flash-image";
-const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+const MODEL = "imagen-3.0-generate-001";
+const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:predict`;
 
 export class GoogleImageError extends Error {
   status: number;
@@ -43,15 +43,14 @@ export async function generateGoogleImage(prompt: string): Promise<GoogleImageRe
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
+      instances: [{ prompt }],
+      parameters: { sampleCount: 1 },
     }),
   });
 
   if (!res.ok) {
     const txt = await res.text();
-    console.error("Google image API error", res.status, txt.slice(0, 500));
-    // Map common Google statuses to friendly client statuses.
+    console.error("Google Imagen API error", res.status, txt.slice(0, 500));
     if (res.status === 429) {
       throw new GoogleImageError("Rate limited by Google. Please try again shortly.", 429);
     }
@@ -62,17 +61,14 @@ export async function generateGoogleImage(prompt: string): Promise<GoogleImageRe
   }
 
   const data = await res.json();
-  const parts = data?.candidates?.[0]?.content?.parts ?? [];
-  for (const part of parts) {
-    const inline = part?.inline_data ?? part?.inlineData;
-    if (inline?.data) {
-      const contentType: string = inline.mime_type ?? inline.mimeType ?? "image/png";
-      const bytes = b64ToBytes(inline.data);
-      const dataUrl = `data:${contentType};base64,${inline.data}`;
-      return { bytes, contentType, dataUrl };
-    }
+  const prediction = data?.predictions?.[0];
+  const b64 = prediction?.bytesBase64Encoded;
+  if (!b64) {
+    console.error("Imagen API: no image in response", JSON.stringify(data).slice(0, 500));
+    throw new GoogleImageError("Invalid response from Google Imagen API", 502);
   }
-
-  console.error("Google image API: no inline image in response", JSON.stringify(data).slice(0, 500));
-  throw new GoogleImageError("Google returned no image", 502);
+  const contentType: string = prediction?.mimeType ?? "image/png";
+  const bytes = b64ToBytes(b64);
+  const dataUrl = `data:${contentType};base64,${b64}`;
+  return { bytes, contentType, dataUrl };
 }
