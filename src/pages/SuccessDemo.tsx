@@ -212,6 +212,21 @@ function ListenButton({ text, label = 'Listen', variant = 'pill' }: { text: stri
 
 // ─── Slide components ───────────────────────────────────────────────────────
 function Intro({ slide, t }: { slide: Extract<Slide, { type: 'intro' }>; t: ThemeTokens }) {
+  const isLessonCover = slide.block === 'warmup';
+  if (isLessonCover) {
+    return (
+      <LessonCoverSlide
+        hub="success"
+        topic={slide.title}
+        subtitle={slide.subtitle}
+        imageUrl={slide.image_url}
+        level={slide.level}
+        unitNumber={slide.unit_number}
+        unitTitle={slide.unit_title}
+        lessonNumber={slide.lesson_number}
+      />
+    );
+  }
   return (
     <div className="space-y-5">
       <div className={`text-xs uppercase tracking-[0.2em] ${t.muted}`}>{slide.block}</div>
