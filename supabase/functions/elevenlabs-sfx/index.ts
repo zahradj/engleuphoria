@@ -89,7 +89,7 @@ serve(async (req) => {
     console.error("SFX route error:", error);
     return new Response(
       JSON.stringify({
-        error: "Internal server error",
+        error: error instanceof Error ? error.message : "Internal server error",
         details: (error as Error).message,
       }),
       {

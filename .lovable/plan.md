@@ -1,103 +1,71 @@
+# Deep AI-Error Audit — Edge Functions
+
 ## Goal
+Eliminate every "Edge function returned a non-2xx status code" failure caused by malformed Gemini JSON, missing CORS on error responses, generic error messages, or unbounded AI hangs. One shared sanitizer + one shared error responder, applied across ~50 AI-calling edge functions.
 
-Three workstreams for launch week:
-1. **Intro slide parity** — Academy and Success lesson covers should match Playground's 50/50 image + level/unit/lesson/topic layout.
-2. **Realtime End-Classroom sync** — when teacher ends, both teacher and student are routed to a Post-Lesson Summary page within ~1s, video torn down.
-3. **Launch Week Audit** — fix the highest-risk gaps in payments, classroom sync, permissions, and AI failsafes.
+## Root causes observed
+1. Gemini wraps JSON in ```json fences or adds prose → `JSON.parse` throws.
+2. Several `catch` blocks return `{ error: "Internal server error" }` or omit `corsHeaders` → frontend sees a generic "Failed to fetch" instead of the real reason.
+3. No client-side timeout on `aiFetch` → UI freezes indefinitely on Gemini stalls.
+4. System prompts don't explicitly forbid markdown wrapping.
 
----
+## Approach — Three shared helpers, then sweep callers
 
-## Workstream 1 — Unified Lesson Cover Slide
+### Phase 1 — Create shared utilities (3 small files in `_shared/`)
 
-**Today**
-- `PlaygroundCreator.tsx` renders an `intro` slide with a 50/50 image layout + topic/level metadata.
-- `AcademyCreator.tsx` and `SuccessCreator.tsx` render `intro` slides as a plain "title + subtitle" section header (`{ type: 'intro', block: 'warmup', title, subtitle }`), no image, no level/unit/lesson chip.
+1. `_shared/aiJson.ts`
+   - `export function parseAIJson<T>(raw: string): T` — strips ```json fences, slices outermost `{...}` or `[...]`, throws a clean `Error("AI returned malformed data. Please try generating again.")` on failure (logs the raw text first).
+   - `export const RAW_JSON_INSTRUCTION` constant — the "CRITICAL: return ONLY raw JSON…" line to append to every system prompt.
 
-**Change**
-- Extract Playground's intro layout into a shared component `src/components/lesson-player/LessonCoverSlide.tsx` accepting `{ hub, levelLabel, unitNumber, lessonNumber, topic, imageUrl, themeTokens }`.
-- Wire it into the renderers used by Academy and Success creators (the `case 'intro':` blocks at `AcademyCreator.tsx:1023` and `SuccessCreator.tsx:917`) and the corresponding student-facing player.
-- Hub coating per workspace rules: Playground orange/yellow, Academy purple/lavender, Success emerald/mint. Same 50/50 split, image left or right depending on hub for subtle differentiation (configurable, default image-left).
-- Default seed slide for new Academy/Success lessons becomes a populated cover (not "New section / —").
+2. `_shared/aiErrorResponse.ts`
+   - `export function aiErrorResponse(err: unknown, corsHeaders, status = 500): Response` — always returns `{ error: err.message }` with `...corsHeaders, 'Content-Type': 'application/json'`.
+   - Maps known shapes: 429 → "Rate limit reached…", 402 → "AI credits exhausted…".
 
-No DB changes; metadata (level, unit#, lesson#, topic) is already on `curriculum_lessons`.
+3. `_shared/aiTimeout.ts`
+   - `export async function withTimeout<T>(p: Promise<T>, ms = 25000, label = 'AI call'): Promise<T>` — `Promise.race` with `AbortController`-friendly rejection so callers can show "Oops, our AI is taking a coffee break."
 
----
+### Phase 2 — Sweep callers (group by risk)
 
-## Workstream 2 — Realtime End-Classroom Sync
+**Tier A — already triggered errors in production (patch first)**
+- `lesson-content-generator` — already partially fixed last turn; switch to shared helpers + add `withTimeout`.
+- `generate-ppp-slides` — verify all three `callModel` / `callAcademy` / `callAI` use `parseAIJson`; add `RAW_JSON_INSTRUCTION` to academy & full-length system prompts; wrap each `aiFetch` in `withTimeout(45_000)`.
+- `ai-lesson-content-generator`, `ai-slide-generator`, `interactive-lesson-generator`, `iron-ppp-generator`, `generate-early-learner-lesson`, `generate-welcome-lesson`, `generate-daily-lesson`, `generate-lesson-content`, `bulk-lesson-generator`.
 
-**Phase 1 — DB**
-- Verify `classroom_sessions` has a `session_status` column with values `waiting | active | ended` (already referenced in `useSessionManager.ts` and `useLiveClassroomStatus.ts`). If `ended_at` is missing on any environment, add it. Enable Realtime replication on the table (`alter publication supabase_realtime add table public.classroom_sessions;` if not already).
-- Add an index on `(room_id)` if missing for fast lookup.
+**Tier B — content/curriculum**
+- `ai-curriculum-planner`, `ai-curriculum-analyzer`, `curriculum-generator`, `curriculum-breakdown`, `curriculum-expert-agent`, `generate-blueprint`, `generate-curriculum-blueprint`, `plan-lesson-blueprint`, `generate-learning-path`, `k12-curriculum-generator`, `ai-systematic-slides-batch`, `ai-systematic-curriculum-batch`, `ai-slides-batch-orchestrator`.
 
-**Phase 2 — Teacher action**
-- `ClassroomTopBar` "End Classroom" handler → call a new `endClassroom(roomId)` in `useClassroomSession` that:
-  1. Updates row: `session_status='ended', ended_at=now()` where `room_id = :roomId AND teacher_id = auth.uid()`.
-  2. Tears down local WebRTC tracks via `videoService.leave()`.
-  3. Navigates teacher to `/classroom/:roomId/summary`.
+**Tier C — slide/practice/game/text utilities**
+- `sync-slides-to-blueprint`, `rewrite-slide-field`, `ai-rewrite-text`, `quiz-generator`, `generate-practice-items`, `generate-smart-worksheet`, `generate-storybook`, `generate-canvas-game`, `generate-iron-game`, `ai-game-lesson-generator`, `ai-slide-game-generator`, `ai-activity-generator`, `ai-topic-generator`, `ai-extract-lesson-from-text`, `ai-quality-checker`, `ai-performance-analyzer`, `ai-content-generator`, `studio-ai-copilot`, `ai-tutor` (skip streaming chunks), `ai-core`, `generate-gemini`, `phonetic-analysis`, `analyze-media`.
 
-**Phase 3 — Realtime listener (shared)**
-- In `UnifiedClassroomPage` (the parent both teacher and student mount), add a `useEffect`:
-  ```ts
-  const ch = supabase.channel(`session:${roomId}`)
-    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'classroom_sessions', filter: `room_id=eq.${roomId}` },
-      ({ new: row }) => {
-        if (row.session_status === 'ended') {
-          videoServiceRef.current?.leave();
-          navigate(`/classroom/${roomId}/summary`, { replace: true });
-        }
-      })
-    .subscribe();
-  return () => supabase.removeChannel(ch);
-  ```
-- Guard against double-fire and handle late joins (on mount, also fetch the row once; if already `ended`, route immediately).
+**Per-file patch pattern**:
+```ts
+import { parseAIJson, RAW_JSON_INSTRUCTION } from "../_shared/aiJson.ts";
+import { aiErrorResponse } from "../_shared/aiErrorResponse.ts";
+import { withTimeout } from "../_shared/aiTimeout.ts";
+// system prompt:  `${oldPrompt}\n\n${RAW_JSON_INSTRUCTION}`
+// fetch:          const aiRes = await withTimeout(aiFetch(...), 25_000, 'slide gen');
+// parse:          const data = parseAIJson<MyShape>(raw);
+// catch:          } catch (e) { return aiErrorResponse(e, corsHeaders); }
+```
 
-**Phase 4 — Post-Lesson Summary page**
-- New route `/classroom/:roomId/summary` → `src/pages/PostLessonSummary.tsx`.
-- Loads: lesson title, duration, slides covered, vocab earned, mistakes logged. Different CTAs per role (teacher: "Submit observations", student: "Continue to dashboard"). Hub-themed.
+### Phase 3 — Frontend friendly messaging
+- Confirm `src/lib/aiErrorHandler.ts` surfaces the new richer error strings (it already classifies overload/parse/key — verify the new "AI returned malformed data" hits the parse branch and offers Retry).
+- Add timeout-specific copy: "⏳ AI is taking a coffee break — try again."
 
----
+### Phase 4 — Verify
+- For each patched function, deploy + smoke-test with `supabase--curl_edge_functions` using a known-malformed prompt fixture; assert response is JSON `{ error: "..." }` with CORS headers and HTTP 500 (not a 502/disconnect).
+- Tail `supabase--edge_function_logs` for `generate-ppp-slides` and `lesson-content-generator` while triggering a real "Generate Slides" run from `/content-creator`.
+- Confirm preview no longer surfaces "non-2xx status code"; instead shows the classified amber toast.
 
-## Workstream 3 — Launch Week Audit (prioritized fixes)
+## Out of scope (this round)
+- Image-generation functions (already migrated to Imagen 3 last round).
+- Email/cron functions — no AI JSON parsing.
+- Workstream 3 (timezone QA, 5-day credit logic, mic/camera permissions) — separate plan.
 
-Implement in this order; each is a small, isolated PR-style change:
+## Files touched (estimate)
+- 3 new files in `supabase/functions/_shared/`
+- ~35 edge function `index.ts` files (mechanical 4-line patch each)
+- 1 edit to `src/lib/aiErrorHandler.ts`
 
-### A. Money pipeline
-- **Timezones**: ensure availability slots are stored UTC (verify `teacherAvailabilityService`), rendered in viewer's IANA tz via `timezoneUtils.ts`. Add a "Times shown in {tz}" badge above the booking grid.
-- **Credit deduction**: confirm `class_bookings` insert triggers wallet decrement (Postgres trigger or RPC). If missing, add `deduct_credit_on_booking()` trigger.
-- **Cancellation refund**: enforce the 120h / 5-day rule already in workspace memory; refund credit only if `start_time - now() >= interval '120 hours'`.
-
-### B. Classroom experience
-- **Slide sync**: extend the same Realtime channel from Workstream 2 to broadcast `current_slide_index`. Teacher writes; student subscribes (read-only).
-- **Permissions**: gate `nextSlide`/`prevSlide` UI behind `userRole === 'teacher'`. Student renders read-only controls.
-- **Mic/cam**: pre-flight `navigator.mediaDevices.getUserMedia` call before joining the room; on `NotAllowedError` show a hub-themed dialog with browser-specific instructions.
-
-### C. AI engine failsafes
-- Apply the same retry + graceful-overload pattern already used for `generate-curriculum-blueprint` to the other Gemini-backed functions (`ai-lesson-content-generator`, `unified-lesson-agent`, etc.).
-- Add a 10s client-side timeout wrapper; on timeout show the AnglEuphoria spinner + "Oops, our AI is taking a coffee break — try again" toast with Retry.
-
----
-
-## Files to touch (preview)
-
-**Workstream 1**
-- new: `src/components/lesson-player/LessonCoverSlide.tsx`
-- edit: `src/pages/AcademyCreator.tsx`, `src/pages/SuccessCreator.tsx`, `src/pages/PlaygroundCreator.tsx` (extract), the matching student-side renderer.
-
-**Workstream 2**
-- migration: ensure column + realtime publication on `classroom_sessions`
-- new: `src/pages/PostLessonSummary.tsx`, route in `App.tsx`
-- edit: `src/hooks/useClassroomSession.ts`, `src/hooks/enhanced-classroom/useSessionManager.ts`, `src/components/teacher/classroom/ClassroomTopBar.tsx`, `src/pages/UnifiedClassroomPage.tsx`
-
-**Workstream 3**
-- edit: booking grid component, `teacherAvailabilityService.ts`, `timezoneUtils.ts`
-- migration: cancellation/refund + credit-deduction triggers (only if missing)
-- edit: classroom slide controller, AI client wrappers, edge functions list above
-
----
-
-## Out of scope for this round
-- Redesign of teacher/student dashboards
-- New payment provider integration
-- Localization beyond what's already in `src/translations`
-
-After approval I'll start with Workstream 2 (the launch-blocker) unless you want a different order.
+## Risk
+Low — all changes are additive (helpers + error-shape standardization). No behavior change on the happy path.

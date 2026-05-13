@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { parseAIJson } from "../_shared/aiJson.ts";
 import { aiFetch } from "../_shared/aiFetch.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { requireAuth } from "../_shared/authGuard.ts";
@@ -171,12 +172,12 @@ Provide a comprehensive analysis in JSON format with this structure:
 
     let analysis: AnalysisResult;
     try {
-      analysis = JSON.parse(analysisText);
+      analysis = parseAIJson(analysisText, "ai-curriculum-analyzer");
     } catch (parseError) {
       // Try to extract JSON from markdown code blocks
       const jsonMatch = analysisText.match(/```json\n?([\s\S]*?)\n?```/);
       if (jsonMatch) {
-        analysis = JSON.parse(jsonMatch[1]);
+        analysis = parseAIJson(jsonMatch[1], "ai-curriculum-analyzer");
       } else {
         throw new Error('Failed to parse analysis response');
       }
@@ -210,7 +211,7 @@ Provide a comprehensive analysis in JSON format with this structure:
 
   } catch (error) {
     console.error('Curriculum analysis error:', error);
-    return new Response(JSON.stringify({ success: false, error: "Internal server error" }), {
+    return new Response(JSON.stringify({ success: false, error: error instanceof Error ? error.message : "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+import { parseAIJson } from "../_shared/aiJson.ts";
 import { aiFetch } from "../_shared/aiFetch.ts";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -115,7 +116,7 @@ RULES:
       let lesson;
       try {
         const clean = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-        lesson = JSON.parse(clean);
+        lesson = parseAIJson(clean, "generate-daily-lesson");
       } catch {
         console.error("Parse error:", content);
         throw new Error("Invalid JSON in AI response");
@@ -207,7 +208,7 @@ Return ONLY this exact JSON (no markdown, no explanation):
       let briefing;
       try {
         const clean = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-        briefing = JSON.parse(clean);
+        briefing = parseAIJson(clean, "generate-daily-lesson");
       } catch {
         console.error("Hub parse error:", content);
         throw new Error("Invalid JSON in hub AI response");
@@ -225,7 +226,7 @@ Return ONLY this exact JSON (no markdown, no explanation):
   } catch (error) {
     console.error("generate-daily-lesson error:", error);
     return new Response(
-      JSON.stringify({ success: false, error: "Internal server error" }),
+      JSON.stringify({ success: false, error: error instanceof Error ? error.message : "Internal server error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

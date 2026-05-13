@@ -138,7 +138,7 @@ Avoid yes/no questions unless leading to elaboration.`;
 
   } catch (error) {
     console.error('Error in ai-question-leader:', error);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

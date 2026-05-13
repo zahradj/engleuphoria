@@ -339,7 +339,7 @@ Return ONLY the JSON object.`;
   } catch (err) {
     console.error("Edge function error:", err);
     return new Response(
-      JSON.stringify({ error: "Internal server error", details: String(err) }),
+      JSON.stringify({ error: err instanceof Error ? err.message : "Internal server error", details: String(err) }),
       { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
     );
   }
