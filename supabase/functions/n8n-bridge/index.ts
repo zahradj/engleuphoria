@@ -55,7 +55,7 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { action, topic, system, level, level_id, cefr_level, lesson_type, unit_name, level_name, duration_minutes } = body;
+    const { action, topic, system, level, level_id, cefr_level, lesson_type, unit_name, level_name, duration_minutes, ai_persona, hub_type } = body;
 
     // Default to 60 minutes if not specified
     const lessonDuration = duration_minutes || 60;
