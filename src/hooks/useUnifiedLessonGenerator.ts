@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AdvancedOptions, GameMode } from '@/components/admin/generator/AdvancedLessonOptions';
 import { PipelineStage, PipelineStageStatus } from '@/components/admin/generator/PipelineProgress';
 import { toast } from 'sonner';
+import { HubType, getHubConfig } from '@/config/hubConfigs';
 
 export interface UnifiedGenerationConfig {
   topic: string;
@@ -11,6 +12,8 @@ export interface UnifiedGenerationConfig {
   cefrLevel: string;
   durationMinutes: number;
   ageGroup: string;
+  /** Hub the lesson belongs to — drives age-locked AI persona + UI theme */
+  hubType?: HubType;
   advancedOptions: AdvancedOptions;
 }
 
