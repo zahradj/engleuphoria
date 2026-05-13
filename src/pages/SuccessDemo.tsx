@@ -6,6 +6,7 @@ import type { CanvasGameSlide, LivingCanvasSlide, ScaffoldedMediaSlide } from '@
 import { LivingCanvas } from '@/components/creator-studio/shared/LivingCanvas';
 import { ScaffoldedPlayer } from '@/components/creator-studio/shared/ScaffoldedPlayer';
 import { SoloVocabCard } from '@/components/creator-studio/shared/SoloVocabCard';
+import { LessonCoverSlide } from '@/components/lesson-player/LessonCoverSlide';
 
 /**
  * Success Hub Engine — adult-focused (18+, A2–C1), 60-minute, 7-block
