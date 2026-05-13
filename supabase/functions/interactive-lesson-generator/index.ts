@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { parseAIJson } from "../_shared/aiJson.ts";
 import { aiFetch } from "../_shared/aiFetch.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 import { generateInteractiveLessonPrompt } from '../_shared/interactiveLessonPromptTemplate.ts';
@@ -157,7 +158,7 @@ serve(async (req) => {
     // Parse JSON with better error handling
     let lessonData;
     try {
-      lessonData = JSON.parse(content);
+      lessonData = parseAIJson(content, "interactive-lesson-generator");
     } catch (parseError) {
       console.error('JSON Parse Error:', parseError);
       console.error('Content preview (first 500 chars):', content.substring(0, 500));
@@ -176,7 +177,7 @@ serve(async (req) => {
       }
       
       try {
-        lessonData = JSON.parse(fixedContent);
+        lessonData = parseAIJson(fixedContent, "interactive-lesson-generator");
         console.log('Successfully parsed after fixing JSON');
       } catch (fixError) {
         throw new Error(`Failed to parse AI response as JSON: ${parseError.message}. Content length: ${content.length}`);

@@ -1,4 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { parseAIJson } from "../_shared/aiJson.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -469,7 +470,7 @@ CRITICAL: Always return valid JSON that exactly matches the requested structure.
       
       // Clean the content if it has markdown code blocks
       const cleanedContent = rawContent.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      generatedContent = JSON.parse(cleanedContent);
+      generatedContent = parseAIJson(cleanedContent, "ai-content-generator");
       
       // Ensure we have the expected structure
       if (!generatedContent.vocabulary) {

@@ -1,4 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { parseAIJson } from "../_shared/aiJson.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
@@ -205,7 +206,7 @@ Generate the curriculum now. Output ONLY valid JSON.`;
 
     let curriculum: IronCurriculum;
     try {
-      curriculum = JSON.parse(generatedContent);
+      curriculum = parseAIJson(generatedContent, "iron-ppp-generator");
     } catch (parseError) {
       console.error('[Iron PPP Generator] Failed to parse response:', parseError);
       throw new Error('Failed to parse generated curriculum');

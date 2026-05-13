@@ -1,4 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { parseAIJson } from "../_shared/aiJson.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { generateSlidesWithMasterTemplate, enrichSlidesWithMedia } from './master-template.ts';
@@ -421,7 +422,7 @@ Create the lesson slides now:`;
 
   try {
     const content = data.choices[0].message.content;
-    slidesData = JSON.parse(content);
+    slidesData = parseAIJson(content, "ai-slide-generator");
   } catch (parseError) {
     console.error('Failed to parse OpenAI response:', data.choices[0].message.content);
     throw new Error('Failed to parse lesson slides from AI response');
@@ -545,7 +546,7 @@ RESPOND WITH VALID JSON ONLY in this format:
 
   try {
     const content = data.choices[0].message.content;
-    slidesData = JSON.parse(content);
+    slidesData = parseAIJson(content, "ai-slide-generator");
   } catch (parseError) {
     console.error('Failed to parse OpenAI response:', data.choices[0].message.content);
     throw new Error('Failed to parse lesson slides from AI response');
@@ -635,7 +636,7 @@ Respond with valid JSON only:`;
   const content = data.choices[0].message.content;
 
   try {
-    return JSON.parse(content);
+    return parseAIJson(content, "ai-slide-generator");
   } catch (parseError) {
     throw new Error('Failed to parse slide content from AI response');
   }

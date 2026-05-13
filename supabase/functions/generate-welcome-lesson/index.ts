@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { parseAIJson } from "../_shared/aiJson.ts";
 import { aiFetch } from "../_shared/aiFetch.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { generateWelcomeLessonPrompt } from "../_shared/welcomeLessonPromptTemplate.ts";
@@ -76,7 +77,7 @@ serve(async (req) => {
     try {
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        lessonData = JSON.parse(jsonMatch[0]);
+        lessonData = parseAIJson(jsonMatch[0], "generate-welcome-lesson");
       } else {
         throw new Error("No JSON found in response");
       }
