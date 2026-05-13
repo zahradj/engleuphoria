@@ -235,13 +235,21 @@ serve(async (req) => {
       throw new Error('AI did not return structured output after successful generation');
     }
 
+    // Sanitize: strip markdown code fences and any leading/trailing prose
+    let rawText = typeof content === 'string' ? content.trim() : String(content);
+    rawText = rawText.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
+    const firstBrace = rawText.indexOf('{');
+    const lastBrace = rawText.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace > firstBrace) {
+      rawText = rawText.slice(firstBrace, lastBrace + 1);
+    }
+
     let slidesData;
     try {
-      slidesData = JSON.parse(content);
+      slidesData = JSON.parse(rawText);
     } catch (parseError) {
-      console.error('JSON parse error:', parseError);
-      console.error('Content:', content.substring(0, 500));
-      throw new Error(`Failed to parse AI response: ${parseError.message}`);
+      console.error('Failed to parse Gemini JSON:', rawText.substring(0, 800));
+      throw new Error('AI returned malformed data. Please try generating again.');
     }
 
     const slides = slidesData.slides || [];
