@@ -67,13 +67,13 @@ export const useMediaAccess = (opts?: { cameraId?: string; micId?: string }) => 
       
       if (error instanceof Error) {
         if (error.name === "NotAllowedError") {
-          errorMessage = "Camera/microphone access denied. Please allow permissions and try again.";
+          errorMessage = "🎤 Camera & microphone blocked. Click the 🔒 lock icon in your browser's address bar → set Camera + Microphone to 'Allow' → reload this page.";
         } else if (error.name === "NotFoundError") {
-          errorMessage = "No camera or microphone found on this device.";
+          errorMessage = "📷 No camera or microphone detected. Plug in a device or check your system settings, then try again.";
         } else if (error.name === "NotReadableError") {
-          errorMessage = "Camera/microphone is already in use by another application.";
+          errorMessage = "⚠️ Your camera or mic is already in use by another app (Zoom, Meet, etc.). Close it and click 'Try again'.";
         } else if (error.name === "OverconstrainedError") {
-          errorMessage = "Camera/microphone doesn't meet the required specifications.";
+          errorMessage = "Your camera/mic doesn't support the required quality. Try a different device.";
         } else {
           errorMessage = `Media error: ${error.message}`;
         }
