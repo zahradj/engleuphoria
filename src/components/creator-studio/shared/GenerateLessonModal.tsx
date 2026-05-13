@@ -163,6 +163,7 @@ export default function GenerateLessonModal({
     setVisualTheme(defaultVisualTheme ?? DEFAULT_VISUAL_THEME);
     setLearningObjective(defaultLearningObjective || '');
     setFinalOutputTask(defaultFinalOutputTask || '');
+    setImageStyle(DEFAULT_IMAGE_STYLE_ID[hub]);
     setExpanded(Boolean(
       (defaultVocabulary && defaultVocabulary.some((v) => v?.trim())) ||
       defaultGrammar?.trim() ||
