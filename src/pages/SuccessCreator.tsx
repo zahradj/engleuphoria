@@ -340,13 +340,15 @@ export default function SuccessCreator() {
           },
         },
       });
-      if (!handleAIResponse({ data, error, onRetry: () => generateWithAI(payload), context: 'Success Lesson' })) {
-        setAiBusy(false);
-        return;
+      if (error || data?.error) {
+        const { extractEdgeError } = await import('@/lib/extractEdgeError');
+        throw new Error(extractEdgeError({ error, data, fallback: 'AI generation failed' }));
       }
-      const successSlides: Slide[] | undefined = data?.success_slides || data?.academy_slides;
+      const successSlides: Slide[] | undefined =
+        data?.success_slides || data?.academy_slides || data?.slides;
       if (!successSlides || !Array.isArray(successSlides) || successSlides.length === 0) {
-        throw new Error('AI returned no Success slides');
+        const keys = data && typeof data === 'object' ? Object.keys(data).join(', ') : 'none';
+        throw new Error(`AI returned no Success slides. Response keys: [${keys}]`);
       }
       const finalSlides = successSlides.some((s: any) => s.type === 'lesson_summary')
         ? successSlides
