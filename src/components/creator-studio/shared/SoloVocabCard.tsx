@@ -1,5 +1,6 @@
 import { Volume2, Image as ImageIcon } from 'lucide-react';
 import { HUB_THEME, type Hub } from './hubTheme';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * SoloVocabCard — the gold-standard 1-on-1 vocabulary card.
@@ -27,7 +28,7 @@ export function SoloVocabCard({ card, hub = 'playground', ttsFallback }: Props) 
   const def = (card.definition || card.back || '').toString();
   const audio = card.audio_url;
 
-  const playAudio = () => {
+  const playAudio = async () => {
     if (audio) {
       try {
         const a = new Audio(audio);
@@ -35,14 +36,30 @@ export function SoloVocabCard({ card, hub = 'playground', ttsFallback }: Props) 
         return;
       } catch { /* noop */ }
     }
-    const speech = ttsFallback || word;
-    if (!speech) return;
+    const text = ttsFallback || word;
+    if (!text) return;
     try {
-      const u = new SpeechSynthesisUtterance(speech);
-      u.rate = 0.9;
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(u);
-    } catch { /* noop */ }
+      const response = await supabase.functions.invoke('elevenlabs-tts', {
+        body: { text, voiceId: "Xb7hH8MSUJpSbSDYk0k2" }
+      });
+
+      if (response.data) {
+        const audioBlob = new Blob([response.data], { type: 'audio/mpeg' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const a = new Audio(audioUrl);
+        await a.play();
+      } else {
+        throw new Error("No audio data returned");
+      }
+    } catch (error) {
+      console.error("ElevenLabs TTS Failed, falling back to native:", error);
+      try {
+        const u = new SpeechSynthesisUtterance(text);
+        u.rate = 0.9;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(u);
+      } catch { /* noop */ }
+    }
   };
 
   const isDark = hub === 'success';
