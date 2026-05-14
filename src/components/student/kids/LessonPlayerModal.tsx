@@ -132,12 +132,7 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
   };
 
   const speakWord = (word: string) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(word);
-      utterance.rate = 0.8;
-      utterance.pitch = 1.2;
-      speechSynthesis.speak(utterance);
-    }
+    void playElevenLabs(word, { speed: 0.9 });
   };
 
   const renderVideoContent = (content: PlaygroundLesson['content']) => (

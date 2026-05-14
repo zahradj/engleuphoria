@@ -40,12 +40,7 @@ export default function VocabSlideSplit({
     if (audio_url) {
       try { new Audio(audio_url).play().catch(() => {}); return; } catch { /* noop */ }
     }
-    try {
-      const u = new SpeechSynthesisUtterance(word);
-      u.rate = 0.9;
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(u);
-    } catch { /* noop */ }
+    void playElevenLabs(word);
   };
 
   return (

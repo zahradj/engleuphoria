@@ -50,12 +50,7 @@ export function useAcademyAudio() {
     const url = await fetchAudioUrl(text, voiceId);
     setIsLoading(false);
     if (!url) {
-      try {
-        const u = new SpeechSynthesisUtterance(text);
-        u.rate = 1.0;
-        window.speechSynthesis.cancel();
-        window.speechSynthesis.speak(u);
-      } catch { /* noop */ }
+      void playElevenLabs(text);
       return;
     }
     const audio = new Audio(url);

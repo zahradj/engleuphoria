@@ -104,18 +104,14 @@ export function AITranslator({ onInsertToWhiteboard }: AITranslatorProps) {
     }
   };
 
-  const handleSpeak = (text: string, language: string) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = language;
-      speechSynthesis.speak(utterance);
-    } else {
+  const handleSpeak = (text: string, _language: string) => {
+    void playElevenLabs(text).catch(() => {
       toast({
-        title: "Speech not available",
-        description: "Text-to-speech is not supported in your browser.",
+        title: "Speech unavailable",
+        description: "Could not generate audio. Please try again.",
         variant: "destructive",
       });
-    }
+    });
   };
 
   const getLanguageName = (code: string) => {

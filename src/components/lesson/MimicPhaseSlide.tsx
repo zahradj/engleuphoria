@@ -90,10 +90,7 @@ export const MimicPhaseSlide: React.FC<MimicPhaseSlideProps> = ({
   };
 
   const playTargetAudio = () => {
-    const utterance = new SpeechSynthesisUtterance(targetWord);
-    utterance.lang = 'en-US';
-    utterance.rate = 0.8;
-    speechSynthesis.speak(utterance);
+    void playElevenLabs(targetWord, { speed: 0.9 });
   };
 
   const getScoreColor = () => {

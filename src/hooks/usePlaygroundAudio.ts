@@ -47,14 +47,8 @@ export function usePlaygroundAudio() {
     stop();
     const url = await fetchAudioUrl(text, voiceId);
     if (!url) {
-      // Fallback to browser speech synthesis
-      try {
-        const u = new SpeechSynthesisUtterance(text);
-        u.rate = 0.95;
-        u.pitch = 1.1;
-        window.speechSynthesis.cancel();
-        window.speechSynthesis.speak(u);
-      } catch { /* noop */ }
+      // No remote URL — generate fresh ElevenLabs audio (no native fallback)
+      void playElevenLabs(text, { speed: 0.95 });
       return;
     }
     const audio = new Audio(url);

@@ -46,12 +46,7 @@ export function VisualFlashcard({ slide, hub = 'playground', autoPlay = true }: 
       } catch { /* noop */ }
     }
     if (!tts) return;
-    try {
-      const u = new SpeechSynthesisUtterance(tts);
-      u.rate = 0.9;
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(u);
-    } catch { /* noop */ }
+    void playElevenLabs(tts);
   };
 
   useEffect(() => {
@@ -61,7 +56,7 @@ export function VisualFlashcard({ slide, hub = 'playground', autoPlay = true }: 
       clearTimeout(t);
       audioRef.current?.pause();
       audioRef.current = null;
-      try { window.speechSynthesis.cancel(); } catch { /* noop */ }
+      stopElevenLabs();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audio, tts, autoPlay]);

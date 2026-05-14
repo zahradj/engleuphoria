@@ -68,11 +68,7 @@ export function StudentDictionary({ isOpen, onClose }: StudentDictionaryProps) {
   };
 
   const playPronunciation = () => {
-    // In a real app, this would use text-to-speech API
-    if ('speechSynthesis' in window && result) {
-      const utterance = new SpeechSynthesisUtterance(result.word);
-      speechSynthesis.speak(utterance);
-    }
+    if (result) void playElevenLabs(result.word);
   };
 
   return (

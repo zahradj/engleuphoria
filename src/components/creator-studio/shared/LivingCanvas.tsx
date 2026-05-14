@@ -30,13 +30,7 @@ function speak(text?: string) {
     try { new Audio(text).play().catch(() => {}); } catch {}
     return;
   }
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-  try {
-    const u = new SpeechSynthesisUtterance(text);
-    u.rate = 0.95;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(u);
-  } catch {}
+  void playElevenLabs(text);
 }
 
 export function LivingCanvas({ slide, hub, onAllSolved, authoring, onMoveElement }: Props) {
