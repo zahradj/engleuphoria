@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { playElevenLabs, stopElevenLabs } from '@/lib/elevenLabsAudio';
 import { BookOpen, Volume2 } from 'lucide-react';
 import { useSlideHub } from '../SlideHubContext';
 
@@ -29,11 +30,7 @@ export default function VocabFlipGrid({ slide }: { slide: any }) {
   const [flipped, setFlipped] = useState<Record<number, boolean>>({});
 
   const speak = (text: string) => {
-    try {
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'en-US';
-      window.speechSynthesis.speak(u);
-    } catch {}
+    void playElevenLabs(text);
   };
 
   if (entries.length === 0) {

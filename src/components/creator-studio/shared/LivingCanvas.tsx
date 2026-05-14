@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { playElevenLabs, stopElevenLabs } from '@/lib/elevenLabsAudio';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { RotateCcw, Volume2 } from 'lucide-react';
@@ -30,13 +31,7 @@ function speak(text?: string) {
     try { new Audio(text).play().catch(() => {}); } catch {}
     return;
   }
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-  try {
-    const u = new SpeechSynthesisUtterance(text);
-    u.rate = 0.95;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(u);
-  } catch {}
+  void playElevenLabs(text);
 }
 
 export function LivingCanvas({ slide, hub, onAllSolved, authoring, onMoveElement }: Props) {

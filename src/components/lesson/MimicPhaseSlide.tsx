@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { playElevenLabs, stopElevenLabs } from '@/lib/elevenLabsAudio';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, MicOff, RotateCcw, Star, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -90,10 +91,7 @@ export const MimicPhaseSlide: React.FC<MimicPhaseSlideProps> = ({
   };
 
   const playTargetAudio = () => {
-    const utterance = new SpeechSynthesisUtterance(targetWord);
-    utterance.lang = 'en-US';
-    utterance.rate = 0.8;
-    speechSynthesis.speak(utterance);
+    void playElevenLabs(targetWord, { speed: 0.9 });
   };
 
   const getScoreColor = () => {

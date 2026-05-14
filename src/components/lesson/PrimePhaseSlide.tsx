@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { playElevenLabs, stopElevenLabs } from '@/lib/elevenLabsAudio';
 import { motion } from 'framer-motion';
 import { Volume2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -30,10 +31,7 @@ export const PrimePhaseSlide: React.FC<PrimePhaseSlideProps> = ({
     : 'shadow-[0_0_30px_rgba(168,85,247,0.3)]';
 
   const playAudio = () => {
-    const utterance = new SpeechSynthesisUtterance(targetWord);
-    utterance.lang = 'en-US';
-    utterance.rate = 0.7;
-    speechSynthesis.speak(utterance);
+    void playElevenLabs(targetWord, { speed: 0.85 });
   };
 
   // Auto-play pronunciation on mount

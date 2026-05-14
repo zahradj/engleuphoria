@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { playElevenLabs, stopElevenLabs } from '@/lib/elevenLabsAudio';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -68,11 +69,7 @@ export function StudentDictionary({ isOpen, onClose }: StudentDictionaryProps) {
   };
 
   const playPronunciation = () => {
-    // In a real app, this would use text-to-speech API
-    if ('speechSynthesis' in window && result) {
-      const utterance = new SpeechSynthesisUtterance(result.word);
-      speechSynthesis.speak(utterance);
-    }
+    if (result) void playElevenLabs(result.word);
   };
 
   return (

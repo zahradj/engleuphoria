@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { playElevenLabs, stopElevenLabs } from '@/lib/elevenLabsAudio';
 import { Volume2 } from 'lucide-react';
 import { HUB_THEME, type Hub } from './hubTheme';
 
@@ -77,12 +78,7 @@ export function PhonicsFocusCard({ slide, hub = 'playground', autoPlay = true }:
       } catch { /* noop */ }
     }
     if (!text) return;
-    try {
-      const u = new SpeechSynthesisUtterance(text);
-      u.rate = 0.75;
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(u);
-    } catch { /* noop */ }
+    void playElevenLabs(text, { speed: 0.8 });
   };
 
   const playSound = () => speak(slide.voice?.text || ipa || grapheme, slide.audio_url || slide.voice?.audio_url);
@@ -95,7 +91,7 @@ export function PhonicsFocusCard({ slide, hub = 'playground', autoPlay = true }:
       clearTimeout(t);
       audioRef.current?.pause();
       audioRef.current = null;
-      try { window.speechSynthesis.cancel(); } catch { /* noop */ }
+      stopElevenLabs();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slide.audio_url, slide.phoneme, slide.grapheme, autoPlay]);

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { playElevenLabs, stopElevenLabs } from '@/lib/elevenLabsAudio';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2, Volume2, CheckCircle, Sparkles, Star } from 'lucide-react';
 import { playSound } from '@/constants/soundEffects';
@@ -132,12 +133,7 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
   };
 
   const speakWord = (word: string) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(word);
-      utterance.rate = 0.8;
-      utterance.pitch = 1.2;
-      speechSynthesis.speak(utterance);
-    }
+    void playElevenLabs(word, { speed: 0.9 });
   };
 
   const renderVideoContent = (content: PlaygroundLesson['content']) => (
