@@ -53,14 +53,30 @@ const HUB_THEME: Record<Hub, { primary: string; accent: string; ring: string; bg
   success:    { primary: 'bg-emerald-600 hover:bg-emerald-500', accent: 'text-emerald-700', ring: 'ring-emerald-300', bg: 'from-emerald-50 to-teal-50' },
 };
 
-/** Speaks the given text via Web Speech API. */
-function speak(text: string) {
+/** Speaks the given text — ElevenLabs first, native TTS as fallback only. */
+async function speak(text: string) {
   try {
-    const u = new SpeechSynthesisUtterance(text);
-    u.rate = 0.9;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(u);
-  } catch { /* noop */ }
+    const response = await supabase.functions.invoke('elevenlabs-tts', {
+      body: { text, voiceId: "Xb7hH8MSUJpSbSDYk0k2" }
+    });
+
+    if (response.data) {
+      const audioBlob = new Blob([response.data], { type: 'audio/mpeg' });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      await audio.play();
+    } else {
+      throw new Error("No audio data returned");
+    }
+  } catch (error) {
+    console.error("ElevenLabs TTS Failed, falling back to native:", error);
+    try {
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 0.9;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+    } catch { /* noop */ }
+  }
 }
 
 /** Strip simple punctuation so token comparisons are stable. */
