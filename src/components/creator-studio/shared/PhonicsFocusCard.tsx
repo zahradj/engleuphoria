@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { playElevenLabs, stopElevenLabs } from '@/lib/elevenLabsAudio';
 import { Volume2 } from 'lucide-react';
 import { HUB_THEME, type Hub } from './hubTheme';
 

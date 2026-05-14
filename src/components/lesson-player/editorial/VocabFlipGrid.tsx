@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { playElevenLabs, stopElevenLabs } from '@/lib/elevenLabsAudio';
 import { BookOpen, Volume2 } from 'lucide-react';
 import { useSlideHub } from '../SlideHubContext';
 

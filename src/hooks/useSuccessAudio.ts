@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
+import { playElevenLabs, stopElevenLabs } from '@/lib/elevenLabsAudio';
 import { supabase } from '@/integrations/supabase/client';
 
 /**

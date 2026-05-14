@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { playElevenLabs, stopElevenLabs } from '@/lib/elevenLabsAudio';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2, Volume2, CheckCircle, Sparkles, Star } from 'lucide-react';
 import { playSound } from '@/constants/soundEffects';

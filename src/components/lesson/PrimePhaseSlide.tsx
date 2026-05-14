@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { playElevenLabs, stopElevenLabs } from '@/lib/elevenLabsAudio';
 import { motion } from 'framer-motion';
 import { Volume2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';

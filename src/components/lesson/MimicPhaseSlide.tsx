@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { playElevenLabs, stopElevenLabs } from '@/lib/elevenLabsAudio';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, MicOff, RotateCcw, Star, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';

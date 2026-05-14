@@ -6,6 +6,7 @@
  * Playground keeps using <SoloVocabCard /> for its cartoon-card vibe.
  */
 import { Volume2, ImageIcon } from 'lucide-react';
+import { playElevenLabs, stopElevenLabs } from '@/lib/elevenLabsAudio';
 
 interface VocabSplitProps {
   word: string;
