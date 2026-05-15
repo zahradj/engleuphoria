@@ -83,5 +83,5 @@ export function normalizeArtHub(input?: string): ArtHub {
 export function applyHubStyle(prompt: string, hub: ArtHub): string {
   const profile = HUB_ART_PROFILES[hub];
   const cleaned = (prompt || "").trim().replace(/\s+/g, " ");
-  return `${cleaned}. ${profile.style_suffix} NEGATIVE: ${profile.negative}`;
+  return `${cleaned}${profile.style_suffix} NEGATIVE: ${profile.negative}`;
 }
