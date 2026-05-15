@@ -328,6 +328,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500)),
         ]);
         const initialSession = await sessionRace;
+        console.log(`${AUTH_FLOW_PREFIX} INIT: getSession race finished`, { hasSession: !!initialSession });
 
         if (mounted) {
           setSession(initialSession);
@@ -341,15 +342,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setLoading(false);
 
             // Background: fetch the real DB user and replace silently.
-            fetchUserFromDatabase(initialSession.user)
-              .then((dbUser) => {
-                if (mounted && dbUser) {
-                  setUser(dbUser);
-                  // Canonical role confirmed — drop the sign-in cache.
-                  sessionStorage.removeItem('auth_resolved_role');
-                }
-              })
-              .catch((err) => console.error('Background user fetch failed:', err));
+            hydrateUserInBackground(initialSession.user, 'initial-session');
           } else {
             setUser(null);
             initialFetchDoneRef.current = true;
