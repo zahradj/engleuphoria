@@ -256,9 +256,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .then(() => fetchUserFromDatabase(authUser))
         .then((dbUser) => {
           if (dbUser) {
-            console.log(`${AUTH_FLOW_PREFIX} HYDRATE: canonical user loaded`, { label, role: (dbUser as any).role });
+            const cachedRole = sessionStorage.getItem('auth_resolved_role');
+            const canonicalRole = (dbUser as any).role;
+            console.log(`${AUTH_FLOW_PREFIX} HYDRATE: canonical user loaded`, { label, role: canonicalRole, cachedRole });
             setUser(dbUser);
-            sessionStorage.removeItem('auth_resolved_role');
+            if (cachedRole && cachedRole === canonicalRole) {
+              sessionStorage.removeItem('auth_resolved_role');
+            }
           } else {
             console.warn(`${AUTH_FLOW_PREFIX} HYDRATE: no canonical user; keeping fallback`, { label });
           }
@@ -298,17 +302,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               return;
             }
             
+            if (event === 'SIGNED_IN' && (sessionStorage.getItem('auth_redirect_done') || signInRedirectRef.current)) {
+              console.log(`${AUTH_FLOW_PREFIX} EVENT: SIGNED_IN handled by signIn redirect; skipping listener state mutation`);
+              return;
+            }
+
             setSession(currentSession);
             
             if (currentSession?.user) {
               const fallbackUser = createFallbackUserSync(currentSession.user);
               setUser(fallbackUser);
               setLoading(false);
-
-              if (event === 'SIGNED_IN' && (sessionStorage.getItem('auth_redirect_done') || signInRedirectRef.current)) {
-                console.log(`${AUTH_FLOW_PREFIX} EVENT: SIGNED_IN handled by signIn redirect; skipping listener redirect work`);
-                return;
-              }
 
               if (event !== 'TOKEN_REFRESHED') {
                 hydrateUserInBackground(currentSession.user, `auth-event:${event}`);
@@ -483,10 +487,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       setError(null);
       
-      // Ensure stale redirect guard from previous sessions never blocks current login flow
-      sessionStorage.removeItem('auth_redirect_done');
-      sessionStorage.removeItem('auth_resolved_role');
-      signInRedirectRef.current = false;
+      // Mark the email/password sign-in as owner of the redirect before Supabase
+      // emits SIGNED_IN, so the listener cannot write a stale metadata role.
+      signInRedirectRef.current = true;
+      sessionStorage.setItem('auth_redirect_done', 'true');
 
       // Input sanitization
       const sanitizedEmail = sanitizeText(email);
@@ -503,6 +507,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
       
       if (error) {
+        signInRedirectRef.current = false;
+        sessionStorage.removeItem('auth_redirect_done');
         const status = (error as any)?.status ?? 0;
         const raw = (error.message || '').trim();
         const friendly = raw
@@ -568,13 +574,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser({ ...(data.user as any), role: finalRole } as any);
         sessionStorage.setItem('auth_redirect_done', 'true');
         sessionStorage.setItem('auth_resolved_role', finalRole);
-        signInRedirectRef.current = true;
         console.log(`${AUTH_FLOW_PREFIX} STEP 5: Redirecting to`, redirectPath);
         window.location.href = redirectPath;
       }
       
       return { data, error };
     } catch (error: any) {
+      signInRedirectRef.current = false;
+      sessionStorage.removeItem('auth_redirect_done');
       const errorMessage = (error?.message && String(error.message).trim()) || 'Sign in failed. Please try again.';
       setError(errorMessage);
       toast.error(errorMessage);

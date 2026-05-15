@@ -1,102 +1,93 @@
-## Diagnosis
+## Root cause
 
-The auth service itself is working: recent Supabase auth logs show successful password logins for both reported accounts. The hang is client-side.
+The console logs (path `/dashboard`, `userRole: "student"`, `cachedRole: null`, plus repeated `Access denied; routing authenticated user to dashboard router … requiredRole: content_creator, userRole: student`) prove what's actually happening. It is NOT a hung request — sign-in succeeds. The user is being **bounced in a redirect ping‑pong** because the app reads the wrong role on the destination page:
 
-### Most likely root causes found
+For `f.zahra.djaanine@gmail.com` the DB has TWO `user_roles` rows: `student` + `content_creator`. The priority resolver correctly picks `content_creator`. But on the destination page, the gate sees `student` first and redirects.
 
-1. **`SimpleAuthForm` keeps its own button spinner alive**
-   - After `signIn()` returns without an error, the form sets `verifyingRole=true` and never resets it.
-   - If redirect is blocked, delayed, or the route bounces back to `/login`, the button remains stuck on “Verifying role…” / loading.
+There are three concrete defects causing this:
 
-2. **Auth callbacks still contain async work that can stall auth event processing**
-   - `AuthContext` has `onAuthStateChange` branches that await `autoHealUserRows()` and `fetchUserFromDatabase()` inside the auth callback path.
-   - Supabase recommends not awaiting additional Supabase calls inside `onAuthStateChange`; this can produce silent hangs/deadlocks around login/session restoration.
+1. **`signIn()` clears the sessionStorage cache at the start** (`AuthContext.tsx` lines 487–489 — `removeItem('auth_redirect_done')` and `removeItem('auth_resolved_role')`). Supabase fires the `SIGNED_IN` listener event during the in-flight `await signInWithPassword(...)`. At that moment the cache is empty and `signInRedirectRef` was just reset to `false`, so the listener path runs `createFallbackUserSync` with `role = user_metadata.role = 'student'`, calls `setUser(fallback)`, and kicks off an unrelated background hydration. `Login.tsx`'s redirect effect then immediately fires with the bogus `student` role.
 
-3. **Role resolution can still use legacy fallback paths**
-   - `fetchUserRoleFromDatabase()` reads `user_roles`, then falls back to `users.role`.
-   - For the content creator account, `users.role = student` while `user_roles = {content_creator, student}`. If the `user_roles` read stalls/errors, the app can still resolve the wrong role and bounce away from `/content-creator`.
+2. **`ImprovedProtectedRoute` ignores the resolved-role cache.** Line 32: `userRole = user.role || user.user_metadata.role`. Even when `signIn()` later writes `auth_resolved_role = 'content_creator'`, the guard never looks at sessionStorage, so on the new page render it sees the metadata role (`student`), denies, and `Navigate`s to `/dashboard`. `Dashboard.tsx` has the same race because the user object has not been hydrated yet.
 
-4. **Destination pages have extra role redirects/spinners**
-   - `ImprovedProtectedRoute` already guards `/teacher` and `/content-creator`, but `TeacherDashboard` repeats role checks and shows its own “Redirecting…” loader. This can mask whether auth succeeded or the destination rejected the user.
-   - `CreatorStudioShell` relies on the global app error boundary, but there is no route-local boundary to make creator/teacher crashes obvious.
+3. **Hydration eagerly clears the cache** (`hydrateUserInBackground` line 261 calls `sessionStorage.removeItem('auth_resolved_role')` as soon as the canonical user loads). Any subsequent re-mount, refresh, or redirect that happens before the new `user` object propagates falls back to metadata role again, re-triggering the bounce.
 
-5. **RLS is not obviously failing in logs, but needs explicit client handling**
-   - `user_roles` policies allow users to read their own roles.
-   - `users` policies allow users to read their own profile.
-   - I did not find recent Postgres policy/permission/recursion errors in Supabase logs.
-   - Still, the code does not explicitly log/handle the `data: null + error: null` case that can look like an RLS block.
+Net effect: SIGNED_IN → Login redirect with stale role → ImprovedProtectedRoute denies on `/content-creator` → Navigate to `/dashboard` → Dashboard router still has `role=student` → Navigate to `/playground` → hydration finishes → user.role becomes `content_creator` → still on wrong page → user perceives the Sign In button as "stuck" because the URL never settles on the correct dashboard.
 
-## Implementation Plan
+The same pattern hits any multi-row `user_roles` user (teachers who are also content creators, admins, etc.) and any student whose `user_metadata.role` is missing/stale.
 
-### 1. Add nuclear auth logging
+## Fix plan
 
-Update `src/contexts/AuthContext.tsx` to log each auth step with a stable prefix, for example:
+### A. `src/contexts/AuthContext.tsx`
 
-```text
-[AUTH FLOW] STEP 1: signIn called
-[AUTH FLOW] STEP 2: Supabase auth success
-[AUTH FLOW] STEP 3: Fetching roles for user
-[AUTH FLOW] STEP 4: Role query returned
-[AUTH FLOW] STEP 5: Redirecting to /content-creator
-```
+1. **Set the redirect guard BEFORE calling `signInWithPassword`.** Move these to the top of the `signIn` try-block (right after the rate-limit check), instead of clearing them:
+   - `signInRedirectRef.current = true;`
+   - `sessionStorage.setItem('auth_redirect_done', 'true');`
+   - Do NOT clear `auth_resolved_role` here — leave any prior value (a stale value is harmless because we'll overwrite it).
+   
+   Reset the guard to `false` only on a real error before returning (`error` branch).
 
-Also log:
-- auth event type from `onAuthStateChange`
-- whether session exists
-- resolved role source: `user_roles`, `users.role`, metadata, fallback
-- redirect destination
-- explicit errors and timeout fallbacks
+2. **Make the auth listener ignore SIGNED_IN events while the in-flight signIn is running.** In the `onAuthStateChange` callback, check the ref/sessionStorage flag FIRST — before `setUser(fallback)` and any `setLoading(false)`. Today the early return is after the fallback user has been set, which already corrupted state.
 
-### 2. Make role/profile reads RLS-aware and timeout-safe
+3. **Stop pre-emptively clearing the resolved-role cache in `hydrateUserInBackground`.** Only clear it when the canonical user's role actually matches what we cached. If the canonical fetch returned `null`, keep the cache so re-renders still see the right role. Add a TTL / `signOut` cleanup instead of clearing on first hydration.
 
-Refactor the auth helper reads so every Supabase query is wrapped with:
-- a short timeout
-- `try/catch`
-- explicit handling for `data === null && error === null`
-- console warnings that identify suspected RLS/missing-row cases
+4. **`createFallbackUserSync` already reads the cache — keep it.** No change here once items 1–3 are applied.
 
-For role resolution:
-- Treat `user_roles` as authoritative.
-- Do **not** let stale `users.role = student` override or accidentally replace a higher-priority `user_roles` role.
-- Use priority: `admin > content_creator > teacher > parent > student`.
+### B. `src/components/auth/ImprovedProtectedRoute.tsx`
 
-### 3. Remove async Supabase work from `onAuthStateChange`
+5. **Resolve role with cache fallback.** Replace line 32 with:
+   ```ts
+   const cachedRole = typeof window !== 'undefined'
+     ? sessionStorage.getItem('auth_resolved_role')
+     : null;
+   const userRole =
+     (user as any)?.role ||
+     cachedRole ||
+     (user as any)?.user_metadata?.role ||
+     null;
+   ```
+   This is the same pattern `Dashboard.tsx` already uses; the route guard must use it too or the ping-pong continues.
 
-Change the listener so it only:
-- records the new session
-- creates a synchronous metadata/sessionStorage fallback user immediately
-- sets `loading=false`
-- launches profile/role hydration in a fire-and-forget task outside the callback stack
+6. **Don't ping-pong to `/dashboard` when the cached role matches `requiredRole`.** In the role-mismatch branch (line 136), if `cachedRole === requiredRole` allow the render — the canonical fetch is in flight and will confirm in <1s.
 
-This avoids auth event deadlocks and prevents `loading` from staying true forever.
+### C. `src/pages/Login.tsx`
 
-### 4. Fix the login button spinner root cause
+7. **Guard the redirect effect against the in-flight signIn race.** In the `useEffect` at lines 19–48, skip redirect when `signInRedirectRef`/`sessionStorage.getItem('auth_redirect_done') === 'true'` AND the cached role exists — let `signIn()`'s own `window.location.href` perform the navigation. Today both fire and they disagree on the role.
 
-Update `src/components/auth/SimpleAuthForm.tsx`:
-- remove or time-limit `verifyingRole`
-- add logs around submit start, `signIn()` result, and redirect wait
-- if `signIn()` returns success but navigation does not happen within a few seconds, reset the button and show a clear error instead of infinite loading
+### D. Data hygiene for the demo accounts
 
-### 5. Make route guards diagnostic and non-looping
+8. **Backfill `users.role` to match the priority winner from `user_roles`.** Right now `f.zahra.djaanine@gmail.com` has `users.role = 'student'` but a `content_creator` entry in `user_roles`. Even after the code fixes, hydration overwrites the user object with `users.*` first and only then sets `role` from the resolver — fine — but keeping these in sync prevents any other place that reads `users.role` directly (there are several) from disagreeing. One-time UPDATE via migration:
+   ```sql
+   UPDATE public.users u
+   SET role = sub.role
+   FROM (
+     SELECT user_id,
+            (ARRAY_AGG(role ORDER BY
+              CASE role
+                WHEN 'admin' THEN 1
+                WHEN 'content_creator' THEN 2
+                WHEN 'teacher' THEN 3
+                WHEN 'parent' THEN 4
+                ELSE 5
+              END))[1] AS role
+     FROM public.user_roles
+     GROUP BY user_id
+   ) sub
+   WHERE u.id = sub.user_id AND u.role IS DISTINCT FROM sub.role;
+   ```
 
-Update `src/components/auth/ImprovedProtectedRoute.tsx`:
-- log required role, actual role, auth loading state, and redirect decisions
-- do not mutate `(user as any).role` inside the route guard
-- when access is denied, route to a safe dashboard/router with diagnostic logging rather than creating a `/login` bounce loop for authenticated users
+### E. Verification
 
-### 6. Add destination error boundaries
+After implementing, log in as each affected account and confirm in the console that:
+- `[AUTH FLOW] STEP 5` shows the correct `role`,
+- no `[AUTH ROUTE] Access denied` lines appear,
+- the URL settles on `/content-creator` (Fatima), `/teacher` (Djaanine), and `/academy` (Lita) without bouncing through `/dashboard` or `/playground`.
 
-Wrap `/teacher/*` and `/content-creator/*` route contents in a route-level error boundary so:
-- real crashes show a visible error state
-- console logs identify the destination crash
-- the user does not see an unexplained infinite spinner
+## Files to change
 
-### 7. Verify after implementation
+- `src/contexts/AuthContext.tsx` — items 1, 2, 3
+- `src/components/auth/ImprovedProtectedRoute.tsx` — items 5, 6
+- `src/pages/Login.tsx` — item 7
+- New migration to backfill `public.users.role` — item 8
 
-After the patch, verify with:
-- TypeScript/build harness results
-- browser console logs during a login attempt
-- network request logs for `/token`, `user_roles`, and `users`
-- direct route checks for `/content-creator`, `/teacher`, and student dashboard routes
-
-No database migration is required unless the new logs reveal an actual RLS policy failure.
+No UI/UX changes; this is purely auth-flow correctness.

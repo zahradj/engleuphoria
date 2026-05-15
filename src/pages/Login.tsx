@@ -27,6 +27,16 @@ const Login = () => {
   useEffect(() => {
     if (loading || !user || redirectedRef.current) return;
 
+    const signInRedirectInFlight =
+      typeof window !== 'undefined' &&
+      sessionStorage.getItem('auth_redirect_done') === 'true' &&
+      !!sessionStorage.getItem('auth_resolved_role');
+
+    if (signInRedirectInFlight) {
+      console.log('[AUTH ROUTE] Login redirect skipped; signIn owns the redirect');
+      return;
+    }
+
     const role =
       (user as any).role ||
       (user as any).user_metadata?.role ||
