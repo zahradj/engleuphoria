@@ -6,10 +6,21 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 type Hub = "playground" | "academy" | "success";
+type Locale = "en" | "es" | "ar" | "fr" | "tr" | "it";
+
+const LOCALE_NAMES: Record<Locale, string> = {
+  en: "English",
+  es: "Spanish (Español)",
+  ar: "Arabic (العربية)",
+  fr: "French (Français)",
+  tr: "Turkish (Türkçe)",
+  it: "Italian (Italiano)",
+};
 
 interface PlacementQuestion {
   skill: string;
   cefr_level: string;
+  task_instruction_localized: string;
   question_text: string;
   options: string[];
   correct_answer: string;
