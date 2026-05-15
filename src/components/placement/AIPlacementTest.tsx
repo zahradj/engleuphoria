@@ -22,23 +22,39 @@ const hubIndexFromAge = (age: number): HubIndex => {
 };
 
 type Phase = 'demographics' | 'test' | 'processing' | 'complete';
+type TestStage = 'mcq' | 'comprehensive';
 
 const AIPlacementTest = () => {
   const navigate = useNavigate();
   const { completeTest } = usePlacementTest();
   const [phase, setPhase] = useState<Phase>('demographics');
+  const [testStage, setTestStage] = useState<TestStage>('mcq');
   const [age, setAge] = useState(0);
   const [interests, setInterests] = useState<string[]>([]);
+  const [mcqResults, setMcqResults] = useState<TestResult[]>([]);
   const [testResults, setTestResults] = useState<TestResult[]>([]);
 
   const handleDemographicsComplete = (result: { age: number; goal: string; interests: string[] }) => {
     setAge(result.age);
     setInterests(result.interests);
+    setTestStage('mcq');
     setPhase('test');
   };
 
-  const handleTestComplete = (results: TestResult[]) => {
-    setTestResults(results);
+  // Kids (<12): TestPhase results go straight to processing.
+  // Teens/Adults (12+): TestPhase MCQs are stored, then ComprehensivePhase runs and results are merged.
+  const handleMcqComplete = (results: TestResult[]) => {
+    if (age >= 12) {
+      setMcqResults(results);
+      setTestStage('comprehensive');
+    } else {
+      setTestResults(results);
+      setPhase('processing');
+    }
+  };
+
+  const handleComprehensiveComplete = (results: TestResult[]) => {
+    setTestResults([...mcqResults, ...results]);
     setPhase('processing');
   };
 
@@ -83,16 +99,19 @@ const AIPlacementTest = () => {
 
             {phase === 'test' && (
               <motion.div
-                key="test"
+                key={`test-${testStage}`}
                 initial={{ opacity: 0, x: 30 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -30 }}
                 className="h-full"
               >
-                {age >= 12 ? (
-                  <ComprehensivePhase onComplete={(results) => handleTestComplete(results)} />
+                {age >= 12 && testStage === 'comprehensive' ? (
+                  <ComprehensivePhase
+                    indexOffset={mcqResults.length}
+                    onComplete={(results) => handleComprehensiveComplete(results)}
+                  />
                 ) : (
-                  <TestPhase age={age} onComplete={handleTestComplete} />
+                  <TestPhase age={age} onComplete={handleMcqComplete} />
                 )}
               </motion.div>
             )}
