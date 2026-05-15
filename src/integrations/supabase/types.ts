@@ -4608,6 +4608,48 @@ export type Database = {
         }
         Relationships: []
       }
+      learning_games: {
+        Row: {
+          content_json: Json
+          created_at: string
+          created_by: string | null
+          description: string | null
+          game_type: string
+          id: string
+          is_published: boolean
+          level: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content_json?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          game_type: string
+          id?: string
+          is_published?: boolean
+          level: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content_json?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          game_type?: string
+          id?: string
+          is_published?: boolean
+          level?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       learning_missions: {
         Row: {
           age_group: string
