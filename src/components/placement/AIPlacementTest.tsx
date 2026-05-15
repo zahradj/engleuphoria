@@ -113,9 +113,16 @@ const AIPlacementTest = ({ forcedHub }: AIPlacementTestProps = {}) => {
       <CursorTrail themeIndex={themeIndex} />
 
       <div className="relative z-10 w-full max-w-2xl h-[80vh] backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col">
-        {/* Header — Engleuphoria brand */}
-        <div className="px-6 py-3 sm:py-4 border-b border-white/10 flex items-center justify-center">
+        {/* Header — Engleuphoria brand + language switcher */}
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-white/10 flex items-center justify-between gap-3">
+          <div className="w-10" aria-hidden />
           <Logo size="medium" variant="white" className="pointer-events-none [&_img]:h-7 sm:[&_img]:h-9" />
+          <LanguageSwitcher
+            variant="ghost"
+            size="sm"
+            compact
+            className="text-white hover:bg-white/10 hover:text-white border border-white/10"
+          />
         </div>
 
         {/* Phase content */}
