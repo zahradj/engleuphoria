@@ -26,45 +26,51 @@ export interface HubArtProfile {
 
 export const HUB_ART_PROFILES: Record<ArtHub, HubArtProfile> = {
   Playground: {
-    label: "Claymation Kids",
+    label: "Playground Cartoon",
     style_suffix:
-      "Style: 3D Pixar claymation, soft lighting, vibrant lime greens, peach, " +
-      "and purple colors. Whimsical and high-energy for kids. " +
-      "Rounded shapes, big expressive eyes, plush textures, gentle rim lighting, " +
-      "centered composition on a clean solid pastel background, no text, no watermarks, " +
-      "kid-safe, age 4-9.",
+      ", flat 2D animation style, cute and child-friendly" +
+      ", the image MUST use a dominant color palette of bright orange and sunny yellow" +
+      ", centered composition on a clean background, no text, no watermarks, kid-safe.",
     negative:
-      "no scary content, no realistic photography, no weapons, no horror, " +
-      "no sharp edges, no dark themes, no text overlay.",
+      "no scary content, no realistic photography, no weapons, no horror, no dark themes, no text overlay.",
     safe_search: "strict",
     max_video_seconds: 240,
   },
   Academy: {
-    label: "Modern Flat Vector",
+    label: "Academy Comic",
     style_suffix:
-      "Style: Modern vector flat art or dynamic anime aesthetic. Bold cyan and " +
-      "energetic orange highlights. Clean lines, teen-focused. " +
-      "Premium illustration, subtle depth via flat layered shapes, isometric where " +
-      "appropriate, clean composition on a soft gradient background, no text, " +
-      "no watermarks, age 10-16.",
+      ", high-quality comic book illustration style, dynamic graphic novel art" +
+      ", the image MUST use a dominant color palette of deep purple and electric purplish-blue" +
+      ", clean composition, no text, no watermarks, teen-focused.",
     negative:
       "no childish claymation, no photorealism, no clutter, no text overlay.",
     safe_search: "moderate",
     max_video_seconds: 480,
   },
   Success: {
-    label: "Editorial Cinematic",
+    label: "Success Editorial",
     style_suffix:
-      "Style: High-end professional photography or minimalist 3D corporate " +
-      "glass/metal aesthetic. Deep navy blue and warm gold tones. Sophisticated " +
-      "and premium for adults. Natural soft directional lighting, shallow depth of " +
-      "field, premium magazine quality, no text, no watermarks, professional adult audience.",
+      ", modern professional editorial photography, sleek, highly realistic and premium" +
+      ", the image MUST use a dominant color palette of sophisticated mint green and emerald green" +
+      ", natural soft lighting, shallow depth of field, premium magazine quality, no text, no watermarks.",
     negative:
       "no cartoons, no childish illustration, no neon, no clutter, no text overlay.",
     safe_search: "moderate",
     max_video_seconds: 600,
   },
 };
+
+/**
+ * Hub-aware Prompt Interceptor for image generation.
+ * Concatenates the user's original target prompt with the Hub's required
+ * Style Suffix and Color Palette Suffix. The user prompt remains the focal
+ * point; suffixes are appended verbatim.
+ */
+export function enrichImagePrompt(basePrompt: string, hub?: string): string {
+  const profile = HUB_ART_PROFILES[normalizeArtHub(hub)];
+  const cleaned = (basePrompt || "").trim().replace(/\s+/g, " ");
+  return `${cleaned}${profile.style_suffix}`;
+}
 
 export function normalizeArtHub(input?: string): ArtHub {
   const v = (input || "").toLowerCase().trim();
