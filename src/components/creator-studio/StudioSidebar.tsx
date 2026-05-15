@@ -17,6 +17,7 @@ const NAV: Array<{ key: CreatorStep; tKey: string; icon: React.ElementType; emoj
   { key: 'success-creator', tKey: 'nav.success_creator', icon: Briefcase, emoji: '💼', fallback: 'Success Creator' },
   { key: 'trial', tKey: 'nav.trial_creator', icon: Zap, emoji: '⚡' },
   { key: 'story', tKey: 'nav.story_creator', icon: BookOpen, emoji: '📖' },
+  { key: 'characters', tKey: 'nav.cast_vault', icon: Users, emoji: '🎭', fallback: 'Cast Vault' },
   { key: 'library', tKey: 'nav.master_library', icon: Library, emoji: '📚' },
 ];
 
