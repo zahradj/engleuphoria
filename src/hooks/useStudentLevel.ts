@@ -159,7 +159,7 @@ export function evaluateStudentLevel(
   avgComplexity: number = 0.5
 ): { level: StudentLevel; track: string } {
   const defaultLevel = determineStudentLevel(age);
-  if (age < 12 && correctCount > 4 && avgComplexity > 0.8) {
+  if (age < 10 && correctCount > 4 && avgComplexity > 0.8) {
     return { level: 'academy', track: 'advanced' };
   }
   if (age > 18 && correctCount < 2) {
