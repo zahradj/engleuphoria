@@ -91,10 +91,17 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
+  const redirectFallbackTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { user, signIn, signUp, resetPassword, isConfigured, error } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  React.useEffect(() => {
+    return () => {
+      if (redirectFallbackTimeoutRef.current) clearTimeout(redirectFallbackTimeoutRef.current);
+    };
+  }, []);
 
   React.useEffect(() => {
     if (mode === 'signup' && user) {
@@ -191,7 +198,8 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
           toast({ title: "Login Failed", description, variant: "destructive", duration: 8000 });
         } else {
           setVerifyingRole(true);
-          window.setTimeout(() => {
+          if (redirectFallbackTimeoutRef.current) clearTimeout(redirectFallbackTimeoutRef.current);
+          redirectFallbackTimeoutRef.current = setTimeout(() => {
             setVerifyingRole(false);
             setFormError('Sign-in succeeded, but the redirect did not complete. Please refresh once or check the console diagnostics.');
             console.warn('[AUTH FORM] Redirect did not complete within 5s after successful signIn');
