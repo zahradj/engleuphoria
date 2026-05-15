@@ -73,6 +73,7 @@ const PlaygroundCreator = lazy(() => import("./pages/PlaygroundCreator"));
 const AcademyClassroom = lazy(() => import("./pages/AcademyClassroom"));
 const AcademyCreator = lazy(() => import("./pages/AcademyCreator"));
 const SuccessCreator = lazy(() => import("./pages/SuccessCreator"));
+const DevConsole = lazy(() => import("./pages/DevConsole"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -144,6 +145,13 @@ const App = () => {
 
                       {/* PWA install instructions */}
                       <Route path="/install" element={<Suspense fallback={<LoadingFallback />}><InstallPage /></Suspense>} />
+
+                      {/* Internal Dev Console — Admin only */}
+                      <Route path="/dev-console" element={
+                        <ImprovedProtectedRoute requiredRole="admin">
+                          <Suspense fallback={<LoadingFallback />}><DevConsole /></Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
 
                       {/* Certificate Viewer — Protected */}
                       <Route path="/certificate/:id" element={
