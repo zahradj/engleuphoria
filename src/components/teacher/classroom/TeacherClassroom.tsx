@@ -131,9 +131,21 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   ]), []);
 
   // Prefer real Master Library slides when present.
+  // Dedupe: if the AI generated an intro/cover slide AND a hardcoded intro
+  // was prepended, collapse consecutive intros at the start of the deck so
+  // we don't render Slide 1 + Slide 2 as two near-identical intros.
   const slides = React.useMemo(() => {
     if (initialSlides && initialSlides.length > 0) {
-      return initialSlides.map((s: any, i: number) => ({
+      const dedupedRaw: any[] = [];
+      let lastWasIntro = false;
+      for (const s of initialSlides) {
+        const isIntro = (s as any)?.type === 'intro' || (s as any)?.slide_type === 'intro';
+        // Only collapse the *leading* intro chain — keep mid-lesson section intros.
+        if (isIntro && lastWasIntro && dedupedRaw.length === 1) continue;
+        dedupedRaw.push(s);
+        lastWasIntro = isIntro;
+      }
+      return dedupedRaw.map((s: any, i: number) => ({
         ...s,
         id: String(s?.id ?? i + 1),
         title: String(s?.title || s?.content?.title || `Slide ${i + 1}`),
