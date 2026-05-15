@@ -1,3 +1,4 @@
+import { detectMarketRegion } from '@/lib/marketRegion';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -99,7 +100,8 @@ const AuthCallback = () => {
             email: session.user.email,
             full_name: fullName,
             role: session.user.user_metadata?.role || 'student',
-          }, { onConflict: 'id' });
+            market_region: detectMarketRegion(),
+          } as any, { onConflict: 'id' });
         }
 
         // Step 4: Direct hub-based redirect — bypass /dashboard smart router

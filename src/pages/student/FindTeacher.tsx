@@ -14,6 +14,8 @@ import { BackNavigation } from '@/components/navigation/BackNavigation';
 import { BookMyClassModal } from '@/components/student/BookMyClassModal';
 import { useStudentLevel } from '@/hooks/useStudentLevel';
 import { cn } from '@/lib/utils';
+import { useMarketRegion } from '@/contexts/MarketRegionContext';
+import { getTeacherRate, formatPrice } from '@/lib/pricing';
 
 interface TeacherProfile {
   id: string;
@@ -29,6 +31,7 @@ interface TeacherProfile {
   rating: number | null;
   total_reviews: number | null;
   hourly_rate_eur: number | null;
+  hourly_rate_dzd: number | null;
   timezone: string | null;
   is_available: boolean;
   _hubs?: string[];
@@ -89,6 +92,7 @@ const FindTeacher: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { studentLevel } = useStudentLevel();
+  const { region } = useMarketRegion();
   const [teachers, setTeachers] = useState<TeacherProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -145,7 +149,7 @@ const FindTeacher: React.FC = () => {
             supabase
               .from('teacher_profiles')
               .select(
-                'id, user_id, bio, video_url, profile_image_url, specializations, accent, languages_spoken, years_experience, rating, total_reviews, hourly_rate_eur, timezone, is_available, hub_role, can_teach, profile_complete, profile_approved_by_admin'
+                'id, user_id, bio, video_url, profile_image_url, specializations, accent, languages_spoken, years_experience, rating, total_reviews, hourly_rate_eur, hourly_rate_dzd, timezone, is_available, hub_role, can_teach, profile_complete, profile_approved_by_admin'
               )
               .in('user_id', ids),
           ]);
@@ -166,6 +170,7 @@ const FindTeacher: React.FC = () => {
               rating: p.rating,
               total_reviews: p.total_reviews,
               hourly_rate_eur: p.hourly_rate_eur,
+              hourly_rate_dzd: p.hourly_rate_dzd,
               timezone: p.timezone,
               is_available: p.is_available ?? true,
               hub_role: p.hub_role,
@@ -435,11 +440,14 @@ const FindTeacher: React.FC = () => {
 
                       {/* Footer */}
                       <div className="px-6 pb-6 flex items-center justify-between">
-                        {teacher.hourly_rate_eur && (
-                          <span className="text-lg font-bold text-foreground">
-                            €{teacher.hourly_rate_eur}<span className="text-xs text-muted-foreground font-normal">/hr</span>
-                          </span>
-                        )}
+                        {(() => {
+                          const rate = getTeacherRate(teacher, region);
+                          return rate != null ? (
+                            <span className="text-lg font-bold text-foreground">
+                              {formatPrice(rate, region)}<span className="text-xs text-muted-foreground font-normal">/hr</span>
+                            </span>
+                          ) : null;
+                        })()}
                         <Button
                           onClick={() => handleBookTeacher(teacher.user_id)}
                           size="sm"

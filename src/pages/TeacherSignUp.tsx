@@ -1,3 +1,4 @@
+import { detectMarketRegion } from '@/lib/marketRegion';
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -132,8 +133,9 @@ const TeacherSignUp = () => {
             id: data.user.id,
             email: values.email,
             full_name: values.fullName,
-            role: 'teacher'
-          });
+            role: 'teacher',
+            market_region: detectMarketRegion(),
+          } as any);
           
           await supabase.from('user_roles').insert({
             user_id: data.user.id,

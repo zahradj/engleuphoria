@@ -1,3 +1,4 @@
+import { detectMarketRegion } from '@/lib/marketRegion';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -129,7 +130,8 @@ const StudentSignUp = () => {
           full_name: data.fullName,
           role: 'student',
           current_system: systemTag,
-        });
+          market_region: detectMarketRegion(),
+        } as any);
         await supabase.from('user_roles').insert({ user_id: userId, role: 'student' });
       } else {
         await supabase.from('users').update({ current_system: systemTag }).eq('id', userId);

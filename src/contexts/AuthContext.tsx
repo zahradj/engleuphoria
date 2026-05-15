@@ -4,6 +4,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { sanitizeText, rateLimiter } from '@/utils/security';
 import { toast } from 'sonner';
+import { detectMarketRegion } from '@/lib/marketRegion';
 
 interface AuthContextType {
   user: User | null;
@@ -115,8 +116,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           id: authUser.id,
           email: authUser.email,
           full_name: fullName,
-          role: role
-        }, { onConflict: 'id' });
+          role: role,
+          market_region: detectMarketRegion(),
+        } as any, { onConflict: 'id' });
         if (upsertErr) console.error('Auto-heal users upsert failed:', upsertErr);
 
         try {
@@ -460,8 +462,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             id: data.user.id,
             email: sanitizedEmail,
             full_name: fullName,
-            role: role
-          }, { onConflict: 'id' });
+            role: role,
+            market_region: detectMarketRegion(),
+          } as any, { onConflict: 'id' });
           if (upsertErr) console.error('Auto-heal users upsert failed:', upsertErr);
           
           // Create missing user_roles entry via RPC to bypass RLS
