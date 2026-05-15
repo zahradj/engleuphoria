@@ -362,13 +362,54 @@ export default function AcademyCreator() {
         const keys = data && typeof data === 'object' ? Object.keys(data).join(', ') : 'none';
         throw new Error(`AI returned no Academy slides. Response keys: [${keys}]`);
       }
-      const finalSlides = academySlides.some((s: any) => s.type === 'lesson_summary')
-        ? academySlides
-        : [...academySlides, makeSlide('lesson_summary')];
+
+      // ── Vocabulary safety net ──────────────────────────────────────────
+      // The AI sometimes returns fewer vocab slides than the target list. Make sure
+      // every target word has a slide; backfill missing ones at the end of the
+      // vocab block using the word as a placeholder definition the teacher can edit.
+      const targetWords = (payload.vocabulary || [])
+        .map((w) => (typeof w === 'string' ? w.trim() : ''))
+        .filter(Boolean);
+      const presentWords = new Set(
+        academySlides
+          .filter((s: any) => s.type === 'vocab' && typeof s.word === 'string')
+          .map((s: any) => s.word.trim().toLowerCase()),
+      );
+      const missingWords = targetWords.filter((w) => !presentWords.has(w.toLowerCase()));
+      let backfilledSlides: Slide[] = academySlides;
+      if (missingWords.length > 0) {
+        const lastVocabIdx = (() => {
+          for (let i = backfilledSlides.length - 1; i >= 0; i--) {
+            if ((backfilledSlides[i] as any).type === 'vocab') return i;
+          }
+          return -1;
+        })();
+        const newCards: Slide[] = missingWords.map((w) => ({
+          type: 'vocab',
+          block: 'vocab',
+          word: w,
+          definition: '',
+          example: '',
+        } as Slide));
+        const insertAt = lastVocabIdx >= 0 ? lastVocabIdx + 1 : backfilledSlides.length;
+        backfilledSlides = [
+          ...backfilledSlides.slice(0, insertAt),
+          ...newCards,
+          ...backfilledSlides.slice(insertAt),
+        ];
+        toast.warning(
+          `AI returned ${targetWords.length - missingWords.length}/${targetWords.length} vocab cards — backfilled ${missingWords.length} (${missingWords.join(', ')}). Edit them in the right panel.`,
+          { duration: 12000 },
+        );
+      }
+
+      const finalSlides = backfilledSlides.some((s: any) => s.type === 'lesson_summary')
+        ? backfilledSlides
+        : [...backfilledSlides, makeSlide('lesson_summary')];
       setSlides(finalSlides);
       setSelected(0);
       setAiOpen(false);
-      toast.success(`Generated ${academySlides.length} slides ✨`);
+      toast.success(`Generated ${finalSlides.length} slides ✨`);
     } catch (e: any) {
       console.error(e);
       toast.error('Generation Failed', {
