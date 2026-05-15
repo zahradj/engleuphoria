@@ -678,6 +678,7 @@ async function handleGenerateStory(body: any) {
     art_style: artStyleAlias,
     artStyle,                           // camelCase alias
     starring_character = null,
+    custom_prompt = '',
   } = body;
 
   // Normalize aliases
