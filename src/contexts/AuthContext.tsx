@@ -290,7 +290,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           (event, currentSession) => {
             if (!mounted) return;
             
-            console.info('Auth state changed:', event, !!currentSession);
+            console.info(`${AUTH_FLOW_PREFIX} EVENT: Auth state changed`, { event, hasSession: !!currentSession });
             
             // INITIAL_SESSION is handled by getSession() below — skip the listener
             // to prevent double state updates that cause flickering
@@ -301,52 +301,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setSession(currentSession);
             
             if (currentSession?.user) {
-              if (event === 'SIGNED_IN') {
-                // signIn() already handles redirect — skip if already done
-                if (sessionStorage.getItem('auth_redirect_done') || signInRedirectRef.current) {
-                  return;
-                }
-                // SIGNED_IN without signIn() (e.g. email verification, magic link)
-                (async () => {
-                  if (!mounted) return;
-                  try {
-                    await autoHealUserRows(currentSession.user);
-                    const dbUser = await fetchUserFromDatabase(currentSession.user);
-                    const finalUser = dbUser || createFallbackUserSync(currentSession.user);
-                    if (mounted) {
-                      setUser(finalUser);
-                      setLoading(false);
-                    }
-                  } catch (err) {
-                    console.error('Error in SIGNED_IN state update:', err);
-                    if (mounted) {
-                      const fallback = createFallbackUserSync(currentSession.user);
-                      setUser(fallback);
-                      setLoading(false);
-                    }
-                  }
-                })();
-              } else if (event === 'TOKEN_REFRESHED') {
-                // Silent refresh — don't re-fetch user, just update session
-                // This prevents unnecessary flickering on token refresh
-              } else {
-                // Other events — update user in background
-                setTimeout(async () => {
-                  if (!mounted) return;
-                  try {
-                    const dbUser = await fetchUserFromDatabase(currentSession.user);
-                    if (mounted) {
-                      const finalUser = dbUser || createFallbackUserSync(currentSession.user);
-                      setUser(finalUser);
-                    }
-                  } catch (error) {
-                    console.error('Error in deferred user fetch:', error);
-                    if (mounted) {
-                      const fallbackUser = createFallbackUserSync(currentSession.user);
-                      setUser(fallbackUser);
-                    }
-                  }
-                }, 0);
+              const fallbackUser = createFallbackUserSync(currentSession.user);
+              setUser(fallbackUser);
+              setLoading(false);
+
+              if (event === 'SIGNED_IN' && (sessionStorage.getItem('auth_redirect_done') || signInRedirectRef.current)) {
+                console.log(`${AUTH_FLOW_PREFIX} EVENT: SIGNED_IN handled by signIn redirect; skipping listener redirect work`);
+                return;
+              }
+
+              if (event !== 'TOKEN_REFRESHED') {
+                hydrateUserInBackground(currentSession.user, `auth-event:${event}`);
               }
             } else {
               setUser(null);
