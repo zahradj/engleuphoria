@@ -1,41 +1,59 @@
-# Diagnosis
 
-I scanned the classroom flow and found two distinct, confirmed problems.
+# Classroom UI Polish — Round 2
 
-## Problem 1 — "Something went wrong" when entering the classroom
+Four tightly-scoped UI refinements across teacher + student classrooms. No business-logic, RLS, or data changes.
 
-Runtime error from the preview:
+## 1. Align teacher video frames with student frames
 
-```
-Error: Rendered more hooks than during the previous render.
-  at UnifiedClassroomPage (src/pages/UnifiedClassroomPage.tsx)
-```
+In `src/components/teacher/classroom/CommunicationZone.tsx` (expanded view, lines ~167–260) the **student** tile is `aspect-[4/3]` full-width but the **teacher (You)** tile uses `w-2/3`, so the two frames are mismatched.
 
-Root cause: `src/pages/UnifiedClassroomPage.tsx` calls a **second** `useQuery` (the lesson resolver, line 164) **after** six conditional `return` statements (lines 63, 74, 78, 82, 95, 132). On the first render `booking` is `undefined`, the component returns early at line 82 (`bookingLoading`), and the second `useQuery` is never reached. On the next render `booking` is defined, the early return is skipped, and React suddenly sees an extra hook — which violates the Rules of Hooks and crashes the page. The error boundary then shows the generic "Something went wrong" screen until the user clicks "Try again".
+Change:
+- Make both video tiles share an identical wrapper: full-width, `aspect-[4/3]`, same rounded card chrome (`Card` + `CardContent` like the student sidebar uses), same border treatment, same label/indicator placement.
+- Keep teacher remote-control buttons over the student tile.
+- Collapsed-rail circles (lines 108–139) stay the same — they're already symmetric.
 
-## Problem 2 — Booked lessons don't appear automatically on the teacher's "Next lesson" tab
+Result: teacher view shows two equal stacked frames (Student on top, You below), mirroring the student view.
 
-`src/components/teacher/dashboard/LessonsListCard.tsx` queries `class_bookings` with React Query but does **not** subscribe to Supabase Realtime. The card only refetches on mount or manual refresh, so newly booked lessons stay invisible until the teacher reloads the page.
+## 2. Make lesson slides visible
 
----
+Teacher already passes resolved Master Library slides to `TeacherClassroom` (`initialSlides`) and pushes them to the student via `useClassroomSync`. The student renders them through `StudentMainStage`. When `lessonSlides` is empty, the student currently shows a single placeholder `"Waiting for teacher..."`.
 
-# Fix
+Changes:
+- **Teacher side**: the `SlideNavigator` is imported but only mounted in some flows. Ensure the slide thumbnail strip / current slide preview is visible in the main stage area so the teacher can see and step through `slides` from the moment they enter (not gated behind a tab switch).
+- **Student side**: when `lessonSlides.length === 0`, render a friendlier "Lesson loading…" state instead of a stubbed slide, and re-render automatically once the teacher's broadcast arrives (already wired via `useClassroomSync`, just remove the stub array fallback so the real slide list shows up the moment it lands).
+- Verify `resolveBookingLesson` actually returns slides for the current booking; if it returns empty, fall back to the lesson's `curriculum_lessons.content.slides` (read-only query — no schema change).
 
-## 1. `src/pages/UnifiedClassroomPage.tsx`
+## 3. Replace the "Realtime + Force Sync" tab with an icon-only button
 
-Move the second `useQuery` (the `resolveBookingLesson` call) up next to the first one, before any conditional `return`. Gate it with `enabled: !!booking?.id` so it stays idle until the booking is loaded, and guard `booking.id` access with optional chaining. This keeps the hook count identical on every render and removes the crash.
+Both `TeacherClassroom.tsx` (lines 537–543) and `StudentClassroom.tsx` (lines 299–302) render a pill in the top-right with a status dot, the word "Realtime", and (teacher only) a red "Force Sync" button.
 
-No behavioral change for the user beyond the page actually loading.
+Change to:
+- A single small circular icon button in the same top-right slot.
+- Teacher: `RefreshCw` icon, hub-themed background, runs `handleForceSync` on click. Tooltip: "Force sync".
+- Student: same circular slot but icon-only status (no button, no label, no "Realtime" text) — just a small dot/pulse showing connection state.
+- Drop the word "Realtime" entirely. Keep `ConnectionDebugPanel` for `?debug` URLs only.
 
-## 2. `src/components/teacher/dashboard/LessonsListCard.tsx`
+## 4. Enhance the stars — remove the numbers
 
-Add a Supabase Realtime subscription on the `class_bookings` table inside a `useEffect`. On any `INSERT` / `UPDATE` / `DELETE` event whose `teacher_id` matches the current teacher, invalidate the React Query cache for this card so the next lesson appears within ~1 second of being booked. Clean up the channel on unmount.
+Two components show numeric labels alongside stars:
 
-No UI changes — only the data freshness behavior.
+- **`src/components/classroom/StarRewardsLine.tsx`** (lines 71–75, 91–94): each milestone star renders the milestone number under it, and the bottom shows `points` + "points". Remove the milestone number captions, remove the bottom "points" text, and keep only the stars themselves. Add a subtle scale + glow on earned stars to compensate for the lost label.
+- **`src/components/classroom/engagement/XPStreakIndicator.tsx`**: the streak section currently shows `<Flame /> {streak}`. Drop the numeric streak count — keep just the flame icon (animated when streak ≥ 2). Keep the `XP` count itself since that's the indicator's purpose; only the streak number goes.
 
----
+Star celebration overlay (`StarCelebration`) is unchanged — it's a brief animation, not a persistent counter.
 
-# Out of scope
+## Files touched
 
-- No database/RLS migrations needed; the existing `class_bookings` policies already allow the teacher to read their own rows, and Realtime is enabled on this table elsewhere in the app.
-- No changes to `StudentClassroomPage` or `TeacherClassroomPage` — those don't show the runtime error and use a single, top-level `useQuery`.
+- `src/components/teacher/classroom/CommunicationZone.tsx` — symmetric video frames
+- `src/components/teacher/classroom/TeacherClassroom.tsx` — top-right icon button, ensure slide nav visible
+- `src/components/student/classroom/StudentClassroom.tsx` — top-right status dot only, slide-loading state
+- `src/components/student/classroom/StudentMainStage.tsx` — empty-slides fallback (if needed)
+- `src/services/classroomLessonResolver.ts` — verify slide fallback (read-only check, edit only if empty)
+- `src/components/classroom/StarRewardsLine.tsx` — drop numbers
+- `src/components/classroom/engagement/XPStreakIndicator.tsx` — drop streak number
+
+## Out of scope
+
+- No DB / RLS / migration work.
+- No changes to WebRTC, sync engine, or scoring logic.
+- No new features; this is purely a visual/UX cleanup pass on what already exists.
