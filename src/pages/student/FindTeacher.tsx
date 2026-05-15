@@ -14,6 +14,8 @@ import { BackNavigation } from '@/components/navigation/BackNavigation';
 import { BookMyClassModal } from '@/components/student/BookMyClassModal';
 import { useStudentLevel } from '@/hooks/useStudentLevel';
 import { cn } from '@/lib/utils';
+import { useMarketRegion } from '@/contexts/MarketRegionContext';
+import { getTeacherRate, formatPrice } from '@/lib/pricing';
 
 interface TeacherProfile {
   id: string;
