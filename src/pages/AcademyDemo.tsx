@@ -8,6 +8,7 @@ import { ScaffoldedPlayer } from '@/components/creator-studio/shared/ScaffoldedP
 import { SoloVocabCard } from '@/components/creator-studio/shared/SoloVocabCard';
 import { GrammarMarkup } from '@/components/lesson-player/grammarMarkup';
 import { LessonCoverSlide } from '@/components/lesson-player/LessonCoverSlide';
+import { RichText } from '@/components/lesson-player/RichText';
 import {
   getErrorDetectionItems,
   getCorrectionItems,
