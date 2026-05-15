@@ -16,6 +16,8 @@ export interface HubArtProfile {
   label: string;
   /** Style suffix appended to EVERY image prompt for this hub. */
   style_suffix: string;
+  /** Proprietary brand-color signature appended after style_suffix. */
+  brand_signature: string;
   /** Negative prompt fragment to keep the look consistent. */
   negative: string;
   /** YouTube safe-search level — strict for Playground. */
