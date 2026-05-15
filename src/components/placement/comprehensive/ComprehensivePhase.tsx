@@ -27,11 +27,11 @@ interface Props {
  * band; writing/speaking are stored on the submission for future Gemini
  * evaluation but do not affect persistence today.
  */
-function toLegacyResults(sub: ComprehensiveSubmission): TestResult[] {
+function toLegacyResults(sub: ComprehensiveSubmission, offset = 0): TestResult[] {
   const results: TestResult[] = [];
   sub.listening.forEach((r, idx) => {
     results.push({
-      questionIndex: idx,
+      questionIndex: offset + results.length,
       selectedOption: 0,
       correctOption: r.correct ? 0 : 1,
       isCorrect: r.correct,
@@ -41,7 +41,7 @@ function toLegacyResults(sub: ComprehensiveSubmission): TestResult[] {
   });
   sub.reading.forEach((r, idx) => {
     results.push({
-      questionIndex: sub.listening.length + idx,
+      questionIndex: offset + results.length,
       selectedOption: r.choice,
       correctOption: r.correct ? r.choice : -1,
       isCorrect: r.correct,
@@ -49,12 +49,11 @@ function toLegacyResults(sub: ComprehensiveSubmission): TestResult[] {
       targetLevel: 'B1',
     });
   });
-  // Writing: rough heuristic, +1 correct for ≥240 chars and ≥4 sentences (B2-ish).
   if (sub.writing) {
     const sentences = (sub.writing.text.match(/[.!?]+/g) || []).length;
     const strong = sub.writing.text.length >= 240 && sentences >= 4;
     results.push({
-      questionIndex: results.length,
+      questionIndex: offset + results.length,
       selectedOption: 0,
       correctOption: 0,
       isCorrect: strong,
@@ -62,11 +61,10 @@ function toLegacyResults(sub: ComprehensiveSubmission): TestResult[] {
       targetLevel: 'B2',
     });
   }
-  // Speaking: any recording ≥10s counts as a correct production sample.
   if (sub.speaking) {
     const ok = sub.speaking.audioBlob !== null && sub.speaking.durationMs >= 10000;
     results.push({
-      questionIndex: results.length,
+      questionIndex: offset + results.length,
       selectedOption: 0,
       correctOption: 0,
       isCorrect: ok,
