@@ -80,6 +80,8 @@ Deno.serve(async (req) => {
       layout_mode,
       cefr_level = 'A1',
       hub_type = 'playground',
+      starring_character = null,
+      character_visual_blueprint = '',
     } = await req.json();
     if (!prompt || typeof prompt !== 'string') {
       return new Response(JSON.stringify({ error: 'prompt is required' }), {
@@ -95,6 +97,29 @@ Deno.serve(async (req) => {
     const resolvedLayout = layout_mode || DEFAULT_LAYOUT[hub];
     const vocabList = Array.isArray(target_vocab) ? target_vocab.filter(Boolean).slice(0, 12) : [];
 
+    // Casting Director: force the AI to feature the chosen character on every
+    // page and to restate their visual blueprint verbatim in every image_prompt.
+    let castingBlock = '';
+    if (starring_character && typeof starring_character === 'object') {
+      const cName = String((starring_character as any).name || '').trim();
+      const cPersona = String((starring_character as any).personality_traits || '').trim();
+      const cVisual = String(
+        (starring_character as any).visual_blueprint || character_visual_blueprint || ''
+      ).trim();
+      if (cName) {
+        castingBlock = [
+          '',
+          '[CASTING INSTRUCTIONS]',
+          `The protagonist of this story MUST be ${cName}.`,
+          `Personality & Role: ${cPersona || '(consistent recurring voice)'}`,
+          `Write their dialogue and actions to perfectly match this personality. ${cName} must be the subject interacting with the target vocabulary on every page. Do not invent a different main character.`,
+          '',
+          '[ART DIRECTION RULE]',
+          `Every image_prompt MUST feature ${cName}. You must use this exact visual description for them verbatim: "${cVisual}". Do not invent new visual traits for them. Keep ${cName}'s appearance identical across all pages.`,
+        ].join('\n');
+      }
+    }
+
     const systemPrompt = [
       `You are an English curriculum author. Generate a contextual story for the ${hub.toUpperCase()} hub at CEFR ${cefr_level}.`,
       `Story theme: ${theme}. Layout: ${resolvedLayout}.`,
@@ -103,6 +128,7 @@ Deno.serve(async (req) => {
       `Sentence rule: ${rules.sentenceRule}`,
       vocabList.length ? `Target vocabulary: ${vocabList.join(', ')}. ${rules.vocabRule} Return the actually-used words in highlight_words (verbatim, in the case they appear).` : '',
       grammar_focus ? `Target grammar / functional focus: ${grammar_focus}. Use it naturally.` : '',
+      castingBlock,
       '',
       'COMPREHENSION LOOP:',
       rules.comprehension,
