@@ -1,60 +1,85 @@
-# Cycle 2 wiring + Homework Generation Fix
+# Cycle 3 Plan — Homework Guard, Creator Blocks & Infinite Arcade
 
-## Part A — Finish Cycle 2 (Adaptive Dashboard)
+GATEKEEPER: No Cycle 1 onboarding/placement-test files will be touched. All work scoped to creator pages, student dashboard `/dashboard/games`, and a new `learning_games` table.
 
-The hooks, edge functions, and room components were built last cycle but never mounted. Wire them in for all three hubs.
+---
 
-1. **Mount `DashboardHero`** (greeting + `CEFRBar` + `XPStreakWidget` + `RecapCard`) at the top of:
-   - `src/pages/dashboard/PlaygroundDashboard.tsx`
-   - `src/pages/dashboard/AcademyDashboard.tsx`
-   - `src/pages/dashboard/HubDashboard.tsx` (Success)
-   Hub-coloured accent passed as prop (`playground|academy|success`).
+## Part A — Homework Generation Guard (frontend hardening)
 
-2. **Routes** in `src/App.tsx`:
-   - `/dashboard/vocabulary` → `VocabularyRoomPage`
-   - `/dashboard/speaking`   → new `SpeakingStudioPage`
-   - `/dashboard/library`    → new `GradedLibraryPage`
-   Each page resolves the student's hub via `useStudentLevel` and renders the matching room.
+**Files:** `src/pages/AcademyCreator.tsx`, `src/pages/PlaygroundCreator.tsx`, `src/pages/SuccessCreator.tsx` (and shared homework button if extracted).
 
-3. **Recap → Active Theme link**: `RecapCard` "Continue this week's theme" CTA navigates to `/dashboard/vocabulary` with the resolved theme prefilled.
+1. Before invoking `generate-homework`, compute `vocabArray` from the lesson's blueprint / `vocabulary_list`.
+2. If `vocabArray.length < 3`:
+   - Block the call.
+   - Toast (sonner): *"Please add at least 3 vocabulary words to this lesson before generating homework."*
+   - Disable the **Generate Homework** button + tooltip explaining the minimum.
+3. Wrap the invoke in `try/catch`. On any error, surface a friendly toast (parsing `INSUFFICIENT_VOCABULARY` → hint message; everything else → generic *"Couldn't generate homework. Please try again."*). No raw red overlays.
 
-4. **XP wiring**: call `award-xp` from `VocabularyRoom` (quiz pass), `SpeakingStudio` (submit), `GradedLibraryRoom` (mark complete).
+---
 
-## Part B — Root-cause fix for `Homework Failed: … status=400 body={}`
+## Part B — Interactive Creator Blocks (Block-based slide builder)
 
-### Diagnosis
-Edge logs show the function returns **400 in ~278 ms**, well before the AI call. That isolates the failure to the input-validation block in `supabase/functions/generate-homework/index.ts` (lines 90–105):
+New folder: `src/components/creator/blocks/`
 
-- `bp.vocabulary` is empty/missing → falls into "No blueprint or vocabulary/grammar provided", **or**
-- vocabulary normalises to fewer than 3 strings → "Need at least 3 vocabulary items".
+1. **`SpinningWheelBlock.tsx`** — SVG/CSS wheel, 2–8 configurable segments, randomized spin via CSS `transform: rotate()` with eased transition + pointer arrow.
+2. **`LogicMatrixBlock.tsx`** — Editable grid (rows × cols headers). Cells cycle: empty → ✓ → ✗.
+3. **`ConjugationBlock.tsx`** — Two columns of cards; click-to-pair connector lines (no DnD needed for v1, simpler+mobile-friendly).
 
-The Academy lesson the user is editing has a saved `curriculum_lessons` row, but `vocabulary_list` / blueprint vocabulary is empty or below the threshold, so the request never reaches Gemini.
+Each block exports a uniform interface `{ config, onChange, mode: 'edit' | 'play' }` so the slide canvas can stack them. Register them in a `blockRegistry.ts` so the canvas insert menu picks them up.
 
-The toast shows `body={}` because `extractEdgeError` does `JSON.stringify(error.context.body)` — supabase-js v2 hands back the response body as a `Blob`, which serialises to `{}`. The real JSON message from the function is being thrown away.
+---
 
-### Fix (root cause, both ends)
+## Part C — Student Grammar Arcade `/dashboard/games`
 
-1. **`supabase/functions/generate-homework/index.ts`** — make vocabulary resolution resilient before failing:
-   - If blueprint vocab < 3, hydrate from `curriculum_lessons.vocabulary_list` (already attempted) **plus** fall back to `unit_vocabulary` (joined via lesson → unit) and finally `vocabulary_bank` filtered by the lesson's theme/CEFR.
-   - Only return 400 after all hydration paths fail, and include `code: "INSUFFICIENT_VOCABULARY"`, the resolved count, and a human hint ("Add at least 3 vocabulary words to the lesson before generating homework").
-   - Keep the response shape `{ error, code, hint, vocabularyCount }`.
+### C1. Database
 
-2. **`src/lib/extractEdgeError.ts`** — read `context.body` when it is a `Blob`/`ReadableStream`:
-   - If `body instanceof Blob` → `await body.text()` then JSON-parse.
-   - If body has a `.getReader` (stream) → drain to text.
-   - Make `extractEdgeError` async (`await`) and update the three creator pages (`AcademyCreator`, `PlaygroundCreator`, `SuccessCreator`) plus any other call sites to `await` it.
+New migration: `learning_games` table
+- `game_type` text (`sentence_builder` | `verb_trio` | `interview` | `sorting`)
+- `level` text (CEFR `A1`–`C1`)
+- `title`, `description`
+- `content_json` jsonb (engine-specific payload)
+- `created_by` uuid (teacher), `is_published` bool
+- RLS: published rows readable by all authenticated students; teachers can CRUD own rows; admin bypass.
 
-3. **Creator UX** — when the toast surfaces `code: INSUFFICIENT_VOCABULARY`, show the hint inline and focus the blueprint vocabulary field instead of a raw error string.
+### C2. Routing & Hub
+- Add `/dashboard/games` route (student-protected) → `GamesHub.tsx`.
+- Hub: arcade-style card grid; queries `learning_games` filtered by the student's CEFR level (from `student_cefr_progress` / profile).
+- Top section keeps curated cards (Past Simple, Present Perfect, Modals, Irregular Verbs) that filter by tag if no DB games yet.
 
-### Verification
-- `supabase--curl_edge_functions` POST `generate-homework` with `{ lesson_id: <real id> }` and inspect the JSON body (no more `{}`).
-- Add 3 vocab words to the lesson, retry, and confirm the assignment row is inserted.
-- Check `supabase--edge_function_logs generate-homework` for the new structured error code on the failure case.
+### C3. Universal Sorting Engine
+**`<GrammarSortingGame />`** using `@dnd-kit/core` (already lighter than html5 DnD on touch).
+- 3–5 drop buckets, draggable word cards.
+- Correct → green pulse + soft "ding" (web audio). Wrong → snap back.
+- Accepts JSON prop: `{ buckets: [...], words: [{text, correctBucket}] }`.
 
-## Files touched
-- `supabase/functions/generate-homework/index.ts`
-- `src/lib/extractEdgeError.ts`
-- `src/pages/AcademyCreator.tsx`, `PlaygroundCreator.tsx`, `SuccessCreator.tsx`
-- `src/pages/dashboard/PlaygroundDashboard.tsx`, `AcademyDashboard.tsx`, `HubDashboard.tsx`
-- `src/pages/dashboard/SpeakingStudioPage.tsx` (new), `GradedLibraryPage.tsx` (new)
-- `src/App.tsx`
+### C4. Three Game Engines
+1. **`<SentenceBuilderGame />`** — scattered word chips + horizontal drop line; success when ordered array equals `correctOrder`.
+2. **`<VerbMatchingGame />`** — three columns (Present / Past / Past Participle); click two cards in different columns to link; trio completes when all three match.
+3. **`<InterviewGame />`** — chat UI: avatar prompt bubble + 3 reply chips. Wrong answer shows confused reaction; correct advances script.
+
+### C5. Universal Wrapper
+**`<GamePlayer gameId={id} />`**
+- Loads row from `learning_games`.
+- Switches on `game_type` → mounts the right engine, passing `content_json`.
+- Reports completion → calls existing `award-xp` edge function.
+
+---
+
+## Technical Details
+
+- **Stack additions:** `@dnd-kit/core` + `@dnd-kit/sortable` (for sentence builder & sorting).
+- **Audio:** tiny base64 `ding`/`buzz` in `src/assets/audio/` to avoid network.
+- **Theming:** all blocks/games use semantic tokens; hub-aware accent colors via existing hub branding tokens.
+- **XP hook:** reuse `award-xp` with `eventType: 'game_complete'`.
+- **Types:** regenerate Supabase types after `learning_games` migration.
+
+## Out of Scope (this plan)
+- Teacher publishing UI for `learning_games` (will be Cycle 3.2 — current creator just gets the building blocks).
+- Multiplayer / leaderboard.
+- Any onboarding or placement-test changes.
+
+## Execution Order
+1. Part A guard (small, ships fast, fixes live error).
+2. Migration for `learning_games` + RLS.
+3. Engines + GamePlayer + GamesHub.
+4. Creator blocks + registry.
