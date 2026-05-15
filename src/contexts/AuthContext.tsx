@@ -257,31 +257,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }
         );
 
-        // THEN get initial session and AWAIT the user fetch
-        // This is the ONLY place where we set loading = false
-        const { data: { session: initialSession } } = await supabase.auth.getSession();
-        
+        // THEN get initial session, but race against a 1.5s timeout so a
+        // stalled auth network call can't freeze boot. The onAuthStateChange
+        // listener will catch up if the real session arrives later.
+        const sessionRace = Promise.race([
+          supabase.auth.getSession().then((r) => r.data.session),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500)),
+        ]);
+        const initialSession = await sessionRace;
+
         if (mounted) {
           setSession(initialSession);
-          
+
           if (initialSession?.user) {
-            // Do NOT set interim user without role — it causes Login.tsx to
-            // see a truthy user with undefined role and redirect to /dashboard
-            // prematurely. Wait for the DB fetch to complete.
-            try {
-                const dbUser = await fetchUserFromDatabase(initialSession.user);
-              setUser(dbUser || await createFallbackUser(initialSession.user));
-            } catch (error) {
-              console.error('Error fetching initial user:', error);
-              setUser(await createFallbackUser(initialSession.user));
-            }
+            // Show fallback user (auth metadata) immediately so we don't block
+            // render on a slow DB fetch. Real DB user swaps in below.
+            const fallback = await createFallbackUser(initialSession.user);
+            if (mounted) setUser(fallback);
+            initialFetchDoneRef.current = true;
+            setLoading(false);
+
+            // Background: fetch the real DB user and replace silently.
+            fetchUserFromDatabase(initialSession.user)
+              .then((dbUser) => {
+                if (mounted && dbUser) setUser(dbUser);
+              })
+              .catch((err) => console.error('Background user fetch failed:', err));
           } else {
             setUser(null);
+            initialFetchDoneRef.current = true;
+            setLoading(false);
           }
-          
-          // Loading is set to false ONLY after initial session + user data is ready
-          initialFetchDoneRef.current = true;
-          setLoading(false);
         }
 
         return () => {
