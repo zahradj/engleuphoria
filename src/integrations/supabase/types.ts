@@ -1349,6 +1349,7 @@ export type Database = {
           hub_type: string | null
           id: string
           lesson_id: string | null
+          market_region: Database["public"]["Enums"]["market_region"]
           meeting_link: string | null
           notes: string | null
           price_paid: number
@@ -1371,6 +1372,7 @@ export type Database = {
           hub_type?: string | null
           id?: string
           lesson_id?: string | null
+          market_region?: Database["public"]["Enums"]["market_region"]
           meeting_link?: string | null
           notes?: string | null
           price_paid?: number
@@ -1393,6 +1395,7 @@ export type Database = {
           hub_type?: string | null
           id?: string
           lesson_id?: string | null
+          market_region?: Database["public"]["Enums"]["market_region"]
           meeting_link?: string | null
           notes?: string | null
           price_paid?: number
@@ -1502,6 +1505,7 @@ export type Database = {
           lesson_id: string | null
           lesson_slides: Json | null
           lesson_title: string | null
+          market_region: Database["public"]["Enums"]["market_region"]
           poll_active: boolean | null
           poll_show_results: boolean | null
           quiz_active: boolean | null
@@ -1538,6 +1542,7 @@ export type Database = {
           lesson_id?: string | null
           lesson_slides?: Json | null
           lesson_title?: string | null
+          market_region?: Database["public"]["Enums"]["market_region"]
           poll_active?: boolean | null
           poll_show_results?: boolean | null
           quiz_active?: boolean | null
@@ -1574,6 +1579,7 @@ export type Database = {
           lesson_id?: string | null
           lesson_slides?: Json | null
           lesson_title?: string | null
+          market_region?: Database["public"]["Enums"]["market_region"]
           poll_active?: boolean | null
           poll_show_results?: boolean | null
           quiz_active?: boolean | null
@@ -8739,6 +8745,7 @@ export type Database = {
           languages_spoken: string[] | null
           last_contact_date: string | null
           last_name: string
+          market_region: Database["public"]["Enums"]["market_region"]
           motivation: string | null
           nationality: string | null
           phone: string | null
@@ -8788,6 +8795,7 @@ export type Database = {
           languages_spoken?: string[] | null
           last_contact_date?: string | null
           last_name: string
+          market_region?: Database["public"]["Enums"]["market_region"]
           motivation?: string | null
           nationality?: string | null
           phone?: string | null
@@ -8837,6 +8845,7 @@ export type Database = {
           languages_spoken?: string[] | null
           last_contact_date?: string | null
           last_name?: string
+          market_region?: Database["public"]["Enums"]["market_region"]
           motivation?: string | null
           nationality?: string | null
           phone?: string | null
@@ -9292,6 +9301,7 @@ export type Database = {
           intro_video_url: string | null
           is_available: boolean | null
           languages_spoken: string[] | null
+          market_region: Database["public"]["Enums"]["market_region"]
           payoneer_account_email: string | null
           profile_approved_by_admin: boolean | null
           profile_complete: boolean | null
@@ -9322,6 +9332,7 @@ export type Database = {
           intro_video_url?: string | null
           is_available?: boolean | null
           languages_spoken?: string[] | null
+          market_region?: Database["public"]["Enums"]["market_region"]
           payoneer_account_email?: string | null
           profile_approved_by_admin?: boolean | null
           profile_complete?: boolean | null
@@ -9352,6 +9363,7 @@ export type Database = {
           intro_video_url?: string | null
           is_available?: boolean | null
           languages_spoken?: string[] | null
+          market_region?: Database["public"]["Enums"]["market_region"]
           payoneer_account_email?: string | null
           profile_approved_by_admin?: boolean | null
           profile_complete?: boolean | null
@@ -9792,6 +9804,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          market_region: Database["public"]["Enums"]["market_region"]
           payment_locked: boolean | null
           preferred_language: string
           primary_organization_id: string | null
@@ -9812,6 +9825,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          market_region?: Database["public"]["Enums"]["market_region"]
           payment_locked?: boolean | null
           preferred_language?: string
           primary_organization_id?: string | null
@@ -9832,6 +9846,7 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
+          market_region?: Database["public"]["Enums"]["market_region"]
           payment_locked?: boolean | null
           preferred_language?: string
           primary_organization_id?: string | null
@@ -10185,6 +10200,10 @@ export type Database = {
           p_title: string
         }
         Returns: undefined
+      }
+      current_market_region: {
+        Args: never
+        Returns: Database["public"]["Enums"]["market_region"]
       }
       delete_email: {
         Args: { _message_id: number; _queue_name: string }
@@ -10549,6 +10568,7 @@ export type Database = {
         | "general_discussion"
       community_privacy: "public" | "private" | "invite_only"
       community_role: "owner" | "moderator" | "member" | "guest"
+      market_region: "DZ" | "INTL"
       scaffold_level: "heavy" | "medium" | "light" | "independent"
       student_level: "playground" | "academy" | "professional"
     }
@@ -10691,6 +10711,7 @@ export const Constants = {
       ],
       community_privacy: ["public", "private", "invite_only"],
       community_role: ["owner", "moderator", "member", "guest"],
+      market_region: ["DZ", "INTL"],
       scaffold_level: ["heavy", "medium", "light", "independent"],
       student_level: ["playground", "academy", "professional"],
     },
