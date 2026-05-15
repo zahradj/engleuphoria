@@ -1,59 +1,39 @@
+## Phase 1 Stabilization — Plan
 
-# Classroom UI Polish — Round 2
+### 1. Unblock the End Class button (icon overlap)
 
-Four tightly-scoped UI refinements across teacher + student classrooms. No business-logic, RLS, or data changes.
+The new floating group I added in the previous turn — slide-grid toggle + force-sync — is positioned `fixed top-3 right-3 z-[110]`, which sits directly on top of the **End Class** button in `ClassroomTopBar`. Confirmed by reading both files.
 
-## 1. Align teacher video frames with student frames
+**Fix:** Move both icons out of the fixed overlay and **into the ClassroomTopBar itself**, placed in the right-hand action cluster just before the `|` divider that precedes End Class. The realtime status dot stays as a small inline indicator next to them.
 
-In `src/components/teacher/classroom/CommunicationZone.tsx` (expanded view, lines ~167–260) the **student** tile is `aspect-[4/3]` full-width but the **teacher (You)** tile uses `w-2/3`, so the two frames are mismatched.
+- `TeacherClassroom.tsx`: remove the `fixed top-3 right-3` block; pass `onToggleSlideNav`, `slideNavOpen`, `onForceSync`, and `realtimeConnected` as props to `ClassroomTopBar`.
+- `ClassroomTopBar.tsx`: render two ghost icon-buttons (`LayoutGrid`, `RefreshCw`) + a 2.5px status dot in the right action group, before the divider preceding End Class.
 
-Change:
-- Make both video tiles share an identical wrapper: full-width, `aspect-[4/3]`, same rounded card chrome (`Card` + `CardContent` like the student sidebar uses), same border treatment, same label/indicator placement.
-- Keep teacher remote-control buttons over the student tile.
-- Collapsed-rail circles (lines 108–139) stay the same — they're already symmetric.
+Result: icons are visible and reachable, End Class is no longer covered.
 
-Result: teacher view shows two equal stacked frames (Student on top, You below), mirroring the student view.
+### 2. Storybook title not generating
 
-## 2. Make lesson slides visible
+Two issues:
 
-Teacher already passes resolved Master Library slides to `TeacherClassroom` (`initialSlides`) and pushes them to the student via `useClassroomSync`. The student renders them through `StudentMainStage`. When `lessonSlides` is empty, the student currently shows a single placeholder `"Waiting for teacher..."`.
+a. **Credits exhausted** — edge function logs show `AI gateway error 402 {"type":"payment_required","message":"Not enough credits"}` from `generate-storybook`. The function already returns a 402 message; the editor needs to surface it as a clear toast instead of a silent failure. Update `StorybookEditor.generate()` to read the structured error and toast `"Add credits in Workspace → Usage to generate stories."` when status is 402.
 
-Changes:
-- **Teacher side**: the `SlideNavigator` is imported but only mounted in some flows. Ensure the slide thumbnail strip / current slide preview is visible in the main stage area so the teacher can see and step through `slides` from the moment they enter (not gated behind a tab switch).
-- **Student side**: when `lessonSlides.length === 0`, render a friendlier "Lesson loading…" state instead of a stubbed slide, and re-render automatically once the teacher's broadcast arrives (already wired via `useClassroomSync`, just remove the stub array fallback so the real slide list shows up the moment it lands).
-- Verify `resolveBookingLesson` actually returns slides for the current booking; if it returns empty, fall back to the lesson's `curriculum_lessons.content.slides` (read-only query — no schema change).
+b. **Title sometimes missing** even on success — the system prompt does not explicitly instruct the model to write a title; `title` is only listed in the JSON schema. Gemini occasionally returns it empty. Fixes:
+- Add an explicit line in the system prompt: `"Always return a short, vivid story title (3-7 words) in the 'title' field. Never leave it blank."`
+- Strengthen client fallback: `title: (data?.title?.trim()) || slide.title || prompt.slice(0,60)` and trim before saving.
 
-## 3. Replace the "Realtime + Force Sync" tab with an icon-only button
+Files: `supabase/functions/generate-storybook/index.ts`, `src/components/creator-studio/shared/StorybookEditor.tsx`.
 
-Both `TeacherClassroom.tsx` (lines 537–543) and `StudentClassroom.tsx` (lines 299–302) render a pill in the top-right with a status dot, the word "Realtime", and (teacher only) a red "Force Sync" button.
+### 3. Verification pass (no code changes — confirm and report)
 
-Change to:
-- A single small circular icon button in the same top-right slot.
-- Teacher: `RefreshCw` icon, hub-themed background, runs `handleForceSync` on click. Tooltip: "Force sync".
-- Student: same circular slot but icon-only status (no button, no label, no "Realtime" text) — just a small dot/pulse showing connection state.
-- Drop the word "Realtime" entirely. Keep `ConnectionDebugPanel` for `?debug` URLs only.
+For each of the user's checklist items I will:
+- **502 / classroom crash**: re-read `UnifiedClassroomPage.tsx`, `LessonsListCard.tsx`, and the booking-resolver chain to confirm the previous hook-order fix and realtime invalidation are still in place; check console + edge logs for fresh 5xx.
+- **50/50 video split + faint hub background**: re-read `CommunicationZone.tsx` and the hub `bg-gradient-*` in `TeacherClassroom.tsx` / `StudentClassroom.tsx` to confirm both video tiles share the same `aspect-[4/3] w-full` wrapper and the hub-tinted background is applied.
+- **Hub color injection in Creator Studio**: re-read `supabase/functions/generate-storybook/index.ts` and `_shared/hubProfiles.ts` to confirm hub-specific palette tokens (purple for academy, orange/yellow for playground) are passed into the image-prompt assembly.
 
-## 4. Enhance the stars — remove the numbers
+I'll report findings in chat after the build step; if any verification reveals a regression, I'll list it but **not** auto-fix it in this plan — that becomes a follow-up task you can approve.
 
-Two components show numeric labels alongside stars:
+### Out of scope
 
-- **`src/components/classroom/StarRewardsLine.tsx`** (lines 71–75, 91–94): each milestone star renders the milestone number under it, and the bottom shows `points` + "points". Remove the milestone number captions, remove the bottom "points" text, and keep only the stars themselves. Add a subtle scale + glow on earned stars to compensate for the lost label.
-- **`src/components/classroom/engagement/XPStreakIndicator.tsx`**: the streak section currently shows `<Flame /> {streak}`. Drop the numeric streak count — keep just the flame icon (animated when streak ≥ 2). Keep the `XP` count itself since that's the indicator's purpose; only the streak number goes.
-
-Star celebration overlay (`StarCelebration`) is unchanged — it's a brief animation, not a persistent counter.
-
-## Files touched
-
-- `src/components/teacher/classroom/CommunicationZone.tsx` — symmetric video frames
-- `src/components/teacher/classroom/TeacherClassroom.tsx` — top-right icon button, ensure slide nav visible
-- `src/components/student/classroom/StudentClassroom.tsx` — top-right status dot only, slide-loading state
-- `src/components/student/classroom/StudentMainStage.tsx` — empty-slides fallback (if needed)
-- `src/services/classroomLessonResolver.ts` — verify slide fallback (read-only check, edit only if empty)
-- `src/components/classroom/StarRewardsLine.tsx` — drop numbers
-- `src/components/classroom/engagement/XPStreakIndicator.tsx` — drop streak number
-
-## Out of scope
-
-- No DB / RLS / migration work.
-- No changes to WebRTC, sync engine, or scoring logic.
-- No new features; this is purely a visual/UX cleanup pass on what already exists.
+- Live test-run of the Creator Studio (requires credits to be topped up).
+- Any RLS / migration changes from the security findings.
+- Any change to the stars or annotation sync from the previous turn.
