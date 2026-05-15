@@ -228,11 +228,15 @@ export const OverviewTab = ({
           {upcomingClasses.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {upcomingClasses.map((classInfo) => (
-                <ClassCard 
+                <ClassCard
                   key={classInfo.id}
                   title={classInfo.title}
                   time={classInfo.time}
                   students={classInfo.students}
+                  studentName={(classInfo as any).studentName}
+                  hubType={(classInfo as any).hubType}
+                  cefrLevel={(classInfo as any).cefrLevel}
+                  goal={(classInfo as any).goal}
                   buttonText={classInfo.status === "ready" ? languageText.startClass : languageText.viewDetails}
                   onButtonClick={() => {
                     if (classInfo.status === "ready") {
