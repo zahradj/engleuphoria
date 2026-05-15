@@ -34,7 +34,12 @@ export const MarketRegionProvider = ({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     load();
-    const { data: sub } = supabase.auth.onAuthStateChange(() => load());
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      console.log('[AUTH FLOW] MARKET REGION: auth event received', event);
+      setTimeout(() => {
+        load().catch((error) => console.warn('[AUTH FLOW] MARKET REGION: refresh failed', error));
+      }, 0);
+    });
     return () => { sub.subscription.unsubscribe(); };
   }, []);
 
