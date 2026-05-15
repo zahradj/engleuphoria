@@ -249,6 +249,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Only for compatibility - no demo mode in production
   };
 
+  const hydrateUserInBackground = (authUser: any, label: string) => {
+    console.log(`${AUTH_FLOW_PREFIX} HYDRATE: starting background hydration`, { label, userId: authUser?.id });
+    setTimeout(() => {
+      Promise.resolve()
+        .then(() => fetchUserFromDatabase(authUser))
+        .then((dbUser) => {
+          if (dbUser) {
+            console.log(`${AUTH_FLOW_PREFIX} HYDRATE: canonical user loaded`, { label, role: (dbUser as any).role });
+            setUser(dbUser);
+            sessionStorage.removeItem('auth_resolved_role');
+          } else {
+            console.warn(`${AUTH_FLOW_PREFIX} HYDRATE: no canonical user; keeping fallback`, { label });
+          }
+        })
+        .catch((err) => console.error(`${AUTH_FLOW_PREFIX} HYDRATE: background user fetch failed`, err));
+    }, 0);
+  };
+
   useEffect(() => {
     let mounted = true;
 
