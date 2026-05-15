@@ -7,10 +7,12 @@ import TestPhase from './TestPhase';
 import type { TestResult } from './TestPhase';
 import ComprehensivePhase from './comprehensive/ComprehensivePhase';
 import ProcessingPhase from './ProcessingPhase';
+import WelcomePhase from './WelcomePhase';
 import { usePlacementTest } from '@/hooks/usePlacementTest';
 import { Logo } from '@/components/Logo';
 import { CursorTrail } from '@/components/landing/CursorTrail';
 import { useStudentLevel } from '@/hooks/useStudentLevel';
+import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
 import type { Hub } from './questionBanks';
 
 type HubIndex = 0 | 1 | 2;
