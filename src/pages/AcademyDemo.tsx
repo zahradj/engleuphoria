@@ -8,6 +8,7 @@ import { ScaffoldedPlayer } from '@/components/creator-studio/shared/ScaffoldedP
 import { SoloVocabCard } from '@/components/creator-studio/shared/SoloVocabCard';
 import { GrammarMarkup } from '@/components/lesson-player/grammarMarkup';
 import { LessonCoverSlide } from '@/components/lesson-player/LessonCoverSlide';
+import { RichText } from '@/components/lesson-player/RichText';
 import {
   getErrorDetectionItems,
   getCorrectionItems,
@@ -326,19 +327,31 @@ function OpinionSlide({ slide, t }: { slide: Extract<Slide, { type: 'opinion' }>
 }
 
 function VocabSlide({ slide, t }: { slide: Extract<Slide, { type: 'vocab' }>; t: ThemeTokens }) {
+  const imageUrl = (slide as any).image_url as string | undefined;
   return (
-    <div className="space-y-6 max-w-2xl w-full">
-      <div className={`text-xs uppercase tracking-widest ${t.muted}`}>Vocabulary</div>
-      <div className="flex items-center gap-4 flex-wrap">
-        <h2 className={`text-4xl md:text-5xl font-semibold ${t.text}`}>{slide.word}</h2>
-        <ListenButton text={slide.word} label="Listen" />
+    <div className="w-full h-full grid grid-cols-1 md:grid-cols-2 gap-8 items-center p-2 md:p-6">
+      <div className="w-full h-[40vh] md:h-[60vh] relative rounded-xl overflow-hidden bg-indigo-50/40 border border-indigo-100 flex items-center justify-center">
+        {imageUrl ? (
+          <img src={imageUrl} alt={slide.word} className="object-cover w-full h-full" />
+        ) : (
+          <div className="text-indigo-300 text-6xl">🖼️</div>
+        )}
       </div>
-      <p className={`text-xl ${t.text}`}>{slide.definition}</p>
-      {slide.example && (
-        <p className={`text-base italic border-l-2 border-indigo-500 pl-4 ${t.muted}`}>
-          “{slide.example}”
+      <div className="space-y-5 w-full">
+        <div className={`text-xs uppercase tracking-widest ${t.muted}`}>Vocabulary</div>
+        <div className="flex items-center gap-4 flex-wrap">
+          <h2 className={`text-4xl md:text-5xl font-semibold ${t.text}`}>{slide.word}</h2>
+          <ListenButton text={slide.word} label="Listen" />
+        </div>
+        <p className={`text-xl ${t.text}`}>
+          <RichText text={slide.definition} highlightClassName="bg-indigo-100 text-indigo-700 font-bold px-1.5 py-0.5 rounded-md shadow-sm" />
         </p>
-      )}
+        {slide.example && (
+          <p className={`text-base italic border-l-2 border-indigo-500 pl-4 ${t.muted}`}>
+            “<RichText text={slide.example} highlightClassName="bg-indigo-100 text-indigo-700 font-bold px-1.5 py-0.5 rounded-md not-italic shadow-sm" />”
+          </p>
+        )}
+      </div>
     </div>
   );
 }
@@ -410,7 +423,9 @@ function ReadingSlide({ slide, t }: { slide: Extract<Slide, { type: 'reading_pas
       <div className={`text-xs uppercase tracking-widest ${t.muted}`}>Reading</div>
       <h2 className={`text-2xl md:text-3xl font-semibold ${t.text}`}>{slide.title}</h2>
       <ListenButton text={slide.passage} label="Listen to the passage" variant="block" />
-      <p className={`text-lg leading-relaxed ${t.text}`}>{slide.passage}</p>
+      <p className={`text-lg leading-relaxed ${t.text}`}>
+        <RichText text={slide.passage} highlightClassName="bg-indigo-100 text-indigo-700 font-bold px-1.5 py-0.5 rounded-md shadow-sm" />
+      </p>
     </div>
   );
 }
@@ -969,7 +984,10 @@ function renderSlideInner({ slide, t }: { slide: Slide; t: ThemeTokens }) {
 }
 
 export function SlideRenderer({ slide, t }: { slide: Slide; t: ThemeTokens }) {
-  const skipHeader = ['canvas_game', 'living_canvas', 'scaffolded_media', 'vocab_solo'].includes(slide.type as string);
+  // Slides that render their own image inline (cover, vocab 50/50, etc.)
+  // must NOT also get the floating SlideMediaHeader image — it produces a
+  // duplicate "small image at top" + "image inside card" bug.
+  const skipHeader = ['intro', 'vocab', 'canvas_game', 'living_canvas', 'scaffolded_media', 'vocab_solo'].includes(slide.type as string);
   return (
     <>
       {!skipHeader && <SlideMediaHeader slide={slide} />}
