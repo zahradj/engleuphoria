@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Rnd } from 'react-rnd';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, X, Target, GripVertical, AlertTriangle } from 'lucide-react';
+import { Sparkles, X, Target, GripVertical, AlertTriangle, Lightbulb, MessageCircle, BookOpen } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { SharedNotesPanel } from './SharedNotesPanel';
 import { classroomSyncService } from '@/services/classroomSyncService';
+import { useHubClassroomTheme, type HubType } from '@/components/classroom/shared/useHubClassroomTheme';
 
 interface MissionItem {
   id: string;
@@ -18,10 +19,11 @@ interface FloatingCoPilotProps {
   isTeacher: boolean;
   sharedNotes: string;
   sessionContext: Record<string, any>;
-  onNotesChange: (notes: string) => void;
+  onNotesChange: (notes: string) => void | Promise<void>;
   roomId?: string;
   userId?: string;
   userName?: string;
+  hubType?: HubType;
 }
 
 const getDefaultMission = (title: string, ctx: Record<string, any>): MissionItem[] => {
@@ -54,12 +56,27 @@ export const FloatingCoPilot: React.FC<FloatingCoPilotProps> = ({
   roomId,
   userId,
   userName = 'Teacher',
+  hubType = 'academy',
 }) => {
+  const theme = useHubClassroomTheme(hubType);
   const [isExpanded, setIsExpanded] = useState(false);
   const [missionItems, setMissionItems] = useState<MissionItem[]>(() =>
     getDefaultMission(lessonTitle, sessionContext)
   );
+  const [quickHistory, setQuickHistory] = useState<string[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
   const [typingUsers, setTypingUsers] = useState<Array<{ userId: string; userName: string }>>([]);
+
+  const fireQuickAction = useCallback(
+    (label: string) => {
+      const stamped = `[${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}] ${label}`;
+      setQuickHistory((prev) => [stamped, ...prev].slice(0, 5));
+      try {
+        window.dispatchEvent(new CustomEvent('classroom:copilot-quick-action', { detail: { label, lessonTitle } }));
+      } catch {}
+    },
+    [lessonTitle],
+  );
 
   // Set up presence tracking for typing indicators
   React.useEffect(() => {
@@ -121,9 +138,10 @@ export const FloatingCoPilot: React.FC<FloatingCoPilotProps> = ({
       <div className="fixed bottom-6 right-6 z-40">
         <motion.button
           onClick={() => setIsExpanded(true)}
-          className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/30 flex items-center justify-center hover:scale-110 transition-transform"
-          animate={{ boxShadow: ['0 0 15px rgba(168,85,247,0.3)', '0 0 25px rgba(168,85,247,0.5)', '0 0 15px rgba(168,85,247,0.3)'] }}
-          transition={{ duration: 2, repeat: Infinity }}
+          className="w-12 h-12 rounded-full text-white shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
+          style={{ ...theme.buttonGradient, ...theme.glowShadow }}
+          animate={{ scale: [1, 1.06, 1] }}
+          transition={{ duration: 2.4, repeat: Infinity }}
         >
           <Sparkles className="w-5 h-5" />
         </motion.button>
@@ -166,6 +184,46 @@ export const FloatingCoPilot: React.FC<FloatingCoPilotProps> = ({
               <p className="text-xs text-amber-300">{sessionContext.summary}</p>
             </div>
           )}
+
+          {/* Quick Action Chips */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Quick Co-Pilot</p>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { icon: AlertTriangle, label: 'Explain mistake' },
+                { icon: BookOpen, label: 'Give example' },
+                { icon: MessageCircle, label: 'Simpler phrasing' },
+              ].map(({ icon: Icon, label }) => (
+                <button
+                  key={label}
+                  onClick={() => fireQuickAction(label)}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium text-white hover:opacity-90 transition-opacity"
+                  style={theme.buttonGradient}
+                >
+                  <Icon className="w-3 h-3" />
+                  {label}
+                </button>
+              ))}
+            </div>
+            {quickHistory.length > 0 && (
+              <div>
+                <button
+                  onClick={() => setShowHistory((s) => !s)}
+                  className="text-[10px] uppercase tracking-wider text-gray-400 hover:text-gray-200 flex items-center gap-1"
+                >
+                  <Lightbulb className="w-3 h-3" />
+                  {showHistory ? 'Hide' : 'Show'} recent suggestions ({quickHistory.length})
+                </button>
+                {showHistory && (
+                  <ul className="mt-1 space-y-0.5 pl-3 border-l border-gray-700">
+                    {quickHistory.map((item, i) => (
+                      <li key={i} className="text-[11px] text-gray-300">{item}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Mission Checklist */}
           <div className="space-y-3">

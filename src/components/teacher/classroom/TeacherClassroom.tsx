@@ -17,6 +17,7 @@ import { StarCelebration } from "./StarCelebration";
 import { EmbedLinkDialog } from "./EmbedLinkDialog";
 import { AIGameGeneratorModal } from "./AIGameGeneratorModal";
 import { FloatingCoPilot } from "@/components/classroom/FloatingCoPilot";
+import { LiveReactionBar } from "@/components/classroom/engagement/LiveReactionBar";
 import { ZenModeOverlay } from "@/components/classroom/ZenModeOverlay";
 import { PictureInPicture } from "@/components/classroom/PictureInPicture";
 import { LessonWrapUpDialog } from "@/components/classroom/LessonWrapUpDialog";
@@ -761,6 +762,17 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
           roomId={roomName}
           userId={user?.id || sessionStorage.getItem('demo-teacher-id') || ''}
           userName={teacherName}
+          hubType={hubType}
+        />
+      )}
+
+      {/* Engagement: see student reactions + send 👏 */}
+      {!isZenMode && (
+        <LiveReactionBar
+          roomId={classId}
+          userId={user?.id || ''}
+          hubType={hubType}
+          canSend
         />
       )}
 

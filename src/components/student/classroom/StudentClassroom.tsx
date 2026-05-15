@@ -11,6 +11,8 @@ import { StudentMainStage } from './StudentMainStage';
 import { StarCelebration } from '@/components/teacher/classroom/StarCelebration';
 import { DiceRoller } from '@/components/teacher/classroom/DiceRoller';
 import { FloatingCoPilot } from '@/components/classroom/FloatingCoPilot';
+import { LiveReactionBar } from '@/components/classroom/engagement/LiveReactionBar';
+import { XPStreakIndicator } from '@/components/classroom/engagement/XPStreakIndicator';
 import { ZenModeOverlay } from '@/components/classroom/ZenModeOverlay';
 import { PictureInPicture } from '@/components/classroom/PictureInPicture';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -520,7 +522,27 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
           sharedNotes={sharedNotes}
           sessionContext={sessionContext}
           onNotesChange={updateSharedNotes}
+          hubType={hubType}
         />
+      )}
+
+      {/* Engagement layer: in-session XP pill + live reaction dock */}
+      {!isZenMode && (
+        <>
+          <div className="fixed top-3 right-4 z-30 pointer-events-auto">
+            <XPStreakIndicator
+              xp={Math.max(0, starCount * 10)}
+              streak={starCount}
+              hubType={hubType}
+            />
+          </div>
+          <LiveReactionBar
+            roomId={roomId}
+            userId={studentId}
+            hubType={hubType}
+            canSend
+          />
+        </>
       )}
 
       {/* Post-Class Feedback Modal */}
