@@ -162,22 +162,18 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
 
       {/* Centered: Star Count + Timer */}
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-1 bg-background/85 border border-[hsl(var(--classroom-reward)/0.45)] px-3 py-1 rounded-full shadow-[0_0_12px_hsl(var(--classroom-reward)/0.24)]">
+        <div className="flex items-center gap-1.5 bg-background/85 border border-[hsl(var(--classroom-reward)/0.45)] px-4 py-1.5 rounded-full shadow-[0_0_12px_hsl(var(--classroom-reward)/0.24)]">
           {Array.from({ length: 10 }).map((_, index) => {
             const isEarned = index < earnedStars;
             return (
-              <span key={index} className="relative flex h-5 w-5 items-center justify-center">
-                <Star
-                  className={`h-4 w-4 transition-colors ${
-                    isEarned
-                      ? 'fill-[hsl(var(--classroom-reward))] text-[hsl(var(--classroom-reward))]'
-                      : 'fill-muted text-muted-foreground/35'
-                  }`}
-                />
-                <span className={`absolute text-[8px] font-bold leading-none ${isEarned ? 'text-background' : 'text-muted-foreground'}`}>
-                  {index + 1}
-                </span>
-              </span>
+              <Star
+                key={index}
+                className={`h-7 w-7 transition-all ${
+                  isEarned
+                    ? 'fill-[hsl(var(--classroom-reward))] text-[hsl(var(--classroom-reward))] drop-shadow-[0_0_4px_hsl(var(--classroom-reward)/0.6)] scale-110'
+                    : 'fill-muted text-muted-foreground/30'
+                }`}
+              />
             );
           })}
         </div>
