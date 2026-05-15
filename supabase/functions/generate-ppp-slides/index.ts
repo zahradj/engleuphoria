@@ -221,7 +221,7 @@ Total slides: ${1 + (hasPhonics ? 1 : 0) + vocabCount + (hasPhonics ? 5 : 3) + 2
         targetGrammar: grammarFocus,
         previousTopics: prevTopics,
       });
-      const playgroundSystem = `${playgroundPersona}\n\nYou are an expert children's EdTech game designer. Create a highly interactive, fun English lesson. Keep vocabulary very simple. Output ONLY a valid JSON array of slide objects. Do not wrap in markdown or backticks. You MUST use a variety of these exact slide types.
+      const playgroundSystem = `${playgroundPersona}${castingBlock}\n\nYou are an expert children's EdTech game designer. Create a highly interactive, fun English lesson. Keep vocabulary very simple. Output ONLY a valid JSON array of slide objects. Do not wrap in markdown or backticks. You MUST use a variety of these exact slide types.
 
 STRICT SCHEMA (per type) — every slide MUST include a "voice" object { "text": string, "autoPlay": true }. Use simple 1-2 syllable words. NEVER include emojis in image fields — use the literal placeholder string "AI:<short subject>" anywhere an image is needed and the server will replace it with an AI-generated cartoon URL.
 
@@ -376,7 +376,7 @@ PRONUNCIATION LAYER (MANDATORY): The lesson MUST include EXACTLY 1 "phonics_focu
         ageGroup: 'teens',
         previousTopics: prevTopics,
       });
-      const academySystem = `${academyPersona}\n\nYou are a Master TEFL/CELTA-trained ESL lesson designer for TEENAGERS.
+      const academySystem = `${academyPersona}${castingBlock}\n\nYou are a Master TEFL/CELTA-trained ESL lesson designer for TEENAGERS.
 Output ONLY a valid raw JSON array of slide objects (no markdown, no prose, no backticks).
 
 Build a 60-minute Academy lesson at CEFR ${cefr_level}. Topic: "${effectiveTitle}". ${objective ? `Goal: ${objective}.` : ""}
@@ -563,7 +563,7 @@ ${learning_objective ? `\nLEARNING OBJECTIVE (SWBAT — drives every slide): "${
 ${final_output_task ? `\nFINAL OUTPUT TASK (the LAST slide MUST implement this exact production task): "${final_output_task}".` : ''}
 `;
 
-    const systemPrompt = `${successPersona}${pronunciationBlock}${variantThemeBlock}\n\nYou are the EXPERT CURRICULUM DESIGNER for Engleuphoria — an elite ESL platform.
+    const systemPrompt = `${successPersona}${castingBlock}${pronunciationBlock}${variantThemeBlock}\n\nYou are the EXPERT CURRICULUM DESIGNER for Engleuphoria — an elite ESL platform.
 You design ONE classroom-ready 1-HOUR (≈60 minute) deeply COHESIVE interactive lesson as a 20–25 slide deck.
 Total slide count MUST be between 20 and 25 inclusive — never fewer than 20.
 
