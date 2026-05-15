@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { LogIn, Loader2, AlertCircle } from 'lucide-react';
+import { LogIn, Loader2 } from 'lucide-react';
 import { AuthPageLayout } from '@/components/auth/AuthPageLayout';
 import { SimpleAuthForm } from '@/components/auth/SimpleAuthForm';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,7 +13,6 @@ const Login = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const redirectedRef = useRef(false);
-  const [roleTimeout, setRoleTimeout] = useState(false);
 
   useEffect(() => {
     if (searchParams.get('reason') === 'access_denied') {
