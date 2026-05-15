@@ -218,6 +218,7 @@ const UnifiedClassroomPage: React.FC = () => {
           lessonTitle={resolved?.lessonTitle ?? undefined}
           initialSlides={resolved?.slides ?? []}
         />
+        <ClassroomLifecycle bookingId={booking.id} role="teacher" hubType={normalizedHub} />
         <SoundSettingsLauncher />
       </>
     );
@@ -232,6 +233,7 @@ const UnifiedClassroomPage: React.FC = () => {
         teacherName={teacherFullName}
         hubType={normalizedHub}
       />
+      <ClassroomLifecycle bookingId={booking.id} role="student" hubType={normalizedHub} />
       <SoundSettingsLauncher />
     </>
   );
