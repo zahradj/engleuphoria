@@ -466,6 +466,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
+    console.log(`${AUTH_FLOW_PREFIX} STEP 1: signIn called`, { email });
     if (!isConfigured) {
       return { data: null, error: new Error('Supabase not configured. Please check your environment setup.') };
     }
@@ -494,6 +495,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email: sanitizedEmail,
         password,
       });
+
+      console.log(`${AUTH_FLOW_PREFIX} STEP 1B: Supabase auth response`, {
+        hasUser: !!data.user,
+        hasSession: !!data.session,
+        error,
+      });
       
       if (error) {
         const status = (error as any)?.status ?? 0;
@@ -506,6 +513,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         toast.error(friendly);
         return { data: null, error: { ...(error as any), message: friendly } };
       } else if (data.user) {
+        console.log(`${AUTH_FLOW_PREFIX} STEP 1C: Supabase auth success`, {
+          userId: data.user.id,
+          session: !!data.session,
+        });
         // Reset rate limiter on successful login
         rateLimiter.reset(clientKey);
 
@@ -518,10 +529,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             fetchUserRoleFromDatabase(data.user.id),
             new Promise<null>((resolve) => setTimeout(() => resolve(null), 1200)),
           ]);
-        } catch {
+        } catch (roleError) {
+          console.warn(`${AUTH_FLOW_PREFIX} STEP 3E: signIn role race failed`, roleError);
           resolvedRole = null;
         }
         const finalRole = resolvedRole || metadataRole || 'student';
+        console.log(`${AUTH_FLOW_PREFIX} STEP 4: Final role resolved`, {
+          resolvedRole,
+          metadataRole,
+          finalRole,
+        });
 
         // Fire-and-forget auto-heal so missing rows don't block the redirect.
         autoHealUserRows(data.user).catch((e) =>
@@ -552,6 +569,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         sessionStorage.setItem('auth_redirect_done', 'true');
         sessionStorage.setItem('auth_resolved_role', finalRole);
         signInRedirectRef.current = true;
+        console.log(`${AUTH_FLOW_PREFIX} STEP 5: Redirecting to`, redirectPath);
         window.location.href = redirectPath;
       }
       
