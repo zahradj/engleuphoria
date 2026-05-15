@@ -79,8 +79,12 @@ Deno.serve(async (req) => {
           `Name: ${cName}\n` +
           `Personality & Role: ${cPersona || '(not specified — infer a consistent voice)'}\n` +
           `Rule: Write their dialogue and actions to perfectly match this personality. Ensure they are the one interacting with the target vocabulary. Use ${cName} as a recurring narrator, example speaker, or story protagonist where it fits naturally. Do not invent a different main character.\n\n` +
+          `[VOCABULARY RULE]\n` +
+          `For every vocabulary word you generate, the example_sentence MUST feature ${cName}. ${cName} must be the subject performing the action or experiencing the word. Instead of "The dog ran fast", write "${cName} ran fast". Align every example sentence with their personality: ${cPersona || '(consistent recurring voice)'}.\n\n` +
+          `[ACTIVITY RULE]\n` +
+          `When creating quiz questions, fill-in-the-blanks, matching items, or roleplay scenarios, base the context entirely around ${cName}. Formulate questions like "What did ${cName} do?" or "Help ${cName} choose the right word." Every activity prompt must reference ${cName} by name.\n\n` +
           `[ART DIRECTION RULE]\n` +
-          `Every image_prompt / "AI:" subject in this lesson MUST feature ${cName}. You must use this exact visual description for them verbatim: "${cVisual}". Do not invent new visual traits for them.`;
+          `Every image_prompt / "AI:" subject in this lesson — including vocabulary cards and activity slides — MUST feature ${cName}. You must use this exact visual description for them verbatim: "${cVisual}". Do not invent new visual traits for them.`;
       }
     }
 

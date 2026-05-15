@@ -797,8 +797,12 @@ ${grammar ? `- Grammar focus: ${grammar}\n` : ''}- Lesson vocabulary: ${llVocab.
         `Name: ${cName}\n` +
         `Personality & Role: ${cPersona || '(not specified — infer a consistent voice)'}\n` +
         `Rule: Write their dialogue and actions to perfectly match this personality. Ensure they are the one interacting with the target vocabulary. Do not invent a different main character.\n\n` +
+        `[VOCABULARY RULE]\n` +
+        `For every vocabulary word that appears, the example sentence MUST feature ${cName} as the subject performing the action or experiencing the word. Instead of "The dog ran fast", write "${cName} ran fast". Align every sentence with their personality: ${cPersona || '(consistent recurring voice)'}.\n\n` +
+        `[ACTIVITY RULE]\n` +
+        `When generating comprehension questions, quiz items, or roleplay prompts, base the context entirely around ${cName}. Formulate questions like "What did ${cName} do?" or "Help ${cName} choose the right word." Every activity prompt must reference ${cName} by name.\n\n` +
         `[ART DIRECTION RULE]\n` +
-        `The generated image MUST feature the main character. You must use this exact visual description for them in every image_prompt verbatim: "${cVisual}". Do not invent new visual traits for them.`;
+        `Every image_prompt — including vocabulary illustrations and activity slides — MUST feature ${cName}. You must use this exact visual description for them verbatim: "${cVisual}". Do not invent new visual traits for them.`;
     }
   }
 
