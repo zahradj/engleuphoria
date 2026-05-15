@@ -185,6 +185,8 @@ export const StudentCenterStage: React.FC<StudentCenterStageProps> = ({
             {currentSlideIndex + 1} / {slides.length}
           </div>
         </div>
+        );
+        })()}
       </div>
 
       {/* Teacher Control Indicator */}
