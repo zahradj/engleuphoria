@@ -18,6 +18,7 @@ import {
 import { listCharactersForHub } from '@/services/characterService';
 import type { CustomCharacter, StarringCharacterPayload } from '@/types/character';
 import { toStarringPayload } from '@/types/character';
+import { resolveStarringCharacter } from '@/constants/defaultCharacters';
 
 export type Hub = 'playground' | 'academy' | 'success';
 
