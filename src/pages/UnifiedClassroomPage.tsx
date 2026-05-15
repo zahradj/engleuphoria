@@ -12,6 +12,7 @@ import { Loader2, ShieldOff, Bug } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SoundSettingsLauncher } from '@/components/classroom/settings/SoundSettingsLauncher';
 import { resolveBookingLesson } from '@/services/classroomLessonResolver';
+import { ClassroomLifecycle } from '@/components/classroom/ClassroomLifecycle';
 
 /**
  * Unified Classroom Page
