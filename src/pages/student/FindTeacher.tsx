@@ -92,6 +92,7 @@ const FindTeacher: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { studentLevel } = useStudentLevel();
+  const { region } = useMarketRegion();
   const [teachers, setTeachers] = useState<TeacherProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
