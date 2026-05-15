@@ -24,64 +24,41 @@ const Login = () => {
     }
   }, [searchParams]);
 
-  // Strict role-gated redirect: never navigate until role is confirmed.
+  // Redirect immediately on user presence using role with metadata fallback.
   useEffect(() => {
     if (loading || !user || redirectedRef.current) return;
 
-    const role = (user as any).role;
+    const role =
+      (user as any).role ||
+      (user as any).user_metadata?.role ||
+      'student';
+
     const doRedirect = (path: string) => {
       redirectedRef.current = true;
       navigate(path, { replace: true });
     };
 
-    if (role) {
-      if (role === 'admin') doRedirect('/super-admin');
-      else if (role === 'content_creator') doRedirect('/content-creator');
-      else if (role === 'teacher') doRedirect('/teacher');
-      else if (role === 'parent') doRedirect('/parent');
-      else if (role === 'student') {
-        const { route } = resolveHubRoute({ metadata: (user as any).user_metadata });
-        doRedirect(route);
-      } else {
-        doRedirect('/dashboard');
-      }
-      return;
+    if (role === 'admin') doRedirect('/super-admin');
+    else if (role === 'content_creator') doRedirect('/content-creator');
+    else if (role === 'teacher') doRedirect('/teacher');
+    else if (role === 'parent') doRedirect('/parent');
+    else if (role === 'student') {
+      const { route } = resolveHubRoute({ metadata: (user as any).user_metadata });
+      doRedirect(route);
+    } else {
+      doRedirect('/dashboard');
     }
-
-    // No role yet — wait, but show a warning after 8s instead of silently redirecting.
-    const t = setTimeout(() => setRoleTimeout(true), 8000);
-    return () => clearTimeout(t);
   }, [loading, user, navigate]);
 
-  if (loading || user) {
+  // Only show the spinner while auth itself is initializing. Once `user` is set,
+  // the redirect effect above takes over — no role-verification gate.
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
         <div className="text-center max-w-md px-6">
-          {roleTimeout ? (
-            <>
-              <AlertCircle className="h-12 w-12 mx-auto mb-4 text-destructive" />
-              <p className="text-foreground text-lg font-medium">
-                We couldn't verify your role.
-              </p>
-              <p className="text-muted-foreground text-sm mt-2">
-                Please refresh the page or contact support if this persists.
-              </p>
-              <button
-                onClick={() => window.location.reload()}
-                className="mt-4 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90"
-              >
-                Refresh
-              </button>
-            </>
-          ) : (
-            <>
-              <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-              <p className="text-foreground text-lg font-medium">
-                {user ? 'Verifying role…' : 'Loading...'}
-              </p>
-              <p className="text-muted-foreground text-sm mt-2">Please wait</p>
-            </>
-          )}
+          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-foreground text-lg font-medium">Loading...</p>
+          <p className="text-muted-foreground text-sm mt-2">Please wait</p>
         </div>
       </div>
     );
