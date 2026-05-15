@@ -14,7 +14,8 @@ import {
   ClipboardCheck,
   Maximize2,
   Minimize2,
-  RefreshCw
+  RefreshCw,
+  LayoutGrid
 } from 'lucide-react';
 import { useSmartTimer, type TimerPhase } from '@/hooks/classroom/useSmartTimer';
 import { DeviceSelector } from '@/components/classroom/DeviceSelector';
@@ -47,6 +48,10 @@ interface ClassroomTopBarProps {
   /** Hot-swap helpers from useLocalMedia. */
   onSwitchCamera?: (deviceId: string) => Promise<boolean>;
   onSwitchMicrophone?: (deviceId: string) => Promise<boolean>;
+  onToggleSlideNav?: () => void;
+  slideNavOpen?: boolean;
+  onForceSync?: () => void;
+  realtimeConnected?: boolean;
 }
 
 export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
@@ -71,7 +76,11 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
   onReconnect,
   localStream = null,
   onSwitchCamera,
-  onSwitchMicrophone
+  onSwitchMicrophone,
+  onToggleSlideNav,
+  slideNavOpen = false,
+  onForceSync,
+  realtimeConnected = false
 }) => {
   const smartTimer = useSmartTimer(elapsedSeconds, sessionDuration);
   const earnedStars = Math.min(Math.max(studentStars, 0), 10);
@@ -275,6 +284,36 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
             <RefreshCw className="h-4 w-4" />
             Reconnect
           </Button>
+        )}
+        {onToggleSlideNav && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onToggleSlideNav}
+            title={slideNavOpen ? 'Hide slides' : 'Browse slides'}
+            aria-label="Toggle slide navigator"
+            className="h-8 w-8 rounded-full bg-gray-100 hover:bg-gray-200"
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </Button>
+        )}
+        {onForceSync && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onForceSync}
+            title="Force sync"
+            aria-label="Force sync"
+            className="h-8 w-8 rounded-full bg-gray-100 hover:bg-gray-200"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        )}
+        {(onToggleSlideNav || onForceSync) && (
+          <span
+            className={`h-2 w-2 rounded-full ${realtimeConnected ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}
+            title={realtimeConnected ? 'Realtime connected' : 'Realtime disconnected'}
+          />
         )}
         <div className="h-6 w-px bg-gray-200 mx-2" />
         <Button

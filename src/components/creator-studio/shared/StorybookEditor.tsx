@@ -186,7 +186,20 @@ export function StorybookEditor({
           character_visual_blueprint: starring.visual_blueprint,
         },
       });
-      if (error) throw error;
+      if (error) {
+        const ctx: any = (error as any).context;
+        const status = ctx?.status;
+        const msg = ctx?.error || (error as any).message || '';
+        if (status === 402 || /credit/i.test(msg)) {
+          toast.error('Out of AI credits — add credits in Workspace → Usage to generate stories.');
+          return;
+        }
+        if (status === 429) {
+          toast.error('Rate limited. Please retry in a few seconds.');
+          return;
+        }
+        throw error;
+      }
       const newPages: StorybookPage[] = (data?.pages || []).map((p: any, i: number) => ({
         page_number: p.page_number ?? i + 1,
         text: p.text || '',
@@ -197,8 +210,10 @@ export function StorybookEditor({
       const highlight: string[] = Array.isArray(data?.highlight_words) && data.highlight_words.length
         ? data.highlight_words
         : targetVocab;
+      const generatedTitle = (data?.title || '').toString().trim();
+      const fallbackTitle = (slide.title || '').toString().trim() || topic.slice(0, 60);
       onPatch({
-        title: data?.title || slide.title || topic,
+        title: generatedTitle || fallbackTitle,
         pages: newPages,
         layout_mode: (data?.layout_mode as StorybookLayoutMode) || layoutMode,
         theme: (data?.theme as StorybookTheme) || themeChoice,
