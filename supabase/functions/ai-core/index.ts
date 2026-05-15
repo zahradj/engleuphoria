@@ -678,6 +678,7 @@ async function handleGenerateStory(body: any) {
     art_style: artStyleAlias,
     artStyle,                           // camelCase alias
     starring_character = null,
+    custom_prompt = '',
   } = body;
 
   // Normalize aliases
@@ -820,7 +821,11 @@ OUTPUT FORMAT:
 - Return ONLY valid JSON. No markdown fences, no commentary, no trailing text.
 - End the story with exactly 2 reading-comprehension multiple-choice questions.${groundingBlock}`;
 
-  const userPrompt = `Topic: "${resolvedTopic}"
+  const teacherBriefBlock = (typeof custom_prompt === 'string' && custom_prompt.trim())
+    ? `\n\nTEACHER BRIEF (highest-priority creative direction — honor this verbatim):\n"""${custom_prompt.trim()}"""\n`
+    : '';
+
+  const userPrompt = `Topic: "${resolvedTopic}"${teacherBriefBlock}
 CEFR Level: ${cefr}
 artStyle: ${artStyleLabel}
 ${resolvedGrammar ? `targetGrammar (use 3+ times in dialogue): "${resolvedGrammar}"` : ''}

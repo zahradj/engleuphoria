@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Loader2, BookOpen, Sparkles, AlertCircle, Link2, X, Check, ChevronsUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -121,6 +122,8 @@ export const StoryCreator: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [characters, setCharacters] = useState<CustomCharacter[]>([]);
   const [starringId, setStarringId] = useState<string>('');
+  const [customPrompt, setCustomPrompt] = useState<string>('');
+  const [promptTouched, setPromptTouched] = useState(false);
 
   // ── Linked lesson picker ──
   const [lessons, setLessons] = useState<CurriculumLessonOption[]>([]);
@@ -201,6 +204,45 @@ export const StoryCreator: React.FC = () => {
   };
 
   const clearLinkedLesson = () => setLinkedLessonId(null);
+
+  // Build an auto-prompt from current lesson context.
+  const buildAutoPrompt = (): string => {
+    const hubLabel = HUB_LABEL[linkedLesson?.target_system ?? ''] ?? storyHub;
+    const topic = linkedLesson?.ai_metadata?.topic ?? linkedLesson?.title ?? genre;
+    const vocab = (() => {
+      const linkedVocab = linkedLesson ? vocabListToArray(linkedLesson.vocabulary_list) : [];
+      const typed = parseVocab(vocabInput);
+      const seen = new Set<string>();
+      const merged: string[] = [];
+      for (const w of [...linkedVocab, ...typed]) {
+        const k = w.toLowerCase();
+        if (!seen.has(k)) { seen.add(k); merged.push(w); }
+      }
+      return merged;
+    })();
+    const grammar = linkedLesson?.grammar_pattern;
+    const pages = visualStyle === 'webtoon' ? '1 long webtoon scroll' : '4-5 page';
+    return [
+      `Write a ${pages} story for the ${hubLabel} Hub about "${topic}" at CEFR ${cefrLevel}.`,
+      vocab.length ? `You MUST include the following vocabulary words: ${vocab.join(', ')}.` : '',
+      grammar ? `Demonstrate this grammar pattern naturally: ${grammar}.` : '',
+      `Genre: ${genre}.`,
+    ].filter(Boolean).join(' ');
+  };
+
+  // Auto-populate prompt when context changes (until the teacher edits manually).
+  useEffect(() => {
+    if (promptTouched) return;
+    setCustomPrompt(buildAutoPrompt());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkedLessonId, vocabInput, cefrLevel, genre, visualStyle, promptTouched]);
+
+  const handleAutoFillPrompt = () => {
+    setCustomPrompt(buildAutoPrompt());
+    setPromptTouched(false);
+    toast.success('Prompt auto-filled from lesson context ✓');
+  };
+
 
   const grouped = useMemo(() => {
     const groups: Record<string, CurriculumLessonOption[]> = { kids: [], teen: [], adult: [] };
@@ -301,6 +343,7 @@ export const StoryCreator: React.FC = () => {
             const c = characters.find((x) => x.id === starringId);
             return c ? toStarringPayload(c) : undefined;
           })(),
+          custom_prompt: customPrompt?.trim() || undefined,
         },
       });
       if (fnErr) {
@@ -569,6 +612,34 @@ export const StoryCreator: React.FC = () => {
           <p className="text-xs text-slate-500">
             {parseVocab(vocabInput).length}/12 words
             {linkedLesson && ' · linked-lesson vocab is always included'}
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <Label className="text-sm font-semibold">Story Prompt</Label>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleAutoFillPrompt}
+              disabled={busy}
+              className="h-7 px-2 text-xs gap-1"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              Auto-Fill Context
+            </Button>
+          </div>
+          <Textarea
+            placeholder="The AI brief — auto-filled from lesson context. Edit freely to add details."
+            value={customPrompt}
+            onChange={(e) => { setCustomPrompt(e.target.value); setPromptTouched(true); }}
+            disabled={busy}
+            rows={4}
+            className="resize-y"
+          />
+          <p className="text-xs text-slate-500">
+            Auto-updates from your linked lesson, vocabulary, CEFR and genre — until you start typing.
           </p>
         </div>
 
