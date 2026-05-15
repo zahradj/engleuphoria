@@ -4,6 +4,9 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
+import { VocabularyImage } from "@/components/ui/VocabularyImage";
+import { useTextToSpeech } from "@/hooks/useTextToSpeech";
+import { Volume2, Loader2 } from "lucide-react";
 
 export interface VocabWord {
   id: string;
