@@ -69,20 +69,25 @@ const DemographicsPhase = ({ onComplete }: DemographicsPhaseProps) => {
   }, [messages, step]);
 
   const getAgeResponse = (a: number) => {
-    if (a < 12) return "Awesome! 🎈 You're going to have so much fun learning English!";
+    if (a < 10) return "Awesome! 🎈 You're going to have so much fun learning English!";
     if (a < 18) return "Great! 📚 Let's find the right challenge level for you.";
     return "Excellent! 🎯 Let's tailor your professional English journey.";
   };
 
   const getInterestsForAge = () => {
-    if (ageValue < 12) return INTERESTS_BY_AGE.kids;
+    if (ageValue < 10) return INTERESTS_BY_AGE.kids;
     if (ageValue < 18) return INTERESTS_BY_AGE.teens;
     return INTERESTS_BY_AGE.adults;
   };
 
   const handleAgeSubmit = () => {
     const parsed = parseInt(age);
-    if (isNaN(parsed) || parsed < 4 || parsed > 99) return;
+    if (isNaN(parsed)) return;
+    if (parsed < 4) {
+      window.alert('You must be at least 4 years old to join!');
+      return;
+    }
+    if (parsed > 99) return;
     setAgeValue(parsed);
     setMessages(prev => [...prev, { role: 'user', text: `I'm ${parsed} years old.` }]);
     setStep('ageResponse');
