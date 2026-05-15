@@ -46,13 +46,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Priority order: admin > content_creator > teacher > parent > student
         const priorityOrder = ['admin', 'content_creator', 'teacher', 'parent', 'student'];
         const userRoles = data.map((r: any) => r.role);
-        
+
         for (const role of priorityOrder) {
           if (userRoles.includes(role)) {
             return role;
           }
         }
-        
+
         return userRoles[0] ?? null;
       }
 
@@ -62,36 +62,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .select('role')
         .eq('id', userId)
         .maybeSingle();
-      
+
       return userData?.role || null;
     } catch {
       return null;
     }
   };
 
-  // Function to fetch user data from database
+  // Function to fetch user data from database (parallelized profile + role)
   const fetchUserFromDatabase = async (authUser: any): Promise<User | null> => {
     try {
       const userId = authUser.id;
-      const { data: userData, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      const [profileRes, role] = await Promise.all([
+        supabase.from('users').select('*').eq('id', userId).single(),
+        fetchUserRoleFromDatabase(userId),
+      ]);
 
-      if (error) {
+      if (profileRes.error) {
         console.warn('User not found in database, will use auth metadata');
         return null;
       }
 
-      // Attach role from user_roles table (do NOT read role from users table)
-      const role = (await fetchUserRoleFromDatabase(userId)) ?? 'student';
       return {
         ...(authUser as any),
-        ...(userData as any),
+        ...(profileRes.data as any),
         user_metadata: authUser.user_metadata || {},
         app_metadata: authUser.app_metadata || {},
-        role
+        role: role ?? 'student',
       } as any;
     } catch (error) {
       console.error('Error fetching user data:', error);
