@@ -152,7 +152,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       authUser.email?.split('@')[0] ||
       'User';
 
-    const metadataRole = authUser.user_metadata?.role || 'student';
+    // Prefer the role we just resolved at sign-in (sessionStorage cache) over
+    // user_metadata.role, because metadata only reflects the *signup* role and
+    // misses additional roles (e.g. content_creator added later). Without this,
+    // ProtectedRoute briefly sees the wrong role on first render after redirect
+    // and bounces the user back to /login?reason=access_denied.
+    const cachedRole =
+      typeof window !== 'undefined'
+        ? sessionStorage.getItem('auth_resolved_role')
+        : null;
+    const metadataRole = cachedRole || authUser.user_metadata?.role || 'student';
 
     return {
       id: authUser.id,
