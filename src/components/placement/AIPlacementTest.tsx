@@ -10,15 +10,19 @@ import ProcessingPhase from './ProcessingPhase';
 import { usePlacementTest } from '@/hooks/usePlacementTest';
 import { Logo } from '@/components/Logo';
 import { CursorTrail } from '@/components/landing/CursorTrail';
+import { useStudentLevel } from '@/hooks/useStudentLevel';
+import type { Hub } from './questionBanks';
 
 type HubIndex = 0 | 1 | 2;
 
-// Maps the student's age to the same palette index used by the homepage
+// Maps the resolved hub to the same palette index used by the homepage
 // CursorTrail: 0 = Playground, 1 = Academy, 2 = Professional.
-const hubIndexFromAge = (age: number): HubIndex => {
-  if (age > 0 && age < 13) return 0;
-  if (age >= 13 && age < 18) return 1;
-  return 2;
+const hubIndex = (hub: Hub): HubIndex => (hub === 'playground' ? 0 : hub === 'academy' ? 1 : 2);
+
+const hubFromAge = (age: number): Hub => {
+  if (age > 0 && age < 13) return 'playground';
+  if (age >= 13 && age < 18) return 'academy';
+  return 'professional';
 };
 
 type Phase = 'demographics' | 'test' | 'processing' | 'complete';
