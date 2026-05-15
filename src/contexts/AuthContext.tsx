@@ -152,7 +152,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       authUser.email?.split('@')[0] ||
       'User';
 
-    const metadataRole = authUser.user_metadata?.role || 'student';
+    // Prefer the role we just resolved at sign-in (sessionStorage cache) over
+    // user_metadata.role, because metadata only reflects the *signup* role and
+    // misses additional roles (e.g. content_creator added later). Without this,
+    // ProtectedRoute briefly sees the wrong role on first render after redirect
+    // and bounces the user back to /login?reason=access_denied.
+    const cachedRole =
+      typeof window !== 'undefined'
+        ? sessionStorage.getItem('auth_resolved_role')
+        : null;
+    const metadataRole = cachedRole || authUser.user_metadata?.role || 'student';
 
     return {
       id: authUser.id,
@@ -282,7 +291,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             // Background: fetch the real DB user and replace silently.
             fetchUserFromDatabase(initialSession.user)
               .then((dbUser) => {
-                if (mounted && dbUser) setUser(dbUser);
+                if (mounted && dbUser) {
+                  setUser(dbUser);
+                  // Canonical role confirmed — drop the sign-in cache.
+                  sessionStorage.removeItem('auth_resolved_role');
+                }
               })
               .catch((err) => console.error('Background user fetch failed:', err));
           } else {
@@ -426,6 +439,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       // Ensure stale redirect guard from previous sessions never blocks current login flow
       sessionStorage.removeItem('auth_redirect_done');
+      sessionStorage.removeItem('auth_resolved_role');
       signInRedirectRef.current = false;
 
       // Input sanitization
@@ -491,6 +505,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(data.session ?? null);
         setUser({ ...(data.user as any), role: finalRole } as any);
         sessionStorage.setItem('auth_redirect_done', 'true');
+        sessionStorage.setItem('auth_resolved_role', finalRole);
         signInRedirectRef.current = true;
         window.location.href = redirectPath;
       }
@@ -585,6 +600,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       // Clear redirect flag so next login can redirect again
       sessionStorage.removeItem('auth_redirect_done');
+      sessionStorage.removeItem('auth_resolved_role');
       // Clear user state immediately
       setUser(null);
       setSession(null);
