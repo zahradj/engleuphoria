@@ -65,43 +65,90 @@ serve(async (req) => {
 
     const hub: Hub = (["playground", "academy", "success"].includes(rawHub) ? rawHub : "academy") as Hub;
 
-    let bp = blueprint || null;
+    let bp: any = blueprint || null;
     let resolvedTitle = title || "Homework";
     let resolvedImageStyle: string | null = image_style || null;
+    let lessonRow: any = null;
 
-    if (!bp && lesson_id) {
+    if (lesson_id) {
       const { data: lesson } = await supabase
         .from("curriculum_lessons")
-        .select("title, vocabulary_list, grammar_pattern, phonics_focus, content, image_style")
+        .select("title, vocabulary_list, grammar_pattern, phonics_focus, content, image_style, unit_id, slot_cefr_level")
         .eq("id", lesson_id)
         .maybeSingle();
       if (lesson) {
+        lessonRow = lesson;
         resolvedTitle = lesson.title || resolvedTitle;
         resolvedImageStyle = resolvedImageStyle || (lesson as any).image_style || null;
-        bp = {
+        // Merge lesson-derived blueprint fields under any provided blueprint so the
+        // user's in-progress edits win, but missing fields are auto-hydrated.
+        const fromLesson = {
           vocabulary: lesson.vocabulary_list || [],
           grammar: lesson.grammar_pattern || "",
           phonics: lesson.phonics_focus || "",
           ...((lesson.content as any) || {}),
         };
+        bp = { ...fromLesson, ...(bp || {}) };
       }
     }
 
-    if (!bp || (!bp.vocabulary && !bp.target_vocabulary && !bp.grammar)) {
-      return json({ error: "No blueprint or vocabulary/grammar provided" }, 400);
-    }
+    if (!bp) bp = {};
 
     // Normalise vocabulary into plain strings for the prompt
-    const rawVocab = Array.isArray(bp.vocabulary)
-      ? bp.vocabulary
-      : (bp.target_vocabulary || []);
-    const vocabStrings: string[] = rawVocab
-      .map((v: any) => (typeof v === "string" ? v : v?.word || v?.term || ""))
-      .filter((v: string) => v && v.trim().length > 0)
-      .slice(0, 8);
+    const toStrings = (arr: any): string[] =>
+      (Array.isArray(arr) ? arr : [])
+        .map((v: any) => (typeof v === "string" ? v : v?.word || v?.term || ""))
+        .filter((v: string) => v && v.trim().length > 0);
+
+    let vocabStrings: string[] = [
+      ...toStrings(bp.vocabulary),
+      ...toStrings(bp.target_vocabulary),
+      ...toStrings((bp as any).vocabulary_list),
+    ];
+    // De-dup, cap at 8
+    vocabStrings = Array.from(new Set(vocabStrings.map((s) => s.trim()))).slice(0, 8);
+
+    // ── Hydration fallbacks ────────────────────────────────────
+    // 1) Pull from the lesson's parent unit's vocabulary themes via vocabulary_bank.
+    if (vocabStrings.length < 3 && lessonRow?.unit_id) {
+      const { data: unit } = await supabase
+        .from("curriculum_units")
+        .select("vocabulary_themes, cefr_level, age_group")
+        .eq("id", lessonRow.unit_id)
+        .maybeSingle();
+      const themes: string[] = Array.isArray(unit?.vocabulary_themes) ? unit!.vocabulary_themes : [];
+      if (themes.length > 0) {
+        const { data: bankRows } = await supabase
+          .from("vocabulary_bank")
+          .select("word")
+          .in("theme", themes)
+          .limit(20);
+        const extra = toStrings(bankRows?.map((r: any) => r.word) || []);
+        vocabStrings = Array.from(new Set([...vocabStrings, ...extra])).slice(0, 8);
+      }
+    }
+    // 2) Last resort: pull any words at the lesson's CEFR level from vocabulary_bank.
+    if (vocabStrings.length < 3) {
+      const lvl = lessonRow?.slot_cefr_level || (bp as any).cefr_level;
+      if (lvl) {
+        const { data: bankRows } = await supabase
+          .from("vocabulary_bank")
+          .select("word")
+          .eq("cefr_level", lvl)
+          .limit(20);
+        const extra = toStrings(bankRows?.map((r: any) => r.word) || []);
+        vocabStrings = Array.from(new Set([...vocabStrings, ...extra])).slice(0, 8);
+      }
+    }
 
     if (vocabStrings.length < 3) {
-      return json({ error: "Need at least 3 vocabulary items to generate homework" }, 400);
+      return json({
+        success: false,
+        error: "Need at least 3 vocabulary items to generate homework",
+        code: "INSUFFICIENT_VOCABULARY",
+        hint: "Add at least 3 vocabulary words to the lesson blueprint (or to the unit's vocabulary themes) before generating homework.",
+        vocabularyCount: vocabStrings.length,
+      }, 400);
     }
 
     const grammar = bp.grammar || bp.grammar_focus || bp.target_grammar_rule || "";
