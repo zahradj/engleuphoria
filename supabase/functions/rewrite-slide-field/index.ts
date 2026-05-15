@@ -1,6 +1,7 @@
 // Rewrite a single slide field to align with the lesson blueprint.
 // Uses Lovable AI Gateway (Gemini Flash) — cheap & fast.
 import { slideTypeInstruction } from "../_shared/slideContextRules.ts";
+import { aiFetch } from "../_shared/aiFetch.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -65,7 +66,7 @@ Constraints:
 - When natural, weave in the student interests above so the example feels personal.
 - Return strict JSON: {"value": "<new text>"}`;
 
-    const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const res = await aiFetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({

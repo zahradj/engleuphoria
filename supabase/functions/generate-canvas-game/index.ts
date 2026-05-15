@@ -1,3 +1,4 @@
+import { aiFetch } from "../_shared/aiFetch.ts";
 // generate-canvas-game — AI Level Designer for Coordinate Canvas slides.
 // Returns { instruction, instruction_audio, background_image?, elements: CanvasElement[] }
 // Uses Lovable AI Gateway with tool-calling for structured output.
@@ -99,7 +100,7 @@ Return ONLY valid structured data via the tool call.`;
       },
     };
 
-    const aiResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const aiResp = await aiFetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({

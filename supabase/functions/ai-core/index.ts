@@ -13,6 +13,7 @@
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { aiFetch } from "../_shared/aiFetch.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
@@ -134,7 +135,7 @@ async function callLovableGateway(opts: AICallOptions): Promise<string> {
   };
   if (opts.jsonMode) body.response_format = { type: 'json_object' };
 
-  const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+  const res = await aiFetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
     method: 'POST',
     headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -404,7 +405,7 @@ Return ONLY this JSON, no markdown:
       const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
       if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
 
-      const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      const res = await aiFetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
         headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
