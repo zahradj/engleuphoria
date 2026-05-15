@@ -29,6 +29,18 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
   const { studentLevel, onboardingCompleted, loading: studentLoading } = useStudentLevel();
   const [roleLoadTimeout, setRoleLoadTimeout] = useState(false);
   const timeoutTriggeredRef = useRef(false);
+  const userRole = (user as any)?.role || (user as any)?.user_metadata?.role || null;
+
+  useEffect(() => {
+    console.log('[AUTH ROUTE] Guard state', {
+      path: window.location.pathname,
+      requiredRole,
+      userRole,
+      loading,
+      hasUser: !!user,
+      studentLoading,
+    });
+  }, [requiredRole, userRole, loading, user, studentLoading]);
 
   // Timeout for role loading - fall back to metadata role instead of blocking
   useEffect(() => {
@@ -39,7 +51,6 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
           // Fall back to user metadata role or 'student' instead of redirecting to login
           const fallbackRole = (user as any).user_metadata?.role || 'student';
           console.warn('⏱️ Role verification timeout - falling back to:', fallbackRole);
-          (user as any).role = fallbackRole;
           setRoleLoadTimeout(true);
         }
       }, 8000);
@@ -95,8 +106,6 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
     return <Navigate to={redirectTo} replace />;
   }
 
-  const userRole = (user as any).role;
-
   // If role is required but not yet loaded, show loading spinner
   if (requiredRole && requiredRole !== 'any' && !userRole && !roleLoadTimeout) {
     return (
@@ -125,9 +134,13 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
 
   // Check role if required
   if (requiredRole && requiredRole !== 'any' && userRole !== requiredRole) {
-    // SECURITY: If user tries to access a protected route without the required role,
-    // redirect to login with an access_denied reason so the login page can show a toast.
-    return <Navigate to="/login?reason=access_denied" replace />;
+    console.warn('[AUTH ROUTE] Access denied; routing authenticated user to dashboard router', {
+      path: window.location.pathname,
+      requiredRole,
+      userRole,
+      userId: user.id,
+    });
+    return <Navigate to="/dashboard" replace />;
   }
 
   // Check student level if required (for student-specific routes)
