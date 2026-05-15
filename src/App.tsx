@@ -48,6 +48,9 @@ const AcademyTest = lazy(() => import("./components/placement/AcademyTest"));
 const SuccessTest = lazy(() => import("./components/placement/SuccessTest"));
 const StudentClassroomPage = lazy(() => import("./pages/StudentClassroomPage"));
 const UnifiedClassroomPage = lazy(() => import("./pages/UnifiedClassroomPage"));
+const VocabularyRoomPage = lazy(() => import("./pages/dashboard/VocabularyRoomPage"));
+const SpeakingStudioPage = lazy(() => import("./pages/dashboard/SpeakingStudioPage"));
+const GradedLibraryPage = lazy(() => import("./pages/dashboard/GradedLibraryPage"));
 const PostLessonSummary = lazy(() => import("./pages/PostLessonSummary"));
 const AssessmentTaker = lazy(() => import("./components/assessment/AssessmentTaker"));
 const AssessmentResults = lazy(() => import("./components/assessment/AssessmentResults"));
@@ -195,8 +198,26 @@ const App = () => {
                       <Route path="/dashboard/academy/*" element={
                         <ImprovedProtectedRoute requiredRole="student" requiredStudentLevel="academy">
                           <Suspense fallback={<LoadingFallback />}><StudentDashboard /></Suspense>
+                      </ImprovedProtectedRoute>
+                      } />
+
+                      {/* Cycle 2 — Adaptive Dashboard rooms */}
+                      <Route path="/dashboard/vocabulary" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <Suspense fallback={<LoadingFallback />}><VocabularyRoomPage /></Suspense>
                         </ImprovedProtectedRoute>
                       } />
+                      <Route path="/dashboard/speaking" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <Suspense fallback={<LoadingFallback />}><SpeakingStudioPage /></Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
+                      <Route path="/dashboard/library" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <Suspense fallback={<LoadingFallback />}><GradedLibraryPage /></Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
+
                       <Route path="/dashboard/hub/*" element={
                         <ImprovedProtectedRoute requiredRole="student" requiredStudentLevel="professional">
                           <Suspense fallback={<LoadingFallback />}><StudentDashboard /></Suspense>

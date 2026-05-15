@@ -356,7 +356,7 @@ export default function AcademyCreator() {
       });
       if (error || data?.error) {
         const { extractEdgeError } = await import('@/lib/extractEdgeError');
-        throw new Error(extractEdgeError({ error, data, fallback: 'AI generation failed' }));
+        throw new Error(await extractEdgeError({ error, data, fallback: 'AI generation failed' }));
       }
       const academySlides: Slide[] | undefined = data?.academy_slides || data?.slides;
       if (!academySlides || !Array.isArray(academySlides) || academySlides.length === 0) {
@@ -733,7 +733,7 @@ export default function AcademyCreator() {
                   const { data, error } = await supabase.functions.invoke('generate-homework', {
                     body: { lesson_id: lessonHook.lessonId, blueprint, title: lessonHook.lesson?.title || 'Lesson', hub: 'academy' },
                   });
-                  if (error || data?.error) throw new Error(extractEdgeError({ error, data, fallback: 'Generation failed' }));
+                  if (error || data?.error) throw new Error(await extractEdgeError({ error, data, fallback: 'Generation failed' }));
                   toast.success?.('Homework ready ✓');
                 } catch (e: any) {
                   toast.error?.(`Homework Failed: ${e?.message || e}`);
