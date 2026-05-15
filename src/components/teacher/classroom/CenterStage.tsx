@@ -209,6 +209,11 @@ export const CenterStage: React.FC<CenterStageProps> = ({
     );
   };
 
+  const hubBgTint =
+    hubType === 'playground' ? 'bg-orange-50'
+    : (hubType === 'success' || hubType === 'professional') ? 'bg-emerald-50'
+    : 'bg-purple-50';
+
   return (
     <div className="flex-1 flex flex-col bg-transparent relative overflow-hidden">
       {/* Tabs */}
