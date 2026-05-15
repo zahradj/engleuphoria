@@ -251,6 +251,13 @@ const TestPhase = ({ age, hub, onComplete }: TestPhaseProps) => {
               exit={{ opacity: 0, y: -12, filter: 'blur(4px)' }}
               transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
             >
+              {/* Localized meta-instruction (ONLY translated text). Question stays English. */}
+              <div
+                dir="auto"
+                className="mb-2 inline-block rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-medium text-white/80 backdrop-blur-sm"
+              >
+                {t(taskInstructionKeyFor(currentQuestion))}
+              </div>
               <ChatBubble
                 key={`q-${currentQIndex}`}
                 role="guide"
