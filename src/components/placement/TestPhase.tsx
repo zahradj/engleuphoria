@@ -219,7 +219,7 @@ const TestPhase = ({ age, hub, onComplete }: TestPhaseProps) => {
       <div className="px-5 pt-3 pb-2">
         <div className="flex items-center justify-between text-[11px] text-white/60 mb-1.5">
           <span className="font-medium tracking-wide">
-            {isPlayground ? 'Question' : 'CEFR Assessment'} {Math.min(results.length + 1, TOTAL_QUESTIONS)} / {TOTAL_QUESTIONS}
+            {isPlayground ? t('placement.progress.question') : t('placement.progress.cefr')} {Math.min(results.length + 1, TOTAL_QUESTIONS)} / {TOTAL_QUESTIONS}
           </span>
           {!isPlayground && currentQuestion && (
             <span className="px-2 py-0.5 rounded-full bg-white/10 border border-white/15 text-white/70 font-semibold">
