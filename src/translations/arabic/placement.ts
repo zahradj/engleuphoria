@@ -12,4 +12,13 @@ export const placementTranslations = {
   'placement.audio.hint': 'استمع أولاً، ثم اختر إجابتك.',
   'placement.progress.question': 'سؤال',
   'placement.progress.cefr': 'تقييم CEFR',
+  'placement.welcome.title.playground': 'مرحبًا بك في الـ Playground، {{name}}!',
+  'placement.welcome.title.academy': 'مرحبًا بك في The Academy، {{name}}!',
+  'placement.welcome.title.professional': 'مرحبًا بك في Success Hub، {{name}}!',
+  'placement.welcome.subtitle': 'قبل فتح لوحتك، دعنا نُقيّم مستواك لتناسب كل درس احتياجاتك تمامًا.',
+  'placement.welcome.chip.duration': '≈5 دقائق',
+  'placement.welcome.chip.personalized': 'مخصّص لك',
+  'placement.welcome.chip.oneTime': 'مرة واحدة فقط',
+  'placement.welcome.cta': 'ابدأ تقييمي',
+  'placement.welcome.greetingFallback': 'صديقي',
 };
