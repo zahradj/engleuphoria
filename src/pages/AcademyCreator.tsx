@@ -22,6 +22,7 @@ import { PlayablePreviewPane } from '@/components/creator-studio/shared/Playable
 import { UniversalMediaShell } from '@/components/creator-studio/shared/UniversalMediaShell';
 import { PracticeItemsEditor } from '@/components/creator-studio/shared/PracticeItemsEditor';
 import { PhonicsFocusCard } from '@/components/creator-studio/shared/PhonicsFocusCard';
+import VocabSlideSplit from '@/components/lesson/VocabSlideSplit';
 import { PreviewRoleToggle, type PreviewRole } from '@/components/creator-studio/shared/PreviewRoleToggle';
 import { TeacherNotesField } from '@/components/creator-studio/shared/TeacherNotesField';
 import { AssetVaultDialog } from '@/components/creator-studio/shared/AssetVaultDialog';
