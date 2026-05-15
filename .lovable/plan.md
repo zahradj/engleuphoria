@@ -1,51 +1,66 @@
-## Plan: Smart Placement Test overhaul
+# Internal AI Debugging Pipeline
 
-### 1. Enforce strict age routing everywhere
-- Update all age-to-hub rules to the exact brackets:
-  - Age < 4: block with `You must be at least 4 years old to join!`
-  - 4–9: Playground
-  - 10–17: Academy
-  - 18+: Success / Professional
-- Replace stale `< 12`, `<= 12`, `<= 10`, and `>= 17` placement/signup thresholds where they affect student hub assignment.
-- Update `/ai-placement-test` traffic-cop routing so entered age sends students only to:
-  - `/placement/playground`
-  - `/placement/academy`
-  - `/placement/success`
+Build a 4-part automated error capture + AI analysis system. **Placement Test components will not be touched.**
 
-### 2. Keep the 3 isolated funnels, but make them genuinely hub-locked
-- Keep the three route components as the public funnel boundaries:
-  - `PlaygroundTest.tsx` locks `forcedHub="playground"`
-  - `AcademyTest.tsx` locks `forcedHub="academy"`
-  - `SuccessTest.tsx` locks `forcedHub="professional"`
-- Remove the outdated “FROZEN” comments.
-- Ensure forced funnels start the correct assessment after demographics state is available, and never fall back to the wrong hub.
-- I will not delete shared helper logic unnecessarily; the actual route funnels remain isolated, while reusable internals can remain shared to avoid duplicating bugs.
+## 1. Database — `system_errors` table
 
-### 3. Fix the infinite image-generation loop at the root
-- Update the placement image rendering so image generation is keyed by a stable prompt/question identity.
-- Cache generated image URLs locally by prompt/question key before calling `ai-image-generation`.
-- Do not fetch again if the current question image already exists in local cache/state.
-- Stabilize `VocabularyImage` dependencies so derived values do not accidentally retrigger generation.
+Migration creates:
 
-### 4. Implement smart media rendering by question skill
-- Normalize placement question skill/type into clear buckets:
-  - Listening: show ElevenLabs audio controls only; no image generation.
-  - Vocabulary/visual: show Gemini image only.
-  - Grammar/reading: clean text-only MCQ/fill-in UI; no image/audio calls.
-- Update `TestPhase` rendering conditions so the presence of `imagePrompt` alone cannot override skill rules.
-- Ensure listening uses the existing `elevenlabs-tts` Edge Function and keeps the binary-safe direct fetch pattern.
+```text
+system_errors
+- id            uuid pk default gen_random_uuid()
+- created_at    timestamptz default now()
+- error_message text not null
+- stack_trace   text
+- component_name text
+- route         text                 (helpful context, cheap to add)
+- user_id       uuid                 (nullable, for triage)
+- ai_analysis   text
+- ai_model      text                 (which Gemini model produced it)
+- analyzed_at   timestamptz
+- status        text default 'open'  check in ('open','analyzing','analyzed','resolved')
+```
 
-### 5. Add anti-cheating image prompt constraints
-- Inject this exact rule into every placement-test image prompt before it reaches `ai-image-generation`:
-  `CRITICAL SYSTEM RULE: This image is for a test. DO NOT include any text, letters, or words in the image. DO NOT reveal the literal answer. Create a generalized, ambiguous visual context only.`
-- Also strengthen the `generate-placement-test` Gemini prompts so newly generated placement questions output safe, non-answer-revealing image prompts.
+RLS:
+- Enable RLS.
+- INSERT: allow `anon` + `authenticated` (error boundary must log even when logged out). No SELECT for them.
+- SELECT / UPDATE: only `has_role(auth.uid(),'admin')` (uses existing `user_roles` + `has_role` per project security rules).
+- Index on `(status, created_at desc)` for the analyzer + console.
 
-### 6. Wire dynamic Gemini placement generation where it is currently unused
-- The `generate-placement-test` Edge Function exists but is not currently invoked by the frontend.
-- Add a frontend fetch path in the placement test to request Gemini-generated, hub-specific questions first.
-- Fall back to the expert-authored local bank if Gemini fails, so students never get stuck.
-- Map generated fields into the existing `BankQuestion` shape.
+## 2. `GlobalErrorBoundary.tsx`
 
-### 7. Validate the fix
-- Run targeted checks for the changed files and inspect console/network behavior for repeated `ai-image-generation` calls.
-- Confirm age routing and smart media rules are active for Playground, Academy, and Success funnels.
+- Class component (React error boundaries must be class-based).
+- Wraps `<App />` routing in `src/main.tsx` (outside `BrowserRouter` so route-level crashes are caught).
+- `componentDidCatch(error, info)` → fire-and-forget `supabase.from('system_errors').insert({...})` with `error.message`, `error.stack`, `info.componentStack`, `window.location.pathname`, current `auth.uid()` if available.
+- Fallback UI: glassmorphic card, "Oops, we hit a snag!" + Reload button. Uses semantic tokens, not raw colors.
+- Never throws if insert fails (swallow + console.warn).
+
+## 3. Edge Function — `analyze-system-bug`
+
+Path: `supabase/functions/analyze-system-bug/index.ts`, `verify_jwt = false` (called by pg_cron / admin).
+
+Flow:
+1. Service-role Supabase client.
+2. `select * from system_errors where status='open' order by created_at limit 10`.
+3. For each: mark `status='analyzing'`, call Gemini, then update `ai_analysis`, `ai_model`, `analyzed_at`, `status='analyzed'`.
+4. CORS headers on every response (incl. errors).
+
+Per project memory **Runtime AI Gemini-Only**: Lovable AI Gateway is forbidden at runtime. Call Gemini directly via `GEMINI_API_KEY` (already used elsewhere in this project, e.g. `ai-image-generation`). Model: `gemini-2.5-flash` for cost; system prompt exactly as specified ("Senior React/Supabase Developer…").
+
+Trigger: invoked manually from Dev Console "Analyze now" button. (We can add pg_cron later if you want it fully autonomous — say the word.)
+
+## 4. `/dev-console` route
+
+- New page `src/pages/DevConsole.tsx`.
+- Wrapped in existing `ImprovedProtectedRoute` requiring `role='admin'` (uses `user_roles` table, never client-side flags — per security rules).
+- UI: list of `system_errors` rows, newest first, filter by status. Each row expandable to show `stack_trace` + rendered `ai_analysis` (markdown with code block). Buttons: "Analyze now" (invokes edge function), "Mark resolved" (updates row).
+- Realtime subscription on `system_errors` so new crashes appear live.
+- Route registered in `src/App.tsx` alongside other admin routes.
+
+## Out of scope (explicit)
+- No changes to any file under `src/components/placement/**`, `AIPlacementTest.tsx`, `PlaygroundTest.tsx`, `AcademyTest.tsx`, `SuccessTest.tsx`, `TestPhase.tsx`, `questionBanks.ts`, `VocabularyImage.tsx`, or `generate-placement-test` edge function.
+
+## Technical notes
+- Secrets needed: `GEMINI_API_KEY` (confirm it exists; if not, I'll request it before deploying the function).
+- Types file (`src/integrations/supabase/types.ts`) regenerates automatically after migration approval.
+- Follows project rules: glassmorphism UI, semantic tokens, role checks via `has_role()`, no service-role key in frontend.
