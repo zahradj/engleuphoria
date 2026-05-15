@@ -32,23 +32,61 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signInRedirectRef = useRef(false); // Track if SIGNED_IN redirect is in progress
   const initialFetchDoneRef = useRef(false); // Track when initial auth fetch completes
 
+  const AUTH_FLOW_PREFIX = '[AUTH FLOW]';
+  const ROLE_PRIORITY = ['admin', 'content_creator', 'teacher', 'parent', 'student'];
+
+  const withTimeout = async <T,>(promise: PromiseLike<T>, ms: number, label: string): Promise<T> => {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    try {
+      return await Promise.race([
+        Promise.resolve(promise),
+        new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+        }),
+      ]);
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
+    }
+  };
+
   // SECURITY: Roles MUST come from user_roles table only.
   // When a user has multiple roles, prioritize: admin > content_creator > teacher > student
   const fetchUserRoleFromDatabase = async (userId: string): Promise<string | null> => {
     try {
+      console.log(`${AUTH_FLOW_PREFIX} STEP 2: Fetching roles for user`, userId);
       // Use .select() (NOT .maybeSingle()) to handle users with multiple roles
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId);
+      const { data, error } = await withTimeout(
+        supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userId),
+        2500,
+        'user_roles role fetch'
+      );
+
+      console.log(`${AUTH_FLOW_PREFIX} STEP 3: Role query returned`, {
+        count: Array.isArray(data) ? data.length : null,
+        data,
+        error,
+      });
+
+      if (data === null && error === null) {
+        console.warn(`${AUTH_FLOW_PREFIX} RLS CHECK: user_roles returned data:null and error:null for`, userId);
+        return null;
+      }
+
+      if (error) {
+        console.warn(`${AUTH_FLOW_PREFIX} RLS CHECK: user_roles read failed`, error);
+        return null;
+      }
 
       if (!error && data && data.length > 0) {
         // Priority order: admin > content_creator > teacher > parent > student
-        const priorityOrder = ['admin', 'content_creator', 'teacher', 'parent', 'student'];
         const userRoles = data.map((r: any) => r.role);
 
-        for (const role of priorityOrder) {
+        for (const role of ROLE_PRIORITY) {
           if (userRoles.includes(role)) {
+            console.log(`${AUTH_FLOW_PREFIX} STEP 3B: Resolved role from user_roles`, role);
             return role;
           }
         }
@@ -57,14 +95,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       // Fallback: check users.role column for legacy users missing user_roles rows
-      const { data: userData } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', userId)
-        .maybeSingle();
+      const { data: userData, error: userError } = await withTimeout(
+        supabase
+          .from('users')
+          .select('role')
+          .eq('id', userId)
+          .maybeSingle(),
+        2500,
+        'users legacy role fetch'
+      );
+
+      if (userData === null && userError === null) {
+        console.warn(`${AUTH_FLOW_PREFIX} RLS CHECK: users legacy role returned data:null and error:null for`, userId);
+      } else if (userError) {
+        console.warn(`${AUTH_FLOW_PREFIX} RLS CHECK: users legacy role read failed`, userError);
+      }
+
+      if (userData?.role) {
+        console.log(`${AUTH_FLOW_PREFIX} STEP 3C: Resolved legacy role from users.role`, userData.role);
+      }
 
       return userData?.role || null;
-    } catch {
+    } catch (error) {
+      console.warn(`${AUTH_FLOW_PREFIX} STEP 3D: Role resolution failed/timeout`, error);
       return null;
     }
   };

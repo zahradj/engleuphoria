@@ -1,67 +1,102 @@
-## Plan: Fix the "Sign in button keeps loading" loop
+## Diagnosis
 
-### Root cause (diagnosis)
+The auth service itself is working: recent Supabase auth logs show successful password logins for both reported accounts. The hang is client-side.
 
-The Supabase `auth/token` call is succeeding in **~85 ms** (auth logs at 15:35:52 and 15:38:17 both return 200). Both affected accounts have valid rows in `public.user_roles`:
+### Most likely root causes found
 
-- `f.zahra.djaanine@gmail.com` → `{student, content_creator}` (priority resolves to `content_creator`)
-- `ygn.livra@gmail.com` → `{student}`
+1. **`SimpleAuthForm` keeps its own button spinner alive**
+   - After `signIn()` returns without an error, the form sets `verifyingRole=true` and never resets it.
+   - If redirect is blocked, delayed, or the route bounces back to `/login`, the button remains stuck on “Verifying role…” / loading.
 
-So credentials, network, and RLS are all fine. The freeze is **client-side**, in three places that compound:
+2. **Auth callbacks still contain async work that can stall auth event processing**
+   - `AuthContext` has `onAuthStateChange` branches that await `autoHealUserRows()` and `fetchUserFromDatabase()` inside the auth callback path.
+   - Supabase recommends not awaiting additional Supabase calls inside `onAuthStateChange`; this can produce silent hangs/deadlocks around login/session restoration.
 
-**1. `AuthContext.signIn()` (src/contexts/AuthContext.tsx, lines 432–544) is too heavy and runs everything sequentially before navigating:**
-- `signInWithPassword` →
-- `users.select` → conditional `users.upsert` + `ensure_user_role` RPC → OR `user_roles.select` + (sometimes) `users.select` + `ensure_user_role` RPC →
-- `fetchUserRoleFromDatabase` AGAIN →
-- (for students) `student_profiles.select` →
-- finally `window.location.href = …`
+3. **Role resolution can still use legacy fallback paths**
+   - `fetchUserRoleFromDatabase()` reads `user_roles`, then falls back to `users.role`.
+   - For the content creator account, `users.role = student` while `user_roles = {content_creator, student}`. If the `user_roles` read stalls/errors, the app can still resolve the wrong role and bounce away from `/content-creator`.
 
-That's 4–6 sequential awaited round-trips while the form button shows "Signing in…". Any one of them stalling stalls the whole submit.
+4. **Destination pages have extra role redirects/spinners**
+   - `ImprovedProtectedRoute` already guards `/teacher` and `/content-creator`, but `TeacherDashboard` repeats role checks and shows its own “Redirecting…” loader. This can mask whether auth succeeded or the destination rejected the user.
+   - `CreatorStudioShell` relies on the global app error boundary, but there is no route-local boundary to make creator/teacher crashes obvious.
 
-**2. `createFallbackUser()` (lines 147–165) blocks `setLoading(false)` on a DB role fetch.** After `window.location.href` reloads the page, `initializeAuth` `await`s `createFallbackUser`, which itself `await`s `fetchUserRoleFromDatabase`. If that query is briefly slow or transiently errors, `createFallbackUser` falls back to `role = 'student'`. For `f.zahra` (real role `content_creator`) that means:
-- `/content-creator` mounts → `ImprovedProtectedRoute` sees `userRole === 'student'`, required `'content_creator'` →
-- `<Navigate to="/login?reason=access_denied" />` → user lands back on `/login` → "Access Denied" toast → user signs in again → same loop.
+5. **RLS is not obviously failing in logs, but needs explicit client handling**
+   - `user_roles` policies allow users to read their own roles.
+   - `users` policies allow users to read their own profile.
+   - I did not find recent Postgres policy/permission/recursion errors in Supabase logs.
+   - Still, the code does not explicitly log/handle the `data: null + error: null` case that can look like an RLS block.
 
-This explains the user reporting *"keeps loading, keeps signing in"* (the same person hitting the button twice 2 minutes apart in the auth log).
+## Implementation Plan
 
-**3. `Login.tsx` (lines 56–88) renders the loader whenever `loading || user`** and waits up to **8 s** for `user.role` to populate. While AuthContext is mid-fetch, the form is replaced by the spinner. Combined with #1 and #2, the user never gets stable navigation to their dashboard.
+### 1. Add nuclear auth logging
 
----
+Update `src/contexts/AuthContext.tsx` to log each auth step with a stable prefix, for example:
 
-### Fix
+```text
+[AUTH FLOW] STEP 1: signIn called
+[AUTH FLOW] STEP 2: Supabase auth success
+[AUTH FLOW] STEP 3: Fetching roles for user
+[AUTH FLOW] STEP 4: Role query returned
+[AUTH FLOW] STEP 5: Redirecting to /content-creator
+```
 
-**A. Slim down `AuthContext.signIn` so it only does what's required to redirect:**
-- Keep `signInWithPassword`.
-- Replace the whole users/user_roles/student_profiles cascade with a SINGLE call: `fetchUserRoleFromDatabase(user.id)` (which already has its own `users.role` fallback).
-- Resolve `redirectPath` from that role + `user_metadata.hub_type` (no `student_profiles` round-trip — that fetch happens later inside the dashboard).
-- Move the auto-heal (`users` upsert + `ensure_user_role` RPC) into a **fire-and-forget** background call so it can't block the redirect.
-- Then `window.location.href = redirectPath`.
+Also log:
+- auth event type from `onAuthStateChange`
+- whether session exists
+- resolved role source: `user_roles`, `users.role`, metadata, fallback
+- redirect destination
+- explicit errors and timeout fallbacks
 
-Result: form spinner clears in ~150 ms (one auth call + one role lookup), not 1–5 s.
+### 2. Make role/profile reads RLS-aware and timeout-safe
 
-**B. Make `createFallbackUser` non-blocking on role:**
-- Synchronously build the fallback user from `user_metadata.role` (the value that was set at signup) so `setLoading(false)` fires immediately.
-- Background-fetch the canonical role from `user_roles` via `fetchUserRoleFromDatabase` and `setUser(prev => ({...prev, role: dbRole}))` when it returns.
-- Remove the `await` chain inside `initializeAuth` for the fallback path.
+Refactor the auth helper reads so every Supabase query is wrapped with:
+- a short timeout
+- `try/catch`
+- explicit handling for `data === null && error === null`
+- console warnings that identify suspected RLS/missing-row cases
 
-This eliminates the "transient null → defaults to student → access_denied bounce" path.
+For role resolution:
+- Treat `user_roles` as authoritative.
+- Do **not** let stale `users.role = student` override or accidentally replace a higher-priority `user_roles` role.
+- Use priority: `admin > content_creator > teacher > parent > student`.
 
-**C. Loosen `Login.tsx` redirect gate:**
-- If `user` is present, redirect immediately based on `(user as any).role || user_metadata.role || 'student'` instead of waiting for role to "verify" with an 8 s spinner.
-- Keep the `loading` spinner (but only while `loading === true`, not when `user` exists with no role).
+### 3. Remove async Supabase work from `onAuthStateChange`
 
-**D. (Defensive) `ImprovedProtectedRoute`:**
-- Already has the metadata-fallback logic (lines 33–48, 113–124). Keep as-is — once B is in place, role will be present in time and this branch won't trigger.
+Change the listener so it only:
+- records the new session
+- creates a synchronous metadata/sessionStorage fallback user immediately
+- sets `loading=false`
+- launches profile/role hydration in a fire-and-forget task outside the callback stack
 
-### Files to edit
+This avoids auth event deadlocks and prevents `loading` from staying true forever.
 
-- `src/contexts/AuthContext.tsx` — rewrite `signIn`'s post-success block; rewrite `createFallbackUser` + the `initializeAuth` fallback path so they don't await role.
-- `src/pages/Login.tsx` — redirect on `user` presence using metadata role fallback; drop the 8 s "Verifying role…" gate.
+### 4. Fix the login button spinner root cause
 
-No DB migrations, no RLS changes, no edge function changes. The DB is already correct — this is purely repairing the client boot/sign-in flow.
+Update `src/components/auth/SimpleAuthForm.tsx`:
+- remove or time-limit `verifyingRole`
+- add logs around submit start, `signIn()` result, and redirect wait
+- if `signIn()` returns success but navigation does not happen within a few seconds, reset the button and show a clear error instead of infinite loading
 
-### Verification after the fix
+### 5. Make route guards diagnostic and non-looping
 
-1. Sign in as `ygn.livra@gmail.com` (student) → expect immediate spinner clear → land on `/playground` (or appropriate hub) without bouncing back to `/login`.
-2. Sign in as `f.zahra.djaanine@gmail.com` (content_creator + student) → expect to land on `/content-creator`, not `/login?reason=access_denied`.
-3. Confirm the form button never sits in "Signing in…" / "Verifying role…" longer than ~1 s on a healthy connection.
+Update `src/components/auth/ImprovedProtectedRoute.tsx`:
+- log required role, actual role, auth loading state, and redirect decisions
+- do not mutate `(user as any).role` inside the route guard
+- when access is denied, route to a safe dashboard/router with diagnostic logging rather than creating a `/login` bounce loop for authenticated users
+
+### 6. Add destination error boundaries
+
+Wrap `/teacher/*` and `/content-creator/*` route contents in a route-level error boundary so:
+- real crashes show a visible error state
+- console logs identify the destination crash
+- the user does not see an unexplained infinite spinner
+
+### 7. Verify after implementation
+
+After the patch, verify with:
+- TypeScript/build harness results
+- browser console logs during a login attempt
+- network request logs for `/token`, `user_roles`, and `users`
+- direct route checks for `/content-creator`, `/teacher`, and student dashboard routes
+
+No database migration is required unless the new logs reveal an actual RLS policy failure.
