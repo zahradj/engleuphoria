@@ -573,7 +573,21 @@ export const StoryCreator: React.FC = () => {
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-semibold">Visual & Layout Style</Label>
+          <Label className="text-sm font-semibold">🎭 Starring Character (optional)</Label>
+          <Select value={starringId || 'none'} onValueChange={(v) => setStarringId(v === 'none' ? '' : v)}>
+            <SelectTrigger><SelectValue placeholder="No featured character" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">— No featured character —</SelectItem>
+              {characters.map((c) => (
+                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-slate-500">
+            Pulled from the Cast Vault for the {storyHub} hub. The AI will write the protagonist around them.
+          </p>
+        </div>
+
           <p className="text-xs text-slate-500 dark:text-slate-400 -mt-1">
             Drives both AI illustration style and the in-app reader layout.
           </p>
