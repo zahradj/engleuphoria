@@ -13,6 +13,8 @@ import { Progress } from '@/components/ui/progress';
 import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
+import { CompanionSelector } from '@/components/companions/CompanionSelector';
+import type { Companion } from '@/constants/companions';
 
 export interface OnboardingData {
   language: LanguageCode;
