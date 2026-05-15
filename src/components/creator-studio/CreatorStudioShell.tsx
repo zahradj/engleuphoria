@@ -24,6 +24,7 @@ const StudioBody: React.FC = () => {
     else if (path.endsWith('/blueprint')) next = 'blueprint';
     else if (path.endsWith('/trial')) next = 'trial';
     else if (path.endsWith('/story')) next = 'story';
+    else if (path.endsWith('/characters')) next = 'characters';
     else if (path.endsWith('/playground-creator')) next = 'playground-creator';
     else if (path.endsWith('/academy-creator')) next = 'academy-creator';
     else if (path.endsWith('/success-creator')) next = 'success-creator';
