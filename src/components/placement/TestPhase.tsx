@@ -26,6 +26,7 @@ interface TestPhaseProps {
 }
 
 const TestPhase = ({ age, hub, onComplete }: TestPhaseProps) => {
+  const { t } = useTranslation();
   // Strict age brackets: 4-9 → playground, 10-17 → academy, 18+ → professional.
   const resolvedHub: Hub = hub ?? (age > 0 && age < 10 ? 'playground' : age >= 18 ? 'professional' : 'academy');
   const isPlayground = resolvedHub === 'playground';
