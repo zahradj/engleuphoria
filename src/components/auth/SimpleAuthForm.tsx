@@ -223,8 +223,9 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                 email: formData.email,
                 full_name: formData.fullName,
                 role: formData.role,
-                current_system: systemTag
-              });
+                current_system: systemTag,
+                market_region: detectMarketRegion(),
+              } as any);
               await supabase.from('user_roles').insert({
                 user_id: data.user.id,
                 role: formData.role
