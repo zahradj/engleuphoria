@@ -41,6 +41,33 @@ const VOICES = [
   { id: 'IKne3meq5aSn9XLyUdCD', label: 'Charlie · upbeat male' },
 ];
 
+// Image style presets — chosen per-hub so visuals stay on-brand.
+// We append the modifier to the user's prompt before sending it to the edge function
+// (no edge-function changes — pure UI augmentation).
+const IMAGE_STYLES: Record<'playground' | 'academy' | 'success', { id: string; label: string; modifier: string }[]> = {
+  playground: [
+    { id: 'flat-cartoon',  label: '🎨 Flat Cartoon',         modifier: 'flat cartoon illustration, bold outlines, bright cheerful colors, white background, no text, kid-friendly' },
+    { id: 'storybook',     label: '📖 Storybook',            modifier: 'children\'s storybook illustration, soft watercolor, warm lighting, friendly characters, no text' },
+    { id: 'sticker',       label: '✨ Sticker',              modifier: 'die-cut sticker style, thick white outline, vivid pop colors, glossy finish, white background, no text' },
+    { id: 'claymation',    label: '🧱 Claymation',           modifier: 'cute claymation style, soft plasticine textures, rounded shapes, studio lighting, white background, no text' },
+    { id: 'pixel',         label: '👾 Pixel Art',            modifier: '16-bit pixel art, retro game style, bright palette, transparent or white background, no text' },
+  ],
+  academy: [
+    { id: 'flat-vector',   label: '📐 Flat Vector',          modifier: 'modern flat vector illustration, geometric shapes, clean lines, indigo and purple accent palette, white background, no text' },
+    { id: 'editorial',     label: '📰 Editorial',            modifier: 'editorial illustration, magazine quality, sophisticated color palette, subtle texture, white background, no text' },
+    { id: 'photo-real',    label: '📷 Photo-real',           modifier: 'photo-realistic, natural lighting, shallow depth of field, lifestyle photography, no text' },
+    { id: '3d-soft',       label: '🟣 3D Soft',              modifier: 'soft 3D render, isometric, pastel colors, rounded geometry, subtle shadows, white background, no text' },
+    { id: 'sketch',        label: '✏️ Sketch',               modifier: 'hand-drawn sketch, pencil lines, light watercolor wash, notebook style, white background, no text' },
+  ],
+  success: [
+    { id: 'corporate',     label: '💼 Corporate Flat',       modifier: 'professional flat vector illustration, business setting, emerald and teal accent palette, clean modern, white background, no text' },
+    { id: 'photo-real',    label: '📷 Photo-real',           modifier: 'photo-realistic professional photography, office or lifestyle setting, natural lighting, no text' },
+    { id: 'minimal-line',  label: '➖ Minimal Line',         modifier: 'minimal line art, single weight stroke, monochrome with one accent color, lots of white space, no text' },
+    { id: 'editorial',     label: '📰 Editorial',            modifier: 'editorial business illustration, magazine quality, mature color palette, subtle texture, white background, no text' },
+    { id: '3d-soft',       label: '🟢 3D Soft',              modifier: 'soft 3D render, isometric, mature pastel palette, rounded geometry, subtle shadows, white background, no text' },
+  ],
+};
+
 function YoutubeId(url: string): string | null {
   if (!url) return null;
   const m = url.match(
