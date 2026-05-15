@@ -35,6 +35,7 @@ export function VocabularyPractice({
   const [completed, setCompleted] = useState(false);
   const { languageText } = useLanguage();
   const { toast } = useToast();
+  const { speak, isLoading: isSpeaking } = useTextToSpeech();
 
   const currentWord = words[currentIndex];
   const isLastWord = currentIndex === words.length - 1;
