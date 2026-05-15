@@ -16,6 +16,8 @@ export interface ComprehensiveSubmission {
 
 interface Props {
   onComplete: (results: TestResult[], submission: ComprehensiveSubmission) => void;
+  /** Offset for questionIndex so 4-skill results can be appended after prior MCQ results. */
+  indexOffset?: number;
 }
 
 /**
