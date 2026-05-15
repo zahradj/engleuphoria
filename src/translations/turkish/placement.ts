@@ -1,0 +1,14 @@
+export const placementTranslations = {
+  'placement.task.listening': 'Dinle ve doğru cevabı seç.',
+  'placement.task.vocabulary': 'Resme bak ve doğru kelimeyi seç.',
+  'placement.task.grammar': 'Cümleyi tamamlamak için doğru kelimeyi seç.',
+  'placement.task.reading': 'Dikkatlice oku ve en iyi cevabı seç.',
+  'placement.action.playAudio': 'Sesi oynat',
+  'placement.action.playAgain': 'Tekrar oynat',
+  'placement.action.loading': 'Yükleniyor…',
+  'placement.action.next': 'Sonraki soru',
+  'placement.action.submit': 'Gönder',
+  'placement.audio.hint': 'Önce dinle, sonra cevabını seç.',
+  'placement.progress.question': 'Soru',
+  'placement.progress.cefr': 'CEFR Değerlendirmesi',
+};
