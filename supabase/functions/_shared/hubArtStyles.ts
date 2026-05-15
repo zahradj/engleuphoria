@@ -78,7 +78,7 @@ export const HUB_ART_PROFILES: Record<ArtHub, HubArtProfile> = {
 export function enrichImagePrompt(basePrompt: string, hub?: string): string {
   const profile = HUB_ART_PROFILES[normalizeArtHub(hub)];
   const cleaned = (basePrompt || "").trim().replace(/\s+/g, " ");
-  return `${cleaned}${profile.style_suffix}`;
+  return `${cleaned}${profile.style_suffix}${profile.brand_signature}`;
 }
 
 export function normalizeArtHub(input?: string): ArtHub {
@@ -88,9 +88,9 @@ export function normalizeArtHub(input?: string): ArtHub {
   return "Academy";
 }
 
-/** Append the hub's house-style to any AI image prompt. */
+/** Append the hub's house-style + brand signature to any AI image prompt. */
 export function applyHubStyle(prompt: string, hub: ArtHub): string {
   const profile = HUB_ART_PROFILES[hub];
   const cleaned = (prompt || "").trim().replace(/\s+/g, " ");
-  return `${cleaned}${profile.style_suffix} NEGATIVE: ${profile.negative}`;
+  return `${cleaned}${profile.style_suffix}${profile.brand_signature} NEGATIVE: ${profile.negative}`;
 }
