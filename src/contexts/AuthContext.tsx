@@ -143,24 +143,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Function to create fallback user from auth metadata
-  const createFallbackUser = async (authUser: any): Promise<User> => {
-    const role = (await fetchUserRoleFromDatabase(authUser.id)) ?? 'student';
-    
+  // Synchronous fallback user from auth metadata. Does NOT block on DB role fetch —
+  // the canonical role is fetched in the background by the caller and merged in.
+  const createFallbackUserSync = (authUser: any): User => {
     const fallbackName =
       authUser.user_metadata?.full_name ||
       authUser.user_metadata?.name ||
       authUser.email?.split('@')[0] ||
       'User';
 
+    const metadataRole = authUser.user_metadata?.role || 'student';
+
     return {
       id: authUser.id,
       email: authUser.email || '',
       full_name: fallbackName,
-      role: role,
+      role: metadataRole,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      user_metadata: authUser.user_metadata || {}
+      user_metadata: authUser.user_metadata || {},
+      app_metadata: authUser.app_metadata || {},
     } as any;
   };
 
@@ -214,7 +216,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                   try {
                     await autoHealUserRows(currentSession.user);
                     const dbUser = await fetchUserFromDatabase(currentSession.user);
-                    const finalUser = dbUser || await createFallbackUser(currentSession.user);
+                    const finalUser = dbUser || createFallbackUserSync(currentSession.user);
                     if (mounted) {
                       setUser(finalUser);
                       setLoading(false);
@@ -222,7 +224,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                   } catch (err) {
                     console.error('Error in SIGNED_IN state update:', err);
                     if (mounted) {
-                      const fallback = await createFallbackUser(currentSession.user);
+                      const fallback = createFallbackUserSync(currentSession.user);
                       setUser(fallback);
                       setLoading(false);
                     }
@@ -238,13 +240,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                   try {
                     const dbUser = await fetchUserFromDatabase(currentSession.user);
                     if (mounted) {
-                      const finalUser = dbUser || await createFallbackUser(currentSession.user);
+                      const finalUser = dbUser || createFallbackUserSync(currentSession.user);
                       setUser(finalUser);
                     }
                   } catch (error) {
                     console.error('Error in deferred user fetch:', error);
                     if (mounted) {
-                      const fallbackUser = await createFallbackUser(currentSession.user);
+                      const fallbackUser = createFallbackUserSync(currentSession.user);
                       setUser(fallbackUser);
                     }
                   }
@@ -272,7 +274,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (initialSession?.user) {
             // Show fallback user (auth metadata) immediately so we don't block
             // render on a slow DB fetch. Real DB user swaps in below.
-            const fallback = await createFallbackUser(initialSession.user);
+            const fallback = createFallbackUserSync(initialSession.user);
             if (mounted) setUser(fallback);
             initialFetchDoneRef.current = true;
             setLoading(false);
@@ -320,7 +322,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         try {
           const { data: { session: currentSession } } = await supabase.auth.getSession();
           if (currentSession?.user && mounted) {
-            const fallback = await createFallbackUser(currentSession.user);
+            const fallback = createFallbackUserSync(currentSession.user);
             setUser(fallback);
           }
         } catch (e) {
@@ -447,98 +449,47 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } else if (data.user) {
         // Reset rate limiter on successful login
         rateLimiter.reset(clientKey);
-        
-        // Check if user profile exists in users table, if not create it
-        // This handles cases where the database trigger failed during signup
-        const { data: existingUser } = await supabase
-          .from('users')
-          .select('id')
-          .eq('id', data.user.id)
-          .maybeSingle();
-        
-        if (!existingUser) {
-          const fullName = data.user.user_metadata?.full_name || sanitizedEmail.split('@')[0] || 'User';
-          const role = data.user.user_metadata?.role || 'student';
-          
-          // Create missing user profile (upsert to handle race conditions)
-          const { error: upsertErr } = await supabase.from('users').upsert({
-            id: data.user.id,
-            email: sanitizedEmail,
-            full_name: fullName,
-            role: role,
-            market_region: detectMarketRegion(),
-          } as any, { onConflict: 'id' });
-          if (upsertErr) console.error('Auto-heal users upsert failed:', upsertErr);
-          
-          // Create missing user_roles entry via RPC to bypass RLS
-          try {
-            await supabase.rpc('ensure_user_role', {
-              p_user_id: data.user.id,
-              p_role: role
-            });
-          } catch (rpcErr) {
-            console.error('Auto-heal user_roles RPC failed:', rpcErr);
-          }
-          
-        } else {
-          // Auto-heal: check if user_roles rows exist (use .select, NOT .maybeSingle to avoid PGRST116)
-          const { data: existingRoles } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', data.user.id);
 
-          if (!existingRoles || existingRoles.length === 0) {
-            const { data: usersRow } = await supabase
-              .from('users')
-              .select('role')
-              .eq('id', data.user.id)
-              .maybeSingle();
-
-            const healedRole = usersRow?.role
-              || data.user.user_metadata?.role
-              || 'student';
-
-            // Use security definer RPC to bypass RLS
-            await supabase.rpc('ensure_user_role', {
-              p_user_id: data.user.id,
-              p_role: healedRole
-            });
-
-            console.warn('🔧 Auto-healed missing user_roles:', data.user.email, '→', healedRole);
-          }
+        // Resolve role with a SHORT timeout so a slow DB never blocks the redirect.
+        // Falls back to user_metadata.role then 'student'.
+        const metadataRole = (data.user as any).user_metadata?.role;
+        let resolvedRole: string | null = null;
+        try {
+          resolvedRole = await Promise.race([
+            fetchUserRoleFromDatabase(data.user.id),
+            new Promise<null>((resolve) => setTimeout(() => resolve(null), 1200)),
+          ]);
+        } catch {
+          resolvedRole = null;
         }
+        const finalRole = resolvedRole || metadataRole || 'student';
 
-        // Deterministic post-login redirect fallback (prevents listener race conditions)
-        const resolvedRole = (await fetchUserRoleFromDatabase(data.user.id))
-          || data.user.user_metadata?.role
-          || 'student';
+        // Fire-and-forget auto-heal so missing rows don't block the redirect.
+        autoHealUserRows(data.user).catch((e) =>
+          console.warn('Background auto-heal failed (non-fatal):', e)
+        );
 
         let redirectPath = '/dashboard';
-        if (resolvedRole === 'admin') {
+        if (finalRole === 'admin') {
           redirectPath = '/super-admin';
-        } else if (resolvedRole === 'content_creator') {
+        } else if (finalRole === 'content_creator') {
           redirectPath = '/content-creator';
-        } else if (resolvedRole === 'teacher') {
+        } else if (finalRole === 'teacher') {
           redirectPath = '/teacher';
-        } else if (resolvedRole === 'parent') {
+        } else if (finalRole === 'parent') {
           redirectPath = '/parent';
-        } else if (resolvedRole === 'student') {
-          // Hardcoded hub-based redirect: fetch student_level and go directly
-          const { data: profile } = await supabase
-            .from('student_profiles')
-            .select('student_level')
-            .eq('user_id', data.user.id)
-            .maybeSingle();
-          const hubType = profile?.student_level
-            || data.user.user_metadata?.hub_type
-            || 'playground';
+        } else if (finalRole === 'student') {
+          // Hub from auth metadata only — avoid an extra DB round-trip here.
+          const hubType =
+            (data.user as any).user_metadata?.hub_type ||
+            'playground';
           redirectPath = hubType === 'academy' ? '/academy'
             : hubType === 'professional' ? '/hub'
             : '/playground';
         }
 
         setSession(data.session ?? null);
-        setUser({ ...(data.user as any), role: resolvedRole } as any);
+        setUser({ ...(data.user as any), role: finalRole } as any);
         sessionStorage.setItem('auth_redirect_done', 'true');
         signInRedirectRef.current = true;
         window.location.href = redirectPath;

@@ -1,74 +1,67 @@
-## Plan: Vocabulary Image Brain + Story Director Auto-Pilot
+## Plan: Fix the "Sign in button keeps loading" loop
 
-### Part 1 — Vocabulary Image "Brain" (Modesty + 60% Branding)
+### Root cause (diagnosis)
 
-Target file: `supabase/functions/generate-slide-image/index.ts` and `supabase/functions/_shared/hubArtStyles.ts`.
+The Supabase `auth/token` call is succeeding in **~85 ms** (auth logs at 15:35:52 and 15:38:17 both return 200). Both affected accounts have valid rows in `public.user_roles`:
 
-**1.1 Extend the request contract** (backwards compatible):
-- Accept new optional fields on the JSON body:
-  - `slideKind`: `"vocabulary" | "story" | "scene" | ...`
-  - `vocabulary_word`: string
-  - `example_sentence`: string
-- All existing callers keep working (only `prompt` + `hub` are required).
+- `f.zahra.djaanine@gmail.com` → `{student, content_creator}` (priority resolves to `content_creator`)
+- `ygn.livra@gmail.com` → `{student}`
 
-**1.2 New helper `buildVocabularyPrompt(...)`** in a new file `supabase/functions/_shared/vocabularyImageBrain.ts`:
-- Inputs: `vocabulary_word`, `example_sentence`, `hub`.
-- Returns a fully expanded scene description that bakes in:
-  - **Modesty Protocol** (universal, hub-agnostic): modest/professional clothing; no tight, revealing, suggestive, or culturally insensitive outfits; dignified poses; no lying-down/intimate framing; physical contact only if familial or professional assistance.
-  - **Hub-specific clothing rule**: school uniforms (Academy), casual modest (Playground), business casual (Success).
-  - **Age-appropriate art style**: Playground = cute cartoon/vector, innocent + fun; Academy = modern comic/webtoon, relatable teen scenarios; Success = professional editorial photography, business/global.
-  - **60% Branding Rule**: 50–60% of total color area dominated by the hub's primary color family (Playground orange `#FE6A2F`, Academy purple `#6B21A8`, Success emerald `#059669`) applied to large surfaces — backgrounds, large props, character clothing — not just accents. Remaining 40–50% neutral tones.
-  - The **vocabulary word as the visual focal point**, framed by a literal scene drawn from `example_sentence`.
+So credentials, network, and RLS are all fine. The freeze is **client-side**, in three places that compound:
 
-**1.3 Wire into `index.ts`**:
-- If `slideKind === "vocabulary"` and `vocabulary_word` is present → run `buildVocabularyPrompt` first, then still pass through `applyHubStyle` (so the existing house-style suffix is preserved).
-- Otherwise: behavior unchanged (no regression for other slide types).
+**1. `AuthContext.signIn()` (src/contexts/AuthContext.tsx, lines 432–544) is too heavy and runs everything sequentially before navigating:**
+- `signInWithPassword` →
+- `users.select` → conditional `users.upsert` + `ensure_user_role` RPC → OR `user_roles.select` + (sometimes) `users.select` + `ensure_user_role` RPC →
+- `fetchUserRoleFromDatabase` AGAIN →
+- (for students) `student_profiles.select` →
+- finally `window.location.href = …`
 
-**1.4 Client mirror in `src/components/creator-studio/steps/slide-studio/mediaGeneration.ts`**:
-- Add optional `vocabulary_word`, `example_sentence`, `slideKind` to `generateSlideImage(...)` signature so vocabulary slide panels can pass them. Do not change existing call sites (params optional).
+That's 4–6 sequential awaited round-trips while the form button shows "Signing in…". Any one of them stalling stalls the whole submit.
 
-No DB changes. No new secrets.
+**2. `createFallbackUser()` (lines 147–165) blocks `setLoading(false)` on a DB role fetch.** After `window.location.href` reloads the page, `initializeAuth` `await`s `createFallbackUser`, which itself `await`s `fetchUserRoleFromDatabase`. If that query is briefly slow or transiently errors, `createFallbackUser` falls back to `role = 'student'`. For `f.zahra` (real role `content_creator`) that means:
+- `/content-creator` mounts → `ImprovedProtectedRoute` sees `userRole === 'student'`, required `'content_creator'` →
+- `<Navigate to="/login?reason=access_denied" />` → user lands back on `/login` → "Access Denied" toast → user signs in again → same loop.
+
+This explains the user reporting *"keeps loading, keeps signing in"* (the same person hitting the button twice 2 minutes apart in the auth log).
+
+**3. `Login.tsx` (lines 56–88) renders the loader whenever `loading || user`** and waits up to **8 s** for `user.role` to populate. While AuthContext is mid-fetch, the form is replaced by the spinner. Combined with #1 and #2, the user never gets stable navigation to their dashboard.
 
 ---
 
-### Part 2 — Story Director Auto-Pilot (StoryCreator.tsx)
+### Fix
 
-Note: the codebase has `src/components/creator-studio/steps/StoryCreator.tsx` (no `MiniStoryGenerator.tsx`). The Auto-Pilot will be added there — it controls the same fields the brief calls out (title/character/theme/layout/prompt-equivalents).
+**A. Slim down `AuthContext.signIn` so it only does what's required to redirect:**
+- Keep `signInWithPassword`.
+- Replace the whole users/user_roles/student_profiles cascade with a SINGLE call: `fetchUserRoleFromDatabase(user.id)` (which already has its own `users.role` fallback).
+- Resolve `redirectPath` from that role + `user_metadata.hub_type` (no `student_profiles` round-trip — that fetch happens later inside the dashboard).
+- Move the auto-heal (`users` upsert + `ensure_user_role` RPC) into a **fire-and-forget** background call so it can't block the redirect.
+- Then `window.location.href = redirectPath`.
 
-**2.1 New edge function** `supabase/functions/ai-story-director/index.ts`:
-- Auth via the standard Lovable AI Gateway (`LOVABLE_API_KEY`, model `google/gemini-3-flash-preview`).
-- Body: `{ hub, vocabulary: string[], characters: {id,name,visual_blueprint?}[], cefrLevel, genre }`.
-- System prompt = the "Story Director" instructions from the user's brief.
-- Forces strict JSON via AI SDK `Output.object` with Zod schema:
-  - `title` (string, ≤ 60 chars)
-  - `character_name` (must match one from input list)
-  - `theme` ∈ `['Adventure','School Day','Mystery','Business Trip','Negotiation']`
-  - `layout` ∈ `['Classic','Comic','Case Study']` (Case Study forced if hub=success, Comic if academy/playground — server-side enforcement after model output)
-  - `prompt` (2-sentence string referencing character + theme + vocab)
+Result: form spinner clears in ~150 ms (one auth call + one role lookup), not 1–5 s.
 
-**2.2 UI changes in `StoryCreator.tsx`**:
-- Add a prominent button at the top of the form: **✨ Auto-Configure Entire Story** (gradient, hub-themed, full-width on mobile).
-- Loading state with spinner + disabled while the request is in flight.
-- On click:
-  1. Gather context: `storyHub`, merged vocab list (linked lesson + typed), `characters` (Cast Vault for hub).
-  2. Invoke `ai-story-director` edge function.
-  3. Hydrate state: `setCustomPrompt`, find character by `character_name` → `setStarringId`, map `theme` → `setGenre`, map `layout` → `setVisualStyle` (Classic→`classic`, Comic→`webtoon` or `comic_western` based on hub, Case Study→`classic` for Success).
-  4. Surface a "Story title" field if missing; otherwise store title in a new `storyTitle` state and pass it through to the existing generate flow.
-  5. `setPromptTouched(true)` so the auto-rebuild effect doesn't overwrite the AI-chosen prompt.
-- Toast: "Story auto-configured ✓ Review and click Generate."
+**B. Make `createFallbackUser` non-blocking on role:**
+- Synchronously build the fallback user from `user_metadata.role` (the value that was set at signup) so `setLoading(false)` fires immediately.
+- Background-fetch the canonical role from `user_roles` via `fetchUserRoleFromDatabase` and `setUser(prev => ({...prev, role: dbRole}))` when it returns.
+- Remove the `await` chain inside `initializeAuth` for the fallback path.
 
-**2.3 No DB changes.** Reuses existing characters list, vocab, and CEFR.
+This eliminates the "transient null → defaults to student → access_denied bounce" path.
 
----
+**C. Loosen `Login.tsx` redirect gate:**
+- If `user` is present, redirect immediately based on `(user as any).role || user_metadata.role || 'student'` instead of waiting for role to "verify" with an 8 s spinner.
+- Keep the `loading` spinner (but only while `loading === true`, not when `user` exists with no role).
 
-### Technical notes
+**D. (Defensive) `ImprovedProtectedRoute`:**
+- Already has the metadata-fallback logic (lines 33–48, 113–124). Keep as-is — once B is in place, role will be present in time and this branch won't trigger.
 
-- Edge function CORS via `corsHeaders` already established in the repo pattern.
-- `LOVABLE_API_KEY` is auto-managed; no `add_secret` call needed.
-- Both features are additive — no existing call sites change behavior unless they opt in by passing the new fields/clicking the new button.
-- Files touched:
-  - `supabase/functions/_shared/vocabularyImageBrain.ts` (new)
-  - `supabase/functions/generate-slide-image/index.ts` (edit)
-  - `supabase/functions/ai-story-director/index.ts` (new)
-  - `src/components/creator-studio/steps/slide-studio/mediaGeneration.ts` (edit, optional params)
-  - `src/components/creator-studio/steps/StoryCreator.tsx` (edit — Auto-Configure button + handler)
+### Files to edit
+
+- `src/contexts/AuthContext.tsx` — rewrite `signIn`'s post-success block; rewrite `createFallbackUser` + the `initializeAuth` fallback path so they don't await role.
+- `src/pages/Login.tsx` — redirect on `user` presence using metadata role fallback; drop the 8 s "Verifying role…" gate.
+
+No DB migrations, no RLS changes, no edge function changes. The DB is already correct — this is purely repairing the client boot/sign-in flow.
+
+### Verification after the fix
+
+1. Sign in as `ygn.livra@gmail.com` (student) → expect immediate spinner clear → land on `/playground` (or appropriate hub) without bouncing back to `/login`.
+2. Sign in as `f.zahra.djaanine@gmail.com` (content_creator + student) → expect to land on `/content-creator`, not `/login?reason=access_denied`.
+3. Confirm the form button never sits in "Signing in…" / "Verifying role…" longer than ~1 s on a healthy connection.
