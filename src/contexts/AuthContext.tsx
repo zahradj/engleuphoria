@@ -291,7 +291,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             // Background: fetch the real DB user and replace silently.
             fetchUserFromDatabase(initialSession.user)
               .then((dbUser) => {
-                if (mounted && dbUser) setUser(dbUser);
+                if (mounted && dbUser) {
+                  setUser(dbUser);
+                  // Canonical role confirmed — drop the sign-in cache.
+                  sessionStorage.removeItem('auth_resolved_role');
+                }
               })
               .catch((err) => console.error('Background user fetch failed:', err));
           } else {
