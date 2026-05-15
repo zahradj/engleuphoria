@@ -205,6 +205,45 @@ export const StoryCreator: React.FC = () => {
 
   const clearLinkedLesson = () => setLinkedLessonId(null);
 
+  // Build an auto-prompt from current lesson context.
+  const buildAutoPrompt = (): string => {
+    const hubLabel = HUB_LABEL[linkedLesson?.target_system ?? ''] ?? storyHub;
+    const topic = linkedLesson?.ai_metadata?.topic ?? linkedLesson?.title ?? genre;
+    const vocab = (() => {
+      const linkedVocab = linkedLesson ? vocabListToArray(linkedLesson.vocabulary_list) : [];
+      const typed = parseVocab(vocabInput);
+      const seen = new Set<string>();
+      const merged: string[] = [];
+      for (const w of [...linkedVocab, ...typed]) {
+        const k = w.toLowerCase();
+        if (!seen.has(k)) { seen.add(k); merged.push(w); }
+      }
+      return merged;
+    })();
+    const grammar = linkedLesson?.grammar_pattern;
+    const pages = visualStyle === 'webtoon' ? '1 long webtoon scroll' : '4-5 page';
+    return [
+      `Write a ${pages} story for the ${hubLabel} Hub about "${topic}" at CEFR ${cefrLevel}.`,
+      vocab.length ? `You MUST include the following vocabulary words: ${vocab.join(', ')}.` : '',
+      grammar ? `Demonstrate this grammar pattern naturally: ${grammar}.` : '',
+      `Genre: ${genre}.`,
+    ].filter(Boolean).join(' ');
+  };
+
+  // Auto-populate prompt when context changes (until the teacher edits manually).
+  useEffect(() => {
+    if (promptTouched) return;
+    setCustomPrompt(buildAutoPrompt());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkedLessonId, vocabInput, cefrLevel, genre, visualStyle, promptTouched]);
+
+  const handleAutoFillPrompt = () => {
+    setCustomPrompt(buildAutoPrompt());
+    setPromptTouched(false);
+    toast.success('Prompt auto-filled from lesson context ✓');
+  };
+
+
   const grouped = useMemo(() => {
     const groups: Record<string, CurriculumLessonOption[]> = { kids: [], teen: [], adult: [] };
     for (const l of lessons) {
