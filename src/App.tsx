@@ -202,7 +202,9 @@ const App = () => {
                       {/* Teacher Dashboard - Protected */}
                       <Route path="/teacher/*" element={
                         <ImprovedProtectedRoute requiredRole="teacher">
-                          <Suspense fallback={<LoadingFallback />}><TeacherDashboard /></Suspense>
+                          <AppErrorBoundary>
+                            <Suspense fallback={<LoadingFallback />}><TeacherDashboard /></Suspense>
+                          </AppErrorBoundary>
                         </ImprovedProtectedRoute>
                       } />
                       
@@ -267,9 +269,11 @@ const App = () => {
                       {/* Content Creator — Unified Studio Shell (full-screen workspace) */}
                       <Route path="/content-creator/*" element={
                         <ImprovedProtectedRoute requiredRole="content_creator">
-                          <Suspense fallback={<LoadingFallback />}>
-                            <CreatorStudioShell />
-                          </Suspense>
+                          <AppErrorBoundary>
+                            <Suspense fallback={<LoadingFallback />}>
+                              <CreatorStudioShell />
+                            </Suspense>
+                          </AppErrorBoundary>
                         </ImprovedProtectedRoute>
                       } />
 

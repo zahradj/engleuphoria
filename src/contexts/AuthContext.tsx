@@ -32,23 +32,61 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signInRedirectRef = useRef(false); // Track if SIGNED_IN redirect is in progress
   const initialFetchDoneRef = useRef(false); // Track when initial auth fetch completes
 
+  const AUTH_FLOW_PREFIX = '[AUTH FLOW]';
+  const ROLE_PRIORITY = ['admin', 'content_creator', 'teacher', 'parent', 'student'];
+
+  const withTimeout = async <T,>(promise: PromiseLike<T>, ms: number, label: string): Promise<T> => {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    try {
+      return await Promise.race([
+        Promise.resolve(promise),
+        new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+        }),
+      ]);
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
+    }
+  };
+
   // SECURITY: Roles MUST come from user_roles table only.
   // When a user has multiple roles, prioritize: admin > content_creator > teacher > student
   const fetchUserRoleFromDatabase = async (userId: string): Promise<string | null> => {
     try {
+      console.log(`${AUTH_FLOW_PREFIX} STEP 2: Fetching roles for user`, userId);
       // Use .select() (NOT .maybeSingle()) to handle users with multiple roles
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId);
+      const { data, error } = await withTimeout(
+        supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userId),
+        2500,
+        'user_roles role fetch'
+      );
+
+      console.log(`${AUTH_FLOW_PREFIX} STEP 3: Role query returned`, {
+        count: Array.isArray(data) ? data.length : null,
+        data,
+        error,
+      });
+
+      if (data === null && error === null) {
+        console.warn(`${AUTH_FLOW_PREFIX} RLS CHECK: user_roles returned data:null and error:null for`, userId);
+        return null;
+      }
+
+      if (error) {
+        console.warn(`${AUTH_FLOW_PREFIX} RLS CHECK: user_roles read failed`, error);
+        return null;
+      }
 
       if (!error && data && data.length > 0) {
         // Priority order: admin > content_creator > teacher > parent > student
-        const priorityOrder = ['admin', 'content_creator', 'teacher', 'parent', 'student'];
         const userRoles = data.map((r: any) => r.role);
 
-        for (const role of priorityOrder) {
+        for (const role of ROLE_PRIORITY) {
           if (userRoles.includes(role)) {
+            console.log(`${AUTH_FLOW_PREFIX} STEP 3B: Resolved role from user_roles`, role);
             return role;
           }
         }
@@ -57,14 +95,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       // Fallback: check users.role column for legacy users missing user_roles rows
-      const { data: userData } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', userId)
-        .maybeSingle();
+      const { data: userData, error: userError } = await withTimeout(
+        supabase
+          .from('users')
+          .select('role')
+          .eq('id', userId)
+          .maybeSingle(),
+        2500,
+        'users legacy role fetch'
+      );
+
+      if (userData === null && userError === null) {
+        console.warn(`${AUTH_FLOW_PREFIX} RLS CHECK: users legacy role returned data:null and error:null for`, userId);
+      } else if (userError) {
+        console.warn(`${AUTH_FLOW_PREFIX} RLS CHECK: users legacy role read failed`, userError);
+      }
+
+      if (userData?.role) {
+        console.log(`${AUTH_FLOW_PREFIX} STEP 3C: Resolved legacy role from users.role`, userData.role);
+      }
 
       return userData?.role || null;
-    } catch {
+    } catch (error) {
+      console.warn(`${AUTH_FLOW_PREFIX} STEP 3D: Role resolution failed/timeout`, error);
       return null;
     }
   };
@@ -73,13 +126,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const fetchUserFromDatabase = async (authUser: any): Promise<User | null> => {
     try {
       const userId = authUser.id;
+      console.log(`${AUTH_FLOW_PREFIX} STEP 4: Fetching profile for user`, userId);
       const [profileRes, role] = await Promise.all([
-        supabase.from('users').select('*').eq('id', userId).single(),
+        withTimeout(
+          supabase.from('users').select('*').eq('id', userId).maybeSingle(),
+          2500,
+          'users profile fetch'
+        ),
         fetchUserRoleFromDatabase(userId),
       ]);
 
+      console.log(`${AUTH_FLOW_PREFIX} STEP 5: Profile data received`, {
+        data: profileRes.data,
+        error: profileRes.error,
+        role,
+      });
+
+      if (profileRes.data === null && profileRes.error === null) {
+        console.warn(`${AUTH_FLOW_PREFIX} RLS CHECK: users profile returned data:null and error:null for`, userId);
+        return null;
+      }
+
       if (profileRes.error) {
-        console.warn('User not found in database, will use auth metadata');
+        console.warn(`${AUTH_FLOW_PREFIX} RLS CHECK: users profile read failed, will use auth metadata`, profileRes.error);
         return null;
       }
 
@@ -180,6 +249,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Only for compatibility - no demo mode in production
   };
 
+  const hydrateUserInBackground = (authUser: any, label: string) => {
+    console.log(`${AUTH_FLOW_PREFIX} HYDRATE: starting background hydration`, { label, userId: authUser?.id });
+    setTimeout(() => {
+      Promise.resolve()
+        .then(() => fetchUserFromDatabase(authUser))
+        .then((dbUser) => {
+          if (dbUser) {
+            console.log(`${AUTH_FLOW_PREFIX} HYDRATE: canonical user loaded`, { label, role: (dbUser as any).role });
+            setUser(dbUser);
+            sessionStorage.removeItem('auth_resolved_role');
+          } else {
+            console.warn(`${AUTH_FLOW_PREFIX} HYDRATE: no canonical user; keeping fallback`, { label });
+          }
+        })
+        .catch((err) => console.error(`${AUTH_FLOW_PREFIX} HYDRATE: background user fetch failed`, err));
+    }, 0);
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -203,7 +290,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           (event, currentSession) => {
             if (!mounted) return;
             
-            console.info('Auth state changed:', event, !!currentSession);
+            console.info(`${AUTH_FLOW_PREFIX} EVENT: Auth state changed`, { event, hasSession: !!currentSession });
             
             // INITIAL_SESSION is handled by getSession() below — skip the listener
             // to prevent double state updates that cause flickering
@@ -214,52 +301,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setSession(currentSession);
             
             if (currentSession?.user) {
-              if (event === 'SIGNED_IN') {
-                // signIn() already handles redirect — skip if already done
-                if (sessionStorage.getItem('auth_redirect_done') || signInRedirectRef.current) {
-                  return;
-                }
-                // SIGNED_IN without signIn() (e.g. email verification, magic link)
-                (async () => {
-                  if (!mounted) return;
-                  try {
-                    await autoHealUserRows(currentSession.user);
-                    const dbUser = await fetchUserFromDatabase(currentSession.user);
-                    const finalUser = dbUser || createFallbackUserSync(currentSession.user);
-                    if (mounted) {
-                      setUser(finalUser);
-                      setLoading(false);
-                    }
-                  } catch (err) {
-                    console.error('Error in SIGNED_IN state update:', err);
-                    if (mounted) {
-                      const fallback = createFallbackUserSync(currentSession.user);
-                      setUser(fallback);
-                      setLoading(false);
-                    }
-                  }
-                })();
-              } else if (event === 'TOKEN_REFRESHED') {
-                // Silent refresh — don't re-fetch user, just update session
-                // This prevents unnecessary flickering on token refresh
-              } else {
-                // Other events — update user in background
-                setTimeout(async () => {
-                  if (!mounted) return;
-                  try {
-                    const dbUser = await fetchUserFromDatabase(currentSession.user);
-                    if (mounted) {
-                      const finalUser = dbUser || createFallbackUserSync(currentSession.user);
-                      setUser(finalUser);
-                    }
-                  } catch (error) {
-                    console.error('Error in deferred user fetch:', error);
-                    if (mounted) {
-                      const fallbackUser = createFallbackUserSync(currentSession.user);
-                      setUser(fallbackUser);
-                    }
-                  }
-                }, 0);
+              const fallbackUser = createFallbackUserSync(currentSession.user);
+              setUser(fallbackUser);
+              setLoading(false);
+
+              if (event === 'SIGNED_IN' && (sessionStorage.getItem('auth_redirect_done') || signInRedirectRef.current)) {
+                console.log(`${AUTH_FLOW_PREFIX} EVENT: SIGNED_IN handled by signIn redirect; skipping listener redirect work`);
+                return;
+              }
+
+              if (event !== 'TOKEN_REFRESHED') {
+                hydrateUserInBackground(currentSession.user, `auth-event:${event}`);
               }
             } else {
               setUser(null);
@@ -276,6 +328,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500)),
         ]);
         const initialSession = await sessionRace;
+        console.log(`${AUTH_FLOW_PREFIX} INIT: getSession race finished`, { hasSession: !!initialSession });
 
         if (mounted) {
           setSession(initialSession);
@@ -289,15 +342,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setLoading(false);
 
             // Background: fetch the real DB user and replace silently.
-            fetchUserFromDatabase(initialSession.user)
-              .then((dbUser) => {
-                if (mounted && dbUser) {
-                  setUser(dbUser);
-                  // Canonical role confirmed — drop the sign-in cache.
-                  sessionStorage.removeItem('auth_resolved_role');
-                }
-              })
-              .catch((err) => console.error('Background user fetch failed:', err));
+            hydrateUserInBackground(initialSession.user, 'initial-session');
           } else {
             setUser(null);
             initialFetchDoneRef.current = true;
@@ -421,6 +466,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
+    console.log(`${AUTH_FLOW_PREFIX} STEP 1: signIn called`, { email });
     if (!isConfigured) {
       return { data: null, error: new Error('Supabase not configured. Please check your environment setup.') };
     }
@@ -449,6 +495,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email: sanitizedEmail,
         password,
       });
+
+      console.log(`${AUTH_FLOW_PREFIX} STEP 1B: Supabase auth response`, {
+        hasUser: !!data.user,
+        hasSession: !!data.session,
+        error,
+      });
       
       if (error) {
         const status = (error as any)?.status ?? 0;
@@ -461,6 +513,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         toast.error(friendly);
         return { data: null, error: { ...(error as any), message: friendly } };
       } else if (data.user) {
+        console.log(`${AUTH_FLOW_PREFIX} STEP 1C: Supabase auth success`, {
+          userId: data.user.id,
+          session: !!data.session,
+        });
         // Reset rate limiter on successful login
         rateLimiter.reset(clientKey);
 
@@ -473,10 +529,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             fetchUserRoleFromDatabase(data.user.id),
             new Promise<null>((resolve) => setTimeout(() => resolve(null), 1200)),
           ]);
-        } catch {
+        } catch (roleError) {
+          console.warn(`${AUTH_FLOW_PREFIX} STEP 3E: signIn role race failed`, roleError);
           resolvedRole = null;
         }
         const finalRole = resolvedRole || metadataRole || 'student';
+        console.log(`${AUTH_FLOW_PREFIX} STEP 4: Final role resolved`, {
+          resolvedRole,
+          metadataRole,
+          finalRole,
+        });
 
         // Fire-and-forget auto-heal so missing rows don't block the redirect.
         autoHealUserRows(data.user).catch((e) =>
@@ -507,6 +569,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         sessionStorage.setItem('auth_redirect_done', 'true');
         sessionStorage.setItem('auth_resolved_role', finalRole);
         signInRedirectRef.current = true;
+        console.log(`${AUTH_FLOW_PREFIX} STEP 5: Redirecting to`, redirectPath);
         window.location.href = redirectPath;
       }
       
