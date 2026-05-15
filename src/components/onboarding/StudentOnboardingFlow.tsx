@@ -179,7 +179,7 @@ const StudentOnboardingFlow: React.FC = () => {
         )}
         {currentStep === 5 && (
           <CompanionSelector
-            hub={studentLevel === 'kids' ? 'playground' : 'academy'}
+            hub={studentLevel === 'playground' ? 'playground' : 'academy'}
             onComplete={(_c: Companion) => handleNext()}
             onBack={handleBack}
           />
