@@ -125,6 +125,8 @@ export const StoryCreator: React.FC = () => {
   const [starringId, setStarringId] = useState<string>('');
   const [customPrompt, setCustomPrompt] = useState<string>('');
   const [promptTouched, setPromptTouched] = useState(false);
+  const [storyTitle, setStoryTitle] = useState<string>('');
+  const [directing, setDirecting] = useState(false);
 
   // ── Linked lesson picker ──
   const [lessons, setLessons] = useState<CurriculumLessonOption[]>([]);
