@@ -192,9 +192,6 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
       className="flex-1 flex flex-col bg-muted/20 relative overflow-hidden"
       onClickCapture={handleStageClickCapture}
     >
-      <TargetWordsOverlay sessionContext={sessionContext} isTeacher={false} />
-      <SmartSummaryTip sessionContext={sessionContext} />
-
       <MainStage
         mode={stageMode}
         slides={slides}

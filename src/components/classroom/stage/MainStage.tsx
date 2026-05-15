@@ -111,19 +111,6 @@ export const MainStage: React.FC<MainStageProps> = ({
           iframeUnlocked={iframeUnlocked}
         />
 
-        {/* Student-only "Teacher is presenting" pill */}
-        {role === 'student' && (
-          <div className="absolute top-3 left-3 z-[60] flex items-center gap-2 pointer-events-none">
-            <Badge
-              variant="secondary"
-              className="flex items-center gap-1.5 bg-background/90 backdrop-blur-sm border border-border shadow-sm text-foreground"
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Teacher is presenting
-            </Badge>
-          </div>
-        )}
-
         {/* Slide counter (only in slide mode) */}
         {mode === 'slide' && slides.length > 0 && (
           <div className="absolute bottom-3 right-3 z-[60] bg-foreground/70 text-background px-3 py-1 rounded-full text-xs font-medium pointer-events-none">
