@@ -12,6 +12,8 @@ import { ImprovedProtectedRoute } from "@/components/auth/ImprovedProtectedRoute
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { RoleThemeProvider } from "@/contexts/RoleThemeContext";
 import { DictionaryProvider } from "@/components/lesson-player/DictionaryContext";
+import { MarketRegionProvider } from "@/contexts/MarketRegionContext";
+import { WrongMarketBanner } from "@/components/common/WrongMarketBanner";
 import { AppErrorBoundary } from "@/components/common/AppErrorBoundary";
 import { lazy, Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -96,6 +98,7 @@ const App = () => {
       <ThemeModeProvider>
       <LanguageProvider>
         <AuthProvider>
+          <MarketRegionProvider>
           <LessonProvider>
             <RoleThemeProvider>
               <DictionaryProvider>
@@ -105,6 +108,7 @@ const App = () => {
                 <BrowserRouter>
                   <AppErrorBoundary>
                     <Canonical />
+                    <WrongMarketBanner />
                     <Routes>
                       {/* Public Entry Point - Landing Page */}
                       <Route path="/" element={<HomeGateWrapper />} />
