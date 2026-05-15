@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import DemographicsPhase from './DemographicsPhase';
 import TestPhase from './TestPhase';
 import type { TestResult } from './TestPhase';
+import ComprehensivePhase from './comprehensive/ComprehensivePhase';
 import ProcessingPhase from './ProcessingPhase';
 import { usePlacementTest } from '@/hooks/usePlacementTest';
 import { Logo } from '@/components/Logo';
@@ -88,7 +89,11 @@ const AIPlacementTest = () => {
                 exit={{ opacity: 0, x: -30 }}
                 className="h-full"
               >
-                <TestPhase age={age} onComplete={handleTestComplete} />
+                {age >= 12 ? (
+                  <ComprehensivePhase onComplete={(results) => handleTestComplete(results)} />
+                ) : (
+                  <TestPhase age={age} onComplete={handleTestComplete} />
+                )}
               </motion.div>
             )}
 
