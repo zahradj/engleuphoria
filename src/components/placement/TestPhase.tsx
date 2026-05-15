@@ -290,13 +290,14 @@ const TestPhase = ({ age, hub, onComplete }: TestPhaseProps) => {
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
             className="space-y-3 mt-2"
           >
-            {currentQuestion.image_url && (
+            {currentQuestion.imagePrompt && (
               <div className="w-full flex justify-center mb-4 animate-fade-in">
-                <img
-                  src={currentQuestion.image_url}
+                <VocabularyImage
+                  prompt={currentQuestion.imagePrompt}
                   alt="Question visual"
-                  loading="lazy"
-                  className="max-w-full md:max-w-md max-h-48 object-contain rounded-xl shadow-sm border border-white/20 bg-white/5 backdrop-blur-sm"
+                  style={isPlayground ? 'cartoon' : 'flat2d'}
+                  aspectRatio="1:1"
+                  className="max-w-[200px] max-h-48 object-contain rounded-xl border border-white/20 bg-white/5 backdrop-blur-sm"
                 />
               </div>
             )}
