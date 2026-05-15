@@ -120,7 +120,7 @@ const ComprehensivePhase: React.FC<Props> = ({ onComplete, indexOffset = 0 }) =>
                 onComplete={(r) => {
                   const final: ComprehensiveSubmission = { ...submission, speaking: r };
                   setSubmission(final);
-                  onComplete(toLegacyResults(final), final);
+                  onComplete(toLegacyResults(final, indexOffset), final);
                 }}
               />
             </motion.div>
