@@ -48,6 +48,10 @@ interface ClassroomTopBarProps {
   /** Hot-swap helpers from useLocalMedia. */
   onSwitchCamera?: (deviceId: string) => Promise<boolean>;
   onSwitchMicrophone?: (deviceId: string) => Promise<boolean>;
+  onToggleSlideNav?: () => void;
+  slideNavOpen?: boolean;
+  onForceSync?: () => void;
+  realtimeConnected?: boolean;
 }
 
 export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
