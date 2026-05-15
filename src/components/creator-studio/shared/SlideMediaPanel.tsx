@@ -46,13 +46,18 @@ const VOICES = [
 // (no edge-function changes — pure UI augmentation).
 const IMAGE_STYLES: Record<'playground' | 'academy' | 'success', { id: string; label: string; modifier: string }[]> = {
   playground: [
+    { id: 'cartoon',       label: '🦊 Cartoon (Auto)',       modifier: 'a cute children\'s book illustration, vibrant colors, flat 2D vector, friendly and approachable, simple white background, no text' },
     { id: 'flat-cartoon',  label: '🎨 Flat Cartoon',         modifier: 'flat cartoon illustration, bold outlines, bright cheerful colors, white background, no text, kid-friendly' },
+    { id: 'comic',         label: '💥 Comic',                modifier: 'kid-friendly comic book illustration, bold ink outlines, halftone shading, vivid pop colors, dynamic action pose, speech-bubble-free, white background, no text' },
     { id: 'storybook',     label: '📖 Storybook',            modifier: 'children\'s storybook illustration, soft watercolor, warm lighting, friendly characters, no text' },
     { id: 'sticker',       label: '✨ Sticker',              modifier: 'die-cut sticker style, thick white outline, vivid pop colors, glossy finish, white background, no text' },
     { id: 'claymation',    label: '🧱 Claymation',           modifier: 'cute claymation style, soft plasticine textures, rounded shapes, studio lighting, white background, no text' },
     { id: 'pixel',         label: '👾 Pixel Art',            modifier: '16-bit pixel art, retro game style, bright palette, transparent or white background, no text' },
   ],
   academy: [
+    { id: 'cinematic',     label: '🎬 Cinematic 3D (Auto)',  modifier: 'a high-quality 3D cinematic render, expressive characters, modern lighting, Pixar/Disney quality, highly detailed, no text' },
+    { id: 'educational',   label: '📚 Educational',          modifier: 'modern educational textbook illustration, clean infographic style, clear labeled composition, balanced palette, white background, no text' },
+    { id: 'comic',         label: '💥 Comic / Manga',        modifier: 'modern comic book / manga style, dynamic ink line art, halftone shading, expressive teen characters, cinematic angle, age-appropriate, no text' },
     { id: 'flat-vector',   label: '📐 Flat Vector',          modifier: 'modern flat vector illustration, geometric shapes, clean lines, indigo and purple accent palette, white background, no text' },
     { id: 'editorial',     label: '📰 Editorial',            modifier: 'editorial illustration, magazine quality, sophisticated color palette, subtle texture, white background, no text' },
     { id: 'photo-real',    label: '📷 Photo-real',           modifier: 'photo-realistic, natural lighting, shallow depth of field, lifestyle photography, no text' },
@@ -60,8 +65,10 @@ const IMAGE_STYLES: Record<'playground' | 'academy' | 'success', { id: string; l
     { id: 'sketch',        label: '✏️ Sketch',               modifier: 'hand-drawn sketch, pencil lines, light watercolor wash, notebook style, white background, no text' },
   ],
   success: [
+    { id: 'editorial-photo', label: '📷 Editorial Photo (Auto)', modifier: 'professional editorial photography, corporate or modern lifestyle setting, highly realistic, 8k resolution, minimalist composition, natural lighting, no text' },
+    { id: 'realistic',     label: '🏙 Realistic',            modifier: 'highly realistic photography, modern professional setting, cinematic lighting, 8k, shallow depth of field, no text' },
+    { id: 'minimalist',    label: '⬜ Minimalist',           modifier: 'minimalist composition, lots of negative space, single focal subject, restrained palette, premium modern aesthetic, no text' },
     { id: 'corporate',     label: '💼 Corporate Flat',       modifier: 'professional flat vector illustration, business setting, emerald and teal accent palette, clean modern, white background, no text' },
-    { id: 'photo-real',    label: '📷 Photo-real',           modifier: 'photo-realistic professional photography, office or lifestyle setting, natural lighting, no text' },
     { id: 'minimal-line',  label: '➖ Minimal Line',         modifier: 'minimal line art, single weight stroke, monochrome with one accent color, lots of white space, no text' },
     { id: 'editorial',     label: '📰 Editorial',            modifier: 'editorial business illustration, magazine quality, mature color palette, subtle texture, white background, no text' },
     { id: '3d-soft',       label: '🟢 3D Soft',              modifier: 'soft 3D render, isometric, mature pastel palette, rounded geometry, subtle shadows, white background, no text' },
