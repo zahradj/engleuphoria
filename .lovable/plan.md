@@ -1,32 +1,64 @@
 
-# Both steps are already shipped
+# Three fixes for the classroom + boot loop
 
-The two prompts in this message were implemented in earlier turns. Verified just now:
+## 1. Match student star strip to the teacher's
 
-## Step 1 — Smart Contextual Dictionary ✅
-- `src/components/lesson-player/DictionaryContext.tsx` — selection capture + state
-- `src/components/lesson-player/DictionaryPopover.tsx` — floating Radix popover with image, definition, translation, loading skeleton, click-outside dismiss
-- `src/components/lesson-player/RichText.tsx` — `onMouseUp` listener captures word + surrounding sentence
-- `supabase/functions/fetch-dictionary-definition/index.ts` — cache lookup → Gemini translation → flat-vector icon → write-back
-- `public.dictionary_cache` table exists with `(word, context, language, translation, image_url)`
+`src/components/student/classroom/StudentClassroomHeader.tsx` (lines 105-124) currently:
+- Hides the star row below `lg`
+- Uses tiny `h-4 w-4` stars with a number stamped on top
+- Uses `fill-muted` / no glow
 
-## Step 2 — Partitioned Marketplace (DZ vs INTL) ✅
-- `public.market_region` enum + columns on `users`, `teacher_profiles`, `class_bookings`, `classroom_sessions`, `teacher_applications`
-- `current_market_region()` helper, market-scoped teacher discovery RLS, booking trigger that rejects cross-market bookings
-- `src/lib/marketRegion.ts` — hostname → `'DZ' | 'INTL'`
-- `src/contexts/MarketRegionContext.tsx` — provider mounted in `App.tsx`
-- `src/components/common/WrongMarketBanner.tsx` — wrong-domain warning
-- `src/components/payments/{CheckoutPanel,LocalPaymentPanel,IntlPaymentPanel}.tsx`
-- All 6 user insert/upsert sites stamp `market_region` on signup
-- `FindTeacher` displays DZD or EUR based on viewer's region
+Update it to match `src/components/teacher/classroom/ClassroomTopBar.tsx` (lines 172-188):
+- Always visible (drop the `hidden lg:flex`)
+- `h-7 w-7`
+- Earned stars get `drop-shadow-[0_0_4px_hsl(var(--classroom-reward)/0.6)] scale-110`
+- Remove the `1..10` number overlay
+- Same pill container (`px-4 py-1.5`, gap-1.5)
 
----
+## 2. Remove the three text overlays from the slide stage
 
-## What I'd suggest as next steps (pick any, or skip)
+These show on the student stage and clutter the slide:
 
-1. **Wire real local payment providers** — CIB / Edahabia / BaridiMob behind `LocalPaymentPanel` (currently a UI shell with placeholder buttons).
-2. **Domain setup** — add `engleuphoria.dz` (or `dz.engleuphoria.com`) in Project Settings → Domains so the DZ market actually has its own URL.
-3. **Admin "switch market" tool** — let admins flip an existing user's `market_region` from the admin dashboard (today it's only set on signup).
-4. **Dictionary popover polish** — add target-language picker per student (today it uses `users.preferred_language`), or a "save to Vocabulary Vault" button right inside the popover.
+- **"Teacher is presenting" pill** → delete the whole `role === 'student'` badge block at `src/components/classroom/stage/MainStage.tsx` lines 114-125.
+- **"However / Furthermore / Nevertheless" target words** → remove the `<TargetWordsOverlay …/>` line at `src/components/student/classroom/StudentMainStage.tsx:195` (keep teacher's intact unless you want it gone there too — confirm below).
+- **"Pro Tip: Use transition words…" Smart Summary tip** → remove the `<SmartSummaryTip …/>` line at `src/components/student/classroom/StudentMainStage.tsx:196`.
 
-Tell me which (if any) you want, and I'll do it. Otherwise we're done.
+Files left untouched (`TargetWordsOverlay.tsx`, `SmartSummaryTip.tsx`) — just unmounted on the student side.
+
+## 3. Boot loop / "site keeps loading" — root cause + fix
+
+Symptom in console: every page load logs `Auth initialization timeout (6s) - forcing loading = false with fallback role`. That message only fires when `supabase.auth.getSession()` (or the awaited `fetchUserFromDatabase` after it) has not resolved within 6 s — so the spinner sits on `HomeGate` for the full 6 s every time.
+
+Diagnosis from the code in `src/contexts/AuthContext.tsx`:
+
+- `initializeAuth` registers the auth listener, then does `await supabase.auth.getSession()` and **then** `await fetchUserFromDatabase(...)` before flipping `setLoading(false)`. If either step is slow (cold edge, stalled token refresh, slow `users` row fetch), the whole UI is blocked.
+- `fetchUserFromDatabase` does **two sequential awaits**: a `users` `.single()` then `fetchUserRoleFromDatabase` (which itself does two queries). On a fresh connection this routinely exceeds 6 s.
+- Even when there is no session at all, the listener's `INITIAL_SESSION` is short-circuited but `getSession()` is still awaited — so a single slow auth network call freezes the app.
+- The 6 s safety timeout exists but it just sets a fallback user; the real boot path is still pending in the background, and `HomeGate` already navigated, causing the "keeps loading" feel.
+
+Fix:
+
+1. **Stop blocking render on the DB fetch.** In `initializeAuth`, after `getSession()`:
+   - If no session → `setUser(null); setLoading(false)` immediately.
+   - If session → `setUser(await createFallbackUser(currentSession.user))` (synchronous from auth metadata), `setLoading(false)`, **then** kick off `fetchUserFromDatabase` in the background and `setUser(dbUser)` when it resolves. This is the same pattern already used inside the `SIGNED_IN` listener branch but missing from initial load.
+2. **Race `getSession` against a 1.5 s timeout** so a stalled auth network call can't freeze boot. On timeout, fall through to "no session" and let the listener catch up when it arrives.
+3. **Parallelize role + profile** inside `fetchUserFromDatabase` (`Promise.all`) to roughly halve the worst-case wait when it does run.
+4. **Lower the visible spinner threshold** in `HomeGate` — show `LandingPage` after 800 ms even if auth is still loading and no session has surfaced yet (logged-out users should never see a 6 s spinner).
+5. Keep the existing 6 s safety timeout as the last line of defense, but log it as an error (not warn) so it's noticeable in prod.
+
+After the change: logged-out users hit `LandingPage` in <1 s, logged-in users see their dashboard immediately with a fallback role and the real role swaps in transparently.
+
+## Files
+
+Edit only:
+- `src/components/student/classroom/StudentClassroomHeader.tsx`
+- `src/components/classroom/stage/MainStage.tsx`
+- `src/components/student/classroom/StudentMainStage.tsx`
+- `src/contexts/AuthContext.tsx`
+- `src/components/auth/HomeGate.tsx`
+
+No DB migration, no edge function, no new files.
+
+## Quick question before I build
+
+For the "However / Furthermore / Nevertheless" words and the "Pro Tip" line — do you want them removed **for the teacher too**, or only for the student? I'll default to **student-only** if you don't reply.
