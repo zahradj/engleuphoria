@@ -1,8 +1,12 @@
-import { useState } from 'react';
-import { Sparkles, Loader2, Plus, Trash2, ImageIcon, Volume2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Sparkles, Loader2, Plus, Trash2, ImageIcon, Volume2, Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { generateOnePlaygroundImage } from '@/hooks/usePlaygroundImages';
+import { listCharactersForHub } from '@/services/characterService';
+import type { CustomCharacter, CharacterHub, StarringCharacterPayload } from '@/types/character';
+import { toStarringPayload } from '@/types/character';
+import { resolveStarringCharacter, getDefaultCharacterForHub } from '@/constants/defaultCharacters';
 import type { StorybookSlideShape, StorybookPage, StorybookLayoutMode, StorybookTheme } from './StorybookRenderer';
 
 type Hub = 'playground' | 'academy' | 'success';
@@ -13,9 +17,10 @@ interface Props {
   cefrLevel?: string;
   targetVocab?: string[];
   grammarFocus?: string;
-  /** patches THIS storybook slide */
+  /** Lesson-wide context for the Story Brain auto-fill */
+  lessonTitle?: string;
+  lessonSlides?: any[];
   onPatch: (patch: Partial<StorybookSlideShape>) => void;
-  /** appends auto-generated comprehension quiz slides immediately after this storybook */
   onAppendQuiz?: (quizSlides: any[]) => void;
 }
 
@@ -52,21 +57,122 @@ const HUB_BTN: Record<Hub, string> = {
   success: 'from-emerald-600 to-teal-600',
 };
 
-export function StorybookEditor({ slide, hub, cefrLevel, targetVocab = [], grammarFocus, onPatch, onAppendQuiz }: Props) {
+const HUB_LABEL: Record<Hub, string> = {
+  playground: 'Playground',
+  academy: 'Academy',
+  success: 'Success',
+};
+
+const AUTO_HUB = '__auto__';
+
+/**
+ * Story Brain: scan the lesson's slide deck and pull the lesson title +
+ * every target vocabulary word the teacher has authored so far.
+ */
+function gatherLessonContext(lessonTitle: string | undefined, allSlides: any[] | undefined): {
+  title: string;
+  vocab: string[];
+} {
+  const slides = Array.isArray(allSlides) ? allSlides : [];
+  let inferredTitle = lessonTitle?.trim() || '';
+  if (!inferredTitle) {
+    const intro = slides.find((s) => s?.type === 'intro');
+    if (intro?.title) inferredTitle = String(intro.title).trim();
+  }
+
+  const seen = new Set<string>();
+  const vocab: string[] = [];
+  const push = (raw: unknown) => {
+    if (!raw) return;
+    const w = String(raw).trim();
+    if (!w) return;
+    const k = w.toLowerCase();
+    if (seen.has(k)) return;
+    seen.add(k);
+    vocab.push(w);
+  };
+
+  for (const s of slides) {
+    if (!s || typeof s !== 'object') continue;
+    const t = String(s.type || '').toLowerCase();
+    if (t === 'vocab' || t === 'vocabulary' || t === 'matching' || t === 'flashcards') {
+      const items = (s as any).items || (s as any).cards || (s as any).pairs || [];
+      if (Array.isArray(items)) {
+        for (const it of items) {
+          push((it as any)?.word || (it as any)?.term || (it as any)?.text || (it as any)?.left);
+        }
+      }
+      const targets = (s as any).target_words || (s as any).vocabulary;
+      if (Array.isArray(targets)) targets.forEach(push);
+    }
+  }
+  return { title: inferredTitle, vocab };
+}
+
+export function StorybookEditor({
+  slide, hub, cefrLevel, targetVocab = [], grammarFocus,
+  lessonTitle, lessonSlides,
+  onPatch, onAppendQuiz,
+}: Props) {
   const [busy, setBusy] = useState(false);
   const [imgBusyIdx, setImgBusyIdx] = useState<number | null>(null);
   const [audBusyIdx, setAudBusyIdx] = useState<number | null>(null);
+  const [characters, setCharacters] = useState<CustomCharacter[]>([]);
+  const [starringId, setStarringId] = useState<string>(AUTO_HUB);
+
+  // Cast Vault: load characters scoped to the active hub.
+  useEffect(() => {
+    let active = true;
+    listCharactersForHub(hub as CharacterHub)
+      .then((rows) => { if (active) setCharacters(rows); })
+      .catch(() => { /* silent — vault may simply be empty */ });
+    return () => { active = false; };
+  }, [hub]);
 
   const pages = slide.pages || [];
   const inputCls = `w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 ${HUB_TONE[hub]}`;
   const layoutMode: StorybookLayoutMode = slide.layout_mode || DEFAULT_LAYOUT[hub];
   const themeChoice: StorybookTheme = slide.theme || (hub === 'success' ? 'business_trip' : hub === 'academy' ? 'school' : 'adventure');
 
+  /** The character that will actually be sent to the AI. */
+  const activeCharacter: StarringCharacterPayload = useMemo(() => {
+    if (starringId !== AUTO_HUB) {
+      const picked = characters.find((c) => c.id === starringId);
+      if (picked) return toStarringPayload(picked);
+    }
+    return getDefaultCharacterForHub(hub);
+  }, [starringId, characters, hub]);
+
+  /** ✨ Story Brain — assemble the perfect prompt from lesson context. */
+  const runStoryBrain = () => {
+    const ctx = gatherLessonContext(lessonTitle, lessonSlides);
+    const mergedVocab = Array.from(new Set([...(ctx.vocab || []), ...(targetVocab || [])]
+      .map((v) => String(v).trim()).filter(Boolean)));
+    const lessonName = ctx.title || lessonTitle || 'this lesson topic';
+    const c = activeCharacter;
+
+    const prompt =
+      `Write a 4-panel story about "${lessonName}". ` +
+      `The main character is ${c.name} (${c.personality_traits || 'consistent recurring voice'}). ` +
+      (mergedVocab.length
+        ? `The story MUST naturally include these vocabulary words: ${mergedVocab.join(', ')}. `
+        : '') +
+      (grammarFocus ? `Weave in the grammar focus: ${grammarFocus}. ` : '') +
+      `Make the style suitable for the ${HUB_LABEL[hub]} Hub at CEFR ${cefrLevel || (hub === 'playground' ? 'A1' : hub === 'academy' ? 'B1' : 'B2')}.`;
+
+    onPatch({ topic: prompt, title: slide.title || lessonName });
+    toast.success('Story Brain filled the prompt ✨');
+  };
+
   const generate = async () => {
     const topic = (slide.topic || '').trim();
-    if (!topic) { toast.error('Add a story prompt first'); return; }
+    if (!topic) { toast.error('Add a story prompt first (or click ✨ Auto-Fill with Story Brain)'); return; }
     setBusy(true);
     try {
+      // Always send a hydrated character so the backend image generator can
+      // draw the same protagonist on every panel. Resolves to the Hub's
+      // default character if the teacher chose Auto-Select.
+      const starring = resolveStarringCharacter(activeCharacter, hub);
       const { data, error } = await supabase.functions.invoke('generate-storybook', {
         body: {
           prompt: topic,
@@ -76,6 +182,8 @@ export function StorybookEditor({ slide, hub, cefrLevel, targetVocab = [], gramm
           layout_mode: layoutMode,
           cefr_level: cefrLevel || (hub === 'playground' ? 'A1' : hub === 'academy' ? 'B1' : 'B2'),
           hub_type: hub,
+          starring_character: starring,
+          character_visual_blueprint: starring.visual_blueprint,
         },
       });
       if (error) throw error;
@@ -101,19 +209,16 @@ export function StorybookEditor({ slide, hub, cefrLevel, targetVocab = [], gramm
       }
       toast.success(`Generated ${newPages.length} pages + ${data?.quiz_slides?.length ?? 0} comprehension slides ✨`);
 
-      // background image enrichment
+      // background image enrichment — append the character's visual blueprint
+      // so each panel keeps the same protagonist art.
       newPages.forEach(async (p, i) => {
         try {
           const subj = p.image_prompt || `${topic} - page ${i + 1}`;
-          const url = await generateOnePlaygroundImage(subj);
+          const enriched = `${subj}. The image MUST feature ${starring.name}. Visual: ${starring.visual_blueprint}`;
+          const url = await generateOnePlaygroundImage(enriched);
           if (url) {
-            // re-read latest pages from local closure won't have update; use functional patch via onPatch
             onPatch({
-              pages: (slide.pages || newPages).map((pp, idx) =>
-                idx === i ? { ...pp, image_url: url } : pp,
-              ).concat([]).slice(0, newPages.length).length === newPages.length
-                ? newPages.map((pp, idx) => idx === i ? { ...pp, image_url: url } : pp)
-                : newPages,
+              pages: newPages.map((pp, idx) => idx === i ? { ...pp, image_url: url } : pp),
             });
           }
         } catch { /* silent */ }
@@ -142,7 +247,8 @@ export function StorybookEditor({ slide, hub, cefrLevel, targetVocab = [], gramm
     if (!subj) { toast.error('Add page text first'); return; }
     setImgBusyIdx(i);
     try {
-      const url = await generateOnePlaygroundImage(subj);
+      const enriched = `${subj}. The image MUST feature ${activeCharacter.name}. Visual: ${activeCharacter.visual_blueprint}`;
+      const url = await generateOnePlaygroundImage(enriched);
       if (!url) throw new Error('No image returned');
       updatePage(i, { image_url: url });
     } catch (e: any) {
@@ -175,6 +281,7 @@ export function StorybookEditor({ slide, hub, cefrLevel, targetVocab = [], gramm
     <div className="space-y-4">
       <div className="rounded-xl bg-gradient-to-br from-slate-50 to-white border border-slate-200 p-3">
         <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">📖 Mini Story Generator</div>
+
         <label className="block text-xs font-semibold text-slate-600 mb-1">Story Title</label>
         <input
           className={inputCls + ' mb-2'}
@@ -182,13 +289,47 @@ export function StorybookEditor({ slide, hub, cefrLevel, targetVocab = [], gramm
           placeholder="e.g. Lost at the Airport"
           onChange={(e) => onPatch({ title: e.target.value })}
         />
-        <label className="block text-xs font-semibold text-slate-600 mb-1">Story Prompt / Topic</label>
+
+        {/* Cast Vault — Starring Character */}
+        <label className="block text-xs font-semibold text-slate-600 mb-1">Starring Character</label>
+        <select
+          className={inputCls + ' text-xs mb-1'}
+          value={starringId}
+          onChange={(e) => setStarringId(e.target.value)}
+        >
+          <option value={AUTO_HUB}>
+            ✨ Auto-Select by Hub — {getDefaultCharacterForHub(hub).name}
+          </option>
+          {characters.length > 0 && (
+            <optgroup label="From your Cast Vault">
+              {characters.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </optgroup>
+          )}
+        </select>
+        <p className="text-[10px] text-slate-500 mb-2">
+          Active: <span className="font-semibold text-slate-700">{activeCharacter.name}</span> — used as the protagonist in the story and every panel.
+        </p>
+
+        <div className="flex items-center justify-between mb-1">
+          <label className="block text-xs font-semibold text-slate-600">Story Prompt / Topic</label>
+          <button
+            type="button"
+            onClick={runStoryBrain}
+            className="text-[10px] font-bold inline-flex items-center gap-1 px-2 py-1 rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200"
+            title="Auto-fill the prompt from this lesson's title, vocab, and the chosen character"
+          >
+            <Wand2 className="w-3 h-3" /> ✨ Auto-Fill with Story Brain
+          </button>
+        </div>
         <textarea
-          className={inputCls + ' h-20 resize-none'}
+          className={inputCls + ' h-24 resize-none'}
           value={slide.topic || ''}
-          placeholder="Describe what the story should be about, e.g. 'A child learning to share toys at school' (3-5 pages)"
+          placeholder="Click ✨ Auto-Fill, or describe what the story should be about (3-5 pages)"
           onChange={(e) => onPatch({ topic: e.target.value })}
         />
+
         <div className="grid grid-cols-2 gap-2 mt-2">
           <div>
             <label className="block text-[11px] font-semibold text-slate-600 mb-1">Story Theme</label>
@@ -205,6 +346,7 @@ export function StorybookEditor({ slide, hub, cefrLevel, targetVocab = [], gramm
             </select>
           </div>
         </div>
+
         {targetVocab.length > 0 && (
           <div className="mt-2 text-[11px] text-slate-500">
             Target vocab to weave in: <span className="font-semibold text-slate-700">{targetVocab.slice(0, 8).join(', ')}</span>
@@ -215,6 +357,7 @@ export function StorybookEditor({ slide, hub, cefrLevel, targetVocab = [], gramm
             Grammar focus: <span className="font-semibold text-slate-700">{grammarFocus}</span>
           </div>
         )}
+
         <button
           disabled={busy}
           onClick={generate}
