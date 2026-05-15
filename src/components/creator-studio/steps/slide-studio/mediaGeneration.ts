@@ -46,11 +46,11 @@ export function enrichImagePrompt(basePrompt: string, hub?: string): string {
   const h = (hub || '').toLowerCase().trim();
   const cleaned = (basePrompt || '').trim().replace(/\s+/g, ' ');
   if (h === 'playground' || h === 'kids')
-    return `${cleaned}, flat 2D animation style, cute and child-friendly, warm natural colors with subtle orange and yellow accents (do not make the image overwhelmingly orange), clean white background or light natural environment.`;
+    return `${cleaned}, flat 2D animation style, cute and child-friendly, predominantly natural realistic colors with just a hint of the Playground brand palette (warm orange and sunny yellow) used as small accents only — never let these colors dominate the image, clean white background or light natural environment.`;
   if (h === 'success' || h === 'professional' || h === 'adults')
-    return `${cleaned}, modern professional editorial photography, sleek and highly realistic, natural realistic colors with only subtle mint and emerald green accents (do not make the image overwhelmingly green), clean white background or light natural environment.`;
+    return `${cleaned}, modern professional editorial photography, sleek and highly realistic, predominantly natural realistic colors with just a hint of the Success brand palette (mint and emerald green) used as small accents only — never let these colors dominate the image, clean white background or light natural environment.`;
   // Default: academy
-  return `${cleaned}, clean slice-of-life webcomic style, realistic everyday lifestyle situations. Use natural, realistic colors with only very subtle purple accents. Do not make the image overwhelmingly purple and do not use sci-fi or fantasy styles. Clean white background or light natural environment.`;
+  return `${cleaned}, clean slice-of-life webcomic style, realistic everyday lifestyle situations, predominantly natural realistic colors with just a hint of the Academy brand palette (purple, blue, and bluish-purple) used as small accents only — never let these colors dominate the image. Do not use sci-fi, superhero, or fantasy styles. Clean white background or light natural environment.`;
 }
 
 export const generateSlideVoiceover = (
