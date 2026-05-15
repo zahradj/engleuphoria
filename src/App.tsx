@@ -371,6 +371,7 @@ const App = () => {
               </DictionaryProvider>
             </RoleThemeProvider>
           </LessonProvider>
+          </MarketRegionProvider>
         </AuthProvider>
       </LanguageProvider>
       </ThemeModeProvider>
