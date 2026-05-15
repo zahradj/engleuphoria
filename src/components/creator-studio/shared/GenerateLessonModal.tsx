@@ -258,6 +258,7 @@ export default function GenerateLessonModal({
 
   const handleGenerate = async () => {
     if (!canGenerate) return;
+    const starring = characters.find((c) => c.id === starringId);
     await onGenerate({
       topic: topic.trim(),
       level,
@@ -271,6 +272,7 @@ export default function GenerateLessonModal({
       image_style: imageStyle,
       learning_objective: learningObjective.trim() || undefined,
       final_output_task: finalOutputTask.trim() || undefined,
+      starring_character: starring ? toStarringPayload(starring) : undefined,
     });
   };
 
