@@ -8519,6 +8519,48 @@ export type Database = {
         }
         Relationships: []
       }
+      system_errors: {
+        Row: {
+          ai_analysis: string | null
+          ai_model: string | null
+          analyzed_at: string | null
+          component_name: string | null
+          created_at: string
+          error_message: string
+          id: string
+          route: string | null
+          stack_trace: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          ai_analysis?: string | null
+          ai_model?: string | null
+          analyzed_at?: string | null
+          component_name?: string | null
+          created_at?: string
+          error_message: string
+          id?: string
+          route?: string | null
+          stack_trace?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          ai_analysis?: string | null
+          ai_model?: string | null
+          analyzed_at?: string | null
+          component_name?: string | null
+          created_at?: string
+          error_message?: string
+          id?: string
+          route?: string | null
+          stack_trace?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       system_transitions: {
         Row: {
           from_system: string | null
