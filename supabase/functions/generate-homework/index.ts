@@ -162,18 +162,33 @@ serve(async (req) => {
           { role: "user", content: userPrompt },
         ],
         response_format: { type: "json_object" },
-        max_tokens: 2200,
+        max_tokens: 4000,
       }),
     });
 
+    // Soft-fail: never bubble a hard 502 to the client. Return 200 with
+    // { success:false, retryable:true, … } so the SDK does not swallow the body.
     if (!aiRes.ok) {
       const errText = await aiRes.text();
-      return json({ error: `AI gateway error ${aiRes.status}`, detail: errText.slice(0, 800) }, 502);
+      const retryable = aiRes.status === 429 || aiRes.status === 402 || aiRes.status >= 500;
+      return json({
+        success: false,
+        retryable,
+        error: aiRes.status === 402
+          ? "AI credits exhausted — please add credits or try again shortly."
+          : `AI service unavailable (status ${aiRes.status})`,
+        detail: errText.slice(0, 800),
+      });
     }
     const ai = await aiRes.json();
     const content = ai?.choices?.[0]?.message?.content;
     if (!content) {
-      return json({ error: "AI returned empty response", detail: JSON.stringify(ai).slice(0, 600) }, 502);
+      return json({
+        success: false,
+        retryable: true,
+        error: "AI returned an empty response. Please retry.",
+        detail: JSON.stringify(ai).slice(0, 600),
+      });
     }
 
     let raw = typeof content === "string" ? content.trim() : String(content);
@@ -182,7 +197,24 @@ serve(async (req) => {
     try {
       homework = JSON.parse(raw);
     } catch (_e) {
-      return json({ error: "AI returned invalid JSON", detail: raw.slice(0, 600) }, 502);
+      // Repair attempt: extract the first balanced {...} block before giving up.
+      const firstBrace = raw.indexOf("{");
+      const lastBrace = raw.lastIndexOf("}");
+      if (firstBrace >= 0 && lastBrace > firstBrace) {
+        try {
+          homework = JSON.parse(raw.slice(firstBrace, lastBrace + 1));
+        } catch (_e2) {
+          /* fall through */
+        }
+      }
+      if (!homework) {
+        return json({
+          success: false,
+          retryable: true,
+          error: "AI returned malformed JSON. Please retry.",
+          detail: raw.slice(0, 600),
+        });
+      }
     }
 
     // ── Validate the 3-activity shape ───────────────────────────
