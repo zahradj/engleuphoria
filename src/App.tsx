@@ -43,6 +43,9 @@ const ParentDashboard = lazy(() => import("./pages/ParentDashboard"));
 const CommunityPage = lazy(() => import("./pages/CommunityPage"));
 const TeacherClassroomPage = lazy(() => import("./pages/TeacherClassroomPage"));
 const AIPlacementTest = lazy(() => import("./components/placement/AIPlacementTest"));
+const PlaygroundTest = lazy(() => import("./components/placement/PlaygroundTest"));
+const AcademyTest = lazy(() => import("./components/placement/AcademyTest"));
+const SuccessTest = lazy(() => import("./components/placement/SuccessTest"));
 const StudentClassroomPage = lazy(() => import("./pages/StudentClassroomPage"));
 const UnifiedClassroomPage = lazy(() => import("./pages/UnifiedClassroomPage"));
 const PostLessonSummary = lazy(() => import("./pages/PostLessonSummary"));
@@ -334,12 +337,29 @@ const App = () => {
                         </ImprovedProtectedRoute>
                       } />
 
-                      {/* AI Placement Test */}
+                      {/* AI Placement Test — traffic-cop entry; redirects by age bracket */}
                       <Route path="/ai-placement-test" element={
                         <ImprovedProtectedRoute requiredRole="student">
                           <Suspense fallback={<LoadingFallback />}>
                             <AIPlacementTest />
                           </Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
+
+                      {/* Three Isolated Hub Funnels (FROZEN) */}
+                      <Route path="/placement/playground" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <Suspense fallback={<LoadingFallback />}><PlaygroundTest /></Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
+                      <Route path="/placement/academy" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <Suspense fallback={<LoadingFallback />}><AcademyTest /></Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
+                      <Route path="/placement/success" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <Suspense fallback={<LoadingFallback />}><SuccessTest /></Suspense>
                         </ImprovedProtectedRoute>
                       } />
 
