@@ -423,7 +423,9 @@ function ReadingSlide({ slide, t }: { slide: Extract<Slide, { type: 'reading_pas
       <div className={`text-xs uppercase tracking-widest ${t.muted}`}>Reading</div>
       <h2 className={`text-2xl md:text-3xl font-semibold ${t.text}`}>{slide.title}</h2>
       <ListenButton text={slide.passage} label="Listen to the passage" variant="block" />
-      <p className={`text-lg leading-relaxed ${t.text}`}>{slide.passage}</p>
+      <p className={`text-lg leading-relaxed ${t.text}`}>
+        <RichText text={slide.passage} highlightClassName="bg-indigo-100 text-indigo-700 font-bold px-1.5 py-0.5 rounded-md shadow-sm" />
+      </p>
     </div>
   );
 }
