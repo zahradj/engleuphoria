@@ -343,6 +343,7 @@ export const StoryCreator: React.FC = () => {
             const c = characters.find((x) => x.id === starringId);
             return c ? toStarringPayload(c) : undefined;
           })(),
+          custom_prompt: customPrompt?.trim() || undefined,
         },
       });
       if (fnErr) {
