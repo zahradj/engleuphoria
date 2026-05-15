@@ -11,7 +11,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Sparkles, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { LessonSlide } from './LessonEditorPage';
 
 interface SlideEditorProps {
@@ -187,13 +190,51 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({ slide, onUpdate, syste
       updateContent('questions', questions.filter((_: any, i: number) => i !== index));
     };
 
+    const [aiBusy, setAiBusy] = React.useState(false);
+
+    const generateWithAI = async () => {
+      setAiBusy(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('generate-quiz-questions', {
+          body: {
+            activityType: 'multiple_choice',
+            count: 1,
+            existing: questions,
+            lessonContext: slide.title || '',
+          },
+        });
+        if (error) throw error;
+        const items = (data as any)?.items || [];
+        if (!items.length) throw new Error('AI returned no items');
+        const mapped = items.map((it: any) => ({
+          question: it.question || '',
+          options: Array.isArray(it.options) && it.options.length ? it.options : ['', '', '', ''],
+          correctIndex: typeof it.correctIndex === 'number' ? it.correctIndex : 0,
+          xp: 10,
+        }));
+        updateContent('questions', [...questions, ...mapped]);
+        toast.success(`✨ Added ${mapped.length} AI question${mapped.length > 1 ? 's' : ''}`);
+      } catch (e: any) {
+        if (String(e?.message || '').includes('402')) toast.error('Out of AI credits — add more in Workspace → Usage.');
+        else toast.error(e?.message || 'AI generation failed');
+      } finally {
+        setAiBusy(false);
+      }
+    };
+
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <Label className="text-base font-semibold">Quiz Questions</Label>
-          <Button variant="outline" size="sm" onClick={addQuestion}>
-            <Plus className="h-4 w-4 mr-1" /> Add Question
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={generateWithAI} disabled={aiBusy} className="bg-gradient-to-br from-fuchsia-50 to-orange-50 border-fuchsia-300 text-fuchsia-700 hover:from-fuchsia-100">
+              {aiBusy ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Sparkles className="h-4 w-4 mr-1" />}
+              Add with AI
+            </Button>
+            <Button variant="outline" size="sm" onClick={addQuestion}>
+              <Plus className="h-4 w-4 mr-1" /> Add Question
+            </Button>
+          </div>
         </div>
         {questions.map((q: any, qIndex: number) => (
           <Card key={qIndex} className="relative">

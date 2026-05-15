@@ -296,12 +296,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
 
   return (
     <div className={`h-screen w-full ${hubBg} text-gray-900 flex flex-col overflow-hidden relative`}>
-      <div className="fixed top-3 right-3 z-[110]">
-        <span
-          className={`block h-2.5 w-2.5 rounded-full ring-2 ring-background ${channelStatus === 'SUBSCRIBED' ? 'bg-success animate-pulse' : 'bg-destructive'}`}
-          title={channelStatus === 'SUBSCRIBED' ? 'Connected' : 'Reconnecting…'}
-        />
-      </div>
+      {/* (Connection status now lives inside StudentClassroomHeader's signal badge) */}
       {/* Debug Room ID Label */}
       {showDebug && (
         <div className="fixed bottom-2 left-2 z-[100] bg-black/50 text-white text-[10px] font-mono px-2 py-1 rounded backdrop-blur-sm">
@@ -531,7 +526,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
       {/* Engagement layer: in-session XP pill + live reaction dock */}
       {!isZenMode && (
         <>
-          <div className="fixed top-3 right-4 z-30 pointer-events-auto">
+          <div className="fixed top-16 right-4 z-30 pointer-events-auto">
             <XPStreakIndicator
               xp={Math.max(0, starCount * 10)}
               streak={starCount}
