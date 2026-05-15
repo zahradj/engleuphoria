@@ -13,6 +13,9 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useCreator, CEFRLevel, ActiveLessonData, PPPSlide, MCQData } from '../CreatorContext';
 import { persistLesson } from '../persistLesson';
+import { listCharactersForHub } from '@/services/characterService';
+import type { CustomCharacter, CharacterHub } from '@/types/character';
+import { toStarringPayload } from '@/types/character';
 
 const CEFR: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 const GENRES = ['Sci-Fi', 'Fairy Tale', 'Everyday Life', 'Mystery', 'Adventure', 'Slice of Life', 'Historical', 'Comedy'];
