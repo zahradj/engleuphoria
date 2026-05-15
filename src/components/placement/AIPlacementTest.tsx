@@ -7,10 +7,12 @@ import TestPhase from './TestPhase';
 import type { TestResult } from './TestPhase';
 import ComprehensivePhase from './comprehensive/ComprehensivePhase';
 import ProcessingPhase from './ProcessingPhase';
+import WelcomePhase from './WelcomePhase';
 import { usePlacementTest } from '@/hooks/usePlacementTest';
 import { Logo } from '@/components/Logo';
 import { CursorTrail } from '@/components/landing/CursorTrail';
 import { useStudentLevel } from '@/hooks/useStudentLevel';
+import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
 import type { Hub } from './questionBanks';
 
 type HubIndex = 0 | 1 | 2;
@@ -27,7 +29,7 @@ const hubFromAge = (age: number): Hub => {
   return 'professional';
 };
 
-type Phase = 'demographics' | 'test' | 'processing' | 'complete';
+type Phase = 'welcome' | 'demographics' | 'test' | 'processing' | 'complete';
 type TestStage = 'mcq' | 'comprehensive';
 
 interface AIPlacementTestProps {
@@ -46,7 +48,7 @@ const AIPlacementTest = ({ forcedHub }: AIPlacementTestProps = {}) => {
   const navigate = useNavigate();
   const { completeTest } = usePlacementTest();
   const { studentLevel } = useStudentLevel();
-  const [phase, setPhase] = useState<Phase>('demographics');
+  const [phase, setPhase] = useState<Phase>('welcome');
   const [testStage, setTestStage] = useState<TestStage>('mcq');
   const [age, setAge] = useState(0);
   const [interests, setInterests] = useState<string[]>([]);
@@ -111,14 +113,33 @@ const AIPlacementTest = ({ forcedHub }: AIPlacementTestProps = {}) => {
       <CursorTrail themeIndex={themeIndex} />
 
       <div className="relative z-10 w-full max-w-2xl h-[80vh] backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col">
-        {/* Header — Engleuphoria brand */}
-        <div className="px-6 py-3 sm:py-4 border-b border-white/10 flex items-center justify-center">
+        {/* Header — Engleuphoria brand + language switcher */}
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-white/10 flex items-center justify-between gap-3">
+          <div className="w-10" aria-hidden />
           <Logo size="medium" variant="white" className="pointer-events-none [&_img]:h-7 sm:[&_img]:h-9" />
+          <LanguageSwitcher
+            variant="ghost"
+            size="sm"
+            compact
+            className="text-white hover:bg-white/10 hover:text-white border border-white/10"
+          />
         </div>
 
         {/* Phase content */}
         <div className="flex-1 overflow-hidden">
           <AnimatePresence mode="wait">
+            {phase === 'welcome' && (
+              <motion.div
+                key="welcome"
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -30 }}
+                className="h-full"
+              >
+                <WelcomePhase hub={resolvedHub} onStart={() => setPhase('demographics')} />
+              </motion.div>
+            )}
+
             {phase === 'demographics' && (
               <motion.div
                 key="demographics"

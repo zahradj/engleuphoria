@@ -12,4 +12,13 @@ export const placementTranslations = {
   'placement.audio.hint': 'Önce dinle, sonra cevabını seç.',
   'placement.progress.question': 'Soru',
   'placement.progress.cefr': 'CEFR Değerlendirmesi',
+  'placement.welcome.title.playground': "Playground'a hoş geldin, {{name}}!",
+  'placement.welcome.title.academy': "The Academy'ye hoş geldin, {{name}}!",
+  'placement.welcome.title.professional': "Success Hub'a hoş geldin, {{name}}!",
+  'placement.welcome.subtitle': 'Panelini açmadan önce seviyeni kalibre edelim ki her ders sana mükemmel uysun.',
+  'placement.welcome.chip.duration': '≈5 dakika',
+  'placement.welcome.chip.personalized': 'Kişiselleştirilmiş',
+  'placement.welcome.chip.oneTime': 'Yalnızca bir kez',
+  'placement.welcome.cta': 'Değerlendirmeyi başlat',
+  'placement.welcome.greetingFallback': 'arkadaş',
 };

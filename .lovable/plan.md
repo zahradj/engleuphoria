@@ -1,93 +1,44 @@
-## Localized Meta-Instructions for Placement Tests
+## Scope
 
-The chosen approach: **keep static `questionBanks.ts`** as the source of questions, and add a localized "task instruction" line above each question. Edge function still gets the new schema for future dynamic use.
+Fix Cycle 1 localization on the placement test entry. The strings you listed ("Welcome to The Academy, {{name}}!", "≈5 minutes", "Personalized", "One time only", "Start My Assessment") don't currently exist in the codebase — the placement currently jumps straight into the `DemographicsPhase` chat. So this plan **adds a real Welcome screen** as Step 0, fully localized, with a language switcher.
 
-### Globalization rule (enforced everywhere)
-- **Localized**: only the small task instruction ("Listen and choose…", "Fill in the blank", "Choose the correct word…") + shell buttons (Submit / Next / Play Audio).
-- **Strictly English**: question text, options, correct answer, audio script, image prompt.
+Out of scope: question logic, demographics chat, processing, dashboards, edge functions.
 
----
+## Changes
 
-### 1. `questionBanks.ts` — add `taskInstructionKey`
+### 1. New `WelcomePhase.tsx` (`src/components/placement/`)
+A hub-themed welcome card shown before `DemographicsPhase`. Contents (all via `t()`):
+- H1: `t('placement.welcome.title.{hub}', { name })` — e.g. "Welcome to The Academy, {{name}}!"
+- Subtitle: `t('placement.welcome.subtitle')` — "Before we open your dashboard, let's calibrate your level."
+- 3 chip badges: `t('placement.welcome.chip.duration')` ("≈5 minutes"), `t('placement.welcome.chip.personalized')` ("Personalized"), `t('placement.welcome.chip.oneTime')` ("One time only")
+- CTA button: `t('placement.welcome.cta')` ("Start My Assessment")
+- Pulls student name from `useAuth()` user metadata (fallback "there").
 
-Extend `BankQuestion` with an optional `taskInstructionKey: string` (an i18n key, not the translated string). Default mapping when unset, derived from `resolveSkill`:
+### 2. `AIPlacementTest.tsx`
+- Add `'welcome'` as the new initial `Phase` (welcome → demographics → test → processing → complete).
+- Mount `<WelcomePhase hub={resolvedHub} onStart={() => setPhase('demographics')} />`.
+- Add `<LanguageSwitcher variant="ghost" size="sm" compact />` in the existing header (right side), keeping the centered Logo. Reuse the existing `src/components/common/LanguageSwitcher.tsx` — no new component.
 
-| skill | i18n key |
-|---|---|
-| listening | `placement.task.listening` |
-| vocabulary | `placement.task.vocabulary` |
-| grammar | `placement.task.grammar` |
-| reading | `placement.task.reading` |
-
-Tag the existing pool entries with the right `skill` field where ambiguous (most are already inferable; no question text changes).
-
-### 2. Translations — add `placement.task.*` keys to all 6 dictionaries
-
-Add to `english/spanish/arabic/french/turkish/italian.ts` translation files:
-
+### 3. Translation keys (add to all 6 `placement.ts` dictionaries)
 ```
-placement.task.listening    → "Listen and choose the correct picture/answer."
-placement.task.vocabulary   → "Look at the picture and choose the correct word."
-placement.task.grammar      → "Choose the correct word to complete the sentence."
-placement.task.reading      → "Read carefully and choose the best answer."
-placement.action.playAudio  → "Play Audio"
-placement.action.playAgain  → "Play Again"
-placement.action.loading    → "Loading…"
-placement.action.next       → "Next Question"
-placement.action.submit     → "Submit"
-placement.progress.question → "Question"
-placement.progress.cefr     → "CEFR Assessment"
+placement.welcome.title.playground   "Welcome to the Playground, {{name}}!"
+placement.welcome.title.academy      "Welcome to The Academy, {{name}}!"
+placement.welcome.title.professional "Welcome to Success Hub, {{name}}!"
+placement.welcome.subtitle           "Before we open your dashboard, let's calibrate your level."
+placement.welcome.chip.duration      "≈5 minutes"
+placement.welcome.chip.personalized  "Personalized"
+placement.welcome.chip.oneTime       "One time only"
+placement.welcome.cta                "Start My Assessment"
+placement.welcome.greetingFallback   "there"
 ```
+Translate accurately for `en, es, fr, it, tr, ar` (RTL handled by existing `applyDirection` in `src/lib/i18n.ts`).
 
-Translations provided per language by Gemini-quality strings (Arabic RTL already handled by i18n.ts).
-
-### 3. `TestPhase.tsx` — render localized instruction + i18n shell
-
-- Import `useTranslation`.
-- Above the question `ChatBubble`, render a small chip-style line with `t(currentQuestion.taskInstructionKey ?? defaultKeyForSkill(skill))`. RTL-aware via `dir="auto"`.
-- Replace hard-coded English strings: `'Question'`, `'CEFR Assessment'`, `'Play Audio'`, `'Play Again'`, `'Loading…'`, `'Listen first, then choose your answer.'` with `t(...)` calls.
-- Question text + options remain hard-coded English from the bank. **No changes** to TTS/image/answer logic.
-
-### 4. `PlaygroundTest.tsx` / `AcademyTest.tsx` / `SuccessTest.tsx`
-
-These are thin wrappers around `TestPhase`; no logic changes needed beyond what `TestPhase` picks up. Verify they don't override progress labels with hard-coded English; if they do, swap to `t(...)`.
-
-### 5. Edge Function `generate-placement-test/index.ts` — schema upgrade
-
-Even though the frontend uses the static bank today, harden the function for future dynamic use:
-
-- Accept `userLocale` (BCP-47 root: `en|es|ar|fr|tr|it`) in the request body. Default `en`.
-- Inject into all three system prompts a shared block:
-  ```
-  GLOBALIZATION RULE:
-  - task_instruction_localized: ONE short instruction translated to {userLocale} ONLY.
-  - question_text, options, correct_answer, audio_script: STRICTLY ENGLISH.
-  - image_prompt: English, must start with the anti-cheat sentence and include
-    "CRITICAL: DO NOT include any text, letters, or words in the image. DO NOT reveal the literal answer."
-  - audio_script: null when skill is not 'listening' / 'professional_listening'.
-  ```
-- Update `PlacementQuestion` TS interface with new `task_instruction_localized: string` field.
-- Image prompt anti-cheat sentence updated to the user's exact wording.
-- Response shape unchanged otherwise (`{ hub, questions, provider }`).
-
-### 6. Smart media (already correct — verify only)
-
-`TestPhase` already routes by `resolveSkill`: `vocabulary→VocabularyImage`, `listening→ElevenLabs button`, `grammar/reading→text-only`. No change needed; just confirm after edits.
-
----
-
-### Out of scope (untouched)
-- Auth, dashboards, Creator Studio.
-- `questionBanks.ts` question/option/audio/image content (stays English).
-- TTS pipeline, image-generation pipeline.
-- Switching frontend to call the edge function (explicit user choice).
+### 4. Auto-detection — verification only
+`src/lib/i18n.ts` already uses `i18next-browser-languagedetector` with order `['localStorage','navigator','htmlTag']` and `load: 'languageOnly'`. No change needed; will confirm in preview.
 
 ### Files touched
-- `src/components/placement/questionBanks.ts` — add `taskInstructionKey?` field, tag skills where missing.
-- `src/components/placement/TestPhase.tsx` — render localized instruction, i18n shell strings.
-- `src/components/placement/{PlaygroundTest,AcademyTest,SuccessTest}.tsx` — minor i18n sweeps if any hard-coded labels remain.
-- `src/translations/{english,spanish,arabic,french,turkish,italian}.ts` — add `placement.*` keys.
-- `supabase/functions/generate-placement-test/index.ts` — accept `userLocale`, enforce new JSON schema with `task_instruction_localized`, updated anti-cheat sentence.
+- **Create:** `src/components/placement/WelcomePhase.tsx`
+- **Edit:** `src/components/placement/AIPlacementTest.tsx`, `src/translations/{english,spanish,french,italian,turkish,arabic}/placement.ts`
 
-### Memory update
-After implementation, append a `mem://features/onboarding/placement-test-localization` memory: "Placement task instructions are the only translated text; questions/options/audio stay English. Edge function schema includes `task_instruction_localized` + anti-cheat image prompt rule."
+### Not touched
+`PlaygroundTest.tsx`, `AcademyTest.tsx`, `SuccessTest.tsx` are 1-line wrappers around `AIPlacementTest` — fixing the shell once covers all three funnels (cleaner than duplicating per file as your message suggested).
