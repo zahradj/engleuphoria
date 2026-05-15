@@ -1,5 +1,6 @@
 // Rewrite a single slide field to align with the lesson blueprint.
 // Uses Lovable AI Gateway (Gemini Flash) — cheap & fast.
+import { slideTypeInstruction } from "../_shared/slideContextRules.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -43,9 +44,10 @@ Deno.serve(async (req) => {
     const interests = blueprint.interests?.trim();
     const needs = blueprint.specific_needs?.trim();
 
+    const slideRule = slideTypeInstruction(slide_type);
     const prompt = `You are a senior ESL curriculum designer.
 Rewrite ONLY the "${field}" of a ${hub} slide (type: ${slide_type}) at CEFR ${cefr_level}.
-Keep alignment with this lesson blueprint:
+${slideRule ? `Slide-type rule: ${slideRule}\n` : ''}Keep alignment with this lesson blueprint:
 - Target vocabulary: ${vocab}
 - Target grammar: ${grammar}
 ${interests ? `- 🎯 Creative anchor (student interests): ${interests}` : ''}
