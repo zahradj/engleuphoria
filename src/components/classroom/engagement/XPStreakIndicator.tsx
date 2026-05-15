@@ -49,10 +49,9 @@ export const XPStreakIndicator: React.FC<XPStreakIndicatorProps> = ({
             initial={{ opacity: 0, x: -4 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -4 }}
-            className="flex items-center gap-1 pl-2 ml-1 border-l border-white/40"
+            className="flex items-center pl-2 ml-1 border-l border-white/40"
           >
-            <Flame className="w-3.5 h-3.5" />
-            <span className="tabular-nums">{streak}</span>
+            <Flame className="w-3.5 h-3.5 animate-pulse" />
           </motion.span>
         )}
       </AnimatePresence>
