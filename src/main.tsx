@@ -3,6 +3,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
+import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary';
 import i18n from '@/lib/i18n';
 import { clearAllCaches, optimizeForProduction } from '@/utils/productionCleanup';
 import { clearInsecureRoleStorage } from '@/utils/roleValidation';
@@ -74,6 +75,8 @@ i18n.on('languageChanged', setDocLangDir);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <GlobalErrorBoundary>
+      <App />
+    </GlobalErrorBoundary>
   </StrictMode>
 );
