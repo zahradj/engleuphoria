@@ -214,7 +214,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
         if (formData.dateOfBirth) {
           const ageMs = Date.now() - new Date(formData.dateOfBirth).getTime();
           computedAge = Math.floor(ageMs / (365.25 * 24 * 60 * 60 * 1000));
-          if (computedAge >= 17) hubType = 'professional';
+          if (computedAge >= 18) hubType = 'professional';
           else if (computedAge >= 10) hubType = 'academy';
         }
         const { data, error } = await signUp(formData.email, formData.password, {
