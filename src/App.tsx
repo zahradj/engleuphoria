@@ -51,6 +51,7 @@ const UnifiedClassroomPage = lazy(() => import("./pages/UnifiedClassroomPage"));
 const VocabularyRoomPage = lazy(() => import("./pages/dashboard/VocabularyRoomPage"));
 const SpeakingStudioPage = lazy(() => import("./pages/dashboard/SpeakingStudioPage"));
 const GradedLibraryPage = lazy(() => import("./pages/dashboard/GradedLibraryPage"));
+const GamesHubPage = lazy(() => import("./pages/dashboard/GamesHubPage"));
 const PostLessonSummary = lazy(() => import("./pages/PostLessonSummary"));
 const AssessmentTaker = lazy(() => import("./components/assessment/AssessmentTaker"));
 const AssessmentResults = lazy(() => import("./components/assessment/AssessmentResults"));
@@ -215,6 +216,11 @@ const App = () => {
                       <Route path="/dashboard/library" element={
                         <ImprovedProtectedRoute requiredRole="student">
                           <Suspense fallback={<LoadingFallback />}><GradedLibraryPage /></Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
+                      <Route path="/dashboard/games" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <Suspense fallback={<LoadingFallback />}><GamesHubPage /></Suspense>
                         </ImprovedProtectedRoute>
                       } />
 
