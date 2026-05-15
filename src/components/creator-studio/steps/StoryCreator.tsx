@@ -297,6 +297,10 @@ export const StoryCreator: React.FC = () => {
           artStyle: visualStyle,
           linked_lesson: linked_lesson_payload,
           visual_style: visualStyle,
+          starring_character: (() => {
+            const c = characters.find((x) => x.id === starringId);
+            return c ? toStarringPayload(c) : undefined;
+          })(),
         },
       });
       if (fnErr) {
