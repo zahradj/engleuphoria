@@ -185,6 +185,46 @@ export const FloatingCoPilot: React.FC<FloatingCoPilotProps> = ({
             </div>
           )}
 
+          {/* Quick Action Chips */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Quick Co-Pilot</p>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { icon: AlertTriangle, label: 'Explain mistake' },
+                { icon: BookOpen, label: 'Give example' },
+                { icon: MessageCircle, label: 'Simpler phrasing' },
+              ].map(({ icon: Icon, label }) => (
+                <button
+                  key={label}
+                  onClick={() => fireQuickAction(label)}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium text-white hover:opacity-90 transition-opacity"
+                  style={theme.buttonGradient}
+                >
+                  <Icon className="w-3 h-3" />
+                  {label}
+                </button>
+              ))}
+            </div>
+            {quickHistory.length > 0 && (
+              <div>
+                <button
+                  onClick={() => setShowHistory((s) => !s)}
+                  className="text-[10px] uppercase tracking-wider text-gray-400 hover:text-gray-200 flex items-center gap-1"
+                >
+                  <Lightbulb className="w-3 h-3" />
+                  {showHistory ? 'Hide' : 'Show'} recent suggestions ({quickHistory.length})
+                </button>
+                {showHistory && (
+                  <ul className="mt-1 space-y-0.5 pl-3 border-l border-gray-700">
+                    {quickHistory.map((item, i) => (
+                      <li key={i} className="text-[11px] text-gray-300">{item}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Mission Checklist */}
           <div className="space-y-3">
             <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Today's Mission</p>
