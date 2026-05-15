@@ -56,12 +56,27 @@ export const FloatingCoPilot: React.FC<FloatingCoPilotProps> = ({
   roomId,
   userId,
   userName = 'Teacher',
+  hubType = 'academy',
 }) => {
+  const theme = useHubClassroomTheme(hubType);
   const [isExpanded, setIsExpanded] = useState(false);
   const [missionItems, setMissionItems] = useState<MissionItem[]>(() =>
     getDefaultMission(lessonTitle, sessionContext)
   );
+  const [quickHistory, setQuickHistory] = useState<string[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
   const [typingUsers, setTypingUsers] = useState<Array<{ userId: string; userName: string }>>([]);
+
+  const fireQuickAction = useCallback(
+    (label: string) => {
+      const stamped = `[${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}] ${label}`;
+      setQuickHistory((prev) => [stamped, ...prev].slice(0, 5));
+      try {
+        window.dispatchEvent(new CustomEvent('classroom:copilot-quick-action', { detail: { label, lessonTitle } }));
+      } catch {}
+    },
+    [lessonTitle],
+  );
 
   // Set up presence tracking for typing indicators
   React.useEffect(() => {
