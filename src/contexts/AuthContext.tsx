@@ -439,6 +439,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       // Ensure stale redirect guard from previous sessions never blocks current login flow
       sessionStorage.removeItem('auth_redirect_done');
+      sessionStorage.removeItem('auth_resolved_role');
       signInRedirectRef.current = false;
 
       // Input sanitization
