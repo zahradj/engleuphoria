@@ -567,24 +567,18 @@ export default function PlaygroundCreator() {
             <button onClick={() => setAiOpen(true)} className="inline-flex items-center gap-2 bg-gradient-to-r from-fuchsia-500 to-orange-500 hover:opacity-90 text-white font-bold rounded-xl px-3 py-2 text-xs shadow-md transition active:scale-95">
               <Sparkles className="w-3.5 h-3.5" /> AI
             </button>
-            <button
-              onClick={async () => {
-                if (!lessonHook.lessonId) { toast.error?.('Save the lesson once before generating homework.'); return; }
-                const tId = (toast as any).loading?.('Generating homework…');
-                try {
-                  const { extractEdgeError } = await import('@/lib/extractEdgeError');
-                  const { data, error } = await supabase.functions.invoke('generate-homework', {
-                    body: { lesson_id: lessonHook.lessonId, blueprint, title: lessonHook.lesson?.title || 'Lesson', hub: 'playground' },
-                  });
-                  if (error || data?.error) throw new Error(await extractEdgeError({ error, data, fallback: 'Generation failed' }));
-                  toast.success?.('Homework ready ✓');
-                } catch (e: any) {
-                  toast.error?.(`Homework Failed: ${e?.message || e}`);
-                } finally { if (tId) (toast as any).dismiss?.(tId); }
-              }}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-400 to-orange-500 hover:opacity-90 text-white font-bold rounded-xl px-3 py-2 text-xs shadow-md transition active:scale-95">
-              <ClipboardCheck className="w-3.5 h-3.5" /> Homework
-            </button>
+            {(() => {
+              const reason = homeworkGuardReason(lessonHook.lessonId, blueprint);
+              return (
+                <button
+                  disabled={!!reason}
+                  title={reason || 'Generate homework from this lesson'}
+                  onClick={() => generateHomeworkSafe({ lessonId: lessonHook.lessonId, blueprint, title: lessonHook.lesson?.title || 'Lesson', hub: 'playground' })}
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-400 to-orange-500 hover:opacity-90 text-white font-bold rounded-xl px-3 py-2 text-xs shadow-md transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                  <ClipboardCheck className="w-3.5 h-3.5" /> Homework
+                </button>
+              );
+            })()}
             <Popover>
               <PopoverTrigger asChild>
                 <button className="inline-flex items-center gap-2 bg-white border-2 border-orange-300 hover:bg-orange-50 text-orange-700 font-bold rounded-xl px-3 py-2 text-xs transition active:scale-95">
