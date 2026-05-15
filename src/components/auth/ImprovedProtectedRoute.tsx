@@ -52,14 +52,14 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
         if (!timeoutTriggeredRef.current) {
           timeoutTriggeredRef.current = true;
           // Fall back to user metadata role or 'student' instead of redirecting to login
-          const fallbackRole = (user as any).user_metadata?.role || 'student';
+          const fallbackRole = cachedRole || (user as any).user_metadata?.role || 'student';
           console.warn('⏱️ Role verification timeout - falling back to:', fallbackRole);
           setRoleLoadTimeout(true);
         }
       }, 8000);
       return () => clearTimeout(timeout);
     }
-  }, [user, requiredRole]);
+  }, [user, requiredRole, cachedRole]);
 
   // DEV BYPASS - Only in development mode with query param
   if (isDevBypassActive && bypassRole) {
@@ -125,7 +125,7 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
   // If role verification timed out but we have a fallback role, let them through
   // Only redirect to login if there's genuinely no session
   if (requiredRole && requiredRole !== 'any' && !userRole && roleLoadTimeout) {
-    const fallbackRole = (user as any).user_metadata?.role || 'student';
+    const fallbackRole = cachedRole || (user as any).user_metadata?.role || 'student';
     console.warn('⏱️ Role timeout fallback to:', fallbackRole);
     // If the fallback role matches the required role, proceed
     if (fallbackRole === requiredRole) {
