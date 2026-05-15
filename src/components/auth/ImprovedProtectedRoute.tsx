@@ -29,7 +29,10 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
   const { studentLevel, onboardingCompleted, loading: studentLoading } = useStudentLevel();
   const [roleLoadTimeout, setRoleLoadTimeout] = useState(false);
   const timeoutTriggeredRef = useRef(false);
-  const userRole = (user as any)?.role || (user as any)?.user_metadata?.role || null;
+  const cachedRole = typeof window !== 'undefined'
+    ? sessionStorage.getItem('auth_resolved_role')
+    : null;
+  const userRole = (user as any)?.role || cachedRole || (user as any)?.user_metadata?.role || null;
 
   useEffect(() => {
     console.log('[AUTH ROUTE] Guard state', {
@@ -134,6 +137,17 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
 
   // Check role if required
   if (requiredRole && requiredRole !== 'any' && userRole !== requiredRole) {
+    if (cachedRole === requiredRole) {
+      console.warn('[AUTH ROUTE] Cached role matches required role; allowing pending canonical hydration', {
+        path: window.location.pathname,
+        requiredRole,
+        userRole,
+        cachedRole,
+        userId: user.id,
+      });
+      return <>{children}</>;
+    }
+
     console.warn('[AUTH ROUTE] Access denied; routing authenticated user to dashboard router', {
       path: window.location.pathname,
       requiredRole,
