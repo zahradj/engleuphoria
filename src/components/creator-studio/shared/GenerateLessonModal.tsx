@@ -171,6 +171,8 @@ export default function GenerateLessonModal({
     setLearningObjective(defaultLearningObjective || '');
     setFinalOutputTask(defaultFinalOutputTask || '');
     setImageStyle(DEFAULT_IMAGE_STYLE_ID[hub]);
+    setStarringId('');
+    listCharactersForHub(hub).then(setCharacters).catch(() => setCharacters([]));
     setExpanded(Boolean(
       (defaultVocabulary && defaultVocabulary.some((v) => v?.trim())) ||
       defaultGrammar?.trim() ||
