@@ -122,6 +122,8 @@ export const StoryCreator: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [characters, setCharacters] = useState<CustomCharacter[]>([]);
   const [starringId, setStarringId] = useState<string>('');
+  const [customPrompt, setCustomPrompt] = useState<string>('');
+  const [promptTouched, setPromptTouched] = useState(false);
 
   // ── Linked lesson picker ──
   const [lessons, setLessons] = useState<CurriculumLessonOption[]>([]);
