@@ -241,12 +241,39 @@ export const SlideMediaPanel: React.FC<SlideMediaPanelProps> = ({
             )}
           </div>
           <div className="flex-1 space-y-2">
+            <div>
+              <Label className="text-xs">Image Style</Label>
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                {styleOptions.map((s) => {
+                  const active = s.id === imgStyle;
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => { setImgStyle(s.id); onPatch({ image_style: s.id }); }}
+                      className={
+                        'text-[11px] font-semibold rounded-full px-2.5 py-1 border transition ' +
+                        (active
+                          ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm'
+                          : 'bg-white border-slate-300 text-slate-700 hover:border-indigo-400 hover:text-indigo-700')
+                      }
+                      title={s.modifier}
+                    >
+                      {s.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-1 text-[10px] text-muted-foreground leading-snug">
+                Style is appended to your prompt and reused for flashcard images.
+              </p>
+            </div>
             <Label className="text-xs">AI Image Prompt</Label>
             <Textarea
               rows={2}
               value={imgPrompt}
               onChange={(e) => setImgPrompt(e.target.value)}
-              placeholder="e.g. happy cartoon dog wagging its tail, flat illustration"
+              placeholder="e.g. happy cartoon dog wagging its tail"
             />
             <div className="flex gap-2">
               <Button size="sm" onClick={generateImage} disabled={imgBusy} className="gap-1">
