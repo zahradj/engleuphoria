@@ -77,7 +77,7 @@ function toLegacyResults(sub: ComprehensiveSubmission, offset = 0): TestResult[]
 
 const STAGES: StageKey[] = ['listening', 'reading', 'writing', 'speaking'];
 
-const ComprehensivePhase: React.FC<Props> = ({ onComplete }) => {
+const ComprehensivePhase: React.FC<Props> = ({ onComplete, indexOffset = 0 }) => {
   const [stage, setStage] = useState<StageKey>('listening');
   const [submission, setSubmission] = useState<ComprehensiveSubmission>({
     listening: [],
