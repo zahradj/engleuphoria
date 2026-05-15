@@ -12,6 +12,7 @@ import {
 import { SOCIAL_MEDIA_LESSON } from '@/data/academyLessons/socialMediaHabits';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { homeworkGuardReason, generateHomeworkSafe } from '@/lib/homeworkGuard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { SlideMediaPanel } from '@/components/creator-studio/shared/SlideMediaPanel';
