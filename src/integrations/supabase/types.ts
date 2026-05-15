@@ -2915,6 +2915,39 @@ export type Database = {
           },
         ]
       }
+      dictionary_cache: {
+        Row: {
+          context_hash: string
+          created_at: string
+          definition: string
+          id: string
+          image_url: string | null
+          language: string
+          translation: string
+          word: string
+        }
+        Insert: {
+          context_hash: string
+          created_at?: string
+          definition: string
+          id?: string
+          image_url?: string | null
+          language: string
+          translation: string
+          word: string
+        }
+        Update: {
+          context_hash?: string
+          created_at?: string
+          definition?: string
+          id?: string
+          image_url?: string | null
+          language?: string
+          translation?: string
+          word?: string
+        }
+        Relationships: []
+      }
       early_learners_assets: {
         Row: {
           asset_type: string
