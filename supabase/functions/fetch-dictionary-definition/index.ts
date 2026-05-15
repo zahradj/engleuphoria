@@ -1,4 +1,5 @@
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { aiFetch } from "../_shared/aiFetch.ts";
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
@@ -54,7 +55,7 @@ Deno.serve(async (req) => {
     const targetLang = langMap[language] || 'English';
 
     // Generate definition + translation
-    const aiRes = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const aiRes = await aiFetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -89,7 +90,7 @@ Deno.serve(async (req) => {
     // Generate flat-vector icon (best-effort, non-blocking on failure)
     let imageUrl: string | null = null;
     try {
-      const imgRes = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      const imgRes = await aiFetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Lovable-API-Key': LOVABLE_API_KEY },
         body: JSON.stringify({

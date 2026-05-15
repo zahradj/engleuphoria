@@ -158,35 +158,21 @@ export async function aiCallWithFailover(opts: AICallOptions): Promise<AICallRes
   const hasLovable = !!Deno.env.get("LOVABLE_API_KEY");
 
   if (!hasGemini && !hasLovable) {
-    throw new Error("No AI provider configured (need GEMINI_API_KEY or LOVABLE_API_KEY)");
+    throw new Error("No AI provider configured (need GEMINI_API_KEY)");
   }
 
-  // Tool calling is only supported by Lovable Gateway — skip primary if requested
-  if (opts.tools && hasLovable) {
-    return await callLovableGateway(opts);
-  }
-
+  // ─── HARD GATEWAY-BYPASS (PERMANENT) ───
+  // If GEMINI_API_KEY is present, the Lovable Gateway is forbidden at runtime
+  // — even for tool-calling. Errors must propagate so callers surface them
+  // instead of silently spending Lovable AI credits.
   if (hasGemini) {
-    try {
-      const result = await callGeminiDirect(opts);
-      console.log(`✅ AI ok via gemini-direct (tokens: ${result.usage?.totalTokens ?? "n/a"})`);
-      return result;
-    } catch (primaryErr) {
-      console.warn(
-        `⚠️ Gemini direct failed: ${primaryErr instanceof Error ? primaryErr.message : primaryErr}. Falling back to Lovable Gateway.`,
-      );
-      if (!hasLovable) throw primaryErr;
-    }
+    const result = await callGeminiDirect(opts);
+    console.log(`✅ AI ok via gemini-direct (tokens: ${result.usage?.totalTokens ?? "n/a"})`);
+    return result;
   }
 
-  try {
-    const result = await callLovableGateway(opts);
-    console.log(`✅ AI ok via lovable-gateway (tokens: ${result.usage?.totalTokens ?? "n/a"})`);
-    return result;
-  } catch (backupErr) {
-    console.error("❌ Both AI providers failed:", backupErr);
-    throw new Error(
-      `AI generation temporarily unavailable: ${backupErr instanceof Error ? backupErr.message : "unknown error"}`,
-    );
-  }
+  // No Gemini key configured → dev sandbox fallback to gateway.
+  const result = await callLovableGateway(opts);
+  console.log(`✅ AI ok via lovable-gateway (no GEMINI_API_KEY) (tokens: ${result.usage?.totalTokens ?? "n/a"})`);
+  return result;
 }

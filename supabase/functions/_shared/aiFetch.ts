@@ -246,58 +246,46 @@ export async function aiFetch(url: string, init?: RequestInit): Promise<Response
   const hasGemini = !!Deno.env.get("GEMINI_API_KEY");
   const hasLovable = !!Deno.env.get("LOVABLE_API_KEY");
 
-  // Parse body once for potential reuse on rerouting / failover
   let parsedBody: any = null;
   if (init?.body && typeof init.body === "string") {
-    try {
-      parsedBody = JSON.parse(init.body);
-    } catch { /* non-JSON body — failover not possible */ }
+    try { parsedBody = JSON.parse(init.body); } catch { /* non-JSON body */ }
   }
 
-  // ─── PRIMARY ROUTE OVERRIDE ───
-  // The workspace has migrated off Lovable AI. When a caller targets the
-  // Lovable Gateway and we have a GEMINI_API_KEY, route directly to Gemini
-  // first; only fall back to the Lovable Gateway if Gemini fails AND a
-  // LOVABLE_API_KEY is still configured.
-  if (isLovable && hasGemini && parsedBody) {
-    try {
-      const fb = await fallbackGatewayToGemini(parsedBody);
-      return fb;
-    } catch (err) {
-      console.warn(`⚠️ Gemini-direct primary failed: ${err instanceof Error ? err.message : err}`);
-      if (!hasLovable) throw err;
-      // fall through to legacy gateway path below
+  // ─── HARD GATEWAY-BYPASS (PERMANENT) ───
+  // Lovable AI Gateway must NEVER be used at runtime when GEMINI_API_KEY is
+  // configured. All runtime generation routes to Gemini direct. No fallback
+  // to the gateway — credit consumption is forbidden by project policy.
+  if (isLovable) {
+    if (!hasGemini) {
+      // Dev sandbox without Gemini configured: allow gateway as a last resort.
+      if (!hasLovable) throw new Error("No AI provider configured (GEMINI_API_KEY required)");
+      return await fetch(url, init);
     }
+    if (!parsedBody) throw new Error("aiFetch: cannot route Lovable Gateway request to Gemini without a JSON body");
+    return await fallbackGatewayToGemini(parsedBody);
   }
 
+  // Caller targeted Gemini directly — try it, optionally fall back to gateway
+  // only if GEMINI is unavailable (key rejected) AND gateway is configured.
   let primaryError: unknown = null;
   try {
     const response = await fetch(url, init);
     if (response.ok || !isRetryable(response.status)) return response;
     const errBody = await response.text();
-    primaryError = new Error(`Primary AI ${response.status}: ${errBody}`);
-    console.warn(`⚠️ Primary AI provider returned ${response.status}, attempting failover…`);
+    primaryError = new Error(`Gemini ${response.status}: ${errBody}`);
+    console.warn(`⚠️ Gemini direct returned ${response.status}`);
   } catch (err) {
     primaryError = err;
-    console.warn(`⚠️ Primary AI provider threw: ${err instanceof Error ? err.message : err}. Attempting failover…`);
+    console.warn(`⚠️ Gemini direct threw: ${err instanceof Error ? err.message : err}`);
   }
 
-  if (!parsedBody) throw primaryError;
-
-  try {
-    if (isLovable && hasGemini) {
-      const fb = await fallbackGatewayToGemini(parsedBody);
-      console.log("✅ Recovered via Gemini direct failover");
-      return fb;
-    }
-    if (isGemini && hasLovable) {
-      const fb = await fallbackGeminiToGateway(url, parsedBody);
-      console.log("✅ Recovered via Lovable Gateway failover");
-      return fb;
-    }
-    throw primaryError;
-  } catch (failoverErr) {
-    console.error("❌ Both AI providers failed:", failoverErr);
-    throw failoverErr;
+  // Only use the Lovable Gateway as a backup when Gemini is genuinely missing
+  // (no key configured). Quota/5xx errors must surface to the caller, not
+  // silently spend Lovable AI credits.
+  if (isGemini && !hasGemini && hasLovable && parsedBody) {
+    const fb = await fallbackGeminiToGateway(url, parsedBody);
+    console.log("✅ Used Lovable Gateway (no GEMINI_API_KEY configured)");
+    return fb;
   }
+  throw primaryError;
 }

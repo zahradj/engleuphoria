@@ -1,4 +1,5 @@
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { aiFetch } from "../_shared/aiFetch.ts";
 
 const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY')!;
 
@@ -18,7 +19,7 @@ Deno.serve(async (req) => {
         ? '{"items":[{"statement":"...","isTrue":true|false,"explanation":"..."}]}'
         : '{"items":[{"question":"...","options":["A","B","C","D"],"correctIndex":0}]}';
 
-    const aiRes = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const aiRes = await aiFetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Lovable-API-Key': LOVABLE_API_KEY },
       body: JSON.stringify({
