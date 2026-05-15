@@ -198,8 +198,26 @@ const App = () => {
                       <Route path="/dashboard/academy/*" element={
                         <ImprovedProtectedRoute requiredRole="student" requiredStudentLevel="academy">
                           <Suspense fallback={<LoadingFallback />}><StudentDashboard /></Suspense>
+                      </ImprovedProtectedRoute>
+                      } />
+
+                      {/* Cycle 2 — Adaptive Dashboard rooms */}
+                      <Route path="/dashboard/vocabulary" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <Suspense fallback={<LoadingFallback />}><VocabularyRoomPage /></Suspense>
                         </ImprovedProtectedRoute>
                       } />
+                      <Route path="/dashboard/speaking" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <Suspense fallback={<LoadingFallback />}><SpeakingStudioPage /></Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
+                      <Route path="/dashboard/library" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <Suspense fallback={<LoadingFallback />}><GradedLibraryPage /></Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
+
                       <Route path="/dashboard/hub/*" element={
                         <ImprovedProtectedRoute requiredRole="student" requiredStudentLevel="professional">
                           <Suspense fallback={<LoadingFallback />}><StudentDashboard /></Suspense>
