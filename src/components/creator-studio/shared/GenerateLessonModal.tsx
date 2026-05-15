@@ -150,6 +150,8 @@ export default function GenerateLessonModal({
   const [imageStyle, setImageStyle] = useState<string>(DEFAULT_IMAGE_STYLE_ID[hub]);
   const [expanded, setExpanded] = useState(false);
   const [autoFillBusy, setAutoFillBusy] = useState(false);
+  const [characters, setCharacters] = useState<CustomCharacter[]>([]);
+  const [starringId, setStarringId] = useState<string>('');
 
   const isPreA1 = level === 'Pre-A1';
   const imageStyleOptions = IMAGE_STYLES_BY_HUB[hub];
