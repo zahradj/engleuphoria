@@ -124,8 +124,11 @@ export default function SlideShell({
           )}
         </div>
 
-        {/* Content — full-bleed white canvas, no purple inner card */}
-        <div className="relative z-10 flex-1 flex items-stretch justify-stretch p-3 md:p-4 overflow-y-auto bg-white">
+        {/* Content — full-bleed canvas with faint hub-tinted background */}
+        <div
+          className="relative z-10 flex-1 flex items-stretch justify-stretch p-3 md:p-4 overflow-y-auto"
+          style={{ background: tokens.bg }}
+        >
           {fullBleed ? (
             <div className="w-full h-full">{children}</div>
           ) : (
