@@ -19,11 +19,14 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const hardTimeout = setTimeout(() => {
       if (!redirectPath && user) {
-        const metaRole = (user as any).user_metadata?.role;
-        if (metaRole === 'admin') { setRedirectPath('/super-admin'); return; }
-        if (metaRole === 'teacher') { setRedirectPath('/teacher'); return; }
-        if (metaRole === 'content_creator') { setRedirectPath('/content-creator'); return; }
-        if (metaRole === 'parent') { setRedirectPath('/parent'); return; }
+        const cachedRole = typeof window !== 'undefined'
+          ? sessionStorage.getItem('auth_resolved_role')
+          : null;
+        const role = (user as any).role || cachedRole || (user as any).user_metadata?.role;
+        if (role === 'admin') { setRedirectPath('/super-admin'); return; }
+        if (role === 'teacher') { setRedirectPath('/teacher'); return; }
+        if (role === 'content_creator') { setRedirectPath('/content-creator'); return; }
+        if (role === 'parent') { setRedirectPath('/parent'); return; }
         const { route, source } = resolveHubRoute({ metadata: (user as any).user_metadata });
         console.warn(`⏱️ [Dashboard] 4s timeout — routing from ${source} →`, route);
         toast.warning("We couldn't verify your hub from the database.", {
@@ -45,7 +48,11 @@ const Dashboard: React.FC = () => {
       return;
     }
 
-    const userRole = (user as any).role;
+    const cachedRole = typeof window !== 'undefined'
+      ? sessionStorage.getItem('auth_resolved_role')
+      : null;
+    const userRole = (user as any).role || cachedRole || (user as any).user_metadata?.role;
+    console.log('[AUTH ROUTE] Dashboard router resolving role', { userRole, cachedRole, path: window.location.pathname });
 
     if (!userRole) {
       return;
