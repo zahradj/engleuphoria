@@ -246,6 +246,63 @@ export const StoryCreator: React.FC = () => {
     toast.success('Prompt auto-filled from lesson context ✓');
   };
 
+  // ── Story Director: full-form auto-pilot ──
+  const handleAutoConfigureStory = async () => {
+    if (directing) return;
+    setDirecting(true);
+    try {
+      const linkedVocab = linkedLesson ? vocabListToArray(linkedLesson.vocabulary_list) : [];
+      const typed = parseVocab(vocabInput);
+      const seen = new Set<string>();
+      const vocabulary: string[] = [];
+      for (const w of [...linkedVocab, ...typed]) {
+        const k = w.toLowerCase();
+        if (!seen.has(k)) { seen.add(k); vocabulary.push(w); }
+      }
+      const charPayload = characters.map((c) => ({
+        id: c.id,
+        name: c.name,
+        visual_blueprint: (c as any).visual_blueprint || (c as any).visualBlueprint || '',
+      }));
+      if (charPayload.length === 0) {
+        toast.error('No characters in the Cast Vault for this hub yet.');
+        return;
+      }
+      const { data, error } = await supabase.functions.invoke('ai-story-director', {
+        body: { hub: storyHub, vocabulary, characters: charPayload, cefrLevel, genre },
+      });
+      if (error) throw error;
+      const cfg = data as { title: string; character_name: string; theme: string; layout: string; prompt: string };
+
+      // Hydrate state
+      setStoryTitle(cfg.title || '');
+      const matched = characters.find((c) => c.name.toLowerCase() === (cfg.character_name || '').toLowerCase());
+      if (matched?.id) setStarringId(matched.id);
+      // Theme → genre (use as-is if it matches our list, otherwise keep current)
+      if (cfg.theme && GENRES.includes(cfg.theme)) {
+        setGenre(cfg.theme);
+      } else if (cfg.theme) {
+        setGenre(cfg.theme);
+      }
+      // Layout → visualStyle
+      const layoutMap: Record<string, typeof visualStyle> = {
+        'Classic': 'classic',
+        'Comic': storyHub === 'academy' ? 'webtoon' : 'comic_western',
+        'Case Study': 'classic',
+      };
+      const nextStyle = layoutMap[cfg.layout] ?? 'classic';
+      setVisualStyle(nextStyle);
+      setCustomPrompt(cfg.prompt || '');
+      setPromptTouched(true);
+      toast.success('Story auto-configured ✓ Review and click Generate.');
+    } catch (e) {
+      console.error('Story Director error:', e);
+      toast.error(e instanceof Error ? e.message : 'Auto-configure failed.');
+    } finally {
+      setDirecting(false);
+    }
+  };
+
 
   const grouped = useMemo(() => {
     const groups: Record<string, CurriculumLessonOption[]> = { kids: [], teen: [], adult: [] };
