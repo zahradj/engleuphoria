@@ -256,9 +256,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .then(() => fetchUserFromDatabase(authUser))
         .then((dbUser) => {
           if (dbUser) {
-            console.log(`${AUTH_FLOW_PREFIX} HYDRATE: canonical user loaded`, { label, role: (dbUser as any).role });
+            const cachedRole = sessionStorage.getItem('auth_resolved_role');
+            const canonicalRole = (dbUser as any).role;
+            console.log(`${AUTH_FLOW_PREFIX} HYDRATE: canonical user loaded`, { label, role: canonicalRole, cachedRole });
             setUser(dbUser);
-            sessionStorage.removeItem('auth_resolved_role');
+            if (cachedRole && cachedRole === canonicalRole) {
+              sessionStorage.removeItem('auth_resolved_role');
+            }
           } else {
             console.warn(`${AUTH_FLOW_PREFIX} HYDRATE: no canonical user; keeping fallback`, { label });
           }
@@ -298,17 +302,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               return;
             }
             
+            if (event === 'SIGNED_IN' && (sessionStorage.getItem('auth_redirect_done') || signInRedirectRef.current)) {
+              console.log(`${AUTH_FLOW_PREFIX} EVENT: SIGNED_IN handled by signIn redirect; skipping listener state mutation`);
+              return;
+            }
+
             setSession(currentSession);
             
             if (currentSession?.user) {
               const fallbackUser = createFallbackUserSync(currentSession.user);
               setUser(fallbackUser);
               setLoading(false);
-
-              if (event === 'SIGNED_IN' && (sessionStorage.getItem('auth_redirect_done') || signInRedirectRef.current)) {
-                console.log(`${AUTH_FLOW_PREFIX} EVENT: SIGNED_IN handled by signIn redirect; skipping listener redirect work`);
-                return;
-              }
 
               if (event !== 'TOKEN_REFRESHED') {
                 hydrateUserInBackground(currentSession.user, `auth-event:${event}`);
