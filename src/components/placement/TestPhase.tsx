@@ -16,32 +16,13 @@ export interface TestResult {
   targetLevel?: string;
 }
 
-interface Question {
-  question: string;
-  options: string[];
-  correctIndex: number;
-  difficulty: number;
-  targetLevel: 'A1' | 'A2' | 'B1' | 'B2' | 'C1';
-  feedback: { correct: string; incorrect: string };
-  audio_script?: string;
-  voice_id?: string;
-  image_url?: string;
-  type?: 'standard' | 'listening_match' | 'visual';
-}
+type Question = BankQuestion;
 
 interface TestPhaseProps {
   age: number;
+  hub?: Hub;
   onComplete: (results: TestResult[]) => void;
 }
-
-// Kids stay on the playful adaptive bank (under 12).
-const PLAYGROUND_QUESTIONS: Question[] = [
-  { question: "Which animal says 'Meow'? 🐱🐶🐸🐦", options: ["🐱 Cat", "🐶 Dog", "🐸 Frog", "🐦 Bird"], correctIndex: 0, difficulty: 0.3, targetLevel: 'A1', feedback: { correct: "That's right! 🎉 Cats say Meow!", incorrect: "Not quite! Cats say Meow! 🐱" } },
-  { question: "What color is the sky on a sunny day? ☀️", options: ["🔴 Red", "🔵 Blue", "🟢 Green", "🟡 Yellow"], correctIndex: 1, difficulty: 0.3, targetLevel: 'A1', feedback: { correct: "Yes! The sky is blue! 🌤️", incorrect: "The sky is blue on a sunny day! 🔵" } },
-  { question: "How do you say 'Hello' to a friend?", options: ["Goodbye!", "Hi there!", "Thank you!", "Sorry!"], correctIndex: 1, difficulty: 0.4, targetLevel: 'A1', feedback: { correct: "Perfect! 'Hi there!' is a great greeting! 👋", incorrect: "We say 'Hi there!' to greet a friend! 👋" } },
-  { question: "How many legs does a dog have?", options: ["Two", "Four", "Six", "Eight"], correctIndex: 1, difficulty: 0.4, targetLevel: 'A1', feedback: { correct: "Correct! Dogs have four legs! 🐕", incorrect: "Dogs have four legs! 🐾" } },
-  { question: "What do you do with a book? 📖", options: ["Eat it", "Read it", "Throw it", "Wear it"], correctIndex: 1, difficulty: 0.5, targetLevel: 'A1', feedback: { correct: "Yes! We read books! 📚", incorrect: "We read books! 📖" } },
-];
 
 // 15-question CEFR Master Assessment for ages 12+ (Academy & Professional hubs).
 // Strictly ordered by progressive difficulty: A1 → A2 → B1 → B2 → C1.
