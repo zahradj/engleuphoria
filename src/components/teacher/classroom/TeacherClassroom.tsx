@@ -630,6 +630,10 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             localStream={media.stream}
             onSwitchCamera={media.switchCamera}
             onSwitchMicrophone={media.switchMicrophone}
+            onToggleSlideNav={() => setSlideNavOpen(v => !v)}
+            slideNavOpen={slideNavOpen}
+            onForceSync={handleForceSync}
+            realtimeConnected={channelStatus === 'SUBSCRIBED'}
             onReconnect={async () => {
               await rtcDisconnect();
               await rtcConnect();
