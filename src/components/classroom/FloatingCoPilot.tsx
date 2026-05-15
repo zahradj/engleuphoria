@@ -138,9 +138,10 @@ export const FloatingCoPilot: React.FC<FloatingCoPilotProps> = ({
       <div className="fixed bottom-6 right-6 z-40">
         <motion.button
           onClick={() => setIsExpanded(true)}
-          className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/30 flex items-center justify-center hover:scale-110 transition-transform"
-          animate={{ boxShadow: ['0 0 15px rgba(168,85,247,0.3)', '0 0 25px rgba(168,85,247,0.5)', '0 0 15px rgba(168,85,247,0.3)'] }}
-          transition={{ duration: 2, repeat: Infinity }}
+          className="w-12 h-12 rounded-full text-white shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
+          style={{ ...theme.buttonGradient, ...theme.glowShadow }}
+          animate={{ scale: [1, 1.06, 1] }}
+          transition={{ duration: 2.4, repeat: Infinity }}
         >
           <Sparkles className="w-5 h-5" />
         </motion.button>
