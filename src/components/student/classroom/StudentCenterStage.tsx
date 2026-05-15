@@ -117,7 +117,14 @@ export const StudentCenterStage: React.FC<StudentCenterStageProps> = ({
 
       {/* Main Slide Display */}
       <div className="flex-1 flex items-center justify-center p-6">
-        <div className="relative w-full max-w-4xl aspect-[16/9] bg-white rounded-xl shadow-2xl overflow-hidden">
+        {(() => {
+          const slideHub = (currentSlide as any)?.hub;
+          const hubBgTint =
+            slideHub === 'playground' ? 'bg-orange-50'
+            : (slideHub === 'success' || slideHub === 'professional') ? 'bg-emerald-50'
+            : 'bg-purple-50';
+          return (
+        <div className={`relative w-full max-w-4xl aspect-[16/9] ${hubBgTint} rounded-xl shadow-2xl overflow-hidden`}>
           {/* Quiz Slide */}
           {isQuizSlide && currentSlide.quizQuestion && currentSlide.quizOptions && sessionId ? (
             <StudentQuizView
