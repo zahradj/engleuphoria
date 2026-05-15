@@ -216,7 +216,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                   try {
                     await autoHealUserRows(currentSession.user);
                     const dbUser = await fetchUserFromDatabase(currentSession.user);
-                    const finalUser = dbUser || await createFallbackUser(currentSession.user);
+                    const finalUser = dbUser || createFallbackUserSync(currentSession.user);
                     if (mounted) {
                       setUser(finalUser);
                       setLoading(false);
@@ -224,7 +224,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                   } catch (err) {
                     console.error('Error in SIGNED_IN state update:', err);
                     if (mounted) {
-                      const fallback = await createFallbackUser(currentSession.user);
+                      const fallback = createFallbackUserSync(currentSession.user);
                       setUser(fallback);
                       setLoading(false);
                     }
@@ -240,13 +240,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                   try {
                     const dbUser = await fetchUserFromDatabase(currentSession.user);
                     if (mounted) {
-                      const finalUser = dbUser || await createFallbackUser(currentSession.user);
+                      const finalUser = dbUser || createFallbackUserSync(currentSession.user);
                       setUser(finalUser);
                     }
                   } catch (error) {
                     console.error('Error in deferred user fetch:', error);
                     if (mounted) {
-                      const fallbackUser = await createFallbackUser(currentSession.user);
+                      const fallbackUser = createFallbackUserSync(currentSession.user);
                       setUser(fallbackUser);
                     }
                   }
@@ -274,7 +274,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (initialSession?.user) {
             // Show fallback user (auth metadata) immediately so we don't block
             // render on a slow DB fetch. Real DB user swaps in below.
-            const fallback = await createFallbackUser(initialSession.user);
+            const fallback = createFallbackUserSync(initialSession.user);
             if (mounted) setUser(fallback);
             initialFetchDoneRef.current = true;
             setLoading(false);
@@ -322,7 +322,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         try {
           const { data: { session: currentSession } } = await supabase.auth.getSession();
           if (currentSession?.user && mounted) {
-            const fallback = await createFallbackUser(currentSession.user);
+            const fallback = createFallbackUserSync(currentSession.user);
             setUser(fallback);
           }
         } catch (e) {
