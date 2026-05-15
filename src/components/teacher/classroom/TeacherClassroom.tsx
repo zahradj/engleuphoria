@@ -543,6 +543,16 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
         <Button
           variant="outline"
           size="icon"
+          onClick={() => setSlideNavOpen(v => !v)}
+          title={slideNavOpen ? 'Hide slides' : 'Browse slides'}
+          aria-label="Toggle slide navigator"
+          className="h-8 w-8 rounded-full bg-background/90 backdrop-blur-md shadow-sm hover:bg-background"
+        >
+          <LayoutGrid className="h-3.5 w-3.5" />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
           onClick={handleForceSync}
           title="Force sync"
           aria-label="Force sync"
