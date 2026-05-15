@@ -11,6 +11,7 @@ import { ThemeModeProvider } from "@/hooks/useThemeMode";
 import { ImprovedProtectedRoute } from "@/components/auth/ImprovedProtectedRoute";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { RoleThemeProvider } from "@/contexts/RoleThemeContext";
+import { DictionaryProvider } from "@/components/lesson-player/DictionaryContext";
 import { AppErrorBoundary } from "@/components/common/AppErrorBoundary";
 import { lazy, Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -97,6 +98,7 @@ const App = () => {
         <AuthProvider>
           <LessonProvider>
             <RoleThemeProvider>
+              <DictionaryProvider>
               <TooltipProvider>
                 <Toaster />
                 <Sonner />
@@ -362,6 +364,7 @@ const App = () => {
                   </AppErrorBoundary>
                 </BrowserRouter>
               </TooltipProvider>
+              </DictionaryProvider>
             </RoleThemeProvider>
           </LessonProvider>
         </AuthProvider>
