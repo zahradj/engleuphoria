@@ -19,9 +19,11 @@ type HubIndex = 0 | 1 | 2;
 // CursorTrail: 0 = Playground, 1 = Academy, 2 = Professional.
 const hubIndex = (hub: Hub): HubIndex => (hub === 'playground' ? 0 : hub === 'academy' ? 1 : 2);
 
+// Strict age brackets per Three-Funnel architecture:
+// 4-9 → Playground, 10-17 → Academy, 18+ → Success.
 const hubFromAge = (age: number): Hub => {
-  if (age > 0 && age < 13) return 'playground';
-  if (age >= 13 && age < 18) return 'academy';
+  if (age > 0 && age < 10) return 'playground';
+  if (age >= 10 && age < 18) return 'academy';
   return 'professional';
 };
 
