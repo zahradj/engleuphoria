@@ -64,7 +64,22 @@ Deno.serve(async (req) => {
       visual_theme: bodyVisualTheme,
       learning_objective: bodyLearningObjective,
       final_output_task: bodyFinalOutputTask,
+      starring_character, // ← optional Cast Vault character to feature in this lesson
     } = body || {};
+
+    // ── Casting Director block (shared across all hub prompts) ──
+    let castingBlock = '';
+    if (starring_character && typeof starring_character === 'object') {
+      const cName = String((starring_character as any).name || '').trim();
+      const cPersona = String((starring_character as any).personality_traits || '').trim();
+      const cVisual = String((starring_character as any).visual_blueprint || '').trim();
+      if (cName) {
+        castingBlock = `\n\nSTARRING CHARACTER (MANDATORY): Include the character "${cName}" throughout this lesson. ` +
+          (cPersona ? `Their personality is: ${cPersona}. ` : '') +
+          (cVisual ? `Their visual description (restate in EVERY image_prompt / "AI:" subject so the artwork stays consistent): ${cVisual}. ` : '') +
+          `Use ${cName} as a recurring narrator, example speaker, or story protagonist where it fits naturally. Do not invent a different main character.`;
+      }
+    }
 
     const language_variant: string =
       (typeof bodyLanguageVariant === 'string' && bodyLanguageVariant) ||
