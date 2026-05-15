@@ -13,6 +13,8 @@ import { Progress } from '@/components/ui/progress';
 import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
+import { CompanionSelector } from '@/components/companions/CompanionSelector';
+import type { Companion } from '@/constants/companions';
 
 export interface OnboardingData {
   language: LanguageCode;
@@ -38,7 +40,7 @@ const StudentOnboardingFlow: React.FC = () => {
     learningPath: null,
   });
 
-  const steps = ['Language', 'Welcome', 'Interests', 'Learning Style', 'Quick Check', 'Your Path'];
+  const steps = ['Language', 'Welcome', 'Interests', 'Learning Style', 'Quick Check', 'Companion', 'Your Path'];
   const progress = ((currentStep + 1) / steps.length) * 100;
 
   const handleNext = () => {
@@ -176,6 +178,13 @@ const StudentOnboardingFlow: React.FC = () => {
           />
         )}
         {currentStep === 5 && (
+          <CompanionSelector
+            hub={studentLevel === 'playground' ? 'playground' : 'academy'}
+            onComplete={(_c: Companion) => handleNext()}
+            onBack={handleBack}
+          />
+        )}
+        {currentStep === 6 && (
           <LearningPathStep
             studentLevel={studentLevel}
             interests={onboardingData.interests}

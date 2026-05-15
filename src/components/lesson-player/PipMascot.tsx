@@ -1,11 +1,22 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import pipMascotImg from '@/assets/pip-mascot.png';
+import { useActiveCompanion } from '@/hooks/useActiveCompanion';
 
 interface PipMascotProps {
   size?: number;
   animation?: 'idle' | 'bounce' | 'wave' | 'jump' | 'celebrate';
   className?: string;
+  /** Override the image source (e.g. when rendering for a specific companion). */
+  src?: string;
+  /** Override the alt text. */
+  alt?: string;
+  /**
+   * When true (default), the mascot reads the student's chosen companion
+   * from `useActiveCompanion` and renders its avatar. Set to false to
+   * always render the static Pip illustration.
+   */
+  dynamic?: boolean;
 }
 
 const ANIMATIONS = {
@@ -31,13 +42,25 @@ const ANIMATIONS = {
   },
 };
 
-export default function PipMascot({ size = 80, animation = 'idle', className = '' }: PipMascotProps) {
+export default function PipMascot({
+  size = 80,
+  animation = 'idle',
+  className = '',
+  src,
+  alt,
+  dynamic = true,
+}: PipMascotProps) {
   const anim = ANIMATIONS[animation];
+  const { companion } = useActiveCompanion();
+
+  // Resolve image: explicit src > dynamic companion avatar > default Pip.
+  const resolvedSrc = src ?? (dynamic && companion?.avatar_url ? companion.avatar_url : pipMascotImg);
+  const resolvedAlt = alt ?? (dynamic && companion?.name ? companion.name : 'Pip the Penguin');
 
   return (
     <motion.img
-      src={pipMascotImg}
-      alt="Pip the Penguin"
+      src={resolvedSrc}
+      alt={resolvedAlt}
       width={size}
       height={size}
       loading="lazy"
@@ -48,3 +71,4 @@ export default function PipMascot({ size = 80, animation = 'idle', className = '
     />
   );
 }
+
