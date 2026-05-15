@@ -41,6 +41,33 @@ const VOICES = [
   { id: 'IKne3meq5aSn9XLyUdCD', label: 'Charlie · upbeat male' },
 ];
 
+// Image style presets — chosen per-hub so visuals stay on-brand.
+// We append the modifier to the user's prompt before sending it to the edge function
+// (no edge-function changes — pure UI augmentation).
+const IMAGE_STYLES: Record<'playground' | 'academy' | 'success', { id: string; label: string; modifier: string }[]> = {
+  playground: [
+    { id: 'flat-cartoon',  label: '🎨 Flat Cartoon',         modifier: 'flat cartoon illustration, bold outlines, bright cheerful colors, white background, no text, kid-friendly' },
+    { id: 'storybook',     label: '📖 Storybook',            modifier: 'children\'s storybook illustration, soft watercolor, warm lighting, friendly characters, no text' },
+    { id: 'sticker',       label: '✨ Sticker',              modifier: 'die-cut sticker style, thick white outline, vivid pop colors, glossy finish, white background, no text' },
+    { id: 'claymation',    label: '🧱 Claymation',           modifier: 'cute claymation style, soft plasticine textures, rounded shapes, studio lighting, white background, no text' },
+    { id: 'pixel',         label: '👾 Pixel Art',            modifier: '16-bit pixel art, retro game style, bright palette, transparent or white background, no text' },
+  ],
+  academy: [
+    { id: 'flat-vector',   label: '📐 Flat Vector',          modifier: 'modern flat vector illustration, geometric shapes, clean lines, indigo and purple accent palette, white background, no text' },
+    { id: 'editorial',     label: '📰 Editorial',            modifier: 'editorial illustration, magazine quality, sophisticated color palette, subtle texture, white background, no text' },
+    { id: 'photo-real',    label: '📷 Photo-real',           modifier: 'photo-realistic, natural lighting, shallow depth of field, lifestyle photography, no text' },
+    { id: '3d-soft',       label: '🟣 3D Soft',              modifier: 'soft 3D render, isometric, pastel colors, rounded geometry, subtle shadows, white background, no text' },
+    { id: 'sketch',        label: '✏️ Sketch',               modifier: 'hand-drawn sketch, pencil lines, light watercolor wash, notebook style, white background, no text' },
+  ],
+  success: [
+    { id: 'corporate',     label: '💼 Corporate Flat',       modifier: 'professional flat vector illustration, business setting, emerald and teal accent palette, clean modern, white background, no text' },
+    { id: 'photo-real',    label: '📷 Photo-real',           modifier: 'photo-realistic professional photography, office or lifestyle setting, natural lighting, no text' },
+    { id: 'minimal-line',  label: '➖ Minimal Line',         modifier: 'minimal line art, single weight stroke, monochrome with one accent color, lots of white space, no text' },
+    { id: 'editorial',     label: '📰 Editorial',            modifier: 'editorial business illustration, magazine quality, mature color palette, subtle texture, white background, no text' },
+    { id: '3d-soft',       label: '🟢 3D Soft',              modifier: 'soft 3D render, isometric, mature pastel palette, rounded geometry, subtle shadows, white background, no text' },
+  ],
+};
+
 function YoutubeId(url: string): string | null {
   if (!url) return null;
   const m = url.match(
@@ -58,17 +85,27 @@ export const SlideMediaPanel: React.FC<SlideMediaPanelProps> = ({
   const [imgPrompt, setImgPrompt] = useState<string>(
     slide?.image_prompt || slide?.word || slide?.title || '',
   );
+  const styleOptions = IMAGE_STYLES[hub] || IMAGE_STYLES.academy;
+  const [imgStyle, setImgStyle] = useState<string>(
+    slide?.image_style || styleOptions[0].id,
+  );
   const [imgBusy, setImgBusy] = useState(false);
   const [uploadBusy, setUploadBusy] = useState(false);
+
+  const buildStyledPrompt = (raw: string): string => {
+    const preset = styleOptions.find((s) => s.id === imgStyle);
+    if (!preset) return raw;
+    return `${raw.trim()}. Style: ${preset.modifier}`;
+  };
 
   const generateImage = async () => {
     const p = imgPrompt.trim();
     if (!p) { toast.error('Add an image prompt first'); return; }
     setImgBusy(true);
-    onPatch({ image_loading: true, image_error: null, image_prompt: p });
+    onPatch({ image_loading: true, image_error: null, image_prompt: p, image_style: imgStyle });
     try {
-      const res = await generateSlideImage(p, safeLesson, slideId, hub);
-      onPatch({ image_url: res.url, image_prompt: p, image_loading: false, image_error: null });
+      const res = await generateSlideImage(buildStyledPrompt(p), safeLesson, slideId, hub);
+      onPatch({ image_url: res.url, image_prompt: p, image_style: imgStyle, image_loading: false, image_error: null });
       toast.success('Image generated');
     } catch (e: any) {
       onPatch({ image_loading: false, image_error: e?.message || 'Image generation failed' });
@@ -159,7 +196,7 @@ export const SlideMediaPanel: React.FC<SlideMediaPanelProps> = ({
     if (!p) { toast.error('Enter the word first'); return; }
     try {
       const res = await generateSlideImage(
-        `Vocabulary illustration for: ${p}, clean flat vector, white background, no text`,
+        buildStyledPrompt(`Vocabulary illustration for: ${p}`),
         safeLesson, `${slideId}-card-${i}`, hub,
       );
       updateCard(i, { image_url: res.url });
@@ -204,12 +241,39 @@ export const SlideMediaPanel: React.FC<SlideMediaPanelProps> = ({
             )}
           </div>
           <div className="flex-1 space-y-2">
+            <div>
+              <Label className="text-xs">Image Style</Label>
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                {styleOptions.map((s) => {
+                  const active = s.id === imgStyle;
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => { setImgStyle(s.id); onPatch({ image_style: s.id }); }}
+                      className={
+                        'text-[11px] font-semibold rounded-full px-2.5 py-1 border transition ' +
+                        (active
+                          ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm'
+                          : 'bg-white border-slate-300 text-slate-700 hover:border-indigo-400 hover:text-indigo-700')
+                      }
+                      title={s.modifier}
+                    >
+                      {s.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-1 text-[10px] text-muted-foreground leading-snug">
+                Style is appended to your prompt and reused for flashcard images.
+              </p>
+            </div>
             <Label className="text-xs">AI Image Prompt</Label>
             <Textarea
               rows={2}
               value={imgPrompt}
               onChange={(e) => setImgPrompt(e.target.value)}
-              placeholder="e.g. happy cartoon dog wagging its tail, flat illustration"
+              placeholder="e.g. happy cartoon dog wagging its tail"
             />
             <div className="flex gap-2">
               <Button size="sm" onClick={generateImage} disabled={imgBusy} className="gap-1">
