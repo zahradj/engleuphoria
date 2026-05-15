@@ -244,7 +244,7 @@ export const CenterStage: React.FC<CenterStageProps> = ({
       <div className="flex-1 flex items-center justify-center p-1 sm:p-2 min-h-0">
         {activeCanvasTab === 'slides' && (
           <>
-            <div className="relative w-full h-full max-h-full bg-white rounded-lg shadow-xl overflow-hidden">
+            <div className="relative w-full h-full max-h-full ${hubBgTint} rounded-lg shadow-xl overflow-hidden">
               {renderSlideContent()}
               {!isQuizSlide && !isPollSlide && (
                 <CollaborativeCanvas
