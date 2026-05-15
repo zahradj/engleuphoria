@@ -616,6 +616,34 @@ export const StoryCreator: React.FC = () => {
         </div>
 
         <div className="space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <Label className="text-sm font-semibold">Story Prompt</Label>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleAutoFillPrompt}
+              disabled={busy}
+              className="h-7 px-2 text-xs gap-1"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              Auto-Fill Context
+            </Button>
+          </div>
+          <Textarea
+            placeholder="The AI brief — auto-filled from lesson context. Edit freely to add details."
+            value={customPrompt}
+            onChange={(e) => { setCustomPrompt(e.target.value); setPromptTouched(true); }}
+            disabled={busy}
+            rows={4}
+            className="resize-y"
+          />
+          <p className="text-xs text-slate-500">
+            Auto-updates from your linked lesson, vocabulary, CEFR and genre — until you start typing.
+          </p>
+        </div>
+
+        <div className="space-y-2">
           <Label className="text-sm font-semibold">🎭 Starring Character (optional)</Label>
           <Select value={starringId || 'none'} onValueChange={(v) => setStarringId(v === 'none' ? '' : v)}>
             <SelectTrigger><SelectValue placeholder="No featured character" /></SelectTrigger>
