@@ -8,6 +8,7 @@ import { BlueprintEngine } from './steps/BlueprintEngine';
 import { LibraryManager } from './steps/LibraryManager';
 import { TrialCreator } from './steps/TrialCreator';
 import { StoryCreator } from './steps/StoryCreator';
+import { CharacterCreator } from './characters/CharacterCreator';
 import PlaygroundCreator from '@/pages/PlaygroundCreator';
 import AcademyCreator from '@/pages/AcademyCreator';
 import SuccessCreator from '@/pages/SuccessCreator';
