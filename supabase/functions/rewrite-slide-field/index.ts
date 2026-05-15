@@ -1,5 +1,6 @@
 // Rewrite a single slide field to align with the lesson blueprint.
 // Uses Lovable AI Gateway (Gemini Flash) — cheap & fast.
+import { slideTypeInstruction } from "../_shared/slideContextRules.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
