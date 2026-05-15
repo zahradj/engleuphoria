@@ -33,8 +33,8 @@ const calculateSystemTag = (dateOfBirth: string): 'KIDS' | 'TEENS' | 'ADULTS' =>
   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
     age--;
   }
-  if (age >= 4 && age <= 10) return 'KIDS';
-  if (age >= 11 && age <= 17) return 'TEENS';
+  if (age >= 4 && age < 10) return 'KIDS';
+  if (age >= 10 && age < 18) return 'TEENS';
   return 'ADULTS';
 };
 
