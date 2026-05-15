@@ -29,30 +29,31 @@ export const HUB_ART_PROFILES: Record<ArtHub, HubArtProfile> = {
     label: "Playground Cartoon",
     style_suffix:
       ", flat 2D animation style, cute and child-friendly" +
-      ", the image MUST use a dominant color palette of bright orange and sunny yellow" +
-      ", centered composition on a clean background, no text, no watermarks, kid-safe.",
+      ", warm natural colors with subtle orange and yellow accents (do not make the image overwhelmingly orange)" +
+      ", clean white background or light natural environment, centered composition, no text, no watermarks, kid-safe.",
     negative:
       "no scary content, no realistic photography, no weapons, no horror, no dark themes, no text overlay.",
     safe_search: "strict",
     max_video_seconds: 240,
   },
   Academy: {
-    label: "Academy Comic",
+    label: "Academy Slice-of-Life",
     style_suffix:
-      ", high-quality comic book illustration style, dynamic graphic novel art" +
-      ", the image MUST use a dominant color palette of deep purple and electric purplish-blue" +
-      ", clean composition, no text, no watermarks, teen-focused.",
+      ", clean slice-of-life webcomic style, realistic everyday lifestyle situations" +
+      ", use natural realistic colors with only very subtle purple accents" +
+      ", do not make the image overwhelmingly purple and do not use sci-fi or fantasy styles" +
+      ", clean white background or light natural environment, no text, no watermarks, teen-focused.",
     negative:
-      "no childish claymation, no photorealism, no clutter, no text overlay.",
+      "no superhero, no sci-fi, no fantasy, no neon purple wash, no dark moody lighting, no clutter, no text overlay.",
     safe_search: "moderate",
     max_video_seconds: 480,
   },
   Success: {
     label: "Success Editorial",
     style_suffix:
-      ", modern professional editorial photography, sleek, highly realistic and premium" +
-      ", the image MUST use a dominant color palette of sophisticated mint green and emerald green" +
-      ", natural soft lighting, shallow depth of field, premium magazine quality, no text, no watermarks.",
+      ", modern professional editorial photography, sleek and highly realistic" +
+      ", natural realistic colors with only subtle mint and emerald green accents (do not make the image overwhelmingly green)" +
+      ", clean white background or light natural environment, natural soft lighting, shallow depth of field, no text, no watermarks.",
     negative:
       "no cartoons, no childish illustration, no neon, no clutter, no text overlay.",
     safe_search: "moderate",
