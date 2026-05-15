@@ -31,26 +31,34 @@ export const CollaborativeCanvas: React.FC<CollaborativeCanvasProps> = ({
   const [currentPoints, setCurrentPoints] = useState<Array<{ x: number; y: number }>>([]);
   const lastPointRef = useRef<{ x: number; y: number } | null>(null);
 
-  // Redraw all strokes when strokes array changes
-  useEffect(() => {
+  // Redraw all strokes when strokes array changes OR canvas resizes
+  const redrawAll = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-
-    // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Draw all strokes
-    strokes.forEach(stroke => {
-      drawStroke(ctx, stroke);
-    });
+    strokes.forEach(stroke => drawStroke(ctx, stroke, canvas.width, canvas.height));
   }, [strokes]);
 
-  const drawStroke = (ctx: CanvasRenderingContext2D, stroke: WhiteboardStroke) => {
+  useEffect(() => {
+    redrawAll();
+  }, [redrawAll]);
+
+  const drawStroke = (
+    ctx: CanvasRenderingContext2D,
+    stroke: WhiteboardStroke,
+    canvasW: number,
+    canvasH: number,
+  ) => {
     const { points, color, width, tool } = stroke.strokeData;
-    if (points.length < 2) return;
+    if (!points || points.length < 2) return;
+
+    // Points may be normalized (0..1) — new format — or legacy raw pixels.
+    // Detect normalized: all coords <= 1.5.
+    const isNormalized = points.every((p: any) => Math.abs(p.x) <= 1.5 && Math.abs(p.y) <= 1.5);
+    const toX = (x: number) => (isNormalized ? x * canvasW : x);
+    const toY = (y: number) => (isNormalized ? y * canvasH : y);
 
     ctx.save();
     ctx.lineCap = 'round';
@@ -72,12 +80,10 @@ export const CollaborativeCanvas: React.FC<CollaborativeCanvasProps> = ({
     }
 
     ctx.beginPath();
-    ctx.moveTo(points[0].x, points[0].y);
-
+    ctx.moveTo(toX(points[0].x), toY(points[0].y));
     for (let i = 1; i < points.length; i++) {
-      ctx.lineTo(points[i].x, points[i].y);
+      ctx.lineTo(toX(points[i].x), toY(points[i].y));
     }
-
     ctx.stroke();
     ctx.restore();
   };
@@ -167,14 +173,19 @@ export const CollaborativeCanvas: React.FC<CollaborativeCanvasProps> = ({
       return;
     }
 
-    // Send stroke to be broadcast
+    // Send stroke to be broadcast — normalize points to 0..1 so any
+    // recipient (different viewport size) can render at the right place.
     const tool = activeTool === 'eraser' ? 'eraser' : activeTool === 'highlighter' ? 'highlighter' : 'pen';
-    
+    const canvas = canvasRef.current;
+    const w = Math.max(1, canvas?.width ?? 1);
+    const h = Math.max(1, canvas?.height ?? 1);
+    const normalized = currentPoints.map(p => ({ x: p.x / w, y: p.y / h }));
+
     onAddStroke({
       userId,
       userName,
       strokeData: {
-        points: currentPoints,
+        points: normalized,
         color: activeColor,
         width: tool === 'eraser' ? 12 : tool === 'highlighter' ? 8 : 3,
         tool
@@ -186,7 +197,7 @@ export const CollaborativeCanvas: React.FC<CollaborativeCanvasProps> = ({
     lastPointRef.current = null;
   }, [isDrawing, currentPoints, activeTool, activeColor, userId, userName, onAddStroke]);
 
-  // Resize canvas to match container
+  // Resize canvas to match container, then redraw existing strokes.
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -194,17 +205,22 @@ export const CollaborativeCanvas: React.FC<CollaborativeCanvasProps> = ({
     const resizeCanvas = () => {
       const parent = canvas.parentElement;
       if (!parent) return;
-
       const rect = parent.getBoundingClientRect();
       canvas.width = rect.width;
       canvas.height = rect.height;
+      redrawAll();
     };
 
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
+    const ro = new ResizeObserver(resizeCanvas);
+    if (canvas.parentElement) ro.observe(canvas.parentElement);
 
-    return () => window.removeEventListener('resize', resizeCanvas);
-  }, []);
+    return () => {
+      window.removeEventListener('resize', resizeCanvas);
+      ro.disconnect();
+    };
+  }, [redrawAll]);
 
   const getCursorStyle = () => {
     if (!canDraw) return 'default';

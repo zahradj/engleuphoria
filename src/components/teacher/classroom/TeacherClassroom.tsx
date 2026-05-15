@@ -27,7 +27,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AnimatePresence } from "framer-motion";
-import { Wand2, RefreshCw } from "lucide-react";
+import { Wand2, RefreshCw, LayoutGrid } from "lucide-react";
 import LibraryDrawer from "@/components/lesson-player/LibraryDrawer";
 import { useIdleOpacity } from "@/hooks/useIdleOpacity";
 import { useClassroomTimer } from "@/hooks/classroom/useClassroomTimer";
@@ -76,6 +76,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   const [isZenMode, setIsZenMode] = useState(false);
   const [zenElapsed, setZenElapsed] = useState(0);
   const [commsCollapsed, setCommsCollapsed] = useState(true);
+  const [slideNavOpen, setSlideNavOpen] = useState(false);
 
   // Star celebration state
   const [studentStars, setStudentStars] = useState(0);
@@ -542,6 +543,16 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
         <Button
           variant="outline"
           size="icon"
+          onClick={() => setSlideNavOpen(v => !v)}
+          title={slideNavOpen ? 'Hide slides' : 'Browse slides'}
+          aria-label="Toggle slide navigator"
+          className="h-8 w-8 rounded-full bg-background/90 backdrop-blur-md shadow-sm hover:bg-background"
+        >
+          <LayoutGrid className="h-3.5 w-3.5" />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
           onClick={handleForceSync}
           title="Force sync"
           aria-label="Force sync"
@@ -748,7 +759,17 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
           />
         </div>
 
-        {/* Right: Slide Navigator — hidden by teacher request to maximize lesson frame */}
+        {/* Right: Slide Navigator — toggled via header button */}
+        {!isZenMode && slideNavOpen && (
+          <SlideNavigator
+            slides={displayedSlides as any}
+            currentSlideIndex={currentSlide}
+            onSlideSelect={handleSlideSelect}
+            lessonTitle={activeLessonTitle}
+            isCollapsed={false}
+            onToggleCollapse={() => setSlideNavOpen(false)}
+          />
+        )}
       </div>
 
       {/* Teacher Instructions Sidebar (hidden in Zen) */}
