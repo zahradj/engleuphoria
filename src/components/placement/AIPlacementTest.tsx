@@ -29,7 +29,7 @@ const hubFromAge = (age: number): Hub => {
   return 'professional';
 };
 
-type Phase = 'demographics' | 'test' | 'processing' | 'complete';
+type Phase = 'welcome' | 'demographics' | 'test' | 'processing' | 'complete';
 type TestStage = 'mcq' | 'comprehensive';
 
 interface AIPlacementTestProps {
