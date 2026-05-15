@@ -982,7 +982,10 @@ function renderSlideInner({ slide, t }: { slide: Slide; t: ThemeTokens }) {
 }
 
 export function SlideRenderer({ slide, t }: { slide: Slide; t: ThemeTokens }) {
-  const skipHeader = ['canvas_game', 'living_canvas', 'scaffolded_media', 'vocab_solo'].includes(slide.type as string);
+  // Slides that render their own image inline (cover, vocab 50/50, etc.)
+  // must NOT also get the floating SlideMediaHeader image — it produces a
+  // duplicate "small image at top" + "image inside card" bug.
+  const skipHeader = ['intro', 'vocab', 'canvas_game', 'living_canvas', 'scaffolded_media', 'vocab_solo'].includes(slide.type as string);
   return (
     <>
       {!skipHeader && <SlideMediaHeader slide={slide} />}
