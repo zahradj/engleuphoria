@@ -1,9 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Volume2, Loader2 } from 'lucide-react';
 import ChatBubble from './ChatBubble';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { VocabularyImage } from '@/components/ui/VocabularyImage';
+import { buildPlacementBank, type Hub, type BankQuestion } from './questionBanks';
 
 export interface TestResult {
   questionIndex: number;
