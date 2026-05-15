@@ -99,7 +99,7 @@ export const LiveReactionBar: React.FC<LiveReactionBarProps> = ({
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`fixed bottom-6 right-24 z-40 flex items-center gap-1 px-2 py-1.5 backdrop-blur-xl bg-white/70 border border-white/60 ${theme.radiusClass}`}
+          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1 px-2 py-1.5 backdrop-blur-xl bg-white/70 border border-white/60 ${theme.radiusClass}`}
           style={theme.glowShadow}
         >
           {REACTIONS.map((emoji) => (

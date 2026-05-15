@@ -22,18 +22,17 @@ export const StudentMiniDock: React.FC<StudentMiniDockProps> = ({
 }) => {
   if (!drawingEnabled) {
     return (
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[70] pointer-events-none">
-        <div className="flex items-center gap-2 bg-background/80 backdrop-blur-md rounded-full px-4 py-2 shadow-lg border border-border text-xs text-muted-foreground">
+      <div className="absolute left-3 top-1/2 -translate-y-1/2 z-[70] pointer-events-none">
+        <div className="flex flex-col items-center gap-2 bg-background/80 backdrop-blur-md rounded-full px-2 py-3 shadow-lg border border-border text-[10px] text-muted-foreground">
           <Lock className="h-3.5 w-3.5" />
-          Teacher hasn't enabled drawing
         </div>
       </div>
     );
   }
 
   return (
-    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[70] pointer-events-auto">
-      <div className="flex items-center gap-1 bg-background/85 backdrop-blur-xl rounded-full px-2 py-2 shadow-xl border border-border">
+    <div className="absolute left-3 top-1/2 -translate-y-1/2 z-[70] pointer-events-auto">
+      <div className="flex flex-col items-center gap-1 bg-background/85 backdrop-blur-xl rounded-full px-2 py-2 shadow-xl border border-border">
         <Button
           size="icon"
           variant={activeTool === 'pointer' ? 'default' : 'ghost'}
@@ -61,7 +60,7 @@ export const StudentMiniDock: React.FC<StudentMiniDockProps> = ({
         >
           <Eraser className="h-4 w-4" />
         </Button>
-        <div className="h-5 w-px bg-border mx-1" />
+        <div className="w-5 h-px bg-border my-1" />
         <Popover>
           <PopoverTrigger asChild>
             <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full" title="Color">
