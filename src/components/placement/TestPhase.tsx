@@ -334,7 +334,7 @@ const TestPhase = ({ age, hub, onComplete }: TestPhaseProps) => {
                         ) : isPlaying ? (
                           <>
                             <Volume2 className="w-5 h-5 animate-pulse" />
-                            {t('placement.action.loading')}
+                            {t('placement.action.playing')}
                           </>
                         ) : (
                           <>
