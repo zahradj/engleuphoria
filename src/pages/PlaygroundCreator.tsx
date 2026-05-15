@@ -7,6 +7,7 @@ import { detectLessonHub, creatorPathFor, deriveCefrLevel } from '@/utils/creato
 import { generateOnePlaygroundImage } from '@/hooks/usePlaygroundImages';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { homeworkGuardReason, generateHomeworkSafe } from '@/lib/homeworkGuard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SlideMediaPanel } from '@/components/creator-studio/shared/SlideMediaPanel';
 import { PreviewModeToggle, type PreviewMode } from '@/components/creator-studio/shared/PreviewModeToggle';
