@@ -1,93 +1,52 @@
+## Problem
 
-# Plan — Stabilize Homework API + 4-Skill Placement Test
+On `/academy-creator`, vocabulary slides do not show as a 50/50 card with the image on the right. Instead the image sits in a small centered strip *above* the text.
 
-## Part A — Debug the 502 on Homework generation (do first)
+Why: `AcademyCreator.tsx` renders every non-phonics / non-storybook slide through `UniversalMediaShell` (which stacks a hero image on top) wrapping `SlideRenderer` (which renders `VocabSlide` — text only). So the vocab slide ends up as **image stacked above text**, never the intended 2-column split.
 
-### What I found
-- The failing call is `supabase.functions.invoke('generate-homework')` from `HomeworkPlayer` / homework dialog.
-- Inspecting `supabase/functions/generate-homework/index.ts`:
-  - Required env: `LOVABLE_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`. All are present in project secrets — no missing key.
-  - CORS headers are set; OPTIONS handled. CORS is not the cause.
-  - The function explicitly returns `502` in 4 places, all relating to the AI Gateway:
-    1. `aiRes.ok === false` → `502 "AI gateway error <status>"`
-    2. empty `content` → `502 "AI returned empty response"`
-    3. JSON parse failure → `502 "AI returned invalid JSON"`
-    4. shape validation failure → `502 "AI response did not match the 3-activity schema"`
-  - Sister function `generate-daily-lesson` is currently logging `402 Payment Required` from the Lovable AI gateway and `503` from Gemini direct → strongly suggests the 502 is the same upstream AI quota / overload bubbling up.
-- The client log `body={}` means the function reached the runtime but returned a 502 with a JSON error body that the SDK could not surface — `FunctionsHttpError` swallows the body.
+The correct premium 50/50 component already exists: `src/components/lesson/VocabSlideSplit.tsx` (text LEFT, image RIGHT, hub-themed). It's just never wired into the Academy creator preview.
 
-### Root cause (most likely)
-Upstream AI gateway is returning 402 (out of credits) or the model returns malformed JSON, and `generate-homework` correctly translates that to a 502 — but the frontend has no visibility, so it just looks like a dead endpoint.
+## Fix (frontend, presentation only)
 
-### Fixes (frontend + edge, no logic refactor)
-1. **Surface the real error** in `generate-homework` callsite: read `data?.error` / `data?.detail` from the response instead of relying only on the `error` thrown by the SDK; toast a human-readable message ("AI service is temporarily unavailable — please retry in a moment.") with the underlying status.
-2. **Edge function resilience** in `generate-homework`:
-   - On `aiRes.status === 402` or `429` or `5xx`, fall back to `gemini-direct` (same pattern already used in `generate-daily-lesson`) using `GEMINI_API_KEY`.
-   - On JSON parse failure, attempt one repair pass (extract first `{...}` block) before returning 502.
-   - Return `200` with `{ success: false, retryable: true, reason }` for transient AI failures so the UI can show retry instead of a hard 502.
-3. **Add retry button** in `HomeworkPlayer` when generation fails (single re-invocation, no auto-loop).
-4. **Verify** by calling the function via `supabase--curl_edge_functions` with a real lesson payload and confirming a 200 response, then checking edge logs.
+**File:** `src/pages/AcademyCreator.tsx` — `renderSlide` block (around lines 803–825).
 
-Out of scope per the Charter: no changes to the AI prompt, model selection logic, or evaluator.
+Add a branch for `vocab` (and `vocab_solo`) so they bypass `UniversalMediaShell` and render through `VocabSlideSplit` directly:
 
-## Part B — 4-Skill Comprehensive Placement Test
-
-Refactor `src/components/placement/AIPlacementTest.tsx` into a 4-phase wizard. Existing demographics step stays; the single `TestPhase` is replaced by 4 sequential phases.
-
-### New file structure
-```text
-src/components/placement/
-  AIPlacementTest.tsx              (orchestrator — extended)
-  phases/
-    ListeningPhase.tsx             (NEW — ElevenLabs audio + 4-image grid)
-    ReadingPhase.tsx               (NEW — passage + 3 MCQs)
-    WritingPhase.tsx               (NEW — image prompt + Textarea, min chars)
-    SpeakingPhase.tsx              (NEW — MediaRecorder + playback)
-  ComprehensiveProgressBar.tsx     (NEW — 4-stage stepper)
+```tsx
+} else if (sType === 'vocab' || sType === 'vocab_solo') {
+  const s = slide as any;
+  return (
+    <VocabSlideSplit
+      hub="academy"
+      word={s.word}
+      phonetic_spelling={s.phonetic_spelling}
+      definition={s.definition}
+      example_sentence={s.example}
+      image_url={s.image_url}
+      audio_url={s.audio_url || s.voice?.audio_url}
+    />
+  );
+} else {
+  // existing UniversalMediaShell + SlideRenderer fallback
+}
 ```
 
-### Per-phase behavior
-- **Listening (3 items)**: uses `playElevenLabs()` from `@/lib/elevenLabsAudio` for the prompt audio. Shows 4 image cards (placeholder.svg for now). Selecting the correct image advances; wrong logged but allowed.
-- **Reading (1 passage, 3 MCQs)**: passage in elevated typography card, MCQs below. All 3 must be answered to enable Next.
-- **Writing (1 prompt)**: image + prompt + `<Textarea>`; Next disabled until ≥120 chars and ≥3 sentences.
-- **Speaking (1 prompt)**: reuse `MediaRecorder` pattern from `src/hooks/useVoiceRecording.ts`. Pulsing-red mic button while recording, playback control, re-record, then submit. Stores `Blob` in state.
-
-### State + submission
+Add the import:
 ```ts
-type Submission = {
-  listening: { itemId: string; choice: string; correct: boolean }[];
-  reading:   { qid: string; choice: string; correct: boolean }[];
-  writing:   { prompt: string; text: string };
-  speaking:  { prompt: string; audioBlob: Blob | null; transcript?: string };
-};
+import VocabSlideSplit from '@/components/lesson/VocabSlideSplit';
 ```
-On final Submit:
-1. Compute a deterministic preliminary CEFR (existing `calculateCefrLevel` on listening+reading correct count, scaled to /15) so the existing `usePlacementTest.completeTest` keeps working unchanged.
-2. Persist via the existing `student_profiles` upsert path — no DB schema change.
-3. Stub call site `evaluateComprehensivePlacement(submission)` (frontend-only stub returning the deterministic CEFR) — **does NOT** introduce a new edge function. When you later hand it to Gemini, only that one stub gets wired up.
 
-Per the Charter: no edits to AI evaluator, no new edge functions, no schema changes. Pure UI + state.
+## Notes / scope guardrails
 
-### Branding
-- Glassmorphism card preserved (`backdrop-blur-xl bg-white/10 border-white/20`).
-- Hub-themed accent via existing `CursorTrail themeIndex={hubIndex}`.
-- Progress bar uses `Progress` from shadcn; stage labels: *Listening · Reading · Writing · Speaking*.
+- Pure UI/presentation change. No edits to AI prompts, edge functions, or data shape.
+- `VocabSlideSplit` already handles its own ElevenLabs audio playback, so we drop the `UniversalMediaShell` wrapper for vocab slides to avoid a duplicate image and duplicate audio button.
+- `SuccessCreator` (if/when present) can get the same one-line branch with `hub="success"` later — out of scope unless you confirm.
+- `PlaygroundCreator` keeps using `SoloVocabCard` per the existing hub-personas memory.
 
-## Order of execution
-1. Ship Part A (502 fixes + retry surface). Verify endpoint returns 200.
-2. Then ship Part B (placement test refactor).
-3. Defer the database migration until both ship and the user confirms stability.
+## Verification
 
-## Files to touch
-
-**Part A**
-- `supabase/functions/generate-homework/index.ts` — add Gemini fallback + soft-fail JSON shape.
-- `src/components/student/homework/HomeworkPlayer.tsx` — surface `data.error` and add a retry button (UI only).
-
-**Part B**
-- `src/components/placement/AIPlacementTest.tsx` — extend phase enum + routing.
-- 4 new phase components + `ComprehensiveProgressBar.tsx`.
-- No changes to `usePlacementTest.ts`, `student_profiles`, or any edge function.
-
-## Open question (one)
-For the **Listening / Reading / Writing / Speaking content bank**: should I (a) hardcode 1 small static set per CEFR band for now (fastest, ships today), or (b) fetch from an existing table such as `placement_questions` if one exists? If (b), tell me the table name and I'll wire it up read-only.
+After the edit, on `/academy-creator?lessonId=…` open any `vocab` slide in the preview pane and confirm:
+1. Card is one row, two equal columns at `md:` and up.
+2. Word + phonetic + definition + example + Listen button on the LEFT.
+3. Generated image fills the RIGHT half (or shows the "Image generating…" placeholder if missing).
+4. No duplicate hero image strip above the card.

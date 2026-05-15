@@ -22,6 +22,7 @@ import { PlayablePreviewPane } from '@/components/creator-studio/shared/Playable
 import { UniversalMediaShell } from '@/components/creator-studio/shared/UniversalMediaShell';
 import { PracticeItemsEditor } from '@/components/creator-studio/shared/PracticeItemsEditor';
 import { PhonicsFocusCard } from '@/components/creator-studio/shared/PhonicsFocusCard';
+import VocabSlideSplit from '@/components/lesson/VocabSlideSplit';
 import { PreviewRoleToggle, type PreviewRole } from '@/components/creator-studio/shared/PreviewRoleToggle';
 import { TeacherNotesField } from '@/components/creator-studio/shared/TeacherNotesField';
 import { AssetVaultDialog } from '@/components/creator-studio/shared/AssetVaultDialog';
@@ -804,6 +805,7 @@ export default function AcademyCreator() {
                 const sType = (slide as any).type;
                 const isPhonics = sType === 'phonics_focus';
                 const isStorybook = sType === 'storybook';
+                const isVocab = sType === 'vocab' || sType === 'vocab_solo';
                 return (
                   <div className="rounded-xl bg-slate-50 border border-slate-200 p-5 min-h-[450px] flex items-center justify-center">
                     <div className="w-full">
@@ -814,6 +816,21 @@ export default function AcademyCreator() {
                         <PhonicsFocusCard slide={slide as any} hub="academy" />
                       ) : isStorybook ? (
                         <StorybookRenderer slide={slide as any} hub="academy" />
+                      ) : isVocab ? (
+                        (() => {
+                          const s = slide as any;
+                          return (
+                            <VocabSlideSplit
+                              hub="academy"
+                              word={s.word}
+                              phonetic_spelling={s.phonetic_spelling}
+                              definition={s.definition}
+                              example_sentence={s.example}
+                              image_url={s.image_url}
+                              audio_url={s.audio_url || s.voice?.audio_url}
+                            />
+                          );
+                        })()
                       ) : (
                         <UniversalMediaShell slide={slide as any} hub="academy">
                           <SlideRenderer slide={slide as Slide} t={t} />
