@@ -48,7 +48,7 @@ const AIPlacementTest = ({ forcedHub }: AIPlacementTestProps = {}) => {
   const navigate = useNavigate();
   const { completeTest } = usePlacementTest();
   const { studentLevel } = useStudentLevel();
-  const [phase, setPhase] = useState<Phase>('demographics');
+  const [phase, setPhase] = useState<Phase>('welcome');
   const [testStage, setTestStage] = useState<TestStage>('mcq');
   const [age, setAge] = useState(0);
   const [interests, setInterests] = useState<string[]>([]);
