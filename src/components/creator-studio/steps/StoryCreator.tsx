@@ -125,6 +125,8 @@ export const StoryCreator: React.FC = () => {
   const [starringId, setStarringId] = useState<string>('');
   const [customPrompt, setCustomPrompt] = useState<string>('');
   const [promptTouched, setPromptTouched] = useState(false);
+  const [storyTitle, setStoryTitle] = useState<string>('');
+  const [directing, setDirecting] = useState(false);
 
   // ── Linked lesson picker ──
   const [lessons, setLessons] = useState<CurriculumLessonOption[]>([]);
@@ -242,6 +244,63 @@ export const StoryCreator: React.FC = () => {
     setCustomPrompt(buildAutoPrompt());
     setPromptTouched(false);
     toast.success('Prompt auto-filled from lesson context ✓');
+  };
+
+  // ── Story Director: full-form auto-pilot ──
+  const handleAutoConfigureStory = async () => {
+    if (directing) return;
+    setDirecting(true);
+    try {
+      const linkedVocab = linkedLesson ? vocabListToArray(linkedLesson.vocabulary_list) : [];
+      const typed = parseVocab(vocabInput);
+      const seen = new Set<string>();
+      const vocabulary: string[] = [];
+      for (const w of [...linkedVocab, ...typed]) {
+        const k = w.toLowerCase();
+        if (!seen.has(k)) { seen.add(k); vocabulary.push(w); }
+      }
+      const charPayload = characters.map((c) => ({
+        id: c.id,
+        name: c.name,
+        visual_blueprint: (c as any).visual_blueprint || (c as any).visualBlueprint || '',
+      }));
+      if (charPayload.length === 0) {
+        toast.error('No characters in the Cast Vault for this hub yet.');
+        return;
+      }
+      const { data, error } = await supabase.functions.invoke('ai-story-director', {
+        body: { hub: storyHub, vocabulary, characters: charPayload, cefrLevel, genre },
+      });
+      if (error) throw error;
+      const cfg = data as { title: string; character_name: string; theme: string; layout: string; prompt: string };
+
+      // Hydrate state
+      setStoryTitle(cfg.title || '');
+      const matched = characters.find((c) => c.name.toLowerCase() === (cfg.character_name || '').toLowerCase());
+      if (matched?.id) setStarringId(matched.id);
+      // Theme → genre (use as-is if it matches our list, otherwise keep current)
+      if (cfg.theme && GENRES.includes(cfg.theme)) {
+        setGenre(cfg.theme);
+      } else if (cfg.theme) {
+        setGenre(cfg.theme);
+      }
+      // Layout → visualStyle
+      const layoutMap: Record<string, typeof visualStyle> = {
+        'Classic': 'classic',
+        'Comic': storyHub === 'academy' ? 'webtoon' : 'comic_western',
+        'Case Study': 'classic',
+      };
+      const nextStyle = layoutMap[cfg.layout] ?? 'classic';
+      setVisualStyle(nextStyle);
+      setCustomPrompt(cfg.prompt || '');
+      setPromptTouched(true);
+      toast.success('Story auto-configured ✓ Review and click Generate.');
+    } catch (e) {
+      console.error('Story Director error:', e);
+      toast.error(e instanceof Error ? e.message : 'Auto-configure failed.');
+    } finally {
+      setDirecting(false);
+    }
   };
 
 
@@ -470,7 +529,43 @@ export const StoryCreator: React.FC = () => {
 
       <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 backdrop-blur p-6 space-y-6 shadow-sm">
 
-        {/* ── Linked lesson picker (very top) ── */}
+        {/* ── Story Director: Auto-Pilot ── */}
+        <div className="rounded-xl border border-violet-200 dark:border-violet-800 bg-gradient-to-r from-violet-50 via-fuchsia-50 to-pink-50 dark:from-violet-950/40 dark:via-fuchsia-950/40 dark:to-pink-950/40 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-violet-900 dark:text-violet-100">✨ Story Director</p>
+              <p className="text-xs text-violet-700/80 dark:text-violet-300/80">
+                Let AI pick the title, character, theme, layout, and prompt for you.
+              </p>
+            </div>
+            <Button
+              type="button"
+              onClick={handleAutoConfigureStory}
+              disabled={directing || characters.length === 0}
+              className="shrink-0 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white shadow-md"
+            >
+              {directing ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Configuring…</>
+              ) : (
+                <><Sparkles className="h-4 w-4 mr-2" /> Auto-Configure Entire Story</>
+              )}
+            </Button>
+          </div>
+          {storyTitle ? (
+            <div className="mt-3">
+              <Label className="text-[11px] font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-300">
+                Story title (AI suggested)
+              </Label>
+              <Input
+                value={storyTitle}
+                onChange={(e) => setStoryTitle(e.target.value)}
+                className="mt-1 bg-white/80 dark:bg-slate-900/60"
+                placeholder="Story title"
+              />
+            </div>
+          ) : null}
+        </div>
+
         <div className="space-y-2">
           <Label className="text-sm font-semibold flex items-center gap-2">
             <Link2 className="h-4 w-4 text-violet-500" />

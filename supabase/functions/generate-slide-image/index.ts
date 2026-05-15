@@ -4,6 +4,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { applyHubStyle, normalizeArtHub } from "../_shared/hubArtStyles.ts";
 import { generateGoogleImage, GoogleImageError } from "../_shared/googleImageClient.ts";
+import { buildVocabularyPrompt } from "../_shared/vocabularyImageBrain.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,21 +18,29 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { prompt, lessonId, slideId, hub, starring_character } = await req.json();
-    if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
+    const { prompt, lessonId, slideId, hub, starring_character, slideKind, vocabulary_word, example_sentence } = await req.json();
+    const isVocab = slideKind === "vocabulary" && typeof vocabulary_word === "string" && vocabulary_word.trim().length > 0;
+    if (!isVocab && (!prompt || typeof prompt !== "string" || !prompt.trim())) {
       return new Response(JSON.stringify({ error: "Prompt is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Vocabulary Image Brain: replace prompt with a fully-baked scene
+    // description that bakes in modesty + 60% branding + age-appropriate style.
+    const basePrompt = isVocab
+      ? buildVocabularyPrompt({ vocabulary_word, example_sentence, hub })
+      : prompt;
+
     // Casting Director: if a starring character is supplied, force the AI to
     // feature them in the image with their visual blueprint as the anchor.
-    let castedPrompt = prompt;
+    let castedPrompt = basePrompt;
     if (starring_character && typeof starring_character === "object") {
       const name = String((starring_character as any).name || "").trim();
       const blueprint = String((starring_character as any).visual_blueprint || "").trim();
       if (name && blueprint) {
-        castedPrompt = `${prompt}\n\n[ART DIRECTION RULE]\nThe generated image MUST feature ${name}. You must use this exact visual description for them verbatim: "${blueprint}". Do not invent new visual traits for them. Keep ${name}'s appearance identical across all images.`;
+        castedPrompt = `${basePrompt}\n\n[ART DIRECTION RULE]\nThe generated image MUST feature ${name}. You must use this exact visual description for them verbatim: "${blueprint}". Do not invent new visual traits for them. Keep ${name}'s appearance identical across all images.`;
       }
     }
     // Apply the AI Art Director's house-style suffix for the target hub.

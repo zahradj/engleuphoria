@@ -40,7 +40,17 @@ export const generateSlideImage = (
   slideId: string,
   hub?: string,
   starring_character?: StarringCharacterRef,
-) => invokeJson('generate-slide-image', { prompt, lessonId, slideId, hub, starring_character });
+  opts?: { slideKind?: 'vocabulary' | 'story' | 'scene' | string; vocabulary_word?: string; example_sentence?: string },
+) => invokeJson('generate-slide-image', {
+  prompt,
+  lessonId,
+  slideId,
+  hub,
+  starring_character,
+  slideKind: opts?.slideKind,
+  vocabulary_word: opts?.vocabulary_word,
+  example_sentence: opts?.example_sentence,
+});
 
 /**
  * Hub-aware Prompt Interceptor (client mirror of the edge helper).

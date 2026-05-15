@@ -1,64 +1,74 @@
+## Plan: Vocabulary Image Brain + Story Director Auto-Pilot
 
-# Three fixes for the classroom + boot loop
+### Part 1 — Vocabulary Image "Brain" (Modesty + 60% Branding)
 
-## 1. Match student star strip to the teacher's
+Target file: `supabase/functions/generate-slide-image/index.ts` and `supabase/functions/_shared/hubArtStyles.ts`.
 
-`src/components/student/classroom/StudentClassroomHeader.tsx` (lines 105-124) currently:
-- Hides the star row below `lg`
-- Uses tiny `h-4 w-4` stars with a number stamped on top
-- Uses `fill-muted` / no glow
+**1.1 Extend the request contract** (backwards compatible):
+- Accept new optional fields on the JSON body:
+  - `slideKind`: `"vocabulary" | "story" | "scene" | ...`
+  - `vocabulary_word`: string
+  - `example_sentence`: string
+- All existing callers keep working (only `prompt` + `hub` are required).
 
-Update it to match `src/components/teacher/classroom/ClassroomTopBar.tsx` (lines 172-188):
-- Always visible (drop the `hidden lg:flex`)
-- `h-7 w-7`
-- Earned stars get `drop-shadow-[0_0_4px_hsl(var(--classroom-reward)/0.6)] scale-110`
-- Remove the `1..10` number overlay
-- Same pill container (`px-4 py-1.5`, gap-1.5)
+**1.2 New helper `buildVocabularyPrompt(...)`** in a new file `supabase/functions/_shared/vocabularyImageBrain.ts`:
+- Inputs: `vocabulary_word`, `example_sentence`, `hub`.
+- Returns a fully expanded scene description that bakes in:
+  - **Modesty Protocol** (universal, hub-agnostic): modest/professional clothing; no tight, revealing, suggestive, or culturally insensitive outfits; dignified poses; no lying-down/intimate framing; physical contact only if familial or professional assistance.
+  - **Hub-specific clothing rule**: school uniforms (Academy), casual modest (Playground), business casual (Success).
+  - **Age-appropriate art style**: Playground = cute cartoon/vector, innocent + fun; Academy = modern comic/webtoon, relatable teen scenarios; Success = professional editorial photography, business/global.
+  - **60% Branding Rule**: 50–60% of total color area dominated by the hub's primary color family (Playground orange `#FE6A2F`, Academy purple `#6B21A8`, Success emerald `#059669`) applied to large surfaces — backgrounds, large props, character clothing — not just accents. Remaining 40–50% neutral tones.
+  - The **vocabulary word as the visual focal point**, framed by a literal scene drawn from `example_sentence`.
 
-## 2. Remove the three text overlays from the slide stage
+**1.3 Wire into `index.ts`**:
+- If `slideKind === "vocabulary"` and `vocabulary_word` is present → run `buildVocabularyPrompt` first, then still pass through `applyHubStyle` (so the existing house-style suffix is preserved).
+- Otherwise: behavior unchanged (no regression for other slide types).
 
-These show on the student stage and clutter the slide:
+**1.4 Client mirror in `src/components/creator-studio/steps/slide-studio/mediaGeneration.ts`**:
+- Add optional `vocabulary_word`, `example_sentence`, `slideKind` to `generateSlideImage(...)` signature so vocabulary slide panels can pass them. Do not change existing call sites (params optional).
 
-- **"Teacher is presenting" pill** → delete the whole `role === 'student'` badge block at `src/components/classroom/stage/MainStage.tsx` lines 114-125.
-- **"However / Furthermore / Nevertheless" target words** → remove the `<TargetWordsOverlay …/>` line at `src/components/student/classroom/StudentMainStage.tsx:195` (keep teacher's intact unless you want it gone there too — confirm below).
-- **"Pro Tip: Use transition words…" Smart Summary tip** → remove the `<SmartSummaryTip …/>` line at `src/components/student/classroom/StudentMainStage.tsx:196`.
+No DB changes. No new secrets.
 
-Files left untouched (`TargetWordsOverlay.tsx`, `SmartSummaryTip.tsx`) — just unmounted on the student side.
+---
 
-## 3. Boot loop / "site keeps loading" — root cause + fix
+### Part 2 — Story Director Auto-Pilot (StoryCreator.tsx)
 
-Symptom in console: every page load logs `Auth initialization timeout (6s) - forcing loading = false with fallback role`. That message only fires when `supabase.auth.getSession()` (or the awaited `fetchUserFromDatabase` after it) has not resolved within 6 s — so the spinner sits on `HomeGate` for the full 6 s every time.
+Note: the codebase has `src/components/creator-studio/steps/StoryCreator.tsx` (no `MiniStoryGenerator.tsx`). The Auto-Pilot will be added there — it controls the same fields the brief calls out (title/character/theme/layout/prompt-equivalents).
 
-Diagnosis from the code in `src/contexts/AuthContext.tsx`:
+**2.1 New edge function** `supabase/functions/ai-story-director/index.ts`:
+- Auth via the standard Lovable AI Gateway (`LOVABLE_API_KEY`, model `google/gemini-3-flash-preview`).
+- Body: `{ hub, vocabulary: string[], characters: {id,name,visual_blueprint?}[], cefrLevel, genre }`.
+- System prompt = the "Story Director" instructions from the user's brief.
+- Forces strict JSON via AI SDK `Output.object` with Zod schema:
+  - `title` (string, ≤ 60 chars)
+  - `character_name` (must match one from input list)
+  - `theme` ∈ `['Adventure','School Day','Mystery','Business Trip','Negotiation']`
+  - `layout` ∈ `['Classic','Comic','Case Study']` (Case Study forced if hub=success, Comic if academy/playground — server-side enforcement after model output)
+  - `prompt` (2-sentence string referencing character + theme + vocab)
 
-- `initializeAuth` registers the auth listener, then does `await supabase.auth.getSession()` and **then** `await fetchUserFromDatabase(...)` before flipping `setLoading(false)`. If either step is slow (cold edge, stalled token refresh, slow `users` row fetch), the whole UI is blocked.
-- `fetchUserFromDatabase` does **two sequential awaits**: a `users` `.single()` then `fetchUserRoleFromDatabase` (which itself does two queries). On a fresh connection this routinely exceeds 6 s.
-- Even when there is no session at all, the listener's `INITIAL_SESSION` is short-circuited but `getSession()` is still awaited — so a single slow auth network call freezes the app.
-- The 6 s safety timeout exists but it just sets a fallback user; the real boot path is still pending in the background, and `HomeGate` already navigated, causing the "keeps loading" feel.
+**2.2 UI changes in `StoryCreator.tsx`**:
+- Add a prominent button at the top of the form: **✨ Auto-Configure Entire Story** (gradient, hub-themed, full-width on mobile).
+- Loading state with spinner + disabled while the request is in flight.
+- On click:
+  1. Gather context: `storyHub`, merged vocab list (linked lesson + typed), `characters` (Cast Vault for hub).
+  2. Invoke `ai-story-director` edge function.
+  3. Hydrate state: `setCustomPrompt`, find character by `character_name` → `setStarringId`, map `theme` → `setGenre`, map `layout` → `setVisualStyle` (Classic→`classic`, Comic→`webtoon` or `comic_western` based on hub, Case Study→`classic` for Success).
+  4. Surface a "Story title" field if missing; otherwise store title in a new `storyTitle` state and pass it through to the existing generate flow.
+  5. `setPromptTouched(true)` so the auto-rebuild effect doesn't overwrite the AI-chosen prompt.
+- Toast: "Story auto-configured ✓ Review and click Generate."
 
-Fix:
+**2.3 No DB changes.** Reuses existing characters list, vocab, and CEFR.
 
-1. **Stop blocking render on the DB fetch.** In `initializeAuth`, after `getSession()`:
-   - If no session → `setUser(null); setLoading(false)` immediately.
-   - If session → `setUser(await createFallbackUser(currentSession.user))` (synchronous from auth metadata), `setLoading(false)`, **then** kick off `fetchUserFromDatabase` in the background and `setUser(dbUser)` when it resolves. This is the same pattern already used inside the `SIGNED_IN` listener branch but missing from initial load.
-2. **Race `getSession` against a 1.5 s timeout** so a stalled auth network call can't freeze boot. On timeout, fall through to "no session" and let the listener catch up when it arrives.
-3. **Parallelize role + profile** inside `fetchUserFromDatabase` (`Promise.all`) to roughly halve the worst-case wait when it does run.
-4. **Lower the visible spinner threshold** in `HomeGate` — show `LandingPage` after 800 ms even if auth is still loading and no session has surfaced yet (logged-out users should never see a 6 s spinner).
-5. Keep the existing 6 s safety timeout as the last line of defense, but log it as an error (not warn) so it's noticeable in prod.
+---
 
-After the change: logged-out users hit `LandingPage` in <1 s, logged-in users see their dashboard immediately with a fallback role and the real role swaps in transparently.
+### Technical notes
 
-## Files
-
-Edit only:
-- `src/components/student/classroom/StudentClassroomHeader.tsx`
-- `src/components/classroom/stage/MainStage.tsx`
-- `src/components/student/classroom/StudentMainStage.tsx`
-- `src/contexts/AuthContext.tsx`
-- `src/components/auth/HomeGate.tsx`
-
-No DB migration, no edge function, no new files.
-
-## Quick question before I build
-
-For the "However / Furthermore / Nevertheless" words and the "Pro Tip" line — do you want them removed **for the teacher too**, or only for the student? I'll default to **student-only** if you don't reply.
+- Edge function CORS via `corsHeaders` already established in the repo pattern.
+- `LOVABLE_API_KEY` is auto-managed; no `add_secret` call needed.
+- Both features are additive — no existing call sites change behavior unless they opt in by passing the new fields/clicking the new button.
+- Files touched:
+  - `supabase/functions/_shared/vocabularyImageBrain.ts` (new)
+  - `supabase/functions/generate-slide-image/index.ts` (edit)
+  - `supabase/functions/ai-story-director/index.ts` (new)
+  - `src/components/creator-studio/steps/slide-studio/mediaGeneration.ts` (edit, optional params)
+  - `src/components/creator-studio/steps/StoryCreator.tsx` (edit — Auto-Configure button + handler)
