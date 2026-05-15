@@ -272,17 +272,31 @@ function OpinionSlide({ slide, t }: { slide: Extract<Slide, { type: 'opinion' }>
 }
 
 function VocabSlide({ slide, t }: { slide: Extract<Slide, { type: 'vocab' }>; t: ThemeTokens }) {
+  const imageUrl = (slide as any).image_url as string | undefined;
   return (
-    <div className="space-y-6 max-w-2xl w-full">
-      <div className={`text-xs uppercase tracking-[0.2em] ${t.muted}`}>Vocabulary</div>
-      <div className="flex items-center gap-4 flex-wrap">
-        <h2 className={`text-4xl md:text-5xl font-semibold ${t.text}`}>{slide.word}</h2>
-        <ListenButton text={slide.word} label="Listen" />
+    <div className="w-full h-full grid grid-cols-1 md:grid-cols-2 gap-8 items-center p-2 md:p-6">
+      <div className="w-full h-[40vh] md:h-[60vh] relative rounded-xl overflow-hidden bg-emerald-50/50 border border-emerald-100 flex items-center justify-center">
+        {imageUrl ? (
+          <img src={imageUrl} alt={slide.word} className="object-cover w-full h-full" />
+        ) : (
+          <div className="text-emerald-300 text-6xl">🖼️</div>
+        )}
       </div>
-      <p className={`text-xl ${t.text}`}>{slide.definition}</p>
-      {slide.example && (
-        <p className={`text-base italic border-l-2 border-emerald-500 pl-4 ${t.muted}`}>“{slide.example}”</p>
-      )}
+      <div className="space-y-5 w-full">
+        <div className={`text-xs uppercase tracking-[0.2em] ${t.muted}`}>Vocabulary</div>
+        <div className="flex items-center gap-4 flex-wrap">
+          <h2 className={`text-4xl md:text-5xl font-semibold ${t.text}`}>{slide.word}</h2>
+          <ListenButton text={slide.word} label="Listen" />
+        </div>
+        <p className={`text-xl ${t.text}`}>
+          <RichText text={slide.definition} highlightClassName="bg-emerald-100 text-emerald-700 font-bold px-1.5 py-0.5 rounded-md shadow-sm" />
+        </p>
+        {slide.example && (
+          <p className={`text-base italic border-l-2 border-emerald-500 pl-4 ${t.muted}`}>
+            “<RichText text={slide.example} highlightClassName="bg-emerald-100 text-emerald-700 font-bold px-1.5 py-0.5 rounded-md not-italic shadow-sm" />”
+          </p>
+        )}
+      </div>
     </div>
   );
 }
