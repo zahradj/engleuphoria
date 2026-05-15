@@ -33,7 +33,7 @@ export const generateSlideImage = (
   lessonId: string,
   slideId: string,
   hub?: string,
-) => invokeJson('generate-slide-image', { prompt: enrichImagePrompt(prompt, hub), lessonId, slideId, hub });
+) => invokeJson('generate-slide-image', { prompt, lessonId, slideId, hub });
 
 /**
  * Hub-aware Prompt Interceptor (client mirror of the edge helper).
