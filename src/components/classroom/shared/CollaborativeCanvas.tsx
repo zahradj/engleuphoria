@@ -173,14 +173,19 @@ export const CollaborativeCanvas: React.FC<CollaborativeCanvasProps> = ({
       return;
     }
 
-    // Send stroke to be broadcast
+    // Send stroke to be broadcast — normalize points to 0..1 so any
+    // recipient (different viewport size) can render at the right place.
     const tool = activeTool === 'eraser' ? 'eraser' : activeTool === 'highlighter' ? 'highlighter' : 'pen';
-    
+    const canvas = canvasRef.current;
+    const w = Math.max(1, canvas?.width ?? 1);
+    const h = Math.max(1, canvas?.height ?? 1);
+    const normalized = currentPoints.map(p => ({ x: p.x / w, y: p.y / h }));
+
     onAddStroke({
       userId,
       userName,
       strokeData: {
-        points: currentPoints,
+        points: normalized,
         color: activeColor,
         width: tool === 'eraser' ? 12 : tool === 'highlighter' ? 8 : 3,
         tool
@@ -192,7 +197,7 @@ export const CollaborativeCanvas: React.FC<CollaborativeCanvasProps> = ({
     lastPointRef.current = null;
   }, [isDrawing, currentPoints, activeTool, activeColor, userId, userName, onAddStroke]);
 
-  // Resize canvas to match container
+  // Resize canvas to match container, then redraw existing strokes.
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -200,17 +205,22 @@ export const CollaborativeCanvas: React.FC<CollaborativeCanvasProps> = ({
     const resizeCanvas = () => {
       const parent = canvas.parentElement;
       if (!parent) return;
-
       const rect = parent.getBoundingClientRect();
       canvas.width = rect.width;
       canvas.height = rect.height;
+      redrawAll();
     };
 
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
+    const ro = new ResizeObserver(resizeCanvas);
+    if (canvas.parentElement) ro.observe(canvas.parentElement);
 
-    return () => window.removeEventListener('resize', resizeCanvas);
-  }, []);
+    return () => {
+      window.removeEventListener('resize', resizeCanvas);
+      ro.disconnect();
+    };
+  }, [redrawAll]);
 
   const getCursorStyle = () => {
     if (!canDraw) return 'default';
