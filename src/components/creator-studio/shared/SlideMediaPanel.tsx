@@ -85,17 +85,27 @@ export const SlideMediaPanel: React.FC<SlideMediaPanelProps> = ({
   const [imgPrompt, setImgPrompt] = useState<string>(
     slide?.image_prompt || slide?.word || slide?.title || '',
   );
+  const styleOptions = IMAGE_STYLES[hub] || IMAGE_STYLES.academy;
+  const [imgStyle, setImgStyle] = useState<string>(
+    slide?.image_style || styleOptions[0].id,
+  );
   const [imgBusy, setImgBusy] = useState(false);
   const [uploadBusy, setUploadBusy] = useState(false);
+
+  const buildStyledPrompt = (raw: string): string => {
+    const preset = styleOptions.find((s) => s.id === imgStyle);
+    if (!preset) return raw;
+    return `${raw.trim()}. Style: ${preset.modifier}`;
+  };
 
   const generateImage = async () => {
     const p = imgPrompt.trim();
     if (!p) { toast.error('Add an image prompt first'); return; }
     setImgBusy(true);
-    onPatch({ image_loading: true, image_error: null, image_prompt: p });
+    onPatch({ image_loading: true, image_error: null, image_prompt: p, image_style: imgStyle });
     try {
-      const res = await generateSlideImage(p, safeLesson, slideId, hub);
-      onPatch({ image_url: res.url, image_prompt: p, image_loading: false, image_error: null });
+      const res = await generateSlideImage(buildStyledPrompt(p), safeLesson, slideId, hub);
+      onPatch({ image_url: res.url, image_prompt: p, image_style: imgStyle, image_loading: false, image_error: null });
       toast.success('Image generated');
     } catch (e: any) {
       onPatch({ image_loading: false, image_error: e?.message || 'Image generation failed' });
