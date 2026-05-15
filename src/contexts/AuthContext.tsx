@@ -599,6 +599,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       // Clear redirect flag so next login can redirect again
       sessionStorage.removeItem('auth_redirect_done');
+      sessionStorage.removeItem('auth_resolved_role');
       // Clear user state immediately
       setUser(null);
       setSession(null);
