@@ -109,6 +109,8 @@ export const LessonsListCard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const loadLessonsRef = React.useRef<() => Promise<void>>(async () => {});
+
   useEffect(() => {
     if (!user?.id) {
       setLoading(false);
@@ -167,9 +169,30 @@ export const LessonsListCard: React.FC = () => {
       }
     };
 
+    loadLessonsRef.current = loadLessons;
     loadLessons();
+
+    // Realtime: refetch when this teacher's bookings change so newly booked
+    // lessons appear in "Next lesson" without a manual refresh.
+    const channel = supabase
+      .channel(`teacher-bookings-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'class_bookings',
+          filter: `teacher_id=eq.${user.id}`,
+        },
+        () => {
+          if (!cancelled) loadLessons();
+        }
+      )
+      .subscribe();
+
     return () => {
       cancelled = true;
+      supabase.removeChannel(channel);
     };
   }, [user?.id]);
 

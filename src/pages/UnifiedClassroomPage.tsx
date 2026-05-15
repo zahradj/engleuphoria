@@ -59,6 +59,18 @@ const UnifiedClassroomPage: React.FC = () => {
     enabled: !!bookingId && !!user?.id,
   });
 
+  // Resolve the Master Library lesson + canonical hub for this booking.
+  // Must be declared before any early return to keep hook order stable.
+  const { data: resolved, isLoading: lessonLoading } = useQuery({
+    queryKey: ['classroom-resolved-lesson', booking?.id],
+    queryFn: () => resolveBookingLesson({
+      id: booking!.id,
+      lesson_id: (booking as any).lesson_id,
+      hub_type: (booking as any).hub_type,
+    }),
+    enabled: !!booking?.id,
+  });
+
   // Auth loading
   if (authLoading) {
     return (
@@ -159,16 +171,6 @@ const UnifiedClassroomPage: React.FC = () => {
 
   // Admin "God Mode" — admin enters as teacher view by default
   const classroomRole: 'teacher' | 'student' = isTeacher || (isAdmin && !isStudent) ? 'teacher' : 'student';
-
-  // Resolve the Master Library lesson + canonical hub for this booking.
-  const { data: resolved, isLoading: lessonLoading } = useQuery({
-    queryKey: ['classroom-resolved-lesson', booking.id],
-    queryFn: () => resolveBookingLesson({
-      id: booking.id,
-      lesson_id: (booking as any).lesson_id,
-      hub_type: (booking as any).hub_type,
-    }),
-  });
 
   const normalizedHub: 'playground' | 'academy' | 'professional' = resolved?.hubType ?? 'academy';
 
