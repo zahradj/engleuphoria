@@ -167,6 +167,8 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
     if (!validateForm()) return;
     setFormError('');
     setLoading(true);
+    setVerifyingRole(false);
+    console.log('[AUTH FORM] Submit started', { mode, email: formData.email });
 
     try {
       if (!isConfigured) {
@@ -177,7 +179,9 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
       }
 
       if (mode === 'login') {
+        console.log('[AUTH FORM] Calling signIn');
         const { data, error } = await signIn(formData.email, formData.password);
+        console.log('[AUTH FORM] signIn returned', { hasData: !!data, error });
         if (error) {
           const isInvalidCreds = error.message?.toLowerCase().includes('invalid login credentials');
           const description = isInvalidCreds
@@ -187,6 +191,11 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
           toast({ title: "Login Failed", description, variant: "destructive", duration: 8000 });
         } else {
           setVerifyingRole(true);
+          window.setTimeout(() => {
+            setVerifyingRole(false);
+            setFormError('Sign-in succeeded, but the redirect did not complete. Please refresh once or check the console diagnostics.');
+            console.warn('[AUTH FORM] Redirect did not complete within 5s after successful signIn');
+          }, 5000);
           toast({ title: "Welcome back!", description: "Verifying your account…" });
         }
       } else {
@@ -277,6 +286,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
       console.error('Auth error:', error);
       toast({ title: "Error", description: "An unexpected error occurred.", variant: "destructive" });
     } finally {
+      console.log('[AUTH FORM] Submit finished');
       setLoading(false);
     }
   };
