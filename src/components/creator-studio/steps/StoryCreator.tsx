@@ -119,6 +119,8 @@ export const StoryCreator: React.FC = () => {
   const [busy, setBusy] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [characters, setCharacters] = useState<CustomCharacter[]>([]);
+  const [starringId, setStarringId] = useState<string>('');
 
   // ── Linked lesson picker ──
   const [lessons, setLessons] = useState<CurriculumLessonOption[]>([]);
