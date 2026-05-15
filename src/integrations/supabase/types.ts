@@ -4790,7 +4790,9 @@ export type Database = {
           student_id: string
           student_performance_rating: number | null
           submitted_at: string | null
+          tags: string[] | null
           teacher_id: string
+          theme: string | null
         }
         Insert: {
           feedback_content: string
@@ -4803,7 +4805,9 @@ export type Database = {
           student_id: string
           student_performance_rating?: number | null
           submitted_at?: string | null
+          tags?: string[] | null
           teacher_id: string
+          theme?: string | null
         }
         Update: {
           feedback_content?: string
@@ -4816,7 +4820,9 @@ export type Database = {
           student_id?: string
           student_performance_rating?: number | null
           submitted_at?: string | null
+          tags?: string[] | null
           teacher_id?: string
+          theme?: string | null
         }
         Relationships: [
           {
@@ -5416,6 +5422,30 @@ export type Database = {
           thumbnail_url?: string | null
           title?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      library_reads: {
+        Row: {
+          asset_id: string
+          completed: boolean
+          id: string
+          read_at: string
+          student_id: string
+        }
+        Insert: {
+          asset_id: string
+          completed?: boolean
+          id?: string
+          read_at?: string
+          student_id: string
+        }
+        Update: {
+          asset_id?: string
+          completed?: boolean
+          id?: string
+          read_at?: string
+          student_id?: string
         }
         Relationships: []
       }
@@ -7174,6 +7204,48 @@ export type Database = {
         }
         Relationships: []
       }
+      speaking_submissions: {
+        Row: {
+          audio_path: string
+          created_at: string
+          duration_sec: number | null
+          id: string
+          prompt: string
+          reviewed_at: string | null
+          status: string
+          student_id: string
+          teacher_feedback: string | null
+          teacher_id: string | null
+          theme: string
+        }
+        Insert: {
+          audio_path: string
+          created_at?: string
+          duration_sec?: number | null
+          id?: string
+          prompt: string
+          reviewed_at?: string | null
+          status?: string
+          student_id: string
+          teacher_feedback?: string | null
+          teacher_id?: string | null
+          theme: string
+        }
+        Update: {
+          audio_path?: string
+          created_at?: string
+          duration_sec?: number | null
+          id?: string
+          prompt?: string
+          reviewed_at?: string | null
+          status?: string
+          student_id?: string
+          teacher_feedback?: string | null
+          teacher_id?: string | null
+          theme?: string
+        }
+        Relationships: []
+      }
       speech_attempts: {
         Row: {
           accuracy_score: number | null
@@ -7446,6 +7518,36 @@ export type Database = {
           id?: string
           student_id?: string
           unlocked_at?: string | null
+        }
+        Relationships: []
+      }
+      student_cefr_progress: {
+        Row: {
+          created_at: string
+          id: string
+          last_updated: string
+          level: string
+          percent_to_next: number
+          student_id: string
+          updated_by_teacher_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_updated?: string
+          level?: string
+          percent_to_next?: number
+          student_id: string
+          updated_by_teacher_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_updated?: string
+          level?: string
+          percent_to_next?: number
+          student_id?: string
+          updated_by_teacher_id?: string | null
         }
         Relationships: []
       }
@@ -10004,6 +10106,42 @@ export type Database = {
         }
         Relationships: []
       }
+      vocabulary_bank: {
+        Row: {
+          cefr_level: string | null
+          created_at: string
+          definition: string
+          example: string | null
+          hub_scope: string[] | null
+          id: string
+          ipa: string | null
+          theme: string
+          word: string
+        }
+        Insert: {
+          cefr_level?: string | null
+          created_at?: string
+          definition: string
+          example?: string | null
+          hub_scope?: string[] | null
+          id?: string
+          ipa?: string | null
+          theme: string
+          word: string
+        }
+        Update: {
+          cefr_level?: string | null
+          created_at?: string
+          definition?: string
+          example?: string | null
+          hub_scope?: string[] | null
+          id?: string
+          ipa?: string | null
+          theme?: string
+          word?: string
+        }
+        Relationships: []
+      }
       vocabulary_progression: {
         Row: {
           age_range: string
@@ -10087,6 +10225,33 @@ export type Database = {
           },
         ]
       }
+      xp_events: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ref_id: string | null
+          student_id: string
+          xp: number
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ref_id?: string | null
+          student_id: string
+          xp: number
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ref_id?: string | null
+          student_id?: string
+          xp?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       lesson_library_view: {
@@ -10140,10 +10305,7 @@ export type Database = {
       teacher_profiles_public: {
         Row: {
           accent: string | null
-          availability_schedule: Json | null
           bio: string | null
-          can_teach: boolean | null
-          certificate_urls: string[] | null
           created_at: string | null
           hourly_rate_dzd: number | null
           hourly_rate_eur: number | null
@@ -10152,26 +10314,19 @@ export type Database = {
           intro_video_url: string | null
           is_available: boolean | null
           languages_spoken: string[] | null
-          profile_approved_by_admin: boolean | null
-          profile_complete: boolean | null
+          market_region: Database["public"]["Enums"]["market_region"] | null
           profile_image_url: string | null
           rating: number | null
           specializations: string[] | null
           timezone: string | null
           total_reviews: number | null
-          updated_at: string | null
           user_id: string | null
-          video_status: string | null
           video_url: string | null
-          welcome_shown: boolean | null
           years_experience: number | null
         }
         Insert: {
           accent?: string | null
-          availability_schedule?: Json | null
           bio?: string | null
-          can_teach?: boolean | null
-          certificate_urls?: string[] | null
           created_at?: string | null
           hourly_rate_dzd?: number | null
           hourly_rate_eur?: number | null
@@ -10180,26 +10335,19 @@ export type Database = {
           intro_video_url?: string | null
           is_available?: boolean | null
           languages_spoken?: string[] | null
-          profile_approved_by_admin?: boolean | null
-          profile_complete?: boolean | null
+          market_region?: Database["public"]["Enums"]["market_region"] | null
           profile_image_url?: string | null
           rating?: number | null
           specializations?: string[] | null
           timezone?: string | null
           total_reviews?: number | null
-          updated_at?: string | null
           user_id?: string | null
-          video_status?: string | null
           video_url?: string | null
-          welcome_shown?: boolean | null
           years_experience?: number | null
         }
         Update: {
           accent?: string | null
-          availability_schedule?: Json | null
           bio?: string | null
-          can_teach?: boolean | null
-          certificate_urls?: string[] | null
           created_at?: string | null
           hourly_rate_dzd?: number | null
           hourly_rate_eur?: number | null
@@ -10208,18 +10356,14 @@ export type Database = {
           intro_video_url?: string | null
           is_available?: boolean | null
           languages_spoken?: string[] | null
-          profile_approved_by_admin?: boolean | null
-          profile_complete?: boolean | null
+          market_region?: Database["public"]["Enums"]["market_region"] | null
           profile_image_url?: string | null
           rating?: number | null
           specializations?: string[] | null
           timezone?: string | null
           total_reviews?: number | null
-          updated_at?: string | null
           user_id?: string | null
-          video_status?: string | null
           video_url?: string | null
-          welcome_shown?: boolean | null
           years_experience?: number | null
         }
         Relationships: [
