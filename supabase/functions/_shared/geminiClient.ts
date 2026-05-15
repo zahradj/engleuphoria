@@ -169,32 +169,21 @@ export async function callGemini(options: GeminiOptions): Promise<GeminiResponse
   const hasLovable = !!Deno.env.get('LOVABLE_API_KEY');
 
   if (!hasGemini && !hasLovable) {
-    throw new Error('No AI provider configured (GEMINI_API_KEY or LOVABLE_API_KEY required)');
+    throw new Error('No AI provider configured (GEMINI_API_KEY required)');
   }
 
-  // Try primary (Gemini direct) first when available
+  // ─── HARD GATEWAY-BYPASS (PERMANENT) ───
+  // Lovable AI Gateway is forbidden at runtime when GEMINI_API_KEY is set.
   if (hasGemini) {
-    try {
-      const result = await callGeminiDirect(options);
-      console.log(`✅ AI via gemini-direct (tokens: ${result.usage?.totalTokens ?? 'n/a'})`);
-      return result;
-    } catch (primaryError) {
-      console.warn('⚠️ Gemini direct failed, falling back to Lovable Gateway:', primaryError instanceof Error ? primaryError.message : primaryError);
-      if (!hasLovable) throw primaryError;
-    }
+    const result = await callGeminiDirect(options);
+    console.log(`✅ AI via gemini-direct (tokens: ${result.usage?.totalTokens ?? 'n/a'})`);
+    return result;
   }
 
-  // Backup: Lovable AI Gateway
-  try {
-    const result = await callLovableGateway(options);
-    console.log(`✅ AI via lovable-gateway (tokens: ${result.usage?.totalTokens ?? 'n/a'})`);
-    return result;
-  } catch (backupError) {
-    console.error('❌ Both AI providers failed:', backupError);
-    throw new Error(
-      `AI generation temporarily unavailable: ${backupError instanceof Error ? backupError.message : 'unknown error'}`,
-    );
-  }
+  // Dev sandbox without Gemini configured.
+  const result = await callLovableGateway(options);
+  console.log(`✅ AI via lovable-gateway (no GEMINI_API_KEY) (tokens: ${result.usage?.totalTokens ?? 'n/a'})`);
+  return result;
 }
 
 // Helper to convert OpenAI-style messages to Gemini format
