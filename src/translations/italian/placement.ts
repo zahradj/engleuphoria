@@ -1,0 +1,14 @@
+export const placementTranslations = {
+  'placement.task.listening': 'Ascolta e scegli la risposta corretta.',
+  'placement.task.vocabulary': "Guarda l'immagine e scegli la parola corretta.",
+  'placement.task.grammar': 'Scegli la parola corretta per completare la frase.',
+  'placement.task.reading': 'Leggi attentamente e scegli la risposta migliore.',
+  'placement.action.playAudio': 'Riproduci audio',
+  'placement.action.playAgain': 'Riproduci di nuovo',
+  'placement.action.loading': 'Caricamento…',
+  'placement.action.next': 'Domanda successiva',
+  'placement.action.submit': 'Invia',
+  'placement.audio.hint': 'Ascolta prima, poi scegli la tua risposta.',
+  'placement.progress.question': 'Domanda',
+  'placement.progress.cefr': 'Valutazione CEFR',
+};
