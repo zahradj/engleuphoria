@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,7 +10,16 @@ export const HomeGate: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   const { studentLevel } = useStudentLevel(); // metadata-seeded, non-blocking
 
-  if (authLoading) {
+  // If auth is still loading after 800ms with no user surfaced, assume logged-out
+  // and show the landing page. Prevents a multi-second blank spinner.
+  const [bailToLanding, setBailToLanding] = useState(false);
+  useEffect(() => {
+    if (!authLoading) return;
+    const t = setTimeout(() => setBailToLanding(true), 800);
+    return () => clearTimeout(t);
+  }, [authLoading]);
+
+  if (authLoading && !bailToLanding) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
         <div className="text-center">
