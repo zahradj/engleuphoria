@@ -74,10 +74,13 @@ Deno.serve(async (req) => {
       const cPersona = String((starring_character as any).personality_traits || '').trim();
       const cVisual = String((starring_character as any).visual_blueprint || '').trim();
       if (cName) {
-        castingBlock = `\n\nSTARRING CHARACTER (MANDATORY): Include the character "${cName}" throughout this lesson. ` +
-          (cPersona ? `Their personality is: ${cPersona}. ` : '') +
-          (cVisual ? `Their visual description (restate in EVERY image_prompt / "AI:" subject so the artwork stays consistent): ${cVisual}. ` : '') +
-          `Use ${cName} as a recurring narrator, example speaker, or story protagonist where it fits naturally. Do not invent a different main character.`;
+        castingBlock = `\n\n[CASTING INSTRUCTIONS]\n` +
+          `You must feature the following character as the main subject of this content.\n` +
+          `Name: ${cName}\n` +
+          `Personality & Role: ${cPersona || '(not specified — infer a consistent voice)'}\n` +
+          `Rule: Write their dialogue and actions to perfectly match this personality. Ensure they are the one interacting with the target vocabulary. Use ${cName} as a recurring narrator, example speaker, or story protagonist where it fits naturally. Do not invent a different main character.\n\n` +
+          `[ART DIRECTION RULE]\n` +
+          `Every image_prompt / "AI:" subject in this lesson MUST feature ${cName}. You must use this exact visual description for them verbatim: "${cVisual}". Do not invent new visual traits for them.`;
       }
     }
 

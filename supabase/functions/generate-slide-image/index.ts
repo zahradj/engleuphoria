@@ -31,7 +31,7 @@ serve(async (req) => {
       const name = String((starring_character as any).name || "").trim();
       const blueprint = String((starring_character as any).visual_blueprint || "").trim();
       if (name && blueprint) {
-        castedPrompt = `${prompt}. The image MUST feature ${name}. Visual description: ${blueprint}. Keep ${name}'s appearance consistent across all images.`;
+        castedPrompt = `${prompt}\n\n[ART DIRECTION RULE]\nThe generated image MUST feature ${name}. You must use this exact visual description for them verbatim: "${blueprint}". Do not invent new visual traits for them. Keep ${name}'s appearance identical across all images.`;
       }
     }
     // Apply the AI Art Director's house-style suffix for the target hub.
