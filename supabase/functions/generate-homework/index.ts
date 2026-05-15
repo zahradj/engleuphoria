@@ -226,7 +226,12 @@ serve(async (req) => {
       a2 && Array.isArray(a2.items) && a2.items.length >= 1 &&
       a3 && typeof a3.prompt === "string";
     if (!valid) {
-      return json({ error: "AI response did not match the 3-activity schema", detail: homework }, 502);
+      return json({
+        success: false,
+        retryable: true,
+        error: "AI response did not match the expected 3-activity schema. Please retry.",
+        detail: typeof homework === "object" ? JSON.stringify(homework).slice(0, 600) : String(homework).slice(0, 600),
+      });
     }
 
     // Enrich for the player
