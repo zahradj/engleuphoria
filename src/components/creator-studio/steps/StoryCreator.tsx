@@ -155,6 +155,21 @@ export const StoryCreator: React.FC = () => {
     return () => { alive = false; };
   }, []);
 
+  const storyHub: CharacterHub = linkedLesson
+    ? (linkedLesson.target_system === 'kids' ? 'playground'
+      : linkedLesson.target_system === 'teen' ? 'academy'
+      : 'success')
+    : 'academy';
+
+  useEffect(() => {
+    let alive = true;
+    listCharactersForHub(storyHub)
+      .then((data) => { if (alive) setCharacters(data); })
+      .catch(() => { if (alive) setCharacters([]); });
+    setStarringId('');
+    return () => { alive = false; };
+  }, [storyHub]);
+
   const handleSelectLesson = (id: string) => {
     const lesson = lessons.find((l) => l.id === id);
     setLinkedLessonId(id);
