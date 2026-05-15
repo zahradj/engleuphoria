@@ -284,7 +284,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
 
   const slides = lessonSlides.length > 0
     ? lessonSlides
-    : [{ id: '1', title: 'Waiting for teacher...' }];
+    : [{ id: '__loading__', title: 'Lesson loading…', body: 'Your teacher is preparing the lesson. Slides will appear here in a moment.' }];
 
   const hubBg = hubType === 'playground'
     ? 'bg-gradient-to-br from-orange-50/40 via-white to-amber-50/40'
