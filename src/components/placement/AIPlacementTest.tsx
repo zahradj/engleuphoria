@@ -128,6 +128,18 @@ const AIPlacementTest = ({ forcedHub }: AIPlacementTestProps = {}) => {
         {/* Phase content */}
         <div className="flex-1 overflow-hidden">
           <AnimatePresence mode="wait">
+            {phase === 'welcome' && (
+              <motion.div
+                key="welcome"
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -30 }}
+                className="h-full"
+              >
+                <WelcomePhase hub={resolvedHub} onStart={() => setPhase('demographics')} />
+              </motion.div>
+            )}
+
             {phase === 'demographics' && (
               <motion.div
                 key="demographics"
