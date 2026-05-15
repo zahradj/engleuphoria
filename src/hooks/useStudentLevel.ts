@@ -143,8 +143,9 @@ export function useStudentLevel(): StudentLevelData {
  * Determines the student level based on age
  */
 export function determineStudentLevel(age: number): StudentLevel {
-  if (age < 12) return 'playground';
-  if (age >= 12 && age < 18) return 'academy';
+  // Strict brackets: 4-9 → Playground, 10-17 → Academy, 18+ → Professional.
+  if (age < 10) return 'playground';
+  if (age < 18) return 'academy';
   return 'professional';
 }
 
@@ -158,7 +159,7 @@ export function evaluateStudentLevel(
   avgComplexity: number = 0.5
 ): { level: StudentLevel; track: string } {
   const defaultLevel = determineStudentLevel(age);
-  if (age < 12 && correctCount > 4 && avgComplexity > 0.8) {
+  if (age < 10 && correctCount > 4 && avgComplexity > 0.8) {
     return { level: 'academy', track: 'advanced' };
   }
   if (age > 18 && correctCount < 2) {

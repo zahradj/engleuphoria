@@ -60,10 +60,11 @@ export const HUB_BRAND: Record<HubType, {
 };
 
 export function assignHubFromAge(age: number): HubAssignment {
-  if (age <= 12) {
+  // Strict brackets: 4-9 → Playground, 10-17 → Academy, 18+ → Success.
+  if (age < 10) {
     return { hub_type: 'playground', lesson_duration: 30, weekly_goal: '3 lessons/week' };
   }
-  if (age <= 17) {
+  if (age < 18) {
     return { hub_type: 'academy', lesson_duration: 55, weekly_goal: '2 hours/week' };
   }
   return { hub_type: 'professional', lesson_duration: 55, weekly_goal: 'Flexible' };

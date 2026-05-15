@@ -346,7 +346,7 @@ const App = () => {
                         </ImprovedProtectedRoute>
                       } />
 
-                      {/* Three Isolated Hub Funnels (FROZEN) */}
+                      {/* Three Isolated Hub Funnels — strict age-bracket routing */}
                       <Route path="/placement/playground" element={
                         <ImprovedProtectedRoute requiredRole="student">
                           <Suspense fallback={<LoadingFallback />}><PlaygroundTest /></Suspense>

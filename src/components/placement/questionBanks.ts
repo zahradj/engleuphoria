@@ -17,6 +17,16 @@ export interface BankQuestion {
   audio_script?: string;  // when set, render an ElevenLabs play button
   voice_id?: string;
   type?: 'standard' | 'listening_match' | 'visual';
+  /** Skill drives smart media: vocabulary→image, listening→audio, grammar/reading→text-only. */
+  skill?: 'vocabulary' | 'listening' | 'grammar' | 'reading';
+}
+
+/** Derive the skill bucket when a question doesn't declare one explicitly. */
+export function resolveSkill(q: BankQuestion): 'vocabulary' | 'listening' | 'grammar' | 'reading' {
+  if (q.skill) return q.skill;
+  if (q.type === 'listening_match' || q.audio_script) return 'listening';
+  if (q.imagePrompt) return 'vocabulary';
+  return 'grammar';
 }
 
 // ---------------------------------------------------------------- PLAYGROUND

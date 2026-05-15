@@ -62,10 +62,12 @@ Output a strict JSON array of 8 progressive questions. Each question object must
 
 Do not use any child-like themes, cartoons, or high-school drama scenarios. Output ONLY the JSON array, no markdown.`;
 
+const ANTI_CHEAT_RULE = `\n\nCRITICAL ANTI-CHEATING RULE FOR EVERY image_prompt: Always begin the image_prompt with the literal sentence: "CRITICAL SYSTEM RULE: This image is for a test. DO NOT include any text, letters, or words in the image. DO NOT reveal the literal answer. Create a generalized, ambiguous visual context only." Never put the correct answer word literally in the image scene.`;
+
 const promptFor = (hub: Hub): string => {
-  if (hub === "playground") return PLAYGROUND_PROMPT;
-  if (hub === "academy") return ACADEMY_PROMPT;
-  return SUCCESS_PROMPT;
+  if (hub === "playground") return PLAYGROUND_PROMPT + ANTI_CHEAT_RULE;
+  if (hub === "academy") return ACADEMY_PROMPT + ANTI_CHEAT_RULE;
+  return SUCCESS_PROMPT + ANTI_CHEAT_RULE;
 };
 
 function stripCodeFence(text: string): string {
