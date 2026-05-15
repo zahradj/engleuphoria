@@ -383,7 +383,25 @@ export default function GenerateLessonModal({
                 </p>
               </label>
 
-              {/* Blueprint Details (collapsible) */}
+              {/* Starring Character (Cast Vault) */}
+              <label className="block">
+                <span className={labelCls}>🎭 Starring Character (optional)</span>
+                <select
+                  className={inputCls}
+                  value={starringId}
+                  onChange={(e) => setStarringId(e.target.value)}
+                  disabled={busy}
+                >
+                  <option value="">— No featured character —</option>
+                  {characters.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  When set, the AI will write {hub === 'playground' ? 'the kid-friendly' : 'the'} story and images around this character.
+                </p>
+              </label>
+
               <div className="rounded-2xl border-2 border-slate-200 overflow-hidden">
                 <button
                   type="button"
