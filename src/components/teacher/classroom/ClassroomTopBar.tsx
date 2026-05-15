@@ -76,7 +76,11 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
   onReconnect,
   localStream = null,
   onSwitchCamera,
-  onSwitchMicrophone
+  onSwitchMicrophone,
+  onToggleSlideNav,
+  slideNavOpen = false,
+  onForceSync,
+  realtimeConnected = false
 }) => {
   const smartTimer = useSmartTimer(elapsedSeconds, sessionDuration);
   const earnedStars = Math.min(Math.max(studentStars, 0), 10);
