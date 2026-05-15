@@ -95,7 +95,7 @@ const StudentSignUp = () => {
     }
 
     try {
-      const systemTag = age <= 10 ? 'KIDS' : age <= 17 ? 'TEENS' : 'ADULTS';
+      const systemTag = age < 10 ? 'KIDS' : age < 18 ? 'TEENS' : 'ADULTS';
 
       const { data: authData, error } = await signUp(data.email, data.password, {
         role: 'student',
