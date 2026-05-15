@@ -6,6 +6,7 @@ export const placementTranslations = {
   'placement.action.playAudio': 'Reproducir audio',
   'placement.action.playAgain': 'Reproducir de nuevo',
   'placement.action.loading': 'Cargando…',
+  'placement.action.playing': 'Reproduciendo…',
   'placement.action.next': 'Siguiente pregunta',
   'placement.action.submit': 'Enviar',
   'placement.audio.hint': 'Escucha primero, luego elige tu respuesta.',

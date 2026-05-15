@@ -6,6 +6,7 @@ export const placementTranslations = {
   'placement.action.playAudio': 'Sesi oynat',
   'placement.action.playAgain': 'Tekrar oynat',
   'placement.action.loading': 'Yükleniyor…',
+  'placement.action.playing': 'Oynatılıyor…',
   'placement.action.next': 'Sonraki soru',
   'placement.action.submit': 'Gönder',
   'placement.audio.hint': 'Önce dinle, sonra cevabını seç.',

@@ -9,6 +9,7 @@ export const placementTranslations = {
   'placement.action.playAudio': 'Play Audio',
   'placement.action.playAgain': 'Play Again',
   'placement.action.loading': 'Loading…',
+  'placement.action.playing': 'Playing…',
   'placement.action.next': 'Next Question',
   'placement.action.submit': 'Submit',
   'placement.audio.hint': 'Listen first, then choose your answer.',

@@ -6,6 +6,7 @@ export const placementTranslations = {
   'placement.action.playAudio': 'تشغيل الصوت',
   'placement.action.playAgain': 'إعادة التشغيل',
   'placement.action.loading': 'جارٍ التحميل…',
+  'placement.action.playing': 'قيد التشغيل…',
   'placement.action.next': 'السؤال التالي',
   'placement.action.submit': 'إرسال',
   'placement.audio.hint': 'استمع أولاً، ثم اختر إجابتك.',
