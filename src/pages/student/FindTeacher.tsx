@@ -29,6 +29,7 @@ interface TeacherProfile {
   rating: number | null;
   total_reviews: number | null;
   hourly_rate_eur: number | null;
+  hourly_rate_dzd: number | null;
   timezone: string | null;
   is_available: boolean;
   _hubs?: string[];
