@@ -99,16 +99,19 @@ const AIPlacementTest = () => {
 
             {phase === 'test' && (
               <motion.div
-                key="test"
+                key={`test-${testStage}`}
                 initial={{ opacity: 0, x: 30 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -30 }}
                 className="h-full"
               >
-                {age >= 12 ? (
-                  <ComprehensivePhase onComplete={(results) => handleTestComplete(results)} />
+                {age >= 12 && testStage === 'comprehensive' ? (
+                  <ComprehensivePhase
+                    indexOffset={mcqResults.length}
+                    onComplete={(results) => handleComprehensiveComplete(results)}
+                  />
                 ) : (
-                  <TestPhase age={age} onComplete={handleTestComplete} />
+                  <TestPhase age={age} onComplete={handleMcqComplete} />
                 )}
               </motion.div>
             )}
