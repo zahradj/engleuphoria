@@ -31,26 +31,34 @@ export const CollaborativeCanvas: React.FC<CollaborativeCanvasProps> = ({
   const [currentPoints, setCurrentPoints] = useState<Array<{ x: number; y: number }>>([]);
   const lastPointRef = useRef<{ x: number; y: number } | null>(null);
 
-  // Redraw all strokes when strokes array changes
-  useEffect(() => {
+  // Redraw all strokes when strokes array changes OR canvas resizes
+  const redrawAll = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-
-    // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Draw all strokes
-    strokes.forEach(stroke => {
-      drawStroke(ctx, stroke);
-    });
+    strokes.forEach(stroke => drawStroke(ctx, stroke, canvas.width, canvas.height));
   }, [strokes]);
 
-  const drawStroke = (ctx: CanvasRenderingContext2D, stroke: WhiteboardStroke) => {
+  useEffect(() => {
+    redrawAll();
+  }, [redrawAll]);
+
+  const drawStroke = (
+    ctx: CanvasRenderingContext2D,
+    stroke: WhiteboardStroke,
+    canvasW: number,
+    canvasH: number,
+  ) => {
     const { points, color, width, tool } = stroke.strokeData;
-    if (points.length < 2) return;
+    if (!points || points.length < 2) return;
+
+    // Points may be normalized (0..1) — new format — or legacy raw pixels.
+    // Detect normalized: all coords <= 1.5.
+    const isNormalized = points.every((p: any) => Math.abs(p.x) <= 1.5 && Math.abs(p.y) <= 1.5);
+    const toX = (x: number) => (isNormalized ? x * canvasW : x);
+    const toY = (y: number) => (isNormalized ? y * canvasH : y);
 
     ctx.save();
     ctx.lineCap = 'round';
@@ -72,12 +80,10 @@ export const CollaborativeCanvas: React.FC<CollaborativeCanvasProps> = ({
     }
 
     ctx.beginPath();
-    ctx.moveTo(points[0].x, points[0].y);
-
+    ctx.moveTo(toX(points[0].x), toY(points[0].y));
     for (let i = 1; i < points.length; i++) {
-      ctx.lineTo(points[i].x, points[i].y);
+      ctx.lineTo(toX(points[i].x), toY(points[i].y));
     }
-
     ctx.stroke();
     ctx.restore();
   };
