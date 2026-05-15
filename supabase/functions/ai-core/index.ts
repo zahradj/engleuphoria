@@ -792,10 +792,13 @@ ${grammar ? `- Grammar focus: ${grammar}\n` : ''}- Lesson vocabulary: ${llVocab.
     const cPersona = String((starring_character as any).personality_traits || '').trim();
     const cVisual = String((starring_character as any).visual_blueprint || '').trim();
     if (cName) {
-      castingBlock = `\n\nSTARRING CHARACTER (MANDATORY): The protagonist of this story MUST be "${cName}". ` +
-        (cPersona ? `Their personality is: ${cPersona}. ` : '') +
-        (cVisual ? `Their visual description (RESTATE in EVERY image_prompt verbatim so artwork stays consistent): ${cVisual}. ` : '') +
-        `Do not invent a different main character.`;
+      castingBlock = `\n\n[CASTING INSTRUCTIONS]\n` +
+        `You must feature the following character as the main subject of this content.\n` +
+        `Name: ${cName}\n` +
+        `Personality & Role: ${cPersona || '(not specified — infer a consistent voice)'}\n` +
+        `Rule: Write their dialogue and actions to perfectly match this personality. Ensure they are the one interacting with the target vocabulary. Do not invent a different main character.\n\n` +
+        `[ART DIRECTION RULE]\n` +
+        `The generated image MUST feature the main character. You must use this exact visual description for them in every image_prompt verbatim: "${cVisual}". Do not invent new visual traits for them.`;
     }
   }
 
