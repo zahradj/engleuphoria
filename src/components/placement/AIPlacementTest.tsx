@@ -10,15 +10,19 @@ import ProcessingPhase from './ProcessingPhase';
 import { usePlacementTest } from '@/hooks/usePlacementTest';
 import { Logo } from '@/components/Logo';
 import { CursorTrail } from '@/components/landing/CursorTrail';
+import { useStudentLevel } from '@/hooks/useStudentLevel';
+import type { Hub } from './questionBanks';
 
 type HubIndex = 0 | 1 | 2;
 
-// Maps the student's age to the same palette index used by the homepage
+// Maps the resolved hub to the same palette index used by the homepage
 // CursorTrail: 0 = Playground, 1 = Academy, 2 = Professional.
-const hubIndexFromAge = (age: number): HubIndex => {
-  if (age > 0 && age < 13) return 0;
-  if (age >= 13 && age < 18) return 1;
-  return 2;
+const hubIndex = (hub: Hub): HubIndex => (hub === 'playground' ? 0 : hub === 'academy' ? 1 : 2);
+
+const hubFromAge = (age: number): Hub => {
+  if (age > 0 && age < 13) return 'playground';
+  if (age >= 13 && age < 18) return 'academy';
+  return 'professional';
 };
 
 type Phase = 'demographics' | 'test' | 'processing' | 'complete';
@@ -27,12 +31,19 @@ type TestStage = 'mcq' | 'comprehensive';
 const AIPlacementTest = () => {
   const navigate = useNavigate();
   const { completeTest } = usePlacementTest();
+  const { studentLevel } = useStudentLevel();
   const [phase, setPhase] = useState<Phase>('demographics');
   const [testStage, setTestStage] = useState<TestStage>('mcq');
   const [age, setAge] = useState(0);
   const [interests, setInterests] = useState<string[]>([]);
   const [mcqResults, setMcqResults] = useState<TestResult[]>([]);
   const [testResults, setTestResults] = useState<TestResult[]>([]);
+
+  // Authoritative hub: profile/metadata first (e.g. user signed up for Academy),
+  // age only as a fallback. This stops the Academy placement test from showing
+  // the Playground "Meow" bank when a younger age is entered.
+  const resolvedHub: Hub = (studentLevel as Hub | null) ?? hubFromAge(age);
+  const isComprehensiveHub = resolvedHub === 'academy' || resolvedHub === 'professional';
 
   const handleDemographicsComplete = (result: { age: number; goal: string; interests: string[] }) => {
     setAge(result.age);
@@ -41,10 +52,9 @@ const AIPlacementTest = () => {
     setPhase('test');
   };
 
-  // Kids (<12): TestPhase results go straight to processing.
-  // Teens/Adults (12+): TestPhase MCQs are stored, then ComprehensivePhase runs and results are merged.
+  // Playground hub → MCQ-only. Academy & Professional → MCQ then 4-skill.
   const handleMcqComplete = (results: TestResult[]) => {
-    if (age >= 12) {
+    if (isComprehensiveHub) {
       setMcqResults(results);
       setTestStage('comprehensive');
     } else {
@@ -69,12 +79,12 @@ const AIPlacementTest = () => {
     }
   };
 
-  const hubIndex = hubIndexFromAge(age);
+  const themeIndex = hubIndex(resolvedHub);
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4 overflow-hidden">
       {/* Same homepage interactive cursor effect, themed to the active hub */}
-      <CursorTrail themeIndex={hubIndex} />
+      <CursorTrail themeIndex={themeIndex} />
 
       <div className="relative z-10 w-full max-w-2xl h-[80vh] backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col">
         {/* Header — Engleuphoria brand */}
@@ -105,13 +115,14 @@ const AIPlacementTest = () => {
                 exit={{ opacity: 0, x: -30 }}
                 className="h-full"
               >
-                {age >= 12 && testStage === 'comprehensive' ? (
+                {isComprehensiveHub && testStage === 'comprehensive' ? (
                   <ComprehensivePhase
+                    hub={resolvedHub}
                     indexOffset={mcqResults.length}
                     onComplete={(results) => handleComprehensiveComplete(results)}
                   />
                 ) : (
-                  <TestPhase age={age} onComplete={handleMcqComplete} />
+                  <TestPhase age={age} hub={resolvedHub} onComplete={handleMcqComplete} />
                 )}
               </motion.div>
             )}
