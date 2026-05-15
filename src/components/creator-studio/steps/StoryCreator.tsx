@@ -17,6 +17,7 @@ import { persistLesson } from '../persistLesson';
 import { listCharactersForHub } from '@/services/characterService';
 import type { CustomCharacter, CharacterHub } from '@/types/character';
 import { toStarringPayload } from '@/types/character';
+import { resolveStarringCharacter } from '@/constants/defaultCharacters';
 
 const CEFR: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 const GENRES = ['Sci-Fi', 'Fairy Tale', 'Everyday Life', 'Mystery', 'Adventure', 'Slice of Life', 'Historical', 'Comedy'];
@@ -341,7 +342,7 @@ export const StoryCreator: React.FC = () => {
           visual_style: visualStyle,
           starring_character: (() => {
             const c = characters.find((x) => x.id === starringId);
-            return c ? toStarringPayload(c) : undefined;
+            return resolveStarringCharacter(c ? toStarringPayload(c) : undefined, storyHub);
           })(),
           custom_prompt: customPrompt?.trim() || undefined,
         },
