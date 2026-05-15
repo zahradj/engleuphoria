@@ -196,7 +196,7 @@ export const SlideMediaPanel: React.FC<SlideMediaPanelProps> = ({
     if (!p) { toast.error('Enter the word first'); return; }
     try {
       const res = await generateSlideImage(
-        `Vocabulary illustration for: ${p}, clean flat vector, white background, no text`,
+        buildStyledPrompt(`Vocabulary illustration for: ${p}`),
         safeLesson, `${slideId}-card-${i}`, hub,
       );
       updateCard(i, { image_url: res.url });
