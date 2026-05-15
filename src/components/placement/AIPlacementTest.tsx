@@ -28,7 +28,19 @@ const hubFromAge = (age: number): Hub => {
 type Phase = 'demographics' | 'test' | 'processing' | 'complete';
 type TestStage = 'mcq' | 'comprehensive';
 
-const AIPlacementTest = () => {
+interface AIPlacementTestProps {
+  // When set, this instance is locked to a specific hub funnel
+  // (used by /placement/playground, /placement/academy, /placement/success).
+  // When unset, demographics → traffic-cop redirect to one of the three.
+  forcedHub?: Hub;
+}
+
+const hubRoute = (hub: Hub): string =>
+  hub === 'playground' ? '/placement/playground'
+    : hub === 'academy' ? '/placement/academy'
+    : '/placement/success';
+
+const AIPlacementTest = ({ forcedHub }: AIPlacementTestProps = {}) => {
   const navigate = useNavigate();
   const { completeTest } = usePlacementTest();
   const { studentLevel } = useStudentLevel();
@@ -39,15 +51,25 @@ const AIPlacementTest = () => {
   const [mcqResults, setMcqResults] = useState<TestResult[]>([]);
   const [testResults, setTestResults] = useState<TestResult[]>([]);
 
-  // Authoritative hub: profile/metadata first (e.g. user signed up for Academy),
-  // age only as a fallback. This stops the Academy placement test from showing
-  // the Playground "Meow" bank when a younger age is entered.
-  const resolvedHub: Hub = (studentLevel as Hub | null) ?? hubFromAge(age);
+  // Locked-funnel mode: forcedHub wins. Otherwise prefer profile, age fallback.
+  const resolvedHub: Hub = forcedHub ?? (studentLevel as Hub | null) ?? hubFromAge(age);
   const isComprehensiveHub = resolvedHub === 'academy' || resolvedHub === 'professional';
 
   const handleDemographicsComplete = (result: { age: number; goal: string; interests: string[] }) => {
     setAge(result.age);
     setInterests(result.interests);
+
+    // Traffic cop: if this isn't already a hub-locked funnel, route the student
+    // to the correct isolated test based on age brackets.
+    if (!forcedHub) {
+      const hub = hubFromAge(result.age);
+      navigate(hubRoute(hub), {
+        replace: true,
+        state: { age: result.age, interests: result.interests, goal: result.goal },
+      });
+      return;
+    }
+
     setTestStage('mcq');
     setPhase('test');
   };
