@@ -41,6 +41,7 @@ const StudioBody: React.FC = () => {
     : currentStep === 'success-creator' ? SuccessCreator
     : currentStep === 'trial' ? TrialCreator
     : currentStep === 'story' ? StoryCreator
+    : currentStep === 'characters' ? CharacterCreator
     : LibraryManager;
 
   return (
