@@ -12,4 +12,13 @@ export const placementTranslations = {
   'placement.audio.hint': 'Escucha primero, luego elige tu respuesta.',
   'placement.progress.question': 'Pregunta',
   'placement.progress.cefr': 'Evaluación CEFR',
+  'placement.welcome.title.playground': '¡Bienvenido al Playground, {{name}}!',
+  'placement.welcome.title.academy': '¡Bienvenido a The Academy, {{name}}!',
+  'placement.welcome.title.professional': '¡Bienvenido al Success Hub, {{name}}!',
+  'placement.welcome.subtitle': 'Antes de abrir tu panel, vamos a calibrar tu nivel para que cada lección se adapte a ti.',
+  'placement.welcome.chip.duration': '≈5 minutos',
+  'placement.welcome.chip.personalized': 'Personalizado',
+  'placement.welcome.chip.oneTime': 'Solo una vez',
+  'placement.welcome.cta': 'Comenzar mi evaluación',
+  'placement.welcome.greetingFallback': 'amigo',
 };
