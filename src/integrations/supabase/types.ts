@@ -1605,9 +1605,12 @@ export type Database = {
           active_media_state: Json
           created_at: string
           current_slide_index: number
+          ended_at: string | null
           id: string
           lesson_id: string | null
           session_id: string
+          started_at: string | null
+          status: string
           student_rewards: number
           teacher_id: string
           updated_at: string
@@ -1616,9 +1619,12 @@ export type Database = {
           active_media_state?: Json
           created_at?: string
           current_slide_index?: number
+          ended_at?: string | null
           id?: string
           lesson_id?: string | null
           session_id: string
+          started_at?: string | null
+          status?: string
           student_rewards?: number
           teacher_id: string
           updated_at?: string
@@ -1627,9 +1633,12 @@ export type Database = {
           active_media_state?: Json
           created_at?: string
           current_slide_index?: number
+          ended_at?: string | null
           id?: string
           lesson_id?: string | null
           session_id?: string
+          started_at?: string | null
+          status?: string
           student_rewards?: number
           teacher_id?: string
           updated_at?: string
@@ -5407,6 +5416,42 @@ export type Database = {
           thumbnail_url?: string | null
           title?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      live_class_activities: {
+        Row: {
+          booking_id: string | null
+          classroom_session_id: string
+          created_at: string
+          dismissed_at: string | null
+          format: string
+          id: string
+          payload: Json
+          prompt: string
+          teacher_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          classroom_session_id: string
+          created_at?: string
+          dismissed_at?: string | null
+          format: string
+          id?: string
+          payload: Json
+          prompt: string
+          teacher_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          classroom_session_id?: string
+          created_at?: string
+          dismissed_at?: string | null
+          format?: string
+          id?: string
+          payload?: Json
+          prompt?: string
+          teacher_id?: string
         }
         Relationships: []
       }
@@ -10487,6 +10532,7 @@ export type Database = {
         Args: { reward_uuid: string; student_uuid: string }
         Returns: Json
       }
+      purge_stale_data: { Args: never; Returns: undefined }
       read_email_batch: {
         Args: { _batch_size?: number; _queue_name: string }
         Returns: {

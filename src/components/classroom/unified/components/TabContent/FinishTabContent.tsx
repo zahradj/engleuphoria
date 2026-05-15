@@ -49,13 +49,20 @@ export function FinishTabContent({
 
   const handleEndLesson = async () => {
     if (!isTeacher) return;
-    
+
     setIsEnding(true);
     try {
+      // Flip classroom_states.status → 'ended' so the student's screen
+      // (subscribed via ClassroomLifecycle) auto-redirects to the feedback page.
+      await supabase
+        .from('classroom_states')
+        .update({ status: 'ended', ended_at: new Date().toISOString() })
+        .eq('session_id', roomId);
+
       await onEndLesson();
       toast({
         title: "Lesson Ended",
-        description: "The lesson has been completed. Please fill out the feedback form below.",
+        description: "The student has been redirected to feedback. Please fill out your form below.",
       });
     } catch (error) {
       toast({

@@ -12,6 +12,7 @@ import { Loader2, ShieldOff, Bug } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SoundSettingsLauncher } from '@/components/classroom/settings/SoundSettingsLauncher';
 import { resolveBookingLesson } from '@/services/classroomLessonResolver';
+import { ClassroomLifecycle } from '@/components/classroom/ClassroomLifecycle';
 
 /**
  * Unified Classroom Page
@@ -217,6 +218,7 @@ const UnifiedClassroomPage: React.FC = () => {
           lessonTitle={resolved?.lessonTitle ?? undefined}
           initialSlides={resolved?.slides ?? []}
         />
+        <ClassroomLifecycle bookingId={booking.id} role="teacher" hubType={normalizedHub} />
         <SoundSettingsLauncher />
       </>
     );
@@ -231,6 +233,7 @@ const UnifiedClassroomPage: React.FC = () => {
         teacherName={teacherFullName}
         hubType={normalizedHub}
       />
+      <ClassroomLifecycle bookingId={booking.id} role="student" hubType={normalizedHub} />
       <SoundSettingsLauncher />
     </>
   );
