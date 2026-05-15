@@ -1,3 +1,4 @@
+import { detectMarketRegion } from '@/lib/marketRegion';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
