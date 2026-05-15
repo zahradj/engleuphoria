@@ -19,8 +19,10 @@ import { whiteboardTranslations } from './whiteboard';
 import { authenticationTranslations } from './authentication';
 import { navTranslations } from './nav';
 import { dashboardUITranslations } from './dashboardUI';
+import { placementTranslations } from './placement';
 
 export const arabicTranslations = {
+  ...placementTranslations,
   ...navTranslations,
   ...commonTranslations,
   ...learningTranslations,
