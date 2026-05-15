@@ -15,6 +15,9 @@ import {
   IMAGE_STYLES_BY_HUB,
   DEFAULT_IMAGE_STYLE_ID,
 } from './imageStyleOptions';
+import { listCharactersForHub } from '@/services/characterService';
+import type { CustomCharacter, StarringCharacterPayload } from '@/types/character';
+import { toStarringPayload } from '@/types/character';
 
 export type Hub = 'playground' | 'academy' | 'success';
 
@@ -32,6 +35,8 @@ export interface GenerateLessonPayload {
   image_style: string;
   learning_objective?: string;
   final_output_task?: string;
+  /** Optional cast member the AI must feature in the lesson. */
+  starring_character?: StarringCharacterPayload;
 }
 
 interface Props {
