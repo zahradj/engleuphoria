@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Volume2, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import ChatBubble from './ChatBubble';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { VocabularyImage } from '@/components/ui/VocabularyImage';
-import { buildPlacementBank, resolveSkill, type Hub, type BankQuestion } from './questionBanks';
+import { buildPlacementBank, resolveSkill, taskInstructionKeyFor, type Hub, type BankQuestion } from './questionBanks';
 
 export interface TestResult {
   questionIndex: number;
@@ -25,6 +26,7 @@ interface TestPhaseProps {
 }
 
 const TestPhase = ({ age, hub, onComplete }: TestPhaseProps) => {
+  const { t } = useTranslation();
   // Strict age brackets: 4-9 → playground, 10-17 → academy, 18+ → professional.
   const resolvedHub: Hub = hub ?? (age > 0 && age < 10 ? 'playground' : age >= 18 ? 'professional' : 'academy');
   const isPlayground = resolvedHub === 'playground';
@@ -217,7 +219,7 @@ const TestPhase = ({ age, hub, onComplete }: TestPhaseProps) => {
       <div className="px-5 pt-3 pb-2">
         <div className="flex items-center justify-between text-[11px] text-white/60 mb-1.5">
           <span className="font-medium tracking-wide">
-            {isPlayground ? 'Question' : 'CEFR Assessment'} {Math.min(results.length + 1, TOTAL_QUESTIONS)} / {TOTAL_QUESTIONS}
+            {isPlayground ? t('placement.progress.question') : t('placement.progress.cefr')} {Math.min(results.length + 1, TOTAL_QUESTIONS)} / {TOTAL_QUESTIONS}
           </span>
           {!isPlayground && currentQuestion && (
             <span className="px-2 py-0.5 rounded-full bg-white/10 border border-white/15 text-white/70 font-semibold">
@@ -249,6 +251,13 @@ const TestPhase = ({ age, hub, onComplete }: TestPhaseProps) => {
               exit={{ opacity: 0, y: -12, filter: 'blur(4px)' }}
               transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
             >
+              {/* Localized meta-instruction (ONLY translated text). Question stays English. */}
+              <div
+                dir="auto"
+                className="mb-2 inline-block rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-medium text-white/80 backdrop-blur-sm"
+              >
+                {t(taskInstructionKeyFor(currentQuestion))}
+              </div>
               <ChatBubble
                 key={`q-${currentQIndex}`}
                 role="guide"
@@ -320,22 +329,22 @@ const TestPhase = ({ age, hub, onComplete }: TestPhaseProps) => {
                         {isLoadingAudio ? (
                           <>
                             <Loader2 className="w-5 h-5 animate-spin" />
-                            Loading…
+                            {t('placement.action.loading')}
                           </>
                         ) : isPlaying ? (
                           <>
                             <Volume2 className="w-5 h-5 animate-pulse" />
-                            Playing…
+                            {t('placement.action.playing')}
                           </>
                         ) : (
                           <>
                             <Volume2 className="w-5 h-5" />
-                            {hasPlayedOnce ? 'Play Again' : 'Play Audio'}
+                            {hasPlayedOnce ? t('placement.action.playAgain') : t('placement.action.playAudio')}
                           </>
                         )}
                       </button>
                       {!hasPlayedOnce && (
-                        <p className="text-white/60 text-xs">Listen first, then choose your answer.</p>
+                        <p className="text-white/60 text-xs">{t('placement.audio.hint')}</p>
                       )}
                     </div>
                   )}

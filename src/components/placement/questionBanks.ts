@@ -19,6 +19,9 @@ export interface BankQuestion {
   type?: 'standard' | 'listening_match' | 'visual';
   /** Skill drives smart media: vocabulary→image, listening→audio, grammar/reading→text-only. */
   skill?: 'vocabulary' | 'listening' | 'grammar' | 'reading';
+  /** i18n key for the localized meta-instruction shown above the question.
+   *  Only this small instruction is translated; question/options/audio stay English. */
+  taskInstructionKey?: string;
 }
 
 /** Derive the skill bucket when a question doesn't declare one explicitly. */
@@ -27,6 +30,13 @@ export function resolveSkill(q: BankQuestion): 'vocabulary' | 'listening' | 'gra
   if (q.type === 'listening_match' || q.audio_script) return 'listening';
   if (q.imagePrompt) return 'vocabulary';
   return 'grammar';
+}
+
+/** Default localized meta-instruction key for a question, keyed by skill. */
+export function taskInstructionKeyFor(q: BankQuestion): string {
+  if (q.taskInstructionKey) return q.taskInstructionKey;
+  const skill = resolveSkill(q);
+  return `placement.task.${skill}`;
 }
 
 // ---------------------------------------------------------------- PLAYGROUND

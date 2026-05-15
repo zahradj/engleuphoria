@@ -6,10 +6,21 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 type Hub = "playground" | "academy" | "success";
+type Locale = "en" | "es" | "ar" | "fr" | "tr" | "it";
+
+const LOCALE_NAMES: Record<Locale, string> = {
+  en: "English",
+  es: "Spanish (Español)",
+  ar: "Arabic (العربية)",
+  fr: "French (Français)",
+  tr: "Turkish (Türkçe)",
+  it: "Italian (Italiano)",
+};
 
 interface PlacementQuestion {
   skill: string;
   cefr_level: string;
+  task_instruction_localized: string;
   question_text: string;
   options: string[];
   correct_answer: string;
@@ -62,12 +73,24 @@ Output a strict JSON array of 8 progressive questions. Each question object must
 
 Do not use any child-like themes, cartoons, or high-school drama scenarios. Output ONLY the JSON array, no markdown.`;
 
-const ANTI_CHEAT_RULE = `\n\nCRITICAL ANTI-CHEATING RULE FOR EVERY image_prompt: Always begin the image_prompt with the literal sentence: "CRITICAL SYSTEM RULE: This image is for a test. DO NOT include any text, letters, or words in the image. DO NOT reveal the literal answer. Create a generalized, ambiguous visual context only." Never put the correct answer word literally in the image scene.`;
+const ANTI_CHEAT_RULE = `\n\nCRITICAL ANTI-CHEATING RULE FOR EVERY image_prompt: Always begin the image_prompt with the literal sentence: "CRITICAL: DO NOT include any text, letters, or words in the image. DO NOT reveal the literal answer. Create a generalized, ambiguous visual context only." Never put the correct answer word literally in the image scene.`;
 
-const promptFor = (hub: Hub): string => {
-  if (hub === "playground") return PLAYGROUND_PROMPT + ANTI_CHEAT_RULE;
-  if (hub === "academy") return ACADEMY_PROMPT + ANTI_CHEAT_RULE;
-  return SUCCESS_PROMPT + ANTI_CHEAT_RULE;
+const globalizationRule = (locale: Locale): string => `
+
+GLOBALIZATION RULE (STRICT — applies to EVERY question object):
+- task_instruction_localized: ONE short instruction (e.g. "Listen and choose the picture", "Fill in the blank", "Choose the correct word") translated INTO ${LOCALE_NAMES[locale]} ONLY. This is the ONLY translated field. If the locale is English, write it in English.
+- question_text: STRICTLY ENGLISH.
+- options: STRICTLY ENGLISH.
+- correct_answer: STRICTLY ENGLISH and must exactly match one entry in options.
+- audio_script: STRICTLY ENGLISH when present. Return null when the skill is not a listening skill.
+- image_prompt: STRICTLY ENGLISH (internal use). Must begin with the anti-cheat sentence and must NOT include any literal answer text.
+Never translate question_text, options, correct_answer, or audio_script. Never embed the localized instruction inside question_text.`;
+
+const promptFor = (hub: Hub, locale: Locale): string => {
+  const base = hub === "playground" ? PLAYGROUND_PROMPT
+    : hub === "academy" ? ACADEMY_PROMPT
+    : SUCCESS_PROMPT;
+  return base + ANTI_CHEAT_RULE + globalizationRule(locale);
 };
 
 function stripCodeFence(text: string): string {
@@ -124,14 +147,22 @@ Deno.serve(async (req) => {
     const interests: string[] = Array.isArray(body?.interests) ? body.interests.slice(0, 6) : [];
     const age: number | undefined = typeof body?.age === "number" ? body.age : undefined;
 
+    // Accept either `userLocale` or `nativeLanguage`. Strip region (ar-SA → ar).
+    const rawLocale: string = String(body?.userLocale ?? body?.nativeLanguage ?? "en")
+      .toLowerCase().split("-")[0];
+    const locale: Locale = (["en", "es", "ar", "fr", "tr", "it"] as const).includes(rawLocale as Locale)
+      ? (rawLocale as Locale)
+      : "en";
+
     const userPrompt = [
       `Generate the placement test now.`,
       age ? `Student age: ${age}.` : "",
       interests.length ? `Student interests (use to pick relatable contexts): ${interests.join(", ")}.` : "",
+      `Localize task_instruction_localized into ${LOCALE_NAMES[locale]}. All other content stays in English.`,
       `Return ONLY the JSON array, nothing else.`,
     ].filter(Boolean).join("\n");
 
-    const raw = await callGeminiDirect(promptFor(hub), userPrompt);
+    const raw = await callGeminiDirect(promptFor(hub, locale), userPrompt);
     const cleaned = stripCodeFence(raw);
 
     let questions: PlacementQuestion[];
@@ -145,7 +176,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ hub, questions, provider: "gemini-direct" }),
+      JSON.stringify({ hub, locale, questions, provider: "gemini-direct" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 },
     );
   } catch (err) {
