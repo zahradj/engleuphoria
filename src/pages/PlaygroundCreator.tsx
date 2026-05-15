@@ -844,6 +844,8 @@ export default function PlaygroundCreator() {
                     cefrLevel="A1"
                     targetVocab={blueprint?.vocabulary || []}
                     grammarFocus={blueprint?.grammar || ''}
+                    lessonTitle={title}
+                    lessonSlides={slides}
                     onPatch={(patch) => update(patch as Partial<Slide>)}
                     onAppendQuiz={(quiz) => insertAfterCurrent(mapAIQuizSlides(quiz, 'playground') as Slide[])}
                   />

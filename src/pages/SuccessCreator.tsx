@@ -776,6 +776,8 @@ export default function SuccessCreator() {
                     cefrLevel={level}
                     targetVocab={blueprint?.vocabulary || []}
                     grammarFocus={blueprint?.grammar || ''}
+                    lessonTitle={title}
+                    lessonSlides={slides}
                     onPatch={(patch) => update(patch as unknown as Partial<Slide>)}
                     onAppendQuiz={(quiz) => insertAfterCurrent(mapAIQuizSlides(quiz, 'success') as Slide[])}
                   />
