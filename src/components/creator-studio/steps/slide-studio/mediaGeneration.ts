@@ -33,7 +33,25 @@ export const generateSlideImage = (
   lessonId: string,
   slideId: string,
   hub?: string,
-) => invokeJson('generate-slide-image', { prompt, lessonId, slideId, hub });
+) => invokeJson('generate-slide-image', { prompt: enrichImagePrompt(prompt, hub), lessonId, slideId, hub });
+
+/**
+ * Hub-aware Prompt Interceptor (client mirror of the edge helper).
+ * Appends the Hub's required Style Suffix and Color Palette Suffix
+ * to the user's base prompt so the user's original target word/phrase
+ * remains the focal point of the image. The edge function applies the
+ * same suffix server-side; pre-enriching here keeps logs/preview accurate.
+ */
+export function enrichImagePrompt(basePrompt: string, hub?: string): string {
+  const h = (hub || '').toLowerCase().trim();
+  const cleaned = (basePrompt || '').trim().replace(/\s+/g, ' ');
+  if (h === 'playground' || h === 'kids')
+    return `${cleaned}, flat 2D animation style, cute and child-friendly, the image MUST use a dominant color palette of bright orange and sunny yellow.`;
+  if (h === 'success' || h === 'professional' || h === 'adults')
+    return `${cleaned}, modern professional editorial photography, sleek, highly realistic and premium, the image MUST use a dominant color palette of sophisticated mint green and emerald green.`;
+  // Default: academy
+  return `${cleaned}, high-quality comic book illustration style, dynamic graphic novel art, the image MUST use a dominant color palette of deep purple and electric purplish-blue.`;
+}
 
 export const generateSlideVoiceover = (
   text: string,
