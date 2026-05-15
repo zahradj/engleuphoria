@@ -96,17 +96,37 @@ export function VocabularyPractice({
         ) : (
           <div className="space-y-6">
             <div className="flex flex-col items-center">
-              {currentWord.image && (
-                <div className="mb-4 rounded-lg overflow-hidden w-40 h-40 flex items-center justify-center bg-muted">
-                  <img 
-                    src={currentWord.image} 
-                    alt={currentWord.word} 
+              <div className="mb-4 rounded-lg overflow-hidden w-40 h-40 flex items-center justify-center bg-muted">
+                {currentWord.image ? (
+                  <img
+                    src={currentWord.image}
+                    alt={currentWord.word}
                     className="w-full h-full object-cover"
                   />
-                </div>
-              )}
-              
-              <h3 className="text-xl font-bold mb-1">{currentWord.word}</h3>
+                ) : (
+                  <VocabularyImage
+                    prompt={`A clear, friendly illustration of "${currentWord.word}"`}
+                    alt={currentWord.word}
+                    style="flat2d"
+                    aspectRatio="1:1"
+                    className="w-full h-full"
+                  />
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="text-xl font-bold">{currentWord.word}</h3>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 rounded-full"
+                  onClick={() => speak(currentWord.word)}
+                  disabled={isSpeaking}
+                  aria-label={`Hear ${currentWord.word}`}
+                >
+                  {isSpeaking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Volume2 className="h-4 w-4" />}
+                </Button>
+              </div>
               <p className="text-muted-foreground">{languageText.selectTranslation}</p>
             </div>
 
