@@ -218,6 +218,11 @@ const App = () => {
                           <Suspense fallback={<LoadingFallback />}><GradedLibraryPage /></Suspense>
                         </ImprovedProtectedRoute>
                       } />
+                      <Route path="/dashboard/games" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <Suspense fallback={<LoadingFallback />}><GamesHubPage /></Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
 
                       <Route path="/dashboard/hub/*" element={
                         <ImprovedProtectedRoute requiredRole="student" requiredStudentLevel="professional">
