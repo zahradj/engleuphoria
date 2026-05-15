@@ -588,6 +588,8 @@ export const StoryCreator: React.FC = () => {
           </p>
         </div>
 
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold">Visual & Layout Style</Label>
           <p className="text-xs text-slate-500 dark:text-slate-400 -mt-1">
             Drives both AI illustration style and the in-app reader layout.
           </p>
