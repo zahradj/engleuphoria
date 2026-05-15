@@ -285,6 +285,36 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
             Reconnect
           </Button>
         )}
+        {onToggleSlideNav && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onToggleSlideNav}
+            title={slideNavOpen ? 'Hide slides' : 'Browse slides'}
+            aria-label="Toggle slide navigator"
+            className="h-8 w-8 rounded-full bg-gray-100 hover:bg-gray-200"
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </Button>
+        )}
+        {onForceSync && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onForceSync}
+            title="Force sync"
+            aria-label="Force sync"
+            className="h-8 w-8 rounded-full bg-gray-100 hover:bg-gray-200"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        )}
+        {(onToggleSlideNav || onForceSync) && (
+          <span
+            className={`h-2 w-2 rounded-full ${realtimeConnected ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}
+            title={realtimeConnected ? 'Realtime connected' : 'Realtime disconnected'}
+          />
+        )}
         <div className="h-6 w-px bg-gray-200 mx-2" />
         <Button
           variant="destructive"
