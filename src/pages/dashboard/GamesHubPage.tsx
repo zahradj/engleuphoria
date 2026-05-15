@@ -40,7 +40,7 @@ const FEATURED_TAGS = [
 export default function GamesHubPage() {
   const { user } = useAuth();
   const cefr = useCEFRProgress();
-  const studentLevel = (cefr?.level as string) || 'A1';
+  const studentLevel = (cefr?.data?.level as string) || 'A1';
 
   const [filter, setFilter] = useState<string | null>(null);
   const [games, setGames] = useState<GameCard[]>([]);
