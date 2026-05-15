@@ -290,48 +290,58 @@ const TestPhase = ({ age, hub, onComplete }: TestPhaseProps) => {
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
             className="space-y-3 mt-2"
           >
-            {currentQuestion.imagePrompt && (
-              <div className="w-full flex justify-center mb-4 animate-fade-in">
-                <VocabularyImage
-                  prompt={currentQuestion.imagePrompt}
-                  alt="Question visual"
-                  style={isPlayground ? 'cartoon' : 'flat2d'}
-                  aspectRatio="1:1"
-                  className="max-w-[200px] max-h-48 object-contain rounded-xl border border-white/20 bg-white/5 backdrop-blur-sm"
-                />
-              </div>
-            )}
-            {currentQuestion.audio_script && (
-              <div className="flex flex-col items-center gap-2 mb-1">
-                <button
-                  type="button"
-                  onClick={handlePlayAudio}
-                  disabled={isPlaying || isLoadingAudio}
-                  aria-label="Play listening prompt"
-                  className="bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500 text-white rounded-2xl px-6 py-3 font-semibold flex items-center gap-2 shadow-lg shadow-fuchsia-500/30 hover:scale-[1.02] active:scale-[0.98] transition disabled:opacity-70 disabled:cursor-wait"
-                >
-                  {isLoadingAudio ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Loading…
-                    </>
-                  ) : isPlaying ? (
-                    <>
-                      <Volume2 className="w-5 h-5 animate-pulse" />
-                      Playing…
-                    </>
-                  ) : (
-                    <>
-                      <Volume2 className="w-5 h-5" />
-                      {hasPlayedOnce ? 'Play Again' : 'Play Audio'}
-                    </>
+            {(() => {
+              const skill = resolveSkill(currentQuestion);
+              const showImage = skill === 'vocabulary' && !!currentQuestion.imagePrompt;
+              const showAudio = skill === 'listening' && !!currentQuestion.audio_script;
+              return (
+                <>
+                  {showImage && (
+                    <div className="w-full flex justify-center mb-4 animate-fade-in">
+                      <VocabularyImage
+                        prompt={currentQuestion.imagePrompt!}
+                        alt="Question visual"
+                        style={isPlayground ? 'cartoon' : 'flat2d'}
+                        aspectRatio="1:1"
+                        testSafe
+                        className="max-w-[200px] max-h-48 object-contain rounded-xl border border-white/20 bg-white/5 backdrop-blur-sm"
+                      />
+                    </div>
                   )}
-                </button>
-                {!hasPlayedOnce && (
-                  <p className="text-white/60 text-xs">Listen first, then choose your answer.</p>
-                )}
-              </div>
-            )}
+                  {showAudio && (
+                    <div className="flex flex-col items-center gap-2 mb-1">
+                      <button
+                        type="button"
+                        onClick={handlePlayAudio}
+                        disabled={isPlaying || isLoadingAudio}
+                        aria-label="Play listening prompt"
+                        className="bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500 text-white rounded-2xl px-6 py-3 font-semibold flex items-center gap-2 shadow-lg shadow-fuchsia-500/30 hover:scale-[1.02] active:scale-[0.98] transition disabled:opacity-70 disabled:cursor-wait"
+                      >
+                        {isLoadingAudio ? (
+                          <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            Loading…
+                          </>
+                        ) : isPlaying ? (
+                          <>
+                            <Volume2 className="w-5 h-5 animate-pulse" />
+                            Playing…
+                          </>
+                        ) : (
+                          <>
+                            <Volume2 className="w-5 h-5" />
+                            {hasPlayedOnce ? 'Play Again' : 'Play Audio'}
+                          </>
+                        )}
+                      </button>
+                      {!hasPlayedOnce && (
+                        <p className="text-white/60 text-xs">Listen first, then choose your answer.</p>
+                      )}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {currentQuestion.options.map((opt, i) => {
                 const lockedByListening = !!currentQuestion.audio_script && !hasPlayedOnce;
