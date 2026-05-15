@@ -40,7 +40,7 @@ const StudentOnboardingFlow: React.FC = () => {
     learningPath: null,
   });
 
-  const steps = ['Language', 'Welcome', 'Interests', 'Learning Style', 'Quick Check', 'Your Path'];
+  const steps = ['Language', 'Welcome', 'Interests', 'Learning Style', 'Quick Check', 'Companion', 'Your Path'];
   const progress = ((currentStep + 1) / steps.length) * 100;
 
   const handleNext = () => {
