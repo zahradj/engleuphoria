@@ -126,13 +126,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const fetchUserFromDatabase = async (authUser: any): Promise<User | null> => {
     try {
       const userId = authUser.id;
+      console.log(`${AUTH_FLOW_PREFIX} STEP 4: Fetching profile for user`, userId);
       const [profileRes, role] = await Promise.all([
-        supabase.from('users').select('*').eq('id', userId).single(),
+        withTimeout(
+          supabase.from('users').select('*').eq('id', userId).maybeSingle(),
+          2500,
+          'users profile fetch'
+        ),
         fetchUserRoleFromDatabase(userId),
       ]);
 
+      console.log(`${AUTH_FLOW_PREFIX} STEP 5: Profile data received`, {
+        data: profileRes.data,
+        error: profileRes.error,
+        role,
+      });
+
+      if (profileRes.data === null && profileRes.error === null) {
+        console.warn(`${AUTH_FLOW_PREFIX} RLS CHECK: users profile returned data:null and error:null for`, userId);
+        return null;
+      }
+
       if (profileRes.error) {
-        console.warn('User not found in database, will use auth metadata');
+        console.warn(`${AUTH_FLOW_PREFIX} RLS CHECK: users profile read failed, will use auth metadata`, profileRes.error);
         return null;
       }
 
