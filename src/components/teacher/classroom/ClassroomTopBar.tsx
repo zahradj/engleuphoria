@@ -14,7 +14,8 @@ import {
   ClipboardCheck,
   Maximize2,
   Minimize2,
-  RefreshCw
+  RefreshCw,
+  LayoutGrid
 } from 'lucide-react';
 import { useSmartTimer, type TimerPhase } from '@/hooks/classroom/useSmartTimer';
 import { DeviceSelector } from '@/components/classroom/DeviceSelector';
