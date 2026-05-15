@@ -4,6 +4,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { applyHubStyle, normalizeArtHub } from "../_shared/hubArtStyles.ts";
 import { generateGoogleImage, GoogleImageError } from "../_shared/googleImageClient.ts";
+import { buildVocabularyPrompt } from "../_shared/vocabularyImageBrain.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
