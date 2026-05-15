@@ -60,7 +60,7 @@ export const ClassroomLifecycle: React.FC<Props> = ({ bookingId, role, hubType =
             if (next === 'live' && prev !== 'live') setShowCountdown(true);
             if (next === 'ended' && role === 'student') {
               toast({ title: 'Lesson ended', description: 'Heading to your feedback…' });
-              setTimeout(() => navigate(`/feedback/${bookingId}`), 800);
+              setTimeout(() => navigate(`/classroom/${bookingId}/summary`), 800);
             }
             return next;
           });
