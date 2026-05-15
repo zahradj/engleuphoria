@@ -766,7 +766,7 @@ function renderSlideInner({ slide, t }: { slide: Slide; t: ThemeTokens }) {
 }
 
 export function SlideRenderer({ slide, t }: { slide: Slide; t: ThemeTokens }) {
-  const skipHeader = ['canvas_game', 'living_canvas', 'scaffolded_media', 'vocab_solo'].includes(slide.type as string);
+  const skipHeader = ['intro', 'vocab', 'canvas_game', 'living_canvas', 'scaffolded_media', 'vocab_solo'].includes(slide.type as string);
   return (
     <>
       {!skipHeader && <SlideMediaHeader slide={slide} />}
