@@ -5,7 +5,7 @@ import ChatBubble from './ChatBubble';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { VocabularyImage } from '@/components/ui/VocabularyImage';
-import { buildPlacementBank, type Hub, type BankQuestion } from './questionBanks';
+import { buildPlacementBank, resolveSkill, type Hub, type BankQuestion } from './questionBanks';
 
 export interface TestResult {
   questionIndex: number;
@@ -25,8 +25,8 @@ interface TestPhaseProps {
 }
 
 const TestPhase = ({ age, hub, onComplete }: TestPhaseProps) => {
-  // Hub takes precedence; fall back to age only when no hub was passed in.
-  const resolvedHub: Hub = hub ?? (age > 0 && age < 13 ? 'playground' : age >= 18 ? 'professional' : 'academy');
+  // Strict age brackets: 4-9 → playground, 10-17 → academy, 18+ → professional.
+  const resolvedHub: Hub = hub ?? (age > 0 && age < 10 ? 'playground' : age >= 18 ? 'professional' : 'academy');
   const isPlayground = resolvedHub === 'playground';
   const questions = useMemo(() => buildPlacementBank(resolvedHub, 15), [resolvedHub]);
   const TOTAL_QUESTIONS = questions.length;
