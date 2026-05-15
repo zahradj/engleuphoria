@@ -7839,6 +7839,7 @@ export type Database = {
         Row: {
           age: number | null
           cefr_level: string
+          companion_id: string | null
           created_at: string
           current_streak: number | null
           daily_streak: number | null
@@ -7891,6 +7892,7 @@ export type Database = {
         Insert: {
           age?: number | null
           cefr_level?: string
+          companion_id?: string | null
           created_at?: string
           current_streak?: number | null
           daily_streak?: number | null
@@ -7943,6 +7945,7 @@ export type Database = {
         Update: {
           age?: number | null
           cefr_level?: string
+          companion_id?: string | null
           created_at?: string
           current_streak?: number | null
           daily_streak?: number | null
