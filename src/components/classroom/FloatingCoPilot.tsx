@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Rnd } from 'react-rnd';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, X, Target, GripVertical, AlertTriangle } from 'lucide-react';
+import { Sparkles, X, Target, GripVertical, AlertTriangle, Lightbulb, MessageCircle, BookOpen } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { SharedNotesPanel } from './SharedNotesPanel';
 import { classroomSyncService } from '@/services/classroomSyncService';
+import { useHubClassroomTheme, type HubType } from '@/components/classroom/shared/useHubClassroomTheme';
 
 interface MissionItem {
   id: string;
@@ -18,10 +19,11 @@ interface FloatingCoPilotProps {
   isTeacher: boolean;
   sharedNotes: string;
   sessionContext: Record<string, any>;
-  onNotesChange: (notes: string) => void;
+  onNotesChange: (notes: string) => void | Promise<void>;
   roomId?: string;
   userId?: string;
   userName?: string;
+  hubType?: HubType;
 }
 
 const getDefaultMission = (title: string, ctx: Record<string, any>): MissionItem[] => {
