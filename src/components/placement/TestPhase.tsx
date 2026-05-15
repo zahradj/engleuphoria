@@ -329,22 +329,22 @@ const TestPhase = ({ age, hub, onComplete }: TestPhaseProps) => {
                         {isLoadingAudio ? (
                           <>
                             <Loader2 className="w-5 h-5 animate-spin" />
-                            Loading…
+                            {t('placement.action.loading')}
                           </>
                         ) : isPlaying ? (
                           <>
                             <Volume2 className="w-5 h-5 animate-pulse" />
-                            Playing…
+                            {t('placement.action.loading')}
                           </>
                         ) : (
                           <>
                             <Volume2 className="w-5 h-5" />
-                            {hasPlayedOnce ? 'Play Again' : 'Play Audio'}
+                            {hasPlayedOnce ? t('placement.action.playAgain') : t('placement.action.playAudio')}
                           </>
                         )}
                       </button>
                       {!hasPlayedOnce && (
-                        <p className="text-white/60 text-xs">Listen first, then choose your answer.</p>
+                        <p className="text-white/60 text-xs">{t('placement.audio.hint')}</p>
                       )}
                     </div>
                   )}
