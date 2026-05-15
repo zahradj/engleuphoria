@@ -57,20 +57,44 @@ export const OverviewTab = ({
 
         if (lessonsError) throw lessonsError;
 
+        // Phase 2: enrich each upcoming class with the student's hub / CEFR / goal
+        const studentIds = Array.from(new Set((lessons ?? []).map(l => l.student_id).filter(Boolean)));
+        let profilesById: Record<string, { hub_type: string | null; final_cefr_level: string | null; long_term_goal: string | null; age: number | null }> = {};
+        if (studentIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from('student_profiles')
+            .select('user_id, hub_type, final_cefr_level, long_term_goal, age')
+            .in('user_id', studentIds);
+          profilesById = Object.fromEntries(
+            (profiles ?? []).map(p => [p.user_id as string, {
+              hub_type: (p as any).hub_type ?? null,
+              final_cefr_level: (p as any).final_cefr_level ?? null,
+              long_term_goal: (p as any).long_term_goal ?? null,
+              age: (p as any).age ?? null,
+            }])
+          );
+        }
+
         // Transform lessons data
         const transformedLessons = lessons?.map(lesson => {
           const scheduledDate = new Date(lesson.scheduled_at);
           const now = new Date();
           const isToday = scheduledDate.toDateString() === now.toDateString();
           const isSoon = scheduledDate.getTime() - now.getTime() < 3600000; // Within 1 hour
-          
+          const profile = profilesById[lesson.student_id as string];
+          const studentName = (lesson as any).users?.full_name ?? null;
+
           return {
             id: lesson.id,
             title: lesson.title,
-            time: isToday 
+            time: isToday
               ? `Today, ${scheduledDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`
               : scheduledDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }),
             students: 1,
+            studentName,
+            hubType: profile?.hub_type ?? null,
+            cefrLevel: profile?.final_cefr_level ?? null,
+            goal: profile?.long_term_goal ?? null,
             status: (isSoon || lesson.status === 'confirmed') ? 'ready' : 'scheduled' as const
           };
         }) || [];
