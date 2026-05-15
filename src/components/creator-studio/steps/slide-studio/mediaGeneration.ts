@@ -46,11 +46,11 @@ export function enrichImagePrompt(basePrompt: string, hub?: string): string {
   const h = (hub || '').toLowerCase().trim();
   const cleaned = (basePrompt || '').trim().replace(/\s+/g, ' ');
   if (h === 'playground' || h === 'kids')
-    return `${cleaned}, flat 2D animation style, cute and child-friendly, the image MUST use a dominant color palette of bright orange and sunny yellow.`;
+    return `${cleaned}, flat 2D animation style, cute and child-friendly, warm natural colors with subtle orange and yellow accents (do not make the image overwhelmingly orange), clean white background or light natural environment.`;
   if (h === 'success' || h === 'professional' || h === 'adults')
-    return `${cleaned}, modern professional editorial photography, sleek, highly realistic and premium, the image MUST use a dominant color palette of sophisticated mint green and emerald green.`;
+    return `${cleaned}, modern professional editorial photography, sleek and highly realistic, natural realistic colors with only subtle mint and emerald green accents (do not make the image overwhelmingly green), clean white background or light natural environment.`;
   // Default: academy
-  return `${cleaned}, high-quality comic book illustration style, dynamic graphic novel art, the image MUST use a dominant color palette of deep purple and electric purplish-blue.`;
+  return `${cleaned}, clean slice-of-life webcomic style, realistic everyday lifestyle situations. Use natural, realistic colors with only very subtle purple accents. Do not make the image overwhelmingly purple and do not use sci-fi or fantasy styles. Clean white background or light natural environment.`;
 }
 
 export const generateSlideVoiceover = (
