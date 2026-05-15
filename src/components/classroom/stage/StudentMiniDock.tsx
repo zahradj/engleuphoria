@@ -60,7 +60,7 @@ export const StudentMiniDock: React.FC<StudentMiniDockProps> = ({
         >
           <Eraser className="h-4 w-4" />
         </Button>
-        <div className="h-5 w-px bg-border mx-1" />
+        <div className="w-5 h-px bg-border my-1" />
         <Popover>
           <PopoverTrigger asChild>
             <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full" title="Color">
