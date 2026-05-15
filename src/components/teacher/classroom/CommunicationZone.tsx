@@ -235,8 +235,8 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
           )}
         </div>
 
-        {/* Teacher Video Container (smaller) */}
-        <div className="relative aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden border border-gray-200 w-2/3">
+        {/* Teacher Video Container — same dimensions as student tile */}
+        <div className="relative aspect-[4/3] bg-gray-900 rounded-lg overflow-hidden border-2 border-primary/30 w-full">
           {isVideoConnected && localStream && !isLocalCameraOff ? (
             <video
               ref={teacherVideoRef}
@@ -247,13 +247,16 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
               style={{ transform: 'scaleX(-1)' }}
             />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
-                <User className="w-6 h-6 text-gray-400" />
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+              <div className="text-center space-y-2">
+                <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center mx-auto">
+                  <User className="w-10 h-10 text-gray-400" />
+                </div>
+                <p className="text-[10px] text-gray-500">{teacherName} (You)</p>
               </div>
             </div>
           )}
-          <div className="absolute bottom-1 left-1 bg-white/80 px-1.5 py-0.5 rounded text-[10px] text-gray-700 shadow-sm">
+          <div className="absolute bottom-2 left-2 bg-white/80 px-2 py-1 rounded text-xs text-gray-700 shadow-sm">
             You
           </div>
         </div>

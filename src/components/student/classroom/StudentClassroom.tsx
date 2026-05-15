@@ -284,7 +284,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
 
   const slides = lessonSlides.length > 0
     ? lessonSlides
-    : [{ id: '1', title: 'Waiting for teacher...' }];
+    : [{ id: '__loading__', title: 'Lesson loading…', body: 'Your teacher is preparing the lesson. Slides will appear here in a moment.' }];
 
   const hubBg = hubType === 'playground'
     ? 'bg-gradient-to-br from-orange-50/40 via-white to-amber-50/40'
@@ -296,9 +296,11 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
 
   return (
     <div className={`h-screen w-full ${hubBg} text-gray-900 flex flex-col overflow-hidden relative`}>
-      <div className="fixed top-3 right-3 z-[110] flex items-center gap-2 rounded-full bg-background/85 px-3 py-1.5 shadow-sm ring-1 ring-border backdrop-blur-md">
-        <div className={`h-2.5 w-2.5 rounded-full ${channelStatus === 'SUBSCRIBED' ? 'bg-success animate-pulse' : 'bg-destructive'}`} />
-        <span className="text-[11px] font-medium text-foreground">Realtime</span>
+      <div className="fixed top-3 right-3 z-[110]">
+        <span
+          className={`block h-2.5 w-2.5 rounded-full ring-2 ring-background ${channelStatus === 'SUBSCRIBED' ? 'bg-success animate-pulse' : 'bg-destructive'}`}
+          title={channelStatus === 'SUBSCRIBED' ? 'Connected' : 'Reconnecting…'}
+        />
       </div>
       {/* Debug Room ID Label */}
       {showDebug && (

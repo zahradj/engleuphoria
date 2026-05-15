@@ -534,11 +534,20 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   return (
     <div className={`h-screen w-full ${hubBg} text-gray-900 flex flex-col overflow-hidden relative`}>
-      <div className="fixed top-3 right-3 z-[110] flex items-center gap-2 rounded-full bg-background/85 px-3 py-1.5 shadow-sm ring-1 ring-border backdrop-blur-md">
-        <div className={`h-2.5 w-2.5 rounded-full ${channelStatus === 'SUBSCRIBED' ? 'bg-success animate-pulse' : 'bg-destructive'}`} />
-        <span className="text-[11px] font-medium text-foreground">Realtime</span>
-        <Button variant="destructive" size="sm" className="ml-2 h-6 text-[10px] px-2" onClick={handleForceSync}>
-          <RefreshCw className="w-3 h-3 mr-1" /> Force Sync
+      <div className="fixed top-3 right-3 z-[110] flex items-center gap-1.5">
+        <span
+          className={`h-2.5 w-2.5 rounded-full ring-2 ring-background ${channelStatus === 'SUBSCRIBED' ? 'bg-success animate-pulse' : 'bg-destructive'}`}
+          title={channelStatus === 'SUBSCRIBED' ? 'Realtime connected' : 'Realtime disconnected'}
+        />
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handleForceSync}
+          title="Force sync"
+          aria-label="Force sync"
+          className="h-8 w-8 rounded-full bg-background/90 backdrop-blur-md shadow-sm hover:bg-background"
+        >
+          <RefreshCw className="h-3.5 w-3.5" />
         </Button>
       </div>
 

@@ -59,19 +59,14 @@ export function StarRewardsLine({ points, milestones }: StarRewardsLineProps) {
               }}
             >
               <div 
-                className={`flex items-center justify-center w-6 h-6 rounded-full transition-all duration-500 ${colorClass} ${
-                  isEarned ? "animate-pulse-subtle scale-110" : ""
+                className={`flex items-center justify-center w-7 h-7 rounded-full transition-all duration-500 ${colorClass} ${
+                  isEarned ? "animate-pulse-subtle scale-125 shadow-[0_0_12px_rgba(250,204,21,0.55)] ring-2 ring-yellow-300/60" : ""
                 }`}
               >
                 <Star 
-                  size={14} 
-                  className={`transition-all duration-500 ${isEarned ? "" : "text-gray-400"}`} 
+                  size={15} 
+                  className={`transition-all duration-500 ${isEarned ? "drop-shadow-[0_0_4px_rgba(255,255,255,0.9)]" : "text-gray-400"}`} 
                 />
-              </div>
-              <div className={`text-[10px] mt-1 whitespace-nowrap text-center transition-colors duration-500 ${
-                isEarned ? "font-medium" : "text-gray-500"
-              }`}>
-                {milestone}
               </div>
             </div>
           );
@@ -86,11 +81,6 @@ export function StarRewardsLine({ points, milestones }: StarRewardsLineProps) {
             display: points <= Math.max(...milestones) ? "block" : "none"
           }}
         />
-      </div>
-      
-      <div className="mt-2 text-center">
-        <div className="text-xs font-medium animate-bounce-light">{points}</div>
-        <div className="text-[10px] text-muted-foreground">{languageText.points}</div>
       </div>
     </div>
   );
