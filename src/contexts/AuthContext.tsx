@@ -143,24 +143,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Function to create fallback user from auth metadata
-  const createFallbackUser = async (authUser: any): Promise<User> => {
-    const role = (await fetchUserRoleFromDatabase(authUser.id)) ?? 'student';
-    
+  // Synchronous fallback user from auth metadata. Does NOT block on DB role fetch —
+  // the canonical role is fetched in the background by the caller and merged in.
+  const createFallbackUserSync = (authUser: any): User => {
     const fallbackName =
       authUser.user_metadata?.full_name ||
       authUser.user_metadata?.name ||
       authUser.email?.split('@')[0] ||
       'User';
 
+    const metadataRole = authUser.user_metadata?.role || 'student';
+
     return {
       id: authUser.id,
       email: authUser.email || '',
       full_name: fallbackName,
-      role: role,
+      role: metadataRole,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      user_metadata: authUser.user_metadata || {}
+      user_metadata: authUser.user_metadata || {},
+      app_metadata: authUser.app_metadata || {},
     } as any;
   };
 
