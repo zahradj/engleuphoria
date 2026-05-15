@@ -338,6 +338,7 @@ export default function SuccessCreator() {
             learning_objective: payload.learning_objective,
             final_output_task: payload.final_output_task,
           },
+          starring_character: payload.starring_character,
         },
       });
       if (error || data?.error) {

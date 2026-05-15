@@ -15,6 +15,9 @@ import {
   IMAGE_STYLES_BY_HUB,
   DEFAULT_IMAGE_STYLE_ID,
 } from './imageStyleOptions';
+import { listCharactersForHub } from '@/services/characterService';
+import type { CustomCharacter, StarringCharacterPayload } from '@/types/character';
+import { toStarringPayload } from '@/types/character';
 
 export type Hub = 'playground' | 'academy' | 'success';
 
@@ -32,6 +35,8 @@ export interface GenerateLessonPayload {
   image_style: string;
   learning_objective?: string;
   final_output_task?: string;
+  /** Optional cast member the AI must feature in the lesson. */
+  starring_character?: StarringCharacterPayload;
 }
 
 interface Props {
@@ -145,6 +150,8 @@ export default function GenerateLessonModal({
   const [imageStyle, setImageStyle] = useState<string>(DEFAULT_IMAGE_STYLE_ID[hub]);
   const [expanded, setExpanded] = useState(false);
   const [autoFillBusy, setAutoFillBusy] = useState(false);
+  const [characters, setCharacters] = useState<CustomCharacter[]>([]);
+  const [starringId, setStarringId] = useState<string>('');
 
   const isPreA1 = level === 'Pre-A1';
   const imageStyleOptions = IMAGE_STYLES_BY_HUB[hub];
@@ -164,6 +171,8 @@ export default function GenerateLessonModal({
     setLearningObjective(defaultLearningObjective || '');
     setFinalOutputTask(defaultFinalOutputTask || '');
     setImageStyle(DEFAULT_IMAGE_STYLE_ID[hub]);
+    setStarringId('');
+    listCharactersForHub(hub).then(setCharacters).catch(() => setCharacters([]));
     setExpanded(Boolean(
       (defaultVocabulary && defaultVocabulary.some((v) => v?.trim())) ||
       defaultGrammar?.trim() ||
@@ -249,6 +258,7 @@ export default function GenerateLessonModal({
 
   const handleGenerate = async () => {
     if (!canGenerate) return;
+    const starring = characters.find((c) => c.id === starringId);
     await onGenerate({
       topic: topic.trim(),
       level,
@@ -262,6 +272,7 @@ export default function GenerateLessonModal({
       image_style: imageStyle,
       learning_objective: learningObjective.trim() || undefined,
       final_output_task: finalOutputTask.trim() || undefined,
+      starring_character: starring ? toStarringPayload(starring) : undefined,
     });
   };
 
@@ -372,7 +383,25 @@ export default function GenerateLessonModal({
                 </p>
               </label>
 
-              {/* Blueprint Details (collapsible) */}
+              {/* Starring Character (Cast Vault) */}
+              <label className="block">
+                <span className={labelCls}>🎭 Starring Character (optional)</span>
+                <select
+                  className={inputCls}
+                  value={starringId}
+                  onChange={(e) => setStarringId(e.target.value)}
+                  disabled={busy}
+                >
+                  <option value="">— No featured character —</option>
+                  {characters.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  When set, the AI will write {hub === 'playground' ? 'the kid-friendly' : 'the'} story and images around this character.
+                </p>
+              </label>
+
               <div className="rounded-2xl border-2 border-slate-200 overflow-hidden">
                 <button
                   type="button"

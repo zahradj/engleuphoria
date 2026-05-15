@@ -13,6 +13,9 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useCreator, CEFRLevel, ActiveLessonData, PPPSlide, MCQData } from '../CreatorContext';
 import { persistLesson } from '../persistLesson';
+import { listCharactersForHub } from '@/services/characterService';
+import type { CustomCharacter, CharacterHub } from '@/types/character';
+import { toStarringPayload } from '@/types/character';
 
 const CEFR: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 const GENRES = ['Sci-Fi', 'Fairy Tale', 'Everyday Life', 'Mystery', 'Adventure', 'Slice of Life', 'Historical', 'Comedy'];
@@ -116,6 +119,8 @@ export const StoryCreator: React.FC = () => {
   const [busy, setBusy] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [characters, setCharacters] = useState<CustomCharacter[]>([]);
+  const [starringId, setStarringId] = useState<string>('');
 
   // ── Linked lesson picker ──
   const [lessons, setLessons] = useState<CurriculumLessonOption[]>([]);
@@ -149,6 +154,21 @@ export const StoryCreator: React.FC = () => {
     })();
     return () => { alive = false; };
   }, []);
+
+  const storyHub: CharacterHub = linkedLesson
+    ? (linkedLesson.target_system === 'kids' ? 'playground'
+      : linkedLesson.target_system === 'teen' ? 'academy'
+      : 'success')
+    : 'academy';
+
+  useEffect(() => {
+    let alive = true;
+    listCharactersForHub(storyHub)
+      .then((data) => { if (alive) setCharacters(data); })
+      .catch(() => { if (alive) setCharacters([]); });
+    setStarringId('');
+    return () => { alive = false; };
+  }, [storyHub]);
 
   const handleSelectLesson = (id: string) => {
     const lesson = lessons.find((l) => l.id === id);
@@ -277,6 +297,10 @@ export const StoryCreator: React.FC = () => {
           artStyle: visualStyle,
           linked_lesson: linked_lesson_payload,
           visual_style: visualStyle,
+          starring_character: (() => {
+            const c = characters.find((x) => x.id === starringId);
+            return c ? toStarringPayload(c) : undefined;
+          })(),
         },
       });
       if (fnErr) {
@@ -545,6 +569,22 @@ export const StoryCreator: React.FC = () => {
           <p className="text-xs text-slate-500">
             {parseVocab(vocabInput).length}/12 words
             {linkedLesson && ' · linked-lesson vocab is always included'}
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold">🎭 Starring Character (optional)</Label>
+          <Select value={starringId || 'none'} onValueChange={(v) => setStarringId(v === 'none' ? '' : v)}>
+            <SelectTrigger><SelectValue placeholder="No featured character" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">— No featured character —</SelectItem>
+              {characters.map((c) => (
+                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-slate-500">
+            Pulled from the Cast Vault for the {storyHub} hub. The AI will write the protagonist around them.
           </p>
         </div>
 

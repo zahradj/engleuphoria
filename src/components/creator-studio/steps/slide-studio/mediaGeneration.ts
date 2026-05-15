@@ -28,12 +28,19 @@ async function invokeJson(fn: string, body: Record<string, unknown>): Promise<Ge
   return data as GeneratedAsset;
 }
 
+export interface StarringCharacterRef {
+  name: string;
+  visual_blueprint: string;
+  personality_traits?: string;
+}
+
 export const generateSlideImage = (
   prompt: string,
   lessonId: string,
   slideId: string,
   hub?: string,
-) => invokeJson('generate-slide-image', { prompt, lessonId, slideId, hub });
+  starring_character?: StarringCharacterRef,
+) => invokeJson('generate-slide-image', { prompt, lessonId, slideId, hub, starring_character });
 
 /**
  * Hub-aware Prompt Interceptor (client mirror of the edge helper).

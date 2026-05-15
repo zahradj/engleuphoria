@@ -8,6 +8,7 @@ import { BlueprintEngine } from './steps/BlueprintEngine';
 import { LibraryManager } from './steps/LibraryManager';
 import { TrialCreator } from './steps/TrialCreator';
 import { StoryCreator } from './steps/StoryCreator';
+import { CharacterCreator } from './characters/CharacterCreator';
 import PlaygroundCreator from '@/pages/PlaygroundCreator';
 import AcademyCreator from '@/pages/AcademyCreator';
 import SuccessCreator from '@/pages/SuccessCreator';
@@ -23,6 +24,7 @@ const StudioBody: React.FC = () => {
     else if (path.endsWith('/blueprint')) next = 'blueprint';
     else if (path.endsWith('/trial')) next = 'trial';
     else if (path.endsWith('/story')) next = 'story';
+    else if (path.endsWith('/characters')) next = 'characters';
     else if (path.endsWith('/playground-creator')) next = 'playground-creator';
     else if (path.endsWith('/academy-creator')) next = 'academy-creator';
     else if (path.endsWith('/success-creator')) next = 'success-creator';
@@ -39,6 +41,7 @@ const StudioBody: React.FC = () => {
     : currentStep === 'success-creator' ? SuccessCreator
     : currentStep === 'trial' ? TrialCreator
     : currentStep === 'story' ? StoryCreator
+    : currentStep === 'characters' ? CharacterCreator
     : LibraryManager;
 
   return (

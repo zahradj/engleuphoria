@@ -677,6 +677,7 @@ async function handleGenerateStory(body: any) {
     visual_style: rawStyle = 'classic',
     art_style: artStyleAlias,
     artStyle,                           // camelCase alias
+    starring_character = null,
   } = body;
 
   // Normalize aliases
@@ -783,8 +784,22 @@ ${grammar ? `- Grammar focus: ${grammar}\n` : ''}- Lesson vocabulary: ${llVocab.
         : '- Produce 4 or 5 pages, each with 3 to 5 panels.')
     : '- 4 or 5 narrative pages.';
 
+  // ── Casting Director block ──
+  let castingBlock = '';
+  if (starring_character && typeof starring_character === 'object') {
+    const cName = String((starring_character as any).name || '').trim();
+    const cPersona = String((starring_character as any).personality_traits || '').trim();
+    const cVisual = String((starring_character as any).visual_blueprint || '').trim();
+    if (cName) {
+      castingBlock = `\n\nSTARRING CHARACTER (MANDATORY): The protagonist of this story MUST be "${cName}". ` +
+        (cPersona ? `Their personality is: ${cPersona}. ` : '') +
+        (cVisual ? `Their visual description (RESTATE in EVERY image_prompt verbatim so artwork stays consistent): ${cVisual}. ` : '') +
+        `Do not invent a different main character.`;
+    }
+  }
+
   // ── MASTER DEVELOPER SYSTEM PROMPT ──
-  const systemPrompt = `You are an award-winning comic book writer and an expert ESL (English as a Second Language) curriculum designer. Your job is to generate educational comics that are deeply engaging, emotionally resonant, and perfectly tailored to the user's CEFR level.
+  const systemPrompt = `You are an award-winning comic book writer and an expert ESL (English as a Second Language) curriculum designer. Your job is to generate educational comics that are deeply engaging, emotionally resonant, and perfectly tailored to the user's CEFR level.${castingBlock}
 
 RULES:
 - Pedagogy First: Strictly adhere to the vocabulary and sentence complexity of the requested CEFR level. If the level is A1, use simple sentences but KEEP the emotional hook. If B2, use idioms and complex clauses.

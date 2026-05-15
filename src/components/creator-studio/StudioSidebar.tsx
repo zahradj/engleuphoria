@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Map, Palette, Library, LogOut, ChevronLeft, ChevronRight, Zap, BookOpen, Sparkles, GraduationCap, Briefcase } from 'lucide-react';
+import { Map, Palette, Library, LogOut, ChevronLeft, ChevronRight, Zap, BookOpen, Sparkles, GraduationCap, Briefcase, Users } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { cn } from '@/lib/utils';
 import { useCreator, CreatorStep } from './CreatorContext';
@@ -17,6 +17,7 @@ const NAV: Array<{ key: CreatorStep; tKey: string; icon: React.ElementType; emoj
   { key: 'success-creator', tKey: 'nav.success_creator', icon: Briefcase, emoji: '💼', fallback: 'Success Creator' },
   { key: 'trial', tKey: 'nav.trial_creator', icon: Zap, emoji: '⚡' },
   { key: 'story', tKey: 'nav.story_creator', icon: BookOpen, emoji: '📖' },
+  { key: 'characters', tKey: 'nav.cast_vault', icon: Users, emoji: '🎭', fallback: 'Cast Vault' },
   { key: 'library', tKey: 'nav.master_library', icon: Library, emoji: '📚' },
 ];
 
