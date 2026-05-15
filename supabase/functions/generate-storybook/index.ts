@@ -122,6 +122,7 @@ Deno.serve(async (req) => {
 
     const systemPrompt = [
       `You are an English curriculum author. Generate a contextual story for the ${hub.toUpperCase()} hub at CEFR ${cefr_level}.`,
+      `ALWAYS return a short, vivid story title (3-7 words, Title Case) in the "title" field. Never leave it blank or generic like "Story".`,
       `Story theme: ${theme}. Layout: ${resolvedLayout}.`,
       `Tone: ${rules.toneRule}`,
       `Page rule: ${rules.pageRule}`,
