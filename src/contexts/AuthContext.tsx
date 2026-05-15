@@ -500,6 +500,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(data.session ?? null);
         setUser({ ...(data.user as any), role: finalRole } as any);
         sessionStorage.setItem('auth_redirect_done', 'true');
+        sessionStorage.setItem('auth_resolved_role', finalRole);
         signInRedirectRef.current = true;
         window.location.href = redirectPath;
       }
