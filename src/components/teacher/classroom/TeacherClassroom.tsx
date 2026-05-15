@@ -95,7 +95,20 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   // Raw GeneratedSlide[] for premium rendering in the stage — seeded from the
   // resolved Master Library lesson when one is linked to this booking.
-  const [rawSlides, setRawSlides] = useState<any[]>(() => initialSlides ?? []);
+  const [rawSlides, setRawSlides] = useState<any[]>(() => {
+    const src = initialSlides ?? [];
+    // Mirror the slides() dedupe — collapse consecutive intros at the head
+    // so the live stage doesn't render two intro slides back-to-back.
+    const out: any[] = [];
+    let lastWasIntro = false;
+    for (const s of src) {
+      const isIntro = (s as any)?.type === 'intro' || (s as any)?.slide_type === 'intro';
+      if (isIntro && lastWasIntro && out.length === 1) continue;
+      out.push(s);
+      lastWasIntro = isIntro;
+    }
+    return out;
+  });
 
   // Live student-action mirror — populated by the realtime broadcast so the
   // teacher instantly sees what the student selected on each slide.
