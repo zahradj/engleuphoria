@@ -147,14 +147,22 @@ Deno.serve(async (req) => {
     const interests: string[] = Array.isArray(body?.interests) ? body.interests.slice(0, 6) : [];
     const age: number | undefined = typeof body?.age === "number" ? body.age : undefined;
 
+    // Accept either `userLocale` or `nativeLanguage`. Strip region (ar-SA → ar).
+    const rawLocale: string = String(body?.userLocale ?? body?.nativeLanguage ?? "en")
+      .toLowerCase().split("-")[0];
+    const locale: Locale = (["en", "es", "ar", "fr", "tr", "it"] as const).includes(rawLocale as Locale)
+      ? (rawLocale as Locale)
+      : "en";
+
     const userPrompt = [
       `Generate the placement test now.`,
       age ? `Student age: ${age}.` : "",
       interests.length ? `Student interests (use to pick relatable contexts): ${interests.join(", ")}.` : "",
+      `Localize task_instruction_localized into ${LOCALE_NAMES[locale]}. All other content stays in English.`,
       `Return ONLY the JSON array, nothing else.`,
     ].filter(Boolean).join("\n");
 
-    const raw = await callGeminiDirect(promptFor(hub), userPrompt);
+    const raw = await callGeminiDirect(promptFor(hub, locale), userPrompt);
     const cleaned = stripCodeFence(raw);
 
     let questions: PlacementQuestion[];
@@ -168,7 +176,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ hub, questions, provider: "gemini-direct" }),
+      JSON.stringify({ hub, locale, questions, provider: "gemini-direct" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 },
     );
   } catch (err) {
