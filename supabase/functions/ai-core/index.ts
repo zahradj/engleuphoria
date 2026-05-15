@@ -677,6 +677,7 @@ async function handleGenerateStory(body: any) {
     visual_style: rawStyle = 'classic',
     art_style: artStyleAlias,
     artStyle,                           // camelCase alias
+    starring_character = null,
   } = body;
 
   // Normalize aliases
