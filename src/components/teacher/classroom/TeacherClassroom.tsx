@@ -535,33 +535,6 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   return (
     <div className={`h-screen w-full ${hubBg} text-gray-900 flex flex-col overflow-hidden relative`}>
-      <div className="fixed top-3 right-3 z-[110] flex items-center gap-1.5">
-        <span
-          className={`h-2.5 w-2.5 rounded-full ring-2 ring-background ${channelStatus === 'SUBSCRIBED' ? 'bg-success animate-pulse' : 'bg-destructive'}`}
-          title={channelStatus === 'SUBSCRIBED' ? 'Realtime connected' : 'Realtime disconnected'}
-        />
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => setSlideNavOpen(v => !v)}
-          title={slideNavOpen ? 'Hide slides' : 'Browse slides'}
-          aria-label="Toggle slide navigator"
-          className="h-8 w-8 rounded-full bg-background/90 backdrop-blur-md shadow-sm hover:bg-background"
-        >
-          <LayoutGrid className="h-3.5 w-3.5" />
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={handleForceSync}
-          title="Force sync"
-          aria-label="Force sync"
-          className="h-8 w-8 rounded-full bg-background/90 backdrop-blur-md shadow-sm hover:bg-background"
-        >
-          <RefreshCw className="h-3.5 w-3.5" />
-        </Button>
-      </div>
-
       {/* Teacher-only: live diagnostics for realtime + WebRTC */}
       <ConnectionDebugPanel
         realtimeStatus={realtimeHealth}
