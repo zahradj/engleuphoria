@@ -17,16 +17,26 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { prompt, lessonId, slideId, hub } = await req.json();
+    const { prompt, lessonId, slideId, hub, starring_character } = await req.json();
     if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
       return new Response(JSON.stringify({ error: "Prompt is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    // Casting Director: if a starring character is supplied, force the AI to
+    // feature them in the image with their visual blueprint as the anchor.
+    let castedPrompt = prompt;
+    if (starring_character && typeof starring_character === "object") {
+      const name = String((starring_character as any).name || "").trim();
+      const blueprint = String((starring_character as any).visual_blueprint || "").trim();
+      if (name && blueprint) {
+        castedPrompt = `${prompt}. The image MUST feature ${name}. Visual description: ${blueprint}. Keep ${name}'s appearance consistent across all images.`;
+      }
+    }
     // Apply the AI Art Director's house-style suffix for the target hub.
     const artHub = normalizeArtHub(hub);
-    const styledPrompt = applyHubStyle(prompt, artHub);
+    const styledPrompt = applyHubStyle(castedPrompt, artHub);
 
     let bytes: Uint8Array;
     let contentType: string;
