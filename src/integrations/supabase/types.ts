@@ -2832,6 +2832,42 @@ export type Database = {
           },
         ]
       }
+      custom_characters: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          created_by: string
+          hub: string
+          id: string
+          name: string
+          personality_traits: string
+          updated_at: string
+          visual_blueprint: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          created_by: string
+          hub: string
+          id?: string
+          name: string
+          personality_traits?: string
+          updated_at?: string
+          visual_blueprint?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          created_by?: string
+          hub?: string
+          id?: string
+          name?: string
+          personality_traits?: string
+          updated_at?: string
+          visual_blueprint?: string
+        }
+        Relationships: []
+      }
       daily_lessons: {
         Row: {
           content: Json
