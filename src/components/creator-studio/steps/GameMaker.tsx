@@ -13,7 +13,23 @@ import { Switch } from '@/components/ui/switch';
 import GamePlayer from '@/components/games/GamePlayer';
 
 type GameType = 'sentence_builder' | 'verb_trio' | 'interview' | 'sorting';
+type Hub = 'playground' | 'academy' | 'success';
 type Level = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
+
+// Per-hub CEFR ceilings (mirrors src/config/hubConfigs.ts).
+// Playground: A1-B1 (B1 stays story-driven, no drills).
+// Academy:    A1-C1 (C1 = argumentation/analysis, NOT corporate).
+// Success:    A1-C1 (premium professional tone at every level).
+const HUB_LEVELS: Record<Hub, Level[]> = {
+  playground: ['A1', 'A2', 'B1'],
+  academy:    ['A1', 'A2', 'B1', 'B2', 'C1'],
+  success:    ['A1', 'A2', 'B1', 'B2', 'C1'],
+};
+const HUB_LABEL: Record<Hub, string> = {
+  playground: '🎨 Playground (4-9)',
+  academy:    '🎓 Academy (10-17)',
+  success:    '🚀 Success (18+)',
+};
 
 interface GameRow {
   id: string;
@@ -34,7 +50,7 @@ const GAME_TYPES: { id: GameType; label: string; emoji: string; help: string }[]
   { id: 'sorting',          label: 'Word Sorting',     emoji: '🗂️', help: 'Drag words into the correct category buckets.' },
 ];
 
-const LEVELS: Level[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+const LEVELS: Level[] = ['A1', 'A2', 'B1', 'B2', 'C1'];
 
 const STARTER_CONTENT: Record<GameType, any> = {
   sentence_builder: {

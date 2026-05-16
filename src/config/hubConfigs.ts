@@ -28,44 +28,54 @@ export const HUB_CONFIGS: Record<HubType, HubConfig> = {
     label: 'Playground',
     ui_theme: 'rounded-3xl shadow-soft font-comic bg-pastel-green',
     ai_persona:
-      'Target audience: Kids aged 4-9. Tone must be highly enthusiastic, magical, and simple. ' +
-      'Use strictly CEFR Pre-A1 to A2 vocabulary. Sentences must be short (max 7 words). ' +
-      'No complex grammar. Topics: Animals, magic, toys, family. ' +
-      'Never use abstract concepts, business themes, or words above A2 level.',
-    cefrRange: { min: 'Pre-A1', max: 'A2' },
+      'Target audience: Kids aged 4-9. Tone must be highly enthusiastic, magical, and playful. ' +
+      'Allowed CEFR range: Pre-A1 to B1. Even at A2 and B1, KEEP the playful identity — content must remain ' +
+      'story-driven, visually rich, and interaction-heavy. Sentences max 10 words. ' +
+      'Grammar must stay implicit/contextualized — never present grammar rules abstractly. ' +
+      'Topics: Animals, magic, toys, family, adventures, friendship, simple stories. ' +
+      'STRICTLY FORBIDDEN: business themes, corporate language, exam-prep tone, abstract academic discussion, ' +
+      'and any teen/adult register. Advanced young learners should feel challenged through richer stories and ' +
+      'longer interactive play, never through formal grammar drills.',
+    cefrRange: { min: 'Pre-A1', max: 'B1' },
     defaultDuration: 30,
     phonics_rule:
-      'Focus strictly on single-letter phonemes (e.g., Short A /æ/, Hard C /k/) and simple ' +
-      'CVC (Consonant-Vowel-Consonant) blending. Do not introduce complex digraphs yet.',
+      'Focus on single-letter phonemes and CVC blending at Pre-A1/A1. Progressively introduce common digraphs ' +
+      '(sh, ch, th) and simple vowel teams (ee, oa, ai) at A2/B1 — always via songs, stories and games, never drills.',
   },
   academy: {
     label: 'Academy',
     ui_theme: 'rounded-xl shadow-md font-sans bg-cyan-50',
     ai_persona:
-      'Target audience: Teenagers aged 10-15. Tone must be engaging, relevant, and slightly informal. ' +
-      'Use CEFR A2 to B2 vocabulary. ' +
-      'Topics: Technology, sports, school drama, pop culture, future careers. ' +
-      'Avoid babyish themes (no toys, no nursery rhymes) and avoid corporate/IELTS topics.',
-    cefrRange: { min: 'A2', max: 'B2' },
+      'Target audience: Teenagers aged 10-17. Tone must be engaging, modern, identity-aware, and slightly informal. ' +
+      'Allowed CEFR range: Pre-A1 to C1. ' +
+      'Topics: Technology, sports, school life, pop culture, social media, identity, future careers, debate, ' +
+      'academic writing, IELTS/TOEFL prep at upper levels. ' +
+      'At C1 specifically: focus on argumentation, analysis, persuasion, advanced expression and academic discourse — ' +
+      'NOT corporate negotiation or workplace politics. ' +
+      'STRICTLY FORBIDDEN: babyish themes (toys, nursery rhymes), and adult/corporate register (boardrooms, ' +
+      'KPIs, executive meetings).',
+    cefrRange: { min: 'Pre-A1', max: 'C1' },
     defaultDuration: 60,
     phonics_rule:
-      'Focus on two-letter and three-letter consonant clusters/digraphs (e.g., sh, ch, th, str, spl) ' +
-      'and vowel teams (e.g., ee, oa, ai). Introduce minimal pairs (e.g., ship vs sheep).',
+      'Pre-A1/A1: alphabet sounds and CVC. A2/B1: consonant clusters, digraphs, vowel teams, minimal pairs ' +
+      '(ship vs sheep). B2/C1: stress patterns, intonation for nuance, connected speech in informal teen registers.',
   },
   success: {
     label: 'Success',
     ui_theme: 'rounded-sm shadow-sm font-serif bg-slate-50 border border-slate-200',
     ai_persona:
-      'Target audience: Adult professionals. Tone must be highly formal, sophisticated, and business-oriented. ' +
-      'Use CEFR B1 to C2 vocabulary. ' +
-      'Topics: Corporate negotiations, global travel, IELTS prep, networking. ' +
-      'Use complex sentence structures and idioms. Never use childish themes or cartoon metaphors.',
-    cefrRange: { min: 'B1', max: 'C2' },
+      'Target audience: Adult professionals (18+). Tone must be premium, professional, sophisticated, and confidence-oriented. ' +
+      'Allowed CEFR range: Pre-A1 to C1. ' +
+      'Topics: Practical real-world communication, workplace fluency, corporate negotiation, global travel, ' +
+      'IELTS prep, networking, career advancement, lexical refinement. ' +
+      'Even at Pre-A1/A1 keep the register adult and respectful — no cartoonish or childish framing. ' +
+      'At C1 focus on lexical fluency, idiomatic precision, register control, and high-stakes professional communication. ' +
+      'STRICTLY FORBIDDEN: childish themes, cartoon metaphors, teen slang, school-drama framing.',
+    cefrRange: { min: 'Pre-A1', max: 'C1' },
     defaultDuration: 60,
     phonics_rule:
-      'Move beyond basic letters. Focus on advanced adult pronunciation features: connected speech ' +
-      '(elision, assimilation), syllable stress in multi-syllable words (e.g., RE-cord vs re-CORD), ' +
-      'and rising/falling intonation for questions and statements.',
+      'Adult-appropriate pronunciation at every level: connected speech (elision, assimilation), word/sentence stress, ' +
+      'and rising/falling intonation. Avoid juvenile phonics drills — always frame as professional clarity training.',
   },
 };
 
