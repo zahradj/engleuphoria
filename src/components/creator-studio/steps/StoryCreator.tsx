@@ -117,7 +117,7 @@ export const StoryCreator: React.FC = () => {
   const [cefrLevel, setCefrLevel] = useState<CEFRLevel>('B1');
   const [genre, setGenre] = useState<string>('Everyday Life');
   const [vocabInput, setVocabInput] = useState('');
-  const [visualStyle, setVisualStyle] = useState<'classic' | 'comic_western' | 'manga_rtl' | 'webtoon'>('classic');
+  const [visualStyle, setVisualStyle] = useState<'classic' | 'comic_western' | 'manga_rtl' | 'webtoon' | 'comic_spread'>('comic_spread');
   const [busy, setBusy] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
   const [error, setError] = useState<string | null>(null);
