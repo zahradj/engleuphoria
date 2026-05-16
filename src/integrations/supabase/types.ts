@@ -2378,12 +2378,15 @@ export type Database = {
           description: string | null
           difficulty_level: string
           duration_minutes: number | null
+          governance_report: Json | null
+          governance_status: string
           grammar_pattern: string | null
           id: string
           image_style: string | null
           is_published: boolean | null
           is_review: boolean
           language: string | null
+          lesson_state: Json | null
           level_id: string | null
           order_index: number | null
           parent_lesson_id: string | null
@@ -2411,12 +2414,15 @@ export type Database = {
           description?: string | null
           difficulty_level: string
           duration_minutes?: number | null
+          governance_report?: Json | null
+          governance_status?: string
           grammar_pattern?: string | null
           id?: string
           image_style?: string | null
           is_published?: boolean | null
           is_review?: boolean
           language?: string | null
+          lesson_state?: Json | null
           level_id?: string | null
           order_index?: number | null
           parent_lesson_id?: string | null
@@ -2444,12 +2450,15 @@ export type Database = {
           description?: string | null
           difficulty_level?: string
           duration_minutes?: number | null
+          governance_report?: Json | null
+          governance_status?: string
           grammar_pattern?: string | null
           id?: string
           image_style?: string | null
           is_published?: boolean | null
           is_review?: boolean
           language?: string | null
+          lesson_state?: Json | null
           level_id?: string | null
           order_index?: number | null
           parent_lesson_id?: string | null
