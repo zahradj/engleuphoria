@@ -777,10 +777,11 @@ export const StoryCreator: React.FC = () => {
           </p>
           <div className="grid grid-cols-2 gap-3">
             {([
-              { key: 'classic',       label: 'Classic Storybook',  desc: 'One illustration per page · LTR' },
-              { key: 'comic_western', label: 'Western Comic',      desc: 'Multi-panel grid · vibrant ink · LTR' },
-              { key: 'manga_rtl',     label: 'Japanese Manga',     desc: 'B&W panels · screentone · RTL reading' },
-              { key: 'webtoon',       label: 'Webtoon (vertical)', desc: 'One long scroll of stacked panels' },
+              { key: 'comic_spread',  label: '📚 Classic Book',     desc: 'Two-page spread · image left, text right · turn pages' },
+              { key: 'classic',       label: 'Classic Storybook',   desc: 'One illustration per page · LTR' },
+              { key: 'comic_western', label: 'Western Comic',       desc: 'Multi-panel grid · vibrant ink · LTR' },
+              { key: 'manga_rtl',     label: 'Japanese Manga',      desc: 'B&W panels · screentone · RTL reading' },
+              { key: 'webtoon',       label: 'Webtoon (vertical)',  desc: 'One long scroll of stacked panels' },
             ] as const).map((opt) => {
               const active = visualStyle === opt.key;
               return (
