@@ -105,18 +105,31 @@ export const SlideMediaPanel: React.FC<SlideMediaPanelProps> = ({
     return `${raw.trim()}. Style: ${preset.modifier}`;
   };
 
+  const isStorySlide = (() => {
+    const k = (slide?.kind || slide?.slide_kind || slide?.slide_type || '').toString().toLowerCase();
+    return k.includes('story') || !!slide?.story_panel || !!slide?.is_story;
+  })();
+
   const generateImage = async () => {
     const p = imgPrompt.trim();
     if (!p) { toast.error('Add an image prompt first'); return; }
     setImgBusy(true);
     onPatch({ image_loading: true, image_error: null, image_prompt: p, image_style: imgStyle });
     try {
-      const res = await generateSlideImage(buildStyledPrompt(p), safeLesson, slideId, hub);
+      const res = await generateSlideImage(
+        buildStyledPrompt(p),
+        safeLesson,
+        slideId,
+        hub,
+        undefined,
+        isStorySlide ? { slideKind: 'story' } : undefined,
+      );
       onPatch({ image_url: res.url, image_prompt: p, image_style: imgStyle, image_loading: false, image_error: null });
       toast.success('Image generated');
     } catch (e: any) {
-      onPatch({ image_loading: false, image_error: e?.message || 'Image generation failed' });
-      toast.error(e?.message || 'Image generation failed');
+      const msg = e?.message || 'Image generation failed';
+      onPatch({ image_loading: false, image_error: msg });
+      toast.error('Story image failed', { description: msg });
     } finally { setImgBusy(false); }
   };
 
