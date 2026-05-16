@@ -1,120 +1,193 @@
-# Adaptive Learning & Mastery System
+# Content Quality Control & AI Safety System
 
-Layered on top of the existing Governance → Planning → Activities → Pronunciation pipeline. This becomes the **5th pillar**: a per-learner intelligence layer that personalizes every generated lesson without breaking curriculum integrity.
+The **publication gatekeeper** — the final automated reviewer that runs AFTER governance + planning + activities + pronunciation + adaptation. Where governance enforces curriculum rules at generation time, QA inspects the finished lesson artifact and decides if it ships.
+
+## Position in the pipeline
+
+```text
+Planner → Governance → Adaptation → Activities → Pronunciation
+                                                       │
+                                                       ▼
+                                              [generated lesson]
+                                                       │
+                                                       ▼
+                                            ┌─────────────────────┐
+                                            │ runQualityControl() │  ← NEW
+                                            └──────────┬──────────┘
+                                                       │
+                                          PASS ────────┴──────── FAIL
+                                            │                       │
+                                            ▼                       ▼
+                                  publish to students        block + repair queue
+```
 
 ## Architecture
 
+All under `src/qa/`. Pure deterministic validators + optional AI-judge for hallucination. No AI calls inside the orchestrator itself — judges are explicit, audited, and cached.
+
 ```text
-LearnerProfile ──► MasteryTracker ──► ErrorPatternDetector
-       │                  │                    │
-       ▼                  ▼                    ▼
-   AdaptiveDifficulty ◄── ReviewScheduler ──► PersonalizedAdjuster
-       │                                        │
-       ▼                                        ▼
-   SpeakingSupport ◄── ConfidenceTracker ──► LessonPlanner (existing)
-                                                │
-                                                ▼
-                                        Activities + Pronunciation
-                                        (inherit adaptation context)
+src/qa/
+├── index.ts                 → runQualityControl({ lesson, plan, state, context })
+├── types.ts                 → QAReport, QAIssue, QAVerdict, severity model
+├── orchestrator.ts          → runs all validators, aggregates verdict
+├── publishGate.ts           → hard publish/block decision + repair instructions
+├── repairDispatcher.ts      → maps failures → existing repair pipelines (activities/pronunciation)
+│
+├── validators/
+│   ├── academicQuality.ts        (1) pedagogical coherence + communication value
+│   ├── cefrAccuracy.ts           (2) sentence/grammar/vocab complexity caps per CEFR
+│   ├── ageAppropriateness.ts     (3) hub-bound theme/vocabulary/tone audit
+│   ├── emotionalSafety.ts        (4) humiliation/anxiety/bullying detector
+│   ├── grammarLanguage.ts        (5) AI-phrasing detector + answer-key consistency
+│   ├── activityQuality.ts        (6) interaction diversity + cognitive variety
+│   ├── narrativeConsistency.ts   (7) character/setting/theme drift
+│   ├── jsonStructural.ts         (8) schema + required fields + answer integrity
+│   ├── hallucination.ts          (9) AI-judge for fabricated grammar claims/facts
+│   └── duplicateDetection.ts     (10) n-gram + activity-fingerprint similarity
+│
+├── data/
+│   ├── unsafeThemeLexicon.ts     → bullying, humiliation, self-harm, slurs, NSFW, gambling
+│   ├── ageInappropriateThemes.ts → per-hub bans (Playground bans dating/violence; Success bans childish)
+│   ├── cefrComplexityCaps.ts     → sentence_len, clause_depth, lemma_freq_floor per CEFR
+│   ├── aiPhrasingMarkers.ts     → "As an AI", "delve into", "in conclusion let me", placeholder tokens
+│   └── reservedLexicons.ts      → forbidden/required tokens
+│
+├── judges/
+│   ├── hallucinationJudge.ts    → AI judge prompt (Gemini direct via aiFetch)
+│   └── judgeCache.ts            → in-memory + DB-backed cache keyed by content hash
+│
+└── ui/                          → consumed by content-creator
+    └── (see UI Components below)
 ```
 
-All modules live under `src/adaptive/` and feed a single `AdaptationContext` that is prepended to the existing prompt chain (`planner → governance → adaptation → activity`).
+## QAReport contract
 
-## Module Breakdown
+```ts
+type Severity = 'block' | 'warn' | 'info';
+type Domain = 'academic'|'cefr'|'age'|'safety'|'language'|'activity'|'narrative'|'structural'|'hallucination'|'duplicate';
 
-### 1. `src/adaptive/profile/` — Learner Profile Engine
-- `types.ts` → `LearnerProfile` (hub, CEFR, strengths[], weaknesses[], engagement_style, preferred_pacing, anxiety_level)
-- `profileBuilder.ts` → bootstraps from placement test + onboarding
-- `profileUpdater.ts` → mutates profile after each lesson via mastery deltas
-- Persisted on new table `learner_profiles` (JSONB blob + indexed columns)
+interface QAIssue {
+  code: string;            // e.g. 'CEFR_SENTENCE_OVER_CAP'
+  domain: Domain;
+  severity: Severity;
+  message: string;
+  locator?: { slideId?: string; activityId?: string; path?: string };
+  suggestion?: string;     // human-readable repair hint
+  auto_repairable: boolean;
+}
 
-### 2. `src/adaptive/mastery/` — Mastery Tracking Engine
-- Per-skill records: `{ skill, mastery: 0-100, confidence: 0-100, trend, review_priority, last_seen }`
-- Skill domains: grammar, vocabulary, pronunciation, reading, listening, speaking, fluency, communication_goal
-- `masteryCalculator.ts` → weighted formula (recency × accuracy × delayed-recall × communicative-use)
-- Mastery gate: ≥85% sustained across 3 exposures with ≥1 communicative application
-- Persisted on `skill_mastery` table (one row per student × skill)
+interface QAReport {
+  verdict: 'publish' | 'repair' | 'block';
+  issues: QAIssue[];
+  scorecard: Record<Domain, { score: number; passing: boolean }>;
+  generated_at: string;
+  content_hash: string;
+}
+```
 
-### 3. `src/adaptive/difficulty/` — Adaptive Difficulty Engine
-- `difficultyResolver.ts` → outputs `DifficultyProfile { sentence_length_cap, scaffolding_level, support_density, challenge_tier }`
-- CEFR-bounded: adaptations never cross hub CEFR matrix
-- Hooks into planner `cognitiveLoad.ts` as a multiplier, not a replacement
+`verdict`:
+- **publish** — zero `block` severity, no critical-domain `warn`
+- **repair** — `block` or repeated `warn` issues with `auto_repairable: true`
+- **block** — non-repairable failures (safety, hallucination critical, CEFR ceiling)
 
-### 4. `src/adaptive/review/` — Intelligent Review System
-- Modified SM-2 spaced repetition keyed to mastery + confidence + error frequency
-- `reviewScheduler.ts` → emits `ReviewQueue` (vocab, grammar, pron items due)
-- Feeds `vocabRecycler.ts` and `pronunciationRunner.ts` with priority items
-- Supports: retrieval practice, interleaving, spiral reinforcement
+## Validator details
 
-### 5. `src/adaptive/errors/` — Error Pattern Detection
-- `errorClassifier.ts` → taxonomy (omission, substitution, overgeneralization, L1 interference, pronunciation_substitution, word_stress)
-- `patternAggregator.ts` → frequency + recency + severity scoring
-- Consumes existing `mistake_repository` table (extends, doesn't replace)
-- Emits `corrective_recommendations[]` consumed by adjuster
+### 1. academicQuality
+- Each activity has `purpose` + `communication_objective` link
+- Grammar count vs communication-task count ratio (reject grammar-only)
+- Detects worksheet bias (>60% controlled-practice without communicative output)
 
-### 6. `src/adaptive/personalization/` — Personalized Lesson Adjuster
-- `lessonAdjuster.ts` → main entry `adaptLessonPlan(plan, profile, mastery, errors)`
-- Pre-teaches weak vocab, swaps reading passages within CEFR band, injects targeted speaking tasks
-- Runs **after** `generateLessonPlan()`, **before** `runGovernance()` — preserves contract
+### 2. cefrAccuracy
+- Per-CEFR caps in `cefrComplexityCaps.ts`: max sentence length, max embedded clauses, lemma frequency floor (Zipf), forbidden tense families (already in governance, re-checked at artifact level)
+- Cognitive load proxy via Flesch-Kincaid + clause depth
 
-### 7. `src/adaptive/engagement/` — Confidence & Engagement Tracking
-- Signals: speaking turn ratio, hesitation latency, retry rate, completion %, challenge acceptance
-- `engagementScorer.ts` → `EngagementState { confidence, motivation, frustration_risk }`
-- Drives emotional difficulty: shorter cycles, lower-pressure speaking, hype boosters
+### 3. ageAppropriateness
+- Hub-bound theme bans (Playground: dating, violence, alcohol; Success: childish characters, baby talk)
+- Maturity score per slide; rejects mismatches
 
-### 8. `src/adaptive/speaking/` — Adaptive Speaking Support
-- Tiered scaffolds: sentence_starters → guided_frames → open_communication → debate/improv
-- `speakingSupportResolver.ts` → injected into `narrativeBinder` + `pronunciationRunner`
+### 4. emotionalSafety (HARD GATE)
+- Lexicon scan: humiliation prompts ("laugh at the student who…"), bullying frames, public-comparison tasks
+- Speaking task safety: rejects "make fun of", "perform in front of class" without opt-out scaffold
+- All hits = `block` severity
 
-### 9. `src/adaptive/promptInjector.ts`
-- `buildAdaptationSystemPrompt(profile, mastery, difficulty, review, speaking)`
-- Inserted **after** planner+governance, **before** activity/pronunciation prompts
-- Single source of personalization context for all AI calls
+### 5. grammarLanguage
+- AI-phrasing markers (`"As an AI"`, `"delve into"`, `"It is important to note"`, placeholder `{topic}` leaks)
+- Answer-key consistency: MCQ correct answer exists in options; fill-blank answer fits the gap
+- Reuses existing `governance/engines/grammarEngine.ts` results but adds artifact-level checks
 
-### 10. `src/adaptive/index.ts`
-- `runAdaptation({ studentId, plan })` → orchestrates all 8 engines, returns `AdaptationContext`
-- Pure orchestrator — no AI calls; consumed by the existing lesson generator
+### 6. activityQuality
+- Interaction diversity: ≥4 distinct activity types per lesson
+- Repetition cap: no type >3× consecutively
+- Cognitive variety: no two adjacent activities sharing same modality + purpose
 
-## Hub Adaptation Profiles
-`src/adaptive/hubAdaptationProfiles.ts`:
-- **Playground**: short cycles (≤90s), visual scaffold mandatory, repetition weight ×1.5, no failure states
-- **Academy**: identity-sensitive copy, peer-challenge tier unlocks, confidence shield (no public correction)
-- **Success**: efficiency mode, business communication scaffolds, fluency-first over accuracy-first
+### 7. narrativeConsistency
+- Character/setting present in opening slide must persist (or be explicitly closed) — reuses `narrativeBinder` metadata
+- Tone consistency check: no register flips mid-lesson
+
+### 8. jsonStructural
+- Zod schemas per activity type
+- Required fields, type checks, no `null` in critical paths
+- Media URL integrity (basic shape only — no network call)
+
+### 9. hallucination (AI JUDGE)
+- Targeted prompt to Gemini direct via existing `aiFetch`
+- Inputs: grammar explanations + example sentences + claimed CEFR
+- Output: structured JSON `{ verdict, claims_checked: [{claim, accurate, evidence}], confidence }`
+- Cached on `content_hash` via `judges/judgeCache.ts` (in-memory + new `qa_judge_cache` row reuse)
+- Only runs when grammar/explanation slides present
+
+### 10. duplicateDetection
+- 5-gram shingling per activity prompt → Jaccard similarity
+- Activity fingerprint = sorted(type + targets + content keys)
+- Cross-lesson check optional (current scope: within-lesson)
+
+## Publication gate
+
+`publishGate.ts`:
+- `verdict === 'publish'` → set `curriculum_lessons.published = true`, persist report on `qa_report` JSONB column
+- `verdict === 'repair'` → dispatch to `repairDispatcher` (calls existing `activityRepair` / `pronunciation` repair) up to 2 attempts; re-run QA
+- `verdict === 'block'` → write `qa_report`, leave unpublished, surface report in content-creator UI
 
 ## Database (new migration)
-- `learner_profiles` (student_id PK, profile JSONB, updated_at) — RLS: owner + teacher of student
-- `skill_mastery` (student_id, skill_domain, skill_key, mastery, confidence, trend, last_seen) — composite PK
-- `review_queue` (student_id, item_type, item_key, due_at, priority) — indexed on (student_id, due_at)
-- `engagement_signals` (student_id, lesson_id, signals JSONB, recorded_at)
-- Extends `mistake_repository` with `pattern_category`, `frequency_score` columns
 
-All tables use `auth.uid()` RLS + `has_role(auth.uid(), 'teacher')` read policy for assigned students.
+Add to existing `curriculum_lessons`:
+- `qa_report` JSONB
+- `qa_verdict` TEXT  -- 'publish' | 'repair' | 'block' | null
+- `qa_checked_at` TIMESTAMPTZ
+- `qa_content_hash` TEXT
+
+New table `qa_judge_cache`:
+- `content_hash` PK
+- `judge_name` TEXT
+- `result` JSONB
+- `created_at` TIMESTAMPTZ
+- RLS: admin + content_creator read, system write
+
+## Integration points (read-only impact)
+
+- `src/ai/lesson-generation/*` orchestrators call `runQualityControl(...)` before persisting `published=true`
+- `Co-Pilot Studio` publish button gated on `qa_verdict === 'publish'`
+- Existing `governance` continues as the generation-time contract; QA is the post-generation auditor (no logic overlap, complementary scopes)
 
 ## UI Components
-- `src/components/adaptive/LearnerProfilePanel.tsx` — teacher view of profile + mastery heatmap
-- `src/components/adaptive/MasteryRadar.tsx` — student-facing skill radar chart
-- `src/components/adaptive/AdaptationReportPanel.tsx` — content creator view of why a lesson was adapted
 
-## Integration Points (read-only impact on existing code)
-- `src/planning/lessonPlanner.ts` → calls `runAdaptation()` after plan validation
-- `src/activities/generation/activityGenerator.ts` → consumes `AdaptationContext.difficulty + review queue`
-- `src/pronunciation/pronunciationRunner.ts` → consumes `AdaptationContext.errors.pronunciation`
-- Prompt chain order becomes: `planner → governance → **adaptation** → narrative → activity/pronunciation`
+- `src/components/qa/QAReportPanel.tsx` — domain scorecard, expandable issues, repair hints
+- `src/components/qa/QABadge.tsx` — verdict pill (publish/repair/block) for lesson list rows
+- `src/components/qa/SafetyAlertBanner.tsx` — red banner when emotional-safety block triggered
+- Wire into Content Creator lesson editor and admin lesson review queue
 
-## Validation
-`src/adaptive/validator.ts` — rejects:
-- adaptations that cross CEFR ceiling for hub
-- difficulty deltas > 2 tiers in one lesson
-- review-only lessons with no new input
-- remedial loops repeating same skill ≥3 lessons without variation
+## Validation rules (meta)
+- Hard gates: emotionalSafety, jsonStructural, age-inappropriate for Playground
+- Soft gates (warn → auto-repair): activityQuality, duplicateDetection, narrativeConsistency
+- Mid gates: cefrAccuracy and grammarLanguage produce `block` if score < threshold, `warn` otherwise
 
 ## Memory
-- New: `mem://adaptive/learning-system` — binding contract for personalization
-- New: `mem://adaptive/mastery-progression` — mastery gate + progression rules
-- Update `mem://index.md` Core: "Every lesson generation MUST call `runAdaptation()` after planning and prepend `buildAdaptationSystemPrompt()` before activity prompts. No static lesson delivery."
+- New: `mem://qa/content-quality-control` — binding contract, validator list, publish gate
+- Update `mem://index.md` Core: "Lessons MUST pass `runQualityControl()` (`src/qa/`) before `published=true`. Emotional safety and structural validity are hard gates. AI hallucination judge runs on grammar slides via Gemini direct, cached by content hash."
 
 ## Out of scope
-- Replacing the existing `mastery-reporting-loop` (extends it)
-- Live classroom realtime adaptation (post-MVP)
-- Teacher manual override UI (separate task)
-- ML model training — uses deterministic rules + AI prompts only
+- Re-implementing governance/planning validators (QA wraps and complements them, never duplicates)
+- Cross-lesson plagiarism / curriculum-wide duplicate detection (future)
+- Live moderation of student-generated content (separate system)
+- Teacher manual override UI (admin-only path; not in this build)
+- Multi-language safety lexicons beyond English (current scope: EN content)
