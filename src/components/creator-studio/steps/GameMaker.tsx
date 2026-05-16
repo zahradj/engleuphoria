@@ -188,16 +188,39 @@ export const GameMaker: React.FC = () => {
         </div>
 
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="md:col-span-2 space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+            <div className="md:col-span-3 space-y-2">
               <Label>Title</Label>
               <Input value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} />
+            </div>
+            <div className="md:col-span-2 space-y-2">
+              <Label>Hub</Label>
+              <Select
+                value={((editing.tags || []).find((t) => ['playground','academy','success'].includes(t)) || 'academy') as Hub}
+                onValueChange={(v) => {
+                  const hub = v as Hub;
+                  const allowed = HUB_LEVELS[hub];
+                  const nextLevel = allowed.includes(editing.level) ? editing.level : allowed[0];
+                  const otherTags = (editing.tags || []).filter((t) => !['playground','academy','success'].includes(t));
+                  setEditing({ ...editing, tags: [hub, ...otherTags], level: nextLevel });
+                }}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(HUB_LEVELS) as Hub[]).map((h) => <SelectItem key={h} value={h}>{HUB_LABEL[h]}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label>CEFR Level</Label>
               <Select value={editing.level} onValueChange={(v) => setEditing({ ...editing, level: v as Level })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{LEVELS.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+                <SelectContent>
+                  {(() => {
+                    const hub = ((editing.tags || []).find((t) => ['playground','academy','success'].includes(t)) || 'academy') as Hub;
+                    return HUB_LEVELS[hub].map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>);
+                  })()}
+                </SelectContent>
               </Select>
             </div>
           </div>
