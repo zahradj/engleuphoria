@@ -9,6 +9,7 @@ import { LibraryManager } from './steps/LibraryManager';
 import { TrialCreator } from './steps/TrialCreator';
 import { StoryCreator } from './steps/StoryCreator';
 import { CharacterCreator } from './characters/CharacterCreator';
+import { GameMaker } from './steps/GameMaker';
 import PlaygroundCreator from '@/pages/PlaygroundCreator';
 import AcademyCreator from '@/pages/AcademyCreator';
 import SuccessCreator from '@/pages/SuccessCreator';
@@ -28,6 +29,7 @@ const StudioBody: React.FC = () => {
     else if (path.endsWith('/playground-creator')) next = 'playground-creator';
     else if (path.endsWith('/academy-creator')) next = 'academy-creator';
     else if (path.endsWith('/success-creator')) next = 'success-creator';
+    else if (path.endsWith('/game-maker')) next = 'game-maker';
     // Legacy /slide-builder or /slides paths now route to the Academy Creator,
     // which owns the advanced sequencing engine inherited from the Slide Studio.
     else if (path.endsWith('/slide-builder') || path.endsWith('/slides')) next = 'academy-creator';
@@ -42,6 +44,7 @@ const StudioBody: React.FC = () => {
     : currentStep === 'trial' ? TrialCreator
     : currentStep === 'story' ? StoryCreator
     : currentStep === 'characters' ? CharacterCreator
+    : currentStep === 'game-maker' ? GameMaker
     : LibraryManager;
 
   return (

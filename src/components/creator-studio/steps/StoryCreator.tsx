@@ -71,13 +71,28 @@ const vocabListToArray = (raw: any): string[] => {
   return s.split(',').map((w) => w.trim()).filter(Boolean);
 };
 
-const StylePreview: React.FC<{ kind: 'classic' | 'comic_western' | 'manga_rtl' | 'webtoon' }> = ({ kind }) => {
+const StylePreview: React.FC<{ kind: 'classic' | 'comic_western' | 'manga_rtl' | 'webtoon' | 'comic_spread' }> = ({ kind }) => {
   if (kind === 'classic') {
     return (
       <div className="w-10 h-7 rounded overflow-hidden flex border border-slate-300">
         <div className="w-1/2 bg-gradient-to-br from-amber-300 to-orange-400" />
         <div className="w-1/2 bg-amber-50 flex items-center justify-center">
           <div className="w-3/4 h-0.5 bg-slate-400 rounded" />
+        </div>
+      </div>
+    );
+  }
+  if (kind === 'comic_spread') {
+    // Two-page open book preview
+    return (
+      <div className="w-10 h-7 rounded overflow-hidden flex border border-amber-700/50 bg-amber-900/40 p-[1px] gap-[1px]">
+        <div className="flex-1 bg-amber-50 flex items-center justify-center">
+          <div className="w-2/3 h-3 bg-gradient-to-br from-rose-300 to-amber-300 rounded-sm" />
+        </div>
+        <div className="flex-1 bg-amber-50 flex flex-col justify-center gap-[1px] px-0.5">
+          <div className="h-0.5 w-full bg-slate-400/60 rounded" />
+          <div className="h-0.5 w-3/4 bg-slate-400/60 rounded" />
+          <div className="h-0.5 w-2/3 bg-slate-400/60 rounded" />
         </div>
       </div>
     );
@@ -117,7 +132,7 @@ export const StoryCreator: React.FC = () => {
   const [cefrLevel, setCefrLevel] = useState<CEFRLevel>('B1');
   const [genre, setGenre] = useState<string>('Everyday Life');
   const [vocabInput, setVocabInput] = useState('');
-  const [visualStyle, setVisualStyle] = useState<'classic' | 'comic_western' | 'manga_rtl' | 'webtoon'>('classic');
+  const [visualStyle, setVisualStyle] = useState<'classic' | 'comic_western' | 'manga_rtl' | 'webtoon' | 'comic_spread'>('comic_spread');
   const [busy, setBusy] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -762,10 +777,11 @@ export const StoryCreator: React.FC = () => {
           </p>
           <div className="grid grid-cols-2 gap-3">
             {([
-              { key: 'classic',       label: 'Classic Storybook',  desc: 'One illustration per page · LTR' },
-              { key: 'comic_western', label: 'Western Comic',      desc: 'Multi-panel grid · vibrant ink · LTR' },
-              { key: 'manga_rtl',     label: 'Japanese Manga',     desc: 'B&W panels · screentone · RTL reading' },
-              { key: 'webtoon',       label: 'Webtoon (vertical)', desc: 'One long scroll of stacked panels' },
+              { key: 'comic_spread',  label: '📚 Classic Book',     desc: 'Two-page spread · image left, text right · turn pages' },
+              { key: 'classic',       label: 'Classic Storybook',   desc: 'One illustration per page · LTR' },
+              { key: 'comic_western', label: 'Western Comic',       desc: 'Multi-panel grid · vibrant ink · LTR' },
+              { key: 'manga_rtl',     label: 'Japanese Manga',      desc: 'B&W panels · screentone · RTL reading' },
+              { key: 'webtoon',       label: 'Webtoon (vertical)',  desc: 'One long scroll of stacked panels' },
             ] as const).map((opt) => {
               const active = visualStyle === opt.key;
               return (
