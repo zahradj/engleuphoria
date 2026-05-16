@@ -13,7 +13,23 @@ import { Switch } from '@/components/ui/switch';
 import GamePlayer from '@/components/games/GamePlayer';
 
 type GameType = 'sentence_builder' | 'verb_trio' | 'interview' | 'sorting';
+type Hub = 'playground' | 'academy' | 'success';
 type Level = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
+
+// Per-hub CEFR ceilings (mirrors src/config/hubConfigs.ts).
+// Playground: A1-B1 (B1 stays story-driven, no drills).
+// Academy:    A1-C1 (C1 = argumentation/analysis, NOT corporate).
+// Success:    A1-C1 (premium professional tone at every level).
+const HUB_LEVELS: Record<Hub, Level[]> = {
+  playground: ['A1', 'A2', 'B1'],
+  academy:    ['A1', 'A2', 'B1', 'B2', 'C1'],
+  success:    ['A1', 'A2', 'B1', 'B2', 'C1'],
+};
+const HUB_LABEL: Record<Hub, string> = {
+  playground: '🎨 Playground (4-9)',
+  academy:    '🎓 Academy (10-17)',
+  success:    '🚀 Success (18+)',
+};
 
 interface GameRow {
   id: string;
@@ -34,7 +50,7 @@ const GAME_TYPES: { id: GameType; label: string; emoji: string; help: string }[]
   { id: 'sorting',          label: 'Word Sorting',     emoji: '🗂️', help: 'Drag words into the correct category buckets.' },
 ];
 
-const LEVELS: Level[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+const LEVELS: Level[] = ['A1', 'A2', 'B1', 'B2', 'C1'];
 
 const STARTER_CONTENT: Record<GameType, any> = {
   sentence_builder: {
@@ -172,16 +188,39 @@ export const GameMaker: React.FC = () => {
         </div>
 
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="md:col-span-2 space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+            <div className="md:col-span-3 space-y-2">
               <Label>Title</Label>
               <Input value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} />
+            </div>
+            <div className="md:col-span-2 space-y-2">
+              <Label>Hub</Label>
+              <Select
+                value={((editing.tags || []).find((t) => ['playground','academy','success'].includes(t)) || 'academy') as Hub}
+                onValueChange={(v) => {
+                  const hub = v as Hub;
+                  const allowed = HUB_LEVELS[hub];
+                  const nextLevel = allowed.includes(editing.level) ? editing.level : allowed[0];
+                  const otherTags = (editing.tags || []).filter((t) => !['playground','academy','success'].includes(t));
+                  setEditing({ ...editing, tags: [hub, ...otherTags], level: nextLevel });
+                }}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(HUB_LEVELS) as Hub[]).map((h) => <SelectItem key={h} value={h}>{HUB_LABEL[h]}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label>CEFR Level</Label>
               <Select value={editing.level} onValueChange={(v) => setEditing({ ...editing, level: v as Level })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{LEVELS.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+                <SelectContent>
+                  {(() => {
+                    const hub = ((editing.tags || []).find((t) => ['playground','academy','success'].includes(t)) || 'academy') as Hub;
+                    return HUB_LEVELS[hub].map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>);
+                  })()}
+                </SelectContent>
               </Select>
             </div>
           </div>
