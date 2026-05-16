@@ -34,23 +34,59 @@ export interface StarringCharacterRef {
   personality_traits?: string;
 }
 
+/**
+ * Story-slide constraint: appended verbatim to every story image prompt
+ * before it leaves the client, per Fix 1 of the Story Slide Repair brief.
+ * Keeps the AI from drawing speech bubbles, captions, or stray text.
+ */
+const STORY_IMAGE_CONSTRAINT =
+  "High quality children's book illustration. CRITICAL: DO NOT include any text, speech bubbles, letters, or words in the image.";
+
+/** Coerce any payload (string, object, JSON-stringified object) to a clean
+ * single-line visual description. Picks the most-likely visual field if an
+ * object is passed in by mistake. */
+function sanitizePromptInput(raw: unknown): string {
+  if (!raw) return '';
+  if (typeof raw === 'string') return raw.trim().replace(/\s+/g, ' ');
+  if (typeof raw === 'object') {
+    const o = raw as Record<string, unknown>;
+    const candidate =
+      (typeof o.scene_description === 'string' && o.scene_description) ||
+      (typeof o.image_prompt === 'string' && o.image_prompt) ||
+      (typeof o.visual_keyword === 'string' && o.visual_keyword) ||
+      (typeof o.title === 'string' && o.title) ||
+      '';
+    return String(candidate).trim().replace(/\s+/g, ' ');
+  }
+  return String(raw).trim();
+}
+
 export const generateSlideImage = (
-  prompt: string,
+  prompt: string | Record<string, unknown>,
   lessonId: string,
   slideId: string,
   hub?: string,
   starring_character?: StarringCharacterRef,
   opts?: { slideKind?: 'vocabulary' | 'story' | 'scene' | string; vocabulary_word?: string; example_sentence?: string },
-) => invokeJson('generate-slide-image', {
-  prompt,
-  lessonId,
-  slideId,
-  hub,
-  starring_character,
-  slideKind: opts?.slideKind,
-  vocabulary_word: opts?.vocabulary_word,
-  example_sentence: opts?.example_sentence,
-});
+) => {
+  const cleaned = sanitizePromptInput(prompt);
+  const isStory = opts?.slideKind === 'story';
+  // Append the no-text constraint for story slides only — vocabulary slides
+  // already get their own brain on the server (`buildVocabularyPrompt`).
+  const finalPrompt = isStory && cleaned
+    ? `${cleaned}. ${STORY_IMAGE_CONSTRAINT}`
+    : cleaned;
+  return invokeJson('generate-slide-image', {
+    prompt: finalPrompt,
+    lessonId,
+    slideId,
+    hub,
+    starring_character,
+    slideKind: opts?.slideKind,
+    vocabulary_word: opts?.vocabulary_word,
+    example_sentence: opts?.example_sentence,
+  });
+};
 
 /**
  * Hub-aware Prompt Interceptor (client mirror of the edge helper).
