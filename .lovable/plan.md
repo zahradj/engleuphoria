@@ -1,145 +1,120 @@
-# Intelligent Activity Generation System
+# Adaptive Learning & Mastery System
 
-A new `src/activities/` module that turns a validated `LessonPlan` (planner) + `LessonState` (governance) into a sequenced, validated list of activities. Activities are never generated in isolation — they inherit theme, CEFR, grammar/vocab scope, pacing, and hub identity from the upstream contracts.
+Layered on top of the existing Governance → Planning → Activities → Pronunciation pipeline. This becomes the **5th pillar**: a per-learner intelligence layer that personalizes every generated lesson without breaking curriculum integrity.
 
 ## Architecture
 
-```
-src/activities/
-  types.ts                    # ActivitySpec, ActivityPurpose, GenerationContext
-  catalog/
-    activityCatalog.ts        # All supported types + metadata (stage fit, modalities, CEFR range, hub fit)
-    hubActivityProfiles.ts    # Playground/Academy/Success preferences & bans
-  selection/
-    activitySelector.ts       # Picks activity types per flow stage (no randomness — weighted by fit score)
-    sequencer.ts              # Orders activities, enforces pacing/cognitive load from planner
-    fitScorer.ts              # Score(stage, cefr, hub, recentModalities, loadBudget)
-  generation/
-    activityPromptBuilder.ts  # Per-type Gemini prompt builder (inherits planner+governance prompts)
-    narrativeBinder.ts        # Injects theme, characters, setting, recurring scenario into every prompt
-    vocabRecycler.ts          # Tracks which target words have appeared; forces recycling per VocabRecyclingPlan
-    grammarContextualizer.ts  # Wraps grammar targets in communicative scenarios (no isolated drills)
-    activityGenerator.ts      # Main entry: generateActivities(plan) → ActivitySpec[]
-  validation/
-    activityValidator.ts      # Per-activity hard checks (placeholders, MCQ sanity, answer presence)
-    coherenceValidator.ts     # Cross-activity: theme drift, repetition, vocab coverage, pacing
-    activityRepair.ts         # Targeted regeneration prompt for a single failing activity
-  index.ts
-```
-
-## Core Types
-
-```ts
-type ActivityPurpose =
-  | 'hook' | 'input' | 'discovery' | 'controlled'
-  | 'communicative' | 'production' | 'reflection' | 'review';
-
-type ActivityType =
-  | 'warmup' | 'poll' | 'opinion' | 'matching' | 'drag_drop'
-  | 'fill_blank' | 'sentence_builder' | 'pronunciation'
-  | 'reading' | 'listening' | 'roleplay' | 'debate'
-  | 'speaking_mission' | 'storytelling' | 'collaborative'
-  | 'reflection' | 'retrieval' | 'review_challenge';
-
-interface ActivitySpec {
-  id: string;
-  type: ActivityType;
-  purpose: ActivityPurpose;
-  stage: PedagogicalStage;
-  modalities: Modality[];
-  target_vocab_used: string[];
-  grammar_targets_used: string[];
-  narrative_anchor: { characters: string[]; setting: string; scene: string };
-  content: any;          // type-specific JSON payload
-  estimated_load: 'low' | 'medium' | 'high';
-}
-```
-
-## Pipeline (no random generation)
-
 ```text
-LessonPlan (planner) ──► activitySelector ──► sequencer ──► activityGenerator (Gemini)
-       │                       │                  │                  │
-       ▼                       ▼                  ▼                  ▼
-  LessonState         pick types per stage   enforce pacing   prompts inherit:
-  (governance)        via fitScorer          + recycling      planner prompt +
-                                                              governance prompt +
-                                                              narrative binder
-                                                                   │
-                                                                   ▼
-                                              activityValidator (per item)
-                                              coherenceValidator (whole set)
-                                                                   │
-                                                                   ▼
-                                              activityRepair on failures (max 2 passes)
+LearnerProfile ──► MasteryTracker ──► ErrorPatternDetector
+       │                  │                    │
+       ▼                  ▼                    ▼
+   AdaptiveDifficulty ◄── ReviewScheduler ──► PersonalizedAdjuster
+       │                                        │
+       ▼                                        ▼
+   SpeakingSupport ◄── ConfidenceTracker ──► LessonPlanner (existing)
+                                                │
+                                                ▼
+                                        Activities + Pronunciation
+                                        (inherit adaptation context)
 ```
 
-## Selection Logic (fitScorer)
+All modules live under `src/adaptive/` and feed a single `AdaptationContext` that is prepended to the existing prompt chain (`planner → governance → adaptation → activity`).
 
-For each stage slot in `flow_map`, score every catalog entry:
-- +stage fit, +hub fit, +CEFR fit
-- −recent same-modality (anti-fatigue, uses planner `cognitive_load`)
-- −type already used in last N slides (anti-repetition)
-- +vocab recycling debt (favors types that surface under-recycled words)
-- Hard reject if banned by hub profile or above CEFR.
+## Module Breakdown
 
-Highest score wins → deterministic, explainable, no randomness.
+### 1. `src/adaptive/profile/` — Learner Profile Engine
+- `types.ts` → `LearnerProfile` (hub, CEFR, strengths[], weaknesses[], engagement_style, preferred_pacing, anxiety_level)
+- `profileBuilder.ts` → bootstraps from placement test + onboarding
+- `profileUpdater.ts` → mutates profile after each lesson via mastery deltas
+- Persisted on new table `learner_profiles` (JSONB blob + indexed columns)
 
-## Generation Rules
+### 2. `src/adaptive/mastery/` — Mastery Tracking Engine
+- Per-skill records: `{ skill, mastery: 0-100, confidence: 0-100, trend, review_priority, last_seen }`
+- Skill domains: grammar, vocabulary, pronunciation, reading, listening, speaking, fluency, communication_goal
+- `masteryCalculator.ts` → weighted formula (recency × accuracy × delayed-recall × communicative-use)
+- Mastery gate: ≥85% sustained across 3 exposures with ≥1 communicative application
+- Persisted on `skill_mastery` table (one row per student × skill)
 
-Every Gemini call is composed as:
-```
-buildPlannerSystemPrompt(plan)
-+ buildGovernanceSystemPrompt(plan.lesson_state)
-+ buildNarrativeBinder(plan, previousActivities)
-+ buildActivityPrompt(type, purpose, vocabDebt, grammarTarget)
-```
+### 3. `src/adaptive/difficulty/` — Adaptive Difficulty Engine
+- `difficultyResolver.ts` → outputs `DifficultyProfile { sentence_length_cap, scaffolding_level, support_density, challenge_tier }`
+- CEFR-bounded: adaptations never cross hub CEFR matrix
+- Hooks into planner `cognitiveLoad.ts` as a multiplier, not a replacement
 
-Narrative binder enforces:
-- Same characters/setting from `lesson_state.theme`.
-- Scene continuity (references previous activity outcome).
-- Tone matches `blueprint.emotional_tone`.
+### 4. `src/adaptive/review/` — Intelligent Review System
+- Modified SM-2 spaced repetition keyed to mastery + confidence + error frequency
+- `reviewScheduler.ts` → emits `ReviewQueue` (vocab, grammar, pron items due)
+- Feeds `vocabRecycler.ts` and `pronunciationRunner.ts` with priority items
+- Supports: retrieval practice, interleaving, spiral reinforcement
 
-Grammar contextualizer wraps targets in scenarios — never "Conjugate the verb" style drills.
+### 5. `src/adaptive/errors/` — Error Pattern Detection
+- `errorClassifier.ts` → taxonomy (omission, substitution, overgeneralization, L1 interference, pronunciation_substitution, word_stress)
+- `patternAggregator.ts` → frequency + recency + severity scoring
+- Consumes existing `mistake_repository` table (extends, doesn't replace)
+- Emits `corrective_recommendations[]` consumed by adjuster
 
-## Validation Gates
+### 6. `src/adaptive/personalization/` — Personalized Lesson Adjuster
+- `lessonAdjuster.ts` → main entry `adaptLessonPlan(plan, profile, mastery, errors)`
+- Pre-teaches weak vocab, swaps reading passages within CEFR band, injects targeted speaking tasks
+- Runs **after** `generateLessonPlan()`, **before** `runGovernance()` — preserves contract
 
-Per activity (hard errors → repair):
-- Placeholder/empty content
-- Missing answer key on MCQ/fill-blank
-- Vocab outside target+support+function words
-- Grammar outside target+review+exposure
-- Sentence length > CEFR cap
+### 7. `src/adaptive/engagement/` — Confidence & Engagement Tracking
+- Signals: speaking turn ratio, hesitation latency, retry rate, completion %, challenge acceptance
+- `engagementScorer.ts` → `EngagementState { confidence, motivation, frustration_risk }`
+- Drives emotional difficulty: shorter cycles, lower-pressure speaking, hype boosters
 
-Whole-lesson coherence (hard errors → repair or block):
-- Theme drift between activities
-- < 3 stage-appearances for any target word (violates `VocabRecyclingPlan`)
-- Two adjacent same-type activities
-- Receptive streak > planner's `max_consecutive_receptive`
+### 8. `src/adaptive/speaking/` — Adaptive Speaking Support
+- Tiered scaffolds: sentence_starters → guided_frames → open_communication → debate/improv
+- `speakingSupportResolver.ts` → injected into `narrativeBinder` + `pronunciationRunner`
 
-## Hub Activity Profiles
+### 9. `src/adaptive/promptInjector.ts`
+- `buildAdaptationSystemPrompt(profile, mastery, difficulty, review, speaking)`
+- Inserted **after** planner+governance, **before** activity/pronunciation prompts
+- Single source of personalization context for all AI calls
 
-- **Playground**: favors `drag_drop`, `matching`, `storytelling`, `pronunciation`; bans `debate`, `professional roleplay`; short cycles (2–3 slides per purpose).
-- **Academy**: favors `roleplay`, `opinion`, `collaborative`, `speaking_mission`; identity-driven prompts.
-- **Success**: favors `roleplay`, `debate`, `speaking_mission`, `review_challenge`; realistic workplace/life scenarios.
+### 10. `src/adaptive/index.ts`
+- `runAdaptation({ studentId, plan })` → orchestrates all 8 engines, returns `AdaptationContext`
+- Pure orchestrator — no AI calls; consumed by the existing lesson generator
 
-## Integration Points
+## Hub Adaptation Profiles
+`src/adaptive/hubAdaptationProfiles.ts`:
+- **Playground**: short cycles (≤90s), visual scaffold mandatory, repetition weight ×1.5, no failure states
+- **Academy**: identity-sensitive copy, peer-challenge tier unlocks, confidence shield (no public correction)
+- **Success**: efficiency mode, business communication scaffolds, fluency-first over accuracy-first
 
-- New entry: `generateActivities(plan)` consumed by `ai-lesson-generator` edge function and the Content Creator's AI Co-Pilot Studio.
-- Result is persisted as the slides array on `curriculum_lessons`, with `governance_status` set by the existing `runGovernance()` pass after generation.
-- UI: add `ActivityCoherencePanel` next to existing `GovernanceReportPanel` to surface coherence issues + per-activity "Regenerate" buttons.
+## Database (new migration)
+- `learner_profiles` (student_id PK, profile JSONB, updated_at) — RLS: owner + teacher of student
+- `skill_mastery` (student_id, skill_domain, skill_key, mastery, confidence, trend, last_seen) — composite PK
+- `review_queue` (student_id, item_type, item_key, due_at, priority) — indexed on (student_id, due_at)
+- `engagement_signals` (student_id, lesson_id, signals JSONB, recorded_at)
+- Extends `mistake_repository` with `pattern_category`, `frequency_score` columns
+
+All tables use `auth.uid()` RLS + `has_role(auth.uid(), 'teacher')` read policy for assigned students.
+
+## UI Components
+- `src/components/adaptive/LearnerProfilePanel.tsx` — teacher view of profile + mastery heatmap
+- `src/components/adaptive/MasteryRadar.tsx` — student-facing skill radar chart
+- `src/components/adaptive/AdaptationReportPanel.tsx` — content creator view of why a lesson was adapted
+
+## Integration Points (read-only impact on existing code)
+- `src/planning/lessonPlanner.ts` → calls `runAdaptation()` after plan validation
+- `src/activities/generation/activityGenerator.ts` → consumes `AdaptationContext.difficulty + review queue`
+- `src/pronunciation/pronunciationRunner.ts` → consumes `AdaptationContext.errors.pronunciation`
+- Prompt chain order becomes: `planner → governance → **adaptation** → narrative → activity/pronunciation`
+
+## Validation
+`src/adaptive/validator.ts` — rejects:
+- adaptations that cross CEFR ceiling for hub
+- difficulty deltas > 2 tiers in one lesson
+- review-only lessons with no new input
+- remedial loops repeating same skill ≥3 lessons without variation
 
 ## Memory
+- New: `mem://adaptive/learning-system` — binding contract for personalization
+- New: `mem://adaptive/mastery-progression` — mastery gate + progression rules
+- Update `mem://index.md` Core: "Every lesson generation MUST call `runAdaptation()` after planning and prepend `buildAdaptationSystemPrompt()` before activity prompts. No static lesson delivery."
 
-Add `mem://activities/intelligent-generation` capturing:
-- Activities MUST be produced via `generateActivities(plan)` — never ad-hoc.
-- Every prompt MUST chain planner + governance + narrative binder.
-- Vocab recycling, pacing, and hub profile are hard constraints, not suggestions.
-
-Update `mem://index.md` Core to add: "Activity generation routed through `src/activities/generateActivities()` — no isolated AI exercise calls."
-
-## Out of scope (this iteration)
-
-- Editing existing `ai-lesson-generator` edge function payloads (separate wiring task).
-- New DB columns (reuses `curriculum_lessons.lesson_state` + `governance_report`).
-- New activity renderer components (existing renderers are reused; only JSON schema is produced).
+## Out of scope
+- Replacing the existing `mastery-reporting-loop` (extends it)
+- Live classroom realtime adaptation (post-MVP)
+- Teacher manual override UI (separate task)
+- ML model training — uses deterministic rules + AI prompts only
