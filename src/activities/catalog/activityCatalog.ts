@@ -36,8 +36,8 @@ export const ACTIVITY_CATALOG: Record<ActivityType, ActivityCatalogEntry> = {
   matching: {
     type: 'matching',
     modalities: ['reading', 'thinking'],
-    fits_stages: ['input', 'controlled', 'review'],
-    fits_purposes: ['input', 'controlled', 'review'],
+    fits_stages: ['input', 'controlled'],
+    fits_purposes: ['input', 'controlled'],
     min_cefr: 'Pre-A1', max_cefr: 'C1',
     hub_fit: { playground: 1, academy: 0.8, success: 0.7 },
     load: 'low', productive: false,
@@ -56,7 +56,7 @@ export const ACTIVITY_CATALOG: Record<ActivityType, ActivityCatalogEntry> = {
   fill_blank: {
     type: 'fill_blank',
     modalities: ['reading', 'writing'],
-    fits_stages: ['controlled', 'discovery', 'review'],
+    fits_stages: ['controlled', 'discovery'],
     fits_purposes: ['controlled', 'review'],
     min_cefr: 'A1', max_cefr: 'C1',
     hub_fit: { playground: 0.7, academy: 0.9, success: 0.9 },
@@ -166,7 +166,7 @@ export const ACTIVITY_CATALOG: Record<ActivityType, ActivityCatalogEntry> = {
   retrieval: {
     type: 'retrieval',
     modalities: ['thinking', 'writing'],
-    fits_stages: ['review', 'reflection'],
+    fits_stages: ['reflection'],
     fits_purposes: ['review'],
     min_cefr: 'Pre-A1', max_cefr: 'C1',
     hub_fit: { playground: 0.7, academy: 0.8, success: 0.8 },
@@ -176,7 +176,7 @@ export const ACTIVITY_CATALOG: Record<ActivityType, ActivityCatalogEntry> = {
   review_challenge: {
     type: 'review_challenge',
     modalities: ['thinking', 'speaking'],
-    fits_stages: ['review', 'production'],
+    fits_stages: ['production'],
     fits_purposes: ['review'],
     min_cefr: 'A1', max_cefr: 'C1',
     hub_fit: { playground: 0.6, academy: 0.9, success: 1 },
