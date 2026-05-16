@@ -18,9 +18,9 @@ export function validateLessonPlan(plan: LessonPlan): PlanValidationReport {
 
   // 1. Grammar scope consistency: blueprint grammar must be allowed at this CEFR level.
   const caps = CEFR_CAPS[blueprint.cefr_level];
-  if (caps?.bannedConstructions) {
+  if (caps?.bannedConstructs) {
     for (const g of blueprint.grammar_focus) {
-      if (caps.bannedConstructions.some((b) => g.toLowerCase().includes(b.toLowerCase()))) {
+      if (caps.bannedConstructs.some((b) => g.toLowerCase().includes(b.toLowerCase()))) {
         errors.push({
           code: 'GRAMMAR_ABOVE_CEFR',
           severity: 'error',
