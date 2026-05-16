@@ -2391,6 +2391,10 @@ export type Database = {
           order_index: number | null
           parent_lesson_id: string | null
           phonics_focus: string | null
+          qa_checked_at: string | null
+          qa_content_hash: string | null
+          qa_report: Json | null
+          qa_verdict: string | null
           sequence_order: number | null
           skills_focus: string[] | null
           slot_cefr_level: string | null
@@ -2427,6 +2431,10 @@ export type Database = {
           order_index?: number | null
           parent_lesson_id?: string | null
           phonics_focus?: string | null
+          qa_checked_at?: string | null
+          qa_content_hash?: string | null
+          qa_report?: Json | null
+          qa_verdict?: string | null
           sequence_order?: number | null
           skills_focus?: string[] | null
           slot_cefr_level?: string | null
@@ -2463,6 +2471,10 @@ export type Database = {
           order_index?: number | null
           parent_lesson_id?: string | null
           phonics_focus?: string | null
+          qa_checked_at?: string | null
+          qa_content_hash?: string | null
+          qa_report?: Json | null
+          qa_verdict?: string | null
           sequence_order?: number | null
           skills_focus?: string[] | null
           slot_cefr_level?: string | null
@@ -6585,6 +6597,27 @@ export type Database = {
           student_id?: string
           teacher_energy_rating?: number
           teacher_id?: string
+        }
+        Relationships: []
+      }
+      qa_judge_cache: {
+        Row: {
+          content_hash: string
+          created_at: string
+          judge_name: string
+          result: Json
+        }
+        Insert: {
+          content_hash: string
+          created_at?: string
+          judge_name: string
+          result: Json
+        }
+        Update: {
+          content_hash?: string
+          created_at?: string
+          judge_name?: string
+          result?: Json
         }
         Relationships: []
       }
