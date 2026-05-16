@@ -3439,6 +3439,30 @@ export type Database = {
         }
         Relationships: []
       }
+      engagement_signals: {
+        Row: {
+          id: string
+          lesson_id: string | null
+          recorded_at: string
+          signals: Json
+          student_id: string
+        }
+        Insert: {
+          id?: string
+          lesson_id?: string | null
+          recorded_at?: string
+          signals?: Json
+          student_id: string
+        }
+        Update: {
+          id?: string
+          lesson_id?: string | null
+          recorded_at?: string
+          signals?: Json
+          student_id?: string
+        }
+        Relationships: []
+      }
       feature_flags: {
         Row: {
           conditions: Json | null
@@ -4493,6 +4517,33 @@ export type Database = {
           id?: string
           leaderboard_type?: string
           scope_identifier?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      learner_profiles: {
+        Row: {
+          cefr_level: string | null
+          created_at: string
+          hub: string | null
+          profile: Json
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          cefr_level?: string | null
+          created_at?: string
+          hub?: string | null
+          profile?: Json
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          cefr_level?: string | null
+          created_at?: string
+          hub?: string | null
+          profile?: Json
+          student_id?: string
           updated_at?: string
         }
         Relationships: []
@@ -5672,9 +5723,11 @@ export type Database = {
           attempts_count: number
           context: string | null
           created_at: string
+          frequency_score: number
           id: string
           metadata: Json | null
           mistake_type: string
+          pattern_category: string | null
           resolved: boolean
           resolved_at: string | null
           severity: string
@@ -5689,9 +5742,11 @@ export type Database = {
           attempts_count?: number
           context?: string | null
           created_at?: string
+          frequency_score?: number
           id?: string
           metadata?: Json | null
           mistake_type: string
+          pattern_category?: string | null
           resolved?: boolean
           resolved_at?: string | null
           severity?: string
@@ -5706,9 +5761,11 @@ export type Database = {
           attempts_count?: number
           context?: string | null
           created_at?: string
+          frequency_score?: number
           id?: string
           metadata?: Json | null
           mistake_type?: string
+          pattern_category?: string | null
           resolved?: boolean
           resolved_at?: string | null
           severity?: string
@@ -6701,6 +6758,48 @@ export type Database = {
         }
         Relationships: []
       }
+      review_queue: {
+        Row: {
+          created_at: string
+          due_at: string
+          ease_factor: number
+          id: string
+          interval_days: number
+          item_key: string
+          item_type: string
+          priority: number
+          repetitions: number
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          due_at?: string
+          ease_factor?: number
+          id?: string
+          interval_days?: number
+          item_key: string
+          item_type: string
+          priority?: number
+          repetitions?: number
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          due_at?: string
+          ease_factor?: number
+          id?: string
+          interval_days?: number
+          item_key?: string
+          item_type?: string
+          priority?: number
+          repetitions?: number
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       saved_games: {
         Row: {
           age_level: string | null
@@ -6842,6 +6941,54 @@ export type Database = {
           timestamp?: string | null
           user_agent?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      skill_mastery: {
+        Row: {
+          communicative_uses: number
+          confidence: number
+          created_at: string
+          exposures: number
+          id: string
+          last_seen: string | null
+          mastery: number
+          review_priority: string
+          skill_domain: string
+          skill_key: string
+          student_id: string
+          trend: string
+          updated_at: string
+        }
+        Insert: {
+          communicative_uses?: number
+          confidence?: number
+          created_at?: string
+          exposures?: number
+          id?: string
+          last_seen?: string | null
+          mastery?: number
+          review_priority?: string
+          skill_domain: string
+          skill_key: string
+          student_id: string
+          trend?: string
+          updated_at?: string
+        }
+        Update: {
+          communicative_uses?: number
+          confidence?: number
+          created_at?: string
+          exposures?: number
+          id?: string
+          last_seen?: string | null
+          mastery?: number
+          review_priority?: string
+          skill_domain?: string
+          skill_key?: string
+          student_id?: string
+          trend?: string
+          updated_at?: string
         }
         Relationships: []
       }
