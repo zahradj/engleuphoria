@@ -1,73 +1,101 @@
-## Engleuphoria Hub Structure Expansion Plan
+## Curriculum Governance System
 
-Expand the three hubs to support broader CEFR ranges while preserving hub identity, age framing, and pedagogical differentiation.
+Transform lesson generation from free-form AI output into rule-bound, validated, hub-aware curriculum production. All governance is **prompt + validation** layered around the existing Gemini-direct pipeline — no replacement of `ai-lesson-generator` or wizard architecture.
 
-### 1. Update Hub CEFR Ranges (Single Source of Truth)
+### 1. Architecture
 
-Update `src/config/hubConfigs.ts` `HUB_CONFIGS.cefrRange`:
+```text
+┌──────────────────────────────────────────────────────────┐
+│  LessonStateContract  (single source of truth per lesson)│
+│  hub · cefr · theme · characters · tone · goal · setting │
+│  grammar{target,review,blocked,exposure}                 │
+│  vocab{target,support,recycled,forbidden_categories}     │
+│  sequence_template                                       │
+└───────────────┬──────────────────────────────┬───────────┘
+                │ injected into every prompt   │ validated against every output
+                ▼                              ▼
+       ┌────────────────┐             ┌────────────────────┐
+       │ Governance     │             │ Validation Engine  │
+       │ Prompt Builder │             │ (7 sub-validators) │
+       └────────────────┘             └─────────┬──────────┘
+                                                │ pass → publish
+                                                │ fail → repair-or-reject
+```
 
-- **Playground** (4–9): `Pre-A1 → B1` (was `Pre-A1 → A2`)
-- **Academy** (10–17): `Pre-A1 → C1` (was `A2 → B2`)
-- **Success** (18+): `Pre-A1 → C1` (was `B1 → C2`)
+All governance code lives under `src/governance/` (pure TS, no React) so it's reusable by Wizard, Co-Pilot, ai-lesson-generator edge fn, and future SCORM/H5P exporters.
 
-Update each `ai_persona` and `phonics_rule` block so the AI prompt encodes the new ceilings AND the hub-identity constraints (see Section 3).
+### 2. Files to create
 
-### 2. Update Placement Test Funnels
+**Schemas (Zod) — `src/governance/schemas/`**
+- `lessonState.ts` — `LessonStateSchema` (the contract above) + `LessonState` type
+- `grammarPolicy.ts` — `{target_grammar, review_grammar, blocked_grammar, exposure_grammar}`
+- `vocabPolicy.ts` — `{theme, target_vocab, support_vocab, recycled_vocab, forbidden_vocab_categories}`
+- `themePolicy.ts` — characters / tone / goal / setting
+- `cefrPolicy.ts` — per-CEFR caps (sentence length, clause depth, abstractness flag, max syllables)
+- `slidePolicy.ts` — per-activity output shape (used by validator)
 
-In `src/components/placement/`:
-- `PlaygroundTest.tsx` — allow result band up to B1
-- `AcademyTest.tsx` — extend up to C1 (currently A1→B2)
-- `SuccessTest.tsx` — extend floor down to Pre-A1, ceiling C1
+**Engines — `src/governance/engines/`**
+- `grammarEngine.ts` — `validateGrammar(slide, policy)` scans text for blocked tense/structure patterns (regex + small grammar fingerprint table)
+- `vocabEngine.ts` — `validateVocab(slide, policy)` — checks every content-word is in target/support/recycled OR allowed-stopwords; flags forbidden-category terms via lexicon map
+- `themeEngine.ts` — `validateTheme(slide, state)` — ensures referenced names/setting/tone match; rejects unrelated scenarios
+- `cefrEngine.ts` — `validateCEFR(slide, cefr)` — Flesch-Kincaid / clause counter / banned-construction list per level
+- `sequenceEngine.ts` — `validateSequence(slides)` — Hook→Context→Input→Discovery→Controlled→Communicative→Reflection ordering, no >2 consecutive same modality, mandatory communicative slide every N slides
+- `qualityEngine.ts` — rejects placeholders (`lorem`, `New sentence here.`, empty prompts, duplicate exercises, mismatched MCQ keys, malformed JSON, incomplete sentences)
 
-Audit `AIPlacementTest.tsx` IRT weighting + level-band clamp logic so each hub's `forcedHub` respects the new min/max.
+**Orchestrator — `src/governance/`**
+- `governanceRunner.ts` — `runGovernance(slides, state): GovernanceReport` runs all 7 engines, returns `{passed, errors[], warnings[], slideIndex?}`
+- `repairPipeline.ts` — for soft failures, builds a targeted re-prompt for the offending slide only (single-slide regeneration, not whole lesson)
+- `promptInjector.ts` — `buildGovernanceSystemPrompt(state)` produces the contract block prepended to every Gemini prompt (used by all generation edge fns and the Co-Pilot Studio)
 
-### 3. Hub Identity Guardrails in AI Prompts
+**Lexicons / Rule tables — `src/governance/data/`**
+- `blockedGrammarPatterns.ts` — regex fingerprints per grammar construct (passive voice, third conditional, future perfect, etc.)
+- `cefrCaps.ts` — `{A1:{maxSentenceWords:8,maxClauses:1,…}, …, C1:{…}}`
+- `forbiddenCategoryLexicon.ts` — keyword sets per category (business, medical, environmental, etc.)
+- `stopwords.ts` — function-word allowlist for vocab engine
 
-Add explicit pedagogical rules to each persona so identical CEFR levels diverge by hub:
+**Persistence**
+- DB migration: new column `curriculum_lessons.lesson_state JSONB` (the active contract) + `curriculum_lessons.governance_report JSONB` (last validation result) + `curriculum_lessons.governance_status TEXT CHECK IN ('pending','passed','failed','published')`. RLS: read same as existing; write restricted to teachers/creators/admin.
+- Index on `(governance_status, hub)`.
 
-- **Playground B1**: story-driven, visual, implicit grammar, playful tone, max 10-word sentences, no abstract corporate themes.
-- **Academy C1**: teen-modern register, argumentation/analysis/persuasion, IELTS/TOEFL/debate themes, NO corporate tone.
-- **Success C1**: professional realism, premium lexical fluency, negotiation/career themes, NO childish/teen themes.
+**UI surfaces (minimal, presentation)**
+- `src/components/governance/GovernanceBadge.tsx` — pass/fail/warnings chip used in Creator lists
+- `src/components/governance/GovernanceReportPanel.tsx` — collapsible error list per slide inside the Wizard / Co-Pilot review step
+- Hook publish buttons (Wizard, Co-Pilot, all 3 Creator pages) so they refuse to publish when `governance_status !== 'passed'`, with override only for `admin` role
 
-These constraints flow through `useUnifiedLessonGenerator` automatically since it reads `HUB_CONFIGS`.
+### 3. Integration points
 
-### 4. Curriculum Data Map
+- `supabase/functions/ai-lesson-generator/index.ts` — after generation, before returning, call `runGovernance`; attach report; if hard-fail, run `repairPipeline` once.
+- `supabase/functions/ai-slide-generator` and `ai-slides-batch-orchestrator` — same wrapper.
+- Wizard (`useUnifiedLessonGenerator`) and Co-Pilot Studio — call `buildGovernanceSystemPrompt(state)` and prepend to every Gemini request.
+- Game Maker — extend so generated game content_json is run through `vocabEngine` + `grammarEngine` against the parent lesson's state if linked.
 
-Audit `src/data/masterCurriculum.ts` (Master Data Map) for missing CEFR units per hub. Add scaffolds for:
-- Playground B1
-- Academy Pre-A1, A1, C1
-- Success Pre-A1, A1, A2
+### 4. Hub × CEFR alignment
 
-Each new entry follows existing 10-unit / 6-lesson architecture (per `mem://curriculum/spiral-staircase-dependency-map`).
+Governance reads `HUB_CONFIGS[hub]` so caps differ even at the same CEFR (per memory `mem://curriculum/hub-cefr-matrix`):
+- Playground B1: `cefrCaps.B1` overridden with `maxSentenceWords: 10`, `bannedRegisters: ['corporate','exam-prep']`
+- Academy C1: `bannedRegisters: ['corporate','boardroom']`
+- Success any level: `bannedRegisters: ['cartoon','nursery','teen-slang']`
 
-### 5. Hub-Aware Lesson Validators
+### 5. Validation flow (publish gate)
 
-Update `src/utils/validatePedagogy.ts` (and any wizard validation) to:
-- Accept the broader CEFR range per hub.
-- Reject lessons whose tone/theme mismatches hub identity even at matching CEFR (e.g., reject "corporate negotiation" in Academy C1).
+```text
+Generate → governanceRunner →
+  ├─ hard errors (blocked grammar / forbidden vocab / broken JSON / placeholder)
+  │     → block publish, surface in GovernanceReportPanel, offer "Regenerate slide"
+  ├─ soft warnings (cefr drift, sequence imbalance)
+  │     → allow publish with badge, log to governance_report
+  └─ all green
+        → status='passed' → publish enabled
+```
 
-### 6. UI Surfaces to Refresh
+### 6. Out of scope (ask before doing)
 
-- **Hub dashboards** (`PlaygroundDashboard`, `AcademyDashboard`, `HubDashboard`) — level selectors / progress trees must render the expanded ladders.
-- **Living Roadmap** — extend node arrays per hub.
-- **Creator Studio** level pickers (`AcademyCreator`, `PlaygroundCreator`, `SuccessCreator` + Wizard) — surface the new CEFR options bound by hub.
-- **Game Maker** (`GameMaker.tsx`) — extend its `level` dropdown to honor the per-hub allowed range (instead of a flat A1–C2 list).
+- Authoring the per-CEFR caps numeric tables with linguist-validated values — initial values will be conservative defaults; tuning is a follow-up pass.
+- Rebuilding the existing wizard/co-pilot UIs — only minimal report panel + publish-gate hook in this turn.
+- Migrating historical lessons — new lessons go through governance; old lessons remain `governance_status='pending'` for a future backfill job.
 
-### 7. Documentation / Memory
+### 7. Memory entries to add after build
 
-Update memory entries:
-- `mem://design/hub-personas-and-branding` — new CEFR ranges + identity guardrails.
-- `mem://curriculum/spiral-staircase-dependency-map` — note new units.
-- Add new memory `mem://curriculum/hub-cefr-matrix` capturing the "B1 Playground ≠ B1 Academy ≠ B1 Success" rule as a Core constraint.
-
-### Technical Notes
-
-- No DB migration required for the level expansion itself (CEFR is stored as text on `curriculum_lessons` / `learning_games`). New `learning_games.level` values fit existing CHECK constraint (A1–C2).
-- Bookings/pricing untouched: Playground stays 30 min @ half price even at B1; Academy/Success stay 60 min full price.
-- Multi-role + routing logic unchanged.
-- All changes are presentation + config + prompt-engineering; no business-logic refactor.
-
-### Out of Scope (ask before doing)
-
-- Authoring the actual lesson content for the newly enabled CEFR slots (large content generation pass — confirm scope first).
-- Adding C2 anywhere (explicitly removed in your spec — current Success Hub C2 will be deprecated to C1 ceiling).
+- `mem://governance/lesson-state-contract` — schema + injection rule
+- `mem://governance/validation-pipeline` — 7 engines + hard/soft error policy
+- Core line: "Curriculum governance: every generated lesson MUST pass `governanceRunner` before publish; blocked grammar/vocab/CEFR/theme drift = hard reject."
