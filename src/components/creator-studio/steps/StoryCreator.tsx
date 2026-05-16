@@ -71,13 +71,28 @@ const vocabListToArray = (raw: any): string[] => {
   return s.split(',').map((w) => w.trim()).filter(Boolean);
 };
 
-const StylePreview: React.FC<{ kind: 'classic' | 'comic_western' | 'manga_rtl' | 'webtoon' }> = ({ kind }) => {
+const StylePreview: React.FC<{ kind: 'classic' | 'comic_western' | 'manga_rtl' | 'webtoon' | 'comic_spread' }> = ({ kind }) => {
   if (kind === 'classic') {
     return (
       <div className="w-10 h-7 rounded overflow-hidden flex border border-slate-300">
         <div className="w-1/2 bg-gradient-to-br from-amber-300 to-orange-400" />
         <div className="w-1/2 bg-amber-50 flex items-center justify-center">
           <div className="w-3/4 h-0.5 bg-slate-400 rounded" />
+        </div>
+      </div>
+    );
+  }
+  if (kind === 'comic_spread') {
+    // Two-page open book preview
+    return (
+      <div className="w-10 h-7 rounded overflow-hidden flex border border-amber-700/50 bg-amber-900/40 p-[1px] gap-[1px]">
+        <div className="flex-1 bg-amber-50 flex items-center justify-center">
+          <div className="w-2/3 h-3 bg-gradient-to-br from-rose-300 to-amber-300 rounded-sm" />
+        </div>
+        <div className="flex-1 bg-amber-50 flex flex-col justify-center gap-[1px] px-0.5">
+          <div className="h-0.5 w-full bg-slate-400/60 rounded" />
+          <div className="h-0.5 w-3/4 bg-slate-400/60 rounded" />
+          <div className="h-0.5 w-2/3 bg-slate-400/60 rounded" />
         </div>
       </div>
     );
