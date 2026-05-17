@@ -5,12 +5,31 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Keep in sync with src/gamification/xp/xpRules.ts
 const XP_RULES: Record<string, number> = {
   phonics_listen: 10,
   vocab_quiz_pass: 25,
   speaking_submit: 50,
+  speaking_bravery: 35,
+  pronunciation_attempt: 15,
+  pronunciation_improvement: 40,
   library_read: 30,
   class_attended: 100,
+  mission_complete: 75,
+  mastery_milestone: 60,
+  review_streak: 20,
+  lesson_complete: 80,
+};
+
+// Soft daily caps (best-effort, mirrors antiFarmingGuards.ts)
+const DAILY_CAP: Record<string, number> = {
+  phonics_listen: 20,
+  vocab_quiz_pass: 30,
+  speaking_submit: 15,
+  speaking_bravery: 20,
+  pronunciation_attempt: 30,
+  library_read: 10,
+  review_streak: 25,
 };
 
 Deno.serve(async (req) => {
