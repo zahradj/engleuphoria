@@ -49,15 +49,29 @@ Deno.serve(async (req) => {
     if (!userId) return json({ error: "unauthorized" }, 401);
 
     const { action, ref_id } = await req.json();
-    const xp = XP_RULES[action];
-    if (!xp) return json({ error: "invalid_action" }, 400);
+    const baseXp = XP_RULES[action];
+    if (baseXp === undefined) return json({ error: "invalid_action" }, 400);
 
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // 1. Insert event
+    // Anti-farming: enforce daily cap per action
+    let xp = baseXp;
+    const cap = DAILY_CAP[action];
+    if (cap !== undefined) {
+      const today = new Date().toISOString().slice(0, 10);
+      const { count } = await admin
+        .from("xp_events")
+        .select("id", { count: "exact", head: true })
+        .eq("student_id", userId)
+        .eq("action", action)
+        .gte("created_at", `${today}T00:00:00Z`);
+      if ((count ?? 0) >= cap) xp = 0;
+    }
+
+    // 1. Insert event (always records, even if xp=0, so pedagogy tracking persists)
     await admin.from("xp_events").insert({ student_id: userId, action, xp, ref_id: ref_id ?? null });
 
     // 2. Upsert total
