@@ -6,8 +6,15 @@ export type XpAction =
   | 'phonics_listen'
   | 'vocab_quiz_pass'
   | 'speaking_submit'
+  | 'speaking_bravery'
+  | 'pronunciation_attempt'
+  | 'pronunciation_improvement'
   | 'library_read'
-  | 'class_attended';
+  | 'class_attended'
+  | 'mission_complete'
+  | 'mastery_milestone'
+  | 'review_streak'
+  | 'lesson_complete';
 
 export function useStudentXP() {
   const { user } = useAuth();

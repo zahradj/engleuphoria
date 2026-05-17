@@ -1199,6 +1199,33 @@ export type Database = {
           },
         ]
       }
+      celebration_events: {
+        Row: {
+          created_at: string
+          id: string
+          payload: Json
+          shown_at: string | null
+          student_id: string
+          trigger_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          payload?: Json
+          shown_at?: string | null
+          student_id: string
+          trigger_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          payload?: Json
+          shown_at?: string | null
+          student_id?: string
+          trigger_type?: string
+        }
+        Relationships: []
+      }
       certificate_templates: {
         Row: {
           created_at: string
@@ -8149,6 +8176,72 @@ export type Database = {
         }
         Relationships: []
       }
+      student_missions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          lesson_id: string | null
+          narrative: Json
+          started_at: string
+          status: string
+          student_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          lesson_id?: string | null
+          narrative: Json
+          started_at?: string
+          status?: string
+          student_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          lesson_id?: string | null
+          narrative?: Json
+          started_at?: string
+          status?: string
+          student_id?: string
+        }
+        Relationships: []
+      }
+      student_motivation_profile: {
+        Row: {
+          created_at: string
+          encouragement_style: string
+          last_recomputed_at: string
+          profile_type: string
+          reward_density: string
+          signals: Json
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          encouragement_style?: string
+          last_recomputed_at?: string
+          profile_type?: string
+          reward_density?: string
+          signals?: Json
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          encouragement_style?: string
+          last_recomputed_at?: string
+          profile_type?: string
+          reward_density?: string
+          signals?: Json
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       student_package_purchases: {
         Row: {
           expires_at: string | null
@@ -8518,6 +8611,27 @@ export type Database = {
         }
         Relationships: []
       }
+      student_skill_tree: {
+        Row: {
+          hub: string
+          student_id: string
+          tree: Json
+          updated_at: string
+        }
+        Insert: {
+          hub: string
+          student_id: string
+          tree?: Json
+          updated_at?: string
+        }
+        Update: {
+          hub?: string
+          student_id?: string
+          tree?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       student_skills: {
         Row: {
           cefr_equivalent: string | null
@@ -8711,6 +8825,8 @@ export type Database = {
           current_level: number
           id: string
           last_activity_date: string | null
+          motivation_last_signal: string | null
+          streak_freezes_remaining: number
           student_id: string
           total_xp: number
           updated_at: string
@@ -8721,6 +8837,8 @@ export type Database = {
           current_level?: number
           id?: string
           last_activity_date?: string | null
+          motivation_last_signal?: string | null
+          streak_freezes_remaining?: number
           student_id: string
           total_xp?: number
           updated_at?: string
@@ -8731,6 +8849,8 @@ export type Database = {
           current_level?: number
           id?: string
           last_activity_date?: string | null
+          motivation_last_signal?: string | null
+          streak_freezes_remaining?: number
           student_id?: string
           total_xp?: number
           updated_at?: string

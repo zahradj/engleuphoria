@@ -5,12 +5,31 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Keep in sync with src/gamification/xp/xpRules.ts
 const XP_RULES: Record<string, number> = {
   phonics_listen: 10,
   vocab_quiz_pass: 25,
   speaking_submit: 50,
+  speaking_bravery: 35,
+  pronunciation_attempt: 15,
+  pronunciation_improvement: 40,
   library_read: 30,
   class_attended: 100,
+  mission_complete: 75,
+  mastery_milestone: 60,
+  review_streak: 20,
+  lesson_complete: 80,
+};
+
+// Soft daily caps (best-effort, mirrors antiFarmingGuards.ts)
+const DAILY_CAP: Record<string, number> = {
+  phonics_listen: 20,
+  vocab_quiz_pass: 30,
+  speaking_submit: 15,
+  speaking_bravery: 20,
+  pronunciation_attempt: 30,
+  library_read: 10,
+  review_streak: 25,
 };
 
 Deno.serve(async (req) => {
@@ -30,15 +49,29 @@ Deno.serve(async (req) => {
     if (!userId) return json({ error: "unauthorized" }, 401);
 
     const { action, ref_id } = await req.json();
-    const xp = XP_RULES[action];
-    if (!xp) return json({ error: "invalid_action" }, 400);
+    const baseXp = XP_RULES[action];
+    if (baseXp === undefined) return json({ error: "invalid_action" }, 400);
 
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // 1. Insert event
+    // Anti-farming: enforce daily cap per action
+    let xp = baseXp;
+    const cap = DAILY_CAP[action];
+    if (cap !== undefined) {
+      const today = new Date().toISOString().slice(0, 10);
+      const { count } = await admin
+        .from("xp_events")
+        .select("id", { count: "exact", head: true })
+        .eq("student_id", userId)
+        .eq("action", action)
+        .gte("created_at", `${today}T00:00:00Z`);
+      if ((count ?? 0) >= cap) xp = 0;
+    }
+
+    // 1. Insert event (always records, even if xp=0, so pedagogy tracking persists)
     await admin.from("xp_events").insert({ student_id: userId, action, xp, ref_id: ref_id ?? null });
 
     // 2. Upsert total
