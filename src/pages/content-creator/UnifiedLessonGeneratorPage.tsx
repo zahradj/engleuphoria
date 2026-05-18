@@ -392,8 +392,10 @@ export default function UnifiedLessonGeneratorPage() {
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="grammar">Grammar focus</Label>
-            <Input id="grammar" value={grammar} onChange={(e) => setGrammar(e.target.value)} />
+            <Label htmlFor="grammar" className="flex items-center gap-1">
+              Grammar focus {lessonLocked && <Lock className="h-3 w-3 text-slate-400" />}
+            </Label>
+            <Input id="grammar" value={grammar} onChange={(e) => setGrammar(e.target.value)} disabled={lessonLocked} title={lessonLocked ? 'Locked by curriculum' : undefined} />
           </div>
           <div className="space-y-1">
             <Label htmlFor="review">Review targets</Label>
@@ -405,8 +407,10 @@ export default function UnifiedLessonGeneratorPage() {
             />
           </div>
           <div className="space-y-1 md:col-span-2">
-            <Label htmlFor="goal">Communication goal</Label>
-            <Input id="goal" value={goal} onChange={(e) => setGoal(e.target.value)} />
+            <Label htmlFor="goal" className="flex items-center gap-1">
+              Communication goal {lessonLocked && <Lock className="h-3 w-3 text-slate-400" />}
+            </Label>
+            <Input id="goal" value={goal} onChange={(e) => setGoal(e.target.value)} disabled={lessonLocked} title={lessonLocked ? 'Locked by curriculum' : undefined} />
           </div>
           <div className="md:col-span-2">
             <Button onClick={handleGenerate} disabled={busy} className="w-full">
