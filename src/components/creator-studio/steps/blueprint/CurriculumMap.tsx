@@ -582,6 +582,12 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
             : '🛑 FORCE SAVE TO LIBRARY 🛑'}
         </button>
       </div>
+
+      <LessonBlueprintModal
+        open={blueprintModal.open}
+        blueprint={blueprintModal.bp}
+        onOpenChange={(v) => setBlueprintModal((m) => ({ ...m, open: v }))}
+      />
     </>
   );
 };
