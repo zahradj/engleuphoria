@@ -29,7 +29,7 @@ export function speakingIntegrationValidator(ctx: LessonContext): ValidatorResul
     });
   }
 
-  const pronFocus = ctx.pronunciation?.focus?.target ?? null;
+  const pronFocus = ctx.pronunciation?.focus?.pronunciation_focus ?? null;
   const pronExercised =
     !!pronFocus &&
     ctx.activities.some((a) =>

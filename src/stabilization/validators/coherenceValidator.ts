@@ -10,7 +10,7 @@ export function coherenceValidator(ctx: LessonContext): ValidatorResult {
   const policy = resolvePolicy(ctx.hub, ctx.cefr).coherence;
   const issues: ValidatorResult['issues'] = [];
 
-  const binder = ctx.plan?.narrative?.binder_tokens ?? [];
+  const binder = (ctx.plan?.blueprint?.target_vocab ?? []).slice(0, 5);
   const corpus = ctx.activities.map((a) => tokenize(JSON.stringify(a.content))).flat();
   const binderReuses = binder.reduce(
     (n, t) => n + corpus.filter((w) => w === t.toLowerCase()).length,
