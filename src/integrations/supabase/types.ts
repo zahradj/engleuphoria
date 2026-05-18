@@ -2395,6 +2395,33 @@ export type Database = {
         }
         Relationships: []
       }
+      curriculum_feedback_signals: {
+        Row: {
+          created_at: string
+          id: string
+          lesson_id: string | null
+          payload: Json
+          signal_type: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lesson_id?: string | null
+          payload?: Json
+          signal_type: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lesson_id?: string | null
+          payload?: Json
+          signal_type?: string
+          student_id?: string
+        }
+        Relationships: []
+      }
       curriculum_lessons: {
         Row: {
           ai_metadata: Json | null
@@ -6017,6 +6044,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      orchestrator_runs: {
+        Row: {
+          conflicts: Json
+          created_at: string
+          id: string
+          lesson_id: string | null
+          orchestrator_version: string
+          prompt_chain_hash: string
+          qa_verdict: string
+          stage_timings: Json
+          state_hash: string
+          student_id: string | null
+        }
+        Insert: {
+          conflicts?: Json
+          created_at?: string
+          id?: string
+          lesson_id?: string | null
+          orchestrator_version: string
+          prompt_chain_hash: string
+          qa_verdict: string
+          stage_timings?: Json
+          state_hash: string
+          student_id?: string | null
+        }
+        Update: {
+          conflicts?: Json
+          created_at?: string
+          id?: string
+          lesson_id?: string | null
+          orchestrator_version?: string
+          prompt_chain_hash?: string
+          qa_verdict?: string
+          stage_timings?: Json
+          state_hash?: string
+          student_id?: string | null
+        }
+        Relationships: []
       }
       organization_members: {
         Row: {
