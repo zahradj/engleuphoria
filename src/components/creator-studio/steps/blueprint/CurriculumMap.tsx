@@ -113,7 +113,13 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
     data?.units.find((u) => u.lessons.some((l) => l.id === lesson.id));
 
   /** Route a blueprint lesson to the Unified Lesson Generator with full prefill. */
-  const handleGenerateUnified = (lesson: BlueprintLessonRef, lIdx: number, uIdx: number) => {
+  const handleGenerateUnified = (
+    lesson: BlueprintLessonRef,
+    lIdx: number,
+    uIdx: number,
+    stage: LessonStage = 'all',
+    autoRun = false,
+  ) => {
     if (!data) return;
     const unit = findUnitFor(lesson);
     const unitNumber = unit?.unit_number ?? uIdx + 1;
@@ -145,10 +151,37 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
       skill_focus: lesson.skill_focus as string | undefined,
       objective: lesson.objective || lesson.learning_objective,
       previous_lesson_titles: previous,
+      stage,
+      autoRun,
     });
 
     setCurrentStep('unified-generator');
     navigate('/content-creator/unified-generator');
+  };
+
+  /** Dispatch a LessonActionsMenu action against a specific lesson row. */
+  const handleLessonAction = (
+    action: LessonAction,
+    stage: LessonStage | null,
+    lesson: BlueprintLessonRef,
+    lIdx: number,
+    uIdx: number,
+  ) => {
+    if (!data) return;
+    if (action === 'view_blueprint') {
+      const bp = loadLessonBlueprintFromCurriculum({
+        curriculum: data,
+        unitIdx: uIdx,
+        lessonIdx: lIdx,
+      });
+      setBlueprintModal({ open: true, bp });
+      return;
+    }
+    if (action === 'open_generator') {
+      handleGenerateUnified(lesson, lIdx, uIdx, 'all', false);
+      return;
+    }
+    handleGenerateUnified(lesson, lIdx, uIdx, stage ?? 'all', true);
   };
 
   const saveBlueprintToLibrary = async (
