@@ -260,6 +260,33 @@ export default function UnifiedLessonGeneratorPage() {
         </Badge>
       </div>
 
+      {!fromBlueprint && (
+        <Card className="mb-4 border-amber-200 bg-amber-50/60 dark:border-amber-900/40 dark:bg-amber-950/20">
+          <CardContent className="py-3 text-sm flex items-center justify-between gap-3 flex-wrap">
+            <span className="text-amber-900 dark:text-amber-200">
+              ⚠ No curriculum blueprint loaded. The Unified Generator is curriculum-driven —
+              open a lesson from the blueprint for full pedagogical integrity.
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setCurrentStep('blueprint');
+                navigate('/content-creator/blueprint');
+              }}
+            >
+              Open Curriculum Blueprint →
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {fromBlueprint && resolvedBlueprint && (
+        <div className="mb-4">
+          <CurriculumContextPanel blueprint={resolvedBlueprint} />
+        </div>
+      )}
+
       {fromBlueprint && (
         <Card className="mb-4 border-sky-200 bg-sky-50/60 dark:border-sky-900/50 dark:bg-sky-950/30">
           <CardContent className="flex items-center gap-3 py-3 text-sm flex-wrap">
@@ -268,6 +295,11 @@ export default function UnifiedLessonGeneratorPage() {
               From blueprint · <strong>{activeBlueprintContext!.curriculum_title}</strong> · Unit{' '}
               {activeBlueprintContext!.unit_number} ({activeBlueprintContext!.unit_title}) ·
               Lesson {activeBlueprintContext!.lesson_number}
+              {activeBlueprintContext!.stage && activeBlueprintContext!.stage !== 'all' && (
+                <Badge variant="secondary" className="ml-2 text-[10px]">
+                  stage: {activeBlueprintContext!.stage}
+                </Badge>
+              )}
             </span>
           </CardContent>
         </Card>
