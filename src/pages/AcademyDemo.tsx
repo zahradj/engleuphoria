@@ -81,7 +81,7 @@ export type Slide =
   | { type: 'error_detection'; block: Block; prompt: string; sentence?: string; wrongIndex?: number; items?: { sentence: string; wrongIndex: number }[] }
   | { type: 'correction'; block: Block; prompt: string; wrong?: string; answer?: string; items?: { wrong: string; answer: string }[] }
   | { type: 'fill_blank'; block: Block; prompt: string; before?: string; after?: string; answer?: string; items?: { before: string; answer: string; after: string }[] }
-  | { type: 'sentence_builder'; block: Block; prompt: string; words: string[]; answer: string[] }
+  | { type: 'sentence_builder'; block: Block; prompt: string; words?: string[]; answer?: string[]; items?: { words: string[]; answer: string[] }[] }
   | { type: 'debate_scale'; block: Block; prompt: string }
   | { type: 'role_play'; block: Block; title: string; lineA: string; lineB: string }
   | { type: 'speaking_task'; block: Block; prompt: string; starters?: string[] }
