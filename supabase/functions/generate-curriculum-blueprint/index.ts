@@ -121,6 +121,18 @@ REQUIREMENTS:
 5. Each objective must be a single concrete observable outcome ("Students will be able to...").
 6. Variation seed: ${variationSeed} — use this to differ from past outputs.
 
+PER-LESSON STRUCTURED BLUEPRINT — MANDATORY:
+Every lesson MUST include these structured fields (the downstream Unified Lesson Generator depends on them):
+- communication_goal: ONE sentence describing the real-world task students will accomplish (derived from objective; concrete, observable).
+- grammar_focus: array of 1–2 specific grammar structures appropriate to the CEFR level.
+- vocabulary_focus: array of 6–${hub === "playground" ? 8 : hub === "academy" ? 14 : 16} target vocabulary items tied to the unit theme. Hub vocab cap: Playground 8, Academy 14, Success 16. Stay within cap.
+- pronunciation_focus: array of 1–3 sounds/patterns relevant to the vocabulary_focus and CEFR level.
+- phonics_focus: array of 0–3 phoneme/grapheme correspondences (only for Playground hub at Pre-A1/A1/A2; leave empty otherwise).
+- review_targets: array of titles from EARLIER lessons in the same unit whose vocabulary/grammar will be recycled (empty for lesson 1).
+- game_targets: array of 1–3 vocabulary items (drawn from vocabulary_focus) suitable for interactive mini-games.
+- homework_targets: array of 1–3 vocabulary items (drawn from vocabulary_focus) suitable for at-home reinforcement.
+- story_arc: ONE short sentence tying this lesson to the unit's narrative arc.
+
 ${prevTopics.length > 0 ? `ANTI-REPETITION — ABSOLUTELY FORBIDDEN:
 You MUST NOT reuse any of the following themes, primary vocabulary, storylines, or settings
 from the user's recent lessons: ${JSON.stringify(prevTopics)}.
