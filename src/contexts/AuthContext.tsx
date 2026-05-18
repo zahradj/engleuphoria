@@ -586,6 +586,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser({ ...(data.user as any), role: finalRole } as any);
         sessionStorage.setItem('auth_redirect_done', 'true');
         sessionStorage.setItem('auth_resolved_role', finalRole);
+        try { localStorage.setItem('auth_resolved_role', finalRole); } catch {}
         console.log(`${AUTH_FLOW_PREFIX} STEP 5: Redirecting to`, redirectPath);
         window.location.href = redirectPath;
       }
