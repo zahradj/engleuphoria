@@ -9,6 +9,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { HubType, GeneratedSlide } from '@/components/admin/lesson-builder/ai-wizard/types';
+import { SpeakingIntentPrompt } from '@/components/student/SpeakingIntentPrompt';
+import { useSpeakingIntent } from '@/hooks/useSpeakingIntent';
 
 interface LessonData {
   id: string;
