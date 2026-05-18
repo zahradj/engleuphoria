@@ -199,22 +199,32 @@ Return ONLY the JSON object.`;
       required: ["curriculum_title", "units"],
     };
 
-    const requestBody = JSON.stringify({
-      systemInstruction: { parts: [{ text: systemPrompt }] },
-      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema,
-        temperature: 0.85,
-        maxOutputTokens: 16384,
-        thinkingConfig: { thinkingBudget: 0 },
-      },
-    });
+    const buildRequestBody = (compact: boolean) =>
+      JSON.stringify({
+        systemInstruction: {
+          parts: [
+            {
+              text: compact
+                ? systemPrompt +
+                  "\n\nCOMPACT MODE: Keep every string under 90 characters. Limit vocabulary_focus to 6 items, grammar_focus to 1 item, pronunciation_focus to 1 item, review_targets to 2 items. Omit story_arc."
+                : systemPrompt,
+            },
+          ],
+        },
+        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema,
+          temperature: 0.85,
+          maxOutputTokens: 32768,
+          thinkingConfig: { thinkingBudget: 0 },
+        },
+      });
 
     const TRANSIENT = new Set([429, 500, 502, 503, 504]);
     const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-    async function callGemini(model: string): Promise<{ ok: true; data: any } | { ok: false; status: number; text: string }> {
+    async function callGemini(model: string, body: string): Promise<{ ok: true; data: any } | { ok: false; status: number; text: string }> {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
       const delays = [1500, 3000, 6000];
       let lastStatus = 0;
@@ -224,7 +234,7 @@ Return ONLY the JSON object.`;
           const r = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: requestBody,
+            body,
           });
           if (r.ok) return { ok: true, data: await r.json() };
           lastStatus = r.status;
@@ -241,10 +251,10 @@ Return ONLY the JSON object.`;
       return { ok: false, status: lastStatus, text: lastText };
     }
 
-    let geminiResult = await callGemini("gemini-2.5-flash");
+    let geminiResult = await callGemini("gemini-2.5-flash", buildRequestBody(false));
     if (!geminiResult.ok && TRANSIENT.has(geminiResult.status)) {
       console.warn("Primary model exhausted, falling back to gemini-2.0-flash");
-      geminiResult = await callGemini("gemini-2.0-flash");
+      geminiResult = await callGemini("gemini-2.0-flash", buildRequestBody(false));
     }
 
     if (!geminiResult.ok) {
