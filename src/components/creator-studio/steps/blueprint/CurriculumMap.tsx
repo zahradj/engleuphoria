@@ -14,7 +14,7 @@ interface Props {
 }
 
 export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
-  const { setActiveLessonData, setCurrentStep } = useCreator();
+  const { setActiveLessonData, setActiveBlueprintContext, setCurrentStep } = useCreator();
   const navigate = useNavigate();
   const autoSavedRef = useRef<string | null>(null);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
