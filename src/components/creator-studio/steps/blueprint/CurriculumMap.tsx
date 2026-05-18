@@ -403,14 +403,24 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
                           </p>
                         )}
                       </div>
-                      <Button
-                        size="sm"
-                        onClick={() => handleBuildSlides(lesson)}
-                        className="shrink-0 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0 shadow-sm"
-                      >
-                        <Palette className="h-3.5 w-3.5 mr-1" />
-                        Build Slides
-                      </Button>
+                      <div className="shrink-0 flex flex-col gap-1.5">
+                        <Button
+                          size="sm"
+                          onClick={() => handleGenerateUnified(lesson, lIdx, uIdx)}
+                          className="bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white border-0 shadow-sm"
+                        >
+                          <Palette className="h-3.5 w-3.5 mr-1" />
+                          Generate Slides
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleBuildSlides(lesson)}
+                          className="text-[11px] h-7 text-slate-500 hover:text-slate-700 dark:text-slate-400"
+                        >
+                          Open hub creator →
+                        </Button>
+                      </div>
                     </li>
                   ))}
                 </ul>
