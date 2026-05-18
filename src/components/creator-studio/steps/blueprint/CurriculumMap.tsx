@@ -24,6 +24,18 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [hasSaved, setHasSaved] = useState(false);
 
+  // Orchestrator + stabilization signals for the lessons in this blueprint.
+  const statuses = useBlueprintLessonStatuses(data);
+  const totalLessons = data?.units.reduce((n, u) => n + u.lessons.length, 0) ?? 0;
+  let publishedCount = 0;
+  let repairCount = 0;
+  let blockCount = 0;
+  statuses.byKey.forEach((s) => {
+    if (s.verdict === 'publish') publishedCount += 1;
+    else if (s.verdict === 'repair') repairCount += 1;
+    else if (s.verdict === 'block') blockCount += 1;
+  });
+
   const HUB_ROUTE: Record<string, string> = {
     playground: '/playground-creator',
     academy: '/academy-creator',
