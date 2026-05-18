@@ -8,6 +8,7 @@ import { ScaffoldedPlayer } from '@/components/creator-studio/shared/ScaffoldedP
 import { SoloVocabCard } from '@/components/creator-studio/shared/SoloVocabCard';
 import { LessonCoverSlide } from '@/components/lesson-player/LessonCoverSlide';
 import { RichText } from '@/components/lesson-player/RichText';
+import { getMultipleItems, getFillBlankItems } from '@/utils/practiceItemNormalize';
 
 /**
  * Success Hub Engine — adult-focused (18+, A2–C1), 60-minute, 7-block
