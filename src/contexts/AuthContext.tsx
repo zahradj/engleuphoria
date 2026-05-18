@@ -256,6 +256,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const hydrateUserInBackground = (authUser: any, label: string) => {
     console.log(`${AUTH_FLOW_PREFIX} HYDRATE: starting background hydration`, { label, userId: authUser?.id });
+    setRoleHydrating(true);
     setTimeout(() => {
       Promise.resolve()
         .then(() => fetchUserFromDatabase(authUser))
@@ -265,14 +266,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             const canonicalRole = (dbUser as any).role;
             console.log(`${AUTH_FLOW_PREFIX} HYDRATE: canonical user loaded`, { label, role: canonicalRole, cachedRole });
             setUser(dbUser);
-            if (cachedRole && cachedRole === canonicalRole) {
-              sessionStorage.removeItem('auth_resolved_role');
+            // Persist canonical role for the rest of the session so subsequent
+            // SIGNED_IN events (token refresh, tab focus) don't bounce the user
+            // back to /dashboard while the role re-resolves.
+            if (canonicalRole) {
+              try { sessionStorage.setItem('auth_resolved_role', canonicalRole); } catch {}
+              try { localStorage.setItem('auth_resolved_role', canonicalRole); } catch {}
             }
           } else {
             console.warn(`${AUTH_FLOW_PREFIX} HYDRATE: no canonical user; keeping fallback`, { label });
           }
         })
-        .catch((err) => console.error(`${AUTH_FLOW_PREFIX} HYDRATE: background user fetch failed`, err));
+        .catch((err) => console.error(`${AUTH_FLOW_PREFIX} HYDRATE: background user fetch failed`, err))
+        .finally(() => setRoleHydrating(false));
     }, 0);
   };
 
