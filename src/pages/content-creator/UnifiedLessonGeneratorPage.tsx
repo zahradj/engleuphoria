@@ -31,7 +31,14 @@ import {
   linkBlueprintToGenerator,
 } from '@/services/contentCreator/curriculumBinding';
 import { assertCurriculumSafe } from '@/services/contentCreator/curriculumSafety';
-import type { LessonBlueprint } from '@/services/contentCreator/lessonBlueprint';
+import {
+  validateBlueprintIntegrity,
+  type LessonBlueprint,
+} from '@/services/contentCreator/lessonBlueprint';
+import {
+  ValidationWarningPanel,
+  type ValidationIssue,
+} from '@/components/content-creator/ValidationWarningPanel';
 
 const CEFR_OPTIONS: Cefr[] = ['Pre-A1', 'A1', 'A2', 'B1', 'B2', 'C1'];
 
