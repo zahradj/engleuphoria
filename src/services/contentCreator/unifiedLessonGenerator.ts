@@ -11,6 +11,21 @@ import { supabase } from '@/integrations/supabase/client';
 import { getHubConfig, type HubCreatorConfig } from './hubConfigurations';
 import type { Hub, Cefr } from '@/governance/types';
 
+/**
+ * Stage filter — controls which engines downstream consumers persist.
+ * The orchestrator pipeline always runs end-to-end (planner → governance →
+ * adaptive → pronunciation → gamification → activities → QA → stabilization)
+ * because every engine feeds the next. The stage filter only narrows what
+ * the caller treats as the "primary deliverable" of this run:
+ *
+ *   - 'all'       — full lesson (default)
+ *   - 'story'     — slide deck only, gamification suppressed in slide list
+ *   - 'games'     — emits gamification_layer + reward slide, no narrative
+ *   - 'homework'  — emits homework_missions, slides ignored
+ *   - 'review'    — same as 'all' but flags lesson as a spiral review
+ */
+export type LessonStage = 'all' | 'story' | 'games' | 'homework' | 'review';
+
 export interface UnifiedLessonInput {
   hub: Hub;
   cefr?: Cefr;
@@ -18,6 +33,8 @@ export interface UnifiedLessonInput {
   lessonId: string;
   studentId?: string;
   ai: ActivityAIClient;
+  /** Default 'all'. See LessonStage. */
+  stage?: LessonStage;
   blueprint: {
     title: string;
     theme: string;
@@ -74,6 +91,7 @@ export interface UnifiedLessonOutput {
     verdict: 'publish' | 'repair' | 'block';
     passed: boolean;
   };
+  stage: LessonStage;
 }
 
 const STAGE_TO_SLIDE: Record<string, SlideType> = {
@@ -183,7 +201,16 @@ export async function generateUnifiedLesson(
     (context.qa as any)?.stabilization?.finalVerdict ?? (verdict === 'publish' ? 'pass' : verdict);
   await persistReport(input.lessonId, input.studentId, context, stabVerdict);
 
-  const slides = compileSlides(context);
+  const stage: LessonStage = input.stage ?? 'all';
+  const allSlides = compileSlides(context);
+  let slides = allSlides;
+  if (stage === 'games') {
+    slides = allSlides.filter((s) => s.type === 'gamification_reward');
+  } else if (stage === 'homework') {
+    slides = [];
+  } else if (stage === 'story') {
+    slides = allSlides.filter((s) => s.type !== 'gamification_reward');
+  }
 
   return {
     lesson_metadata: {
@@ -211,6 +238,7 @@ export async function generateUnifiedLesson(
       verdict,
       passed: result.passed,
     },
+    stage,
   };
 }
 

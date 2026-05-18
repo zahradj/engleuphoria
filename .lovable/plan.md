@@ -1,71 +1,118 @@
-# Update Curriculum Blueprint with Orchestrator + Stabilization signals
+## Curriculum-to-Lesson Integration System
 
-The blueprint UI (`BlueprintEngine` + `CurriculumMap`) currently shows only the AI-drafted unit/lesson scaffold. It has no awareness that, since the last cycle, every generated lesson:
+Bind the Curriculum Blueprint to the Unified Lesson Generator so curriculum becomes the single source of truth and the generator becomes a controlled execution engine.
 
-- flows through `runLessonGeneration()` (orchestrator pipeline)
-- passes through `runStabilization()` (stage 9.5)
-- emits a `validation_report` (verdict `publish` | `repair` | `block`) stored on `curriculum_lessons.ai_metadata.unified_output`
-- contributes longitudinal signals into `curriculum_stabilization_signals`
+### 1. Lesson Blueprint Data Model
 
-This update wires those signals back into the blueprint so creators can see, at a glance, the orchestrator/stabilization status of every lesson slot and act on it.
+Create `src/services/contentCreator/lessonBlueprint.ts`:
 
-## 1. Per-lesson status badges (CurriculumMap)
+- `LessonBlueprint` TS type matching the master schema (lesson_id, unit_id, hub, cefr_level, lesson_title, communication_goal, grammar_focus, vocabulary_focus, pronunciation_focus, phonics_focus, review_targets, difficulty, adaptive_profile, story_state, game_targets, homework_targets).
+- `buildLessonBlueprint(unit, lesson, hub, cefrLevel, neighbors)` — assembles blueprint from `masterCurriculum` + previous/next/review siblings.
+- `LOCKED_FIELDS` / `EDITABLE_FIELDS` constants exported for the UI.
+- `validateBlueprintIntegrity(bp)` — guards (CEFR vs hub matrix, vocab size cap, grammar in scope, phonics-level match).
 
-For every lesson row, fetch the matching `curriculum_lessons` row by `(created_by, target_system, slot_cefr_level, slot_unit_number, slot_lesson_number)` and render:
+### 2. Curriculum Binding Layer
 
-- **Verdict pill** — `PUBLISH` (emerald) / `REPAIR` (amber) / `BLOCK` (rose) / `NOT GENERATED` (slate).
-- **Stabilization chip** — `stab: pass` / `stab: repair (N applied)` / `stab: block` derived from `ai_metadata.unified_output.validation_report.stabilization`.
-- **Slide count** — `12 slides` from `content.slides.length`.
-- **State hash + generated-at** — small monospace caption.
+Create `src/services/contentCreator/curriculumBinding.ts`:
 
-Primary CTA flips:
-- not generated → **Generate slides** (current behaviour)
-- generated → **Re-generate** + **Open in player** + collapsible **Pedagogical health** (`PedagogicalHealthPanel` for that `lesson_id`)
+- `loadLessonBlueprintFromCurriculum({ hub, cefr_level, unit_number, lesson_number, userId })` — reads `masterCurriculum`, resolves neighbors (prev/next/review), returns a fully-typed `LessonBlueprint`.
+- `linkBlueprintToGenerator(blueprint)` — converts blueprint → `UnifiedGeneratorInput` consumed by `unifiedLessonGenerator`.
+- `getLessonRelationships(unit, lesson)` — prev/next/review/prerequisite skills.
+- Used by both the Curriculum Map actions and the generator page.
 
-## 2. Unit-level rollup
+### 3. Unified Generator Refactor (controlled engine)
 
-Each accordion header gains an inline rollup: `✅ 3 publish · ⚠ 1 repair · 🚫 0 block · ◻ 2 pending`. Computed from the unit's lesson statuses.
+Edit `src/services/contentCreator/unifiedLessonGenerator.ts` and `src/pages/content-creator/UnifiedLessonGeneratorPage.tsx`:
 
-A unit-level button **Generate all lessons (Unified)** runs `generateUnifiedLesson()` sequentially for the unit's pending lessons, with a progress toast. Stops on a `block` verdict.
+- Generator entry now requires a `LessonBlueprint`. Manual freeform path is removed; if no blueprint context is present, page shows an empty state with "Open Curriculum Blueprint" CTA.
+- Preload all blueprint fields into form state.
+- Apply field-locking via `LOCKED_FIELDS` (disabled inputs with a lock icon + tooltip "Locked by curriculum"). `EDITABLE_FIELDS` remain interactive.
+- New left rail "Curriculum Context" panel: lesson-state summary, curriculum alignment, prerequisite skills, review targets, adaptive configuration, prev/next lesson chips.
+- Safety guard: before calling orchestrator, run `validateBlueprintIntegrity`; block on violation.
 
-## 3. Curriculum header — orchestrator + stabilization health
+### 4. Curriculum Lesson Node Actions
 
-Above the unit list, show a compact health bar:
+Edit `src/components/creator-studio/steps/blueprint/CurriculumMap.tsx`:
 
-- **Orchestrator version** (from any generated lesson's `unified_output.orchestrator_version`).
-- **Publish gate** — `N / total lessons published`.
-- **Stabilization signals** — count of unconsumed rows in `curriculum_stabilization_signals` for this `(hub, cefr_level)`, with a popover listing kind + severity (skill_imbalance, activity_fatigue, learner_fatigue, hub_drift). Read-only — these feed the next generation automatically at tier 6.
+Each lesson row gets a 7-action menu:
+- Generate Lesson (primary) — full pipeline
+- Open Generator — opens page with blueprint preloaded, no auto-run
+- View Blueprint — modal showing JSON blueprint + relationships
+- Generate Homework — runs homework-only stage
+- Generate Games — runs gamification stage
+- Generate Story — runs narrative-binder stage only
+- Generate Review — generates spiral-review lesson tied to review_targets
 
-## 4. Data fetch hook
+Each action calls `loadLessonBlueprintFromCurriculum` then routes through the orchestrator with the appropriate stage filter.
 
-New `useBlueprintLessonStatuses(curriculum)` hook in `src/components/creator-studio/steps/blueprint/useBlueprintLessonStatuses.ts`:
+### 5. Stage-Scoped Orchestrator Calls
 
-- One query: `select id, content, ai_metadata, is_published, slot_unit_number, slot_lesson_number from curriculum_lessons where created_by = uid and target_system = X and slot_cefr_level = Y and (unit_number, lesson_number) in (...)`.
-- Returns a `Map<string, LessonStatus>` keyed by `${unit_number}-${lesson_number}` with `{ lessonId, verdict, stabVerdict, repairsApplied, slideCount, stateHash, generatedAt, isPublished }`.
-- Re-fetches after a unified generation completes (event bus or React Query invalidation — use a simple `refresh` callback exposed by the hook).
-- One query for `curriculum_stabilization_signals` filtered by `hub + cefr_level + consumed_at IS NULL`.
+Edit `src/orchestrator/index.ts` (or expose new wrapper `runLessonStage`):
 
-## 5. No business-logic changes
+- Accept `{ stages: 'all' | 'homework' | 'games' | 'story' | 'review' }`.
+- Each stage runs the planner → governance → adaptive prefix, then only the requested generator(s), and persists into the same `curriculum_lessons` row (`content.homework_missions`, `content.slides`, `content.games`, etc.).
 
-- The orchestrator/stabilization pipeline itself is **untouched**.
-- The unique slot key, save path, and `saveUnifiedLessonToLibrary()` already added are reused.
-- No schema changes — both `pedagogical_quality_reports` and `curriculum_stabilization_signals` already exist.
-- The Blueprint Engine's edge-function call (`generate-curriculum-blueprint`) stays as-is.
+### 6. Lesson Pipeline Status System
 
-## Files touched
+Extend `useBlueprintLessonStatuses.ts` and `LessonStatusBadge.tsx`:
 
-- `src/components/creator-studio/steps/blueprint/useBlueprintLessonStatuses.ts` — **new** hook.
-- `src/components/creator-studio/steps/blueprint/CurriculumMap.tsx` — render statuses, rollups, header health bar, re-generate / open-in-player CTAs, inline `PedagogicalHealthPanel`.
-- `src/components/creator-studio/steps/blueprint/LessonStatusBadge.tsx` — **new** small presentation component (verdict + stab pills).
-- `src/components/creator-studio/steps/blueprint/CurriculumHealthBar.tsx` — **new** curriculum-level health summary.
-- `src/components/creator-studio/steps/blueprint/UnitRollup.tsx` — **new** unit-level counters + "Generate all" action.
-- `src/pages/content-creator/UnifiedLessonGeneratorPage.tsx` — emit a `window.dispatchEvent('unified-lesson-saved', ...)` after successful save so the blueprint can refresh on return.
+States: `draft | generated | validated | published | needs_review | adaptive_updated`.
 
-## Acceptance
+Derivation rules:
+- `draft` — no row in `curriculum_lessons`.
+- `generated` — row exists, no validation_report.
+- `validated` — verdict === 'publish' or 'repair' with stab pass.
+- `published` — `is_published = true`.
+- `needs_review` — verdict === 'repair' or 'block', or stab block.
+- `adaptive_updated` — `ai_metadata.adaptive_layer.regenerated_at` newer than published_at.
 
-1. Opening the blueprint after generating lessons shows verdict + stab + slide-count pills on each row, with no extra clicks.
-2. Each unit accordion header shows live rollups.
-3. The curriculum header shows orchestrator version, publish gate (`x/y`), and unconsumed stabilization signal count with a hover popover.
-4. **Re-generate** appears for already-generated lessons; clicking it reopens the unified generator prefilled with the same blueprint context.
-5. **Generate all lessons (Unified)** at the unit level runs sequentially and updates row pills in real time.
-6. No regressions to the existing Blueprint generation, save, or per-hub creator flow.
+Lesson nodes display 5 sub-status chips: generation, validation, homework, games, story, review (computed from `content.*` presence + each sub-report).
+
+### 7. Curriculum Map UI Enhancements
+
+In `CurriculumMap.tsx`:
+
+- Tree view: Course → Units → Lessons → expandable Objectives / Grammar / Vocabulary / Review targets.
+- Sub-status chip strip per lesson row.
+- "View Blueprint" modal renders the master JSON object with locked vs editable fields visually separated.
+- Unit rollup extended with homework/games/story counts.
+
+### 8. Curriculum Safety Rules (centralized)
+
+Add `src/services/contentCreator/curriculumSafety.ts`:
+
+Single helper `assertCurriculumSafe(blueprint, draft)` enforces:
+- grammar outside CEFR scope → block
+- vocabulary overload (> cap per hub) → block
+- topic switching (story theme drift vs unit theme) → warn
+- lesson duplication (same blueprint hash already published) → block
+- phonics mismatch (level vs hub matrix) → block
+- disconnected activities (no link to communication_goal) → warn
+- broken progression (prereq lesson not published) → warn
+
+Called by both stage-scoped orchestrator runs and the generator page pre-flight.
+
+### 9. Relationships
+
+`getLessonRelationships` resolves prev/next/review/prerequisite from `masterCurriculum.ts`. Generator's left rail renders these as clickable chips that swap the active blueprint without leaving the page.
+
+### Files to create
+- `src/services/contentCreator/lessonBlueprint.ts`
+- `src/services/contentCreator/curriculumBinding.ts`
+- `src/services/contentCreator/curriculumSafety.ts`
+- `src/components/creator-studio/steps/blueprint/LessonBlueprintModal.tsx`
+- `src/components/creator-studio/steps/blueprint/LessonActionsMenu.tsx`
+- `src/components/content-creator/CurriculumContextPanel.tsx`
+
+### Files to edit
+- `src/services/contentCreator/unifiedLessonGenerator.ts` (blueprint-only entry, stage filter)
+- `src/pages/content-creator/UnifiedLessonGeneratorPage.tsx` (locking, context panel, empty state)
+- `src/components/creator-studio/steps/blueprint/CurriculumMap.tsx` (new actions, tree, sub-status chips)
+- `src/components/creator-studio/steps/blueprint/useBlueprintLessonStatuses.ts` (extended states + sub-statuses)
+- `src/components/creator-studio/steps/blueprint/LessonStatusBadge.tsx` (new state variants)
+- `src/orchestrator/index.ts` (stage-scoped runner)
+
+### Out of scope
+- No changes to `masterCurriculum.ts` data.
+- No DB schema changes — reuse `curriculum_lessons.content` and `ai_metadata` JSONB.
+- Pedagogical engines (planning, governance, adaptive, QA, stabilization) unchanged — only the entry surface and the binding layer change.

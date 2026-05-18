@@ -9,6 +9,11 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useBlueprintLessonStatuses, rollupUnit } from './useBlueprintLessonStatuses';
 import { LessonStatusBadge } from './LessonStatusBadge';
+import { LessonActionsMenu, type LessonAction } from './LessonActionsMenu';
+import { LessonBlueprintModal } from './LessonBlueprintModal';
+import { loadLessonBlueprintFromCurriculum } from '@/services/contentCreator/curriculumBinding';
+import type { LessonBlueprint } from '@/services/contentCreator/lessonBlueprint';
+import type { LessonStage } from '@/services/contentCreator/unifiedLessonGenerator';
 
 interface Props {
   data: CurriculumData | null;
@@ -23,6 +28,10 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
   const [savedCount, setSavedCount] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [hasSaved, setHasSaved] = useState(false);
+  const [blueprintModal, setBlueprintModal] = useState<{ open: boolean; bp: LessonBlueprint | null }>({
+    open: false,
+    bp: null,
+  });
 
   // Orchestrator + stabilization signals for the lessons in this blueprint.
   const statuses = useBlueprintLessonStatuses(data);
@@ -104,7 +113,13 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
     data?.units.find((u) => u.lessons.some((l) => l.id === lesson.id));
 
   /** Route a blueprint lesson to the Unified Lesson Generator with full prefill. */
-  const handleGenerateUnified = (lesson: BlueprintLessonRef, lIdx: number, uIdx: number) => {
+  const handleGenerateUnified = (
+    lesson: BlueprintLessonRef,
+    lIdx: number,
+    uIdx: number,
+    stage: LessonStage = 'all',
+    autoRun = false,
+  ) => {
     if (!data) return;
     const unit = findUnitFor(lesson);
     const unitNumber = unit?.unit_number ?? uIdx + 1;
@@ -136,10 +151,37 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
       skill_focus: lesson.skill_focus as string | undefined,
       objective: lesson.objective || lesson.learning_objective,
       previous_lesson_titles: previous,
+      stage,
+      autoRun,
     });
 
     setCurrentStep('unified-generator');
     navigate('/content-creator/unified-generator');
+  };
+
+  /** Dispatch a LessonActionsMenu action against a specific lesson row. */
+  const handleLessonAction = (
+    action: LessonAction,
+    stage: LessonStage | null,
+    lesson: BlueprintLessonRef,
+    lIdx: number,
+    uIdx: number,
+  ) => {
+    if (!data) return;
+    if (action === 'view_blueprint') {
+      const bp = loadLessonBlueprintFromCurriculum({
+        curriculum: data,
+        unitIdx: uIdx,
+        lessonIdx: lIdx,
+      });
+      setBlueprintModal({ open: true, bp });
+      return;
+    }
+    if (action === 'open_generator') {
+      handleGenerateUnified(lesson, lIdx, uIdx, 'all', false);
+      return;
+    }
+    handleGenerateUnified(lesson, lIdx, uIdx, stage ?? 'all', true);
   };
 
   const saveBlueprintToLibrary = async (
@@ -484,22 +526,27 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
                         )}
                         <LessonStatusBadge status={lessonStatus} />
                       </div>
-                      <div className="shrink-0 flex flex-col gap-1.5">
-                        <Button
-                          size="sm"
-                          onClick={() => handleGenerateUnified(lesson, lIdx, uIdx)}
-                          className={
-                            hasGenerated
-                              ? 'bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white border-0 shadow-sm'
-                              : 'bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white border-0 shadow-sm'
-                          }
-                        >
-                          {hasGenerated ? (
-                            <><RefreshCw className="h-3.5 w-3.5 mr-1" /> Re-generate</>
-                          ) : (
-                            <><Palette className="h-3.5 w-3.5 mr-1" /> Generate Slides</>
-                          )}
-                        </Button>
+                      <div className="shrink-0 flex flex-col gap-1.5 items-end">
+                        <div className="flex items-center gap-1">
+                          <Button
+                            size="sm"
+                            onClick={() => handleGenerateUnified(lesson, lIdx, uIdx, 'all', true)}
+                            className={
+                              hasGenerated
+                                ? 'bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white border-0 shadow-sm'
+                                : 'bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white border-0 shadow-sm'
+                            }
+                          >
+                            {hasGenerated ? (
+                              <><RefreshCw className="h-3.5 w-3.5 mr-1" /> Re-generate</>
+                            ) : (
+                              <><Palette className="h-3.5 w-3.5 mr-1" /> Generate Lesson</>
+                            )}
+                          </Button>
+                          <LessonActionsMenu
+                            onAction={(a, s) => handleLessonAction(a, s, lesson, lIdx, uIdx)}
+                          />
+                        </div>
                         <Button
                           size="sm"
                           variant="ghost"
@@ -535,6 +582,12 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
             : '🛑 FORCE SAVE TO LIBRARY 🛑'}
         </button>
       </div>
+
+      <LessonBlueprintModal
+        open={blueprintModal.open}
+        blueprint={blueprintModal.bp}
+        onOpenChange={(v) => setBlueprintModal((m) => ({ ...m, open: v }))}
+      />
     </>
   );
 };

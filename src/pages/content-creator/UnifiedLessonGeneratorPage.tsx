@@ -3,7 +3,7 @@
 // When opened from the Curriculum Blueprint, prefills + locks hub/CEFR and
 // saves the resulting deck back to the exact same curriculum_lessons slot.
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Loader2, Sparkles, ArrowLeft, Lock, Unlock, Save, BookOpen } from 'lucide-react';
@@ -23,8 +23,15 @@ import {
   type UnifiedLessonOutput,
 } from '@/services/contentCreator/unifiedLessonGenerator';
 import { PedagogicalHealthPanel } from '@/components/content-creator/PedagogicalHealthPanel';
+import { CurriculumContextPanel } from '@/components/content-creator/CurriculumContextPanel';
 import { useCreator } from '@/components/creator-studio/CreatorContext';
 import type { Hub, Cefr } from '@/governance/types';
+import {
+  loadLessonBlueprintFromCurriculum,
+  linkBlueprintToGenerator,
+} from '@/services/contentCreator/curriculumBinding';
+import { assertCurriculumSafe } from '@/services/contentCreator/curriculumSafety';
+import type { LessonBlueprint } from '@/services/contentCreator/lessonBlueprint';
 
 const CEFR_OPTIONS: Cefr[] = ['Pre-A1', 'A1', 'A2', 'B1', 'B2', 'C1'];
 
@@ -37,8 +44,27 @@ function csv(s: string): string[] {
 
 export default function UnifiedLessonGeneratorPage() {
   const navigate = useNavigate();
-  const { activeBlueprintContext, setActiveBlueprintContext, setCurrentStep } = useCreator();
+  const { activeBlueprintContext, setActiveBlueprintContext, setCurrentStep, curriculumData } =
+    useCreator();
   const fromBlueprint = !!activeBlueprintContext;
+
+  // Resolve the canonical LessonBlueprint from curriculum (source of truth).
+  const resolvedBlueprint: LessonBlueprint | null = useMemo(() => {
+    if (!activeBlueprintContext || !curriculumData) return null;
+    const unitIdx = curriculumData.units.findIndex(
+      (u, i) => (u.unit_number ?? i + 1) === activeBlueprintContext.unit_number,
+    );
+    if (unitIdx < 0) return null;
+    const lessonIdx = curriculumData.units[unitIdx].lessons.findIndex(
+      (l, i) => (l.lesson_number ?? i + 1) === activeBlueprintContext.lesson_number,
+    );
+    if (lessonIdx < 0) return null;
+    return loadLessonBlueprintFromCurriculum({
+      curriculum: curriculumData,
+      unitIdx,
+      lessonIdx,
+    });
+  }, [activeBlueprintContext, curriculumData]);
 
   const [hub, setHub] = useState<Hub>((activeBlueprintContext?.hub as Hub) ?? 'academy');
   const cfg = useMemo(() => getHubConfig(hub), [hub]);
@@ -61,6 +87,7 @@ export default function UnifiedLessonGeneratorPage() {
   // curriculum slot. User can unlock for explicit overrides.
   const [hubLocked, setHubLocked] = useState(fromBlueprint);
   const [cefrLocked, setCefrLocked] = useState(fromBlueprint);
+  const lessonLocked = fromBlueprint; // locks title/grammar/goal inputs
 
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -88,15 +115,68 @@ export default function UnifiedLessonGeneratorPage() {
     setOutput(null);
     setSavedLessonId(null);
     try {
+      // Curriculum-bound path: derive input from the blueprint + safety gate.
+      if (fromBlueprint && resolvedBlueprint && !hubLocked === false && !cefrLocked === false) {
+        // ^ no-op guard; we always run safety when fromBlueprint, regardless of unlocks.
+      }
+      if (fromBlueprint && resolvedBlueprint) {
+        const safety = await assertCurriculumSafe({
+          ...resolvedBlueprint,
+          // Apply user-editable overrides into the safety probe so duplication
+          // checks reflect what the user is about to generate.
+          lesson_title: title,
+          communication_goal: goal,
+          grammar_focus: csv(grammar),
+          vocabulary_focus: csv(vocab),
+          review_targets: csv(review),
+          story_state: { ...resolvedBlueprint.story_state, theme },
+          hub,
+          cefr_level: cefr,
+        });
+        if (!safety.ok) {
+          const blocks = safety.issues.filter((i) => i.severity === 'block');
+          toast.error(
+            `Curriculum safety blocked generation: ${blocks.map((b) => b.message).join(' · ')}`,
+          );
+          return;
+        }
+        safety.issues
+          .filter((i) => i.severity === 'warn')
+          .forEach((w) => toast.warning(w.message));
+
+        const input = linkBlueprintToGenerator(
+          {
+            ...resolvedBlueprint,
+            hub,
+            cefr_level: cefr,
+            lesson_title: title,
+          },
+          browserGeminiAiClient,
+          {
+            title,
+            theme,
+            grammarFocus: csv(grammar),
+            targetVocab: csv(vocab),
+            communicationGoal: goal,
+            reviewTargets: csv(review),
+          },
+        );
+        input.stage = activeBlueprintContext?.stage ?? 'all';
+        const result = await generateUnifiedLesson(input);
+        setOutput(result);
+        const v = result.validation_report.verdict;
+        if (v === 'publish') toast.success('Lesson generated and validated.');
+        else if (v === 'repair') toast.warning('Lesson generated with repair flags. Review before publishing.');
+        else toast.error('Lesson blocked by validation. See report below.');
+        return;
+      }
+
+      // Standalone path (no blueprint context).
       const result = await generateUnifiedLesson({
         hub,
         cefr,
-        unitId: activeBlueprintContext
-          ? `u_${activeBlueprintContext.unit_number}`
-          : `unit_${Date.now()}`,
-        lessonId: activeBlueprintContext
-          ? `u${activeBlueprintContext.unit_number}_l${activeBlueprintContext.lesson_number}_${Date.now()}`
-          : `lesson_${Date.now()}`,
+        unitId: `unit_${Date.now()}`,
+        lessonId: `lesson_${Date.now()}`,
         ai: browserGeminiAiClient,
         blueprint: {
           title,
@@ -110,14 +190,25 @@ export default function UnifiedLessonGeneratorPage() {
       setOutput(result);
       const v = result.validation_report.verdict;
       if (v === 'publish') toast.success('Lesson generated and validated.');
-      else if (v === 'repair') toast.warning('Lesson generated with repair flags. Review before publishing.');
-      else toast.error('Lesson blocked by validation. See report below.');
+      else if (v === 'repair') toast.warning('Lesson generated with repair flags.');
+      else toast.error('Lesson blocked by validation.');
     } catch (e: any) {
       toast.error(`Generation failed: ${e?.message ?? e}`);
     } finally {
       setBusy(false);
     }
   }
+
+  // Auto-run when navigated from a curriculum action that requested it.
+  const autoRanRef = useRef(false);
+  useEffect(() => {
+    if (autoRanRef.current) return;
+    if (fromBlueprint && activeBlueprintContext?.autoRun && resolvedBlueprint && !busy && !output) {
+      autoRanRef.current = true;
+      void handleGenerate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fromBlueprint, resolvedBlueprint, activeBlueprintContext?.autoRun]);
 
   async function handleSaveToLibrary() {
     if (!output || !activeBlueprintContext) return;
@@ -169,6 +260,33 @@ export default function UnifiedLessonGeneratorPage() {
         </Badge>
       </div>
 
+      {!fromBlueprint && (
+        <Card className="mb-4 border-amber-200 bg-amber-50/60 dark:border-amber-900/40 dark:bg-amber-950/20">
+          <CardContent className="py-3 text-sm flex items-center justify-between gap-3 flex-wrap">
+            <span className="text-amber-900 dark:text-amber-200">
+              ⚠ No curriculum blueprint loaded. The Unified Generator is curriculum-driven —
+              open a lesson from the blueprint for full pedagogical integrity.
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setCurrentStep('blueprint');
+                navigate('/content-creator/blueprint');
+              }}
+            >
+              Open Curriculum Blueprint →
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {fromBlueprint && resolvedBlueprint && (
+        <div className="mb-4">
+          <CurriculumContextPanel blueprint={resolvedBlueprint} />
+        </div>
+      )}
+
       {fromBlueprint && (
         <Card className="mb-4 border-sky-200 bg-sky-50/60 dark:border-sky-900/50 dark:bg-sky-950/30">
           <CardContent className="flex items-center gap-3 py-3 text-sm flex-wrap">
@@ -177,6 +295,11 @@ export default function UnifiedLessonGeneratorPage() {
               From blueprint · <strong>{activeBlueprintContext!.curriculum_title}</strong> · Unit{' '}
               {activeBlueprintContext!.unit_number} ({activeBlueprintContext!.unit_title}) ·
               Lesson {activeBlueprintContext!.lesson_number}
+              {activeBlueprintContext!.stage && activeBlueprintContext!.stage !== 'all' && (
+                <Badge variant="secondary" className="ml-2 text-[10px]">
+                  stage: {activeBlueprintContext!.stage}
+                </Badge>
+              )}
             </span>
           </CardContent>
         </Card>
@@ -269,8 +392,10 @@ export default function UnifiedLessonGeneratorPage() {
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="grammar">Grammar focus</Label>
-            <Input id="grammar" value={grammar} onChange={(e) => setGrammar(e.target.value)} />
+            <Label htmlFor="grammar" className="flex items-center gap-1">
+              Grammar focus {lessonLocked && <Lock className="h-3 w-3 text-slate-400" />}
+            </Label>
+            <Input id="grammar" value={grammar} onChange={(e) => setGrammar(e.target.value)} disabled={lessonLocked} title={lessonLocked ? 'Locked by curriculum' : undefined} />
           </div>
           <div className="space-y-1">
             <Label htmlFor="review">Review targets</Label>
@@ -282,8 +407,10 @@ export default function UnifiedLessonGeneratorPage() {
             />
           </div>
           <div className="space-y-1 md:col-span-2">
-            <Label htmlFor="goal">Communication goal</Label>
-            <Input id="goal" value={goal} onChange={(e) => setGoal(e.target.value)} />
+            <Label htmlFor="goal" className="flex items-center gap-1">
+              Communication goal {lessonLocked && <Lock className="h-3 w-3 text-slate-400" />}
+            </Label>
+            <Input id="goal" value={goal} onChange={(e) => setGoal(e.target.value)} disabled={lessonLocked} title={lessonLocked ? 'Locked by curriculum' : undefined} />
           </div>
           <div className="md:col-span-2">
             <Button onClick={handleGenerate} disabled={busy} className="w-full">
