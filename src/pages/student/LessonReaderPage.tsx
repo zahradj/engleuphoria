@@ -30,6 +30,7 @@ const LessonReaderPage: React.FC = () => {
   const [lesson, setLesson] = useState<LessonData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { intent, setIntent, hydrated: intentHydrated } = useSpeakingIntent(id);
 
   useEffect(() => {
     if (!id) return;
