@@ -10,6 +10,7 @@ import { buildLearnerProfile } from '@/adaptive/profile/profileBuilder';
 import { generateActivities } from '@/activities/generation/activityGenerator';
 import { runQualityControl } from '@/qa';
 import type { QALesson } from '@/qa/types';
+import { runStabilization } from '@/stabilization';
 
 import { runStage } from './stageRunner';
 import { composePromptChain } from './promptChain';
@@ -207,16 +208,8 @@ export async function runLessonGeneration(
     await runStage('quality_validation', () => runQualityControl({ lesson: qaLesson })),
   );
 
-  // 10 — Publish gate
-  const verdict = qaOutcome.report.verdict;
-  reports.push({
-    stage: 'publish_gate',
-    status: verdict === 'publish' ? 'ok' : verdict === 'repair' ? 'warning' : 'error',
-    durationMs: 0,
-    notes: [`verdict=${verdict}`],
-  });
-
-  const context: LessonContext = {
+  // 9.5 — Educational Stabilization (pedagogical quality layer)
+  const preStabContext: LessonContext = {
     ...partialCtx,
     activities: activityResult.activities,
     qa: qaOutcome.report,
@@ -226,6 +219,41 @@ export async function runLessonGeneration(
       orchestratorVersion: ORCHESTRATOR_VERSION,
       promptChainHash,
     },
+  };
+  const stab = runStabilization({ ctx: preStabContext });
+  reports.push({
+    stage: 'quality_validation',
+    status:
+      stab.report.finalVerdict === 'pass'
+        ? 'ok'
+        : stab.report.finalVerdict === 'repair'
+          ? 'warning'
+          : 'error',
+    durationMs: 0,
+    notes: [
+      `stabilization=${stab.report.finalVerdict}`,
+      `repairs=${stab.report.repairsApplied.length}`,
+    ],
+  });
+
+  // 10 — Publish gate (QA verdict ∧ stabilization verdict)
+  const qaVerdict = qaOutcome.report.verdict;
+  const verdict =
+    stab.report.finalVerdict === 'block' || qaVerdict === 'block'
+      ? 'block'
+      : stab.report.finalVerdict === 'repair' || qaVerdict === 'repair'
+        ? 'repair'
+        : 'publish';
+  reports.push({
+    stage: 'publish_gate',
+    status: verdict === 'publish' ? 'ok' : verdict === 'repair' ? 'warning' : 'error',
+    durationMs: 0,
+    notes: [`verdict=${verdict}`],
+  });
+
+  const context: LessonContext = {
+    ...stab.ctx,
+    qa: { ...qaOutcome.report, stabilization: stab.report },
   };
 
   return {
