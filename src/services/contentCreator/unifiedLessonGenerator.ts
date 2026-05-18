@@ -11,6 +11,21 @@ import { supabase } from '@/integrations/supabase/client';
 import { getHubConfig, type HubCreatorConfig } from './hubConfigurations';
 import type { Hub, Cefr } from '@/governance/types';
 
+/**
+ * Stage filter — controls which engines downstream consumers persist.
+ * The orchestrator pipeline always runs end-to-end (planner → governance →
+ * adaptive → pronunciation → gamification → activities → QA → stabilization)
+ * because every engine feeds the next. The stage filter only narrows what
+ * the caller treats as the "primary deliverable" of this run:
+ *
+ *   - 'all'       — full lesson (default)
+ *   - 'story'     — slide deck only, gamification suppressed in slide list
+ *   - 'games'     — emits gamification_layer + reward slide, no narrative
+ *   - 'homework'  — emits homework_missions, slides ignored
+ *   - 'review'    — same as 'all' but flags lesson as a spiral review
+ */
+export type LessonStage = 'all' | 'story' | 'games' | 'homework' | 'review';
+
 export interface UnifiedLessonInput {
   hub: Hub;
   cefr?: Cefr;
@@ -18,6 +33,8 @@ export interface UnifiedLessonInput {
   lessonId: string;
   studentId?: string;
   ai: ActivityAIClient;
+  /** Default 'all'. See LessonStage. */
+  stage?: LessonStage;
   blueprint: {
     title: string;
     theme: string;
