@@ -91,6 +91,7 @@ export interface UnifiedLessonOutput {
     verdict: 'publish' | 'repair' | 'block';
     passed: boolean;
   };
+  stage: LessonStage;
 }
 
 const STAGE_TO_SLIDE: Record<string, SlideType> = {
