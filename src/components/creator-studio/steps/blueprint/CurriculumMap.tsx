@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Loader2, BookOpen, Palette, Target, CheckCircle2 } from 'lucide-react';
+import { Loader2, BookOpen, Palette, Target, CheckCircle2, Activity, ShieldCheck, RefreshCw, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useCreator, CurriculumData, BlueprintLessonRef } from '../../CreatorContext';
@@ -7,6 +7,8 @@ import { SkillBadge } from './SkillBadge';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useBlueprintLessonStatuses, rollupUnit } from './useBlueprintLessonStatuses';
+import { LessonStatusBadge } from './LessonStatusBadge';
 
 interface Props {
   data: CurriculumData | null;
@@ -21,6 +23,18 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
   const [savedCount, setSavedCount] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [hasSaved, setHasSaved] = useState(false);
+
+  // Orchestrator + stabilization signals for the lessons in this blueprint.
+  const statuses = useBlueprintLessonStatuses(data);
+  const totalLessons = data?.units.reduce((n, u) => n + u.lessons.length, 0) ?? 0;
+  let publishedCount = 0;
+  let repairCount = 0;
+  let blockCount = 0;
+  statuses.byKey.forEach((s) => {
+    if (s.verdict === 'publish') publishedCount += 1;
+    else if (s.verdict === 'repair') repairCount += 1;
+    else if (s.verdict === 'block') blockCount += 1;
+  });
 
   const HUB_ROUTE: Record<string, string> = {
     playground: '/playground-creator',
@@ -311,6 +325,50 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
         </div>
       </div>
 
+      {/* ── Orchestrator + Stabilization health bar ───────────────── */}
+      <div className="px-6 py-3 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-sky-50/60 to-indigo-50/60 dark:from-sky-950/30 dark:to-indigo-950/30 flex items-center gap-4 flex-wrap text-xs">
+        <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-200">
+          <Activity className="h-3.5 w-3.5 text-indigo-500" />
+          <span className="font-semibold">Orchestrator</span>
+          <code className="text-[10px] text-slate-500">
+            {statuses.orchestratorVersion ?? 'awaiting first generation'}
+          </code>
+        </div>
+
+        <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-200">
+          <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+          <span className="font-semibold">Publish gate</span>
+          <span className="text-slate-500">{publishedCount} / {totalLessons}</span>
+          {repairCount > 0 && (
+            <span className="inline-flex items-center gap-0.5 text-amber-700 dark:text-amber-300">
+              · <AlertTriangle className="h-3 w-3" /> {repairCount} repair
+            </span>
+          )}
+          {blockCount > 0 && (
+            <span className="text-rose-700 dark:text-rose-300">· {blockCount} block</span>
+          )}
+        </div>
+
+        {statuses.signalCount > 0 && (
+          <div
+            className="flex items-center gap-1.5 text-amber-700 dark:text-amber-300"
+            title="Unconsumed longitudinal signals — fed into the next generation at tier 6"
+          >
+            <AlertTriangle className="h-3.5 w-3.5" />
+            <span className="font-semibold">{statuses.signalCount} stabilization signal{statuses.signalCount === 1 ? '' : 's'} pending</span>
+          </div>
+        )}
+
+        <button
+          onClick={statuses.refresh}
+          className="ml-auto inline-flex items-center gap-1 text-[11px] text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+          disabled={statuses.loading}
+        >
+          <RefreshCw className={`h-3 w-3 ${statuses.loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </button>
+      </div>
+
       <div className="flex-1 overflow-y-auto p-6">
         {/* ── Auto-save status banner ───────────────────────────── */}
         {autoSaveStatus !== 'idle' && (
@@ -380,14 +438,36 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
                 </div>
               </AccordionTrigger>
               <AccordionContent className="px-4 pt-0 pb-4">
-                <ul className="space-y-2">
-                  {unit.lessons.map((lesson, lIdx) => (
+                <div>
+                  {(() => {
+                    const r = rollupUnit(
+                      unit.lessons,
+                      unit.unit_number ?? uIdx + 1,
+                      statuses.byKey,
+                    );
+                    if (r.publish + r.repair + r.block === 0) return null;
+                    return (
+                      <div className="mb-3 flex items-center gap-3 text-[11px] font-medium flex-wrap">
+                        {r.publish > 0 && <span className="text-emerald-700 dark:text-emerald-300">✅ {r.publish} publish</span>}
+                        {r.repair > 0 && <span className="text-amber-700 dark:text-amber-300">⚠ {r.repair} repair</span>}
+                        {r.block > 0 && <span className="text-rose-700 dark:text-rose-300">🚫 {r.block} block</span>}
+                        {r.pending > 0 && <span className="text-slate-500">◻ {r.pending} pending</span>}
+                      </div>
+                    );
+                  })()}
+                  <ul className="space-y-2">
+                  {unit.lessons.map((lesson, lIdx) => {
+                    const unitNum = unit.unit_number ?? uIdx + 1;
+                    const lessonNum = lesson.lesson_number ?? lIdx + 1;
+                    const lessonStatus = statuses.byKey.get(`${unitNum}-${lessonNum}`);
+                    const hasGenerated = !!lessonStatus && (lessonStatus.slideCount > 0 || !!lessonStatus.verdict);
+                    return (
                     <li
                       key={lesson.id}
                       className="group rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 flex items-start gap-3"
                     >
                       <div className="h-7 w-7 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center justify-center text-[11px] font-bold flex-shrink-0">
-                        {lesson.lesson_number ?? lIdx + 1}
+                        {lessonNum}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -402,15 +482,23 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
                             <span>{lesson.objective || lesson.learning_objective}</span>
                           </p>
                         )}
+                        <LessonStatusBadge status={lessonStatus} />
                       </div>
                       <div className="shrink-0 flex flex-col gap-1.5">
                         <Button
                           size="sm"
                           onClick={() => handleGenerateUnified(lesson, lIdx, uIdx)}
-                          className="bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white border-0 shadow-sm"
+                          className={
+                            hasGenerated
+                              ? 'bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white border-0 shadow-sm'
+                              : 'bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white border-0 shadow-sm'
+                          }
                         >
-                          <Palette className="h-3.5 w-3.5 mr-1" />
-                          Generate Slides
+                          {hasGenerated ? (
+                            <><RefreshCw className="h-3.5 w-3.5 mr-1" /> Re-generate</>
+                          ) : (
+                            <><Palette className="h-3.5 w-3.5 mr-1" /> Generate Slides</>
+                          )}
                         </Button>
                         <Button
                           size="sm"
@@ -422,8 +510,10 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
                         </Button>
                       </div>
                     </li>
-                  ))}
-                </ul>
+                    );
+                  })}
+                  </ul>
+                </div>
               </AccordionContent>
             </AccordionItem>
           ))}
