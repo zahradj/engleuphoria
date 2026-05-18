@@ -374,17 +374,39 @@ Return ONLY the JSON object.`;
         const game_targets = asStrArr(l.game_targets, 3);
         const homework_targets = asStrArr(l.homework_targets, 3);
 
+        // ── Deterministic fallbacks so blueprint is never empty ──
+        const themeWord = String(u.theme || u.unit_title || "everyday english")
+          .replace(/[^\w\s]/g, "").trim().toLowerCase();
+        const fallbackVocab = themeWord
+          ? themeWord.split(/\s+/).slice(0, 3)
+          : ["hello", "thank you", "please"];
+        const grammarByCefr: Record<string, string> = {
+          "Pre-A1": "be (am/is/are)", A1: "present simple", A2: "past simple",
+          B1: "present perfect", B2: "passive voice", C1: "inversion", C2: "cleft sentences",
+        };
+        let grammar_focus = asStrArr(l.grammar_focus, 4);
+        if (grammar_focus.length === 0) {
+          grammar_focus = [grammarByCefr[cefr_level] || "present simple"];
+        }
+        let vocabulary_focus_final = vocabulary_focus;
+        if (vocabulary_focus_final.length === 0) {
+          vocabulary_focus_final = fallbackVocab;
+        }
+        let communication_goal = String(l.communication_goal || objective || "").trim();
+        if (!communication_goal) {
+          communication_goal = `Use ${grammar_focus[0]} to talk about ${themeWord || "everyday situations"}.`;
+        }
+
         const enriched = {
           lesson_id: uuid(),
           lesson_number: idx + 1,
           title,
           skill_focus,
-          objective,
-          learning_objective: objective, // back-compat
-          // ── Enriched structured blueprint ─────────────────────────
-          communication_goal: String(l.communication_goal || objective || "").trim(),
-          grammar_focus: asStrArr(l.grammar_focus, 4),
-          vocabulary_focus,
+          objective: objective || communication_goal,
+          learning_objective: objective || communication_goal,
+          communication_goal,
+          grammar_focus,
+          vocabulary_focus: vocabulary_focus_final,
           pronunciation_focus: asStrArr(l.pronunciation_focus, 4),
           phonics_focus:
             String(hub).toLowerCase() === "playground"
@@ -401,10 +423,8 @@ Return ONLY the JSON object.`;
             arc: String(l.story_arc || `Unit ${uIdx + 1} · Lesson ${idx + 1}`),
             characters: [],
           },
-          game_targets: game_targets.length ? game_targets : vocabulary_focus.slice(0, 3),
-          homework_targets: homework_targets.length
-            ? homework_targets
-            : vocabulary_focus.slice(0, 3),
+          game_targets: game_targets.length ? game_targets : vocabulary_focus_final.slice(0, 3),
+          homework_targets: homework_targets.length ? homework_targets : vocabulary_focus_final.slice(0, 3),
         };
         unitTitlesSoFar.push(title);
         return enriched;
