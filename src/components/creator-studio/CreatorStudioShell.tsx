@@ -14,6 +14,7 @@ import PlaygroundCreator from '@/pages/PlaygroundCreator';
 import AcademyCreator from '@/pages/AcademyCreator';
 import SuccessCreator from '@/pages/SuccessCreator';
 import UnifiedLessonGeneratorPage from '@/pages/content-creator/UnifiedLessonGeneratorPage';
+import LessonTestingPage from '@/pages/content-creator/LessonTestingPage';
 
 const StudioBody: React.FC = () => {
   const { currentStep, setCurrentStep } = useCreator();
