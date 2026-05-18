@@ -276,20 +276,35 @@ Return ONLY the JSON object.`;
       );
     }
 
-    const j = geminiResult.data;
-    const candidate = j?.candidates?.[0];
-    const finishReason = candidate?.finishReason;
-    const rawText = (candidate?.content?.parts?.[0]?.text || "").trim();
+    let j = geminiResult.data;
+    let candidate = j?.candidates?.[0];
+    let finishReason = candidate?.finishReason;
+    let rawText = (candidate?.content?.parts?.[0]?.text || "").trim();
 
     if (finishReason && finishReason !== "STOP") {
       console.error("Gemini finishReason non-STOP:", finishReason, "text length:", rawText.length);
     }
 
-    let parsed: any = null;
-    try {
-      parsed = JSON.parse(rawText);
-    } catch (e) {
-      console.error("Failed to parse Gemini JSON:", e, "finishReason:", finishReason, "len:", rawText.length, rawText.slice(0, 500));
+    const tryParse = (s: string): any | null => {
+      try { return JSON.parse(s); } catch { return null; }
+    };
+    let parsed: any = tryParse(rawText);
+
+    // Retry once in compact mode when AI ran out of tokens or returned invalid JSON.
+    if ((!parsed || finishReason === "MAX_TOKENS") && (finishReason === "MAX_TOKENS" || !parsed)) {
+      console.warn("Retrying generate-curriculum-blueprint in COMPACT mode (finishReason=", finishReason, ")");
+      const retry = await callGemini("gemini-2.5-flash", buildRequestBody(true));
+      if (retry.ok) {
+        j = retry.data;
+        candidate = j?.candidates?.[0];
+        finishReason = candidate?.finishReason;
+        rawText = (candidate?.content?.parts?.[0]?.text || "").trim();
+        parsed = tryParse(rawText);
+      }
+    }
+
+    if (!parsed) {
+      console.error("Failed to parse Gemini JSON after retry. finishReason:", finishReason, "len:", rawText.length, rawText.slice(0, 500));
       const hint =
         finishReason === "MAX_TOKENS"
           ? "AI response was cut off (token limit). Try fewer units/lessons."
