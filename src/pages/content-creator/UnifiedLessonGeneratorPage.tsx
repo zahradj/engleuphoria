@@ -90,16 +90,33 @@ export default function UnifiedLessonGeneratorPage() {
     (activeBlueprintContext?.previous_lesson_titles ?? []).join(', '),
   );
 
-  // When arriving from the blueprint, hub & CEFR are constrained by the
-  // curriculum slot. User can unlock for explicit overrides.
+  // ── Mode: Curriculum (blueprint-bound) vs Manual (free authoring) ─────
+  // Curriculum mode requires both an active blueprint context AND a successful
+  // blueprint resolution. If either is missing, auto-fall back to manual mode
+  // (the generator must NEVER fail silently when curriculum data is absent).
+  const [manualOverride, setManualOverride] = useState(false);
+  const mode: 'curriculum' | 'manual' =
+    fromBlueprint && resolvedBlueprint && !manualOverride ? 'curriculum' : 'manual';
+
+  // When arriving from blueprint, hub/CEFR are constrained — but unlockable.
   const [hubLocked, setHubLocked] = useState(fromBlueprint);
   const [cefrLocked, setCefrLocked] = useState(fromBlueprint);
-  const lessonLocked = fromBlueprint; // locks title/grammar/goal inputs
+  const lessonLocked = mode === 'curriculum'; // locks title/grammar/goal inputs
 
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
   const [output, setOutput] = useState<UnifiedLessonOutput | null>(null);
   const [savedLessonId, setSavedLessonId] = useState<string | null>(null);
+
+  // Auto-fall-back warning when the user opened a blueprint but the lesson
+  // failed to resolve (stale state, corrupted curriculum, etc.).
+  useEffect(() => {
+    if (fromBlueprint && !resolvedBlueprint) {
+      toast.warning(
+        'Could not resolve lesson blueprint from curriculum — switched to Manual Mode.',
+      );
+    }
+  }, [fromBlueprint, resolvedBlueprint]);
 
   // If the user navigated here standalone (no blueprint), keep CEFR defaulting
   // to whatever hub they pick. Skip when locked from a blueprint.
@@ -116,6 +133,51 @@ export default function UnifiedLessonGeneratorPage() {
     setOutput(null);
     setSavedLessonId(null);
   }
+
+  // ── Pre-flight validation ───────────────────────────────────────────────
+  const validationIssues: ValidationIssue[] = useMemo(() => {
+    const issues: ValidationIssue[] = [];
+    if (mode === 'curriculum' && resolvedBlueprint) {
+      // Probe the blueprint as it WILL be sent (with user-editable overrides).
+      const probe: LessonBlueprint = {
+        ...resolvedBlueprint,
+        hub,
+        cefr_level: cefr,
+        lesson_title: title,
+        communication_goal: goal,
+        grammar_focus: csv(grammar),
+        vocabulary_focus: csv(vocab),
+        review_targets: csv(review),
+        story_state: { ...resolvedBlueprint.story_state, theme },
+      };
+      const report = validateBlueprintIntegrity(probe);
+      report.issues.forEach((i) =>
+        issues.push({ code: i.code, severity: i.severity, message: i.message }),
+      );
+    } else {
+      // Manual mode — lightweight required-field check.
+      if (!title.trim())
+        issues.push({ code: 'missing_title', severity: 'block', message: 'Lesson title is required.' });
+      if (!cefr)
+        issues.push({ code: 'missing_cefr', severity: 'block', message: 'CEFR level is required.' });
+      if (!goal.trim())
+        issues.push({
+          code: 'missing_goal',
+          severity: 'block',
+          message: 'Communication goal is required.',
+        });
+      if (!csv(grammar).length && !csv(vocab).length)
+        issues.push({
+          code: 'missing_scope',
+          severity: 'warn',
+          message: 'No grammar or vocabulary scope — lesson may drift off-target.',
+        });
+    }
+    return issues;
+  }, [mode, resolvedBlueprint, hub, cefr, title, goal, grammar, vocab, review, theme]);
+
+  const hasBlocker = validationIssues.some((i) => i.severity === 'block');
+
 
   async function handleGenerate() {
     setBusy(true);
