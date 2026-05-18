@@ -28,6 +28,10 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
   const [savedCount, setSavedCount] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [hasSaved, setHasSaved] = useState(false);
+  const [blueprintModal, setBlueprintModal] = useState<{ open: boolean; bp: LessonBlueprint | null }>({
+    open: false,
+    bp: null,
+  });
 
   // Orchestrator + stabilization signals for the lessons in this blueprint.
   const statuses = useBlueprintLessonStatuses(data);
