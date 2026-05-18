@@ -383,27 +383,53 @@ function ListeningSlide({ slide, t }: { slide: Extract<Slide, { type: 'listening
   );
 }
 
+function ItemPager({ total, index, setIndex, score, t }: { total: number; index: number; setIndex: (i: number) => void; score: number; t: ThemeTokens }) {
+  if (total <= 1) return null;
+  return (
+    <div className={`flex items-center justify-between text-xs ${t.muted}`}>
+      <span>Item {index + 1} of {total} · Score: {score}/{total}</span>
+      <div className="flex gap-2">
+        <button disabled={index === 0} onClick={() => setIndex(Math.max(0, index - 1))}
+          className={`px-2 py-1 rounded border ${t.border} disabled:opacity-30`}>← Prev</button>
+        <button disabled={index >= total - 1} onClick={() => setIndex(Math.min(total - 1, index + 1))}
+          className={`px-2 py-1 rounded border ${t.border} disabled:opacity-30`}>Next →</button>
+      </div>
+    </div>
+  );
+}
+
 function MultipleSlide({ slide, t }: { slide: Extract<Slide, { type: 'multiple' }>; t: ThemeTokens }) {
-  const [picked, setPicked] = useState<string | null>(null);
+  const items = getMultipleItems(slide);
+  const [index, setIndex] = useState(0);
+  const [picks, setPicks] = useState<Record<number, string>>({});
+  useEffect(() => {
+    setIndex((i) => Math.min(i, Math.max(0, items.length - 1)));
+    setPicks({});
+  }, [items.length, JSON.stringify(items)]);
+  const item = items[index];
+  if (!item) return <div className={t.muted}>No items.</div>;
+  const picked = picks[index] ?? null;
+  const score = items.reduce((s, it, i) => s + ((picks[i] && picks[i] === it.answer) ? 1 : 0), 0);
   return (
     <div className="space-y-6 max-w-2xl w-full">
-      <h2 className={`text-2xl md:text-3xl font-semibold ${t.text}`}>{slide.question}</h2>
+      <h2 className={`text-2xl md:text-3xl font-semibold ${t.text}`}>{item.question}</h2>
       <div className="space-y-2">
-        {slide.options.map((opt) => {
+        {item.options.map((opt) => {
           const active = picked === opt;
-          const isAnswer = opt === slide.answer;
+          const isAnswer = opt === item.answer;
           let cls = `${t.border} hover:border-emerald-400 ${t.text}`;
           if (picked && active && isAnswer) cls = 'border-emerald-500 bg-emerald-50 text-emerald-700';
           else if (picked && active && !isAnswer) cls = 'border-red-400 bg-red-50 text-red-700';
           else if (picked && isAnswer) cls = 'border-emerald-500 text-emerald-700';
           return (
-            <button key={opt} onClick={() => picked === null && setPicked(opt)}
+            <button key={opt} onClick={() => picked === null && setPicks((p) => ({ ...p, [index]: opt }))}
               className={`w-full text-left px-4 py-3 rounded-md border transition ${cls}`}>
               {opt}
             </button>
           );
         })}
       </div>
+      <ItemPager total={items.length} index={index} setIndex={setIndex} score={score} t={t} />
     </div>
   );
 }
