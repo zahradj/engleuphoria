@@ -44,8 +44,27 @@ function csv(s: string): string[] {
 
 export default function UnifiedLessonGeneratorPage() {
   const navigate = useNavigate();
-  const { activeBlueprintContext, setActiveBlueprintContext, setCurrentStep } = useCreator();
+  const { activeBlueprintContext, setActiveBlueprintContext, setCurrentStep, curriculumData } =
+    useCreator();
   const fromBlueprint = !!activeBlueprintContext;
+
+  // Resolve the canonical LessonBlueprint from curriculum (source of truth).
+  const resolvedBlueprint: LessonBlueprint | null = useMemo(() => {
+    if (!activeBlueprintContext || !curriculumData) return null;
+    const unitIdx = curriculumData.units.findIndex(
+      (u, i) => (u.unit_number ?? i + 1) === activeBlueprintContext.unit_number,
+    );
+    if (unitIdx < 0) return null;
+    const lessonIdx = curriculumData.units[unitIdx].lessons.findIndex(
+      (l, i) => (l.lesson_number ?? i + 1) === activeBlueprintContext.lesson_number,
+    );
+    if (lessonIdx < 0) return null;
+    return loadLessonBlueprintFromCurriculum({
+      curriculum: curriculumData,
+      unitIdx,
+      lessonIdx,
+    });
+  }, [activeBlueprintContext, curriculumData]);
 
   const [hub, setHub] = useState<Hub>((activeBlueprintContext?.hub as Hub) ?? 'academy');
   const cfg = useMemo(() => getHubConfig(hub), [hub]);
@@ -68,6 +87,7 @@ export default function UnifiedLessonGeneratorPage() {
   // curriculum slot. User can unlock for explicit overrides.
   const [hubLocked, setHubLocked] = useState(fromBlueprint);
   const [cefrLocked, setCefrLocked] = useState(fromBlueprint);
+  const lessonLocked = fromBlueprint; // locks title/grammar/goal inputs
 
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
