@@ -199,7 +199,15 @@ Rules:
 - Reuse the target vocabulary and target grammar.
 - Vary the subjects (he/she/they/we/the kids/etc.) to keep it fresh.
 - Do NOT repeat any of the existing items.
-- Match the CEFR level — short, clean, natural English.`;
+- Match the CEFR level — short, clean, natural English.
+
+Slide-type specifics:
+- error_detection: one wrong word per sentence; wrongIndex is 0-based.
+- correction: 'wrong' has one mistake; 'answer' is the fully corrected sentence.
+- fill_blank: 'before' + '___' + 'after'; 'answer' fills the blank.
+- multiple: 3–4 plausible options; 'answer' MUST be one of the options verbatim.
+- truefalse: clear factual statement; 'answer' is boolean true/false.
+- sentence_builder: 'words' is a shuffled bank; 'answer' is the correct word order. Both arrays must contain the same words (same length, same items).`;
 
     const user = `Slide type: ${slide_type}
 Existing items (do not duplicate):
