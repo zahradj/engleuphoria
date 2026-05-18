@@ -109,13 +109,13 @@ function makeSlide(type: SlideType | 'storybook'): Slide {
     case 'matching': return { type, block, prompt: 'Match the pairs.', pairs: [{ left: 'A', right: '1' }, { left: 'B', right: '2' }] };
     case 'reading_passage': return { type, block, title: 'Reading title', passage: 'Short reading passage goes here…' };
     case 'listening': return { type, block, prompt: 'Listen and answer.', transcript: 'Audio transcript text used for TTS playback.' };
-    case 'multiple': return { type, block, question: 'Question?', options: ['A', 'B', 'C'], answer: 'A' };
-    case 'truefalse': return { type, block, statement: 'Statement is true.', answer: true };
+    case 'multiple': return { type, block, prompt: 'Choose the correct answer.', items: [{ question: 'Question?', options: ['A', 'B', 'C'], answer: 'A' }] } as any;
+    case 'truefalse': return { type, block, prompt: 'True or false?', items: [{ statement: 'Statement is true.', answer: true }] } as any;
     case 'grammar_pattern': return { type, block, title: 'Pattern title', rows: [{ a: 'Example 1', b: 'Example 2' }], rule: 'Rule explanation.' };
     case 'error_detection': return { type, block, prompt: 'Tap the wrong word.', items: [{ sentence: 'He go to school.', wrongIndex: 1 }] };
     case 'correction': return { type, block, prompt: 'Fix the sentence.', items: [{ wrong: 'She go home.', answer: 'She goes home.' }] };
     case 'fill_blank': return { type, block, prompt: 'Complete the sentence.', items: [{ before: 'He', answer: 'goes', after: 'to school.' }] };
-    case 'sentence_builder': return { type, block, prompt: 'Order the words.', words: ['I', 'a', 'have', 'phone'], answer: ['I', 'have', 'a', 'phone'] };
+    case 'sentence_builder': return { type, block, prompt: 'Order the words.', items: [{ words: ['I', 'a', 'have', 'phone'], answer: ['I', 'have', 'a', 'phone'] }] } as any;
     case 'debate_scale': return { type, block, prompt: 'Statement to debate.' };
     case 'role_play': return { type, block, title: 'Role play', lineA: 'Speaker A line.', lineB: 'Speaker B line.' };
     case 'speaking_task': return { type, block, prompt: 'Speak about…', starters: ['I think…', 'In my opinion…'] };
@@ -148,8 +148,8 @@ function slideTitle(s: Slide): string {
     case 'role_play': return s.title;
     case 'grammar_pattern': return s.title;
     case 'vocab': return s.word;
-    case 'multiple': return s.question;
-    case 'truefalse': return s.statement;
+    case 'multiple': return (s as any).items?.[0]?.question ?? (s as any).question ?? (s as any).prompt ?? 'Multiple choice';
+    case 'truefalse': return (s as any).items?.[0]?.statement ?? (s as any).statement ?? (s as any).prompt ?? 'True / False';
     case 'correction': return (s as any).items?.[0]?.wrong ?? (s as any).wrong ?? s.prompt;
     case 'cluster': return s.title;
     default: return (s as any).prompt ?? s.type;
@@ -1194,33 +1194,75 @@ function SlideEditor({ slide, onChange, blueprint, hub = 'academy', cefrLevel = 
         </div>
       );
 
-    case 'multiple':
+    case 'multiple': {
+      const items = (slide as any).items ?? (
+        (slide as any).question != null || Array.isArray((slide as any).options)
+          ? [{
+              question: (slide as any).question ?? '',
+              options: Array.isArray((slide as any).options) ? (slide as any).options : ['A', 'B', 'C'],
+              answer: (slide as any).answer ?? '',
+            }]
+          : []
+      );
       return (
         <div className="space-y-3">
-          <Field label="Question">{row(<input className={inputCls} value={slide.question} onChange={(e) => onChange({ question: e.target.value } as any)} />, wand('question', slide.question, (v) => onChange({ question: v } as any)))}</Field>
-          <Field label="Options (one per line)">
-            <textarea className={inputCls + ' h-24'} value={slide.options.join('\n')}
-              onChange={(e) => onChange({ options: e.target.value.split('\n').filter(Boolean) } as any)} />
-          </Field>
-          <Field label="Correct Answer">
-            <select className={inputCls} value={slide.answer} onChange={(e) => onChange({ answer: e.target.value } as any)}>
-              {slide.options.map((o) => <option key={o} value={o}>{o}</option>)}
-            </select>
-          </Field>
+          <Field label="Prompt"><input className={inputCls} value={(slide as any).prompt ?? ''} onChange={(e) => onChange({ prompt: e.target.value } as any)} /></Field>
+          <PracticeItemsEditor
+            slideType={'multiple' as any}
+            items={items}
+            onChange={(next) => onChange({ items: next, question: undefined, options: undefined, answer: undefined } as any)}
+            renderRow={(it, _i, update) => (
+              <div className="space-y-2">
+                <input className={inputCls} placeholder="Question" value={it.question || ''} onChange={(e) => update({ question: e.target.value })} />
+                <textarea className={inputCls + ' h-20'} placeholder="Options (one per line)" value={(it.options || []).join('\n')}
+                  onChange={(e) => {
+                    const opts = e.target.value.split('\n').filter(Boolean);
+                    const stillValid = opts.includes(it.answer);
+                    update({ options: opts, answer: stillValid ? it.answer : (opts[0] || '') });
+                  }} />
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500">Correct:</span>
+                  <select className={inputCls + ' flex-1'} value={it.answer || ''} onChange={(e) => update({ answer: e.target.value })}>
+                    {(it.options || []).map((o: string) => <option key={o} value={o}>{o}</option>)}
+                  </select>
+                </div>
+              </div>
+            )}
+            newItem={() => ({ question: 'New question?', options: ['A', 'B', 'C'], answer: 'A' })}
+            slide={slide}
+          />
         </div>
       );
+    }
 
-    case 'truefalse':
+    case 'truefalse': {
+      const items = (slide as any).items ?? (
+        (slide as any).statement != null || (slide as any).answer != null
+          ? [{ statement: (slide as any).statement ?? '', answer: !!(slide as any).answer }]
+          : []
+      );
       return (
         <div className="space-y-3">
-          <Field label="Statement">{row(<input className={inputCls} value={slide.statement} onChange={(e) => onChange({ statement: e.target.value } as any)} />, wand('statement', slide.statement, (v) => onChange({ statement: v } as any)))}</Field>
-          <Field label="Answer">
-            <select className={inputCls} value={slide.answer ? 'true' : 'false'} onChange={(e) => onChange({ answer: e.target.value === 'true' } as any)}>
-              <option value="true">True</option><option value="false">False</option>
-            </select>
-          </Field>
+          <Field label="Prompt"><input className={inputCls} value={(slide as any).prompt ?? ''} onChange={(e) => onChange({ prompt: e.target.value } as any)} /></Field>
+          <PracticeItemsEditor
+            slideType={'truefalse' as any}
+            items={items}
+            onChange={(next) => onChange({ items: next, statement: undefined, answer: undefined } as any)}
+            renderRow={(it, _i, update) => (
+              <div className="grid grid-cols-[1fr_auto] gap-2 items-center">
+                <input className={inputCls} placeholder="Statement" value={it.statement || ''} onChange={(e) => update({ statement: e.target.value })} />
+                <select className={inputCls + ' w-28'} value={it.answer ? 'true' : 'false'} onChange={(e) => update({ answer: e.target.value === 'true' })}>
+                  <option value="true">True</option>
+                  <option value="false">False</option>
+                </select>
+              </div>
+            )}
+            newItem={() => ({ statement: 'New statement.', answer: true })}
+            slide={slide}
+          />
         </div>
       );
+    }
 
     case 'grammar_pattern':
       return (
@@ -1336,20 +1378,38 @@ function SlideEditor({ slide, onChange, blueprint, hub = 'academy', cefrLevel = 
       );
     }
 
-    case 'sentence_builder':
+    case 'sentence_builder': {
+      const items = (slide as any).items ?? (
+        Array.isArray((slide as any).words) || Array.isArray((slide as any).answer)
+          ? [{
+              words: Array.isArray((slide as any).words) ? (slide as any).words : [],
+              answer: Array.isArray((slide as any).answer) ? (slide as any).answer : [],
+            }]
+          : []
+      );
       return (
         <div className="space-y-3">
           <Field label="Prompt"><input className={inputCls} value={slide.prompt} onChange={(e) => onChange({ prompt: e.target.value } as any)} /></Field>
-          <Field label="Word bank (comma separated, will be shuffled)">
-            <input className={inputCls} value={slide.words.join(', ')}
-              onChange={(e) => onChange({ words: e.target.value.split(',').map((w) => w.trim()).filter(Boolean) } as any)} />
-          </Field>
-          <Field label="Correct order (comma separated)">
-            <input className={inputCls} value={slide.answer.join(', ')}
-              onChange={(e) => onChange({ answer: e.target.value.split(',').map((w) => w.trim()).filter(Boolean) } as any)} />
-          </Field>
+          <PracticeItemsEditor
+            slideType={'sentence_builder' as any}
+            items={items}
+            onChange={(next) => onChange({ items: next, words: undefined, answer: undefined } as any)}
+            renderRow={(it, _i, update) => (
+              <div className="space-y-2">
+                <input className={inputCls} placeholder="Word bank (comma separated, will be shuffled)"
+                  value={(it.words || []).join(', ')}
+                  onChange={(e) => update({ words: e.target.value.split(',').map((w: string) => w.trim()).filter(Boolean) })} />
+                <input className={inputCls} placeholder="Correct order (comma separated)"
+                  value={(it.answer || []).join(', ')}
+                  onChange={(e) => update({ answer: e.target.value.split(',').map((w: string) => w.trim()).filter(Boolean) })} />
+              </div>
+            )}
+            newItem={() => ({ words: ['I', 'a', 'have', 'phone'], answer: ['I', 'have', 'a', 'phone'] })}
+            slide={slide}
+          />
         </div>
       );
+    }
 
     case 'role_play':
       return (

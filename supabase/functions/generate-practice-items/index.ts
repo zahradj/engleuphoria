@@ -12,7 +12,7 @@ const corsHeaders = {
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
 const MODEL = 'gemini-2.5-flash';
 
-type SlideType = 'error_detection' | 'correction' | 'fill_blank';
+type SlideType = 'error_detection' | 'correction' | 'fill_blank' | 'multiple' | 'truefalse' | 'sentence_builder';
 
 interface Body {
   slide_type: SlideType;
@@ -71,6 +71,58 @@ const SCHEMA_BY_TYPE: Record<SlideType, Record<string, unknown>> = {
             after: { type: 'string' },
           },
           required: ['before', 'answer', 'after'],
+        },
+      },
+    },
+    required: ['items'],
+  },
+  multiple: {
+    type: 'object',
+    properties: {
+      items: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            question: { type: 'string' },
+            options: { type: 'array', items: { type: 'string' }, minItems: 3, maxItems: 4 },
+            answer: { type: 'string' },
+          },
+          required: ['question', 'options', 'answer'],
+        },
+      },
+    },
+    required: ['items'],
+  },
+  truefalse: {
+    type: 'object',
+    properties: {
+      items: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            statement: { type: 'string' },
+            answer: { type: 'boolean' },
+          },
+          required: ['statement', 'answer'],
+        },
+      },
+    },
+    required: ['items'],
+  },
+  sentence_builder: {
+    type: 'object',
+    properties: {
+      items: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            words: { type: 'array', items: { type: 'string' } },
+            answer: { type: 'array', items: { type: 'string' } },
+          },
+          required: ['words', 'answer'],
         },
       },
     },
@@ -147,7 +199,15 @@ Rules:
 - Reuse the target vocabulary and target grammar.
 - Vary the subjects (he/she/they/we/the kids/etc.) to keep it fresh.
 - Do NOT repeat any of the existing items.
-- Match the CEFR level — short, clean, natural English.`;
+- Match the CEFR level — short, clean, natural English.
+
+Slide-type specifics:
+- error_detection: one wrong word per sentence; wrongIndex is 0-based.
+- correction: 'wrong' has one mistake; 'answer' is the fully corrected sentence.
+- fill_blank: 'before' + '___' + 'after'; 'answer' fills the blank.
+- multiple: 3–4 plausible options; 'answer' MUST be one of the options verbatim.
+- truefalse: clear factual statement; 'answer' is boolean true/false.
+- sentence_builder: 'words' is a shuffled bank; 'answer' is the correct word order. Both arrays must contain the same words (same length, same items).`;
 
     const user = `Slide type: ${slide_type}
 Existing items (do not duplicate):

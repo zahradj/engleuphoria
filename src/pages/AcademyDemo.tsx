@@ -13,6 +13,9 @@ import {
   getErrorDetectionItems,
   getCorrectionItems,
   getFillBlankItems,
+  getMultipleItems,
+  getTrueFalseItems,
+  getSentenceBuilderItems,
 } from '@/utils/practiceItemNormalize';
 
 /**
@@ -72,13 +75,13 @@ export type Slide =
   | { type: 'matching'; block: Block; prompt: string; pairs: { left: string; right: string }[] }
   | { type: 'reading_passage'; block: Block; title: string; passage: string }
   | { type: 'listening'; block: Block; prompt: string; transcript: string }
-  | { type: 'truefalse'; block: Block; statement: string; answer: boolean }
-  | { type: 'multiple'; block: Block; question: string; options: string[]; answer: string }
+  | { type: 'truefalse'; block: Block; statement?: string; answer?: boolean; items?: { statement: string; answer: boolean }[] }
+  | { type: 'multiple'; block: Block; question?: string; options?: string[]; answer?: string; items?: { question: string; options: string[]; answer: string }[] }
   | { type: 'grammar_pattern'; block: Block; title: string; rows: { a: string; b: string }[]; rule?: string }
   | { type: 'error_detection'; block: Block; prompt: string; sentence?: string; wrongIndex?: number; items?: { sentence: string; wrongIndex: number }[] }
   | { type: 'correction'; block: Block; prompt: string; wrong?: string; answer?: string; items?: { wrong: string; answer: string }[] }
   | { type: 'fill_blank'; block: Block; prompt: string; before?: string; after?: string; answer?: string; items?: { before: string; answer: string; after: string }[] }
-  | { type: 'sentence_builder'; block: Block; prompt: string; words: string[]; answer: string[] }
+  | { type: 'sentence_builder'; block: Block; prompt: string; words?: string[]; answer?: string[]; items?: { words: string[]; answer: string[] }[] }
   | { type: 'debate_scale'; block: Block; prompt: string }
   | { type: 'role_play'; block: Block; title: string; lineA: string; lineB: string }
   | { type: 'speaking_task'; block: Block; prompt: string; starters?: string[] }
@@ -446,39 +449,60 @@ function ListeningSlide({ slide, t }: { slide: Extract<Slide, { type: 'listening
 }
 
 function TrueFalseSlide({ slide, t }: { slide: Extract<Slide, { type: 'truefalse' }>; t: ThemeTokens }) {
-  const [picked, setPicked] = useState<boolean | null>(null);
-  const correct = picked !== null && picked === slide.answer;
+  const items = getTrueFalseItems(slide);
+  const [index, setIndex] = useState(0);
+  const [picks, setPicks] = useState<Record<number, boolean>>({});
+  useEffect(() => {
+    setIndex((i) => Math.min(i, Math.max(0, items.length - 1)));
+    setPicks({});
+  }, [items.length, JSON.stringify(items)]);
+  const item = items[index];
+  if (!item) return <div className={t.muted}>No items.</div>;
+  const picked = picks[index] ?? null;
+  const correct = picked !== null && picked === item.answer;
+  const score = items.reduce((s, it, i) => s + ((picks[i] !== undefined && picks[i] === it.answer) ? 1 : 0), 0);
   return (
     <div className="space-y-6 max-w-2xl w-full">
-      <h2 className={`text-2xl md:text-3xl font-semibold ${t.text}`}>{slide.statement}</h2>
+      <h2 className={`text-2xl md:text-3xl font-semibold ${t.text}`}>{item.statement}</h2>
       <div className="flex gap-3">
         {[true, false].map((v) => {
           const active = picked === v;
-          const isAnswer = picked !== null && v === slide.answer;
+          const isAnswer = picked !== null && v === item.answer;
           let cls = t.btnGhost;
           if (active && correct) cls = 'bg-emerald-600 text-white border-emerald-600';
           else if (active && !correct) cls = 'bg-red-600 text-white border-red-600';
           else if (picked !== null && isAnswer) cls = 'border border-emerald-500 text-emerald-300';
           return (
-            <button key={String(v)} onClick={() => picked === null && setPicked(v)} className={`px-6 py-2.5 rounded-md font-medium transition ${cls}`}>
+            <button key={String(v)} onClick={() => picked === null && setPicks((p) => ({ ...p, [index]: v }))} className={`px-6 py-2.5 rounded-md font-medium transition ${cls}`}>
               {v ? 'True' : 'False'}
             </button>
           );
         })}
       </div>
+      <ItemPager total={items.length} index={index} setIndex={setIndex} score={score} t={t} />
     </div>
   );
 }
 
 function MultipleSlide({ slide, t }: { slide: Extract<Slide, { type: 'multiple' }>; t: ThemeTokens }) {
-  const [picked, setPicked] = useState<string | null>(null);
+  const items = getMultipleItems(slide);
+  const [index, setIndex] = useState(0);
+  const [picks, setPicks] = useState<Record<number, string>>({});
+  useEffect(() => {
+    setIndex((i) => Math.min(i, Math.max(0, items.length - 1)));
+    setPicks({});
+  }, [items.length, JSON.stringify(items)]);
+  const item = items[index];
+  if (!item) return <div className={t.muted}>No items.</div>;
+  const picked = picks[index] ?? null;
+  const score = items.reduce((s, it, i) => s + ((picks[i] && picks[i] === it.answer) ? 1 : 0), 0);
   return (
     <div className="space-y-6 max-w-2xl w-full">
-      <h2 className={`text-2xl md:text-3xl font-semibold ${t.text}`}>{slide.question}</h2>
+      <h2 className={`text-2xl md:text-3xl font-semibold ${t.text}`}>{item.question}</h2>
       <div className="space-y-2">
-        {slide.options.map((opt) => {
+        {item.options.map((opt) => {
           const active = picked === opt;
-          const isAnswer = opt === slide.answer;
+          const isAnswer = opt === item.answer;
           let cls = `border-slate-700 hover:border-indigo-500/60 ${t.text}`;
           if (picked && active && isAnswer) cls = 'border-emerald-500 bg-emerald-500/10 text-emerald-200';
           else if (picked && active && !isAnswer) cls = 'border-red-500 bg-red-500/10 text-red-200';
@@ -486,7 +510,7 @@ function MultipleSlide({ slide, t }: { slide: Extract<Slide, { type: 'multiple' 
           return (
             <button
               key={opt}
-              onClick={() => picked === null && setPicked(opt)}
+              onClick={() => picked === null && setPicks((p) => ({ ...p, [index]: opt }))}
               className={`w-full text-left px-4 py-3 rounded-md border transition ${cls}`}
             >
               {opt}
@@ -494,6 +518,7 @@ function MultipleSlide({ slide, t }: { slide: Extract<Slide, { type: 'multiple' 
           );
         })}
       </div>
+      <ItemPager total={items.length} index={index} setIndex={setIndex} score={score} t={t} />
     </div>
   );
 }
@@ -667,11 +692,41 @@ function FillBlankSlide({ slide, t }: { slide: Extract<Slide, { type: 'fill_blan
 }
 
 function SentenceBuilderSlide({ slide, t }: { slide: Extract<Slide, { type: 'sentence_builder' }>; t: ThemeTokens }) {
-  const shuffled = useMemo(() => [...slide.words].sort(() => Math.random() - 0.5), [slide.words]);
+  const items = getSentenceBuilderItems(slide);
+  const [index, setIndex] = useState(0);
+  const [scores, setScores] = useState<Record<number, boolean>>({});
+  useEffect(() => {
+    setIndex((i) => Math.min(i, Math.max(0, items.length - 1)));
+    setScores({});
+  }, [items.length, JSON.stringify(items)]);
+  const item = items[index];
+  if (!item) return <div className={t.muted}>No items.</div>;
+  const score = Object.values(scores).filter(Boolean).length;
+  return (
+    <div className="space-y-4 max-w-2xl w-full">
+      <h2 className={`text-2xl md:text-3xl font-semibold ${t.text}`}>{slide.prompt}</h2>
+      <SentenceBuilderItemView
+        key={index}
+        item={item}
+        t={t}
+        onScored={(ok) => setScores((p) => ({ ...p, [index]: ok }))}
+        footer={<ItemPager total={items.length} index={index} setIndex={setIndex} score={score} t={t} />}
+      />
+    </div>
+  );
+}
+
+function SentenceBuilderItemView({ item, t, onScored, footer }: {
+  item: { words: string[]; answer: string[] };
+  t: ThemeTokens;
+  onScored: (correct: boolean) => void;
+  footer: React.ReactNode;
+}) {
+  const shuffled = useMemo(() => [...item.words].sort(() => Math.random() - 0.5), [item.words]);
   const [bank, setBank] = useState<string[]>(shuffled);
   const [answer, setAnswer] = useState<string[]>([]);
   const [checked, setChecked] = useState(false);
-  const correct = checked && answer.join(' ') === slide.answer.join(' ');
+  const correct = checked && answer.join(' ') === item.answer.join(' ');
 
   const pick = (w: string, i: number) => {
     setBank((b) => b.filter((_, idx) => idx !== i));
@@ -684,10 +739,13 @@ function SentenceBuilderSlide({ slide, t }: { slide: Extract<Slide, { type: 'sen
     setChecked(false);
   };
   const reset = () => { setBank(shuffled); setAnswer([]); setChecked(false); };
+  const check = () => {
+    setChecked(true);
+    onScored(answer.join(' ') === item.answer.join(' '));
+  };
 
   return (
     <div className="space-y-6 max-w-2xl w-full">
-      <h2 className={`text-2xl md:text-3xl font-semibold ${t.text}`}>{slide.prompt}</h2>
       <div className={`min-h-[60px] rounded-md border-2 border-dashed p-3 flex flex-wrap gap-2 ${
         checked ? (correct ? 'border-emerald-500' : 'border-red-500') : 'border-slate-700'
       }`}>
@@ -706,11 +764,12 @@ function SentenceBuilderSlide({ slide, t }: { slide: Extract<Slide, { type: 'sen
         ))}
       </div>
       <div className="flex gap-3">
-        <button onClick={() => setChecked(true)} disabled={answer.length !== slide.answer.length} className="px-5 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-sm font-medium">
+        <button onClick={check} disabled={answer.length !== item.answer.length} className="px-5 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-sm font-medium">
           Check
         </button>
         <button onClick={reset} className={`px-5 py-2 rounded-md text-sm ${t.btnGhost}`}>Reset</button>
       </div>
+      {footer}
     </div>
   );
 }
