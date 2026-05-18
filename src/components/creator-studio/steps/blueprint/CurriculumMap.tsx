@@ -325,6 +325,50 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
         </div>
       </div>
 
+      {/* ── Orchestrator + Stabilization health bar ───────────────── */}
+      <div className="px-6 py-3 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-sky-50/60 to-indigo-50/60 dark:from-sky-950/30 dark:to-indigo-950/30 flex items-center gap-4 flex-wrap text-xs">
+        <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-200">
+          <Activity className="h-3.5 w-3.5 text-indigo-500" />
+          <span className="font-semibold">Orchestrator</span>
+          <code className="text-[10px] text-slate-500">
+            {statuses.orchestratorVersion ?? 'awaiting first generation'}
+          </code>
+        </div>
+
+        <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-200">
+          <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+          <span className="font-semibold">Publish gate</span>
+          <span className="text-slate-500">{publishedCount} / {totalLessons}</span>
+          {repairCount > 0 && (
+            <span className="inline-flex items-center gap-0.5 text-amber-700 dark:text-amber-300">
+              · <AlertTriangle className="h-3 w-3" /> {repairCount} repair
+            </span>
+          )}
+          {blockCount > 0 && (
+            <span className="text-rose-700 dark:text-rose-300">· {blockCount} block</span>
+          )}
+        </div>
+
+        {statuses.signalCount > 0 && (
+          <div
+            className="flex items-center gap-1.5 text-amber-700 dark:text-amber-300"
+            title="Unconsumed longitudinal signals — fed into the next generation at tier 6"
+          >
+            <AlertTriangle className="h-3.5 w-3.5" />
+            <span className="font-semibold">{statuses.signalCount} stabilization signal{statuses.signalCount === 1 ? '' : 's'} pending</span>
+          </div>
+        )}
+
+        <button
+          onClick={statuses.refresh}
+          className="ml-auto inline-flex items-center gap-1 text-[11px] text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+          disabled={statuses.loading}
+        >
+          <RefreshCw className={`h-3 w-3 ${statuses.loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </button>
+      </div>
+
       <div className="flex-1 overflow-y-auto p-6">
         {/* ── Auto-save status banner ───────────────────────────── */}
         {autoSaveStatus !== 'idle' && (
