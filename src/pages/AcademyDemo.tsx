@@ -703,13 +703,16 @@ function SentenceBuilderSlide({ slide, t }: { slide: Extract<Slide, { type: 'sen
   if (!item) return <div className={t.muted}>No items.</div>;
   const score = Object.values(scores).filter(Boolean).length;
   return (
-    <SentenceBuilderItemView
-      key={index}
-      item={item}
-      t={t}
-      onScored={(ok) => setScores((p) => ({ ...p, [index]: ok }))}
-      footer={<ItemPager total={items.length} index={index} setIndex={setIndex} score={score} t={t} />}
-    />
+    <div className="space-y-4 max-w-2xl w-full">
+      <h2 className={`text-2xl md:text-3xl font-semibold ${t.text}`}>{slide.prompt}</h2>
+      <SentenceBuilderItemView
+        key={index}
+        item={item}
+        t={t}
+        onScored={(ok) => setScores((p) => ({ ...p, [index]: ok }))}
+        footer={<ItemPager total={items.length} index={index} setIndex={setIndex} score={score} t={t} />}
+      />
+    </div>
   );
 }
 
