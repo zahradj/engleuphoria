@@ -144,7 +144,7 @@ function slideTitle(s: Slide): string {
     case 'scenario': return s.title;
     case 'email_task': return s.subject;
     case 'vocab': return s.word;
-    case 'multiple': return s.question;
+    case 'multiple': return (s as any).items?.[0]?.question ?? (s as any).question ?? (s as any).prompt ?? 'Multiple choice';
     case 'cluster': return s.title;
     default: return (s as any).prompt ?? s.type;
   }
