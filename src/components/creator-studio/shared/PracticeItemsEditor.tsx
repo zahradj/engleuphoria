@@ -3,7 +3,7 @@ import { Plus, Trash2, Sparkles, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
-type SlideType = 'error_detection' | 'correction' | 'fill_blank';
+type SlideType = 'error_detection' | 'correction' | 'fill_blank' | 'multiple' | 'truefalse' | 'sentence_builder';
 
 interface Props<T> {
   slideType: SlideType;
