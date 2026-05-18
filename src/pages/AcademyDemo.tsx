@@ -692,11 +692,38 @@ function FillBlankSlide({ slide, t }: { slide: Extract<Slide, { type: 'fill_blan
 }
 
 function SentenceBuilderSlide({ slide, t }: { slide: Extract<Slide, { type: 'sentence_builder' }>; t: ThemeTokens }) {
-  const shuffled = useMemo(() => [...slide.words].sort(() => Math.random() - 0.5), [slide.words]);
+  const items = getSentenceBuilderItems(slide);
+  const [index, setIndex] = useState(0);
+  const [scores, setScores] = useState<Record<number, boolean>>({});
+  useEffect(() => {
+    setIndex((i) => Math.min(i, Math.max(0, items.length - 1)));
+    setScores({});
+  }, [items.length, JSON.stringify(items)]);
+  const item = items[index];
+  if (!item) return <div className={t.muted}>No items.</div>;
+  const score = Object.values(scores).filter(Boolean).length;
+  return (
+    <SentenceBuilderItemView
+      key={index}
+      item={item}
+      t={t}
+      onScored={(ok) => setScores((p) => ({ ...p, [index]: ok }))}
+      footer={<ItemPager total={items.length} index={index} setIndex={setIndex} score={score} t={t} />}
+    />
+  );
+}
+
+function SentenceBuilderItemView({ item, t, onScored, footer }: {
+  item: { words: string[]; answer: string[] };
+  t: ThemeTokens;
+  onScored: (correct: boolean) => void;
+  footer: React.ReactNode;
+}) {
+  const shuffled = useMemo(() => [...item.words].sort(() => Math.random() - 0.5), [item.words]);
   const [bank, setBank] = useState<string[]>(shuffled);
   const [answer, setAnswer] = useState<string[]>([]);
   const [checked, setChecked] = useState(false);
-  const correct = checked && answer.join(' ') === slide.answer.join(' ');
+  const correct = checked && answer.join(' ') === item.answer.join(' ');
 
   const pick = (w: string, i: number) => {
     setBank((b) => b.filter((_, idx) => idx !== i));
@@ -709,10 +736,13 @@ function SentenceBuilderSlide({ slide, t }: { slide: Extract<Slide, { type: 'sen
     setChecked(false);
   };
   const reset = () => { setBank(shuffled); setAnswer([]); setChecked(false); };
+  const check = () => {
+    setChecked(true);
+    onScored(answer.join(' ') === item.answer.join(' '));
+  };
 
   return (
     <div className="space-y-6 max-w-2xl w-full">
-      <h2 className={`text-2xl md:text-3xl font-semibold ${t.text}`}>{slide.prompt}</h2>
       <div className={`min-h-[60px] rounded-md border-2 border-dashed p-3 flex flex-wrap gap-2 ${
         checked ? (correct ? 'border-emerald-500' : 'border-red-500') : 'border-slate-700'
       }`}>
@@ -731,11 +761,12 @@ function SentenceBuilderSlide({ slide, t }: { slide: Extract<Slide, { type: 'sen
         ))}
       </div>
       <div className="flex gap-3">
-        <button onClick={() => setChecked(true)} disabled={answer.length !== slide.answer.length} className="px-5 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-sm font-medium">
+        <button onClick={check} disabled={answer.length !== item.answer.length} className="px-5 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-sm font-medium">
           Check
         </button>
         <button onClick={reset} className={`px-5 py-2 rounded-md text-sm ${t.btnGhost}`}>Reset</button>
       </div>
+      {footer}
     </div>
   );
 }
