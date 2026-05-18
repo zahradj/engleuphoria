@@ -310,14 +310,27 @@ Return ONLY the JSON object.`;
       return "";
     };
 
-    // Inject UUIDs, numbering, and enforce skill rotation + Review-last rule
+    const VOCAB_CAP: Record<string, number> = { playground: 8, academy: 14, success: 16 };
+    const vocabCap = VOCAB_CAP[String(hub).toLowerCase()] ?? 14;
+
+    const asStrArr = (v: any, cap = 32): string[] =>
+      Array.isArray(v)
+        ? v
+            .map((x) => String(x || "").trim())
+            .filter(Boolean)
+            .slice(0, cap)
+        : [];
+
+    // Inject UUIDs, numbering, enforce skill rotation, Review-last rule,
+    // and pass through the enriched structured-blueprint fields with caps.
     const units = (parsed.units || []).slice(0, safeUnits).map((u: any, uIdx: number) => {
       const rawLessons = (u.lessons || []).slice(0, safeLessons);
+      const unitTitlesSoFar: string[] = [];
       const lessons = rawLessons.map((l: any, idx: number) => {
         const isLast = idx === rawLessons.length - 1;
         let skill_focus: string;
         if (isLast) {
-          skill_focus = "Review"; // hard rule: last lesson is always Review
+          skill_focus = "Review";
         } else {
           const expectedSkill = SKILL_ROTATION[idx % SKILL_ROTATION.length];
           const aiSkill = normalizeSkill(String(l.skill_focus || ""));
@@ -327,15 +340,49 @@ Return ONLY the JSON object.`;
               : expectedSkill;
         }
         const objective = String(l.objective || l.learning_objective || "");
-        return {
+        const title = String(l.title || `Lesson ${idx + 1}`);
+        const vocabulary_focus = asStrArr(l.vocabulary_focus, vocabCap);
+        const review_targets =
+          asStrArr(l.review_targets, 8).length > 0
+            ? asStrArr(l.review_targets, 8)
+            : unitTitlesSoFar.slice(); // default: every prior lesson in unit
+        const game_targets = asStrArr(l.game_targets, 3);
+        const homework_targets = asStrArr(l.homework_targets, 3);
+
+        const enriched = {
           lesson_id: uuid(),
           lesson_number: idx + 1,
-          title: String(l.title || `Lesson ${idx + 1}`),
+          title,
           skill_focus,
           objective,
-          // back-compat for older consumers
-          learning_objective: objective,
+          learning_objective: objective, // back-compat
+          // ── Enriched structured blueprint ─────────────────────────
+          communication_goal: String(l.communication_goal || objective || "").trim(),
+          grammar_focus: asStrArr(l.grammar_focus, 4),
+          vocabulary_focus,
+          pronunciation_focus: asStrArr(l.pronunciation_focus, 4),
+          phonics_focus:
+            String(hub).toLowerCase() === "playground"
+              ? asStrArr(l.phonics_focus, 4)
+              : [],
+          review_targets,
+          adaptive_profile: {
+            difficulty_tier: 3,
+            scaffolding_boost: 0,
+            pacing_hint: "maintain",
+          },
+          story_state: {
+            theme: String(u.theme || "General English"),
+            arc: String(l.story_arc || `Unit ${uIdx + 1} · Lesson ${idx + 1}`),
+            characters: [],
+          },
+          game_targets: game_targets.length ? game_targets : vocabulary_focus.slice(0, 3),
+          homework_targets: homework_targets.length
+            ? homework_targets
+            : vocabulary_focus.slice(0, 3),
         };
+        unitTitlesSoFar.push(title);
+        return enriched;
       });
       return {
         unit_number: uIdx + 1,
