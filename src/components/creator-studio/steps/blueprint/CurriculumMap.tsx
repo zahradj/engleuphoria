@@ -439,13 +439,35 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
               </AccordionTrigger>
               <AccordionContent className="px-4 pt-0 pb-4">
                 <ul className="space-y-2">
-                  {unit.lessons.map((lesson, lIdx) => (
+                  {(() => {
+                    const r = rollupUnit(
+                      unit.lessons,
+                      unit.unit_number ?? uIdx + 1,
+                      statuses.byKey,
+                    );
+                    if (r.publish + r.repair + r.block === 0) return null;
+                    return (
+                      <div className="mb-3 flex items-center gap-3 text-[11px] font-medium flex-wrap">
+                        {r.publish > 0 && <span className="text-emerald-700 dark:text-emerald-300">✅ {r.publish} publish</span>}
+                        {r.repair > 0 && <span className="text-amber-700 dark:text-amber-300">⚠ {r.repair} repair</span>}
+                        {r.block > 0 && <span className="text-rose-700 dark:text-rose-300">🚫 {r.block} block</span>}
+                        {r.pending > 0 && <span className="text-slate-500">◻ {r.pending} pending</span>}
+                      </div>
+                    );
+                  })()}
+                  <ul className="space-y-2">
+                  {unit.lessons.map((lesson, lIdx) => {
+                    const unitNum = unit.unit_number ?? uIdx + 1;
+                    const lessonNum = lesson.lesson_number ?? lIdx + 1;
+                    const lessonStatus = statuses.byKey.get(`${unitNum}-${lessonNum}`);
+                    const hasGenerated = !!lessonStatus && (lessonStatus.slideCount > 0 || !!lessonStatus.verdict);
+                    return (
                     <li
                       key={lesson.id}
                       className="group rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 flex items-start gap-3"
                     >
                       <div className="h-7 w-7 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center justify-center text-[11px] font-bold flex-shrink-0">
-                        {lesson.lesson_number ?? lIdx + 1}
+                        {lessonNum}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -460,15 +482,23 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
                             <span>{lesson.objective || lesson.learning_objective}</span>
                           </p>
                         )}
+                        <LessonStatusBadge status={lessonStatus} />
                       </div>
                       <div className="shrink-0 flex flex-col gap-1.5">
                         <Button
                           size="sm"
                           onClick={() => handleGenerateUnified(lesson, lIdx, uIdx)}
-                          className="bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white border-0 shadow-sm"
+                          className={
+                            hasGenerated
+                              ? 'bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white border-0 shadow-sm'
+                              : 'bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white border-0 shadow-sm'
+                          }
                         >
-                          <Palette className="h-3.5 w-3.5 mr-1" />
-                          Generate Slides
+                          {hasGenerated ? (
+                            <><RefreshCw className="h-3.5 w-3.5 mr-1" /> Re-generate</>
+                          ) : (
+                            <><Palette className="h-3.5 w-3.5 mr-1" /> Generate Slides</>
+                          )}
                         </Button>
                         <Button
                           size="sm"
@@ -480,8 +510,9 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
                         </Button>
                       </div>
                     </li>
-                  ))}
-                </ul>
+                    );
+                  })}
+                  </ul>
               </AccordionContent>
             </AccordionItem>
           ))}
