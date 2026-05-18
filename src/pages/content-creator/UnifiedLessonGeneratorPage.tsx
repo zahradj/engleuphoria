@@ -3,7 +3,7 @@
 // When opened from the Curriculum Blueprint, prefills + locks hub/CEFR and
 // saves the resulting deck back to the exact same curriculum_lessons slot.
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Loader2, Sparkles, ArrowLeft, Lock, Unlock, Save, BookOpen } from 'lucide-react';
