@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Loader2, BookOpen, Palette, Target, CheckCircle2 } from 'lucide-react';
+import { Loader2, BookOpen, Palette, Target, CheckCircle2, Activity, ShieldCheck, RefreshCw, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useCreator, CurriculumData, BlueprintLessonRef } from '../../CreatorContext';
@@ -7,6 +7,8 @@ import { SkillBadge } from './SkillBadge';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useBlueprintLessonStatuses, rollupUnit } from './useBlueprintLessonStatuses';
+import { LessonStatusBadge } from './LessonStatusBadge';
 
 interface Props {
   data: CurriculumData | null;
