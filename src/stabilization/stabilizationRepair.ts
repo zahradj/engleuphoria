@@ -111,7 +111,7 @@ export function applyRepairs(
       modalities: ['writing'],
       target_vocab_used: ctx.plan?.blueprint?.target_vocab?.slice(0, 2) ?? [],
       grammar_targets_used: [],
-      narrative_anchor: 'lesson_close',
+      narrative_anchor: { characters: [], setting: 'classroom', scene: 'lesson_close' }, estimated_load: 'low',
       content: {
         instructions: 'In one sentence, share what you learned today.',
         prompt: 'Today I can __________ because __________.',
@@ -139,7 +139,7 @@ export function applyRepairs(
         modalities: ['reading'],
         target_vocab_used: targets,
         grammar_targets_used: [],
-        narrative_anchor: 'recycle',
+        narrative_anchor: { characters: [], setting: 'classroom', scene: 'recycle' }, estimated_load: 'low',
         content: {
           instructions: 'Quick recall: use each word in a short sentence.',
           words: targets,
@@ -171,7 +171,7 @@ export function applyRepairs(
       modalities: ['speaking'],
       target_vocab_used: ctx.plan?.blueprint?.target_vocab?.slice(0, 3) ?? [],
       grammar_targets_used: ctx.plan?.blueprint?.grammar_focus ?? [],
-      narrative_anchor: 'speak',
+      narrative_anchor: { characters: [], setting: 'classroom', scene: 'speak' }, estimated_load: 'medium',
       content: {
         instructions: 'Say it out loud — short answer, bravery counts.',
         prompt: ctx.plan?.communication?.goal ?? 'Tell me about your day.',
