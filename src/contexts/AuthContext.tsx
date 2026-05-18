@@ -233,7 +233,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // and bounces the user back to /login?reason=access_denied.
     const cachedRole =
       typeof window !== 'undefined'
-        ? sessionStorage.getItem('auth_resolved_role')
+        ? (sessionStorage.getItem('auth_resolved_role') ||
+           localStorage.getItem('auth_resolved_role'))
         : null;
     const metadataRole = cachedRole || authUser.user_metadata?.role || 'student';
 
