@@ -208,7 +208,7 @@ export async function runLessonGeneration(
   );
 
   // 10 — Publish gate
-  const verdict = qaOutcome.decision.verdict;
+  const verdict = qaOutcome.report.verdict;
   reports.push({
     stage: 'publish_gate',
     status: verdict === 'publish' ? 'ok' : verdict === 'repair' ? 'warning' : 'error',
