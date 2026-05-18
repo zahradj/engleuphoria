@@ -13,6 +13,9 @@ import {
   getErrorDetectionItems,
   getCorrectionItems,
   getFillBlankItems,
+  getMultipleItems,
+  getTrueFalseItems,
+  getSentenceBuilderItems,
 } from '@/utils/practiceItemNormalize';
 
 /**
