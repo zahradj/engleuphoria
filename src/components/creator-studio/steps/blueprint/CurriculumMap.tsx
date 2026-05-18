@@ -9,6 +9,11 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useBlueprintLessonStatuses, rollupUnit } from './useBlueprintLessonStatuses';
 import { LessonStatusBadge } from './LessonStatusBadge';
+import { LessonActionsMenu, type LessonAction } from './LessonActionsMenu';
+import { LessonBlueprintModal } from './LessonBlueprintModal';
+import { loadLessonBlueprintFromCurriculum } from '@/services/contentCreator/curriculumBinding';
+import type { LessonBlueprint } from '@/services/contentCreator/lessonBlueprint';
+import type { LessonStage } from '@/services/contentCreator/unifiedLessonGenerator';
 
 interface Props {
   data: CurriculumData | null;
