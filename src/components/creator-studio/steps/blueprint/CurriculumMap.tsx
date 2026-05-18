@@ -526,22 +526,27 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
                         )}
                         <LessonStatusBadge status={lessonStatus} />
                       </div>
-                      <div className="shrink-0 flex flex-col gap-1.5">
-                        <Button
-                          size="sm"
-                          onClick={() => handleGenerateUnified(lesson, lIdx, uIdx)}
-                          className={
-                            hasGenerated
-                              ? 'bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white border-0 shadow-sm'
-                              : 'bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white border-0 shadow-sm'
-                          }
-                        >
-                          {hasGenerated ? (
-                            <><RefreshCw className="h-3.5 w-3.5 mr-1" /> Re-generate</>
-                          ) : (
-                            <><Palette className="h-3.5 w-3.5 mr-1" /> Generate Slides</>
-                          )}
-                        </Button>
+                      <div className="shrink-0 flex flex-col gap-1.5 items-end">
+                        <div className="flex items-center gap-1">
+                          <Button
+                            size="sm"
+                            onClick={() => handleGenerateUnified(lesson, lIdx, uIdx, 'all', true)}
+                            className={
+                              hasGenerated
+                                ? 'bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white border-0 shadow-sm'
+                                : 'bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white border-0 shadow-sm'
+                            }
+                          >
+                            {hasGenerated ? (
+                              <><RefreshCw className="h-3.5 w-3.5 mr-1" /> Re-generate</>
+                            ) : (
+                              <><Palette className="h-3.5 w-3.5 mr-1" /> Generate Lesson</>
+                            )}
+                          </Button>
+                          <LessonActionsMenu
+                            onAction={(a, s) => handleLessonAction(a, s, lesson, lIdx, uIdx)}
+                          />
+                        </div>
                         <Button
                           size="sm"
                           variant="ghost"
