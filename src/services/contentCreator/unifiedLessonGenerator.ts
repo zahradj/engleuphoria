@@ -200,7 +200,16 @@ export async function generateUnifiedLesson(
     (context.qa as any)?.stabilization?.finalVerdict ?? (verdict === 'publish' ? 'pass' : verdict);
   await persistReport(input.lessonId, input.studentId, context, stabVerdict);
 
-  const slides = compileSlides(context);
+  const stage: LessonStage = input.stage ?? 'all';
+  const allSlides = compileSlides(context);
+  let slides = allSlides;
+  if (stage === 'games') {
+    slides = allSlides.filter((s) => s.type === 'gamification_reward');
+  } else if (stage === 'homework') {
+    slides = [];
+  } else if (stage === 'story') {
+    slides = allSlides.filter((s) => s.type !== 'gamification_reward');
+  }
 
   return {
     lesson_metadata: {
@@ -228,6 +237,7 @@ export async function generateUnifiedLesson(
       verdict,
       passed: result.passed,
     },
+    stage,
   };
 }
 
