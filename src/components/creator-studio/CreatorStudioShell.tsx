@@ -50,6 +50,7 @@ const StudioBody: React.FC = () => {
     : currentStep === 'characters' ? CharacterCreator
     : currentStep === 'game-maker' ? GameMaker
     : currentStep === 'unified-generator' ? UnifiedLessonGeneratorPage
+    : currentStep === 'lesson-tests' ? LessonTestingPage
     : LibraryManager;
 
   return (
