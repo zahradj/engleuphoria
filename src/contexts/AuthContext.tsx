@@ -10,6 +10,10 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  /** True while the canonical user (profile + role) is still being fetched
+   * in the background after the initial sync fallback. Route guards should
+   * treat this like `loading` to avoid redirecting on a stale fallback role. */
+  roleHydrating: boolean;
   isConfigured: boolean;
   signUp: (email: string, password: string, userData: Partial<User>) => Promise<any>;
   signIn: (email: string, password: string) => Promise<any>;
