@@ -1,55 +1,39 @@
-Root cause found:
+## Why the curriculum vanishes
 
-1. Curriculum generation is failing at the edge function because Gemini returns a huge JSON payload and hits `MAX_TOKENS`, then the function returns non-2xx.
-2. Even when the edge function returns structured lesson fields, `BlueprintEngine.tsx` currently strips them out when mapping the response into `CurriculumData`.
-3. The Unified Lesson Generator initializes its form from the lightweight `activeBlueprintContext`, not the resolved structured blueprint, so vocabulary/grammar/goals can be empty or wrong.
-4. Curriculum-bound saving may also be fragile because the upsert uses slot columns but the row payload does not clearly populate those same slot columns.
+Two bugs combine:
 
-Implementation plan:
+1. **Auth guard race on `/content-creator`.** `ImprovedProtectedRoute` reads `user.role` (the `profiles.role` column, which is `student` for this account) before the `user_roles` query resolves to `content_creator`. The guard immediately redirects to `/dashboard`. A moment later the role resolves, the user lands back on `/content-creator`, and the studio mounts **fresh**. This is visible in the console logs (`Access denied; routing authenticated user to dashboard router` followed by `userRole: content_creator`). It also fires on every tab focus / token refresh that emits `SIGNED_IN`.
 
-1. Fix curriculum blueprint generation reliability
-   - Update `generate-curriculum-blueprint` to produce compact structured JSON that cannot balloon into long prose.
-   - Add deterministic fallback enrichment inside the edge function for any missing structured fields, so every lesson always has:
-     - `communication_goal`
-     - `grammar_focus`
-     - `vocabulary_focus`
-     - `pronunciation_focus`
-     - `phonics_focus`
-     - `review_targets`
-     - `game_targets`
-     - `homework_targets`
-     - `story_state`
-   - Handle `MAX_TOKENS` gracefully by retrying with a smaller/compact prompt before failing.
+2. **`CreatorProvider` keeps everything in memory only.** `curriculumData`, `activeBlueprintContext`, and `activeLessonData` live in `useState` with no persistence. Any unmount — the auth flicker above, refreshing the tab, or navigating to `/dashboard` and back — empties them. So the generated blueprint disappears.
 
-2. Preserve structured blueprint fields in the frontend
-   - Fix `BlueprintEngine.tsx` so it stores the complete lesson objects returned by the edge function instead of discarding enriched fields.
-   - Keep backward compatibility for older blueprint rows that only have `title`, `skill_focus`, and `objective`.
+The two together produce exactly the reported symptom: generate blueprint → click a lesson → guard briefly rejects → studio remounts → curriculum gone.
 
-3. Hydrate the Unified Lesson Generator from the real blueprint object
-   - In `UnifiedLessonGeneratorPage.tsx`, when `resolvedBlueprint` loads, sync form state from it:
-     - title from `lesson_title`
-     - theme from `story_state.theme`
-     - grammar from `grammar_focus`
-     - vocab from `vocabulary_focus`
-     - goal from `communication_goal`
-     - review from `review_targets`
-   - Ensure Curriculum Mode sends the resolved structured blueprint into `linkBlueprintToGenerator()` without empty overrides replacing valid blueprint data.
-   - Keep Manual Mode fully independent and working without curriculum data.
+## Fix
 
-4. Fix pre-flight validation behavior
-   - Validate curriculum mode against the actual resolved blueprint plus intentional user edits.
-   - Validate manual mode against manual fields only.
-   - Show clear warnings/blockers instead of silently failing or generating empty lessons.
+### 1. Persist Creator Studio state (`src/components/creator-studio/CreatorContext.tsx`)
 
-5. Fix save/upsert consistency
-   - Ensure `saveUnifiedLessonToLibrary()` writes the slot fields used by the `onConflict` key:
-     - `slot_cefr_level`
-     - `slot_unit_number`
-     - `slot_lesson_number`
-   - Store the blueprint hash in `ai_metadata.unified_output.blueprint_hash` so duplication detection works as intended.
+- Hydrate `curriculumData`, `activeBlueprintContext`, `activeLessonData`, and `currentStep` from `sessionStorage` on mount (lazy `useState` initializer).
+- Write each back to `sessionStorage` in a small `useEffect` whenever it changes (JSON stringify, wrapped in try/catch, quota-safe).
+- Use a single namespaced key prefix (`creator_studio:*`) so it can be cleared in one shot.
+- Clear the keys on explicit reset (e.g. when the user signs out — already handled by AuthContext clearing storage on `SIGNED_OUT`; just piggy-back on that path).
 
-6. Verify the flow
-   - Check TypeScript/runtime errors relevant to `/content-creator`.
-   - Confirm the blueprint route no longer throws the `MAX_TOKENS` failure for normal 2-unit/4-lesson generation.
-   - Confirm selecting a blueprint lesson opens the Unified Generator with structured grammar/vocab/goal populated.
-   - Confirm manual generation still works without any blueprint loaded.
+This guarantees the curriculum survives any remount, refresh, or navigation round-trip.
+
+### 2. Stop the auth guard from redirecting during role hydration (`src/components/auth/ImprovedProtectedRoute.tsx` + `src/contexts/AuthContext.tsx`)
+
+- When `requiredRole` is set and the canonical role is still being resolved (we have a `user` but the `user_roles` query has not completed yet), render the loading state instead of redirecting. Today the guard only waits when `userRole` is fully null; if `profiles.role` returns `student` first it immediately bails out.
+- Expose a `roleResolved` / `roleLoading` flag from `AuthContext` (set false at the start of `HYDRATE`, true once `STEP 3B` resolves) and have the guard treat `roleLoading` exactly like `loading`.
+- Keep the resolved role in `sessionStorage` for the **entire session**, not just until the first auth event matches it. Today it is removed at line 264 of `AuthContext.tsx` as soon as the canonical role equals the cached one, which means the next `SIGNED_IN` event has no cache to fall back on. Keep it until `SIGNED_OUT`.
+
+### 3. Verify
+
+- Generate a blueprint on `/content-creator/blueprint`.
+- Click "Open Unified Generator" on a lesson.
+- Confirm the blueprint is still visible when navigating back, and that the lesson generator receives the resolved blueprint.
+- Hard refresh `/content-creator/blueprint` and confirm the curriculum is restored from sessionStorage.
+- Check console: no more `Access denied; routing authenticated user to dashboard router` for a user whose final role is `content_creator`.
+
+## Out of scope
+
+- No changes to the generator pipeline, edge functions, or DB schema. The previous fixes around `generate-curriculum-blueprint`, blueprint field hydration, and slot upserts stay as-is.
+- No UI redesign.
