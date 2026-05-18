@@ -31,7 +31,14 @@ import {
   linkBlueprintToGenerator,
 } from '@/services/contentCreator/curriculumBinding';
 import { assertCurriculumSafe } from '@/services/contentCreator/curriculumSafety';
-import type { LessonBlueprint } from '@/services/contentCreator/lessonBlueprint';
+import {
+  validateBlueprintIntegrity,
+  type LessonBlueprint,
+} from '@/services/contentCreator/lessonBlueprint';
+import {
+  ValidationWarningPanel,
+  type ValidationIssue,
+} from '@/components/content-creator/ValidationWarningPanel';
 
 const CEFR_OPTIONS: Cefr[] = ['Pre-A1', 'A1', 'A2', 'B1', 'B2', 'C1'];
 
@@ -83,16 +90,33 @@ export default function UnifiedLessonGeneratorPage() {
     (activeBlueprintContext?.previous_lesson_titles ?? []).join(', '),
   );
 
-  // When arriving from the blueprint, hub & CEFR are constrained by the
-  // curriculum slot. User can unlock for explicit overrides.
+  // ── Mode: Curriculum (blueprint-bound) vs Manual (free authoring) ─────
+  // Curriculum mode requires both an active blueprint context AND a successful
+  // blueprint resolution. If either is missing, auto-fall back to manual mode
+  // (the generator must NEVER fail silently when curriculum data is absent).
+  const [manualOverride, setManualOverride] = useState(false);
+  const mode: 'curriculum' | 'manual' =
+    fromBlueprint && resolvedBlueprint && !manualOverride ? 'curriculum' : 'manual';
+
+  // When arriving from blueprint, hub/CEFR are constrained — but unlockable.
   const [hubLocked, setHubLocked] = useState(fromBlueprint);
   const [cefrLocked, setCefrLocked] = useState(fromBlueprint);
-  const lessonLocked = fromBlueprint; // locks title/grammar/goal inputs
+  const lessonLocked = mode === 'curriculum'; // locks title/grammar/goal inputs
 
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
   const [output, setOutput] = useState<UnifiedLessonOutput | null>(null);
   const [savedLessonId, setSavedLessonId] = useState<string | null>(null);
+
+  // Auto-fall-back warning when the user opened a blueprint but the lesson
+  // failed to resolve (stale state, corrupted curriculum, etc.).
+  useEffect(() => {
+    if (fromBlueprint && !resolvedBlueprint) {
+      toast.warning(
+        'Could not resolve lesson blueprint from curriculum — switched to Manual Mode.',
+      );
+    }
+  }, [fromBlueprint, resolvedBlueprint]);
 
   // If the user navigated here standalone (no blueprint), keep CEFR defaulting
   // to whatever hub they pick. Skip when locked from a blueprint.
@@ -110,20 +134,69 @@ export default function UnifiedLessonGeneratorPage() {
     setSavedLessonId(null);
   }
 
+  // ── Pre-flight validation ───────────────────────────────────────────────
+  const validationIssues: ValidationIssue[] = useMemo(() => {
+    const issues: ValidationIssue[] = [];
+    if (mode === 'curriculum' && resolvedBlueprint) {
+      // Probe the blueprint as it WILL be sent (with user-editable overrides).
+      const probe: LessonBlueprint = {
+        ...resolvedBlueprint,
+        hub,
+        cefr_level: cefr,
+        lesson_title: title,
+        communication_goal: goal,
+        grammar_focus: csv(grammar),
+        vocabulary_focus: csv(vocab),
+        review_targets: csv(review),
+        story_state: { ...resolvedBlueprint.story_state, theme },
+      };
+      const report = validateBlueprintIntegrity(probe);
+      report.issues.forEach((i) =>
+        issues.push({ code: i.code, severity: i.severity, message: i.message }),
+      );
+    } else {
+      // Manual mode — lightweight required-field check.
+      if (!title.trim())
+        issues.push({ code: 'missing_title', severity: 'block', message: 'Lesson title is required.' });
+      if (!cefr)
+        issues.push({ code: 'missing_cefr', severity: 'block', message: 'CEFR level is required.' });
+      if (!goal.trim())
+        issues.push({
+          code: 'missing_goal',
+          severity: 'block',
+          message: 'Communication goal is required.',
+        });
+      if (!csv(grammar).length && !csv(vocab).length)
+        issues.push({
+          code: 'missing_scope',
+          severity: 'warn',
+          message: 'No grammar or vocabulary scope — lesson may drift off-target.',
+        });
+    }
+    return issues;
+  }, [mode, resolvedBlueprint, hub, cefr, title, goal, grammar, vocab, review, theme]);
+
+  const hasBlocker = validationIssues.some((i) => i.severity === 'block');
+
+
   async function handleGenerate() {
+    // Pre-flight gate: don't even start if there are blocking issues.
+    if (hasBlocker) {
+      const blocks = validationIssues.filter((i) => i.severity === 'block');
+      toast.error(
+        `Cannot generate — ${blocks.map((b) => b.message).join(' · ')}`,
+      );
+      return;
+    }
+
     setBusy(true);
     setOutput(null);
     setSavedLessonId(null);
     try {
-      // Curriculum-bound path: derive input from the blueprint + safety gate.
-      if (fromBlueprint && resolvedBlueprint && !hubLocked === false && !cefrLocked === false) {
-        // ^ no-op guard; we always run safety when fromBlueprint, regardless of unlocks.
-      }
-      if (fromBlueprint && resolvedBlueprint) {
+      // ── Curriculum Mode ─────────────────────────────────────────────
+      if (mode === 'curriculum' && resolvedBlueprint) {
         const safety = await assertCurriculumSafe({
           ...resolvedBlueprint,
-          // Apply user-editable overrides into the safety probe so duplication
-          // checks reflect what the user is about to generate.
           lesson_title: title,
           communication_goal: goal,
           grammar_focus: csv(grammar),
@@ -166,10 +239,14 @@ export default function UnifiedLessonGeneratorPage() {
         setOutput(result);
         const v = result.validation_report.verdict;
         if (v === 'publish') toast.success('Lesson generated and validated.');
-        else if (v === 'repair') toast.warning('Lesson generated with repair flags. Review before publishing.');
+        else if (v === 'repair')
+          toast.warning('Lesson generated with repair flags. Review before publishing.');
         else toast.error('Lesson blocked by validation. See report below.');
         return;
       }
+
+      // ── Manual Mode ─────────────────────────────────────────────────
+
 
       // Standalone path (no blueprint context).
       const result = await generateUnifiedLesson({
@@ -255,17 +332,21 @@ export default function UnifiedLessonGeneratorPage() {
           {fromBlueprint ? 'Back to blueprint' : 'Back'}
         </Button>
         <h1 className="text-2xl font-semibold">Unified Lesson Generator</h1>
-        <Badge variant="outline" className="ml-auto">
-          orchestrator + stabilization
+        <Badge
+          variant={mode === 'curriculum' ? 'default' : 'secondary'}
+          className="ml-auto capitalize"
+        >
+          {mode} mode
         </Badge>
+        <Badge variant="outline">orchestrator + stabilization</Badge>
       </div>
 
       {!fromBlueprint && (
         <Card className="mb-4 border-amber-200 bg-amber-50/60 dark:border-amber-900/40 dark:bg-amber-950/20">
           <CardContent className="py-3 text-sm flex items-center justify-between gap-3 flex-wrap">
             <span className="text-amber-900 dark:text-amber-200">
-              ⚠ No curriculum blueprint loaded. The Unified Generator is curriculum-driven —
-              open a lesson from the blueprint for full pedagogical integrity.
+              ⚠ No curriculum blueprint loaded — running in Manual Mode. Open a lesson from
+              the Curriculum Blueprint for fully curriculum-driven generation.
             </span>
             <Button
               size="sm"
@@ -280,6 +361,30 @@ export default function UnifiedLessonGeneratorPage() {
           </CardContent>
         </Card>
       )}
+
+      {fromBlueprint && resolvedBlueprint && (
+        <Card className="mb-4 border-slate-200 dark:border-slate-800">
+          <CardContent className="py-3 text-sm flex items-center justify-between gap-3 flex-wrap">
+            <span className="text-slate-700 dark:text-slate-300">
+              {mode === 'curriculum'
+                ? 'Curriculum Mode locks curriculum-critical fields. Switch to Manual Mode for free authoring (this run will not be bound to the curriculum slot).'
+                : 'Manual Mode — curriculum binding suspended for this run.'}
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setManualOverride((v) => !v)}
+            >
+              {mode === 'curriculum' ? 'Switch to Manual Mode' : 'Resume Curriculum Mode'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="mb-4">
+        <ValidationWarningPanel mode={mode} issues={validationIssues} />
+      </div>
+
 
       {fromBlueprint && resolvedBlueprint && (
         <div className="mb-4">
@@ -413,7 +518,7 @@ export default function UnifiedLessonGeneratorPage() {
             <Input id="goal" value={goal} onChange={(e) => setGoal(e.target.value)} disabled={lessonLocked} title={lessonLocked ? 'Locked by curriculum' : undefined} />
           </div>
           <div className="md:col-span-2">
-            <Button onClick={handleGenerate} disabled={busy} className="w-full">
+            <Button onClick={handleGenerate} disabled={busy || hasBlocker} className="w-full" title={hasBlocker ? 'Resolve validation blockers above to enable generation.' : undefined}>
               {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
               Generate {cfg.label.split(' (')[0]} lesson
             </Button>

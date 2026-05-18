@@ -1,130 +1,98 @@
-## Lesson Testing & Validation System
+# Fix: Curriculum-to-Generator Integration
 
-Build a **continuous lesson testing harness** that runs synthetic + real lessons through the existing QA + Stabilization engines across every hub × CEFR combination, surfaces failures in a Content Creator dashboard, and persists regression history for trend analysis.
+## Root cause
 
-This layer does **not** replace `runQualityControl()` or `runStabilization()` — it orchestrates them at scale, adds 8 new error-pattern detectors, and gives the team a UI to inspect and act on results.
+1. **Curriculum Blueprint stores thin lesson refs only.** `BlueprintLessonRef` in `CreatorContext.tsx` carries `{id, title, skill_focus, objective}` — no vocabulary, pronunciation, phonics, adaptive profile, story state, game/homework targets.
+2. **`loadLessonBlueprintFromCurriculum` papers over the gap** by returning a `LessonBlueprint` with empty arrays for vocabulary/pronunciation/phonics/game/homework targets. The generator then receives mostly empty fields and produces weak/empty output.
+3. **No pre-flight validation** — `validateBlueprintIntegrity` exists in `lessonBlueprint.ts` but is never invoked before generation. Failures surface as silent empty decks instead of actionable warnings.
+4. **Mode selection is implicit.** The page already branches on `fromBlueprint`, but there is no clear "Manual Mode" affordance or auto-fallback when blueprint resolution fails partway.
 
----
+## Fix
 
-### 1. New module: `src/testing/`
+### 1. Enrich `BlueprintLessonRef` with full structured fields
 
-```text
-src/testing/
-  index.ts                       // runLessonTestSuite() entry
-  types.ts                       // TestCase, TestRun, TestVerdict, FailureCategory
-  testMatrix.ts                  // Hub × CEFR × LessonKind matrix generator
-  syntheticLessons.ts            // Generates test fixtures via orchestrator
-  runner.ts                      // Executes batch, parallel-safe
-  detectors/
-    repetitivePattern.ts         // Activity sequence n-gram detection
-    duplicateVocab.ts            // Cross-slide vocab repetition >threshold
-    disconnectedContext.ts       // Theme/topic cosine drift
-    grammarOverload.ts           // >1 new structure per lesson
-    weakSpeakingTask.ts          // Speaking ratio + bravery score
-    poorScaffolding.ts           // GRR slide arc violations
-    unrealisticDialogue.ts       // AI judge on dialogue plausibility
-    roboticFlow.ts               // Transition variance + tone heuristic
-  aggregator.ts                  // Rolls detector + QA + stab verdicts
-  reportBuilder.ts               // Per-run + per-matrix-cell reports
-```
-
-**Pipeline per test case:**
-1. Build `LessonBlueprint` from matrix cell (hub, CEFR, kind)
-2. `runLessonGeneration()` → lesson JSON
-3. `runQualityControl()` — collect 10 existing validators
-4. `runStabilization()` — collect 6 existing validators
-5. Run 8 new error detectors
-6. Aggregate → `TestVerdict { pass | warn | fail, categories[], evidence[] }`
-
----
-
-### 2. Database (single migration)
-
-```sql
-create table public.lesson_test_runs (
-  id uuid primary key default gen_random_uuid(),
-  run_label text,                       -- e.g. 'nightly-2026-05-18'
-  hub text not null,
-  cefr_level text not null,
-  lesson_kind text not null,
-  blueprint_hash text,
-  lesson_id uuid references curriculum_lessons(id),
-  qa_verdict text,                      -- publish | repair | block
-  stab_verdict text,
-  detector_failures jsonb default '[]',
-  overall_verdict text not null,        -- pass | warn | fail
-  duration_ms int,
-  created_at timestamptz default now()
-);
-
-create table public.lesson_test_failures (
-  id uuid primary key default gen_random_uuid(),
-  run_id uuid references lesson_test_runs(id) on delete cascade,
-  category text not null,               -- one of FailureCategory
-  severity text not null,               -- info | warn | error
-  detector text not null,
-  evidence jsonb,
-  slide_index int,
-  created_at timestamptz default now()
-);
-```
-
-RLS: admin + content_creator read; service role write (runner is privileged).
-
----
-
-### 3. Edge function: `supabase/functions/lesson-test-runner/`
-
-- POST `{ scope: 'matrix' | 'single' | 'regression', filters?: {...} }`
-- Runs test suite server-side, writes rows, returns `runId`
-- Triggered manually from UI **and** by `pg_cron` nightly (separate migration for the schedule)
-- Calls Gemini direct via `aiFetch` for AI-judge detectors (dialogue plausibility) — never Lovable Gateway
-
----
-
-### 4. Content Creator UI: `/content-creator/lesson-tests`
+Extend `BlueprintLessonRef` (`src/components/creator-studio/CreatorContext.tsx`) to carry the full lesson blueprint shape:
 
 ```text
-src/pages/content-creator/LessonTestingPage.tsx
-src/components/content-creator/testing/
-  TestMatrixHeatmap.tsx          // Hub × CEFR grid, cell color = pass rate
-  TestRunHistoryTable.tsx        // Sortable, filterable
-  FailureDetailDrawer.tsx        // Per-failure evidence + slide ref
-  DetectorBreakdownChart.tsx     // Failure category distribution
-  RunNewTestDialog.tsx           // Scope picker + Run button
+BlueprintLessonRef {
+  id, lesson_number, title, skill_focus, objective,
+  + communication_goal?: string
+  + grammar_focus?: string[]
+  + vocabulary_focus?: string[]
+  + pronunciation_focus?: string[]
+  + phonics_focus?: string[]
+  + review_targets?: string[]
+  + adaptive_profile?: { difficulty_tier, scaffolding_boost, pacing_hint }
+  + story_state?: { arc, theme, characters }
+  + game_targets?: string[]
+  + homework_targets?: string[]
+}
 ```
 
-- Heatmap cells link to filtered run list
-- Drawer shows offending slide JSON + detector evidence + jump-to `/content-creator/unified-generator?lessonId=…`
-- Real-time updates via Supabase subscription on `lesson_test_runs`
+All new fields are optional → fully backwards compatible with existing curricula in state/DB.
 
----
+### 2. Have the Blueprint edge function emit those fields
 
-### 5. Integration with existing systems
+Update `supabase/functions/generate-blueprint/index.ts` (and the curriculum-generation prompt) to require the LLM to emit, for each lesson:
 
-- `runLessonGeneration()` gains an optional `testMode: true` flag → skips publish, returns full diagnostic bundle
-- `useBlueprintLessonStatuses` extended with `lastTestVerdict` per slot, shown as a third badge on `CurriculumMap`
-- No changes to pedagogical engines or `masterCurriculum.ts`
+- `communication_goal` (one sentence, derived from `objective`)
+- `grammar_focus[]` (≤2 items, CEFR-bounded)
+- `vocabulary_focus[]` (hub vocab cap: Playground 8 / Academy 14 / Success 16)
+- `pronunciation_focus[]`, `phonics_focus[]` (CEFR-bounded)
+- `review_targets[]` (titles of earlier lessons in unit recycling vocab/grammar)
+- `adaptive_profile` (defaults: tier 3, boost 0, pacing maintain)
+- `story_state` (arc string, theme = unit theme, characters[])
+- `game_targets[]`, `homework_targets[]` (1–3 each, drawn from vocabulary_focus)
 
----
+Prompt enforces hub × CEFR matrix and vocab cap. Schema-validated server-side before returning.
 
-### 6. Out of scope
+### 3. Promote `loadLessonBlueprintFromCurriculum` to a pass-through
 
-- No changes to `runQualityControl`, `runStabilization`, planner, governance, adaptive, gamification, pronunciation engines
-- No new pedagogical rules — detectors only **observe**
-- No student-facing UI
+Rewrite `curriculumBinding.ts:loadLessonBlueprintFromCurriculum` to:
 
----
+- Read the full structured fields directly off the lesson ref when present
+- Fall back to derived defaults (current behavior) only for missing fields, never overwrite real data
+- Stamp `unit_number`, `lesson_number`, `unit_title`, `curriculum_title`, `previous_lesson_title`, `next_lesson_title`, `prerequisite_skills` from tree walk
 
-### Files created
-- `src/testing/**` (12 files)
-- `supabase/functions/lesson-test-runner/index.ts`
-- `src/pages/content-creator/LessonTestingPage.tsx`
-- `src/components/content-creator/testing/**` (5 files)
-- 2 SQL migrations (tables + cron)
+### 4. Wire the generator to support two explicit modes with auto-fallback
 
-### Files edited
-- `src/orchestrator/index.ts` — add `testMode` flag
-- `src/components/creator-studio/steps/blueprint/useBlueprintLessonStatuses.ts` — expose test verdict
-- `src/components/creator-studio/steps/blueprint/LessonStatusBadge.tsx` — add test pill
-- `src/App.tsx` — register `/content-creator/lesson-tests` route
+Refactor `UnifiedLessonGeneratorPage.tsx`:
+
+- Add `mode: 'curriculum' | 'manual'` derived state. `curriculum` when `fromBlueprint && resolvedBlueprint` resolves AND validation passes; otherwise `manual`.
+- Show a clear mode badge in the header ("Curriculum Mode · locked fields" vs "Manual Mode · free authoring").
+- Add a "Switch to Manual Mode" button in Curriculum Mode for explicit override (unlocks all fields, drops curriculum slot binding for that run).
+- If blueprint resolution fails (no `resolvedBlueprint` or `assertCurriculumSafe` returns `block`), automatically fall back to Manual Mode with a `toast.warning` explaining why — never block generation.
+
+### 5. Pre-flight validation gate (no silent failures)
+
+Before `handleGenerate` calls `generateUnifiedLesson`:
+
+- Call `validateBlueprintIntegrity()` from `lessonBlueprint.ts` on the resolved blueprint.
+- Plus a lightweight manual-mode check: `title`, `cefr`, `goal`, and at least one of `grammar` / `vocab` non-empty.
+- Render a `<ValidationWarningPanel>` listing each issue with severity. `block`-level issues disable the Generate button with an inline reason; `warn`-level issues are shown but do not block.
+- Replace the current "no curriculum loaded" banner with this panel so all validation state lives in one place.
+
+### 6. Persist enriched fields end-to-end
+
+- `CurriculumMap.tsx` lesson cards already render `objective`; no UI change required, but verify enriched fields survive the round-trip when curricula are saved/restored (the persistence layer already stores curricula as JSON, so the extra fields ride along automatically).
+- `linkBlueprintToGenerator` already accepts the full blueprint — once the source is enriched, no change needed.
+
+## Files touched
+
+- **Edit**: `src/components/creator-studio/CreatorContext.tsx` (extend `BlueprintLessonRef`)
+- **Edit**: `src/services/contentCreator/curriculumBinding.ts` (pass-through resolution)
+- **Edit**: `src/pages/content-creator/UnifiedLessonGeneratorPage.tsx` (mode state, fallback, validation gate)
+- **New**: `src/components/content-creator/ValidationWarningPanel.tsx`
+- **Edit**: `supabase/functions/generate-blueprint/index.ts` (emit structured fields; prompt + schema)
+
+## Out of scope
+
+- No changes to orchestrator, governance, planner, QA, stabilization, gamification engines.
+- No DB migration — enriched curriculum data fits inside existing JSON storage.
+- No changes to lesson save format (`curriculum_lessons.ai_metadata` already carries arbitrary blueprint JSON).
+
+## Result
+
+- Curriculum Mode delivers fully-populated `LessonBlueprint` objects → orchestrator generates coherent lessons.
+- Manual Mode remains a first-class standalone path; auto-engaged when curriculum data is absent or invalid.
+- All validation surfaces as visible warnings; generation never fails silently.

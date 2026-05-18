@@ -121,6 +121,18 @@ REQUIREMENTS:
 5. Each objective must be a single concrete observable outcome ("Students will be able to...").
 6. Variation seed: ${variationSeed} — use this to differ from past outputs.
 
+PER-LESSON STRUCTURED BLUEPRINT — MANDATORY:
+Every lesson MUST include these structured fields (the downstream Unified Lesson Generator depends on them):
+- communication_goal: ONE sentence describing the real-world task students will accomplish (derived from objective; concrete, observable).
+- grammar_focus: array of 1–2 specific grammar structures appropriate to the CEFR level.
+- vocabulary_focus: array of 6–${hub === "playground" ? 8 : hub === "academy" ? 14 : 16} target vocabulary items tied to the unit theme. Hub vocab cap: Playground 8, Academy 14, Success 16. Stay within cap.
+- pronunciation_focus: array of 1–3 sounds/patterns relevant to the vocabulary_focus and CEFR level.
+- phonics_focus: array of 0–3 phoneme/grapheme correspondences (only for Playground hub at Pre-A1/A1/A2; leave empty otherwise).
+- review_targets: array of titles from EARLIER lessons in the same unit whose vocabulary/grammar will be recycled (empty for lesson 1).
+- game_targets: array of 1–3 vocabulary items (drawn from vocabulary_focus) suitable for interactive mini-games.
+- homework_targets: array of 1–3 vocabulary items (drawn from vocabulary_focus) suitable for at-home reinforcement.
+- story_arc: ONE short sentence tying this lesson to the unit's narrative arc.
+
 ${prevTopics.length > 0 ? `ANTI-REPETITION — ABSOLUTELY FORBIDDEN:
 You MUST NOT reuse any of the following themes, primary vocabulary, storylines, or settings
 from the user's recent lessons: ${JSON.stringify(prevTopics)}.
@@ -166,6 +178,15 @@ Return ONLY the JSON object.`;
                       enum: ["Grammar", "Vocabulary", "Reading/Listening", "Speaking", "Review"],
                     },
                     objective: { type: "string" },
+                    communication_goal: { type: "string" },
+                    grammar_focus: { type: "array", items: { type: "string" } },
+                    vocabulary_focus: { type: "array", items: { type: "string" } },
+                    pronunciation_focus: { type: "array", items: { type: "string" } },
+                    phonics_focus: { type: "array", items: { type: "string" } },
+                    review_targets: { type: "array", items: { type: "string" } },
+                    game_targets: { type: "array", items: { type: "string" } },
+                    homework_targets: { type: "array", items: { type: "string" } },
+                    story_arc: { type: "string" },
                   },
                   required: ["lesson_number", "title", "skill_focus", "objective"],
                 },
@@ -289,14 +310,27 @@ Return ONLY the JSON object.`;
       return "";
     };
 
-    // Inject UUIDs, numbering, and enforce skill rotation + Review-last rule
+    const VOCAB_CAP: Record<string, number> = { playground: 8, academy: 14, success: 16 };
+    const vocabCap = VOCAB_CAP[String(hub).toLowerCase()] ?? 14;
+
+    const asStrArr = (v: any, cap = 32): string[] =>
+      Array.isArray(v)
+        ? v
+            .map((x) => String(x || "").trim())
+            .filter(Boolean)
+            .slice(0, cap)
+        : [];
+
+    // Inject UUIDs, numbering, enforce skill rotation, Review-last rule,
+    // and pass through the enriched structured-blueprint fields with caps.
     const units = (parsed.units || []).slice(0, safeUnits).map((u: any, uIdx: number) => {
       const rawLessons = (u.lessons || []).slice(0, safeLessons);
+      const unitTitlesSoFar: string[] = [];
       const lessons = rawLessons.map((l: any, idx: number) => {
         const isLast = idx === rawLessons.length - 1;
         let skill_focus: string;
         if (isLast) {
-          skill_focus = "Review"; // hard rule: last lesson is always Review
+          skill_focus = "Review";
         } else {
           const expectedSkill = SKILL_ROTATION[idx % SKILL_ROTATION.length];
           const aiSkill = normalizeSkill(String(l.skill_focus || ""));
@@ -306,15 +340,49 @@ Return ONLY the JSON object.`;
               : expectedSkill;
         }
         const objective = String(l.objective || l.learning_objective || "");
-        return {
+        const title = String(l.title || `Lesson ${idx + 1}`);
+        const vocabulary_focus = asStrArr(l.vocabulary_focus, vocabCap);
+        const review_targets =
+          asStrArr(l.review_targets, 8).length > 0
+            ? asStrArr(l.review_targets, 8)
+            : unitTitlesSoFar.slice(); // default: every prior lesson in unit
+        const game_targets = asStrArr(l.game_targets, 3);
+        const homework_targets = asStrArr(l.homework_targets, 3);
+
+        const enriched = {
           lesson_id: uuid(),
           lesson_number: idx + 1,
-          title: String(l.title || `Lesson ${idx + 1}`),
+          title,
           skill_focus,
           objective,
-          // back-compat for older consumers
-          learning_objective: objective,
+          learning_objective: objective, // back-compat
+          // ── Enriched structured blueprint ─────────────────────────
+          communication_goal: String(l.communication_goal || objective || "").trim(),
+          grammar_focus: asStrArr(l.grammar_focus, 4),
+          vocabulary_focus,
+          pronunciation_focus: asStrArr(l.pronunciation_focus, 4),
+          phonics_focus:
+            String(hub).toLowerCase() === "playground"
+              ? asStrArr(l.phonics_focus, 4)
+              : [],
+          review_targets,
+          adaptive_profile: {
+            difficulty_tier: 3,
+            scaffolding_boost: 0,
+            pacing_hint: "maintain",
+          },
+          story_state: {
+            theme: String(u.theme || "General English"),
+            arc: String(l.story_arc || `Unit ${uIdx + 1} · Lesson ${idx + 1}`),
+            characters: [],
+          },
+          game_targets: game_targets.length ? game_targets : vocabulary_focus.slice(0, 3),
+          homework_targets: homework_targets.length
+            ? homework_targets
+            : vocabulary_focus.slice(0, 3),
         };
+        unitTitlesSoFar.push(title);
+        return enriched;
       });
       return {
         unit_number: uIdx + 1,
