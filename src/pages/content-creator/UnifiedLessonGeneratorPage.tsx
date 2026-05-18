@@ -1,10 +1,12 @@
 // Unified Lesson Generator — single hub-aware authoring page for all 3 creators.
 // Wires the orchestrator + stabilization engine to the Content Creator surface.
+// When opened from the Curriculum Blueprint, prefills + locks hub/CEFR and
+// saves the resulting deck back to the exact same curriculum_lessons slot.
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Loader2, Sparkles, ArrowLeft } from 'lucide-react';
+import { Loader2, Sparkles, ArrowLeft, Lock, Unlock, Save, BookOpen } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,9 +19,11 @@ import { HUB_CONFIGS, getHubConfig } from '@/services/contentCreator/hubConfigur
 import { browserGeminiAiClient } from '@/services/contentCreator/aiClient';
 import {
   generateUnifiedLesson,
+  saveUnifiedLessonToLibrary,
   type UnifiedLessonOutput,
 } from '@/services/contentCreator/unifiedLessonGenerator';
 import { PedagogicalHealthPanel } from '@/components/content-creator/PedagogicalHealthPanel';
+import { useCreator } from '@/components/creator-studio/CreatorContext';
 import type { Hub, Cefr } from '@/governance/types';
 
 const CEFR_OPTIONS: Cefr[] = ['Pre-A1', 'A1', 'A2', 'B1', 'B2', 'C1'];
@@ -33,35 +37,66 @@ function csv(s: string): string[] {
 
 export default function UnifiedLessonGeneratorPage() {
   const navigate = useNavigate();
-  const [hub, setHub] = useState<Hub>('academy');
+  const { activeBlueprintContext, setActiveBlueprintContext, setCurrentStep } = useCreator();
+  const fromBlueprint = !!activeBlueprintContext;
+
+  const [hub, setHub] = useState<Hub>((activeBlueprintContext?.hub as Hub) ?? 'academy');
   const cfg = useMemo(() => getHubConfig(hub), [hub]);
 
-  const [cefr, setCefr] = useState<Cefr>(cfg.defaultCefr);
-  const [title, setTitle] = useState('My new lesson');
-  const [theme, setTheme] = useState('everyday english');
-  const [vocab, setVocab] = useState('hello, goodbye, please, thank you, sorry');
-  const [grammar, setGrammar] = useState('present simple');
-  const [goal, setGoal] = useState('greet someone and ask how they are');
-  const [review, setReview] = useState('');
+  const [cefr, setCefr] = useState<Cefr>(
+    (activeBlueprintContext?.cefr_level as Cefr) ?? cfg.defaultCefr,
+  );
+  const [title, setTitle] = useState(activeBlueprintContext?.lesson_title ?? 'My new lesson');
+  const [theme, setTheme] = useState(activeBlueprintContext?.unit_theme ?? 'everyday english');
+  const [vocab, setVocab] = useState('');
+  const [grammar, setGrammar] = useState(activeBlueprintContext?.skill_focus ?? 'present simple');
+  const [goal, setGoal] = useState(
+    activeBlueprintContext?.objective ?? 'greet someone and ask how they are',
+  );
+  const [review, setReview] = useState(
+    (activeBlueprintContext?.previous_lesson_titles ?? []).join(', '),
+  );
+
+  // When arriving from the blueprint, hub & CEFR are constrained by the
+  // curriculum slot. User can unlock for explicit overrides.
+  const [hubLocked, setHubLocked] = useState(fromBlueprint);
+  const [cefrLocked, setCefrLocked] = useState(fromBlueprint);
 
   const [busy, setBusy] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [output, setOutput] = useState<UnifiedLessonOutput | null>(null);
+  const [savedLessonId, setSavedLessonId] = useState<string | null>(null);
+
+  // If the user navigated here standalone (no blueprint), keep CEFR defaulting
+  // to whatever hub they pick. Skip when locked from a blueprint.
+  useEffect(() => {
+    if (!fromBlueprint) {
+      setCefr(getHubConfig(hub).defaultCefr);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hub]);
 
   function onHubChange(next: Hub) {
+    if (hubLocked) return;
     setHub(next);
-    setCefr(getHubConfig(next).defaultCefr);
     setOutput(null);
+    setSavedLessonId(null);
   }
 
   async function handleGenerate() {
     setBusy(true);
     setOutput(null);
+    setSavedLessonId(null);
     try {
       const result = await generateUnifiedLesson({
         hub,
         cefr,
-        unitId: `unit_${Date.now()}`,
-        lessonId: `lesson_${Date.now()}`,
+        unitId: activeBlueprintContext
+          ? `u_${activeBlueprintContext.unit_number}`
+          : `unit_${Date.now()}`,
+        lessonId: activeBlueprintContext
+          ? `u${activeBlueprintContext.unit_number}_l${activeBlueprintContext.lesson_number}_${Date.now()}`
+          : `lesson_${Date.now()}`,
         ai: browserGeminiAiClient,
         blueprint: {
           title,
@@ -84,11 +119,48 @@ export default function UnifiedLessonGeneratorPage() {
     }
   }
 
+  async function handleSaveToLibrary() {
+    if (!output || !activeBlueprintContext) return;
+    setSaving(true);
+    try {
+      const res = await saveUnifiedLessonToLibrary({
+        output,
+        unitNumber: activeBlueprintContext.unit_number,
+        lessonNumber: activeBlueprintContext.lesson_number,
+        unitTitle: activeBlueprintContext.unit_title,
+        curriculumTitle: activeBlueprintContext.curriculum_title,
+      });
+      if (res.ok) {
+        setSavedLessonId(res.lessonId ?? null);
+        toast.success(
+          output.validation_report.verdict === 'publish'
+            ? '✅ Saved & published to your library.'
+            : '✅ Saved as draft (review repair flags before publishing).',
+        );
+      } else {
+        toast.error(res.error ?? 'Save failed.');
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function backToBlueprint() {
+    setActiveBlueprintContext(null);
+    setCurrentStep('blueprint');
+    navigate('/content-creator/blueprint');
+  }
+
   return (
     <div className="mx-auto w-full max-w-6xl p-4 md:p-6">
-      <div className="mb-4 flex items-center gap-2">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/content-creator')}>
-          <ArrowLeft className="mr-1 h-4 w-4" /> Back
+      <div className="mb-4 flex items-center gap-2 flex-wrap">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={fromBlueprint ? backToBlueprint : () => navigate('/content-creator')}
+        >
+          <ArrowLeft className="mr-1 h-4 w-4" />
+          {fromBlueprint ? 'Back to blueprint' : 'Back'}
         </Button>
         <h1 className="text-2xl font-semibold">Unified Lesson Generator</h1>
         <Badge variant="outline" className="ml-auto">
@@ -96,10 +168,23 @@ export default function UnifiedLessonGeneratorPage() {
         </Badge>
       </div>
 
+      {fromBlueprint && (
+        <Card className="mb-4 border-sky-200 bg-sky-50/60 dark:border-sky-900/50 dark:bg-sky-950/30">
+          <CardContent className="flex items-center gap-3 py-3 text-sm flex-wrap">
+            <BookOpen className="h-4 w-4 text-sky-600 shrink-0" />
+            <span className="text-sky-900 dark:text-sky-200">
+              From blueprint · <strong>{activeBlueprintContext!.curriculum_title}</strong> · Unit{' '}
+              {activeBlueprintContext!.unit_number} ({activeBlueprintContext!.unit_title}) ·
+              Lesson {activeBlueprintContext!.lesson_number}
+            </span>
+          </CardContent>
+        </Card>
+      )}
+
       <Tabs value={hub} onValueChange={(v) => onHubChange(v as Hub)} className="mb-4">
         <TabsList className="grid w-full grid-cols-3">
           {(['playground', 'academy', 'success'] as Hub[]).map((h) => (
-            <TabsTrigger key={h} value={h}>
+            <TabsTrigger key={h} value={h} disabled={hubLocked && h !== hub}>
               {HUB_CONFIGS[h].label}
             </TabsTrigger>
           ))}
@@ -107,8 +192,19 @@ export default function UnifiedLessonGeneratorPage() {
         {(['playground', 'academy', 'success'] as Hub[]).map((h) => (
           <TabsContent key={h} value={h}>
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-base">{HUB_CONFIGS[h].label} — configuration</CardTitle>
+                {fromBlueprint && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setHubLocked((v) => !v)}
+                    className="h-7"
+                  >
+                    {hubLocked ? <Lock className="h-3.5 w-3.5 mr-1" /> : <Unlock className="h-3.5 w-3.5 mr-1" />}
+                    {hubLocked ? 'Locked' : 'Unlocked'}
+                  </Button>
+                )}
               </CardHeader>
               <CardContent className="grid grid-cols-2 gap-2 text-xs md:grid-cols-4">
                 <Badge variant="secondary">tone: {HUB_CONFIGS[h].tone}</Badge>
@@ -135,8 +231,20 @@ export default function UnifiedLessonGeneratorPage() {
             <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="cefr">CEFR</Label>
-            <Select value={cefr} onValueChange={(v) => setCefr(v as Cefr)}>
+            <Label htmlFor="cefr" className="flex items-center gap-2">
+              CEFR
+              {fromBlueprint && (
+                <button
+                  type="button"
+                  onClick={() => setCefrLocked((v) => !v)}
+                  className="text-[10px] text-slate-500 hover:text-slate-700 inline-flex items-center gap-1"
+                >
+                  {cefrLocked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
+                  {cefrLocked ? 'locked' : 'unlocked'}
+                </button>
+              )}
+            </Label>
+            <Select value={cefr} onValueChange={(v) => setCefr(v as Cefr)} disabled={cefrLocked}>
               <SelectTrigger id="cefr"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {CEFR_OPTIONS.map((c) => (
@@ -151,7 +259,13 @@ export default function UnifiedLessonGeneratorPage() {
           </div>
           <div className="space-y-1 md:col-span-2">
             <Label htmlFor="vocab">Target vocab (comma-separated)</Label>
-            <Textarea id="vocab" rows={2} value={vocab} onChange={(e) => setVocab(e.target.value)} />
+            <Textarea
+              id="vocab"
+              rows={2}
+              value={vocab}
+              onChange={(e) => setVocab(e.target.value)}
+              placeholder="hello, goodbye, please, thank you"
+            />
           </div>
           <div className="space-y-1">
             <Label htmlFor="grammar">Grammar focus</Label>
@@ -159,7 +273,12 @@ export default function UnifiedLessonGeneratorPage() {
           </div>
           <div className="space-y-1">
             <Label htmlFor="review">Review targets</Label>
-            <Input id="review" value={review} onChange={(e) => setReview(e.target.value)} placeholder="(optional)" />
+            <Input
+              id="review"
+              value={review}
+              onChange={(e) => setReview(e.target.value)}
+              placeholder="(prev lesson titles)"
+            />
           </div>
           <div className="space-y-1 md:col-span-2">
             <Label htmlFor="goal">Communication goal</Label>
@@ -183,11 +302,45 @@ export default function UnifiedLessonGeneratorPage() {
                 {output.validation_report.verdict.toUpperCase()}
               </Badge>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm">
+            <CardContent className="space-y-3 text-sm">
               <p>
                 <strong>{output.slides.length}</strong> slides compiled · state hash{' '}
                 <code className="text-xs">{output.lesson_metadata.state_hash}</code>
               </p>
+
+              {fromBlueprint && output.validation_report.verdict !== 'block' && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Button
+                    onClick={handleSaveToLibrary}
+                    disabled={saving || !!savedLessonId}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                  >
+                    {saving ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save className="mr-2 h-4 w-4" />
+                    )}
+                    {savedLessonId
+                      ? '✅ Saved to library'
+                      : output.validation_report.verdict === 'publish'
+                      ? 'Save & publish to library'
+                      : 'Save as draft to library'}
+                  </Button>
+                  {savedLessonId && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setCurrentStep('library');
+                        navigate('/content-creator/library');
+                      }}
+                    >
+                      Open library →
+                    </Button>
+                  )}
+                </div>
+              )}
+
               <details>
                 <summary className="cursor-pointer text-sm font-medium">Slide list</summary>
                 <ol className="mt-2 list-decimal space-y-1 pl-5 text-xs">
