@@ -21,6 +21,27 @@ export interface BlueprintLessonRef {
   unit_number?: number;
   unit_title?: string;
   unit_theme?: string;
+
+  // ── Full structured lesson blueprint (enriched at curriculum generation
+  // time). All optional for backwards compatibility with legacy curricula.
+  communication_goal?: string;
+  grammar_focus?: string[];
+  vocabulary_focus?: string[];
+  pronunciation_focus?: string[];
+  phonics_focus?: string[];
+  review_targets?: string[];
+  adaptive_profile?: {
+    difficulty_tier?: 1 | 2 | 3 | 4 | 5;
+    scaffolding_boost?: 0 | 1 | 2;
+    pacing_hint?: 'slow_down' | 'maintain' | 'accelerate';
+  };
+  story_state?: {
+    arc?: string;
+    theme?: string;
+    characters?: string[];
+  };
+  game_targets?: string[];
+  homework_targets?: string[];
 }
 
 export interface CurriculumData {
