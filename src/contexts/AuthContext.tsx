@@ -10,6 +10,10 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  /** True while the canonical user (profile + role) is still being fetched
+   * in the background after the initial sync fallback. Route guards should
+   * treat this like `loading` to avoid redirecting on a stale fallback role. */
+  roleHydrating: boolean;
   isConfigured: boolean;
   signUp: (email: string, password: string, userData: Partial<User>) => Promise<any>;
   signIn: (email: string, password: string) => Promise<any>;
@@ -26,6 +30,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [roleHydrating, setRoleHydrating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isConfigured] = useState(true); // Always configured in Engleuphoria deployments
   const initializedRef = useRef(false);
@@ -228,7 +233,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // and bounces the user back to /login?reason=access_denied.
     const cachedRole =
       typeof window !== 'undefined'
-        ? sessionStorage.getItem('auth_resolved_role')
+        ? (sessionStorage.getItem('auth_resolved_role') ||
+           localStorage.getItem('auth_resolved_role'))
         : null;
     const metadataRole = cachedRole || authUser.user_metadata?.role || 'student';
 
@@ -251,6 +257,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const hydrateUserInBackground = (authUser: any, label: string) => {
     console.log(`${AUTH_FLOW_PREFIX} HYDRATE: starting background hydration`, { label, userId: authUser?.id });
+    setRoleHydrating(true);
     setTimeout(() => {
       Promise.resolve()
         .then(() => fetchUserFromDatabase(authUser))
@@ -260,14 +267,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             const canonicalRole = (dbUser as any).role;
             console.log(`${AUTH_FLOW_PREFIX} HYDRATE: canonical user loaded`, { label, role: canonicalRole, cachedRole });
             setUser(dbUser);
-            if (cachedRole && cachedRole === canonicalRole) {
-              sessionStorage.removeItem('auth_resolved_role');
+            // Persist canonical role for the rest of the session so subsequent
+            // SIGNED_IN events (token refresh, tab focus) don't bounce the user
+            // back to /dashboard while the role re-resolves.
+            if (canonicalRole) {
+              try { sessionStorage.setItem('auth_resolved_role', canonicalRole); } catch {}
+              try { localStorage.setItem('auth_resolved_role', canonicalRole); } catch {}
             }
           } else {
             console.warn(`${AUTH_FLOW_PREFIX} HYDRATE: no canonical user; keeping fallback`, { label });
           }
         })
-        .catch((err) => console.error(`${AUTH_FLOW_PREFIX} HYDRATE: background user fetch failed`, err));
+        .catch((err) => console.error(`${AUTH_FLOW_PREFIX} HYDRATE: background user fetch failed`, err))
+        .finally(() => setRoleHydrating(false));
     }, 0);
   };
 
@@ -574,6 +586,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser({ ...(data.user as any), role: finalRole } as any);
         sessionStorage.setItem('auth_redirect_done', 'true');
         sessionStorage.setItem('auth_resolved_role', finalRole);
+        try { localStorage.setItem('auth_resolved_role', finalRole); } catch {}
         console.log(`${AUTH_FLOW_PREFIX} STEP 5: Redirecting to`, redirectPath);
         window.location.href = redirectPath;
       }
@@ -671,6 +684,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Clear redirect flag so next login can redirect again
       sessionStorage.removeItem('auth_redirect_done');
       sessionStorage.removeItem('auth_resolved_role');
+      try { localStorage.removeItem('auth_resolved_role'); } catch {}
       // Clear user state immediately
       setUser(null);
       setSession(null);
@@ -713,6 +727,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       user,
       session,
       loading,
+      roleHydrating,
       isConfigured,
       signUp,
       signIn,

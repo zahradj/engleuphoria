@@ -298,13 +298,63 @@ interface CreatorContextValue {
 
 const CreatorContext = createContext<CreatorContextValue | null>(null);
 
+// ── Persistence ──────────────────────────────────────────────────────────
+// Creator Studio state (curriculum, active lesson, blueprint context) is
+// persisted to sessionStorage so transient remounts — auth token refreshes,
+// route protection races, navigation away & back — do not nuke generated
+// curricula. Keys are namespaced so they can be cleared in one shot.
+const STORAGE_KEY_PREFIX = 'creator_studio:';
+const SK = {
+  step: `${STORAGE_KEY_PREFIX}currentStep`,
+  curriculum: `${STORAGE_KEY_PREFIX}curriculumData`,
+  activeLesson: `${STORAGE_KEY_PREFIX}activeLessonData`,
+  blueprintCtx: `${STORAGE_KEY_PREFIX}activeBlueprintContext`,
+};
+
+function readStorage<T>(key: string, fallback: T): T {
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return fallback;
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeStorage(key: string, value: unknown): void {
+  if (typeof window === 'undefined') return;
+  try {
+    if (value === null || value === undefined) {
+      sessionStorage.removeItem(key);
+    } else {
+      sessionStorage.setItem(key, JSON.stringify(value));
+    }
+  } catch {
+    // Quota exceeded or storage disabled — fail silently, in-memory state still works.
+  }
+}
+
 export const CreatorProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentStep, setCurrentStep] = useState<CreatorStep>('blueprint');
-  const [curriculumData, setCurriculumData] = useState<CurriculumData | null>(null);
-  const [activeLessonData, setActiveLessonData] = useState<ActiveLessonData | null>(null);
-  const [activeBlueprintContext, setActiveBlueprintContext] =
-    useState<ActiveBlueprintContext | null>(null);
+  const [currentStep, setCurrentStep] = useState<CreatorStep>(
+    () => readStorage<CreatorStep>(SK.step, 'blueprint'),
+  );
+  const [curriculumData, setCurriculumData] = useState<CurriculumData | null>(
+    () => readStorage<CurriculumData | null>(SK.curriculum, null),
+  );
+  const [activeLessonData, setActiveLessonData] = useState<ActiveLessonData | null>(
+    () => readStorage<ActiveLessonData | null>(SK.activeLesson, null),
+  );
+  const [activeBlueprintContext, setActiveBlueprintContext] = useState<ActiveBlueprintContext | null>(
+    () => readStorage<ActiveBlueprintContext | null>(SK.blueprintCtx, null),
+  );
   const [isDirty, setDirty] = useState(false);
+
+  // Mirror state to sessionStorage on change.
+  useEffect(() => writeStorage(SK.step, currentStep), [currentStep]);
+  useEffect(() => writeStorage(SK.curriculum, curriculumData), [curriculumData]);
+  useEffect(() => writeStorage(SK.activeLesson, activeLessonData), [activeLessonData]);
+  useEffect(() => writeStorage(SK.blueprintCtx, activeBlueprintContext), [activeBlueprintContext]);
 
   const workingTitle = useMemo(() => {
     const inHubCreator =
