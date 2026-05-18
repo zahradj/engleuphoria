@@ -332,17 +332,21 @@ export default function UnifiedLessonGeneratorPage() {
           {fromBlueprint ? 'Back to blueprint' : 'Back'}
         </Button>
         <h1 className="text-2xl font-semibold">Unified Lesson Generator</h1>
-        <Badge variant="outline" className="ml-auto">
-          orchestrator + stabilization
+        <Badge
+          variant={mode === 'curriculum' ? 'default' : 'secondary'}
+          className="ml-auto capitalize"
+        >
+          {mode} mode
         </Badge>
+        <Badge variant="outline">orchestrator + stabilization</Badge>
       </div>
 
       {!fromBlueprint && (
         <Card className="mb-4 border-amber-200 bg-amber-50/60 dark:border-amber-900/40 dark:bg-amber-950/20">
           <CardContent className="py-3 text-sm flex items-center justify-between gap-3 flex-wrap">
             <span className="text-amber-900 dark:text-amber-200">
-              ⚠ No curriculum blueprint loaded. The Unified Generator is curriculum-driven —
-              open a lesson from the blueprint for full pedagogical integrity.
+              ⚠ No curriculum blueprint loaded — running in Manual Mode. Open a lesson from
+              the Curriculum Blueprint for fully curriculum-driven generation.
             </span>
             <Button
               size="sm"
@@ -357,6 +361,30 @@ export default function UnifiedLessonGeneratorPage() {
           </CardContent>
         </Card>
       )}
+
+      {fromBlueprint && resolvedBlueprint && (
+        <Card className="mb-4 border-slate-200 dark:border-slate-800">
+          <CardContent className="py-3 text-sm flex items-center justify-between gap-3 flex-wrap">
+            <span className="text-slate-700 dark:text-slate-300">
+              {mode === 'curriculum'
+                ? 'Curriculum Mode locks curriculum-critical fields. Switch to Manual Mode for free authoring (this run will not be bound to the curriculum slot).'
+                : 'Manual Mode — curriculum binding suspended for this run.'}
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setManualOverride((v) => !v)}
+            >
+              {mode === 'curriculum' ? 'Switch to Manual Mode' : 'Resume Curriculum Mode'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="mb-4">
+        <ValidationWarningPanel mode={mode} issues={validationIssues} />
+      </div>
+
 
       {fromBlueprint && resolvedBlueprint && (
         <div className="mb-4">
