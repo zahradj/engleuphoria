@@ -108,6 +108,18 @@ export function loadLessonBlueprintFromCurriculum(
   const hub = curriculum.hub as Hub;
   const cefr = curriculum.cefr_level as Cefr;
 
+  // Pass enriched fields through when present; only synthesize fallbacks for
+  // missing data so we never overwrite real curriculum blueprint output.
+  const fallbackGrammar = csv(
+    lesson.skill_focus === 'Grammar' ? String(lesson.skill_focus) : null,
+  );
+  const grammar_focus =
+    lesson.grammar_focus && lesson.grammar_focus.length
+      ? lesson.grammar_focus
+      : fallbackGrammar.length
+        ? fallbackGrammar
+        : csv(lesson.skill_focus);
+
   return {
     lesson_id: lesson.id || `u${unitNumber}_l${lessonNumber}`,
     unit_id: unit.id || `u${unitNumber}`,
@@ -115,32 +127,34 @@ export function loadLessonBlueprintFromCurriculum(
     cefr_level: cefr,
     lesson_title: lesson.title,
     communication_goal:
+      lesson.communication_goal ||
       lesson.objective ||
       lesson.learning_objective ||
       'communicate clearly in a short real-world exchange',
 
-    grammar_focus: csv(lesson.skill_focus === 'Grammar' ? lesson.skill_focus : null).length
-      ? [String(lesson.skill_focus)]
-      : csv(lesson.skill_focus),
-    vocabulary_focus: [],
-    pronunciation_focus: [],
-    phonics_focus: [],
-    review_targets: rel.review_targets_in_unit.map((l) => l.title),
+    grammar_focus,
+    vocabulary_focus: lesson.vocabulary_focus ?? [],
+    pronunciation_focus: lesson.pronunciation_focus ?? [],
+    phonics_focus: lesson.phonics_focus ?? [],
+    review_targets:
+      lesson.review_targets && lesson.review_targets.length
+        ? lesson.review_targets
+        : rel.review_targets_in_unit.map((l) => l.title),
 
     difficulty: cefrToDifficulty(cefr),
 
     adaptive_profile: {
-      difficulty_tier: 3,
-      scaffolding_boost: 0,
-      pacing_hint: 'maintain',
+      difficulty_tier: lesson.adaptive_profile?.difficulty_tier ?? 3,
+      scaffolding_boost: lesson.adaptive_profile?.scaffolding_boost ?? 0,
+      pacing_hint: lesson.adaptive_profile?.pacing_hint ?? 'maintain',
     },
     story_state: {
-      theme: unit.theme,
-      arc: `Unit ${unitNumber} · Lesson ${lessonNumber}`,
-      characters: [],
+      theme: lesson.story_state?.theme ?? unit.theme,
+      arc: lesson.story_state?.arc ?? `Unit ${unitNumber} · Lesson ${lessonNumber}`,
+      characters: lesson.story_state?.characters ?? [],
     },
-    game_targets: [],
-    homework_targets: [],
+    game_targets: lesson.game_targets ?? [],
+    homework_targets: lesson.homework_targets ?? [],
 
     unit_number: unitNumber,
     lesson_number: lessonNumber,
