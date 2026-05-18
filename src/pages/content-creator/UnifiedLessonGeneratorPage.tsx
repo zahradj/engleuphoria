@@ -132,6 +132,7 @@ export default function UnifiedLessonGeneratorPage() {
       });
       if (res.ok) {
         setSavedLessonId(res.lessonId ?? null);
+        window.dispatchEvent(new CustomEvent('unified-lesson-saved', { detail: { lessonId: res.lessonId } }));
         toast.success(
           output.validation_report.verdict === 'publish'
             ? '✅ Saved & published to your library.'
