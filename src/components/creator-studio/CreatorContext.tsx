@@ -373,6 +373,8 @@ export const CreatorProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setCurriculumData,
     activeLessonData,
     setActiveLessonData,
+    activeBlueprintContext,
+    setActiveBlueprintContext,
     updateSlide,
     replaceSlides,
     workingTitle,
