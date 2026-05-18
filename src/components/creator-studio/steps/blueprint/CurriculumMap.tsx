@@ -85,6 +85,48 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
     });
   };
 
+  /** Build the unit context (theme, prev lesson titles) for a lesson row. */
+  const findUnitFor = (lesson: BlueprintLessonRef) =>
+    data?.units.find((u) => u.lessons.some((l) => l.id === lesson.id));
+
+  /** Route a blueprint lesson to the Unified Lesson Generator with full prefill. */
+  const handleGenerateUnified = (lesson: BlueprintLessonRef, lIdx: number, uIdx: number) => {
+    if (!data) return;
+    const unit = findUnitFor(lesson);
+    const unitNumber = unit?.unit_number ?? uIdx + 1;
+    const lessonNumber = lesson.lesson_number ?? lIdx + 1;
+    const previous = (unit?.lessons || [])
+      .filter((l) => l.id !== lesson.id)
+      .slice(0, lIdx)
+      .map((l) => l.title);
+
+    setActiveLessonData({
+      source_lesson: lesson,
+      cefr_level: data.cefr_level,
+      hub: data.hub,
+      lesson_title: lesson.title,
+      target_goal: lesson.objective || lesson.learning_objective,
+      slides: [],
+      roadmap: ['Warm-up', 'Presentation', 'Practice', 'Production', 'Review'],
+    });
+
+    setActiveBlueprintContext({
+      unit_number: unitNumber,
+      unit_title: unit?.unit_title || '',
+      unit_theme: unit?.theme,
+      lesson_number: lessonNumber,
+      lesson_title: lesson.title,
+      curriculum_title: data.curriculum_title,
+      hub: data.hub,
+      cefr_level: data.cefr_level,
+      skill_focus: lesson.skill_focus as string | undefined,
+      objective: lesson.objective || lesson.learning_objective,
+      previous_lesson_titles: previous,
+    });
+
+    setCurrentStep('unified-generator');
+    navigate('/content-creator/unified-generator');
+
   const saveBlueprintToLibrary = async (
     payload: CurriculumData,
     opts: { silent?: boolean; navigateAfter?: boolean } = {},
