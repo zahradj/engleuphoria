@@ -180,19 +180,23 @@ export default function UnifiedLessonGeneratorPage() {
 
 
   async function handleGenerate() {
+    // Pre-flight gate: don't even start if there are blocking issues.
+    if (hasBlocker) {
+      const blocks = validationIssues.filter((i) => i.severity === 'block');
+      toast.error(
+        `Cannot generate — ${blocks.map((b) => b.message).join(' · ')}`,
+      );
+      return;
+    }
+
     setBusy(true);
     setOutput(null);
     setSavedLessonId(null);
     try {
-      // Curriculum-bound path: derive input from the blueprint + safety gate.
-      if (fromBlueprint && resolvedBlueprint && !hubLocked === false && !cefrLocked === false) {
-        // ^ no-op guard; we always run safety when fromBlueprint, regardless of unlocks.
-      }
-      if (fromBlueprint && resolvedBlueprint) {
+      // ── Curriculum Mode ─────────────────────────────────────────────
+      if (mode === 'curriculum' && resolvedBlueprint) {
         const safety = await assertCurriculumSafe({
           ...resolvedBlueprint,
-          // Apply user-editable overrides into the safety probe so duplication
-          // checks reflect what the user is about to generate.
           lesson_title: title,
           communication_goal: goal,
           grammar_focus: csv(grammar),
@@ -235,10 +239,14 @@ export default function UnifiedLessonGeneratorPage() {
         setOutput(result);
         const v = result.validation_report.verdict;
         if (v === 'publish') toast.success('Lesson generated and validated.');
-        else if (v === 'repair') toast.warning('Lesson generated with repair flags. Review before publishing.');
+        else if (v === 'repair')
+          toast.warning('Lesson generated with repair flags. Review before publishing.');
         else toast.error('Lesson blocked by validation. See report below.');
         return;
       }
+
+      // ── Manual Mode ─────────────────────────────────────────────────
+
 
       // Standalone path (no blueprint context).
       const result = await generateUnifiedLesson({
