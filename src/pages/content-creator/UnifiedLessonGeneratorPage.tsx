@@ -115,15 +115,68 @@ export default function UnifiedLessonGeneratorPage() {
     setOutput(null);
     setSavedLessonId(null);
     try {
+      // Curriculum-bound path: derive input from the blueprint + safety gate.
+      if (fromBlueprint && resolvedBlueprint && !hubLocked === false && !cefrLocked === false) {
+        // ^ no-op guard; we always run safety when fromBlueprint, regardless of unlocks.
+      }
+      if (fromBlueprint && resolvedBlueprint) {
+        const safety = await assertCurriculumSafe({
+          ...resolvedBlueprint,
+          // Apply user-editable overrides into the safety probe so duplication
+          // checks reflect what the user is about to generate.
+          lesson_title: title,
+          communication_goal: goal,
+          grammar_focus: csv(grammar),
+          vocabulary_focus: csv(vocab),
+          review_targets: csv(review),
+          story_state: { ...resolvedBlueprint.story_state, theme },
+          hub,
+          cefr_level: cefr,
+        });
+        if (!safety.ok) {
+          const blocks = safety.issues.filter((i) => i.severity === 'block');
+          toast.error(
+            `Curriculum safety blocked generation: ${blocks.map((b) => b.message).join(' · ')}`,
+          );
+          return;
+        }
+        safety.issues
+          .filter((i) => i.severity === 'warn')
+          .forEach((w) => toast.warning(w.message));
+
+        const input = linkBlueprintToGenerator(
+          {
+            ...resolvedBlueprint,
+            hub,
+            cefr_level: cefr,
+            lesson_title: title,
+          },
+          browserGeminiAiClient,
+          {
+            title,
+            theme,
+            grammarFocus: csv(grammar),
+            targetVocab: csv(vocab),
+            communicationGoal: goal,
+            reviewTargets: csv(review),
+          },
+        );
+        input.stage = activeBlueprintContext?.stage ?? 'all';
+        const result = await generateUnifiedLesson(input);
+        setOutput(result);
+        const v = result.validation_report.verdict;
+        if (v === 'publish') toast.success('Lesson generated and validated.');
+        else if (v === 'repair') toast.warning('Lesson generated with repair flags. Review before publishing.');
+        else toast.error('Lesson blocked by validation. See report below.');
+        return;
+      }
+
+      // Standalone path (no blueprint context).
       const result = await generateUnifiedLesson({
         hub,
         cefr,
-        unitId: activeBlueprintContext
-          ? `u_${activeBlueprintContext.unit_number}`
-          : `unit_${Date.now()}`,
-        lessonId: activeBlueprintContext
-          ? `u${activeBlueprintContext.unit_number}_l${activeBlueprintContext.lesson_number}_${Date.now()}`
-          : `lesson_${Date.now()}`,
+        unitId: `unit_${Date.now()}`,
+        lessonId: `lesson_${Date.now()}`,
         ai: browserGeminiAiClient,
         blueprint: {
           title,
@@ -137,14 +190,25 @@ export default function UnifiedLessonGeneratorPage() {
       setOutput(result);
       const v = result.validation_report.verdict;
       if (v === 'publish') toast.success('Lesson generated and validated.');
-      else if (v === 'repair') toast.warning('Lesson generated with repair flags. Review before publishing.');
-      else toast.error('Lesson blocked by validation. See report below.');
+      else if (v === 'repair') toast.warning('Lesson generated with repair flags.');
+      else toast.error('Lesson blocked by validation.');
     } catch (e: any) {
       toast.error(`Generation failed: ${e?.message ?? e}`);
     } finally {
       setBusy(false);
     }
   }
+
+  // Auto-run when navigated from a curriculum action that requested it.
+  const autoRanRef = useRef(false);
+  useEffect(() => {
+    if (autoRanRef.current) return;
+    if (fromBlueprint && activeBlueprintContext?.autoRun && resolvedBlueprint && !busy && !output) {
+      autoRanRef.current = true;
+      void handleGenerate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fromBlueprint, resolvedBlueprint, activeBlueprintContext?.autoRun]);
 
   async function handleSaveToLibrary() {
     if (!output || !activeBlueprintContext) return;
