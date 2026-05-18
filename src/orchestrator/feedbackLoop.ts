@@ -98,3 +98,12 @@ export function processFeedback(signals: FeedbackSignal[]): CurriculumMutation[]
 
   return out;
 }
+
+/**
+ * Run longitudinal stabilization analysis on a student's recent lessons.
+ * Returns signals to be persisted into `curriculum_stabilization_signals`
+ * and consumed by the NEXT `runLessonGeneration()` call (soft tier 6).
+ */
+export function processLongitudinal(input: LongitudinalInput): CurriculumStabilizationSignal[] {
+  return runLongitudinalAnalysis(input);
+}
