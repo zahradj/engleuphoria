@@ -20,6 +20,7 @@ const NAV: Array<{ key: CreatorStep; tKey: string; icon: React.ElementType; emoj
   { key: 'story', tKey: 'nav.story_creator', icon: BookOpen, emoji: '📖' },
   { key: 'game-maker', tKey: 'nav.game_maker', icon: Gamepad2, emoji: '🎮', fallback: 'Game Maker' },
   { key: 'characters', tKey: 'nav.cast_vault', icon: Users, emoji: '🎭', fallback: 'Cast Vault' },
+  { key: 'lesson-tests', tKey: 'nav.lesson_tests', icon: ShieldCheck, emoji: '🧪', fallback: 'Lesson Tests' },
   { key: 'library', tKey: 'nav.master_library', icon: Library, emoji: '📚' },
 ];
 
