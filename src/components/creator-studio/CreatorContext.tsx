@@ -225,6 +225,26 @@ export interface ActiveLessonData {
   linked_lesson_title?: string | null;
 }
 
+/**
+ * Context handed from the Curriculum Blueprint to the Unified Lesson Generator.
+ * Holds the unit/lesson coordinates so the unified generator can prefill its
+ * blueprint form AND save the resulting deck back to the exact same
+ * curriculum_lessons slot (no duplicates).
+ */
+export interface ActiveBlueprintContext {
+  unit_number: number;
+  unit_title: string;
+  unit_theme?: string;
+  lesson_number: number;
+  lesson_title: string;
+  curriculum_title: string;
+  hub: HubType;
+  cefr_level: CEFRLevel;
+  skill_focus?: string;
+  objective?: string;
+  previous_lesson_titles: string[];
+}
+
 interface CreatorContextValue {
   currentStep: CreatorStep;
   setCurrentStep: (s: CreatorStep) => void;
@@ -234,6 +254,10 @@ interface CreatorContextValue {
 
   activeLessonData: ActiveLessonData | null;
   setActiveLessonData: (l: ActiveLessonData | null) => void;
+
+  /** Blueprint coordinates for the active unified-generator session. */
+  activeBlueprintContext: ActiveBlueprintContext | null;
+  setActiveBlueprintContext: (c: ActiveBlueprintContext | null) => void;
 
   /** Patch a single slide on the active lesson and mark the studio dirty. */
   updateSlide: (id: string, patch: Partial<PPPSlide>) => void;
@@ -253,6 +277,8 @@ export const CreatorProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [currentStep, setCurrentStep] = useState<CreatorStep>('blueprint');
   const [curriculumData, setCurriculumData] = useState<CurriculumData | null>(null);
   const [activeLessonData, setActiveLessonData] = useState<ActiveLessonData | null>(null);
+  const [activeBlueprintContext, setActiveBlueprintContext] =
+    useState<ActiveBlueprintContext | null>(null);
   const [isDirty, setDirty] = useState(false);
 
   const workingTitle = useMemo(() => {
@@ -347,6 +373,8 @@ export const CreatorProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setCurriculumData,
     activeLessonData,
     setActiveLessonData,
+    activeBlueprintContext,
+    setActiveBlueprintContext,
     updateSlide,
     replaceSlides,
     workingTitle,

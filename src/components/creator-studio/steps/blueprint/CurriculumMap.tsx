@@ -14,7 +14,7 @@ interface Props {
 }
 
 export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
-  const { setActiveLessonData, setCurrentStep } = useCreator();
+  const { setActiveLessonData, setActiveBlueprintContext, setCurrentStep } = useCreator();
   const navigate = useNavigate();
   const autoSavedRef = useRef<string | null>(null);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -83,6 +83,49 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
         unit_number: (lesson as any).unit_number || null,
       },
     });
+  };
+
+  /** Build the unit context (theme, prev lesson titles) for a lesson row. */
+  const findUnitFor = (lesson: BlueprintLessonRef) =>
+    data?.units.find((u) => u.lessons.some((l) => l.id === lesson.id));
+
+  /** Route a blueprint lesson to the Unified Lesson Generator with full prefill. */
+  const handleGenerateUnified = (lesson: BlueprintLessonRef, lIdx: number, uIdx: number) => {
+    if (!data) return;
+    const unit = findUnitFor(lesson);
+    const unitNumber = unit?.unit_number ?? uIdx + 1;
+    const lessonNumber = lesson.lesson_number ?? lIdx + 1;
+    const previous = (unit?.lessons || [])
+      .filter((l) => l.id !== lesson.id)
+      .slice(0, lIdx)
+      .map((l) => l.title);
+
+    setActiveLessonData({
+      source_lesson: lesson,
+      cefr_level: data.cefr_level,
+      hub: data.hub,
+      lesson_title: lesson.title,
+      target_goal: lesson.objective || lesson.learning_objective,
+      slides: [],
+      roadmap: ['Warm-up', 'Presentation', 'Practice', 'Production', 'Review'],
+    });
+
+    setActiveBlueprintContext({
+      unit_number: unitNumber,
+      unit_title: unit?.unit_title || '',
+      unit_theme: unit?.theme,
+      lesson_number: lessonNumber,
+      lesson_title: lesson.title,
+      curriculum_title: data.curriculum_title,
+      hub: data.hub,
+      cefr_level: data.cefr_level,
+      skill_focus: lesson.skill_focus as string | undefined,
+      objective: lesson.objective || lesson.learning_objective,
+      previous_lesson_titles: previous,
+    });
+
+    setCurrentStep('unified-generator');
+    navigate('/content-creator/unified-generator');
   };
 
   const saveBlueprintToLibrary = async (
@@ -360,14 +403,24 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
                           </p>
                         )}
                       </div>
-                      <Button
-                        size="sm"
-                        onClick={() => handleBuildSlides(lesson)}
-                        className="shrink-0 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0 shadow-sm"
-                      >
-                        <Palette className="h-3.5 w-3.5 mr-1" />
-                        Build Slides
-                      </Button>
+                      <div className="shrink-0 flex flex-col gap-1.5">
+                        <Button
+                          size="sm"
+                          onClick={() => handleGenerateUnified(lesson, lIdx, uIdx)}
+                          className="bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white border-0 shadow-sm"
+                        >
+                          <Palette className="h-3.5 w-3.5 mr-1" />
+                          Generate Slides
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleBuildSlides(lesson)}
+                          className="text-[11px] h-7 text-slate-500 hover:text-slate-700 dark:text-slate-400"
+                        >
+                          Open hub creator →
+                        </Button>
+                      </div>
                     </li>
                   ))}
                 </ul>

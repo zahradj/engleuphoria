@@ -1,105 +1,92 @@
-# Educational Stabilization Engine
+# Integrate Unified Generator into the Curriculum Blueprint
 
-A new layer that sits **after** orchestration and **alongside** QA, continuously monitoring and improving the pedagogical quality of every generated lesson and the curriculum-wide learning trajectory of every student. Nothing replaces existing systems — this is the "professional editor" layer that ensures lessons feel designed, not generated.
+Today the Curriculum Blueprint (`BlueprintEngine` → `CurriculumMap`) and the Unified Lesson Generator (`UnifiedLessonGeneratorPage`) live as two disconnected surfaces:
 
-## 1. Scope
+- **Blueprint** drafts a multi-unit curriculum and routes each lesson to the per-hub creators (`/playground-creator`, `/academy-creator`, `/success-creator`).
+- **Unified Generator** is opened manually from the sidebar, with all blueprint fields typed by hand, and never persists its output to `curriculum_lessons`.
 
-In scope:
-- New `src/stabilization/` engine with coherence, flow, cognitive-load, retention, and consistency validators.
-- Integration as **Stage 9.5** in `runLessonGeneration()` (between QA `qualityControl` and `publish`), plus a longitudinal post-lesson analyzer that runs on `feedbackLoop` signals.
-- New DB tables for pedagogical telemetry + repair signals.
-- Memory rules pinning the contract.
+We will make the Unified Generator the single, controlled engine that produces slides for every blueprint lesson, while keeping the existing blueprint UX intact.
 
-Out of scope:
-- No new student-facing UI screens (only a small admin/content-creator "Pedagogical Health" panel reusing existing components).
-- No changes to lesson player rendering, no new AI providers, no curriculum re-authoring.
+## 1. Blueprint → Unified handoff
 
-## 2. Architecture
+In `CurriculumMap.tsx`, add a new primary action **"Generate slides (Unified)"** on every lesson row (alongside the current per-hub button, which becomes a secondary "Open in hub creator" option).
 
-```text
-runLessonGeneration()
-  ├─ … existing stages 1-8 …
-  ├─ 9.  qualityControl  (existing — safety + hallucination)
-  ├─ 9.5 stabilization   (NEW — pedagogical quality)
-  │     ├─ coherenceValidator
-  │     ├─ flowValidator
-  │     ├─ cognitiveLoadValidator
-  │     ├─ speakingIntegrationValidator
-  │     ├─ retentionValidator
-  │     └─ stabilizationRepair (≤2 passes, planner-bounded)
-  └─ 10. publish
+Clicking it will:
 
-feedbackLoop (post-lesson)
-  └─ longitudinalAnalyzer
-        ├─ skillProgressionMonitor
-        ├─ activityBalanceMonitor
-        ├─ fatigueMonitor
-        └─ curriculumDriftMonitor
-              └─ emits CurriculumStabilizationSignal → next runLessonGeneration
+1. Build a `UnifiedLessonInput.blueprint` from the lesson + parent unit:
+   - `title` ← lesson.title
+   - `theme` ← unit.theme (fallback: curriculum theme_hint)
+   - `grammarFocus` ← [lesson.skill_focus] (split on `/` or `,`)
+   - `targetVocab` ← pulled from `plan-lesson-blueprint` (same edge function already used for prefill)
+   - `communicationGoal` ← lesson.objective
+   - `reviewTargets` ← previous lesson titles in the same unit
+2. Stash everything in `CreatorContext.activeLessonData` plus a new `activeBlueprintContext` field (unit_id, lesson_id, cefr, hub, unit metadata).
+3. Navigate to `/content-creator/unified-generator`.
+
+## 2. Make UnifiedLessonGeneratorPage blueprint-aware
+
+`UnifiedLessonGeneratorPage`:
+
+- On mount, read `activeLessonData` + `activeBlueprintContext` via `useCreator()` and prefill **all** form fields (hub, CEFR, title, theme, vocab, grammar, goal, review targets).
+- Show a "From blueprint" header chip with unit/lesson numbers and a **Back to blueprint** button.
+- Lock `hub` and `cefr` when arriving from the blueprint (they're already constrained by the curriculum), with an "unlock" affordance for explicit overrides.
+- Standalone (sidebar) entry keeps today's free-form behavior.
+
+## 3. Persist Unified output back to `curriculum_lessons`
+
+After a successful `generateUnifiedLesson()` whose `validation_report.verdict !== 'block'`:
+
+- Add `saveUnifiedLessonToLibrary()` in `src/services/contentCreator/unifiedLessonGenerator.ts` that **updates** the row keyed by `(created_by, target_system, slot_cefr_level, slot_unit_number, slot_lesson_number)` (the same upsert key `CurriculumMap` already uses), writing:
+  - `content` ← `{ slides: output.slides, homework_missions: [] }`
+  - `ai_metadata.unified_output` ← `{ lesson_state, pronunciation_layer, phonics_layer, adaptive_layer, gamification_layer, validation_report, orchestrator_version, state_hash }`
+  - `is_published` ← `verdict === 'publish'` (otherwise leave false; `repair` requires manual review)
+- Surface the result in `PedagogicalHealthPanel`, which already reads `pedagogical_quality_reports` (no schema change needed).
+
+A **Save to library** button appears once `output` is present and verdict allows it. It calls the new helper and toasts the row count.
+
+## 4. Reuse the same engine inside per-hub creators (consolidation)
+
+The Playground/Academy/Success creator pages keep their UI shells but route their "Generate" action through `generateUnifiedLesson()` with their hub hardcoded. This is the contract the brief requires ("All creators MUST use the same underlying lesson generation engine"). No visual changes to those pages — only the internal call site.
+
+## 5. CreatorContext additions
+
+Add to `CreatorContext`:
+
+```ts
+activeBlueprintContext: {
+  unit_number: number;
+  unit_title: string;
+  unit_theme?: string;
+  lesson_number: number;
+  curriculum_title: string;
+  hub: HubType;
+  cefr_level: CEFRLevel;
+  previous_lesson_titles: string[];
+} | null;
+setActiveBlueprintContext: (ctx) => void;
 ```
 
-## 3. Per-lesson validators (`src/stabilization/validators/`)
+Set when "Generate slides (Unified)" is clicked, cleared when returning to the blueprint.
 
-Each validator takes `LessonContext` and returns `{ verdict: pass|repair|block, issues: Issue[], metrics: Record }`.
+## 6. Non-goals
 
-- **coherenceValidator** — narrative thread continuity (binder tokens reused ≥N), vocab recycling ≥3, topic drift score, abrupt-transition detector between adjacent activities.
-- **flowValidator** — checks 6-slide arc (Warm-Up → Prime → Mimic → Practice → Produce → Cool-Off), scaffolding monotonicity (GRR: I-do → We-do → You-do), reflection + closure presence.
-- **cognitiveLoadValidator** — token-per-slide budget by CEFR + age, new-vocab density cap, grammar-construct-per-slide cap, instruction length, fatigue curve (front-loaded difficulty, eased close).
-- **activityBalanceValidator** — no >2 consecutive same activity type; receptive/productive ratio per hub; speaking-opportunity floor per lesson length.
-- **speakingIntegrationValidator** — pronunciation focus actually exercised, BRAVERY-reward path exists, shadowing/produce step present for CEFR ≥ A2.
-- **retentionValidator** — SRS targets surfaced, callback to previous unit vocab, recycle of last-lesson errors from mistake repository.
+- No schema changes — we reuse `curriculum_lessons` and `pedagogical_quality_reports`.
+- No edge-function changes — Unified Generator already proxies through `gemini-proxy`.
+- The orchestrator pipeline, stabilization stage, governance, and hub configs are untouched.
+- Sidebar nav, routes, and the existing per-hub creator UIs stay as-is.
 
-All thresholds live in `src/stabilization/policy.ts` and are **hub × CEFR × age** keyed (Playground tolerances looser on grammar, stricter on fatigue; Success stricter on coherence).
+## Files touched
 
-## 4. Repair pipeline (`stabilizationRepair.ts`)
+- `src/components/creator-studio/CreatorContext.tsx` — add `activeBlueprintContext`.
+- `src/components/creator-studio/steps/blueprint/CurriculumMap.tsx` — new "Generate slides (Unified)" action, prefetch vocab via existing `plan-lesson-blueprint`.
+- `src/pages/content-creator/UnifiedLessonGeneratorPage.tsx` — read blueprint context, prefill + lock fields, add "Back to blueprint" and "Save to library" buttons.
+- `src/services/contentCreator/unifiedLessonGenerator.ts` — add `saveUnifiedLessonToLibrary()`.
+- `src/pages/PlaygroundCreator.tsx`, `src/pages/AcademyCreator.tsx`, `src/pages/SuccessCreator.tsx` — route their internal generate action through `generateUnifiedLesson()` (preserving their UI).
 
-- Up to **2 passes**, each bounded by the **planner blueprint** and **governance state** (cannot raise CEFR, cannot add forbidden grammar).
-- Repair operations: re-sequence activities, inject reflection beat, swap repetitive activity for adjacent-type variant from the same plan, compress over-long instructions, add missing recycling slot.
-- After repairs, re-run the failed validators only. Persistent `block` verdicts halt publish and write to `orchestrator_runs.conflicts`.
+## Acceptance
 
-## 5. Longitudinal analyzer (`src/stabilization/longitudinal/`)
-
-Runs inside `feedbackLoop` after each completed lesson:
-
-- **skillProgressionMonitor** — checks 4-skill balance over last N lessons; flags under-served skill.
-- **activityBalanceMonitor** — detects activity-type fatigue across lessons (e.g. 5× drag-drop in a row).
-- **fatigueMonitor** — engagement + accuracy decay slope from `student_motivation_profile` + `student_mastery`.
-- **curriculumDriftMonitor** — verifies hub-identity divergence (B1 Playground ≠ B1 Academy) over the running unit.
-
-Output: `CurriculumStabilizationSignal` rows consumed at the **start** of the next `runLessonGeneration()` and merged into `LessonContext.adaptive` via a new `applyStabilizationSignals()` step, respecting the 8-tier priority matrix (these are **soft tier 6 — adaptive**; CEFR/curriculum still win).
-
-## 6. Database (1 migration)
-
-- `pedagogical_quality_reports` — `lesson_id`, `student_id` (nullable for template runs), `verdicts` JSONB (per validator), `metrics` JSONB, `repairs_applied` JSONB, `final_verdict`, `created_at`. RLS: admins + content_creators read; service role write.
-- `curriculum_stabilization_signals` — `student_id`, `signal_type` (`skill_imbalance | activity_fatigue | learner_fatigue | hub_drift`), `payload` JSONB, `consumed_at` nullable, `created_at`. RLS: self select, admins read all, service role write. Index `(student_id, consumed_at NULLS FIRST, created_at DESC)`.
-
-## 7. Integration points
-
-- `src/orchestrator/pipeline.ts` — add `stabilization` stage between `qualityControl` and `publish`; add `applyStabilizationSignals` pre-planner step.
-- `src/orchestrator/feedbackLoop.ts` — invoke `runLongitudinalAnalysis()` after existing mutations.
-- `src/orchestrator/types.ts` — extend `LessonContext.qa` with `stabilization` block.
-- Memory: add Core rule + new file `mem://qa/educational-stabilization-engine` describing contract, validators, repair bounds, and the "soft tier 6" signal channel.
-
-## 8. Admin/Creator visibility (minimal UI)
-
-A single panel on `/content-creator` lesson detail (reusing existing card components) showing the latest `pedagogical_quality_reports` row: per-validator verdict chips, metrics sparkline, repair history. No new routes, no design tokens added.
-
-## 9. Files
-
-**New (~16):**
-- `src/stabilization/{index.ts, types.ts, policy.ts, orchestrator.ts, stabilizationRepair.ts}`
-- `src/stabilization/validators/{coherence,flow,cognitiveLoad,activityBalance,speakingIntegration,retention}Validator.ts`
-- `src/stabilization/longitudinal/{index.ts, skillProgression.ts, activityBalance.ts, fatigue.ts, curriculumDrift.ts}.ts`
-- `src/components/content-creator/PedagogicalHealthPanel.tsx`
-- 1 Supabase migration
-
-**Edited:**
-- `src/orchestrator/pipeline.ts`, `feedbackLoop.ts`, `types.ts`
-- `mem://index.md` (+ new memory file)
-
-## 10. Acceptance
-
-- Every `runLessonGeneration()` produces a `pedagogical_quality_reports` row.
-- Publish is blocked when any validator returns `block` after 2 repair passes.
-- Hard tiers (CEFR / curriculum / age / safety) are never overridden by stabilization repairs or signals.
-- Longitudinal signals affect at most the next lesson's adaptive layer (tier 6), never CEFR ceiling.
+1. From the blueprint, clicking a lesson's **Generate slides (Unified)** opens the unified page with hub, CEFR, title, theme, vocab, grammar, goal, and review targets all prefilled.
+2. Generating produces a `UnifiedLessonOutput` whose slides + validation report are visible.
+3. **Save to library** updates the matching `curriculum_lessons` row with slides and `ai_metadata.unified_output`, with no duplicates (relies on the existing unique slot index).
+4. Returning to the blueprint shows the lesson as saved.
+5. The Playground/Academy/Success creators produce slides via the same `generateUnifiedLesson()` path.
