@@ -126,6 +126,7 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
 
     setCurrentStep('unified-generator');
     navigate('/content-creator/unified-generator');
+  };
 
   const saveBlueprintToLibrary = async (
     payload: CurriculumData,
