@@ -5382,6 +5382,95 @@ export type Database = {
         }
         Relationships: []
       }
+      lesson_test_failures: {
+        Row: {
+          category: string
+          created_at: string
+          detector: string
+          evidence: Json | null
+          id: string
+          run_id: string
+          severity: string
+          slide_index: number | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          detector: string
+          evidence?: Json | null
+          id?: string
+          run_id: string
+          severity: string
+          slide_index?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          detector?: string
+          evidence?: Json | null
+          id?: string
+          run_id?: string
+          severity?: string
+          slide_index?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_test_failures_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "lesson_test_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lesson_test_runs: {
+        Row: {
+          blueprint_hash: string | null
+          cefr_level: string
+          created_at: string
+          detector_failures: Json
+          duration_ms: number | null
+          hub: string
+          id: string
+          lesson_id: string | null
+          lesson_kind: string
+          overall_verdict: string
+          qa_verdict: string | null
+          run_label: string | null
+          stab_verdict: string | null
+        }
+        Insert: {
+          blueprint_hash?: string | null
+          cefr_level: string
+          created_at?: string
+          detector_failures?: Json
+          duration_ms?: number | null
+          hub: string
+          id?: string
+          lesson_id?: string | null
+          lesson_kind: string
+          overall_verdict: string
+          qa_verdict?: string | null
+          run_label?: string | null
+          stab_verdict?: string | null
+        }
+        Update: {
+          blueprint_hash?: string | null
+          cefr_level?: string
+          created_at?: string
+          detector_failures?: Json
+          duration_ms?: number | null
+          hub?: string
+          id?: string
+          lesson_id?: string | null
+          lesson_kind?: string
+          overall_verdict?: string
+          qa_verdict?: string | null
+          run_label?: string | null
+          stab_verdict?: string | null
+        }
+        Relationships: []
+      }
       lessons: {
         Row: {
           cancellation_reason: string | null
