@@ -1378,20 +1378,38 @@ function SlideEditor({ slide, onChange, blueprint, hub = 'academy', cefrLevel = 
       );
     }
 
-    case 'sentence_builder':
+    case 'sentence_builder': {
+      const items = (slide as any).items ?? (
+        Array.isArray((slide as any).words) || Array.isArray((slide as any).answer)
+          ? [{
+              words: Array.isArray((slide as any).words) ? (slide as any).words : [],
+              answer: Array.isArray((slide as any).answer) ? (slide as any).answer : [],
+            }]
+          : []
+      );
       return (
         <div className="space-y-3">
           <Field label="Prompt"><input className={inputCls} value={slide.prompt} onChange={(e) => onChange({ prompt: e.target.value } as any)} /></Field>
-          <Field label="Word bank (comma separated, will be shuffled)">
-            <input className={inputCls} value={slide.words.join(', ')}
-              onChange={(e) => onChange({ words: e.target.value.split(',').map((w) => w.trim()).filter(Boolean) } as any)} />
-          </Field>
-          <Field label="Correct order (comma separated)">
-            <input className={inputCls} value={slide.answer.join(', ')}
-              onChange={(e) => onChange({ answer: e.target.value.split(',').map((w) => w.trim()).filter(Boolean) } as any)} />
-          </Field>
+          <PracticeItemsEditor
+            slideType={'sentence_builder' as any}
+            items={items}
+            onChange={(next) => onChange({ items: next, words: undefined, answer: undefined } as any)}
+            renderRow={(it, _i, update) => (
+              <div className="space-y-2">
+                <input className={inputCls} placeholder="Word bank (comma separated, will be shuffled)"
+                  value={(it.words || []).join(', ')}
+                  onChange={(e) => update({ words: e.target.value.split(',').map((w: string) => w.trim()).filter(Boolean) })} />
+                <input className={inputCls} placeholder="Correct order (comma separated)"
+                  value={(it.answer || []).join(', ')}
+                  onChange={(e) => update({ answer: e.target.value.split(',').map((w: string) => w.trim()).filter(Boolean) })} />
+              </div>
+            )}
+            newItem={() => ({ words: ['I', 'a', 'have', 'phone'], answer: ['I', 'have', 'a', 'phone'] })}
+            slide={slide}
+          />
         </div>
       );
+    }
 
     case 'role_play':
       return (
