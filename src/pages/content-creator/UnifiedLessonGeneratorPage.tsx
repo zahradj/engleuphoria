@@ -518,7 +518,7 @@ export default function UnifiedLessonGeneratorPage() {
             <Input id="goal" value={goal} onChange={(e) => setGoal(e.target.value)} disabled={lessonLocked} title={lessonLocked ? 'Locked by curriculum' : undefined} />
           </div>
           <div className="md:col-span-2">
-            <Button onClick={handleGenerate} disabled={busy} className="w-full">
+            <Button onClick={handleGenerate} disabled={busy || hasBlocker} className="w-full" title={hasBlocker ? 'Resolve validation blockers above to enable generation.' : undefined}>
               {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
               Generate {cfg.label.split(' (')[0]} lesson
             </Button>
