@@ -33,6 +33,7 @@ const StudioBody: React.FC = () => {
     else if (path.endsWith('/success-creator')) next = 'success-creator';
     else if (path.endsWith('/game-maker')) next = 'game-maker';
     else if (path.endsWith('/unified-generator')) next = 'unified-generator';
+    else if (path.endsWith('/lesson-tests')) next = 'lesson-tests';
     // Legacy /slide-builder or /slides paths now route to the Academy Creator,
     // which owns the advanced sequencing engine inherited from the Slide Studio.
     else if (path.endsWith('/slide-builder') || path.endsWith('/slides')) next = 'academy-creator';
