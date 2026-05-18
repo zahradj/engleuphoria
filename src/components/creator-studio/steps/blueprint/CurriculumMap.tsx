@@ -438,7 +438,7 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
                 </div>
               </AccordionTrigger>
               <AccordionContent className="px-4 pt-0 pb-4">
-                <ul className="space-y-2">
+                <div>
                   {(() => {
                     const r = rollupUnit(
                       unit.lessons,
