@@ -53,3 +53,54 @@ export function getFillBlankItems(slide: any): FillBlankItem[] {
   }
   return [];
 }
+
+export interface MultipleItem { question: string; options: string[]; answer: string }
+export interface TrueFalseItem { statement: string; answer: boolean }
+export interface SentenceBuilderItem { words: string[]; answer: string[] }
+
+export function getMultipleItems(slide: any): MultipleItem[] {
+  if (Array.isArray(slide?.items) && slide.items.length) {
+    return slide.items.map((it: any) => ({
+      question: String(it.question ?? ''),
+      options: Array.isArray(it.options) ? it.options.map((o: any) => String(o)) : [],
+      answer: String(it.answer ?? ''),
+    }));
+  }
+  if (slide?.question != null || Array.isArray(slide?.options)) {
+    return [{
+      question: String(slide.question ?? ''),
+      options: Array.isArray(slide.options) ? slide.options.map((o: any) => String(o)) : [],
+      answer: String(slide.answer ?? ''),
+    }];
+  }
+  return [];
+}
+
+export function getTrueFalseItems(slide: any): TrueFalseItem[] {
+  if (Array.isArray(slide?.items) && slide.items.length) {
+    return slide.items.map((it: any) => ({
+      statement: String(it.statement ?? ''),
+      answer: Boolean(it.answer),
+    }));
+  }
+  if (slide?.statement != null || slide?.answer != null) {
+    return [{ statement: String(slide.statement ?? ''), answer: Boolean(slide.answer) }];
+  }
+  return [];
+}
+
+export function getSentenceBuilderItems(slide: any): SentenceBuilderItem[] {
+  if (Array.isArray(slide?.items) && slide.items.length) {
+    return slide.items.map((it: any) => ({
+      words: Array.isArray(it.words) ? it.words.map((w: any) => String(w)) : [],
+      answer: Array.isArray(it.answer) ? it.answer.map((w: any) => String(w)) : [],
+    }));
+  }
+  if (Array.isArray(slide?.words) || Array.isArray(slide?.answer)) {
+    return [{
+      words: Array.isArray(slide.words) ? slide.words.map((w: any) => String(w)) : [],
+      answer: Array.isArray(slide.answer) ? slide.answer.map((w: any) => String(w)) : [],
+    }];
+  }
+  return [];
+}
