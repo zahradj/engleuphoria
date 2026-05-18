@@ -1094,17 +1094,33 @@ function SlideEditor({ slide, onChange, blueprint, hub = 'success', cefrLevel = 
         </div>
       );
 
-    case 'fill_blank':
+    case 'fill_blank': {
+      const items = (slide as any).items ?? (
+        ((slide as any).before != null || (slide as any).after != null || (slide as any).answer != null)
+          ? [{ before: (slide as any).before || '', answer: (slide as any).answer || '', after: (slide as any).after || '' }]
+          : []
+      );
       return (
         <div className="space-y-3">
           <Field label="Prompt"><input className={inputCls} value={slide.prompt} onChange={(e) => onChange({ prompt: e.target.value } as any)} /></Field>
-          <div className="grid grid-cols-3 gap-2">
-            <Field label="Before"><input className={inputCls} value={slide.before} onChange={(e) => onChange({ before: e.target.value } as any)} /></Field>
-            <Field label="Answer"><input className={inputCls} value={slide.answer} onChange={(e) => onChange({ answer: e.target.value } as any)} /></Field>
-            <Field label="After"><input className={inputCls} value={slide.after} onChange={(e) => onChange({ after: e.target.value } as any)} /></Field>
-          </div>
+          <PracticeItemsEditor
+            slideType="fill_blank"
+            items={items}
+            onChange={(next) => onChange({ items: next, before: undefined, answer: undefined, after: undefined } as any)}
+            renderRow={(it, _i, update) => (
+              <div className="grid grid-cols-3 gap-2">
+                <input className={inputCls} placeholder="Before" value={it.before || ''} onChange={(e) => update({ before: e.target.value })} />
+                <input className={inputCls} placeholder="Answer" value={it.answer || ''} onChange={(e) => update({ answer: e.target.value })} />
+                <input className={inputCls} placeholder="After" value={it.after || ''} onChange={(e) => update({ after: e.target.value })} />
+              </div>
+            )}
+            newItem={() => ({ before: '', answer: '', after: '' })}
+            slide={slide}
+            hub="success"
+          />
         </div>
       );
+    }
 
     case 'scenario':
       return (
