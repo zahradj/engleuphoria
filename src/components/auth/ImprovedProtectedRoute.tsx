@@ -24,13 +24,14 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
   redirectTo = '/login' 
 }) => {
   const navigate = useNavigate();
-  const { user, loading, error } = useAuth();
+  const { user, loading, roleHydrating, error } = useAuth();
   const { isDevBypassActive, bypassRole } = useDevBypass();
   const { studentLevel, onboardingCompleted, loading: studentLoading } = useStudentLevel();
   const [roleLoadTimeout, setRoleLoadTimeout] = useState(false);
   const timeoutTriggeredRef = useRef(false);
   const cachedRole = typeof window !== 'undefined'
-    ? sessionStorage.getItem('auth_resolved_role')
+    ? (sessionStorage.getItem('auth_resolved_role') ||
+       localStorage.getItem('auth_resolved_role'))
     : null;
   const userRole = (user as any)?.role || cachedRole || (user as any)?.user_metadata?.role || null;
 
