@@ -75,8 +75,8 @@ export type Slide =
   | { type: 'matching'; block: Block; prompt: string; pairs: { left: string; right: string }[] }
   | { type: 'reading_passage'; block: Block; title: string; passage: string }
   | { type: 'listening'; block: Block; prompt: string; transcript: string }
-  | { type: 'truefalse'; block: Block; statement: string; answer: boolean }
-  | { type: 'multiple'; block: Block; question: string; options: string[]; answer: string }
+  | { type: 'truefalse'; block: Block; statement?: string; answer?: boolean; items?: { statement: string; answer: boolean }[] }
+  | { type: 'multiple'; block: Block; question?: string; options?: string[]; answer?: string; items?: { question: string; options: string[]; answer: string }[] }
   | { type: 'grammar_pattern'; block: Block; title: string; rows: { a: string; b: string }[]; rule?: string }
   | { type: 'error_detection'; block: Block; prompt: string; sentence?: string; wrongIndex?: number; items?: { sentence: string; wrongIndex: number }[] }
   | { type: 'correction'; block: Block; prompt: string; wrong?: string; answer?: string; items?: { wrong: string; answer: string }[] }
