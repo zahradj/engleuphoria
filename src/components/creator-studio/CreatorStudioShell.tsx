@@ -13,6 +13,7 @@ import { GameMaker } from './steps/GameMaker';
 import PlaygroundCreator from '@/pages/PlaygroundCreator';
 import AcademyCreator from '@/pages/AcademyCreator';
 import SuccessCreator from '@/pages/SuccessCreator';
+import UnifiedLessonGeneratorPage from '@/pages/content-creator/UnifiedLessonGeneratorPage';
 
 const StudioBody: React.FC = () => {
   const { currentStep, setCurrentStep } = useCreator();
@@ -30,6 +31,7 @@ const StudioBody: React.FC = () => {
     else if (path.endsWith('/academy-creator')) next = 'academy-creator';
     else if (path.endsWith('/success-creator')) next = 'success-creator';
     else if (path.endsWith('/game-maker')) next = 'game-maker';
+    else if (path.endsWith('/unified-generator')) next = 'unified-generator';
     // Legacy /slide-builder or /slides paths now route to the Academy Creator,
     // which owns the advanced sequencing engine inherited from the Slide Studio.
     else if (path.endsWith('/slide-builder') || path.endsWith('/slides')) next = 'academy-creator';
@@ -45,6 +47,7 @@ const StudioBody: React.FC = () => {
     : currentStep === 'story' ? StoryCreator
     : currentStep === 'characters' ? CharacterCreator
     : currentStep === 'game-maker' ? GameMaker
+    : currentStep === 'unified-generator' ? UnifiedLessonGeneratorPage
     : LibraryManager;
 
   return (
