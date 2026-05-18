@@ -3,6 +3,8 @@
 // Pure (no Supabase here); callers persist the returned mutations.
 
 import type { FeedbackSignal } from './types';
+import { runLongitudinalAnalysis, type LongitudinalInput } from '@/stabilization/longitudinal';
+import type { CurriculumStabilizationSignal } from '@/stabilization/types';
 
 export type CurriculumMutationKind =
   | 'unlock_next_unit'
