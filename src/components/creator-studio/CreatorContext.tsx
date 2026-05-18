@@ -243,6 +243,10 @@ export interface ActiveBlueprintContext {
   skill_focus?: string;
   objective?: string;
   previous_lesson_titles: string[];
+  /** Stage requested by the curriculum action (homework / games / story / review / all). */
+  stage?: 'all' | 'story' | 'games' | 'homework' | 'review';
+  /** Auto-run the unified generator on mount with the prefilled blueprint. */
+  autoRun?: boolean;
 }
 
 interface CreatorContextValue {
