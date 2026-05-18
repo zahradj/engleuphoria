@@ -23,8 +23,15 @@ import {
   type UnifiedLessonOutput,
 } from '@/services/contentCreator/unifiedLessonGenerator';
 import { PedagogicalHealthPanel } from '@/components/content-creator/PedagogicalHealthPanel';
+import { CurriculumContextPanel } from '@/components/content-creator/CurriculumContextPanel';
 import { useCreator } from '@/components/creator-studio/CreatorContext';
 import type { Hub, Cefr } from '@/governance/types';
+import {
+  loadLessonBlueprintFromCurriculum,
+  linkBlueprintToGenerator,
+} from '@/services/contentCreator/curriculumBinding';
+import { assertCurriculumSafe } from '@/services/contentCreator/curriculumSafety';
+import type { LessonBlueprint } from '@/services/contentCreator/lessonBlueprint';
 
 const CEFR_OPTIONS: Cefr[] = ['Pre-A1', 'A1', 'A2', 'B1', 'B2', 'C1'];
 
