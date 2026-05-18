@@ -59,7 +59,7 @@ export type Slide =
   | { type: 'matching'; block: Block; prompt: string; pairs: { left: string; right: string }[] }
   | { type: 'reading_passage'; block: Block; title: string; passage: string }
   | { type: 'listening'; block: Block; prompt: string; transcript: string }
-  | { type: 'multiple'; block: Block; question: string; options: string[]; answer: string }
+  | { type: 'multiple'; block: Block; question?: string; options?: string[]; answer?: string; items?: { question: string; options: string[]; answer: string }[] }
   | { type: 'tone_compare'; block: Block; title: string; direct: string; polite: string; note?: string }
   | { type: 'functional_pattern'; block: Block; title: string; rule: string; examples: string[] }
   | { type: 'rewrite'; block: Block; prompt: string; original: string; instruction: string; sample: string }
