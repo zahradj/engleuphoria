@@ -115,7 +115,7 @@ function makeSlide(type: SlideType | 'storybook'): Slide {
     case 'error_detection': return { type, block, prompt: 'Tap the wrong word.', items: [{ sentence: 'He go to school.', wrongIndex: 1 }] };
     case 'correction': return { type, block, prompt: 'Fix the sentence.', items: [{ wrong: 'She go home.', answer: 'She goes home.' }] };
     case 'fill_blank': return { type, block, prompt: 'Complete the sentence.', items: [{ before: 'He', answer: 'goes', after: 'to school.' }] };
-    case 'sentence_builder': return { type, block, prompt: 'Order the words.', words: ['I', 'a', 'have', 'phone'], answer: ['I', 'have', 'a', 'phone'] };
+    case 'sentence_builder': return { type, block, prompt: 'Order the words.', items: [{ words: ['I', 'a', 'have', 'phone'], answer: ['I', 'have', 'a', 'phone'] }] } as any;
     case 'debate_scale': return { type, block, prompt: 'Statement to debate.' };
     case 'role_play': return { type, block, title: 'Role play', lineA: 'Speaker A line.', lineB: 'Speaker B line.' };
     case 'speaking_task': return { type, block, prompt: 'Speak about…', starters: ['I think…', 'In my opinion…'] };
