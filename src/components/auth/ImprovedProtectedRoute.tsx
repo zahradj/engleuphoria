@@ -149,6 +149,22 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
       return <>{children}</>;
     }
 
+    // Canonical role is still being fetched in the background — show the
+    // loading spinner instead of redirecting. This prevents a brief mismatch
+    // (e.g. stale fallback 'student' while user_roles resolves 'content_creator')
+    // from bouncing the user to /dashboard and unmounting the destination.
+    if (roleHydrating) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
+            <p className="text-foreground text-lg font-medium">Verifying your access...</p>
+            <p className="text-muted-foreground text-sm mt-2">Please wait a moment</p>
+          </div>
+        </div>
+      );
+    }
+
     console.warn('[AUTH ROUTE] Access denied; routing authenticated user to dashboard router', {
       path: window.location.pathname,
       requiredRole,
