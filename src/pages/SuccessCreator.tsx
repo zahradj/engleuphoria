@@ -104,7 +104,7 @@ function makeSlide(type: SlideType | 'storybook'): Slide {
     case 'matching':           return { type, block, prompt: 'Match the pairs.', pairs: [{ left: 'A', right: '1' }, { left: 'B', right: '2' }] };
     case 'reading_passage':    return { type, block, title: 'Short message', passage: 'Hi team, I hope you are well…' };
     case 'listening':          return { type, block, prompt: 'Listen and answer.', transcript: 'Audio transcript used for TTS playback.' };
-    case 'multiple':           return { type, block, question: 'Question?', options: ['A', 'B', 'C'], answer: 'A' };
+    case 'multiple':           return { type, block, prompt: 'Choose the correct answer.', items: [{ question: 'Question?', options: ['A', 'B', 'C'], answer: 'A' }] } as any;
     case 'tone_compare':       return { type, block, title: 'Direct vs. Polite', direct: 'Send me the file.', polite: 'Could you please send me the file when you have a moment?', note: 'Polite forms protect relationships in professional settings.' };
     case 'functional_pattern': return { type, block, title: 'Pattern title', rule: 'Rule explanation.', examples: ['Example 1', 'Example 2', 'Example 3'] };
     case 'rewrite':            return { type, block, prompt: 'Rewrite to sound more professional.', original: 'I need this now.', instruction: 'Use a polite modal and add context.', sample: 'Could you please share this when you have a moment?' };
