@@ -513,6 +513,7 @@ export const CurriculumMap: React.FC<Props> = ({ data, loading }) => {
                     );
                   })}
                   </ul>
+                </div>
               </AccordionContent>
             </AccordionItem>
           ))}
