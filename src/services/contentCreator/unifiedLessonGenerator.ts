@@ -213,3 +213,107 @@ export async function generateUnifiedLesson(
     },
   };
 }
+
+// ─── Persistence ──────────────────────────────────────────────────────────
+// Upserts the unified lesson output into curriculum_lessons using the same
+// unique slot key (created_by, target_system, slot_cefr_level,
+// slot_unit_number, slot_lesson_number) that the Blueprint Engine writes,
+// so a single lesson row is reused across blueprint draft → unified gen →
+// publish. No duplicates by construction.
+
+const hubToTargetSystem = (hub: Hub): string => {
+  if (hub === 'playground') return 'kids';
+  if (hub === 'academy') return 'teen';
+  return 'adult';
+};
+
+const cefrToDifficulty = (cefr: string): 'beginner' | 'intermediate' | 'advanced' => {
+  const c = cefr.toUpperCase();
+  if (['PRE-A1', 'A1', 'A2'].includes(c)) return 'beginner';
+  if (['B1', 'B2'].includes(c)) return 'intermediate';
+  return 'advanced';
+};
+
+export interface SaveUnifiedLessonArgs {
+  output: UnifiedLessonOutput;
+  /** Blueprint coordinates — drive the upsert slot key. */
+  unitNumber: number;
+  lessonNumber: number;
+  unitTitle?: string;
+  curriculumTitle?: string;
+  themeHint?: string;
+}
+
+export interface SaveUnifiedLessonResult {
+  ok: boolean;
+  lessonId?: string;
+  error?: string;
+}
+
+export async function saveUnifiedLessonToLibrary(
+  args: SaveUnifiedLessonArgs,
+): Promise<SaveUnifiedLessonResult> {
+  const { output } = args;
+
+  if (output.validation_report.verdict === 'block') {
+    return { ok: false, error: 'Lesson is blocked by validation — cannot save.' };
+  }
+
+  const { data: userData, error: userErr } = await supabase.auth.getUser();
+  if (userErr || !userData.user) {
+    return { ok: false, error: 'You must be signed in.' };
+  }
+  const uid = userData.user.id;
+
+  const cefr = output.lesson_metadata.cefr.toUpperCase();
+  const targetSystem = hubToTargetSystem(output.hub);
+  const difficulty = cefrToDifficulty(cefr);
+  const globalOrder = args.unitNumber * 100 + args.lessonNumber;
+
+  const row = {
+    title: output.lesson_metadata.title,
+    description: output.blueprint.communicationGoal || null,
+    target_system: targetSystem,
+    difficulty_level: difficulty,
+    is_published: output.validation_report.verdict === 'publish',
+    created_by: uid,
+    sequence_order: globalOrder,
+    skills_focus: output.blueprint.grammarFocus ?? [],
+    content: { slides: output.slides, homework_missions: [] },
+    ai_metadata: {
+      cefr_level: cefr,
+      hub: output.hub,
+      unit_title: args.unitTitle ?? null,
+      unit_number: args.unitNumber,
+      lesson_number: args.lessonNumber,
+      curriculum_title: args.curriculumTitle ?? null,
+      theme_hint: args.themeHint ?? null,
+      unified_output: {
+        lesson_state: output.lesson_state,
+        pronunciation_layer: output.pronunciation_layer,
+        phonics_layer: output.phonics_layer,
+        adaptive_layer: output.adaptive_layer,
+        gamification_layer: output.gamification_layer,
+        validation_report: output.validation_report,
+        orchestrator_version: output.lesson_metadata.orchestrator_version,
+        state_hash: output.lesson_metadata.state_hash,
+        generated_at: output.lesson_metadata.generated_at,
+      },
+    },
+  };
+
+  try {
+    const { data, error } = await supabase
+      .from('curriculum_lessons')
+      .upsert([row] as any, {
+        onConflict: 'created_by,target_system,slot_cefr_level,slot_unit_number,slot_lesson_number',
+        ignoreDuplicates: false,
+      })
+      .select('id')
+      .single();
+    if (error) throw error;
+    return { ok: true, lessonId: (data as any)?.id };
+  } catch (err: any) {
+    return { ok: false, error: err?.message || 'Unknown DB error' };
+  }
+}
