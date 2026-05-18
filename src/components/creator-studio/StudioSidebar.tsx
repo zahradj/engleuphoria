@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Map, Palette, Library, LogOut, ChevronLeft, ChevronRight, Zap, BookOpen, Sparkles, GraduationCap, Briefcase, Users, Gamepad2 } from 'lucide-react';
+import { Map, Palette, Library, LogOut, ChevronLeft, ChevronRight, Zap, BookOpen, Sparkles, GraduationCap, Briefcase, Users, Gamepad2, Wand2 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { cn } from '@/lib/utils';
 import { useCreator, CreatorStep } from './CreatorContext';
@@ -11,7 +11,8 @@ import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
 
 const NAV: Array<{ key: CreatorStep; tKey: string; icon: React.ElementType; emoji: string; fallback?: string }> = [
   { key: 'blueprint', tKey: 'nav.blueprint', icon: Map, emoji: '🗺️' },
-  
+  { key: 'unified-generator', tKey: 'nav.unified_generator', icon: Wand2, emoji: '✨', fallback: 'Unified Generator' },
+
   { key: 'playground-creator', tKey: 'nav.playground_creator', icon: Sparkles, emoji: '🧒', fallback: 'Playground Creator' },
   { key: 'academy-creator', tKey: 'nav.academy_creator', icon: GraduationCap, emoji: '🎓', fallback: 'Academy Creator' },
   { key: 'success-creator', tKey: 'nav.success_creator', icon: Briefcase, emoji: '💼', fallback: 'Success Creator' },
