@@ -12,7 +12,7 @@ const corsHeaders = {
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
 const MODEL = 'gemini-2.5-flash';
 
-type SlideType = 'error_detection' | 'correction' | 'fill_blank';
+type SlideType = 'error_detection' | 'correction' | 'fill_blank' | 'multiple' | 'truefalse' | 'sentence_builder';
 
 interface Body {
   slide_type: SlideType;
@@ -71,6 +71,58 @@ const SCHEMA_BY_TYPE: Record<SlideType, Record<string, unknown>> = {
             after: { type: 'string' },
           },
           required: ['before', 'answer', 'after'],
+        },
+      },
+    },
+    required: ['items'],
+  },
+  multiple: {
+    type: 'object',
+    properties: {
+      items: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            question: { type: 'string' },
+            options: { type: 'array', items: { type: 'string' }, minItems: 3, maxItems: 4 },
+            answer: { type: 'string' },
+          },
+          required: ['question', 'options', 'answer'],
+        },
+      },
+    },
+    required: ['items'],
+  },
+  truefalse: {
+    type: 'object',
+    properties: {
+      items: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            statement: { type: 'string' },
+            answer: { type: 'boolean' },
+          },
+          required: ['statement', 'answer'],
+        },
+      },
+    },
+    required: ['items'],
+  },
+  sentence_builder: {
+    type: 'object',
+    properties: {
+      items: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            words: { type: 'array', items: { type: 'string' } },
+            answer: { type: 'array', items: { type: 'string' } },
+          },
+          required: ['words', 'answer'],
         },
       },
     },
