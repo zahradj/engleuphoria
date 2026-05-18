@@ -9,6 +9,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { HubType, GeneratedSlide } from '@/components/admin/lesson-builder/ai-wizard/types';
+import { SpeakingIntentPrompt } from '@/components/student/SpeakingIntentPrompt';
+import { useSpeakingIntent } from '@/hooks/useSpeakingIntent';
 
 interface LessonData {
   id: string;
@@ -28,6 +30,7 @@ const LessonReaderPage: React.FC = () => {
   const [lesson, setLesson] = useState<LessonData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { intent, setIntent, hydrated: intentHydrated } = useSpeakingIntent(id);
 
   useEffect(() => {
     if (!id) return;
@@ -67,6 +70,12 @@ const LessonReaderPage: React.FC = () => {
       </div>
     );
   }
+
+  // ── Speaking-first gate: 2-second intent prompt, once per session per lesson ──
+  if (intentHydrated && !intent) {
+    return <SpeakingIntentPrompt onChoose={setIntent} />;
+  }
+
 
   // ── Story-kind lessons get the dedicated immersive viewer ──
   const isStory = lesson.ai_metadata?.kind === 'story';
