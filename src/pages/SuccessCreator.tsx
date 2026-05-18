@@ -108,7 +108,7 @@ function makeSlide(type: SlideType | 'storybook'): Slide {
     case 'tone_compare':       return { type, block, title: 'Direct vs. Polite', direct: 'Send me the file.', polite: 'Could you please send me the file when you have a moment?', note: 'Polite forms protect relationships in professional settings.' };
     case 'functional_pattern': return { type, block, title: 'Pattern title', rule: 'Rule explanation.', examples: ['Example 1', 'Example 2', 'Example 3'] };
     case 'rewrite':            return { type, block, prompt: 'Rewrite to sound more professional.', original: 'I need this now.', instruction: 'Use a polite modal and add context.', sample: 'Could you please share this when you have a moment?' };
-    case 'fill_blank':         return { type, block, prompt: 'Complete the polite request.', before: 'Would you mind', after: 'me the figures?', answer: 'sending' };
+    case 'fill_blank':         return { type, block, prompt: 'Complete the polite request.', items: [{ before: 'Would you mind', answer: 'sending', after: 'me the figures?' }] } as any;
     case 'cluster':            return { type, block, title: 'Quick Drill', content: 'Apply the patterns to short scenarios.', activities: [
       { type: 'mcq', question: '___ you send me the report?', options: ['Can', 'Could', 'Do'], answer: 'Could', explanation: '“Could” is more polite for written requests.' },
       { type: 'fill', text: 'Could you please ___ (send) me the agenda?', answer: 'send' },
