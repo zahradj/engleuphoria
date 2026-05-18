@@ -494,32 +494,44 @@ function RewriteSlide({ slide, t }: { slide: Extract<Slide, { type: 'rewrite' }>
 }
 
 function FillBlankSlide({ slide, t }: { slide: Extract<Slide, { type: 'fill_blank' }>; t: ThemeTokens }) {
-  const [val, setVal] = useState('');
-  const [submitted, setSubmitted] = useState(false);
-  // Reset local input when the underlying slide changes (live edits in Creator)
-  useEffect(() => { setVal(''); setSubmitted(false); }, [slide.before, slide.after, slide.answer, slide.prompt]);
-  const correct = submitted && val.trim().toLowerCase() === slide.answer.toLowerCase();
+  const items = getFillBlankItems(slide);
+  const [index, setIndex] = useState(0);
+  const [vals, setVals] = useState<Record<number, string>>({});
+  const [subs, setSubs] = useState<Record<number, boolean>>({});
+  useEffect(() => {
+    setIndex((i) => Math.min(i, Math.max(0, items.length - 1)));
+    setVals({}); setSubs({});
+  }, [items.length, JSON.stringify(items)]);
+  const item = items[index];
+  if (!item) return <div className={t.muted}>No items.</div>;
+  const val = vals[index] ?? '';
+  const submitted = !!subs[index];
+  const norm = (s: string) => s.trim().toLowerCase();
+  const correct = submitted && norm(val) === norm(item.answer);
+  const score = items.reduce((s, it, i) => s + ((subs[i] && norm(vals[i] || '') === norm(it.answer)) ? 1 : 0), 0);
   return (
     <div className="space-y-6 max-w-2xl w-full">
       <h2 className={`text-2xl md:text-3xl font-semibold ${t.text}`}>{slide.prompt}</h2>
       <div className={`text-2xl ${t.text} flex items-center gap-3 flex-wrap`}>
-        <span>{slide.before}</span>
-        <input value={val} onChange={(e) => { setVal(e.target.value); setSubmitted(false); }}
-          onKeyDown={(e) => e.key === 'Enter' && setSubmitted(true)}
+        <span>{item.before}</span>
+        <input value={val}
+          onChange={(e) => { setVals((p) => ({ ...p, [index]: e.target.value })); setSubs((p) => ({ ...p, [index]: false })); }}
+          onKeyDown={(e) => e.key === 'Enter' && setSubs((p) => ({ ...p, [index]: true }))}
           className={`w-40 px-3 py-1.5 rounded-md border text-center outline-none focus:border-emerald-500 ${t.inputBg} ${
             submitted ? (correct ? 'border-emerald-500' : 'border-red-400') : ''
           }`} />
-        <span>{slide.after}</span>
+        <span>{item.after}</span>
       </div>
-      <button onClick={() => setSubmitted(true)} className="px-5 py-2 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium">
+      <button onClick={() => setSubs((p) => ({ ...p, [index]: true }))} className="px-5 py-2 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium">
         Check
       </button>
       {submitted && (
         <p className={`text-sm flex items-center gap-2 ${correct ? 'text-emerald-600' : 'text-red-500'}`}>
           {correct ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
-          {correct ? 'Correct.' : `Expected: ${slide.answer}`}
+          {correct ? 'Correct.' : `Expected: ${item.answer}`}
         </p>
       )}
+      <ItemPager total={items.length} index={index} setIndex={setIndex} score={score} t={t} />
     </div>
   );
 }
