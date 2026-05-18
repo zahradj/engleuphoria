@@ -71,6 +71,12 @@ const LessonReaderPage: React.FC = () => {
     );
   }
 
+  // ── Speaking-first gate: 2-second intent prompt, once per session per lesson ──
+  if (intentHydrated && !intent) {
+    return <SpeakingIntentPrompt onChoose={setIntent} />;
+  }
+
+
   // ── Story-kind lessons get the dedicated immersive viewer ──
   const isStory = lesson.ai_metadata?.kind === 'story';
   const slides: GeneratedSlide[] | null = lesson.content?.slides || null;
