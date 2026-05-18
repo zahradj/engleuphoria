@@ -1,0 +1,216 @@
+// Unified Lesson Generator — single hub-aware authoring page for all 3 creators.
+// Wires the orchestrator + stabilization engine to the Content Creator surface.
+
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { Loader2, Sparkles, ArrowLeft } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { HUB_CONFIGS, getHubConfig } from '@/services/contentCreator/hubConfigurations';
+import { browserGeminiAiClient } from '@/services/contentCreator/aiClient';
+import {
+  generateUnifiedLesson,
+  type UnifiedLessonOutput,
+} from '@/services/contentCreator/unifiedLessonGenerator';
+import { PedagogicalHealthPanel } from '@/components/content-creator/PedagogicalHealthPanel';
+import type { Hub, Cefr } from '@/governance/types';
+
+const CEFR_OPTIONS: Cefr[] = ['Pre-A1', 'A1', 'A2', 'B1', 'B2', 'C1'];
+
+function csv(s: string): string[] {
+  return s
+    .split(/[,\n]/)
+    .map((x) => x.trim())
+    .filter(Boolean);
+}
+
+export default function UnifiedLessonGeneratorPage() {
+  const navigate = useNavigate();
+  const [hub, setHub] = useState<Hub>('academy');
+  const cfg = useMemo(() => getHubConfig(hub), [hub]);
+
+  const [cefr, setCefr] = useState<Cefr>(cfg.defaultCefr);
+  const [title, setTitle] = useState('My new lesson');
+  const [theme, setTheme] = useState('everyday english');
+  const [vocab, setVocab] = useState('hello, goodbye, please, thank you, sorry');
+  const [grammar, setGrammar] = useState('present simple');
+  const [goal, setGoal] = useState('greet someone and ask how they are');
+  const [review, setReview] = useState('');
+
+  const [busy, setBusy] = useState(false);
+  const [output, setOutput] = useState<UnifiedLessonOutput | null>(null);
+
+  function onHubChange(next: Hub) {
+    setHub(next);
+    setCefr(getHubConfig(next).defaultCefr);
+    setOutput(null);
+  }
+
+  async function handleGenerate() {
+    setBusy(true);
+    setOutput(null);
+    try {
+      const result = await generateUnifiedLesson({
+        hub,
+        cefr,
+        unitId: `unit_${Date.now()}`,
+        lessonId: `lesson_${Date.now()}`,
+        ai: browserGeminiAiClient,
+        blueprint: {
+          title,
+          theme,
+          grammarFocus: csv(grammar),
+          targetVocab: csv(vocab),
+          communicationGoal: goal,
+          reviewTargets: csv(review),
+        },
+      });
+      setOutput(result);
+      const v = result.validation_report.verdict;
+      if (v === 'publish') toast.success('Lesson generated and validated.');
+      else if (v === 'repair') toast.warning('Lesson generated with repair flags. Review before publishing.');
+      else toast.error('Lesson blocked by validation. See report below.');
+    } catch (e: any) {
+      toast.error(`Generation failed: ${e?.message ?? e}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="mx-auto w-full max-w-6xl p-4 md:p-6">
+      <div className="mb-4 flex items-center gap-2">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/content-creator')}>
+          <ArrowLeft className="mr-1 h-4 w-4" /> Back
+        </Button>
+        <h1 className="text-2xl font-semibold">Unified Lesson Generator</h1>
+        <Badge variant="outline" className="ml-auto">
+          orchestrator + stabilization
+        </Badge>
+      </div>
+
+      <Tabs value={hub} onValueChange={(v) => onHubChange(v as Hub)} className="mb-4">
+        <TabsList className="grid w-full grid-cols-3">
+          {(['playground', 'academy', 'success'] as Hub[]).map((h) => (
+            <TabsTrigger key={h} value={h}>
+              {HUB_CONFIGS[h].label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        {(['playground', 'academy', 'success'] as Hub[]).map((h) => (
+          <TabsContent key={h} value={h}>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">{HUB_CONFIGS[h].label} — configuration</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 gap-2 text-xs md:grid-cols-4">
+                <Badge variant="secondary">tone: {HUB_CONFIGS[h].tone}</Badge>
+                <Badge variant="secondary">load: {HUB_CONFIGS[h].cognitiveLoad}</Badge>
+                <Badge variant="secondary">sentence: {HUB_CONFIGS[h].sentenceLength}</Badge>
+                <Badge variant="secondary">grammar: {HUB_CONFIGS[h].grammar}</Badge>
+                <Badge variant="secondary">phonics: {HUB_CONFIGS[h].phonicsPriority}</Badge>
+                <Badge variant="secondary">visuals: {HUB_CONFIGS[h].visualDependency}</Badge>
+                <Badge variant="secondary">slides: {HUB_CONFIGS[h].slideAesthetic}</Badge>
+                <Badge variant="secondary">produce: {HUB_CONFIGS[h].productionStyle}</Badge>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        ))}
+      </Tabs>
+
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle className="text-base">Lesson blueprint</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-2">
+          <div className="space-y-1">
+            <Label htmlFor="title">Title</Label>
+            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="cefr">CEFR</Label>
+            <Select value={cefr} onValueChange={(v) => setCefr(v as Cefr)}>
+              <SelectTrigger id="cefr"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {CEFR_OPTIONS.map((c) => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1 md:col-span-2">
+            <Label htmlFor="theme">Theme</Label>
+            <Input id="theme" value={theme} onChange={(e) => setTheme(e.target.value)} />
+          </div>
+          <div className="space-y-1 md:col-span-2">
+            <Label htmlFor="vocab">Target vocab (comma-separated)</Label>
+            <Textarea id="vocab" rows={2} value={vocab} onChange={(e) => setVocab(e.target.value)} />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="grammar">Grammar focus</Label>
+            <Input id="grammar" value={grammar} onChange={(e) => setGrammar(e.target.value)} />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="review">Review targets</Label>
+            <Input id="review" value={review} onChange={(e) => setReview(e.target.value)} placeholder="(optional)" />
+          </div>
+          <div className="space-y-1 md:col-span-2">
+            <Label htmlFor="goal">Communication goal</Label>
+            <Input id="goal" value={goal} onChange={(e) => setGoal(e.target.value)} />
+          </div>
+          <div className="md:col-span-2">
+            <Button onClick={handleGenerate} disabled={busy} className="w-full">
+              {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+              Generate {cfg.label.split(' (')[0]} lesson
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {output ? (
+        <div className="space-y-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-base">Result</CardTitle>
+              <Badge variant={output.validation_report.passed ? 'default' : 'destructive'}>
+                {output.validation_report.verdict.toUpperCase()}
+              </Badge>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <p>
+                <strong>{output.slides.length}</strong> slides compiled · state hash{' '}
+                <code className="text-xs">{output.lesson_metadata.state_hash}</code>
+              </p>
+              <details>
+                <summary className="cursor-pointer text-sm font-medium">Slide list</summary>
+                <ol className="mt-2 list-decimal space-y-1 pl-5 text-xs">
+                  {output.slides.map((s) => (
+                    <li key={s.id}>
+                      <span className="font-mono">{s.type}</span>
+                      {s.interaction_type ? ` · ${s.interaction_type}` : ''}
+                    </li>
+                  ))}
+                </ol>
+              </details>
+              <details>
+                <summary className="cursor-pointer text-sm font-medium">Raw lesson object</summary>
+                <pre className="mt-2 max-h-96 overflow-auto rounded bg-muted p-2 text-xs">
+                  {JSON.stringify(output, null, 2)}
+                </pre>
+              </details>
+            </CardContent>
+          </Card>
+
+          <PedagogicalHealthPanel lessonId={output.lesson_metadata.lesson_id} />
+        </div>
+      ) : null}
+    </div>
+  );
+}
