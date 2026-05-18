@@ -199,22 +199,32 @@ Return ONLY the JSON object.`;
       required: ["curriculum_title", "units"],
     };
 
-    const requestBody = JSON.stringify({
-      systemInstruction: { parts: [{ text: systemPrompt }] },
-      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema,
-        temperature: 0.85,
-        maxOutputTokens: 16384,
-        thinkingConfig: { thinkingBudget: 0 },
-      },
-    });
+    const buildRequestBody = (compact: boolean) =>
+      JSON.stringify({
+        systemInstruction: {
+          parts: [
+            {
+              text: compact
+                ? systemPrompt +
+                  "\n\nCOMPACT MODE: Keep every string under 90 characters. Limit vocabulary_focus to 6 items, grammar_focus to 1 item, pronunciation_focus to 1 item, review_targets to 2 items. Omit story_arc."
+                : systemPrompt,
+            },
+          ],
+        },
+        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema,
+          temperature: 0.85,
+          maxOutputTokens: 32768,
+          thinkingConfig: { thinkingBudget: 0 },
+        },
+      });
 
     const TRANSIENT = new Set([429, 500, 502, 503, 504]);
     const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-    async function callGemini(model: string): Promise<{ ok: true; data: any } | { ok: false; status: number; text: string }> {
+    async function callGemini(model: string, body: string): Promise<{ ok: true; data: any } | { ok: false; status: number; text: string }> {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
       const delays = [1500, 3000, 6000];
       let lastStatus = 0;
@@ -224,7 +234,7 @@ Return ONLY the JSON object.`;
           const r = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: requestBody,
+            body,
           });
           if (r.ok) return { ok: true, data: await r.json() };
           lastStatus = r.status;
@@ -241,10 +251,10 @@ Return ONLY the JSON object.`;
       return { ok: false, status: lastStatus, text: lastText };
     }
 
-    let geminiResult = await callGemini("gemini-2.5-flash");
+    let geminiResult = await callGemini("gemini-2.5-flash", buildRequestBody(false));
     if (!geminiResult.ok && TRANSIENT.has(geminiResult.status)) {
       console.warn("Primary model exhausted, falling back to gemini-2.0-flash");
-      geminiResult = await callGemini("gemini-2.0-flash");
+      geminiResult = await callGemini("gemini-2.0-flash", buildRequestBody(false));
     }
 
     if (!geminiResult.ok) {
@@ -266,20 +276,35 @@ Return ONLY the JSON object.`;
       );
     }
 
-    const j = geminiResult.data;
-    const candidate = j?.candidates?.[0];
-    const finishReason = candidate?.finishReason;
-    const rawText = (candidate?.content?.parts?.[0]?.text || "").trim();
+    let j = geminiResult.data;
+    let candidate = j?.candidates?.[0];
+    let finishReason = candidate?.finishReason;
+    let rawText = (candidate?.content?.parts?.[0]?.text || "").trim();
 
     if (finishReason && finishReason !== "STOP") {
       console.error("Gemini finishReason non-STOP:", finishReason, "text length:", rawText.length);
     }
 
-    let parsed: any = null;
-    try {
-      parsed = JSON.parse(rawText);
-    } catch (e) {
-      console.error("Failed to parse Gemini JSON:", e, "finishReason:", finishReason, "len:", rawText.length, rawText.slice(0, 500));
+    const tryParse = (s: string): any | null => {
+      try { return JSON.parse(s); } catch { return null; }
+    };
+    let parsed: any = tryParse(rawText);
+
+    // Retry once in compact mode when AI ran out of tokens or returned invalid JSON.
+    if ((!parsed || finishReason === "MAX_TOKENS") && (finishReason === "MAX_TOKENS" || !parsed)) {
+      console.warn("Retrying generate-curriculum-blueprint in COMPACT mode (finishReason=", finishReason, ")");
+      const retry = await callGemini("gemini-2.5-flash", buildRequestBody(true));
+      if (retry.ok) {
+        j = retry.data;
+        candidate = j?.candidates?.[0];
+        finishReason = candidate?.finishReason;
+        rawText = (candidate?.content?.parts?.[0]?.text || "").trim();
+        parsed = tryParse(rawText);
+      }
+    }
+
+    if (!parsed) {
+      console.error("Failed to parse Gemini JSON after retry. finishReason:", finishReason, "len:", rawText.length, rawText.slice(0, 500));
       const hint =
         finishReason === "MAX_TOKENS"
           ? "AI response was cut off (token limit). Try fewer units/lessons."
@@ -349,17 +374,39 @@ Return ONLY the JSON object.`;
         const game_targets = asStrArr(l.game_targets, 3);
         const homework_targets = asStrArr(l.homework_targets, 3);
 
+        // ── Deterministic fallbacks so blueprint is never empty ──
+        const themeWord = String(u.theme || u.unit_title || "everyday english")
+          .replace(/[^\w\s]/g, "").trim().toLowerCase();
+        const fallbackVocab = themeWord
+          ? themeWord.split(/\s+/).slice(0, 3)
+          : ["hello", "thank you", "please"];
+        const grammarByCefr: Record<string, string> = {
+          "Pre-A1": "be (am/is/are)", A1: "present simple", A2: "past simple",
+          B1: "present perfect", B2: "passive voice", C1: "inversion", C2: "cleft sentences",
+        };
+        let grammar_focus = asStrArr(l.grammar_focus, 4);
+        if (grammar_focus.length === 0) {
+          grammar_focus = [grammarByCefr[cefr_level] || "present simple"];
+        }
+        let vocabulary_focus_final = vocabulary_focus;
+        if (vocabulary_focus_final.length === 0) {
+          vocabulary_focus_final = fallbackVocab;
+        }
+        let communication_goal = String(l.communication_goal || objective || "").trim();
+        if (!communication_goal) {
+          communication_goal = `Use ${grammar_focus[0]} to talk about ${themeWord || "everyday situations"}.`;
+        }
+
         const enriched = {
           lesson_id: uuid(),
           lesson_number: idx + 1,
           title,
           skill_focus,
-          objective,
-          learning_objective: objective, // back-compat
-          // ── Enriched structured blueprint ─────────────────────────
-          communication_goal: String(l.communication_goal || objective || "").trim(),
-          grammar_focus: asStrArr(l.grammar_focus, 4),
-          vocabulary_focus,
+          objective: objective || communication_goal,
+          learning_objective: objective || communication_goal,
+          communication_goal,
+          grammar_focus,
+          vocabulary_focus: vocabulary_focus_final,
           pronunciation_focus: asStrArr(l.pronunciation_focus, 4),
           phonics_focus:
             String(hub).toLowerCase() === "playground"
@@ -376,10 +423,8 @@ Return ONLY the JSON object.`;
             arc: String(l.story_arc || `Unit ${uIdx + 1} · Lesson ${idx + 1}`),
             characters: [],
           },
-          game_targets: game_targets.length ? game_targets : vocabulary_focus.slice(0, 3),
-          homework_targets: homework_targets.length
-            ? homework_targets
-            : vocabulary_focus.slice(0, 3),
+          game_targets: game_targets.length ? game_targets : vocabulary_focus_final.slice(0, 3),
+          homework_targets: homework_targets.length ? homework_targets : vocabulary_focus_final.slice(0, 3),
         };
         unitTitlesSoFar.push(title);
         return enriched;

@@ -96,6 +96,18 @@ export const BlueprintEngine: React.FC = () => {
           unit_number: u.unit_number,
           unit_title: u.unit_title,
           unit_theme: u.theme,
+          // Preserve structured blueprint fields from the edge function so
+          // the Unified Generator can hydrate the lesson form correctly.
+          communication_goal: l.communication_goal,
+          grammar_focus: Array.isArray(l.grammar_focus) ? l.grammar_focus : undefined,
+          vocabulary_focus: Array.isArray(l.vocabulary_focus) ? l.vocabulary_focus : undefined,
+          pronunciation_focus: Array.isArray(l.pronunciation_focus) ? l.pronunciation_focus : undefined,
+          phonics_focus: Array.isArray(l.phonics_focus) ? l.phonics_focus : undefined,
+          review_targets: Array.isArray(l.review_targets) ? l.review_targets : undefined,
+          adaptive_profile: l.adaptive_profile,
+          story_state: l.story_state,
+          game_targets: Array.isArray(l.game_targets) ? l.game_targets : undefined,
+          homework_targets: Array.isArray(l.homework_targets) ? l.homework_targets : undefined,
         })),
       }));
 

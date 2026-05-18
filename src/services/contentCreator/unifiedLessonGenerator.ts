@@ -308,6 +308,10 @@ export async function saveUnifiedLessonToLibrary(
     sequence_order: globalOrder,
     skills_focus: output.blueprint.grammarFocus ?? [],
     content: { slides: output.slides, homework_missions: [] },
+    // Slot keys MUST match the unique index used by onConflict.
+    slot_cefr_level: cefr,
+    slot_unit_number: String(args.unitNumber),
+    slot_lesson_number: String(args.lessonNumber),
     ai_metadata: {
       cefr_level: cefr,
       hub: output.hub,
@@ -325,6 +329,7 @@ export async function saveUnifiedLessonToLibrary(
         validation_report: output.validation_report,
         orchestrator_version: output.lesson_metadata.orchestrator_version,
         state_hash: output.lesson_metadata.state_hash,
+        blueprint_hash: output.lesson_metadata.state_hash,
         generated_at: output.lesson_metadata.generated_at,
       },
     },

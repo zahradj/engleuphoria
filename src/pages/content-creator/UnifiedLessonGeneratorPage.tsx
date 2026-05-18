@@ -118,6 +118,25 @@ export default function UnifiedLessonGeneratorPage() {
     }
   }, [fromBlueprint, resolvedBlueprint]);
 
+  // Hydrate form state from the resolved structured blueprint exactly once
+  // per blueprint identity. This is THE bridge that makes curriculum-driven
+  // generation actually use curriculum vocab/grammar/goal.
+  const hydratedKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!resolvedBlueprint) return;
+    const key = `${resolvedBlueprint.unit_id}::${resolvedBlueprint.lesson_id}`;
+    if (hydratedKeyRef.current === key) return;
+    hydratedKeyRef.current = key;
+    setTitle(resolvedBlueprint.lesson_title || 'My new lesson');
+    setTheme(resolvedBlueprint.story_state?.theme || 'everyday english');
+    setGrammar((resolvedBlueprint.grammar_focus ?? []).join(', '));
+    setVocab((resolvedBlueprint.vocabulary_focus ?? []).join(', '));
+    setGoal(resolvedBlueprint.communication_goal || '');
+    setReview((resolvedBlueprint.review_targets ?? []).join(', '));
+    setHub(resolvedBlueprint.hub);
+    setCefr(resolvedBlueprint.cefr_level);
+  }, [resolvedBlueprint]);
+
   // If the user navigated here standalone (no blueprint), keep CEFR defaulting
   // to whatever hub they pick. Skip when locked from a blueprint.
   useEffect(() => {
