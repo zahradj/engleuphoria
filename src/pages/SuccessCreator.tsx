@@ -1020,21 +1020,47 @@ function SlideEditor({ slide, onChange, blueprint, hub = 'success', cefrLevel = 
         </div>
       );
 
-    case 'multiple':
+    case 'multiple': {
+      const items = (slide as any).items ?? (
+        (slide as any).question != null || Array.isArray((slide as any).options)
+          ? [{
+              question: (slide as any).question ?? '',
+              options: Array.isArray((slide as any).options) ? (slide as any).options : ['A', 'B', 'C'],
+              answer: (slide as any).answer ?? '',
+            }]
+          : []
+      );
       return (
         <div className="space-y-3">
-          <Field label="Question"><input className={inputCls} value={slide.question} onChange={(e) => onChange({ question: e.target.value } as any)} /></Field>
-          <Field label="Options (one per line)">
-            <textarea className={inputCls + ' h-24'} value={slide.options.join('\n')}
-              onChange={(e) => onChange({ options: e.target.value.split('\n').filter(Boolean) } as any)} />
-          </Field>
-          <Field label="Correct Answer">
-            <select className={inputCls} value={slide.answer} onChange={(e) => onChange({ answer: e.target.value } as any)}>
-              {slide.options.map((o) => <option key={o} value={o}>{o}</option>)}
-            </select>
-          </Field>
+          <Field label="Prompt"><input className={inputCls} value={(slide as any).prompt ?? ''} onChange={(e) => onChange({ prompt: e.target.value } as any)} /></Field>
+          <PracticeItemsEditor
+            slideType={'multiple' as any}
+            items={items}
+            onChange={(next) => onChange({ items: next, question: undefined, options: undefined, answer: undefined } as any)}
+            renderRow={(it, _i, update) => (
+              <div className="space-y-2">
+                <input className={inputCls} placeholder="Question" value={it.question || ''} onChange={(e) => update({ question: e.target.value })} />
+                <textarea className={inputCls + ' h-20'} placeholder="Options (one per line)" value={(it.options || []).join('\n')}
+                  onChange={(e) => {
+                    const opts = e.target.value.split('\n').filter(Boolean);
+                    const stillValid = opts.includes(it.answer);
+                    update({ options: opts, answer: stillValid ? it.answer : (opts[0] || '') });
+                  }} />
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500">Correct:</span>
+                  <select className={inputCls + ' flex-1'} value={it.answer || ''} onChange={(e) => update({ answer: e.target.value })}>
+                    {(it.options || []).map((o: string) => <option key={o} value={o}>{o}</option>)}
+                  </select>
+                </div>
+              </div>
+            )}
+            newItem={() => ({ question: 'New question?', options: ['A', 'B', 'C'], answer: 'A' })}
+            slide={slide}
+            hub="success"
+          />
         </div>
       );
+    }
 
     case 'tone_compare':
       return (
