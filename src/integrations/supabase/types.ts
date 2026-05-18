@@ -2851,6 +2851,33 @@ export type Database = {
         }
         Relationships: []
       }
+      curriculum_stabilization_signals: {
+        Row: {
+          consumed_at: string | null
+          created_at: string
+          id: string
+          payload: Json
+          signal_type: string
+          student_id: string
+        }
+        Insert: {
+          consumed_at?: string | null
+          created_at?: string
+          id?: string
+          payload?: Json
+          signal_type: string
+          student_id: string
+        }
+        Update: {
+          consumed_at?: string | null
+          created_at?: string
+          id?: string
+          payload?: Json
+          signal_type?: string
+          student_id?: string
+        }
+        Relationships: []
+      }
       curriculum_units: {
         Row: {
           age_group: string
@@ -6496,6 +6523,39 @@ export type Database = {
           total_lessons?: number
           updated_at?: string
           year?: number
+        }
+        Relationships: []
+      }
+      pedagogical_quality_reports: {
+        Row: {
+          created_at: string
+          final_verdict: string
+          id: string
+          lesson_id: string
+          metrics: Json
+          repairs_applied: Json
+          student_id: string | null
+          verdicts: Json
+        }
+        Insert: {
+          created_at?: string
+          final_verdict: string
+          id?: string
+          lesson_id: string
+          metrics?: Json
+          repairs_applied?: Json
+          student_id?: string | null
+          verdicts?: Json
+        }
+        Update: {
+          created_at?: string
+          final_verdict?: string
+          id?: string
+          lesson_id?: string
+          metrics?: Json
+          repairs_applied?: Json
+          student_id?: string | null
+          verdicts?: Json
         }
         Relationships: []
       }

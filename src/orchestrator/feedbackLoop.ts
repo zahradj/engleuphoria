@@ -3,6 +3,8 @@
 // Pure (no Supabase here); callers persist the returned mutations.
 
 import type { FeedbackSignal } from './types';
+import { runLongitudinalAnalysis, type LongitudinalInput } from '@/stabilization/longitudinal';
+import type { CurriculumStabilizationSignal } from '@/stabilization/types';
 
 export type CurriculumMutationKind =
   | 'unlock_next_unit'
@@ -95,4 +97,13 @@ export function processFeedback(signals: FeedbackSignal[]): CurriculumMutation[]
   }
 
   return out;
+}
+
+/**
+ * Run longitudinal stabilization analysis on a student's recent lessons.
+ * Returns signals to be persisted into `curriculum_stabilization_signals`
+ * and consumed by the NEXT `runLessonGeneration()` call (soft tier 6).
+ */
+export function processLongitudinal(input: LongitudinalInput): CurriculumStabilizationSignal[] {
+  return runLongitudinalAnalysis(input);
 }
