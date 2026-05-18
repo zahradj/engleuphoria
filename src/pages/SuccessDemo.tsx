@@ -63,7 +63,7 @@ export type Slide =
   | { type: 'tone_compare'; block: Block; title: string; direct: string; polite: string; note?: string }
   | { type: 'functional_pattern'; block: Block; title: string; rule: string; examples: string[] }
   | { type: 'rewrite'; block: Block; prompt: string; original: string; instruction: string; sample: string }
-  | { type: 'fill_blank'; block: Block; prompt: string; before: string; after: string; answer: string }
+  | { type: 'fill_blank'; block: Block; prompt: string; before?: string; after?: string; answer?: string; items?: { before: string; answer: string; after: string }[] }
   | { type: 'cluster'; block: Block; title: string; content?: string; activities: ClusterActivity[] }
   | { type: 'scenario'; block: Block; title: string; situation: string; task: string; placeholder?: string }
   | { type: 'email_task'; block: Block; subject: string; brief: string; sample: string }
