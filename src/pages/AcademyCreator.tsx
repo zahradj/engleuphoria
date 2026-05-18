@@ -109,8 +109,8 @@ function makeSlide(type: SlideType | 'storybook'): Slide {
     case 'matching': return { type, block, prompt: 'Match the pairs.', pairs: [{ left: 'A', right: '1' }, { left: 'B', right: '2' }] };
     case 'reading_passage': return { type, block, title: 'Reading title', passage: 'Short reading passage goes here…' };
     case 'listening': return { type, block, prompt: 'Listen and answer.', transcript: 'Audio transcript text used for TTS playback.' };
-    case 'multiple': return { type, block, question: 'Question?', options: ['A', 'B', 'C'], answer: 'A' };
-    case 'truefalse': return { type, block, statement: 'Statement is true.', answer: true };
+    case 'multiple': return { type, block, prompt: 'Choose the correct answer.', items: [{ question: 'Question?', options: ['A', 'B', 'C'], answer: 'A' }] } as any;
+    case 'truefalse': return { type, block, prompt: 'True or false?', items: [{ statement: 'Statement is true.', answer: true }] } as any;
     case 'grammar_pattern': return { type, block, title: 'Pattern title', rows: [{ a: 'Example 1', b: 'Example 2' }], rule: 'Rule explanation.' };
     case 'error_detection': return { type, block, prompt: 'Tap the wrong word.', items: [{ sentence: 'He go to school.', wrongIndex: 1 }] };
     case 'correction': return { type, block, prompt: 'Fix the sentence.', items: [{ wrong: 'She go home.', answer: 'She goes home.' }] };
